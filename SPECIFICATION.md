@@ -1,0 +1,696 @@
+# Chumak - Specification
+
+## 1. Overview
+
+### 1.1 Name & Tagline
+
+**Chumak** — Data Wrangling in the Browser
+
+*Named after the Ukrainian star-navigating traders who transformed raw goods into traded wealth, guided by the Milky Way (Chumatskyi Shliakh).*
+
+### 1.2 Description
+
+Chumak is a browser-based data wrangling tool for cleaning and transforming tabular data. It provides a visual interface for building transformation pipelines, inspired by Microsoft Power Query, with transformations stored as a declarative JSON specification. The tool runs entirely in the browser with no server dependencies.
+
+### 1.3 Design Principles
+
+| Principle | Implication |
+|-----------|-------------|
+| **Local-first** | All data stays in browser. No uploads, no accounts. |
+| **Progressive disclosure** | Simple defaults, optional advanced configuration. |
+| **Declarative specification** | Transformations are data (JSON), not code. |
+| **Reproducibility** | Workflows can be exported, shared, and replayed. |
+| **Incremental complexity** | UI reveals features as users need them. |
+
+---
+
+## 2. Target Audience
+
+### 2.1 Primary
+
+- Students learning data wrangling concepts
+- Users needing quick CSV cleaning without installing software
+- Analysts on machines where they can't install Python/R/Excel
+
+### 2.2 Assumptions
+
+- No programming experience required
+- Familiar with spreadsheet concepts (rows, columns, filtering)
+- Comfortable with basic logical expressions (e.g., `sales > 1000`)
+
+---
+
+## 3. Technical Constraints
+
+### 3.1 Runtime Environment
+
+| Constraint | Decision |
+|------------|----------|
+| Execution | Browser only, no backend |
+| Libraries | CDN-loaded, no build system required |
+| Deployment | Static hosting (GitHub Pages compatible) |
+| Browser support | Chrome and Safari (latest 2 versions) |
+| Offline | Core functionality works offline; URL imports require network |
+
+### 3.2 Core Dependencies
+
+```html
+<script src="https://unpkg.com/papaparse@5/papaparse.min.js"></script>
+<script src="https://unpkg.com/arquero@5/dist/arquero.min.js"></script>
+<script src="https://unpkg.com/alpinejs@3/dist/cdn.min.js" defer></script>
+```
+
+### 3.3 Storage
+
+| Storage Type | Purpose |
+|--------------|---------|
+| **localStorage** | User preferences, recent workflow list |
+| **IndexedDB** | Datasets (raw + cached previews), workflows, step snapshots |
+
+### 3.4 Performance Targets
+
+| Metric | Target |
+|--------|--------|
+| Initial file size support | Up to 10 MB |
+| Preview rendering | First 100 rows, paginated |
+| Step snapshot | Cached preview per step for instant navigation |
+
+---
+
+## 4. Data Model
+
+### 4.1 Conceptual Model
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                      Workflow                           │
+├─────────────────────────────────────────────────────────┤
+│  ┌─────────────┐         ┌─────────────────────────┐   │
+│  │   Source    │────────▶│        Model            │   │
+│  │  (raw CSV)  │         │  (transforms + output)  │   │
+│  └─────────────┘         └───────────┬─────────────┘   │
+│                                      │                  │
+│                          ┌───────────▼─────────────┐   │
+│                          │    Derived Model        │   │
+│                          │ (references Model,      │   │
+│                          │  adds more transforms)  │   │
+│                          └─────────────────────────┘   │
+└─────────────────────────────────────────────────────────┘
+```
+
+### 4.2 Entities
+
+#### Source
+
+Raw data input. Immutable once loaded.
+
+```typescript
+interface Source {
+  id: string;
+  name: string;                    // e.g., "sales.csv"
+  origin: "file" | "url";
+  originPath?: string;             // URL if loaded from web
+  delimiter: "," | "\t" | "auto";
+  rawSize: number;                 // bytes
+  rowCount: number;
+  columns: ColumnSchema[];
+  createdAt: string;               // ISO timestamp
+}
+
+interface ColumnSchema {
+  name: string;
+  inferredType: "string" | "number" | "boolean" | "date";
+}
+```
+
+#### Model
+
+A transformation pipeline applied to a Source or another Model.
+
+```typescript
+interface Model {
+  id: string;
+  name: string;                    // user-defined, e.g., "sales_cleaned"
+  parentId: string;                // Source ID or Model ID
+  parentType: "source" | "model";
+  transforms: Transform[];         // ordered list
+  stepSnapshots: StepSnapshot[];   // cached previews
+  createdAt: string;
+  updatedAt: string;
+}
+
+interface StepSnapshot {
+  stepIndex: number;
+  preview: Row[];                  // first 100 rows at this step
+  rowCount: number;
+  columns: string[];
+}
+```
+
+#### Workflow
+
+Container for Sources and Models. Represents a complete project.
+
+```typescript
+interface Workflow {
+  id: string;
+  name: string;
+  sources: Source[];
+  models: Model[];
+  activeModelId: string;           // currently viewed
+  createdAt: string;
+  updatedAt: string;
+  version: "1.0";                  // schema version for migrations
+}
+```
+
+### 4.3 Transform Specification Format
+
+Inspired by Vega-Lite. Each transform is one object in an array.
+
+```json
+{
+  "transforms": [
+    { "filter": "sales > 1000" },
+    { "derive": { "profit": "revenue - cost" } },
+    { "select": ["region", "sales", "profit"] },
+    { "sort": { "field": "profit", "order": "descending" } }
+  ]
+}
+```
+
+---
+
+## 5. Transformation Operations
+
+### 5.1 Phase 1 (MVP)
+
+| Operation | JSON Syntax | Notes |
+|-----------|-------------|-------|
+| **Filter** | `{ "filter": "expression" }` | Keep rows matching condition |
+| **Select** | `{ "select": ["col1", "col2"] }` | Keep only listed columns |
+| **Remove** | `{ "remove": ["col1"] }` | Drop listed columns |
+| **Rename** | `{ "rename": { "old": "new" } }` | Rename columns |
+| **Sort** | `{ "sort": { "field": "col", "order": "ascending" } }` | Single or multi-field |
+| **Derive** | `{ "derive": { "newCol": "expression" } }` | Add calculated column |
+| **Fill missing** | `{ "fillna": { "col": value } }` | Replace nulls/empty |
+| **Drop missing** | `{ "dropna": { "columns": ["col"] } }` | Remove rows with nulls |
+| **Find/replace** | `{ "replace": { "column": "col", "find": "x", "replace": "y" } }` | Text replacement |
+| **Group + Aggregate** | See below | Basic aggregation |
+
+#### Group + Aggregate (Phase 1 — Single Output)
+
+```json
+{
+  "aggregate": {
+    "groupby": ["region"],
+    "operations": [
+      { "op": "sum", "field": "sales", "as": "total_sales" },
+      { "op": "mean", "field": "profit", "as": "avg_profit" },
+      { "op": "count", "as": "row_count" }
+    ]
+  }
+}
+```
+
+Supported aggregation operations:
+`count`, `sum`, `mean`, `median`, `min`, `max`, `stdev`, `variance`
+
+### 5.2 Phase 2 (Derived Datasets & Joins)
+
+| Operation | JSON Syntax | Notes |
+|-----------|-------------|-------|
+| **Create derived model** | UI action, not a transform | Reference existing model, add transforms |
+| **Lookup/Join** | `{ "join": { ... } }` | Combine datasets |
+
+#### Join Specification
+
+```json
+{
+  "join": {
+    "model": "model_abc123",
+    "left_on": ["region_id"],
+    "right_on": ["id"],
+    "type": "left",
+    "select": ["region_name", "population"]
+  }
+}
+```
+
+Join types: `left`, `inner`
+
+### 5.3 Phase 3 (Advanced Transforms & Polish)
+
+| Operation | JSON Syntax | Notes |
+|-----------|-------------|-------|
+| **Pivot** | `{ "pivot": { "rows": "col", "columns": "col", "values": "col" } }` | Long → wide |
+| **Unpivot** | `{ "unpivot": { "columns": ["a", "b"], "as": ["key", "value"] } }` | Wide → long |
+| **Split column** | `{ "split": { "column": "col", "delimiter": ",", "as": ["a", "b"] } }` | Split into multiple |
+| **Merge columns** | `{ "concat": { "columns": ["a", "b"], "separator": " ", "as": "full" } }` | Combine columns |
+| **Cast type** | `{ "cast": { "column": "col", "type": "number" } }` | Explicit type conversion |
+
+---
+
+## 6. User Interface
+
+### 6.1 Main Layout
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│  ☆ Chumak                 [Import CSV]  [Export ▼]  [Workflow ▼] │
+├────────────────┬─────────────────────────────────────────────────┤
+│                │                                                 │
+│   Sources &    │              Data Preview                       │
+│    Models      │         (table, 100 rows, paginated)            │
+│   (tree view)  │                                                 │
+│                │                                                 │
+│ ───────────────│                                                 │
+│                │                                                 │
+│   Applied      ├─────────────────────────────────────────────────┤
+│    Steps       │                                                 │
+│   (list)       │         Add Transform Panel                     │
+│                │      (contextual form/buttons)                  │
+│  [+ Add Step]  │                                                 │
+│                │                                                 │
+├────────────────┴─────────────────────────────────────────────────┤
+│   [View JSON]  (collapsible bottom panel, read-only)             │
+└──────────────────────────────────────────────────────────────────┘
+```
+
+### 6.2 Panel Behaviors
+
+#### Sources & Models Panel
+- Tree structure showing Sources and their derived Models
+- Click to switch active model
+- Right-click or menu: rename, delete, duplicate, create derived model
+
+#### Applied Steps Panel
+- Ordered list of transforms for active model
+- Click step → show cached snapshot preview (no revert)
+- Each step has: description, revert button (⟲), delete button (×)
+- Revert button: deletes this step and all subsequent steps
+- Drag to reorder (Phase 3)
+
+#### Data Preview
+- Shows first 100 rows
+- Pagination controls for additional pages
+- Column headers show inferred type icon
+- Click column header for quick actions (sort, filter, rename, remove)
+
+#### Add Transform Panel
+- Shows available operations as buttons/cards
+- Clicking operation opens contextual form
+- Form has sensible defaults pre-filled
+- "Apply" adds step to list
+
+#### JSON Viewer
+- Collapsible panel at bottom
+- Shows full transform array for active model
+- Read-only in Phase 1
+- Syntax highlighted
+- Copy button
+
+### 6.3 File Handling
+
+| Action | Behavior |
+|--------|----------|
+| Import CSV | File picker or drag-drop. Creates new Source. |
+| Import from URL | Modal with URL input. Fetches and creates Source. |
+| Export result CSV | Downloads transformed data as CSV. |
+| Export workflow | Downloads `.chumak.json` file with full Workflow object. |
+| Import workflow | Loads `.chumak.json`, restores Sources (prompts for re-upload if data missing). |
+
+---
+
+## 7. Persistence & Storage
+
+### 7.1 Auto-Save
+
+- Workflow saved to IndexedDB on every change
+- Debounced (500ms after last change)
+- No explicit "Save" button needed
+
+### 7.2 IndexedDB Schema
+
+```
+Database: chumak-db
+
+Object Stores:
+├── workflows
+│   └── { id, name, sources, models, ... }
+├── sourceData
+│   └── { sourceId, rows: [...] }
+├── snapshots
+│   └── { modelId, stepIndex, preview, rowCount, columns }
+└── preferences
+    └── { key, value }
+```
+
+### 7.3 Storage Limits
+
+- Warn user if IndexedDB usage exceeds 50MB
+- Offer to clear old workflows
+
+### 7.4 Export Formats
+
+#### Workflow Export (`.chumak.json`)
+
+```json
+{
+  "version": "1.0",
+  "name": "My Analysis",
+  "exportedAt": "2025-01-15T10:30:00Z",
+  "sources": [
+    {
+      "id": "src_1",
+      "name": "sales.csv",
+      "columns": [...],
+      "dataEmbedded": false
+    }
+  ],
+  "models": [
+    {
+      "id": "mdl_1",
+      "name": "sales_cleaned",
+      "parentId": "src_1",
+      "transforms": [...]
+    }
+  ]
+}
+```
+
+Option: embed source data (for full reproducibility) vs. reference only (smaller file, requires re-upload).
+
+---
+
+## 8. Phased Roadmap
+
+### Phase 1 — MVP
+
+**Goal:** Usable for basic data cleaning exercises.
+
+| Component | Scope |
+|-----------|-------|
+| Data import | CSV/TSV from file or URL |
+| Transforms | filter, select, remove, rename, sort, derive, fillna, dropna, replace, aggregate |
+| UI | Full layout, step list, preview, JSON viewer |
+| Persistence | IndexedDB auto-save, workflow export/import |
+| Export | Result CSV, workflow JSON |
+| Testing | Test infrastructure, 90%+ coverage on transform compiler |
+
+### Phase 2 — Derived Datasets
+
+**Goal:** Support relational modeling, joins.
+
+| Component | Scope |
+|-----------|-------|
+| Multiple sources | Load several CSVs in one workflow |
+| Derived models | Create model referencing another model |
+| Joins | Left join, inner join between models |
+| UI updates | Tree view for sources/models, join builder |
+| Testing | Join tests, multi-source workflow tests |
+
+### Phase 3 — Polish & Advanced
+
+**Goal:** Feature completeness, UX refinement.
+
+| Component | Scope |
+|-----------|-------|
+| Transforms | pivot, unpivot, split, concat, cast |
+| UI | Drag-reorder steps, column quick actions, keyboard shortcuts |
+| Progressive disclosure | Collapsible advanced options in forms |
+| Performance | Web Worker for large files, smarter caching |
+| Testing | Larger file sizes (50MB+) |
+| Testing | Performance benchmarks, CI integration |
+
+---
+
+## 9. Explicit Non-Goals
+
+The following are **out of scope** for the foreseeable future:
+
+- User accounts or authentication
+- Server-side processing
+- Real-time collaboration
+- Charts or visualization (may reconsider later)
+- Python/R/SQL code export
+- Mobile-optimized UI
+- Support for Excel files (.xlsx)
+- Browser support beyond Chrome/Safari
+
+---
+
+## 10. Open Questions
+
+| Question | Notes |
+|----------|-------|
+| Expression syntax | Use simple `column > value` and auto-prefix? Or require `datum.column`? |
+| Error handling | How to surface invalid expressions or type mismatches? |
+| Large file UX | Stream parsing with progress bar? Or reject files over limit? |
+| Step descriptions | Auto-generated, user-editable, or both? |
+| Undo granularity | Is step-level revert sufficient, or need finer undo? |
+| Visual identity | Logo, color scheme — star/navigation theme? |
+
+---
+
+## 11. Appendix: Expression Syntax
+
+### Simple expressions (Phase 1)
+
+```
+# Comparisons
+sales > 1000
+region == "North"
+profit != 0
+
+# Boolean
+sales > 1000 and region == "North"
+status == "active" or status == "pending"
+
+# Arithmetic (in derive)
+revenue - cost
+price * quantity
+(revenue - cost) / revenue * 100
+```
+
+### Column references
+
+Unquoted names for simple columns:
+```
+sales > 1000
+```
+
+Bracket notation for spaces/special chars:
+```
+[Total Sales] > 1000
+```
+
+---
+
+## 12. Appendix: Branding Notes
+
+**Name:** Chumak (Чумак)
+
+**Story:** Ukrainian traders who navigated by the stars, transforming raw goods (salt, fish) into traded wealth along routes guided by the Milky Way — *Chumatskyi Shliakh*.
+
+**Potential visual motifs:**
+- Stylized Milky Way arc
+- Salt crystal / wagon wheel
+- Star as accent mark
+- Cyrillic Ч (Che) as logo element
+
+**Tone:** Practical, trustworthy, quietly cultural — a tool that gets the job done, with a story behind it.
+
+## 13. Testing Strategy
+
+### 13.1 Philosophy
+
+- **Test-first where practical** — especially for the transform compiler and expression parser
+- **Every transform operation has tests** — the core logic must be reliable
+- **Tests run in browser** — consistent with no-build-system constraint
+- **Tests are part of the repo** — anyone can run them by opening a file
+
+### 13.2 Testing Stack
+
+CDN-compatible, no build required:
+
+```html
+<!-- Test runner -->
+<script src="https://unpkg.com/mocha@10/mocha.js"></script>
+<script src="https://unpkg.com/chai@4/chai.js"></script>
+
+<!-- Optional: DOM testing utilities -->
+<script src="https://unpkg.com/@testing-library/dom@9/dist/@testing-library/dom.umd.js"></script>
+```
+
+Test file structure:
+```
+/chumak
+├── index.html              # Main app
+├── tests/
+│   ├── runner.html         # Open in browser to run all tests
+│   ├── transforms.test.js  # Transform compiler tests
+│   ├── parser.test.js      # Expression parser tests
+│   ├── storage.test.js     # IndexedDB/persistence tests
+│   └── ui.test.js          # UI interaction tests
+└── src/
+    └── ...
+```
+
+### 13.3 Test Categories
+
+#### Unit Tests (Priority: Critical)
+
+| Area | What to Test | Example |
+|------|--------------|---------|
+| **Transform compiler** | Each transform type produces correct Arquero output | `filter` with `sales > 1000` keeps only matching rows |
+| **Expression parser** | Expressions compile to valid Arquero syntax | `revenue - cost` → `d => d.revenue - d.cost` |
+| **Column reference handling** | Bracket notation, special characters | `[Total Sales]` → `d["Total Sales"]` |
+| **Type inference** | Correct types detected from CSV data | `"123"` → number, `"2025-01-01"` → date |
+| **Aggregation operations** | All ops (sum, mean, etc.) work correctly | `sum` of `[1,2,3]` → `6` |
+| **Edge cases** | Empty data, missing values, single row | Filter that removes all rows → empty table |
+
+#### Integration Tests (Priority: High)
+
+| Area | What to Test | Example |
+|------|--------------|---------|
+| **CSV parsing → Transform → Export** | Full pipeline roundtrip | Load CSV, apply 3 transforms, export, verify output |
+| **Step snapshots** | Snapshots cached correctly at each step | Add 3 steps, click step 2, see correct preview |
+| **Workflow save/load** | IndexedDB persistence works | Create workflow, refresh page, workflow restored |
+| **Workflow export/import** | `.chumak.json` roundtrip | Export workflow, clear storage, import, identical state |
+
+#### UI Tests (Priority: Medium)
+
+| Area | What to Test | Example |
+|------|--------------|---------|
+| **File import** | Drag-drop and file picker work | Drop CSV, table appears |
+| **Transform forms** | Forms generate correct JSON | Fill filter form, correct transform added |
+| **Step interaction** | Click, revert, delete work | Click step shows snapshot; revert removes subsequent |
+| **JSON viewer** | Displays current transforms | Add steps, JSON panel shows them |
+
+### 13.4 Test Coverage Targets
+
+| Phase | Coverage Target | Focus |
+|-------|-----------------|-------|
+| Phase 1 | 90%+ for transform compiler | Every transform type, expression edge cases |
+| Phase 1 | 80%+ for persistence | Save, load, export, import |
+| Phase 2 | 90%+ for joins | Join types, key matching, edge cases |
+| Phase 3 | Maintain coverage | New transforms tested before merge |
+
+### 13.5 Test Data
+
+Maintain a set of fixture files:
+
+```
+/tests/fixtures/
+├── simple.csv              # 10 rows, clean data
+├── types.csv               # Mixed types for inference testing
+├── missing.csv             # Nulls, empty strings
+├── special-chars.csv       # Column names with spaces, quotes
+├── large.csv               # 10k rows for performance tests
+└── unicode.csv             # Non-ASCII content, UTF-8
+```
+
+### 13.6 Test Patterns
+
+#### Transform Test Pattern
+
+```javascript
+describe('filter transform', () => {
+  it('keeps rows matching simple comparison', () => {
+    const input = aq.table({
+      sales: [100, 500, 1500, 2000],
+      region: ['North', 'South', 'North', 'East']
+    });
+    
+    const transform = { filter: 'sales > 1000' };
+    const result = applyTransform(input, transform);
+    
+    expect(result.numRows()).to.equal(2);
+    expect(result.array('sales')).to.deep.equal([1500, 2000]);
+  });
+
+  it('handles string equality', () => {
+    const input = aq.table({
+      region: ['North', 'South', 'North']
+    });
+    
+    const transform = { filter: 'region == "North"' };
+    const result = applyTransform(input, transform);
+    
+    expect(result.numRows()).to.equal(2);
+  });
+
+  it('returns empty table when no rows match', () => {
+    const input = aq.table({ sales: [1, 2, 3] });
+    
+    const transform = { filter: 'sales > 1000' };
+    const result = applyTransform(input, transform);
+    
+    expect(result.numRows()).to.equal(0);
+  });
+
+  it('handles column names with spaces', () => {
+    const input = aq.table({ 'Total Sales': [100, 2000] });
+    
+    const transform = { filter: '[Total Sales] > 500' };
+    const result = applyTransform(input, transform);
+    
+    expect(result.numRows()).to.equal(1);
+  });
+});
+```
+
+#### Workflow Roundtrip Test Pattern
+
+```javascript
+describe('workflow persistence', () => {
+  it('survives export/import roundtrip', async () => {
+    // Create workflow
+    const workflow = createWorkflow('Test');
+    await addSource(workflow, 'test.csv', testData);
+    await addTransform(workflow.models[0], { filter: 'x > 1' });
+    
+    // Export
+    const exported = exportWorkflow(workflow);
+    const json = JSON.stringify(exported);
+    
+    // Import
+    const imported = JSON.parse(json);
+    const restored = await importWorkflow(imported, { testData });
+    
+    // Verify
+    expect(restored.models[0].transforms).to.deep.equal(
+      workflow.models[0].transforms
+    );
+  });
+});
+```
+
+### 13.7 Running Tests
+
+#### Development
+
+Open `/tests/runner.html` in browser. Tests run automatically, results displayed on page.
+
+#### CI (Optional, Future)
+
+If GitHub Actions added later:
+
+```yaml
+# .github/workflows/test.yml
+- uses: browser-actions/setup-chrome@latest
+- run: npx serve . &
+- run: npx mocha-headless-chrome -f http://localhost:3000/tests/runner.html
+```
+
+### 13.8 Test-Driven Development Workflow
+
+For each new transform:
+
+1. **Write test first** — define expected input/output
+2. **Run test** — confirm it fails
+3. **Implement transform** — minimal code to pass
+4. **Add edge case tests** — empty data, missing values, special characters
+5. **Refactor if needed** — tests ensure no regression
+6. **Update JSON schema** — document the transform format
