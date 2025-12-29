@@ -2,7 +2,6 @@
 
 > **Purpose**: Onboarding document for Claude AI sessions working on Chumak
 
-**Last Updated**: 2025-01-23
 **Current Phase**: Design Complete, Ready for Implementation
 
 ---
@@ -250,7 +249,7 @@ chumak/
 
 **Target users**: Non-programmers
 - Students learning data wrangling
-- Analysts on restricted machines
+- Analysts looking to transform arbitrary spreadsheet data into tidy tabular format
 - Users needing quick CSV cleaning
 
 **NOT target users**:
@@ -591,7 +590,7 @@ Phase 1 whitelist:
 ## Helpful Reminders
 
 1. **The user is the project owner** - defer to their judgment on vision and priorities
-2. **Design phase is complete** - focus on implementation, not redesigning
+2. **Design phase is complete, but can be changed by the user** - focus on implementation, not redesigning
 3. **Research informed decisions** - leverage the 8-project analysis in research/
 4. **Security is non-negotiable** - never compromise on sandboxing/validation
 5. **Target audience matters** - non-programmers, not JavaScript developers
