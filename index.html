@@ -534,12 +534,13 @@
                 <div class="sources-section">
                     <div class="sources-header">Sources & Models</div>
                     <div class="sources-list">
-                        <div class="source-item">
+                        <!-- Placeholder removed - will be populated dynamically -->
+                        <!-- <div class="source-item">
                             <span>📄 sales.csv</span>
                         </div>
                         <div class="model-item active">
                             <span>📊 sales_cleaned</span>
-                        </div>
+                        </div> -->
                     </div>
                 </div>
 
@@ -583,7 +584,8 @@
             <div class="data-preview">
                 <div class="preview-table-container">
                     <table class="preview-table">
-                        <thead>
+                        <!-- Placeholder removed - will be populated dynamically -->
+                        <!-- <thead>
                             <tr>
                                 <th>region <small>Aa</small></th>
                                 <th>sales <small>#</small></th>
@@ -600,11 +602,11 @@
                                     <td x-text="row.date"></td>
                                 </tr>
                             </template>
-                        </tbody>
+                        </tbody> -->
                     </table>
                 </div>
                 <div class="preview-footer">
-                    <span>Showing 1-10 of 5,432 rows</span>
+                    <span><!-- Row count will be populated dynamically --></span>
                     <div>
                         <button>◀ Prev</button>
                         <button>Next ▶</button>
@@ -786,7 +788,7 @@
         function chumakApp() {
             return {
                 // UI State
-                showWelcome: true,
+                showWelcome: false, // Disabled - was true
                 activeModal: null,
                 activeTab: 'steps',
                 activeStep: null,
@@ -794,6 +796,11 @@
                 dontShowWelcome: false,
 
                 // Data
+                steps: [], // Placeholder removed - was: [{ type: 'Filter', summary: 'sales > 1000' }, ...]
+
+                mockData: [], // Placeholder removed - was: [{ id: 1, region: 'North', ... }, ...]
+
+                /* Original placeholder data (commented out):
                 steps: [
                     { type: 'Filter', summary: 'sales > 1000' },
                     { type: 'Derive', summary: 'profit = revenue - cost' },
@@ -812,6 +819,7 @@
                     { id: 9, region: 'North', sales: 1700, profit: 360, date: '2025-01-23' },
                     { id: 10, region: 'South', sales: 2000, profit: 440, date: '2025-01-24' }
                 ],
+                */
 
                 // Computed
                 get jsonView() {
