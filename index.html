@@ -1,0 +1,494 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chumak — Data Wrangling in the Browser</title>
+  <link rel="stylesheet" href="https://unpkg.com/normalize.css@8/normalize.css">
+  <link rel="stylesheet" href="styles/chumak.css">
+  <script src="https://unpkg.com/alpinejs@3/dist/cdn.min.js" defer></script>
+</head>
+<body x-data="chumakApp()">
+
+  <!-- Header -->
+  <header class="header">
+    <div class="header__content">
+      <div class="header__logo">
+        <span class="header__logo-icon">☆</span>
+        <span class="header__logo-text">Chumak</span>
+      </div>
+      <div class="header__actions">
+        <button class="button button--primary">Import CSV</button>
+        <button class="button button--secondary">
+          Export ▼
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Transform Toolbar -->
+  <div class="toolbar">
+    <button class="toolbar__button" @click="openDialog('filter')">Filter</button>
+    <button class="toolbar__button" @click="openDialog('select')">Select</button>
+    <button class="toolbar__button">Remove</button>
+    <button class="toolbar__button">Rename</button>
+    <button class="toolbar__button">Sort</button>
+    <button class="toolbar__button" @click="openDialog('derive')">Derive</button>
+    <button class="toolbar__button">Fill Missing</button>
+    <button class="toolbar__button">Drop Missing</button>
+    <button class="toolbar__button">Find/Replace</button>
+    <button class="toolbar__button">Aggregate</button>
+  </div>
+
+  <!-- Left Panel -->
+  <aside class="left-panel">
+
+    <!-- Sources & Models -->
+    <section class="panel-section">
+        <h2 class="panel-section__header">Sources & Models</h2>
+        <div class="tree-view">
+
+          <!-- Source 1: sales.csv -->
+          <div class="tree-item tree-item--source">
+            <span class="tree-item__icon">📄</span>
+            <span class="tree-item__name">sales.csv</span>
+          </div>
+          <div class="tree-item tree-item--model tree-item--active">
+            <span class="tree-item__indent"></span>
+            <span class="tree-item__icon">📊</span>
+            <span class="tree-item__name">sales_cleaned</span>
+          </div>
+          <div class="tree-item tree-item--model">
+            <span class="tree-item__indent"></span>
+            <span class="tree-item__icon">📊</span>
+            <span class="tree-item__name">sales_by_region</span>
+          </div>
+
+          <!-- Source 2: students.csv -->
+          <div class="tree-item tree-item--source">
+            <span class="tree-item__icon">📄</span>
+            <span class="tree-item__name">students.csv</span>
+          </div>
+          <div class="tree-item tree-item--model">
+            <span class="tree-item__indent"></span>
+            <span class="tree-item__icon">📊</span>
+            <span class="tree-item__name">students_processed</span>
+          </div>
+
+          <!-- Source 3: regions.csv -->
+          <div class="tree-item tree-item--source">
+            <span class="tree-item__icon">📄</span>
+            <span class="tree-item__name">regions.csv</span>
+          </div>
+
+        </div>
+      </section>
+
+      <!-- Steps Panel -->
+      <section class="panel-section panel-section--flex">
+        <div class="tabs">
+          <button
+            class="tab"
+            :class="{ 'tab--active': activeTab === 'steps' }"
+            @click="activeTab = 'steps'"
+          >
+            Steps
+          </button>
+          <button
+            class="tab"
+            :class="{ 'tab--active': activeTab === 'json' }"
+            @click="activeTab = 'json'"
+          >
+            JSON
+          </button>
+        </div>
+
+        <!-- Steps List -->
+        <div class="steps-list" x-show="activeTab === 'steps'">
+          <div class="step-item" :class="{ 'step-item--active': activeStep === 1 }" @click="activeStep = 1">
+            <span class="step-item__number">1.</span>
+            <span class="step-item__description">Filter: sales > 1000</span>
+            <button class="step-item__delete">×</button>
+          </div>
+          <div class="step-item" :class="{ 'step-item--active': activeStep === 2 }" @click="activeStep = 2">
+            <span class="step-item__number">2.</span>
+            <span class="step-item__description">Derive: profit_margin = ...</span>
+            <button class="step-item__delete">×</button>
+          </div>
+          <div class="step-item" :class="{ 'step-item--active': activeStep === 3 }" @click="activeStep = 3">
+            <span class="step-item__number">3.</span>
+            <span class="step-item__description">Select: 5 columns</span>
+            <button class="step-item__delete">×</button>
+          </div>
+          <div class="step-item" :class="{ 'step-item--active': activeStep === 4 }" @click="activeStep = 4">
+            <span class="step-item__number">4.</span>
+            <span class="step-item__description">Sort: profit (desc)</span>
+            <button class="step-item__delete">×</button>
+          </div>
+
+          <button class="add-step-button">+ Add Step</button>
+        </div>
+
+        <!-- JSON View -->
+        <div class="json-view" x-show="activeTab === 'json'">
+          <pre class="json-view__content">{
+  "transforms": [
+    { "filter": "sales > 1000" },
+    {
+      "derive": {
+        "profit_margin": "(profit / sales) * 100"
+      }
+    },
+    {
+      "select": [
+        "region",
+        "sales",
+        "profit",
+        "profit_margin",
+        "date"
+      ]
+    },
+    {
+      "sort": {
+        "field": "profit",
+        "order": "descending"
+      }
+    }
+  ]
+}</pre>
+          <button class="button button--secondary button--small json-view__copy">Copy</button>
+        </div>
+      </section>
+
+  </aside>
+
+  <!-- Main Content Area -->
+  <main class="main-content">
+
+    <!-- Data Preview Table -->
+    <div class="table-container">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th class="data-table__header">
+              region
+              <span class="type-indicator">Aa</span>
+            </th>
+            <th class="data-table__header data-table__header--number">
+              sales
+              <span class="type-indicator">#</span>
+            </th>
+            <th class="data-table__header data-table__header--number">
+              profit
+              <span class="type-indicator">#</span>
+            </th>
+            <th class="data-table__header data-table__header--number">
+              profit_margin
+              <span class="type-indicator">#</span>
+            </th>
+            <th class="data-table__header">
+              date
+              <span class="type-indicator">📅</span>
+            </th>
+          </tr>
+        </thead>
+        <tbody>
+          <tr class="data-table__row">
+            <td class="data-table__cell">West</td>
+            <td class="data-table__cell data-table__cell--number">2,500</td>
+            <td class="data-table__cell data-table__cell--number">580</td>
+            <td class="data-table__cell data-table__cell--number">23.2</td>
+            <td class="data-table__cell">2025-01-22</td>
+          </tr>
+          <tr class="data-table__row">
+            <td class="data-table__cell">West</td>
+              <td class="data-table__cell data-table__cell--number">2,300</td>
+              <td class="data-table__cell data-table__cell--number">480</td>
+              <td class="data-table__cell data-table__cell--number">20.9</td>
+            <td class="data-table__cell">2025-01-26</td>
+          </tr>
+          <tr class="data-table__row">
+            <td class="data-table__cell">East</td>
+              <td class="data-table__cell data-table__cell--number">2,400</td>
+              <td class="data-table__cell data-table__cell--number">530</td>
+              <td class="data-table__cell data-table__cell--number">22.1</td>
+            <td class="data-table__cell">2025-01-29</td>
+          </tr>
+          <tr class="data-table__row">
+            <td class="data-table__cell">North</td>
+              <td class="data-table__cell data-table__cell--number">2,200</td>
+              <td class="data-table__cell data-table__cell--number">520</td>
+              <td class="data-table__cell data-table__cell--number">23.6</td>
+            <td class="data-table__cell">2025-01-19</td>
+          </tr>
+          <tr class="data-table__row">
+            <td class="data-table__cell">South</td>
+              <td class="data-table__cell data-table__cell--number">2,100</td>
+              <td class="data-table__cell data-table__cell--number">450</td>
+              <td class="data-table__cell data-table__cell--number">21.4</td>
+            <td class="data-table__cell">2025-01-16</td>
+          </tr>
+          <tr class="data-table__row">
+            <td class="data-table__cell">South</td>
+              <td class="data-table__cell data-table__cell--number">2,000</td>
+              <td class="data-table__cell data-table__cell--number">440</td>
+              <td class="data-table__cell data-table__cell--number">22.0</td>
+            <td class="data-table__cell">2025-01-24</td>
+          </tr>
+          <tr class="data-table__row">
+            <td class="data-table__cell">North</td>
+              <td class="data-table__cell data-table__cell--number">1,950</td>
+              <td class="data-table__cell data-table__cell--number">390</td>
+              <td class="data-table__cell data-table__cell--number">20.0</td>
+            <td class="data-table__cell">2025-01-27</td>
+          </tr>
+          <tr class="data-table__row">
+            <td class="data-table__cell">East</td>
+              <td class="data-table__cell data-table__cell--number">1,900</td>
+              <td class="data-table__cell data-table__cell--number">410</td>
+              <td class="data-table__cell data-table__cell--number">21.6</td>
+            <td class="data-table__cell">2025-01-21</td>
+          </tr>
+          <tr class="data-table__row">
+            <td class="data-table__cell">West</td>
+              <td class="data-table__cell data-table__cell--number">1,800</td>
+              <td class="data-table__cell data-table__cell--number">380</td>
+              <td class="data-table__cell data-table__cell--number">21.1</td>
+            <td class="data-table__cell">2025-01-18</td>
+          </tr>
+          <tr class="data-table__row">
+            <td class="data-table__cell">South</td>
+              <td class="data-table__cell data-table__cell--number">1,750</td>
+              <td class="data-table__cell data-table__cell--number">360</td>
+              <td class="data-table__cell data-table__cell--number">20.6</td>
+            <td class="data-table__cell">2025-01-28</td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination">
+      <span class="pagination__info">Showing 1-10 of 12</span>
+      <div class="pagination__controls">
+        <button class="button button--secondary button--small" disabled>‹</button>
+        <button class="button button--secondary button--small">›</button>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- Filter Dialog -->
+  <div class="modal-backdrop" x-show="activeDialog === 'filter'" @click="closeDialog()" x-cloak>
+    <div class="modal" @click.stop>
+      <div class="modal__header">
+        <h3 class="modal__title">Filter</h3>
+        <button class="modal__close" @click="closeDialog()">×</button>
+      </div>
+
+      <div class="modal__content">
+        <label class="form-label">Keep rows where:</label>
+        <input type="text" class="form-input" value="sales > 1000" placeholder="e.g., sales > 1000">
+        <p class="form-help">Examples: sales > 1000, region == "North"</p>
+
+        <div class="preview-section">
+          <div class="preview-section__header">Preview (12 rows match)</div>
+          <div class="preview-table">
+            <table class="data-table data-table--compact">
+              <thead>
+                <tr>
+                  <th class="data-table__header">region</th>
+                  <th class="data-table__header data-table__header--number">sales</th>
+                  <th class="data-table__header data-table__header--number">profit</th>
+              </tr>
+              </thead>
+              <tbody>
+              <tr class="data-table__row">
+                <td class="data-table__cell">North</td>
+                  <td class="data-table__cell data-table__cell--number">1,500</td>
+                  <td class="data-table__cell data-table__cell--number">320</td>
+              </tr>
+              <tr class="data-table__row">
+                <td class="data-table__cell">South</td>
+                  <td class="data-table__cell data-table__cell--number">2,100</td>
+                  <td class="data-table__cell data-table__cell--number">450</td>
+              </tr>
+              <tr class="data-table__row">
+                <td class="data-table__cell">West</td>
+                  <td class="data-table__cell data-table__cell--number">1,800</td>
+                  <td class="data-table__cell data-table__cell--number">380</td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal__footer">
+        <button class="button button--secondary" @click="closeDialog()">Cancel</button>
+        <button class="button button--primary" @click="closeDialog()">Apply</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Derive Dialog -->
+  <div class="modal-backdrop" x-show="activeDialog === 'derive'" @click="closeDialog()" x-cloak>
+    <div class="modal" @click.stop>
+      <div class="modal__header">
+        <h3 class="modal__title">Derive Column</h3>
+        <button class="modal__close" @click="closeDialog()">×</button>
+      </div>
+
+      <div class="modal__content">
+        <div class="form-group">
+          <label class="form-label">New column name:</label>
+          <input type="text" class="form-input" value="profit_margin" placeholder="e.g., profit_margin">
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Expression:</label>
+          <input type="text" class="form-input" value="(profit / sales) * 100" placeholder="e.g., revenue - cost">
+          <p class="form-help">Examples: revenue - cost, price * quantity</p>
+        </div>
+
+        <div class="preview-section">
+          <div class="preview-section__header">Preview</div>
+          <div class="preview-table">
+            <table class="data-table data-table--compact">
+              <thead>
+                <tr>
+                  <th class="data-table__header">region</th>
+                  <th class="data-table__header data-table__header--number">sales</th>
+                  <th class="data-table__header data-table__header--number">profit</th>
+                  <th class="data-table__header data-table__header--number">profit_margin</th>
+              </tr>
+              </thead>
+              <tbody>
+              <tr class="data-table__row">
+                <td class="data-table__cell">North</td>
+                  <td class="data-table__cell data-table__cell--number">1,500</td>
+                  <td class="data-table__cell data-table__cell--number">320</td>
+                  <td class="data-table__cell data-table__cell--number">21.3</td>
+              </tr>
+              <tr class="data-table__row">
+                <td class="data-table__cell">South</td>
+                  <td class="data-table__cell data-table__cell--number">2,100</td>
+                  <td class="data-table__cell data-table__cell--number">450</td>
+                  <td class="data-table__cell data-table__cell--number">21.4</td>
+              </tr>
+              <tr class="data-table__row">
+                <td class="data-table__cell">West</td>
+                  <td class="data-table__cell data-table__cell--number">1,800</td>
+                  <td class="data-table__cell data-table__cell--number">380</td>
+                  <td class="data-table__cell data-table__cell--number">21.1</td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal__footer">
+        <button class="button button--secondary" @click="closeDialog()">Cancel</button>
+        <button class="button button--primary" @click="closeDialog()">Apply</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Select Columns Dialog -->
+  <div class="modal-backdrop" x-show="activeDialog === 'select'" @click="closeDialog()" x-cloak>
+    <div class="modal" @click.stop>
+      <div class="modal__header">
+        <h3 class="modal__title">Select Columns</h3>
+        <button class="modal__close" @click="closeDialog()">×</button>
+      </div>
+
+      <div class="modal__content">
+        <label class="form-label">Choose columns to keep:</label>
+
+        <div class="checkbox-list">
+          <label class="checkbox-item">
+            <input type="checkbox" checked>
+            <span>region</span>
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" checked>
+            <span>sales</span>
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox">
+            <span>cost</span>
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" checked>
+            <span>profit</span>
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" checked>
+            <span>profit_margin</span>
+          </label>
+          <label class="checkbox-item">
+            <input type="checkbox" checked>
+            <span>date</span>
+          </label>
+        </div>
+
+        <div class="form-actions">
+          <button class="button button--text">Select All</button>
+          <button class="button button--text">Select None</button>
+        </div>
+
+        <div class="preview-section">
+          <div class="preview-section__header">Preview (5 columns)</div>
+          <div class="preview-table">
+            <table class="data-table data-table--compact">
+              <thead>
+                <tr>
+                  <th class="data-table__header">region</th>
+                  <th class="data-table__header data-table__header--number">sales</th>
+                  <th class="data-table__header data-table__header--number">profit</th>
+                  <th class="data-table__header data-table__header--number">profit_margin</th>
+                  <th class="data-table__header">date</th>
+              </tr>
+              </thead>
+              <tbody>
+              <tr class="data-table__row">
+                <td class="data-table__cell">North</td>
+                  <td class="data-table__cell data-table__cell--number">1,500</td>
+                  <td class="data-table__cell data-table__cell--number">320</td>
+                  <td class="data-table__cell data-table__cell--number">21.3</td>
+                <td class="data-table__cell">2025-01-15</td>
+              </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal__footer">
+        <button class="button button--secondary" @click="closeDialog()">Cancel</button>
+        <button class="button button--primary" @click="closeDialog()">Apply</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function chumakApp() {
+      return {
+        activeTab: 'steps',
+        activeStep: null,
+        activeDialog: null,
+
+        openDialog(dialogName) {
+          this.activeDialog = dialogName;
+        },
+
+        closeDialog() {
+          this.activeDialog = null;
+        }
+      }
+    }
+  </script>
+
+</body>
+</html>
