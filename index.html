@@ -6,6 +6,7 @@
   <title>Chumak — Data Wrangling in the Browser</title>
   <link rel="stylesheet" href="https://unpkg.com/normalize.css@8/normalize.css">
   <link rel="stylesheet" href="styles/chumak.css">
+  <script src="https://unpkg.com/feather-icons"></script>
   <script src="https://unpkg.com/alpinejs@3/dist/cdn.min.js" defer></script>
 </head>
 <body x-data="chumakApp()">
@@ -26,18 +27,128 @@
     </div>
   </header>
 
-  <!-- Transform Toolbar -->
-  <div class="toolbar">
-    <button class="toolbar__button" @click="openDialog('filter')">Filter</button>
-    <button class="toolbar__button" @click="openDialog('select')">Select</button>
-    <button class="toolbar__button">Remove</button>
-    <button class="toolbar__button">Rename</button>
-    <button class="toolbar__button">Sort</button>
-    <button class="toolbar__button" @click="openDialog('derive')">Derive</button>
-    <button class="toolbar__button">Fill Missing</button>
-    <button class="toolbar__button">Drop Missing</button>
-    <button class="toolbar__button">Find/Replace</button>
-    <button class="toolbar__button">Aggregate</button>
+  <!-- Ribbon Toolbar -->
+  <div class="ribbon">
+    <!-- Ribbon Tabs -->
+    <div class="ribbon__tabs">
+      <button
+        class="ribbon__tab"
+        :class="{ 'ribbon__tab--active': ribbonTab === 'transform' }"
+        @click="ribbonTab = 'transform'"
+      >
+        Transform
+      </button>
+      <button
+        class="ribbon__tab"
+        :class="{ 'ribbon__tab--active': ribbonTab === 'add-column' }"
+        @click="ribbonTab = 'add-column'"
+      >
+        Add Column
+      </button>
+      <button
+        class="ribbon__tab"
+        :class="{ 'ribbon__tab--active': ribbonTab === 'reduce' }"
+        @click="ribbonTab = 'reduce'"
+      >
+        Reduce
+      </button>
+      <button
+        class="ribbon__tab"
+        :class="{ 'ribbon__tab--active': ribbonTab === 'combine' }"
+        @click="ribbonTab = 'combine'"
+      >
+        Combine
+      </button>
+    </div>
+
+    <!-- Ribbon Content -->
+    <div class="ribbon__content">
+
+      <!-- Transform Tab -->
+      <div class="ribbon__panel" x-show="ribbonTab === 'transform'">
+        <button class="ribbon__button" @click="openDialog('filter')" title="Filter rows">
+          <i data-feather="filter"></i>
+          <span>Filter</span>
+        </button>
+        <button class="ribbon__button" title="Sort rows">
+          <i data-feather="arrow-up-down"></i>
+          <span>Sort</span>
+        </button>
+        <button class="ribbon__button" title="Drop rows with missing values">
+          <i data-feather="trash-2"></i>
+          <span>Drop NA</span>
+        </button>
+        <button class="ribbon__button" title="Fill missing values">
+          <i data-feather="edit-3"></i>
+          <span>Fill NA</span>
+        </button>
+        <button class="ribbon__button" title="Find and replace values">
+          <i data-feather="search"></i>
+          <span>Replace</span>
+        </button>
+        <button class="ribbon__button" @click="openDialog('select')" title="Select columns to keep">
+          <i data-feather="columns"></i>
+          <span>Select</span>
+        </button>
+        <button class="ribbon__button" title="Remove columns">
+          <i data-feather="x-square"></i>
+          <span>Remove</span>
+        </button>
+        <button class="ribbon__button" title="Rename columns">
+          <i data-feather="type"></i>
+          <span>Rename</span>
+        </button>
+      </div>
+
+      <!-- Add Column Tab -->
+      <div class="ribbon__panel" x-show="ribbonTab === 'add-column'">
+        <button class="ribbon__button" @click="openDialog('derive')" title="Create new column from expression">
+          <i data-feather="plus-square"></i>
+          <span>Derive</span>
+        </button>
+        <button class="ribbon__button ribbon__button--disabled" disabled title="Duplicate column (Coming in Phase 2)">
+          <i data-feather="copy"></i>
+          <span>Duplicate</span>
+        </button>
+        <button class="ribbon__button ribbon__button--disabled" disabled title="Split column (Coming in Phase 2)">
+          <i data-feather="scissors"></i>
+          <span>Split</span>
+        </button>
+      </div>
+
+      <!-- Reduce Tab -->
+      <div class="ribbon__panel" x-show="ribbonTab === 'reduce'">
+        <button class="ribbon__button" title="Group and aggregate data">
+          <i data-feather="layers"></i>
+          <span>Aggregate</span>
+        </button>
+        <button class="ribbon__button ribbon__button--disabled" disabled title="Remove duplicate rows (Coming in Phase 2)">
+          <i data-feather="check-square"></i>
+          <span>Distinct</span>
+        </button>
+        <button class="ribbon__button ribbon__button--disabled" disabled title="Pivot table (Coming in Phase 3)">
+          <i data-feather="grid"></i>
+          <span>Pivot</span>
+        </button>
+      </div>
+
+      <!-- Combine Tab -->
+      <div class="ribbon__panel" x-show="ribbonTab === 'combine'">
+        <button class="ribbon__button ribbon__button--disabled" disabled title="Join datasets (Coming in Phase 2)">
+          <i data-feather="git-merge"></i>
+          <span>Join</span>
+        </button>
+        <button class="ribbon__button ribbon__button--disabled" disabled title="Union datasets (Coming in Phase 2)">
+          <i data-feather="layers"></i>
+          <span>Union</span>
+        </button>
+        <button class="ribbon__button ribbon__button--disabled" disabled title="Append rows (Coming in Phase 2)">
+          <i data-feather="arrow-down"></i>
+          <span>Append</span>
+        </button>
+      </div>
+
+    </div>
   </div>
 
   <!-- Left Panel -->
@@ -165,6 +276,15 @@
   <!-- Main Content Area -->
   <main class="main-content">
 
+    <!-- Pagination -->
+    <div class="pagination">
+      <span class="pagination__info">Showing 1-10 of 12</span>
+      <div class="pagination__controls">
+        <button class="button button--secondary button--small" disabled>‹</button>
+        <button class="button button--secondary button--small">›</button>
+      </div>
+    </div>
+
     <!-- Data Preview Table -->
     <div class="table-container">
       <table class="data-table">
@@ -265,15 +385,6 @@
           </tr>
         </tbody>
       </table>
-    </div>
-
-    <!-- Pagination -->
-    <div class="pagination">
-      <span class="pagination__info">Showing 1-10 of 12</span>
-      <div class="pagination__controls">
-        <button class="button button--secondary button--small" disabled>‹</button>
-        <button class="button button--secondary button--small">›</button>
-      </div>
     </div>
 
   </main>
@@ -475,6 +586,7 @@
   <script>
     function chumakApp() {
       return {
+        ribbonTab: 'transform',
         activeTab: 'steps',
         activeStep: null,
         activeDialog: null,
@@ -488,6 +600,16 @@
         }
       }
     }
+
+    // Initialize Feather icons after page load
+    document.addEventListener('DOMContentLoaded', () => {
+      feather.replace();
+    });
+
+    // Re-render icons when Alpine updates
+    document.addEventListener('alpine:initialized', () => {
+      setTimeout(() => feather.replace(), 50);
+    });
   </script>
 
 </body>

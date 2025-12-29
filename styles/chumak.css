@@ -42,7 +42,7 @@
 
   /* Layout */
   --header-height: 48px;
-  --toolbar-height: 56px;
+  --ribbon-height: auto;
   --left-panel-width: 300px;
 
   /* Borders */
@@ -87,11 +87,11 @@ body {
 body {
   display: grid;
   grid-template-columns: var(--left-panel-width) 1fr;
-  grid-template-rows: var(--header-height) var(--toolbar-height) 1fr;
+  grid-template-rows: var(--header-height) auto 1fr;
   height: 100vh;
   grid-template-areas:
     "header  header"
-    "toolbar toolbar"
+    "ribbon  ribbon"
     "left    main";
 }
 
@@ -138,42 +138,107 @@ body {
 }
 
 /* ============================================
-   Toolbar
+   Ribbon Toolbar
    ============================================ */
 
-.toolbar {
-  grid-area: toolbar;
-  background: var(--color-light-gray);
+.ribbon {
+  grid-area: ribbon;
+  background: var(--color-white);
   border-bottom: var(--border-width) solid var(--border-color);
-  padding: var(--space-sm) var(--space-lg);
   display: flex;
-  gap: var(--space-sm);
-  overflow-x: auto;
-  align-items: center;
+  flex-direction: column;
 }
 
-.toolbar__button {
-  min-width: 80px;
-  height: 40px;
-  padding: var(--space-sm) var(--space-md);
-  background: var(--color-white);
-  color: var(--color-midnight-blue);
-  border: var(--border-width) solid var(--border-color);
-  border-radius: var(--border-radius);
+.ribbon__tabs {
+  display: flex;
+  gap: 0;
+  background: var(--color-light-gray);
+  border-bottom: var(--border-width) solid var(--border-color);
+  padding: 0 var(--space-md);
+}
+
+.ribbon__tab {
+  padding: 6px var(--space-md);
+  background: transparent;
+  border: none;
+  border-bottom: 2px solid transparent;
   font-family: var(--font-family);
-  font-size: var(--font-size-base);
-  font-weight: var(--font-weight-regular);
+  font-size: var(--font-size-sm);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-dark-gray);
   cursor: pointer;
   transition: all var(--transition-fast);
 }
 
-.toolbar__button:hover {
-  background: rgba(0, 187, 206, 0.1);
+.ribbon__tab:hover {
+  color: var(--color-midnight-blue);
+  background: rgba(0, 187, 206, 0.05);
+}
+
+.ribbon__tab--active {
+  color: var(--color-midnight-blue);
+  background: var(--color-white);
+  border-bottom-color: var(--color-cyan);
+}
+
+.ribbon__content {
+  padding: var(--space-sm) var(--space-md);
+  min-height: 40px;
+  background: var(--color-white);
+}
+
+.ribbon__panel {
+  display: flex;
+  gap: var(--space-xs);
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.ribbon__button {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 12px;
+  background: transparent;
+  border: var(--border-width) solid transparent;
+  border-radius: var(--border-radius);
+  font-family: var(--font-family);
+  font-size: var(--font-size-xs);
+  color: var(--color-midnight-blue);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  min-width: 60px;
+}
+
+.ribbon__button:hover:not(:disabled) {
+  background: rgba(0, 187, 206, 0.08);
   border-color: var(--color-cyan);
 }
 
-.toolbar__button:active {
-  background: rgba(0, 187, 206, 0.2);
+.ribbon__button:active:not(:disabled) {
+  background: rgba(0, 187, 206, 0.15);
+}
+
+.ribbon__button i {
+  width: 18px;
+  height: 18px;
+  stroke-width: 2px;
+}
+
+.ribbon__button span {
+  line-height: 1.2;
+  text-align: center;
+}
+
+.ribbon__button--disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.ribbon__button--disabled:hover {
+  background: transparent;
+  border-color: transparent;
 }
 
 /* ============================================
@@ -524,7 +589,8 @@ body {
   justify-content: space-between;
   align-items: center;
   padding: var(--space-md) var(--space-lg);
-  border-top: var(--border-width) solid var(--border-color);
+  border-bottom: var(--border-width) solid var(--border-color);
+  background: var(--color-white);
 }
 
 .pagination__info {
