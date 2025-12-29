@@ -7,6 +7,7 @@
   <link rel="stylesheet" href="https://unpkg.com/normalize.css@8/normalize.css">
   <link rel="stylesheet" href="styles/chumak.css">
   <script src="https://unpkg.com/feather-icons"></script>
+  <script src="https://unpkg.com/papaparse@5/papaparse.min.js"></script>
   <script src="https://unpkg.com/alpinejs@3/dist/cdn.min.js" defer></script>
 </head>
 <body x-data="chumakApp()">
@@ -18,12 +19,6 @@
         <span class="header__logo-icon">☆</span>
         <span class="header__logo-text">Chumak</span>
       </div>
-      <div class="header__actions">
-        <button class="button button--primary">Import CSV</button>
-        <button class="button button--secondary">
-          Export ▼
-        </button>
-      </div>
     </div>
   </header>
 
@@ -33,36 +28,76 @@
     <div class="ribbon__tabs">
       <button
         class="ribbon__tab"
-        :class="{ 'ribbon__tab--active': ribbonTab === 'transform' }"
-        @click="ribbonTab = 'transform'"
+        :class="{ 'ribbon__tab--active': ribbonTab === 'data' }"
+        @click="ribbonTab = 'data'"
+      >
+        Data
+      </button>
+      <button
+        class="ribbon__tab"
+        :class="{ 'ribbon__tab--active': ribbonTab === 'transform', 'ribbon__tab--disabled': !currentData }"
+        :disabled="!currentData"
+        @click="currentData && (ribbonTab = 'transform')"
       >
         Transform
       </button>
       <button
         class="ribbon__tab"
-        :class="{ 'ribbon__tab--active': ribbonTab === 'add-column' }"
-        @click="ribbonTab = 'add-column'"
+        :class="{ 'ribbon__tab--active': ribbonTab === 'add-column', 'ribbon__tab--disabled': !currentData }"
+        :disabled="!currentData"
+        @click="currentData && (ribbonTab = 'add-column')"
       >
         Add Column
       </button>
       <button
         class="ribbon__tab"
-        :class="{ 'ribbon__tab--active': ribbonTab === 'reduce' }"
-        @click="ribbonTab = 'reduce'"
+        :class="{ 'ribbon__tab--active': ribbonTab === 'reduce', 'ribbon__tab--disabled': !currentData }"
+        :disabled="!currentData"
+        @click="currentData && (ribbonTab = 'reduce')"
       >
         Reduce
       </button>
       <button
         class="ribbon__tab"
-        :class="{ 'ribbon__tab--active': ribbonTab === 'combine' }"
-        @click="ribbonTab = 'combine'"
+        :class="{ 'ribbon__tab--active': ribbonTab === 'combine', 'ribbon__tab--disabled': !currentData }"
+        :disabled="!currentData"
+        @click="currentData && (ribbonTab = 'combine')"
       >
         Combine
+      </button>
+      <button
+        class="ribbon__tab"
+        :class="{ 'ribbon__tab--active': ribbonTab === 'model', 'ribbon__tab--disabled': !currentData }"
+        :disabled="!currentData"
+        @click="currentData && (ribbonTab = 'model')"
+      >
+        Model
       </button>
     </div>
 
     <!-- Ribbon Content -->
     <div class="ribbon__content">
+
+      <!-- Data Tab -->
+      <div class="ribbon__panel" x-show="ribbonTab === 'data'">
+        <input type="file" accept=".csv" style="display: none" x-ref="fileInput" @change="handleFileSelect($event)">
+        <button class="ribbon__button" @click="$refs.fileInput.click()" title="Import CSV file">
+          <i data-feather="upload"></i>
+          <span>Import CSV</span>
+        </button>
+        <button class="ribbon__button" title="Export current data">
+          <i data-feather="download"></i>
+          <span>Export CSV</span>
+        </button>
+        <button class="ribbon__button ribbon__button--disabled" disabled title="Import from URL (Coming in Phase 2)">
+          <i data-feather="link"></i>
+          <span>Import URL</span>
+        </button>
+        <button class="ribbon__button ribbon__button--disabled" disabled title="Export workflow as JSON (Coming in Phase 1)">
+          <i data-feather="file-text"></i>
+          <span>Export JSON</span>
+        </button>
+      </div>
 
       <!-- Transform Tab -->
       <div class="ribbon__panel" x-show="ribbonTab === 'transform'">
@@ -148,6 +183,22 @@
         </button>
       </div>
 
+      <!-- Model Tab -->
+      <div class="ribbon__panel" x-show="ribbonTab === 'model'">
+        <button class="ribbon__button ribbon__button--disabled" disabled title="Create new model (Coming in Phase 2)">
+          <i data-feather="plus-circle"></i>
+          <span>New Model</span>
+        </button>
+        <button class="ribbon__button ribbon__button--disabled" disabled title="Rename current model (Coming in Phase 2)">
+          <i data-feather="edit-2"></i>
+          <span>Rename</span>
+        </button>
+        <button class="ribbon__button ribbon__button--disabled" disabled title="Delete current model (Coming in Phase 2)">
+          <i data-feather="trash-2"></i>
+          <span>Delete</span>
+        </button>
+      </div>
+
     </div>
   </div>
 
@@ -159,7 +210,32 @@
         <h2 class="panel-section__header">Sources & Models</h2>
         <div class="tree-view">
 
-          <!-- Source 1: sales.csv -->
+          <template x-for="source in sources" :key="source.name">
+            <div>
+              <!-- Source -->
+              <div class="tree-item tree-item--source">
+                <span class="tree-item__icon">📄</span>
+                <span class="tree-item__name" x-text="source.name"></span>
+              </div>
+
+              <!-- Models for this source -->
+              <template x-for="model in models.filter(m => m.sourceName === source.name)" :key="model.name">
+                <div class="tree-item tree-item--model" :class="{ 'tree-item--active': activeModel?.name === model.name }">
+                  <span class="tree-item__indent"></span>
+                  <span class="tree-item__icon">📊</span>
+                  <span class="tree-item__name" x-text="model.name"></span>
+                </div>
+              </template>
+            </div>
+          </template>
+
+          <!-- Show message when no sources -->
+          <div x-show="sources.length === 0" style="padding: 1rem; color: #888; font-size: 0.875rem;">
+            No data sources imported yet. Click "Import CSV" to get started.
+          </div>
+
+          <!-- PLACEHOLDER DATA - preserved for reference -->
+          <!--
           <div class="tree-item tree-item--source">
             <span class="tree-item__icon">📄</span>
             <span class="tree-item__name">sales.csv</span>
@@ -175,7 +251,6 @@
             <span class="tree-item__name">sales_by_region</span>
           </div>
 
-          <!-- Source 2: students.csv -->
           <div class="tree-item tree-item--source">
             <span class="tree-item__icon">📄</span>
             <span class="tree-item__name">students.csv</span>
@@ -186,11 +261,12 @@
             <span class="tree-item__name">students_processed</span>
           </div>
 
-          <!-- Source 3: regions.csv -->
           <div class="tree-item tree-item--source">
             <span class="tree-item__icon">📄</span>
             <span class="tree-item__name">regions.csv</span>
           </div>
+          -->
+          <!-- END PLACEHOLDER DATA -->
 
         </div>
       </section>
@@ -216,6 +292,15 @@
 
         <!-- Steps List -->
         <div class="steps-list" x-show="activeTab === 'steps'">
+          <div x-show="!currentData" style="padding: 1rem; color: #888; font-size: 0.875rem;">
+            Import a CSV file to begin transforming data.
+          </div>
+          <div x-show="currentData" style="padding: 1rem; color: #888; font-size: 0.875rem;">
+            No transformation steps yet.
+          </div>
+
+          <!-- PLACEHOLDER DATA - preserved for reference -->
+          <!--
           <div class="step-item" :class="{ 'step-item--active': activeStep === 1 }" @click="activeStep = 1">
             <span class="step-item__number">1.</span>
             <span class="step-item__description">Filter: sales > 1000</span>
@@ -238,10 +323,19 @@
           </div>
 
           <button class="add-step-button">+ Add Step</button>
+          -->
+          <!-- END PLACEHOLDER DATA -->
         </div>
 
         <!-- JSON View -->
         <div class="json-view" x-show="activeTab === 'json'">
+          <div x-show="!currentData" style="padding: 1rem; color: #888; font-size: 0.875rem;">
+            Import a CSV file to begin transforming data.
+          </div>
+          <pre x-show="currentData" class="json-view__content">No workflow defined yet.</pre>
+
+          <!-- PLACEHOLDER DATA - preserved for reference -->
+          <!--
           <pre class="json-view__content">{
   "transforms": [
     { "filter": "sales > 1000" },
@@ -268,6 +362,8 @@
   ]
 }</pre>
           <button class="button button--secondary button--small json-view__copy">Copy</button>
+          -->
+          <!-- END PLACEHOLDER DATA -->
         </div>
       </section>
 
@@ -276,9 +372,25 @@
   <!-- Main Content Area -->
   <main class="main-content">
 
+    <!-- Default/Empty State with Drag-n-Drop -->
+    <div
+      x-show="!currentData"
+      class="empty-state"
+      :class="{ 'empty-state--dragover': isDragging }"
+      @dragover.prevent="isDragging = true"
+      @dragleave.prevent="isDragging = false"
+      @drop.prevent="handleFileDrop($event)"
+    >
+      <div class="empty-state__content">
+        <i data-feather="upload-cloud" class="empty-state__icon"></i>
+        <h2 class="empty-state__title">Get Started with Chumak</h2>
+        <p class="empty-state__text">Drag and drop a CSV file here, or use the "Import CSV" button in the Data tab</p>
+      </div>
+    </div>
+
     <!-- Pagination -->
-    <div class="pagination">
-      <span class="pagination__info">Showing 1-10 of 12</span>
+    <div class="pagination" x-show="currentData">
+      <span class="pagination__info" x-text="`Showing 1-${Math.min(100, currentData?.length || 0)} of ${currentData?.length || 0}`"></span>
       <div class="pagination__controls">
         <button class="button button--secondary button--small" disabled>‹</button>
         <button class="button button--secondary button--small">›</button>
@@ -286,10 +398,16 @@
     </div>
 
     <!-- Data Preview Table -->
-    <div class="table-container">
+    <div class="table-container" x-show="currentData">
       <table class="data-table">
         <thead>
           <tr>
+            <template x-for="(column, index) in columns" :key="index">
+              <th class="data-table__header" x-text="column"></th>
+            </template>
+
+            <!-- PLACEHOLDER DATA - preserved for reference -->
+            <!--
             <th class="data-table__header">
               region
               <span class="type-indicator">Aa</span>
@@ -310,9 +428,21 @@
               date
               <span class="type-indicator">📅</span>
             </th>
+            -->
+            <!-- END PLACEHOLDER DATA -->
           </tr>
         </thead>
         <tbody>
+          <template x-for="(row, rowIndex) in currentData?.slice(0, 100) || []" :key="rowIndex">
+            <tr class="data-table__row">
+              <template x-for="(column, colIndex) in columns" :key="colIndex">
+                <td class="data-table__cell" x-text="row[column]"></td>
+              </template>
+            </tr>
+          </template>
+
+          <!-- PLACEHOLDER DATA - preserved for reference -->
+          <!--
           <tr class="data-table__row">
             <td class="data-table__cell">West</td>
             <td class="data-table__cell data-table__cell--number">2,500</td>
@@ -383,6 +513,8 @@
               <td class="data-table__cell data-table__cell--number">20.6</td>
             <td class="data-table__cell">2025-01-28</td>
           </tr>
+          -->
+          <!-- END PLACEHOLDER DATA -->
         </tbody>
       </table>
     </div>
@@ -583,20 +715,349 @@
     </div>
   </div>
 
+  <!-- Import CSV Dialog -->
+  <div class="modal-backdrop" x-show="activeDialog === 'import-csv'" @click="closeDialog()" x-cloak>
+    <div class="modal" @click.stop style="max-width: 800px;">
+      <div class="modal__header">
+        <h3 class="modal__title" x-text="`Import CSV: ${importDialogState.fileName || ''}`"></h3>
+        <button class="modal__close" @click="closeDialog()">×</button>
+      </div>
+
+      <div class="modal__content">
+        <!-- Preview Section -->
+        <label class="form-label">Preview (first 5 rows):</label>
+        <div class="preview-table" style="margin-bottom: 1rem;">
+          <table class="data-table data-table--compact">
+            <tbody>
+              <template x-for="(row, rowIndex) in importDialogState.previewRows" :key="rowIndex">
+                <tr class="data-table__row"
+                    :class="{ 'import-preview__row--header': rowIndex === 0 && importDialogState.headerMode === 'first-row' }">
+                  <template x-for="(cell, cellIndex) in row" :key="cellIndex">
+                    <td class="data-table__cell" x-text="cell"></td>
+                  </template>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Header Mode Options -->
+        <div class="form-group">
+          <label class="form-label">Column Headers:</label>
+
+          <label class="checkbox-item">
+            <input type="radio" name="headerMode" value="first-row"
+                   x-model="importDialogState.headerMode" checked>
+            <span>First row contains headers (recommended)</span>
+          </label>
+
+          <label class="checkbox-item">
+            <input type="radio" name="headerMode" value="auto-generate"
+                   x-model="importDialogState.headerMode">
+            <span>Auto-generate headers (Column 1, Column 2, ...)</span>
+          </label>
+
+          <label class="checkbox-item">
+            <input type="radio" name="headerMode" value="manual"
+                   x-model="importDialogState.headerMode">
+            <span>Specify manually</span>
+          </label>
+        </div>
+
+        <!-- Column Name Inputs (shown for first-row and manual modes) -->
+        <div class="form-group"
+             x-show="importDialogState.headerMode !== 'auto-generate'"
+             style="max-height: 150px; overflow-y: auto;">
+          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px;">
+            <template x-for="(name, index) in importDialogState.customHeaders" :key="index">
+              <input type="text" class="form-input"
+                     x-model="importDialogState.customHeaders[index]"
+                     :placeholder="`Column ${index + 1}`"
+                     style="font-size: 13px; padding: 6px 8px;">
+            </template>
+          </div>
+        </div>
+
+        <!-- Auto-generate message -->
+        <div x-show="importDialogState.headerMode === 'auto-generate'"
+             style="color: var(--color-dark-gray); font-size: 14px; padding: 8px 0;">
+          Columns will be named: Column 1, Column 2, Column 3, ...
+        </div>
+
+        <!-- Delimiter Options -->
+        <div class="form-group">
+          <label class="form-label">Delimiter:</label>
+          <div style="display: flex; gap: 16px; align-items: center;">
+            <label class="checkbox-item" style="margin: 0;">
+              <input type="radio" name="delimiter" value=","
+                     x-model="importDialogState.delimiter" checked>
+              <span>Comma (,)</span>
+            </label>
+            <label class="checkbox-item" style="margin: 0;">
+              <input type="radio" name="delimiter" value="	"
+                     x-model="importDialogState.delimiter">
+              <span>Tab</span>
+            </label>
+            <label class="checkbox-item" style="margin: 0;">
+              <input type="radio" name="delimiter" value=";"
+                     x-model="importDialogState.delimiter">
+              <span>Semicolon (;)</span>
+            </label>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal__footer">
+        <button class="button button--secondary" @click="closeDialog()">Cancel</button>
+        <button class="button button--primary" @click="confirmImport()">Import</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     function chumakApp() {
       return {
-        ribbonTab: 'transform',
+        // UI state
+        ribbonTab: 'data',
         activeTab: 'steps',
         activeStep: null,
         activeDialog: null,
+        isDragging: false,
 
+        // Import dialog state
+        importDialogState: {
+          fileName: '',
+          previewRows: [],
+          headerMode: 'first-row',
+          delimiter: ',',
+          customHeaders: []
+        },
+        importFileData: null,
+
+        // Data state
+        sources: [],
+        models: [],
+        activeModel: null,
+        currentData: null,
+        columns: [],
+
+        // Dialog methods
         openDialog(dialogName) {
           this.activeDialog = dialogName;
         },
 
         closeDialog() {
           this.activeDialog = null;
+          // Reset import dialog state to defaults
+          this.importDialogState = {
+            fileName: '',
+            previewRows: [],
+            headerMode: 'first-row',
+            delimiter: ',',
+            customHeaders: []
+          };
+          this.importFileData = null;
+        },
+
+        // CSV import: Step 1 - Show import dialog
+        handleFileSelect(event) {
+          const file = event.target.files[0];
+          if (!file) return;
+
+          this.showImportDialog(file);
+
+          // Reset file input
+          event.target.value = '';
+        },
+
+        handleFileDrop(event) {
+          this.isDragging = false;
+
+          const files = event.dataTransfer.files;
+          if (files.length === 0) return;
+
+          const file = files[0];
+
+          if (!file.name.toLowerCase().endsWith('.csv')) {
+            alert('Please drop a CSV file');
+            return;
+          }
+
+          this.showImportDialog(file);
+        },
+
+        // Show import configuration dialog
+        showImportDialog(file) {
+          // Quick parse: First 5 rows, no header assumptions
+          Papa.parse(file, {
+            preview: 5,
+            header: false,
+            skipEmptyLines: true,
+            complete: (previewResult) => {
+              // Extract first row for header preview
+              const firstRow = previewResult.data[0] || [];
+
+              // Set dialog state
+              this.importFileData = { file };
+              this.importDialogState = {
+                fileName: file.name,
+                previewRows: previewResult.data,
+                headerMode: 'first-row',  // Default
+                delimiter: previewResult.meta.delimiter || ',',
+                customHeaders: firstRow.map((cell, i) => cell || `Column ${i + 1}`)
+              };
+
+              // Show dialog
+              this.activeDialog = 'import-csv';
+            },
+            error: (error) => {
+              console.error('CSV preview error:', error);
+              alert('Error reading CSV: ' + error.message);
+            }
+          });
+        },
+
+        // CSV import: Step 2 - Confirm and create Source
+        confirmImport() {
+          const { headerMode, delimiter, customHeaders } = this.importDialogState;
+          const file = this.importFileData.file;
+
+          // Always parse with header: false to get raw data
+          Papa.parse(file, {
+            header: false,  // Get raw array of arrays
+            delimiter: delimiter === '\t' ? '\t' : delimiter,
+            skipEmptyLines: true,
+            dynamicTyping: true,
+            complete: (results) => {
+              if (!results.data || results.data.length === 0) {
+                alert('Error: CSV file is empty');
+                return;
+              }
+
+              let columns, data;
+              const rawData = results.data;
+
+              if (headerMode === 'first-row') {
+                // Extract column names from first row
+                columns = rawData[0];
+
+                // Data starts from second row (skip header row)
+                const dataRows = rawData.slice(1);
+
+                // Convert array of arrays to array of objects
+                data = dataRows.map(row => {
+                  const obj = {};
+                  columns.forEach((col, i) => { obj[col] = row[i]; });
+                  return obj;
+                });
+
+                this.createSource(file, columns, data, headerMode, delimiter);
+              } else if (headerMode === 'auto-generate') {
+                // Generate Column 1, Column 2, ...
+                columns = rawData[0]?.map((_, i) => `Column ${i + 1}`) || [];
+
+                // All rows are data (including first row)
+                data = rawData.map(row => {
+                  const obj = {};
+                  columns.forEach((col, i) => { obj[col] = row[i]; });
+                  return obj;
+                });
+
+                this.createSource(file, columns, data, headerMode, delimiter);
+              } else if (headerMode === 'manual') {
+                // Use custom headers
+                columns = customHeaders;
+
+                // All rows are data (including first row)
+                data = rawData.map(row => {
+                  const obj = {};
+                  columns.forEach((col, i) => { obj[col] = row[i]; });
+                  return obj;
+                });
+
+                this.createSource(file, columns, data, headerMode, delimiter, customHeaders);
+              }
+            },
+            error: (error) => {
+              console.error('CSV parsing error:', error);
+              alert('Error parsing CSV: ' + error.message);
+            }
+          });
+        },
+
+        // Create Source and default Model
+        createSource(file, columns, data, headerMode, delimiter, customHeaders = null) {
+          // Validate columns: no duplicates, no empty names
+          const uniqueColumns = new Set(columns);
+          if (uniqueColumns.size !== columns.length) {
+            alert('Error: Duplicate column names detected. Please fix and try again.');
+            return;
+          }
+          if (columns.some(c => !c || c.trim() === '')) {
+            alert('Error: Column names cannot be empty.');
+            return;
+          }
+
+          const source = {
+            id: `src_${Date.now()}`,
+            name: file.name,
+            origin: 'file',
+
+            // CSV configuration
+            delimiter: delimiter,
+            headerMode: headerMode,
+            customHeaders: customHeaders,
+
+            // Data metadata
+            rawSize: file.size,
+            rowCount: data.length,
+            columns: columns.map((name, i) => ({
+              name: name,
+              inferredType: this.inferType(data, name),
+              originalPosition: i
+            })),
+            createdAt: new Date().toISOString(),
+
+            data: data
+          };
+
+          this.sources.push(source);
+
+          // Create default "main" model
+          const mainModel = {
+            id: `mdl_${Date.now()}`,
+            name: 'main',
+            sourceName: file.name,
+            steps: [],
+            data: data
+          };
+          this.models.push(mainModel);
+
+          // Display
+          this.activeModel = mainModel;
+          this.currentData = data;
+          this.columns = columns;
+
+          // Close dialog
+          this.closeDialog();
+        },
+
+        // Infer type from sample data
+        inferType(data, columnName) {
+          if (data.length === 0) return 'string';
+
+          const sample = data.slice(0, 10).map(row => row[columnName]);
+
+          // Check if all samples are numbers
+          if (sample.every(val => typeof val === 'number')) return 'number';
+
+          // Check if all samples look like dates
+          // (Simple check: contains dashes or slashes)
+          if (sample.every(val => typeof val === 'string' && /\d{4}[-\/]\d{2}[-\/]\d{2}/.test(val))) {
+            return 'date';
+          }
+
+          return 'string';
         }
       }
     }

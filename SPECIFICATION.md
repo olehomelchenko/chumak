@@ -118,16 +118,23 @@ interface Source {
   name: string;                    // e.g., "sales.csv"
   origin: "file" | "url";
   originPath?: string;             // URL if loaded from web
-  delimiter: "," | "\t" | "auto";
+
+  // CSV Parsing Configuration (set at import time)
+  delimiter: "," | "\t" | ";" | string;
+  headerMode: "first-row" | "auto-generate" | "manual";
+  customHeaders?: string[];        // Only if headerMode === "manual"
+
+  // Data Metadata
   rawSize: number;                 // bytes
-  rowCount: number;
+  rowCount: number;                // data rows (excluding header if first-row mode)
   columns: ColumnSchema[];
   createdAt: string;               // ISO timestamp
 }
 
 interface ColumnSchema {
-  name: string;
+  name: string;                    // From header, auto-generated, or custom
   inferredType: "string" | "number" | "boolean" | "date";
+  originalPosition: number;        // 0-indexed column position in CSV
 }
 ```
 
@@ -332,11 +339,43 @@ Join types: `left`, `inner`
 
 | Action | Behavior |
 |--------|----------|
-| Import CSV | File picker or drag-drop. Creates new Source. |
+| Import CSV | File picker or drag-drop → Opens import dialog with header/delimiter options → Creates new Source. |
 | Import from URL | Modal with URL input. Fetches and creates Source. |
 | Export result CSV | Downloads transformed data as CSV. |
 | Export workflow | Downloads `.chumak.json` file with full Workflow object. |
 | Import workflow | Loads `.chumak.json`, restores Sources (prompts for re-upload if data missing). |
+
+#### CSV Import Dialog
+
+When user selects/drops a CSV file, show configuration dialog before creating Source:
+
+**Dialog contents:**
+1. **Preview** - First 5 rows (raw, unparsed)
+2. **Header handling options** (radio buttons):
+   - "First row contains headers" (default) - Most common case
+   - "Auto-generate headers (Column 1, Column 2, ...)" - For CSVs without header row
+   - "Specify manually" - Shows editable input fields for custom column names
+3. **Delimiter options** - Auto-detected, can override: Comma, Tab, Semicolon, Other
+4. **Import button** - Confirms configuration and creates Source
+
+**Header mode behavior:**
+
+| Mode | First Row | Column Names | Use Case |
+|------|-----------|--------------|----------|
+| **First row contains headers** | Used as column names | From row 1 | Standard CSV with header row |
+| **Auto-generate** | Treated as data | "Column 1", "Column 2", ... | CSV without headers |
+| **Specify manually** | Treated as data | User-provided names | Custom naming before import |
+
+**Configuration stored in Source metadata:**
+```typescript
+{
+  headerMode: "first-row" | "auto-generate" | "manual",
+  delimiter: "," | "\t" | ";" | string,
+  customHeaders?: string[]  // Only if headerMode === "manual"
+}
+```
+
+This is **source configuration**, not a transformation. Once imported, column names are fixed (can be renamed via transform).
 
 ---
 

@@ -187,10 +187,13 @@ Consistent spacing scale:
 ```
 ┌──────────────────────────────────────────────────────────────────┐
 │ HEADER (48px height)                                             │
-│  ☆ Chumak                              [Import] [Export ▼]       │
+│  ☆ Chumak                                                        │
 ├──────────────────────────────────────────────────────────────────┤
-│ TRANSFORM TOOLBAR (56px height)                                  │
-│  [Filter] [Select] [Remove] [Rename] [Sort] [Derive] ...         │
+│ RIBBON TABS (32px height)                                        │
+│  [Data] [Transform] [Add Column] [Reduce] [Combine] [Model]     │
+├──────────────────────────────────────────────────────────────────┤
+│ RIBBON CONTENT (auto height, ~56px)                              │
+│  [Import CSV] [Export CSV] [Import URL] [Export JSON]  ← Data    │
 ├────────────────────┬─────────────────────────────────────────────┤
 │                    │                                             │
 │ LEFT PANEL         │ MAIN CONTENT AREA                           │
@@ -222,29 +225,31 @@ Consistent spacing scale:
 Using CSS Grid:
 
 ```css
-.app-layout {
+body {
   display: grid;
   grid-template-columns: 300px 1fr;
-  grid-template-rows: 48px 56px 1fr;
+  grid-template-rows: 48px auto 1fr;
   height: 100vh;
   grid-template-areas:
     "header  header"
-    "toolbar toolbar"
+    "ribbon  ribbon"
     "left    main";
 }
 
 .header { grid-area: header; }
-.toolbar { grid-area: toolbar; }
+.ribbon { grid-area: ribbon; }  /* Contains tabs + content */
 .left-panel { grid-area: left; }
 .main-content { grid-area: main; }
 ```
+
+**Note:** Ribbon area is `auto` height (expands to fit tabs + content). Typically 88px total (32px tabs + 56px content).
 
 ### 5.3 Panel Specifications
 
 | Panel | Dimensions | Styling |
 |-------|------------|---------|
 | **Header** | Full width × 48px | Background: White, border-bottom: 1px Dark Midnight Blue |
-| **Toolbar** | Full width × 56px | Background: Light Gray, border-bottom: 1px Medium Gray |
+| **Ribbon** | Full width × auto (~88px) | Tabs: Light Gray background; Content: White background |
 | **Left Panel** | 300px × remaining | Background: White, border-right: 1px Medium Gray |
 | **Main Content** | Remaining × remaining | Background: White |
 
@@ -269,38 +274,121 @@ Using CSS Grid:
 - Padding: 0 24px (left/right)
 - Vertical align: center
 
-### 6.2 Transform Toolbar
+### 6.2 Ribbon Toolbar
 
-Horizontal button row with consistent styling.
+**Design decision:** Microsoft Office-style tabbed ribbon instead of flat horizontal toolbar.
+
+**Rationale:**
+- Better organization for 20+ transform operations across phases
+- Progressive disclosure (only show relevant operations per tab)
+- Familiar pattern for target users (Excel users)
+- Easier to scale for Phase 2/3 features without UI cramping
+
+**Structure:**
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│ [Filter] [Select] [Remove] [Rename] [Sort] [Derive] ...     │
+│ [Data] [Transform] [Add Column] [Reduce] [Combine] [Model]  │ ← Tabs
+├──────────────────────────────────────────────────────────────┤
+│ [Import CSV] [Export CSV] [Import URL] [Export JSON]        │ ← Content
 └──────────────────────────────────────────────────────────────┘
 ```
 
-**Button specifications:**
-- Size: 80px × 40px
-- Font: Graphik Regular 14px
-- Border: 1px Medium Gray
+**Tab row (32px height):**
+- Background: Light Gray (`#F5F5F5`)
+- Border-bottom: 1px Medium Gray
+- Horizontal layout, no gaps between tabs
+- Only one tab active at a time
+
+**Tab specifications:**
+```css
+.ribbon__tab {
+  padding: 6px 16px;
+  background: transparent;
+  border-bottom: 2px solid transparent;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-dark-gray);
+}
+
+.ribbon__tab:hover {
+  color: var(--color-midnight-blue);
+  background: rgba(0, 187, 206, 0.05);
+}
+
+.ribbon__tab--active {
+  background: var(--color-white);
+  border-bottom: 2px solid var(--color-cyan);
+  color: var(--color-midnight-blue);
+}
+```
+
+**Content row (auto height, ~56px):**
 - Background: White
-- Color: Dark Midnight Blue
-- Border-radius: 4px
-- Gap: 8px between buttons
+- Padding: 8px 16px
+- Contains operation buttons relevant to active tab
+- Flex layout with wrapping
 
-**States:**
-- **Default:** White background, Dark Midnight Blue text
-- **Hover:** Cyan background (10% opacity), Cyan border
-- **Active:** Cyan background (20% opacity)
-- **Disabled:** Light Gray background, Medium Gray text, no pointer
+**Operation button specifications:**
+- Vertical layout: Icon (18px) above text (12px)
+- Min-width: 60px, Height: 40px
+- Gap: 4px between buttons
+- Transparent background, 1px transparent border
+- Icons: Feather Icons (loaded from CDN)
+- Font: 12px for text
 
-**Icon approach (MVP):**
-- Text-only buttons (no icons) for simplicity
-- Or use Unicode symbols if desired (🔍 Filter, 📋 Select, etc.)
-- Phase 2: Consider icon font or SVG icons
+**Button states:**
+```css
+.ribbon__button {
+  /* Default */
+  background: transparent;
+  border: 1px solid transparent;
+  color: var(--color-midnight-blue);
+}
 
-**Overflow:**
-- Horizontal scroll if too many buttons (scroll indicator on edges)
+.ribbon__button:hover {
+  background: rgba(0, 187, 206, 0.08);
+  border-color: var(--color-cyan);
+}
+
+.ribbon__button:active {
+  background: rgba(0, 187, 206, 0.15);
+}
+
+.ribbon__button--disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+```
+
+**Tab organization:**
+
+| Tab | Operations | Enabled When |
+|-----|------------|--------------|
+| **Data** | Import CSV, Export CSV, Import URL, Export JSON | Always |
+| **Transform** | Filter, Sort, Drop NA, Fill NA, Replace, Select, Remove, Rename | Data loaded |
+| **Add Column** | Derive, Duplicate, Split | Data loaded |
+| **Reduce** | Aggregate, Distinct, Pivot | Data loaded |
+| **Combine** | Join, Union, Append | Data loaded (Phase 2) |
+| **Model** | New Model, Rename, Delete | Data loaded (Phase 2) |
+
+**Disabled tab behavior:**
+- Transform, Add Column, Reduce, Combine, Model tabs disabled until data loaded
+- Visual: 40% opacity, cursor: not-allowed
+- Clicking disabled tab does nothing
+- Tooltip: "Import data first" (optional enhancement)
+
+**Icons:**
+- Library: Feather Icons (https://feathericons.com/)
+- Loading: `<script src="https://unpkg.com/feather-icons"></script>`
+- Initialization: `feather.replace()` after DOM ready
+- Size: 18px × 18px, stroke-width: 2px
+
+**Implementation note:**
+- Use Alpine.js reactive state: `ribbonTab = 'data'` (default)
+- Switch tabs by setting `ribbonTab` variable
+- Content panels shown conditionally: `x-show="ribbonTab === 'data'"`
+- Tab disabling: `:disabled="!currentData"` for transform tabs
 
 ### 6.3 Sources & Models Panel
 
@@ -851,9 +939,105 @@ User clicks [×] on Step 2
 
 ---
 
-## 13. Transform Dialog Forms
+## 13. Dialog Forms
 
-Each transform has a dialog with specific fields. All use consistent styling.
+This section covers all dialogs: import configuration and transform operations. All use consistent styling.
+
+### 13.0 Import CSV (Configuration Dialog)
+
+**Trigger:** User drops CSV file or clicks "Import CSV" button
+
+**Purpose:** Configure how CSV is parsed before creating Source
+
+```
+┌─ Import CSV: sales.csv ────────────────────────────────────┐
+│                                                             │
+│  Preview (first 5 rows):                                    │
+│  ┌──────────┬──────────┬──────────┬──────────────┐         │
+│  │ North    │ 1500     │ 320      │ 2025-01-15   │         │
+│  │ South    │ 2100     │ 450      │ 2025-01-16   │         │
+│  │ East     │ 800      │ 120      │ 2025-01-17   │         │
+│  │ West     │ 1800     │ 380      │ 2025-01-18   │         │
+│  │ North    │ 1950     │ 390      │ 2025-01-19   │         │
+│  └──────────┴──────────┴──────────┴──────────────┘         │
+│                                                             │
+│  Column Headers:                                            │
+│  ● First row contains headers (recommended)                 │
+│  ○ Auto-generate headers (Column 1, Column 2, ...)         │
+│  ○ Specify manually                                         │
+│                                                             │
+│  ┌──────────┬──────────┬──────────┬──────────────┐         │
+│  │ region   │ sales    │ profit   │ date         │         │
+│  └──────────┴──────────┴──────────┴──────────────┘         │
+│                                                             │
+│  Delimiter:                                                 │
+│  ● Comma (,)  ○ Tab  ○ Semicolon (;)  ○ Other: [    ]      │
+│                                                             │
+│                              [Cancel]  [Import]            │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Field specifications:**
+
+1. **Preview table** (read-only)
+   - Shows first 5 rows exactly as parsed
+   - No styling applied yet
+   - Scrollable if many columns
+   - Helps user verify file loaded correctly
+
+2. **Header mode radio buttons** (required)
+   - **First row contains headers** (default)
+     - Most common case (>90% of CSVs)
+     - When selected: First row in preview gets cyan background highlight
+     - Editable input fields below show extracted names
+   - **Auto-generate headers**
+     - For CSVs without header row
+     - When selected: Hide input fields, show message "Columns will be named: Column 1, Column 2, ..."
+   - **Specify manually**
+     - Advanced option
+     - When selected: Show editable input fields (one per column)
+     - Pre-filled with "Column 1", "Column 2", etc.
+     - User can type custom names
+
+3. **Column name inputs** (conditional, shown only if "First row" or "Manual")
+   - One text input per column
+   - Pre-filled from first row OR "Column N"
+   - Inline validation: warn if duplicate names, empty names, invalid characters
+   - Max width: fit in dialog (scroll if >6 columns)
+
+4. **Delimiter radio buttons** (required)
+   - Auto-detected by PapaParse (usually correct)
+   - Default: Comma (most common)
+   - User can override if auto-detection failed
+   - "Other" option shows small text input (1-2 chars)
+
+**Styling notes:**
+- Use same modal styling as transform dialogs (see Section 9.1)
+- Preview table: Use `.data-table--compact` class
+- Input fields: Use `.form-input` class
+- Radio buttons: Use standard form styling (see Section 8.4)
+- Highlight first row when "First row contains headers" selected:
+  ```css
+  .import-preview__row--header {
+    background: rgba(0, 187, 206, 0.1);
+    font-weight: 500;
+  }
+  ```
+
+**Behavior:**
+- **Cancel**: Close dialog, discard file
+- **Import**:
+  1. Validate inputs (no duplicate column names, no empty names)
+  2. Parse full CSV with chosen configuration
+  3. Create Source with metadata (headerMode, delimiter, customHeaders)
+  4. Create default "main" model
+  5. Display data in preview table
+  6. Close dialog
+
+**Error handling:**
+- Show inline error if duplicate column names
+- Show inline error if CSV parsing fails (malformed file)
+- Disable "Import" button until valid configuration
 
 ### 13.1 Filter
 

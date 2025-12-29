@@ -170,7 +170,7 @@ body {
   transition: all var(--transition-fast);
 }
 
-.ribbon__tab:hover {
+.ribbon__tab:hover:not(:disabled) {
   color: var(--color-midnight-blue);
   background: rgba(0, 187, 206, 0.05);
 }
@@ -179,6 +179,16 @@ body {
   color: var(--color-midnight-blue);
   background: var(--color-white);
   border-bottom-color: var(--color-cyan);
+}
+
+.ribbon__tab--disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+.ribbon__tab--disabled:hover {
+  background: transparent;
+  color: var(--color-dark-gray);
 }
 
 .ribbon__content {
@@ -501,10 +511,60 @@ body {
   flex-direction: column;
 }
 
+/* ============================================
+   Empty State / Drag-n-Drop Area
+   ============================================ */
+
+.empty-state {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-xl);
+  border: 2px dashed var(--border-color);
+  border-radius: var(--border-radius-lg);
+  margin: var(--space-xl);
+  background: var(--color-white);
+  transition: all var(--transition-normal);
+}
+
+.empty-state--dragover {
+  border-color: var(--color-cyan);
+  background: rgba(0, 187, 206, 0.05);
+}
+
+.empty-state__content {
+  text-align: center;
+  max-width: 400px;
+}
+
+.empty-state__icon {
+  width: 64px;
+  height: 64px;
+  color: var(--color-cyan);
+  margin: 0 auto var(--space-md);
+  stroke-width: 1.5px;
+}
+
+.empty-state__title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-midnight-blue);
+  margin: 0 0 var(--space-sm) 0;
+  line-height: var(--line-height-tight);
+}
+
+.empty-state__text {
+  font-size: var(--font-size-base);
+  color: var(--color-dark-gray);
+  margin: 0;
+  line-height: var(--line-height-relaxed);
+}
+
 .table-container {
   flex: 1;
   overflow: auto;
-  padding: var(--space-lg);
+  /* padding: var(--space-lg); */
   min-height: 0; /* Fix for flexbox scrolling */
 }
 
@@ -863,6 +923,16 @@ body {
   overflow: auto;
   border: var(--border-width) solid var(--border-color);
   border-radius: var(--border-radius);
+}
+
+/* ============================================
+   Import Dialog
+   ============================================ */
+
+/* Highlight first row when "First row contains headers" is selected */
+.import-preview__row--header {
+  background: rgba(0, 187, 206, 0.1) !important;
+  font-weight: var(--font-weight-medium);
 }
 
 /* ============================================
