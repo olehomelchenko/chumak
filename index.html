@@ -1,0 +1,845 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>☆ Chumak — Data Wrangling in the Browser</title>
+
+    <!-- 98.css Framework -->
+    <link rel="stylesheet" href="https://unpkg.com/98.css">
+
+    <!-- Custom Styles -->
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            height: 100vh;
+            font-family: 'Monaco', 'Menlo', 'Consolas', 'Courier New', monospace;
+        }
+
+        /* Override 98.css fonts for all elements */
+        button, input, select, textarea, label, div, span, p, th, td, li, ul, fieldset, legend {
+            font-family: 'Monaco', 'Menlo', 'Consolas', 'Courier New', monospace;
+        }
+
+        /* Main Layout */
+        .app-container {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        /* Header */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 16px;
+            background: silver;
+            border-bottom: 2px solid #000;
+            height: 40px;
+        }
+
+        .header-left {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: bold;
+            font-size: 16px;
+        }
+
+        .header-right {
+            display: flex;
+            gap: 8px;
+            position: relative;
+        }
+
+        /* Transform Toolbar */
+        .toolbar {
+            display: flex;
+            gap: 2px;
+            padding: 8px;
+            background: silver;
+            border-bottom: 2px solid #000;
+            overflow-x: auto;
+            flex-wrap: wrap;
+            align-items: flex-start;
+        }
+
+        .toolbar-group {
+            display: flex;
+            gap: 0;
+            border: 2px solid #000;
+        }
+
+        .toolbar-group button {
+            border: none;
+            border-right: 1px solid #000;
+        }
+
+        .toolbar-group button:last-child {
+            border-right: none;
+        }
+
+        .toolbar button {
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            gap: 6px;
+            padding: 6px 12px;
+            font-size: 12px;
+            white-space: nowrap;
+            color: var(--text-color) !important;
+            text-shadow: none !important;
+        }
+
+        .toolbar button .emoji {
+            font-size: 16px;
+        }
+
+        .toolbar button:disabled {
+            opacity: 0.5;
+        }
+
+        /* Main Content */
+        .main-content {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* Left Panel */
+        .left-panel {
+            width: 240px;
+            display: flex;
+            flex-direction: column;
+            border-right: 2px solid #000;
+            background: silver;
+        }
+
+        .sources-section {
+            flex: 0 0 30%;
+            min-height: 120px;
+            border-bottom: 2px solid #000;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sources-header {
+            padding: 4px 8px;
+            background: silver;
+            border-bottom: 1px solid #000;
+            font-weight: bold;
+        }
+
+        .sources-list {
+            flex: 1;
+            padding: 8px;
+            background: white;
+        }
+
+        .source-item,
+        .model-item {
+            padding: 4px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+
+        .source-item:hover,
+        .model-item:hover {
+            background: #ddd;
+        }
+
+        .model-item {
+            padding-left: 24px;
+        }
+
+        .model-item.active {
+            background: navy;
+            color: white;
+        }
+
+        .steps-section {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+
+        .tabs {
+            display: flex;
+            background: silver;
+            border-bottom: 2px solid #000;
+        }
+
+        .tabs button {
+            flex: 1;
+            padding: 4px 8px;
+            border: none;
+            background: silver;
+            border-right: 2px solid #000;
+            cursor: pointer;
+        }
+
+        .tabs button:last-child {
+            border-right: none;
+        }
+
+        .tabs button.active {
+            background: white;
+        }
+
+        .tab-content {
+            flex: 1;
+            padding: 8px;
+            overflow-y: auto;
+            background: white;
+        }
+
+        .step-item {
+            padding: 6px;
+            margin-bottom: 4px;
+            cursor: pointer;
+            border: 1px solid transparent;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .step-item:hover {
+            background: #ddd;
+        }
+
+        .step-item.active {
+            background: navy;
+            color: white;
+        }
+
+        .step-delete {
+            padding: 0 4px;
+            font-size: 12px;
+        }
+
+        .json-view {
+            font-family: 'Courier New', monospace;
+            font-size: 12px;
+            white-space: pre-wrap;
+            background: white;
+            padding: 8px;
+        }
+
+
+        /* Right Panel - Data Preview */
+        .data-preview {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+            background: white;
+        }
+
+        .preview-table-container {
+            flex: 1;
+            overflow: auto;
+            padding: 8px;
+        }
+
+        .preview-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .preview-table th {
+            background: silver;
+            padding: 8px;
+            text-align: left;
+            border: 2px solid #000;
+            position: sticky;
+            top: 0;
+            font-weight: bold;
+        }
+
+        .preview-table td {
+            padding: 8px;
+            border: 1px solid #000;
+        }
+
+        .preview-table td.number {
+            text-align: right;
+        }
+
+        .preview-table td.empty {
+            font-style: italic;
+            color: gray;
+            text-align: center;
+        }
+
+        .preview-footer {
+            padding: 8px;
+            background: silver;
+            border-top: 2px solid #000;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        /* Drop Zone */
+        .drop-zone {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100%;
+            padding: 40px;
+            text-align: center;
+        }
+
+        .drop-zone-box {
+            border: 4px dashed #000;
+            padding: 60px 40px;
+            background: white;
+            cursor: pointer;
+        }
+
+        .drop-zone-box:hover {
+            background: #f0f0f0;
+        }
+
+        .drop-zone-icon {
+            font-size: 48px;
+            margin-bottom: 16px;
+        }
+
+        /* Modal Overlay */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        .modal-window {
+            width: 600px;
+            max-width: 90vw;
+            max-height: 80vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .window-body {
+            flex: 1;
+            overflow-y: auto;
+        }
+
+        .form-group {
+            margin-bottom: 16px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 4px;
+            font-weight: bold;
+        }
+
+        .form-group input[type="text"],
+        .form-group select {
+            width: 100%;
+            padding: 4px;
+        }
+
+        .preview-box {
+            border: 2px solid #000;
+            padding: 8px;
+            margin: 16px 0;
+            max-height: 200px;
+            overflow: auto;
+            background: white;
+        }
+
+        .preview-box h4 {
+            margin: 0 0 8px 0;
+        }
+
+        .modal-buttons {
+            display: flex;
+            justify-content: flex-end;
+            gap: 8px;
+            margin-top: 16px;
+        }
+
+        .checkbox-list {
+            max-height: 200px;
+            overflow-y: auto;
+            border: 2px solid #000;
+            padding: 8px;
+            background: white;
+        }
+
+        .checkbox-list label {
+            display: block;
+            margin-bottom: 4px;
+        }
+
+        /* Export Dropdown */
+        .dropdown-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            margin-top: 2px;
+            background: silver;
+            border: 2px solid #000;
+            box-shadow: 4px 4px 0 rgba(0,0,0,0.2);
+            min-width: 150px;
+            z-index: 100;
+        }
+
+        .dropdown-menu button {
+            width: 100%;
+            text-align: left;
+            padding: 8px;
+            border: none;
+            background: silver;
+            cursor: pointer;
+        }
+
+        .dropdown-menu button:hover {
+            background: navy;
+            color: white;
+        }
+
+        /* Welcome Modal */
+        .welcome-content {
+            text-align: center;
+            padding: 20px;
+        }
+
+        .video-placeholder {
+            width: 100%;
+            height: 200px;
+            background: #ddd;
+            border: 2px solid #000;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 20px 0;
+            font-size: 48px;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container" x-data="chumakApp()">
+        <!-- Header -->
+        <div class="header">
+            <div class="header-left">
+                <span>☆ Chumak</span>
+            </div>
+            <div class="header-right">
+                <button>Import</button>
+                <div style="position: relative;">
+                    <button @click="showExportMenu = !showExportMenu">Export ▼</button>
+                    <div class="dropdown-menu" x-show="showExportMenu" @click.outside="showExportMenu = false" x-cloak>
+                        <button>Export CSV</button>
+                        <button>Export Workflow</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Transform Toolbar -->
+        <div class="toolbar">
+            <!-- Row Operations -->
+            <div class="toolbar-group">
+                <button @click="openModal('filter')">
+                    <span class="emoji">🔍</span>
+                    <span>Filter</span>
+                </button>
+                <button>
+                    <span class="emoji">↕️</span>
+                    <span>Sort</span>
+                </button>
+            </div>
+
+            <!-- Column Operations -->
+            <div class="toolbar-group">
+                <button @click="openModal('select')">
+                    <span class="emoji">📋</span>
+                    <span>Select</span>
+                </button>
+                <button>
+                    <span class="emoji">✂️</span>
+                    <span>Remove</span>
+                </button>
+                <button>
+                    <span class="emoji">✏️</span>
+                    <span>Rename</span>
+                </button>
+                <button @click="openModal('derive')">
+                    <span class="emoji">🧮</span>
+                    <span>Derive</span>
+                </button>
+            </div>
+
+            <!-- Data Cleaning -->
+            <div class="toolbar-group">
+                <button>
+                    <span class="emoji">📝</span>
+                    <span>Fill</span>
+                </button>
+                <button>
+                    <span class="emoji">🗑️</span>
+                    <span>Drop</span>
+                </button>
+                <button>
+                    <span class="emoji">🔄</span>
+                    <span>Replace</span>
+                </button>
+            </div>
+
+            <!-- Aggregation -->
+            <div class="toolbar-group">
+                <button>
+                    <span class="emoji">📊</span>
+                    <span>Aggregate</span>
+                </button>
+            </div>
+
+            <!-- Future Features -->
+            <div class="toolbar-group">
+                <button disabled title="Coming soon">
+                    <span class="emoji">🔗</span>
+                    <span>Join</span>
+                </button>
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="main-content">
+            <!-- Left Panel -->
+            <div class="left-panel">
+                <!-- Sources & Models -->
+                <div class="sources-section">
+                    <div class="sources-header">Sources & Models</div>
+                    <div class="sources-list">
+                        <div class="source-item">
+                            <span>📄 sales.csv</span>
+                        </div>
+                        <div class="model-item active">
+                            <span>📊 sales_cleaned</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Steps / JSON Tabs -->
+                <div class="steps-section">
+                    <div class="tabs">
+                        <button
+                            :class="{ active: activeTab === 'steps' }"
+                            @click="activeTab = 'steps'">
+                            Steps
+                        </button>
+                        <button
+                            :class="{ active: activeTab === 'json' }"
+                            @click="activeTab = 'json'">
+                            JSON
+                        </button>
+                    </div>
+
+                    <div class="tab-content">
+                        <!-- Steps View -->
+                        <div x-show="activeTab === 'steps'">
+                            <template x-for="(step, index) in steps" :key="index">
+                                <div
+                                    class="step-item"
+                                    :class="{ active: activeStep === index }"
+                                    @click="activeStep = index">
+                                    <span x-text="`${index + 1}. ${step.type}: ${step.summary}`"></span>
+                                    <button class="step-delete">×</button>
+                                </div>
+                            </template>
+                            <button style="width: 100%; margin-top: 8px;">+ Add Step</button>
+                        </div>
+
+                        <!-- JSON View -->
+                        <div x-show="activeTab === 'json'" class="json-view" x-text="jsonView"></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Data Preview -->
+            <div class="data-preview">
+                <div class="preview-table-container">
+                    <table class="preview-table">
+                        <thead>
+                            <tr>
+                                <th>region <small>Aa</small></th>
+                                <th>sales <small>#</small></th>
+                                <th>profit <small>#</small></th>
+                                <th>date <small>📅</small></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <template x-for="row in mockData" :key="row.id">
+                                <tr>
+                                    <td x-text="row.region"></td>
+                                    <td class="number" x-text="row.sales.toLocaleString()"></td>
+                                    <td class="number" x-text="row.profit.toLocaleString()"></td>
+                                    <td x-text="row.date"></td>
+                                </tr>
+                            </template>
+                        </tbody>
+                    </table>
+                </div>
+                <div class="preview-footer">
+                    <span>Showing 1-10 of 5,432 rows</span>
+                    <div>
+                        <button>◀ Prev</button>
+                        <button>Next ▶</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filter Modal -->
+        <div class="modal-overlay" x-show="activeModal === 'filter'" @click.self="closeModal()" x-cloak>
+            <div class="window modal-window">
+                <div class="title-bar">
+                    <div class="title-bar-text">Filter</div>
+                    <div class="title-bar-controls">
+                        <button aria-label="Close" @click="closeModal()"></button>
+                    </div>
+                </div>
+                <div class="window-body">
+                    <div class="form-group">
+                        <label for="filter-expr">Keep rows where:</label>
+                        <input type="text" id="filter-expr" value="sales > 1000" />
+                        <small>Examples: sales > 1000, region == "North", price != 0</small>
+                    </div>
+
+                    <div class="preview-box">
+                        <h4>Preview (47 rows match)</h4>
+                        <table style="width: 100%; font-size: 12px;">
+                            <tr>
+                                <th>region</th>
+                                <th>sales</th>
+                                <th>profit</th>
+                            </tr>
+                            <tr>
+                                <td>North</td>
+                                <td>1,500</td>
+                                <td>320</td>
+                            </tr>
+                            <tr>
+                                <td>South</td>
+                                <td>2,100</td>
+                                <td>450</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <div class="modal-buttons">
+                        <button @click="closeModal()">Cancel</button>
+                        <button @click="applyTransform('Filter', 'sales > 1000')">Apply</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Select Modal -->
+        <div class="modal-overlay" x-show="activeModal === 'select'" @click.self="closeModal()" x-cloak>
+            <div class="window modal-window">
+                <div class="title-bar">
+                    <div class="title-bar-text">Select Columns</div>
+                    <div class="title-bar-controls">
+                        <button aria-label="Close" @click="closeModal()"></button>
+                    </div>
+                </div>
+                <div class="window-body">
+                    <div class="form-group">
+                        <label>Choose columns to keep:</label>
+                        <div class="checkbox-list">
+                            <label><input type="checkbox" checked> region</label>
+                            <label><input type="checkbox" checked> sales</label>
+                            <label><input type="checkbox"> cost</label>
+                            <label><input type="checkbox" checked> profit</label>
+                            <label><input type="checkbox"> date</label>
+                        </div>
+                        <div style="margin-top: 8px;">
+                            <button>Select All</button>
+                            <button>Select None</button>
+                        </div>
+                    </div>
+
+                    <div class="preview-box">
+                        <h4>Preview</h4>
+                        <p>Table will show: region, sales, profit</p>
+                    </div>
+
+                    <div class="modal-buttons">
+                        <button @click="closeModal()">Cancel</button>
+                        <button @click="applyTransform('Select', '3 columns')">Apply</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Derive Modal -->
+        <div class="modal-overlay" x-show="activeModal === 'derive'" @click.self="closeModal()" x-cloak>
+            <div class="window modal-window">
+                <div class="title-bar">
+                    <div class="title-bar-text">Derive Column</div>
+                    <div class="title-bar-controls">
+                        <button aria-label="Close" @click="closeModal()"></button>
+                    </div>
+                </div>
+                <div class="window-body">
+                    <div class="form-group">
+                        <label for="derive-name">New column name:</label>
+                        <input type="text" id="derive-name" value="margin" />
+                    </div>
+
+                    <div class="form-group">
+                        <label for="derive-expr">Expression:</label>
+                        <input type="text" id="derive-expr" value="profit / sales * 100" />
+                        <small>Examples: revenue - cost, price * quantity, [Total Sales] * 2</small>
+                    </div>
+
+                    <div class="preview-box">
+                        <h4>Preview</h4>
+                        <table style="width: 100%; font-size: 12px;">
+                            <tr>
+                                <th>region</th>
+                                <th>sales</th>
+                                <th>margin (new)</th>
+                            </tr>
+                            <tr>
+                                <td>North</td>
+                                <td>1,500</td>
+                                <td>21.3%</td>
+                            </tr>
+                            <tr>
+                                <td>South</td>
+                                <td>2,100</td>
+                                <td>21.4%</td>
+                            </tr>
+                        </table>
+                    </div>
+
+                    <div class="modal-buttons">
+                        <button @click="closeModal()">Cancel</button>
+                        <button @click="applyTransform('Derive', 'margin = profit / sales * 100')">Apply</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Welcome Modal -->
+        <div class="modal-overlay" x-show="showWelcome" @click.self="showWelcome = false" x-cloak>
+            <div class="window modal-window">
+                <div class="title-bar">
+                    <div class="title-bar-text">Welcome to Chumak</div>
+                    <div class="title-bar-controls">
+                        <button aria-label="Close" @click="showWelcome = false"></button>
+                    </div>
+                </div>
+                <div class="window-body">
+                    <div class="welcome-content">
+                        <div class="video-placeholder">
+                            ▶️
+                        </div>
+                        <p>Watch a quick tutorial (2 min)</p>
+
+                        <div style="margin-top: 20px;">
+                            <button>Watch Video</button>
+                            <button @click="showWelcome = false">Skip</button>
+                        </div>
+
+                        <div style="margin-top: 16px;">
+                            <label>
+                                <input type="checkbox" @change="dontShowWelcome = $event.target.checked">
+                                Don't show this again
+                            </label>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Alpine.js -->
+    <script defer src="https://unpkg.com/alpinejs@3.x.x/dist/cdn.min.js"></script>
+
+    <script>
+        function chumakApp() {
+            return {
+                // UI State
+                showWelcome: true,
+                activeModal: null,
+                activeTab: 'steps',
+                activeStep: null,
+                showExportMenu: false,
+                dontShowWelcome: false,
+
+                // Data
+                steps: [
+                    { type: 'Filter', summary: 'sales > 1000' },
+                    { type: 'Derive', summary: 'profit = revenue - cost' },
+                    { type: 'Select', summary: '5 columns' }
+                ],
+
+                mockData: [
+                    { id: 1, region: 'North', sales: 1500, profit: 320, date: '2025-01-15' },
+                    { id: 2, region: 'South', sales: 2100, profit: 450, date: '2025-01-16' },
+                    { id: 3, region: 'East', sales: 800, profit: 120, date: '2025-01-17' },
+                    { id: 4, region: 'West', sales: 1800, profit: 380, date: '2025-01-18' },
+                    { id: 5, region: 'North', sales: 2200, profit: 520, date: '2025-01-19' },
+                    { id: 6, region: 'South', sales: 1600, profit: 340, date: '2025-01-20' },
+                    { id: 7, region: 'East', sales: 1900, profit: 410, date: '2025-01-21' },
+                    { id: 8, region: 'West', sales: 2500, profit: 580, date: '2025-01-22' },
+                    { id: 9, region: 'North', sales: 1700, profit: 360, date: '2025-01-23' },
+                    { id: 10, region: 'South', sales: 2000, profit: 440, date: '2025-01-24' }
+                ],
+
+                // Computed
+                get jsonView() {
+                    return JSON.stringify({
+                        transforms: this.steps.map(s => {
+                            if (s.type === 'Filter') return { filter: s.summary };
+                            if (s.type === 'Select') return { select: ['region', 'sales', 'profit', 'date', 'margin'] };
+                            if (s.type === 'Derive') return { derive: { profit: 'revenue - cost' } };
+                            return {};
+                        })
+                    }, null, 2);
+                },
+
+                // Methods
+                openModal(modalName) {
+                    this.activeModal = modalName;
+                },
+
+                closeModal() {
+                    this.activeModal = null;
+                },
+
+                applyTransform(type, summary) {
+                    this.steps.push({ type, summary });
+                    this.closeModal();
+                }
+            };
+        }
+    </script>
+</body>
+</html>

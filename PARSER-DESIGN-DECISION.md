@@ -1430,11 +1430,11 @@ alpine.js                       (already dependency)
 ## References
 
 ### Research Documents
-- `RESEARCH-GUIDE.md` - Analysis protocol
-- `analysis__arquero.md` - Arquero deep-dive
-- `analysis__vega-lite.md` - Vega-Lite deep-dive
-- `analysis__openrefine.md` - OpenRefine/GREL deep-dive
-- `analysis__ag-grid.md` - ag-Grid deep-dive
+- [research/RESEARCH-GUIDE.md](research/RESEARCH-GUIDE.md) - Analysis protocol
+- [research/analysis__arquero.md](research/analysis__arquero.md) - Arquero deep-dive
+- [research/analysis__vega-lite.md](research/analysis__vega-lite.md) - Vega-Lite deep-dive
+- [research/analysis__openrefine.md](research/analysis__openrefine.md) - OpenRefine/GREL deep-dive
+- [research/analysis__ag-grid.md](research/analysis__ag-grid.md) - ag-Grid deep-dive
 
 ### External Documentation
 - jsep: https://github.com/EricSmekens/jsep

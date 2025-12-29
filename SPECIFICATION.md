@@ -57,8 +57,16 @@ Chumak is a browser-based data wrangling tool for cleaning and transforming tabu
 ```html
 <script src="https://unpkg.com/papaparse@5/papaparse.min.js"></script>
 <script src="https://unpkg.com/arquero@5/dist/arquero.min.js"></script>
+<script src="https://unpkg.com/jsep@1/dist/jsep.min.js"></script>
 <script src="https://unpkg.com/alpinejs@3/dist/cdn.min.js" defer></script>
 ```
+
+| Library | Purpose | Size |
+|---------|---------|------|
+| **PapaParse** | CSV parsing and export | ~35KB |
+| **Arquero** | Data transformation engine | ~200KB |
+| **jsep** | Expression parser | ~10KB |
+| **Alpine.js** | Reactive UI framework | ~40KB |
 
 ### 3.3 Storage
 
@@ -168,11 +176,21 @@ interface Workflow {
 
 Inspired by Vega-Lite. Each transform is one object in an array.
 
+**Dual-mode expressions**: Filter transforms accept either structured predicates (primary) or expression strings (advanced). See Section 11 and PARSER-DESIGN-DECISION.md for details.
+
 ```json
 {
   "transforms": [
-    { "filter": "sales > 1000" },
+    // Option 1: Structured predicate (GUI-friendly)
+    { "filter": { "field": "sales", "gt": 1000 } },
+
+    // Option 2: Expression string (advanced users)
+    { "filter": "sales > 1000 && region == 'North'" },
+
+    // Derive always uses expression strings
     { "derive": { "profit": "revenue - cost" } },
+
+    // Other transforms
     { "select": ["region", "sales", "profit"] },
     { "sort": { "field": "profit", "order": "descending" } }
   ]
@@ -393,22 +411,24 @@ Option: embed source data (for full reproducibility) vs. reference only (smaller
 |-----------|-------|
 | Data import | CSV/TSV from file or URL |
 | Transforms | filter, select, remove, rename, sort, derive, fillna, dropna, replace, aggregate |
-| UI | Full layout, step list, preview, JSON viewer |
+| Expression parser | Structured predicates + expression strings (jsep), basic operators only, no functions |
+| UI | Full layout, step list, preview, JSON viewer, predicate builder |
 | Persistence | IndexedDB auto-save, workflow export/import |
 | Export | Result CSV, workflow JSON |
-| Testing | Test infrastructure, 90%+ coverage on transform compiler |
+| Testing | Test infrastructure, 90%+ coverage on transform compiler and expression parser |
 
 ### Phase 2 — Derived Datasets
 
-**Goal:** Support relational modeling, joins.
+**Goal:** Support relational modeling, joins, expression functions.
 
 | Component | Scope |
 |-----------|-------|
 | Multiple sources | Load several CSVs in one workflow |
 | Derived models | Create model referencing another model |
 | Joins | Left join, inner join between models |
+| Expression functions | Whitelist safe functions (Math.*, String.*, Date.*), ternary operator |
 | UI updates | Tree view for sources/models, join builder |
-| Testing | Join tests, multi-source workflow tests |
+| Testing | Join tests, multi-source workflow tests, function tests |
 
 ### Phase 3 — Polish & Advanced
 
@@ -442,48 +462,120 @@ The following are **out of scope** for the foreseeable future:
 
 ## 10. Open Questions
 
-| Question | Notes |
-|----------|-------|
-| Expression syntax | Use simple `column > value` and auto-prefix? Or require `datum.column`? |
-| Error handling | How to surface invalid expressions or type mismatches? |
-| Large file UX | Stream parsing with progress bar? Or reject files over limit? |
-| Step descriptions | Auto-generated, user-editable, or both? |
-| Undo granularity | Is step-level revert sufficient, or need finer undo? |
-| Visual identity | Logo, color scheme — star/navigation theme? |
+| Question | Status | Notes |
+|----------|--------|-------|
+| ~~Expression syntax~~ | ✅ **Resolved** | Use bare identifiers with bracket escape. See PARSER-DESIGN-DECISION.md |
+| ~~Error handling~~ | ✅ **Resolved** | Position-aware errors with suggestions. See PARSER-DESIGN-DECISION.md |
+| Large file UX | Open | Stream parsing with progress bar? Or reject files over limit? |
+| Step descriptions | Open | Auto-generated, user-editable, or both? |
+| Undo granularity | Open | Is step-level revert sufficient, or need finer undo? |
+| Visual identity | Open | Logo, color scheme — star/navigation theme? |
 
 ---
 
 ## 11. Appendix: Expression Syntax
 
-### Simple expressions (Phase 1)
+> **Note**: Full parser design details in [PARSER-DESIGN-DECISION.md](PARSER-DESIGN-DECISION.md)
 
+### Design Approach
+
+Chumak uses a **dual-mode input system**:
+
+1. **Structured predicates** (Primary) - GUI-driven, type-safe filter builder
+2. **Expression strings** (Advanced) - Text-based expressions for power users
+
+**Parser**: jsep library for expression strings, with AST validation and interpretation (no Function() constructor for security).
+
+### Structured Predicates (Primary API)
+
+```json
+// Field predicates
+{ "filter": { "field": "sales", "gt": 1000 } }
+{ "filter": { "field": "region", "equal": "North" } }
+
+// Logical composition
+{
+  "filter": {
+    "and": [
+      { "field": "sales", "gt": 1000 },
+      { "field": "region", "equal": "North" }
+    ]
+  }
+}
 ```
-# Comparisons
+
+**Benefits**: No syntax errors, type-safe, beginner-friendly, maps to GUI forms.
+
+### Expression Strings (Advanced Mode)
+
+```javascript
+// Comparisons
 sales > 1000
 region == "North"
 profit != 0
 
-# Boolean
-sales > 1000 and region == "North"
-status == "active" or status == "pending"
+// Boolean (JavaScript operators)
+sales > 1000 && region == "North"
+status == "active" || status == "pending"
+!cancelled
 
-# Arithmetic (in derive)
+// Arithmetic (in derive)
 revenue - cost
 price * quantity
 (revenue - cost) / revenue * 100
 ```
 
-### Column references
+**Note**: Boolean operators are `&&`, `||`, `!` (JavaScript standard), not `and`, `or`, `not`.
 
-Unquoted names for simple columns:
-```
+### Column References
+
+**Simple names** (bare identifiers):
+```javascript
 sales > 1000
+revenue - cost
 ```
 
-Bracket notation for spaces/special chars:
-```
+**Spaces/special characters** (bracket notation):
+```javascript
 [Total Sales] > 1000
+[Q1 Revenue] - [Q1 Cost]
+[price-usd] * 1.1
 ```
+
+### Phase 1 Operators
+
+**Allowed**:
+- Arithmetic: `+`, `-`, `*`, `/`, `%`
+- Comparison: `>`, `<`, `>=`, `<=`, `==`, `===`, `!=`, `!==`
+- Logical: `&&`, `||`, `!`
+- Grouping: `(`, `)`
+
+**Not allowed** (Phase 1):
+- Function calls (added in Phase 2)
+- Ternary operator `? :` (added in Phase 2)
+- Bitwise operators
+- Assignment operators
+
+### Error Handling
+
+**User-friendly error messages with position highlighting**:
+
+```
+Column 'Slaes' not found
+ region == "North" && Slaes > 1000
+                       ↑
+Did you mean 'Sales'?
+Available columns: Region, Sales, Revenue, Cost
+```
+
+**Errors as values**: Individual row failures don't break entire column transformation.
+
+### Security Model
+
+- **No Function() constructor** - expressions parsed and interpreted via AST
+- **Operator whitelist** - only safe operators allowed
+- **Column validation** - unknown columns rejected at parse time
+- **No property access** - can't access window, document, localStorage, etc.
 
 ---
 
