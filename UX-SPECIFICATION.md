@@ -2,317 +2,783 @@
 
 ## 1. Design Foundation
 
-### 1.1 Framework & Philosophy
+### 1.1 Design System & Philosophy
 
 | Aspect | Decision |
 |--------|----------|
-| **CSS Framework** | 98.css |
-| **Philosophy** | Functional density, familiar patterns. No decorative nostalgia. |
+| **CSS Framework** | Custom CSS with normalize.css for browser consistency |
+| **Design Inspiration** | KSE Visual Identity (simplified for web app) |
+| **Philosophy** | Information-dense, rigorous, clean — no decorative elements |
 | **Target** | Desktop, 13"+ screens |
 | **Browser** | Chrome, Safari (latest 2 versions) |
 
 ### 1.2 Visual Principles
 
-- Use 98.css components as-is (buttons, inputs, windows, tabs)
-- Prioritize information density over whitespace
-- Typography: system fonts per 98.css defaults
-- No custom colors beyond 98.css palette unless necessary for data types
+**Core principles:**
+- **Rigorous simplicity** — no shadows, gradients, or decorative effects
+- **Information density** — prioritize data visibility over whitespace
+- **Color discipline** — use only brand colors, Dark Midnight Blue always present
+- **Line designation** — use thin borders (0.75pt / 1px) to separate sections
+- **Typographic hierarchy** — clear distinction between headings and body text
+
+**Not a branded KSE product** — but borrows visual language for consistency if published under KSE.
+
+### 1.3 CSS Dependencies
+
+```html
+<!-- Browser normalization (choose one) -->
+<link rel="stylesheet" href="https://unpkg.com/normalize.css@8/normalize.css">
+<!-- OR -->
+<link rel="stylesheet" href="https://unpkg.com/modern-normalize@2/modern-normalize.css">
+
+<!-- Custom Chumak styles -->
+<link rel="stylesheet" href="styles/chumak.css">
+```
+
+**Why normalize.css/modern-normalize:**
+- Consistent baseline across browsers
+- Minimal, non-opinionated
+- ~3-5KB, single file
+- No framework lock-in
+- Well-maintained standards
 
 ---
 
-## 2. Layout
+## 2. Color System
 
-### 2.1 Main Structure
+### 2.1 Color Palette
 
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│ HEADER                                                              │
-│  Chumak                                        [Import] [Export ▼]  │
-├─────────────────────────────────────────────────────────────────────┤
-│ TRANSFORM TOOLBAR                                                   │
-│  🔍Filter  📋Select  ✂️Remove  ✏️Rename  ↕️Sort  🧮Derive  ...      │
-├───────────────────┬─────────────────────────────────────────────────┤
-│ LEFT PANEL        │ DATA PREVIEW                                    │
-│ (240px fixed)     │ (flexible, fills remaining space)               │
-│                   │                                                 │
-│ ┌───────────────┐ │ ┌─────────────────────────────────────────────┐ │
-│ │ Sources &     │ │ │                                             │ │
-│ │ Models        │ │ │  [Table with data]                          │ │
-│ │               │ │ │                                             │ │
-│ │ 📄 sales.csv  │ │ │  - Horizontal scroll                        │ │
-│ │   └─ sales_   │ │ │  - Resizable columns                        │ │
-│ │      cleaned  │ │ │  - Truncated values                         │ │
-│ └───────────────┘ │ │                                             │ │
-│                   │ │                                             │ │
-│ ┌───────────────┐ │ │                                             │ │
-│ │ [Steps][JSON] │ │ └─────────────────────────────────────────────┘ │
-│ ├───────────────┤ │                                                 │
-│ │ 1. Filter     │ │ Showing rows 1-100 of 5,432    [< Prev][Next >] │
-│ │ 2. Derive     │ │                                                 │
-│ │ 3. Select     │ │                                                 │
-│ │               │ │                                                 │
-│ └───────────────┘ │                                                 │
-└───────────────────┴─────────────────────────────────────────────────┘
-```
+Adapted from KSE brand guidelines:
 
-### 2.2 Panel Specifications
+| Color Name | RGB | Hex | Usage |
+|------------|-----|-----|-------|
+| **Dark Midnight Blue** | 0, 57, 100 | `#003964` | Primary: headers, text, borders |
+| **Cyan** | 0, 187, 206 | `#00BBCE` | Accent: data highlights, links, active states |
+| **Green** | 167, 197, 57 | `#A7C539` | Accent: success states, positive indicators |
+| **Yellow** | 228, 229, 65 | `#E4E541` | Accent: warnings, highlights |
+| **Red** | 241, 91, 67 | `#F15B43` | Accent: errors, critical actions |
+| **Dark Red** | 211, 62, 44 | `#D33E2C` | Accent: delete/destructive actions |
+| **White** | 255, 255, 255 | `#FFFFFF` | Background, contrast |
+| **Light Gray** | 245, 245, 245 | `#F5F5F5` | Subtle backgrounds, disabled states |
+| **Medium Gray** | 200, 200, 200 | `#C8C8C8` | Borders, separators |
+| **Dark Gray** | 100, 100, 100 | `#646464` | Secondary text |
 
-| Panel | Width/Height | Behavior |
-|-------|--------------|----------|
-| **Header** | 100% × 32px | Fixed |
-| **Transform Toolbar** | 100% × 40px | Fixed, horizontal scroll if overflow |
-| **Left Panel** | 240px fixed | Two sections stacked vertically |
-| **Data Preview** | Remaining space | Scrollable both directions |
+### 2.2 Color Application Rules
 
-### 2.3 Left Panel Split
+**From KSE guidelines:**
+1. Dark Midnight Blue appears on every screen
+2. Use maximum 5 colors per view (always including Dark Midnight Blue)
+3. No additional colors outside this palette
 
-| Section | Height | Content |
-|---------|--------|---------|
-| **Sources & Models** | 30% (min 120px) | Tree view of data sources |
-| **Steps / JSON** | 70% | Tabbed: step list or JSON view |
+**Chumak-specific applications:**
+
+| Element | Color | Notes |
+|---------|-------|-------|
+| **Primary text** | Dark Midnight Blue | Headers, labels, body text |
+| **Secondary text** | Dark Gray | Help text, metadata |
+| **Links** | Cyan | Hover: underline |
+| **Active/selected** | Cyan background (10% opacity) | Selected rows, active tabs |
+| **Success indicators** | Green | "Applied", "Saved", checkmarks |
+| **Warnings** | Yellow text + Light Yellow background | Non-blocking issues |
+| **Errors** | Red text + Light Red background | Blocking issues |
+| **Delete actions** | Dark Red | Destructive buttons |
+| **Primary buttons** | Dark Midnight Blue background, White text | Main actions |
+| **Secondary buttons** | White background, Dark Midnight Blue border + text | Cancel, secondary actions |
+| **Disabled elements** | Light Gray background, Medium Gray text | Inactive states |
 
 ---
 
-## 3. Components
+## 3. Typography
 
-### 3.1 Header
+### 3.1 Font Stack
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│ ☆ Chumak                                   [Import] [Export ▼]  │
-└─────────────────────────────────────────────────────────────────┘
-```
+**Primary:** Graphik (KSE brand font)
+**Fallback:** Arial, system sans-serif
 
-| Element | Component | Behavior |
-|---------|-----------|----------|
-| **Logo/Name** | Text + icon | Static |
-| **Import** | 98.css button | Opens file picker |
-| **Export** | 98.css dropdown button | Options: "Export CSV", "Export Workflow" |
+```css
+/* Heading font */
+font-family: 'Graphik', Arial, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+font-weight: 500; /* Graphik Medium */
 
-### 3.2 Transform Toolbar
-
-Horizontal bar with icon+label buttons for each transform.
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│ 🔍     📋      ✂️      ✏️     ↕️     🧮     📝     🗑️    🔄     📊      │
-│Filter Select Remove Rename Sort Derive  Fill  Drop  Replace Group  │
-└─────────────────────────────────────────────────────────────────┘
+/* Body font */
+font-family: 'Graphik', Arial, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+font-weight: 400; /* Graphik Regular */
 ```
 
-| Transform | Emoji (MVP) | Status |
-|-----------|-------------|--------|
-| Filter | 🔍 | Active |
-| Select | 📋 | Active |
-| Remove | ✂️ | Active |
-| Rename | ✏️ | Active |
-| Sort | ↕️ | Active |
-| Derive | 🧮 | Active |
-| Fill Missing | 📝 | Active |
-| Drop Missing | 🗑️ | Active |
-| Replace | 🔄 | Active |
-| Aggregate | 📊 | Active |
-| Join | 🔗 | Greyed (Phase 2) |
-| Pivot | 🔀 | Greyed (Phase 3) |
-| Unpivot | 🔁 | Greyed (Phase 3) |
-| Split | ✂️ | Greyed (Phase 3) |
-| Merge | 🔗 | Greyed (Phase 3) |
+**Font loading strategy:**
+- Host Graphik locally or use CSS `@font-face` with fallback
+- Use `font-display: swap` to avoid FOIT (Flash of Invisible Text)
+- Acceptable to fall back to Arial if Graphik unavailable
 
-**Button states:**
-- Default: 98.css button style
-- Hover: 98.css hover state
-- Disabled: Greyed out, no pointer, tooltip "Coming soon"
+### 3.2 Type Scale
 
-### 3.3 Sources & Models Panel
+| Element | Font | Size | Weight | Line Height | Color | Usage |
+|---------|------|------|--------|-------------|-------|-------|
+| **H1 (Page title)** | Graphik | 24px | Medium (500) | 1.15 | Dark Midnight Blue | Main app title |
+| **H2 (Section)** | Graphik | 18px | Medium (500) | 1.15 | Dark Midnight Blue | Panel headers |
+| **H3 (Subsection)** | Graphik | 16px | Medium (500) | 1.15 | Dark Midnight Blue | Dialog headers |
+| **Body** | Graphik | 14px | Regular (400) | 1.3 | Dark Midnight Blue | Default text |
+| **Small** | Graphik | 12px | Regular (400) | 1.3 | Dark Gray | Metadata, help text |
+| **Monospace** | 'SF Mono', 'Consolas', monospace | 13px | Regular | 1.4 | Dark Midnight Blue | JSON, expressions |
 
-98.css tree view component.
+### 3.3 Typography Rules
 
-```
-┌─ Sources & Models ──────────────────┐
-│ 📄 sales.csv                        │
-│    └─ 📊 sales_cleaned [active]     │
-│ 📄 regions.csv                      │
-│    └─ 📊 regions_lookup             │
-└─────────────────────────────────────┘
-```
-
-| Interaction | Result |
-|-------------|--------|
-| Click source | Select source, show raw data preview |
-| Click model | Select model, show transformed preview |
-| Right-click | Context menu: Rename, Delete, Create Derived Model |
-
-### 3.4 Steps Panel
-
-Compact list with tab toggle to JSON view.
-
-```
-┌─ [Steps] [JSON] ────────────────────┐
-│ 1. Filter: sales > 1000         [×] │
-│ 2. Derive: profit = revenue-cost[×] │
-│ 3. Select: 5 columns            [×] │
-│    💬 "Removed PII columns"         │
-│─────────────────────────────────────│
-│ [+ Add Step]                        │
-└─────────────────────────────────────┘
-```
-
-| Element | Behavior |
-|---------|----------|
-| **Step row** | Click → show data preview at this step |
-| **[×] button** | Delete step + all subsequent (with confirmation) |
-| **💬 Comment** | Shown inline if present, muted text |
-| **[+ Add Step]** | Same as clicking toolbar button (opens selector) |
-| **[JSON] tab** | Switches to read-only JSON view of transforms |
-
-**Step row format:**
-```
-{index}. {transform_type}: {summary}    [×]
-```
-
-Summary examples:
-- Filter: `sales > 1000`
-- Select: `5 columns`
-- Rename: `region → area`
-- Derive: `profit = revenue - cost`
-- Sort: `sales ↓`
-
-### 3.5 JSON View (Tab)
-
-```
-┌─ [Steps] [JSON] ────────────────────┐
-│ {                                   │
-│   "transforms": [                   │
-│     { "filter": "sales > 1000" },   │
-│     { "derive": { "profit": "..." }}│
-│   ]                                 │
-│ }                                   │
-│─────────────────────────────────────│
-│                          [📋 Copy]  │
-└─────────────────────────────────────┘
-```
-
-| Feature | Decision |
-|---------|----------|
-| Syntax highlighting | No (plain monospace for MVP) |
-| Editable | No (read-only) |
-| Copy button | Yes, copies full JSON |
-
-### 3.6 Data Preview Table
-
-```
-┌─────────────────────────────────────────────────────────────────┐
-│ [region     ▼] │ [sales    #] │ [profit   #] │ [date      📅] │ ...
-├─────────────────────────────────────────────────────────────────┤
-│ North          │        1,500 │          320 │ 2025-01-15     │
-│ South          │        2,100 │          450 │ 2025-01-16     │
-│ [greyed row when filtering...]                                  │
-│ East           │          800 │          120 │ 2025-01-17     │
-├─────────────────────────────────────────────────────────────────┤
-│ Showing 1-100 of 5,432 rows              [◀ Prev] [Next ▶]     │
-└─────────────────────────────────────────────────────────────────┘
-```
-
-#### Column Headers
-
-| Element | Appearance |
-|---------|------------|
-| Column name | Left-aligned text |
-| Type icon | After name: `#` number, `Aa` string, `📅` date, `☑` boolean |
-| Selected column | Highlighted background (98.css selection color) |
-
-#### Cell Styling by Type
-
-| Type | Alignment | Style |
-|------|-----------|-------|
-| String | Left | Normal |
-| Number | Right | Normal |
-| Date | Left | Normal |
-| Boolean | Center | Normal |
-| Null/Empty | Center | Italic, muted color, shows `(empty)` |
-
-#### Interactions
-
-| Action | Result |
-|--------|--------|
-| Click column header | Select column (highlight) |
-| Cmd+Click header | Add to selection |
-| Drag column border | Resize column width |
-| Horizontal scroll | Free scroll, no frozen columns |
-| Click truncated cell | Expand to show full value (tooltip or inline) |
-
-#### Pagination
-
-```
-Showing 1-100 of 5,432 rows    [◀ Prev] [Next ▶]
-```
-
-- 100 rows per page
-- Simple prev/next navigation
+From KSE guidelines:
+- **Headings:** Line height 1.15, fills ~85% of container width (large size)
+- **Body:** Line height 1.3, comfortable reading width
+- **No excessive bolding** — use Medium (500) for emphasis, not Bold (700)
 
 ---
 
-## 4. Interaction Flows
+## 4. Layout System
 
-### 4.1 First Launch
+### 4.1 Block-Based Proportions
 
-```
-┌─────────────────────────────────────────────────────────────────┐
-│                                                                 │
-│   ┌─ Welcome to Chumak ─────────────────────────────────────┐   │
-│   │                                                         │   │
-│   │  📺 [Video thumbnail / Play button]                     │   │
-│   │                                                         │   │
-│   │  Watch a quick tutorial (2 min)                         │   │
-│   │                                                         │   │
-│   │              [Watch Video]  [Skip]                      │   │
-│   │  ☐ Don't show this again                                │   │
-│   └─────────────────────────────────────────────────────────┘   │
-│                                                                 │
-│  (Main interface visible but dimmed behind modal)               │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
-```
+Inspired by KSE's "Continuous Impact" layout system (x → x×2 → x×3).
 
-- Modal popup on first visit (localStorage flag)
-- Interface visible behind, not blocked
-- "Don't show again" checkbox
-- Video link (external URL) or embedded
-
-### 4.2 No Data State (Drop Zone)
-
-When no source is loaded, the data preview area shows:
+For Chumak, simplified to **2-block horizontal layout**:
 
 ```
-┌─────────────────────────────────────────────────────────────────┐
-│                                                                 │
-│                                                                 │
-│                    ┌─────────────────────┐                      │
-│                    │                     │                      │
-│                    │   📄 Drop CSV here  │                      │
-│                    │                     │                      │
-│                    │   or click to       │                      │
-│                    │   browse files      │                      │
-│                    │                     │                      │
-│                    └─────────────────────┘                      │
-│                                                                 │
-│                    Supports .csv and .tsv                       │
-│                                                                 │
-└─────────────────────────────────────────────────────────────────┘
+┌────────────────────────────────────────────────────────────┐
+│ HEADER (full width, ~48px height)                         │
+├─────────────────┬──────────────────────────────────────────┤
+│                 │                                          │
+│  LEFT PANEL     │  MAIN CONTENT AREA                       │
+│  (x width)      │  (x×3 width)                             │
+│                 │                                          │
+│  ~300px         │  Remaining space                         │
+│                 │                                          │
+└─────────────────┴──────────────────────────────────────────┘
 ```
 
-- 98.css window/fieldset styling for drop zone
-- Entire area is clickable
-- Drag-over state: highlighted border
+**Proportions:**
+- Left panel: ~300px fixed (1x)
+- Main content: Remaining space (3x proportional)
+- Ratio approximately 1:3
 
-### 4.3 Import CSV Flow
+### 4.2 Line Designation
+
+Use **1px solid borders** (0.75pt → 1px at 96 DPI) in Medium Gray (`#C8C8C8`) to separate:
+- Header from body
+- Left panel from main content
+- Panel sections (Sources from Steps)
+- Toolbar from content area
+
+**No heavy frames, no window chrome** — just clean lines.
+
+### 4.3 Spacing System
+
+Consistent spacing scale:
+
+| Token | Size | Usage |
+|-------|------|-------|
+| `--space-xs` | 4px | Tight spacing, icon padding |
+| `--space-sm` | 8px | Form field gaps, button padding |
+| `--space-md` | 16px | Section padding, default gaps |
+| `--space-lg` | 24px | Panel padding, major sections |
+| `--space-xl` | 32px | Page margins |
+
+---
+
+## 5. Main Layout Structure
+
+### 5.1 Full Layout
 
 ```
-User drags file onto drop zone
+┌──────────────────────────────────────────────────────────────────┐
+│ HEADER (48px height)                                             │
+│  ☆ Chumak                              [Import] [Export ▼]       │
+├──────────────────────────────────────────────────────────────────┤
+│ TRANSFORM TOOLBAR (56px height)                                  │
+│  [Filter] [Select] [Remove] [Rename] [Sort] [Derive] ...         │
+├────────────────────┬─────────────────────────────────────────────┤
+│                    │                                             │
+│ LEFT PANEL         │ MAIN CONTENT AREA                           │
+│ (300px fixed)      │ (flexible)                                  │
+│                    │                                             │
+│ ┌────────────────┐ │ ┌──────────────────────────────────────────┐│
+│ │ Sources &      │ │ │                                          ││
+│ │ Models         │ │ │  DATA PREVIEW TABLE                      ││
+│ │                │ │ │  (scrollable horizontal + vertical)      ││
+│ │ 📄 sales.csv   │ │ │                                          ││
+│ │   └─ sales_    │ │ │                                          ││
+│ │      cleaned   │ │ │                                          ││
+│ │                │ │ │                                          ││
+│ └────────────────┘ │ └──────────────────────────────────────────┘│
+│ ┌────────────────┐ │                                             │
+│ │ Steps | JSON   │ │ Showing 1-100 of 5,432        [<] [>]       │
+│ ├────────────────┤ │                                             │
+│ │ 1. Filter      │ │                                             │
+│ │ 2. Derive      │ │                                             │
+│ │ 3. Select      │ │                                             │
+│ │                │ │                                             │
+│ │ [+ Add Step]   │ │                                             │
+│ └────────────────┘ │                                             │
+└────────────────────┴─────────────────────────────────────────────┘
+```
+
+### 5.2 Layout Grid
+
+Using CSS Grid:
+
+```css
+.app-layout {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  grid-template-rows: 48px 56px 1fr;
+  height: 100vh;
+  grid-template-areas:
+    "header  header"
+    "toolbar toolbar"
+    "left    main";
+}
+
+.header { grid-area: header; }
+.toolbar { grid-area: toolbar; }
+.left-panel { grid-area: left; }
+.main-content { grid-area: main; }
+```
+
+### 5.3 Panel Specifications
+
+| Panel | Dimensions | Styling |
+|-------|------------|---------|
+| **Header** | Full width × 48px | Background: White, border-bottom: 1px Dark Midnight Blue |
+| **Toolbar** | Full width × 56px | Background: Light Gray, border-bottom: 1px Medium Gray |
+| **Left Panel** | 300px × remaining | Background: White, border-right: 1px Medium Gray |
+| **Main Content** | Remaining × remaining | Background: White |
+
+---
+
+## 6. Components
+
+### 6.1 Header
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│ ☆ Chumak                                [Import] [Export ▼]  │
+└──────────────────────────────────────────────────────────────┘
+```
+
+**Elements:**
+- **Logo:** ☆ icon (Unicode star) + "Chumak" in Graphik Medium 18px, Dark Midnight Blue
+- **Import button:** Primary button (Dark Midnight Blue background, White text)
+- **Export dropdown:** Secondary button with dropdown arrow
+
+**Spacing:**
+- Padding: 0 24px (left/right)
+- Vertical align: center
+
+### 6.2 Transform Toolbar
+
+Horizontal button row with consistent styling.
+
+```
+┌──────────────────────────────────────────────────────────────┐
+│ [Filter] [Select] [Remove] [Rename] [Sort] [Derive] ...     │
+└──────────────────────────────────────────────────────────────┘
+```
+
+**Button specifications:**
+- Size: 80px × 40px
+- Font: Graphik Regular 14px
+- Border: 1px Medium Gray
+- Background: White
+- Color: Dark Midnight Blue
+- Border-radius: 4px
+- Gap: 8px between buttons
+
+**States:**
+- **Default:** White background, Dark Midnight Blue text
+- **Hover:** Cyan background (10% opacity), Cyan border
+- **Active:** Cyan background (20% opacity)
+- **Disabled:** Light Gray background, Medium Gray text, no pointer
+
+**Icon approach (MVP):**
+- Text-only buttons (no icons) for simplicity
+- Or use Unicode symbols if desired (🔍 Filter, 📋 Select, etc.)
+- Phase 2: Consider icon font or SVG icons
+
+**Overflow:**
+- Horizontal scroll if too many buttons (scroll indicator on edges)
+
+### 6.3 Sources & Models Panel
+
+Tree view showing data hierarchy.
+
+```
+┌─ Sources & Models ──────────┐
+│ 📄 sales.csv                │
+│    └─ 📊 sales_cleaned      │
+│ 📄 regions.csv              │
+│    └─ 📊 regions_lookup     │
+└─────────────────────────────┘
+```
+
+**Styling:**
+- **Header:** "Sources & Models" in Graphik Medium 16px, Dark Midnight Blue
+- **Items:**
+  - Source: 📄 icon + name, Graphik Regular 14px
+  - Model: Indented 16px, 📊 icon + name
+- **Selected item:** Cyan background (10% opacity)
+- **Hover:** Cyan background (5% opacity)
+
+**Tree structure:**
+- Use `<ul>` with custom list styles
+- Collapsible sources (click to expand/collapse)
+- Icon rotates: ▶ (collapsed) → ▼ (expanded)
+
+### 6.4 Steps Panel
+
+Compact step list with tab toggle.
+
+```
+┌─ Steps | JSON ────────────┐
+│ 1. Filter: sales > 1000  │
+│ 2. Derive: profit = ...  │
+│ 3. Select: 5 columns     │
+│                          │
+│ [+ Add Step]             │
+└──────────────────────────┘
+```
+
+**Tab styling:**
+- Tabs: "Steps" | "JSON" side-by-side
+- Active tab: Cyan bottom border (2px), Dark Midnight Blue text
+- Inactive tab: Medium Gray text, no border
+- Font: Graphik Medium 14px
+
+**Step row:**
+- Format: `{index}. {type}: {summary}`
+- Font: Graphik Regular 14px
+- Hover: Cyan background (5% opacity), show [×] delete button
+- Selected: Cyan background (10% opacity)
+- Delete button: Small [×] on right, Dark Red color
+
+**Add Step button:**
+- Full width, left-aligned text
+- Border: 1px dashed Medium Gray
+- Color: Cyan
+- Hover: Cyan background (5% opacity)
+
+### 6.5 JSON View (Tab)
+
+```
+┌─ Steps | JSON ────────────┐
+│ {                        │
+│   "transforms": [        │
+│     { "filter": "..." }, │
+│     { "derive": {...} }  │
+│   ]                      │
+│ }                        │
+│                          │
+│              [Copy]      │
+└──────────────────────────┘
+```
+
+**Styling:**
+- Font: Monospace 13px
+- Color: Dark Midnight Blue
+- Background: Light Gray (subtle)
+- Padding: 12px
+- Max-height: Scroll if overflow
+- No syntax highlighting (MVP) — plain text
+
+**Copy button:**
+- Secondary button, small size
+- Bottom-right corner
+
+### 6.6 Data Preview Table
+
+```
+┌────────────────────────────────────────────────────────────┐
+│ region ▼     sales #    profit #    date 📅                │
+├────────────────────────────────────────────────────────────┤
+│ North        1,500      320         2025-01-15             │
+│ South        2,100      450         2025-01-16             │
+│ East         800        120         2025-01-17             │
+│ ...                                                        │
+├────────────────────────────────────────────────────────────┤
+│ Showing 1-100 of 5,432                      [<] [>]        │
+└────────────────────────────────────────────────────────────┘
+```
+
+**Table styling:**
+- Border: 1px Medium Gray around table
+- Cell padding: 8px 12px
+- Font: Graphik Regular 14px
+- Row separator: 1px Light Gray (subtle)
+
+**Header row:**
+- Background: Light Gray
+- Font: Graphik Medium 14px
+- Color: Dark Midnight Blue
+- Sticky header (stays visible on scroll)
+- Type indicator: Small icon/symbol after name
+  - `#` for numbers
+  - `Aa` for strings
+  - `📅` for dates
+  - `☑` for boolean
+
+**Column headers:**
+- Clickable (select column)
+- Sort indicator: ▼ (descending) or ▲ (ascending)
+- Hover: Cyan background (5% opacity)
+- Selected: Cyan background (10% opacity)
+
+**Cell styling by type:**
+
+| Type | Alignment | Color | Style |
+|------|-----------|-------|-------|
+| String | Left | Dark Midnight Blue | Normal |
+| Number | Right | Dark Midnight Blue | Tabular numerals |
+| Date | Left | Dark Midnight Blue | ISO format |
+| Boolean | Center | Dark Midnight Blue | true/false |
+| Null/Empty | Center | Medium Gray | Italic, "(empty)" |
+| Error | Left | Red | Italic, error message |
+
+**Row states:**
+- **Default:** White background
+- **Hover:** Cyan background (3% opacity)
+- **Selected:** Cyan background (10% opacity)
+- **Alternate rows** (optional): Very light gray (2% opacity) for readability
+
+**Pagination:**
+- Footer row with centered text: "Showing 1-100 of 5,432"
+- Buttons: [<] [>] for prev/next
+- Button style: Secondary buttons, small size
+- Disabled state when at edges
+
+---
+
+## 7. Buttons
+
+### 7.1 Button Types
+
+**Primary button:**
+```css
+background: #003964; /* Dark Midnight Blue */
+color: #FFFFFF;
+border: none;
+border-radius: 4px;
+padding: 8px 16px;
+font: Graphik Regular 14px;
+```
+
+**Secondary button:**
+```css
+background: #FFFFFF;
+color: #003964; /* Dark Midnight Blue */
+border: 1px solid #003964;
+border-radius: 4px;
+padding: 8px 16px;
+font: Graphik Regular 14px;
+```
+
+**Danger button:**
+```css
+background: #D33E2C; /* Dark Red */
+color: #FFFFFF;
+border: none;
+border-radius: 4px;
+padding: 8px 16px;
+font: Graphik Regular 14px;
+```
+
+**Text button:**
+```css
+background: transparent;
+color: #00BBCE; /* Cyan */
+border: none;
+padding: 4px 8px;
+font: Graphik Regular 14px;
+text-decoration: underline on hover;
+```
+
+### 7.2 Button States
+
+| State | Style |
+|-------|-------|
+| **Hover (Primary)** | Background: lighter shade (+10% lightness), cursor: pointer |
+| **Hover (Secondary)** | Background: Cyan (5% opacity) |
+| **Active** | Background: darker shade (-10% lightness), slight scale (98%) |
+| **Disabled** | Background: Light Gray, Color: Medium Gray, cursor: not-allowed |
+| **Focus** | Outline: 2px Cyan, offset: 2px |
+
+---
+
+## 8. Form Elements
+
+### 8.1 Text Input
+
+```css
+border: 1px solid #C8C8C8; /* Medium Gray */
+border-radius: 4px;
+padding: 8px 12px;
+font: Graphik Regular 14px;
+color: #003964; /* Dark Midnight Blue */
+background: #FFFFFF;
+```
+
+**States:**
+- **Focus:** Border: 2px Cyan, outline: none
+- **Error:** Border: 2px Red, background: Light Red (5% opacity)
+- **Disabled:** Background: Light Gray, color: Medium Gray
+
+### 8.2 Select Dropdown
+
+Same styling as text input, with dropdown arrow on right.
+
+```css
+appearance: none; /* Remove default arrow */
+background-image: url('data:image/svg+xml,...'); /* Custom arrow */
+background-position: right 8px center;
+background-repeat: no-repeat;
+padding-right: 32px; /* Space for arrow */
+```
+
+### 8.3 Checkbox
+
+```css
+width: 18px;
+height: 18px;
+border: 1px solid #C8C8C8;
+border-radius: 3px;
+background: #FFFFFF;
+```
+
+**Checked state:**
+```css
+background: #003964; /* Dark Midnight Blue */
+border-color: #003964;
+/* Checkmark via SVG background */
+```
+
+### 8.4 Radio Button
+
+```css
+width: 18px;
+height: 18px;
+border: 1px solid #C8C8C8;
+border-radius: 50%;
+background: #FFFFFF;
+```
+
+**Checked state:**
+```css
+border-color: #003964;
+/* Inner dot via ::after pseudo-element */
+```
+
+### 8.5 Form Layout
+
+**Vertical forms:**
+- Label above input
+- Gap: 4px
+- Label font: Graphik Medium 14px
+
+**Horizontal forms:**
+- Label left, input right
+- Label width: 120px
+- Gap: 12px
+
+---
+
+## 9. Modals & Dialogs
+
+### 9.1 Modal Structure
+
+```
+┌────────────────────────────────────────────────────┐
+│ ┌─ Dialog Title ─────────────────────────────────┐ │
+│ │                                                │ │
+│ │  Dialog content here                           │ │
+│ │                                                │ │
+│ │                      [Cancel]  [Apply]         │ │
+│ └────────────────────────────────────────────────┘ │
+│                                                    │
+│  (Backdrop: Dark Midnight Blue @ 40% opacity)     │
+└────────────────────────────────────────────────────┘
+```
+
+**Modal styling:**
+- Background: White
+- Border: 1px Medium Gray
+- Border-radius: 8px
+- Box-shadow: None (per KSE guidelines)
+- Max-width: 600px
+- Padding: 24px
+- Backdrop: Dark Midnight Blue @ 40% opacity
+
+**Title bar:**
+- Font: Graphik Medium 18px
+- Color: Dark Midnight Blue
+- Border-bottom: 1px Medium Gray
+- Padding-bottom: 12px
+
+**Content area:**
+- Padding: 16px 0
+
+**Footer:**
+- Border-top: 1px Medium Gray
+- Padding-top: 16px
+- Buttons right-aligned
+- Gap: 8px between buttons
+
+### 9.2 Transform Dialog Example
+
+```
+┌─ Filter ──────────────────────────────────────────┐
+│                                                   │
+│  Keep rows where:                                 │
+│  ┌────────────────────────────────────────────┐   │
+│  │ sales > 1000                               │   │
+│  └────────────────────────────────────────────┘   │
+│                                                   │
+│  ─── Preview (47 rows match) ──────────────────   │
+│  ┌────────────────────────────────────────────┐   │
+│  │ [mini table preview]                       │   │
+│  └────────────────────────────────────────────┘   │
+│                                                   │
+│                        [Cancel]  [Apply]          │
+└───────────────────────────────────────────────────┘
+```
+
+**Preview section:**
+- Border-top: 1px Medium Gray
+- Margin-top: 16px
+- Padding-top: 16px
+- Max-height: 300px (scroll if overflow)
+- Mini table: Same styling as main table, scaled down
+
+---
+
+## 10. Empty States & Drop Zone
+
+### 10.1 No Data State
+
+```
+┌────────────────────────────────────────────────────────┐
+│                                                        │
+│                                                        │
+│               ┌─────────────────────┐                  │
+│               │                     │                  │
+│               │   📄                │                  │
+│               │   Drop CSV here     │                  │
+│               │   or click to       │                  │
+│               │   browse files      │                  │
+│               │                     │                  │
+│               └─────────────────────┘                  │
+│                                                        │
+│               Supports .csv and .tsv                   │
+│                                                        │
+└────────────────────────────────────────────────────────┘
+```
+
+**Drop zone styling:**
+- Border: 2px dashed Medium Gray
+- Border-radius: 8px
+- Background: Light Gray (subtle)
+- Padding: 48px
+- Text-align: center
+- Cursor: pointer
+
+**Drag-over state:**
+- Border: 2px dashed Cyan
+- Background: Cyan (5% opacity)
+
+**File icon:**
+- Unicode 📄 or SVG, 48px size
+- Color: Medium Gray
+
+---
+
+## 11. Error & Success States
+
+### 11.1 Inline Errors
+
+**Expression error in form:**
+```
+┌────────────────────────────────────────────┐
+│ sales > > 1000                             │
+└────────────────────────────────────────────┘
+⚠️ Unexpected token '>' at position 8
+```
+
+**Styling:**
+- Icon: ⚠️ Yellow or Red
+- Font: Graphik Regular 13px
+- Color: Red
+- Background: Light Red (5% opacity)
+- Border-left: 3px solid Red
+- Padding: 8px 12px
+- Margin-top: 4px
+
+### 11.2 Error Dialog
+
+```
+┌─ Error ─────────────────────────────┐
+│                                     │
+│  ⚠️ Could not parse file            │
+│                                     │
+│  Please check it's a valid CSV.     │
+│                                     │
+│                    [OK]             │
+└─────────────────────────────────────┘
+```
+
+**Styling:**
+- Same as modal
+- Icon: Large ⚠️ (24px), Red
+- Message: Dark Midnight Blue
+
+### 11.3 Success Toast
+
+```
+┌─────────────────────────────────────┐
+│ ✓ Transform applied successfully    │
+└─────────────────────────────────────┘
+```
+
+**Styling:**
+- Position: Fixed top-right
+- Background: Green
+- Color: White
+- Padding: 12px 16px
+- Border-radius: 4px
+- Font: Graphik Regular 14px
+- Auto-dismiss: 3 seconds
+- Animation: Slide in from top
+
+---
+
+## 12. Interaction Flows
+
+### 12.1 First Launch
+
+**Welcome modal** (optional for MVP, can be skipped):
+```
+┌─────────────────────────────────────────────┐
+│ Welcome to Chumak                           │
+│                                             │
+│ Transform your data right in the browser.   │
+│                                             │
+│ [Get Started]                               │
+│                                             │
+│ ☐ Don't show this again                     │
+└─────────────────────────────────────────────┘
+```
+
+For MVP, can skip welcome screen and go straight to drop zone.
+
+### 12.2 Import CSV Flow
+
+```
+User drops file onto drop zone
          │
          ▼
    ┌─────────────┐
-   │ Parsing...  │   (Loading indicator)
+   │ Parsing...  │   (Loading spinner)
    └─────────────┘
          │
          ▼
@@ -323,64 +789,46 @@ User drags file onto drop zone
          └─── Data preview shows first 100 rows
 ```
 
-**Error case:**
-```
-   ┌─ Error ─────────────────────────┐
-   │                                 │
-   │  Could not parse file.          │
-   │  Please check it's a valid CSV. │
-   │                                 │
-   │              [OK]               │
-   └─────────────────────────────────┘
-```
+**Loading state:**
+- Spinner: CSS-only animation (rotating border)
+- Color: Cyan
+- Text: "Parsing..." in Dark Gray
 
-### 4.4 Add Transform Flow
+### 12.3 Add Transform Flow
 
 ```
 User clicks toolbar button (e.g., "Filter")
          │
          ▼
-┌─ Filter ────────────────────────────────────────────────────────┐
-│                                                                 │
-│  Expression:  [sales > 1000                               ]     │
-│                                                                 │
-│  ─── Preview ───────────────────────────────────────────────    │
-│  │ region │ sales │ profit │                                    │
-│  │ North  │ 1,500 │    320 │                                    │
-│  │ South  │ 2,100 │    450 │                                    │
-│  │ (showing 2 of 5,432 rows matching filter)                    │
-│  ───────────────────────────────────────────────────────────    │
-│                                                                 │
-│                              [Cancel]  [Apply]                  │
-└─────────────────────────────────────────────────────────────────┘
+Modal opens with form
+         │
+         ├─ User types expression
+         ├─ Preview updates (debounced 300ms)
+         └─ User clicks [Apply]
+         │
+         ▼
+Step added to list
+Main preview updates
+Modal closes
 ```
 
-| State | Behavior |
-|-------|----------|
-| **Typing expression** | Preview updates after debounce (300ms) |
-| **Parse error** | Error message shown inline, preview blank |
-| **Valid expression** | Preview shows matching rows |
-| **Apply** | Step added to list, popup closes, main preview updates |
-| **Cancel** | Popup closes, no change |
-
-### 4.5 Step Click Flow
+### 12.4 Step Click Flow
 
 ```
 User clicks Step 2 in step list
          │
          ▼
-   Data preview updates to show
-   snapshot at Step 2 (cached)
-         │
-         ▼
-   Step 2 is highlighted in list
+   Step 2 highlighted (Cyan background)
+   Data preview shows snapshot at Step 2
+   Info text: "Viewing step 2 of 5"
 ```
 
-- Clicking a step does NOT revert — only shows preview at that point
-- Main data remains at latest step
-- Visual indicator: "Viewing step 2 of 5" in preview area
+**Info text styling:**
+- Font: Graphik Regular 13px
+- Color: Medium Gray
+- Position: Below table, right-aligned
 
-### 4.6 Delete Step Flow
+### 12.5 Delete Step Flow
 
 ```
 User clicks [×] on Step 2
@@ -397,313 +845,514 @@ User clicks [×] on Step 2
 └─────────────────────────────────────┘
          │
          ▼ (if confirmed)
-   Steps 2, 3, 4, 5 removed
+   Steps 2-5 removed
    Data preview updates
 ```
 
-### 4.7 Export CSV Flow
+---
+
+## 13. Transform Dialog Forms
+
+Each transform has a dialog with specific fields. All use consistent styling.
+
+### 13.1 Filter
 
 ```
-User clicks Export → "Export CSV"
-         │
-         ▼
-   Browser download starts immediately
-   (filename: {model_name}.csv)
+┌─ Filter ──────────────────────────────────────────┐
+│                                                   │
+│  Keep rows where:                                 │
+│  ┌────────────────────────────────────────────┐   │
+│  │ sales > 1000                               │   │
+│  └────────────────────────────────────────────┘   │
+│                                                   │
+│  Examples: sales > 1000, region == "North"        │
+│                                                   │
+│  ─── Preview (47 rows match) ──────────────────   │
+│  [mini table]                                     │
+│                                                   │
+│                        [Cancel]  [Apply]          │
+└───────────────────────────────────────────────────┘
 ```
 
-No preview dialog for MVP — direct download.
-
-### 4.8 Export Workflow Flow
+### 13.2 Select Columns
 
 ```
-User clicks Export → "Export Workflow"
-         │
-         ▼
-┌─ Export Workflow ───────────────────┐
-│                                     │
-│  Workflow name: [My Analysis    ]   │
-│                                     │
-│  ○ Include source data              │
-│    (larger file, fully portable)    │
-│                                     │
-│  ● Reference only                   │
-│    (smaller, requires re-upload)    │
-│                                     │
-│          [Cancel]  [Export]         │
-└─────────────────────────────────────┘
-         │
-         ▼
-   Downloads {name}.chumak.json
+┌─ Select Columns ──────────────────────────────────┐
+│                                                   │
+│  Choose columns to keep:                          │
+│                                                   │
+│  ☑ region                                         │
+│  ☑ sales                                          │
+│  ☐ cost                                           │
+│  ☑ profit                                         │
+│  ☐ date                                           │
+│                                                   │
+│  [Select All]  [Select None]                      │
+│                                                   │
+│  ─── Preview ──────────────────────────────────   │
+│  [mini table with selected columns]               │
+│                                                   │
+│                        [Cancel]  [Apply]          │
+└───────────────────────────────────────────────────┘
+```
+
+### 13.3 Rename
+
+```
+┌─ Rename Columns ──────────────────────────────────┐
+│                                                   │
+│  Column:   ┌──────────────────────────┐           │
+│            │ region                ▼ │           │
+│            └──────────────────────────┘           │
+│  New name: ┌──────────────────────────┐           │
+│            │ area                    │           │
+│            └──────────────────────────┘           │
+│                                                   │
+│  [+ Add another rename]                           │
+│                                                   │
+│  ─── Preview ──────────────────────────────────   │
+│  [mini table with renamed column]                 │
+│                                                   │
+│                        [Cancel]  [Apply]          │
+└───────────────────────────────────────────────────┘
+```
+
+### 13.4 Sort
+
+```
+┌─ Sort ────────────────────────────────────────────┐
+│                                                   │
+│  Sort by:  ┌──────────────────┐                   │
+│            │ sales         ▼ │                   │
+│            └──────────────────┘                   │
+│            ○ Ascending  ● Descending              │
+│                                                   │
+│  [+ Add secondary sort]                           │
+│                                                   │
+│  ─── Preview ──────────────────────────────────   │
+│  [mini table showing sorted order]                │
+│                                                   │
+│                        [Cancel]  [Apply]          │
+└───────────────────────────────────────────────────┘
+```
+
+### 13.5 Derive
+
+```
+┌─ Derive Column ───────────────────────────────────┐
+│                                                   │
+│  New column name: ┌────────────────────────────┐  │
+│                   │ profit                     │  │
+│                   └────────────────────────────┘  │
+│                                                   │
+│  Expression:      ┌────────────────────────────┐  │
+│                   │ revenue - cost             │  │
+│                   └────────────────────────────┘  │
+│                                                   │
+│  Examples: revenue - cost, price * quantity       │
+│                                                   │
+│  ─── Preview ──────────────────────────────────   │
+│  [mini table showing new column]                  │
+│                                                   │
+│                        [Cancel]  [Apply]          │
+└───────────────────────────────────────────────────┘
+```
+
+### 13.6 Aggregate
+
+```
+┌─ Group & Aggregate ───────────────────────────────┐
+│                                                   │
+│  Group by:  ☑ region  ☐ year  ☐ category          │
+│                                                   │
+│  Aggregations:                                    │
+│  ┌─────────┬──────────┬───────────────┐           │
+│  │ Column  │ Operation│ Output Name   │           │
+│  ├─────────┼──────────┼───────────────┤           │
+│  │ sales ▼ │ sum   ▼  │ total_sales   │           │
+│  │ profit▼ │ mean  ▼  │ avg_profit    │           │
+│  └─────────┴──────────┴───────────────┘           │
+│  [+ Add aggregation]                              │
+│                                                   │
+│  ─── Preview ──────────────────────────────────   │
+│  [mini table showing aggregated result]           │
+│                                                   │
+│                        [Cancel]  [Apply]          │
+└───────────────────────────────────────────────────┘
 ```
 
 ---
 
-## 5. Transform Popup Forms
+## 14. Responsive Behavior
 
-Each transform has a popup with specific fields.
+### 14.1 Viewport Breakpoints
 
-### 5.1 Filter
+| Viewport Width | Behavior |
+|----------------|----------|
+| ≥1280px | Full layout, optimal experience |
+| 1024px - 1279px | Full layout, slightly cramped |
+| 768px - 1023px | Show warning banner: "Chumak works best on larger screens (1280px+)" |
+| <768px | Block usage with message: "Please use a larger screen" |
 
-```
-┌─ Filter ────────────────────────────────────────────────────────┐
-│                                                                 │
-│  Keep rows where:                                               │
-│  [sales > 1000                                             ]    │
-│                                                                 │
-│  Examples: sales > 1000, region == "North", price != 0          │
-│                                                                 │
-│  ─── Preview (47 rows match) ───────────────────────────────    │
-│  [preview table]                                                │
-│                                                                 │
-│                              [Cancel]  [Apply]                  │
-└─────────────────────────────────────────────────────────────────┘
-```
+**Warning banner styling:**
+- Background: Yellow
+- Color: Dark Midnight Blue
+- Padding: 8px 16px
+- Font: Graphik Regular 14px
+- Position: Fixed top, full width
+- Dismissible: [×] close button
 
-### 5.2 Select
+---
 
-```
-┌─ Select Columns ────────────────────────────────────────────────┐
-│                                                                 │
-│  Choose columns to keep:                                        │
-│                                                                 │
-│  ☑ region                                                       │
-│  ☑ sales                                                        │
-│  ☐ cost                                                         │
-│  ☑ profit                                                       │
-│  ☐ date                                                         │
-│                                                                 │
-│  [Select All]  [Select None]                                    │
-│                                                                 │
-│  ─── Preview ───────────────────────────────────────────────    │
-│  [preview table with selected columns only]                     │
-│                                                                 │
-│                              [Cancel]  [Apply]                  │
-└─────────────────────────────────────────────────────────────────┘
-```
+## 15. Accessibility
 
-### 5.3 Remove
+### 15.1 Keyboard Navigation
 
-```
-┌─ Remove Columns ────────────────────────────────────────────────┐
-│                                                                 │
-│  Choose columns to remove:                                      │
-│                                                                 │
-│  ☐ region                                                       │
-│  ☐ sales                                                        │
-│  ☑ cost        ← (checked = will be removed)                    │
-│  ☐ profit                                                       │
-│  ☑ date                                                         │
-│                                                                 │
-│  ─── Preview ───────────────────────────────────────────────    │
-│                                                                 │
-│                              [Cancel]  [Apply]                  │
-└─────────────────────────────────────────────────────────────────┘
-```
+| Key | Action |
+|-----|--------|
+| Tab | Navigate focusable elements |
+| Shift+Tab | Navigate backwards |
+| Enter | Activate button, submit form |
+| Escape | Close modal/dialog |
+| Space | Toggle checkbox/radio |
+| Arrow keys | Navigate table cells, select dropdown options |
 
-### 5.4 Rename
+### 15.2 Focus Indicators
 
-```
-┌─ Rename Columns ────────────────────────────────────────────────┐
-│                                                                 │
-│  Column:   [region            ▼]                                │
-│  New name: [area                ]                               │
-│                                                                 │
-│  [+ Add another rename]                                         │
-│                                                                 │
-│  ─── Preview ───────────────────────────────────────────────    │
-│                                                                 │
-│                              [Cancel]  [Apply]                  │
-└─────────────────────────────────────────────────────────────────┘
+All interactive elements have visible focus state:
+- Outline: 2px solid Cyan
+- Offset: 2px
+- Border-radius: 4px (matches element)
+
+### 15.3 ARIA Labels
+
+- Modal: `role="dialog"`, `aria-labelledby`, `aria-describedby`
+- Buttons: `aria-label` for icon-only buttons
+- Table: `role="table"`, proper header associations
+- Tree view: `role="tree"`, `aria-expanded` states
+
+### 15.4 Color Contrast
+
+All text meets WCAG AA standards:
+- Primary text (Dark Midnight Blue on White): 8.12:1 ✓
+- Secondary text (Dark Gray on White): 4.54:1 ✓
+- Cyan links (on White): 3.18:1 (⚠️ use underline for clarity)
+
+---
+
+## 16. Loading & Progress States
+
+### 16.1 Spinner
+
+CSS-only spinner (no images):
+
+```css
+.spinner {
+  border: 3px solid rgba(0, 187, 206, 0.1);
+  border-top-color: #00BBCE;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  animation: spin 1s linear infinite;
+}
 ```
 
-### 5.5 Sort
+### 16.2 Progress Bar
+
+For file parsing or long operations:
 
 ```
-┌─ Sort ──────────────────────────────────────────────────────────┐
-│                                                                 │
-│  Sort by:  [sales             ▼]   ○ Ascending  ● Descending    │
-│                                                                 │
-│  [+ Add secondary sort]                                         │
-│                                                                 │
-│  ─── Preview ───────────────────────────────────────────────    │
-│                                                                 │
-│                              [Cancel]  [Apply]                  │
-└─────────────────────────────────────────────────────────────────┘
+┌──────────────────────────────────────┐
+│ Parsing CSV...                       │
+│ ████████████░░░░░░░░░░░░░░░░░ 45%    │
+└──────────────────────────────────────┘
 ```
 
-### 5.6 Derive
+**Styling:**
+- Height: 8px
+- Background: Light Gray
+- Fill: Cyan
+- Border-radius: 4px
+
+---
+
+## 17. Animation & Transitions
+
+### 17.1 Principles
+
+From KSE guidelines: **Simple and rigorous, no decorative effects.**
+
+For Chumak:
+- Use transitions sparingly
+- Fast durations (150-200ms)
+- Ease-out easing for natural feel
+- No bounces, no elasticity
+
+### 17.2 Allowed Animations
+
+| Element | Animation | Duration | Easing |
+|---------|-----------|----------|--------|
+| Button hover | Background color | 150ms | ease-out |
+| Modal open | Opacity + scale (1.05 → 1) | 200ms | ease-out |
+| Toast notification | Slide in from top | 200ms | ease-out |
+| Tab switch | Opacity | 150ms | ease-out |
+| Spinner | Rotation | 1s | linear, infinite |
+
+### 17.3 Disallowed
+
+- ❌ Fade-ins for content (hurts performance perception)
+- ❌ Slide animations for panels (jarring)
+- ❌ Parallax effects
+- ❌ Hover effects on table rows (too much visual noise)
+
+---
+
+## 18. CSS Architecture
+
+### 18.1 File Structure
 
 ```
-┌─ Derive Column ─────────────────────────────────────────────────┐
-│                                                                 │
-│  New column name: [profit                ]                      │
-│  Expression:      [revenue - cost        ]                      │
-│                                                                 │
-│  Examples: revenue - cost, price * quantity, [Total Sales] * 2  │
-│                                                                 │
-│  ─── Preview ───────────────────────────────────────────────    │
-│                                                                 │
-│                              [Cancel]  [Apply]                  │
-└─────────────────────────────────────────────────────────────────┘
+styles/
+├── normalize.css           # Browser reset (CDN)
+├── variables.css           # CSS custom properties
+├── typography.css          # Font loading, type scale
+├── layout.css              # Grid, panels, spacing
+├── components/
+│   ├── buttons.css
+│   ├── forms.css
+│   ├── table.css
+│   ├── modals.css
+│   ├── tree-view.css
+│   └── toolbar.css
+└── utilities.css           # Helper classes
 ```
 
-### 5.7 Fill Missing
+### 18.2 CSS Custom Properties
 
-```
-┌─ Fill Missing Values ───────────────────────────────────────────┐
-│                                                                 │
-│  Column:      [sales             ▼]                             │
-│  Fill with:   [0                   ]                            │
-│                                                                 │
-│  ─── Preview (3 values will be filled) ─────────────────────    │
-│                                                                 │
-│                              [Cancel]  [Apply]                  │
-└─────────────────────────────────────────────────────────────────┘
+Define design tokens as CSS variables:
+
+```css
+:root {
+  /* Colors */
+  --color-midnight-blue: #003964;
+  --color-cyan: #00BBCE;
+  --color-green: #A7C539;
+  --color-yellow: #E4E541;
+  --color-red: #F15B43;
+  --color-dark-red: #D33E2C;
+  --color-white: #FFFFFF;
+  --color-light-gray: #F5F5F5;
+  --color-medium-gray: #C8C8C8;
+  --color-dark-gray: #646464;
+
+  /* Typography */
+  --font-family: 'Graphik', Arial, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-family-mono: 'SF Mono', 'Consolas', 'Monaco', monospace;
+
+  --font-size-xs: 12px;
+  --font-size-sm: 13px;
+  --font-size-base: 14px;
+  --font-size-lg: 16px;
+  --font-size-xl: 18px;
+  --font-size-2xl: 24px;
+
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+
+  --line-height-tight: 1.15;
+  --line-height-normal: 1.3;
+  --line-height-relaxed: 1.4;
+
+  /* Spacing */
+  --space-xs: 4px;
+  --space-sm: 8px;
+  --space-md: 16px;
+  --space-lg: 24px;
+  --space-xl: 32px;
+
+  /* Layout */
+  --header-height: 48px;
+  --toolbar-height: 56px;
+  --left-panel-width: 300px;
+
+  /* Borders */
+  --border-width: 1px;
+  --border-color: var(--color-medium-gray);
+  --border-radius: 4px;
+  --border-radius-lg: 8px;
+
+  /* Transitions */
+  --transition-fast: 150ms ease-out;
+  --transition-normal: 200ms ease-out;
+}
 ```
 
-### 5.8 Drop Missing
+### 18.3 Naming Convention
 
-```
-┌─ Drop Missing ──────────────────────────────────────────────────┐
-│                                                                 │
-│  Remove rows with empty values in:                              │
-│                                                                 │
-│  ○ Any column                                                   │
-│  ● Selected columns:                                            │
-│    ☑ sales                                                      │
-│    ☐ region                                                     │
-│    ☑ profit                                                     │
-│                                                                 │
-│  ─── Preview (12 rows will be removed) ─────────────────────    │
-│                                                                 │
-│                              [Cancel]  [Apply]                  │
-└─────────────────────────────────────────────────────────────────┘
+Use BEM (Block Element Modifier):
+
+```css
+/* Block */
+.button { }
+
+/* Element */
+.button__icon { }
+
+/* Modifier */
+.button--primary { }
+.button--disabled { }
 ```
 
-### 5.9 Replace
+### 18.4 Utility Classes
 
-```
-┌─ Find and Replace ──────────────────────────────────────────────┐
-│                                                                 │
-│  Column:       [region           ▼]                             │
-│  Find:         [North              ]                            │
-│  Replace with: [Northern Region    ]                            │
-│                                                                 │
-│  ☐ Match case                                                   │
-│                                                                 │
-│  ─── Preview (23 values will change) ───────────────────────    │
-│                                                                 │
-│                              [Cancel]  [Apply]                  │
-└─────────────────────────────────────────────────────────────────┘
-```
+Minimal utility classes for common patterns:
 
-### 5.10 Aggregate
+```css
+/* Spacing */
+.mt-md { margin-top: var(--space-md); }
+.p-lg { padding: var(--space-lg); }
 
-```
-┌─ Group & Aggregate ─────────────────────────────────────────────┐
-│                                                                 │
-│  Group by:  ☑ region  ☐ year  ☐ category                        │
-│                                                                 │
-│  Aggregations:                                                  │
-│  ┌─────────────┬───────────┬─────────────┐                      │
-│  │ Column      │ Operation │ Output Name │                      │
-│  ├─────────────┼───────────┼─────────────┤                      │
-│  │ [sales   ▼] │ [sum   ▼] │ [total_sales│                      │
-│  │ [profit  ▼] │ [mean  ▼] │ [avg_profit │                      │
-│  └─────────────┴───────────┴─────────────┘                      │
-│  [+ Add aggregation]                                            │
-│                                                                 │
-│  ─── Preview ───────────────────────────────────────────────    │
-│                                                                 │
-│                              [Cancel]  [Apply]                  │
-└─────────────────────────────────────────────────────────────────┘
+/* Typography */
+.text-secondary { color: var(--color-dark-gray); }
+.text-center { text-align: center; }
+
+/* Flexbox */
+.flex { display: flex; }
+.flex-between { justify-content: space-between; }
+.flex-center { align-items: center; }
+
+/* Visibility */
+.hidden { display: none; }
+.sr-only { /* Screen reader only */ }
 ```
 
 ---
 
-## 6. Error States
+## 19. Browser Compatibility
 
-### 6.1 Expression Parse Error
+### 19.1 Target Browsers
 
-Shown inline in transform popup:
+| Browser | Minimum Version |
+|---------|----------------|
+| Chrome | Latest 2 versions |
+| Safari | Latest 2 versions |
+| Firefox | Not officially supported (may work) |
+| Edge | Not officially supported (may work) |
 
-```
-┌─ Filter ────────────────────────────────────────────────────────┐
-│                                                                 │
-│  Keep rows where:                                               │
-│  [sales > > 1000                                           ]    │
-│                                                                 │
-│  ⚠️ Unexpected token '>' at position 8                          │
-│                                                                 │
-│  ─── Preview ───────────────────────────────────────────────    │
-│  (no preview available)                                         │
-│                                                                 │
-│                              [Cancel]  [Apply]  ← disabled      │
-└─────────────────────────────────────────────────────────────────┘
-```
+### 19.2 Required Features
 
-### 6.2 Unknown Column Error
+- CSS Grid
+- CSS Custom Properties
+- Flexbox
+- ES6+ JavaScript
+- IndexedDB
+- File API
 
-```
-│  [Slaes > 1000                                             ]    │
-│                                                                 │
-│  ⚠️ Column 'Slaes' not found. Did you mean 'Sales'?             │
-```
+### 19.3 Polyfills
 
-### 6.3 Filter Returns No Rows
-
-```
-│  ─── Preview (0 rows match) ────────────────────────────────    │
-│                                                                 │
-│  No rows match this filter.                                     │
-│                                                                 │
-```
-
-Apply button still enabled — user may want an empty result.
+None required for target browsers. If expanding support:
+- Use `@supports` queries for progressive enhancement
+- Fallback to simpler layouts if Grid unavailable
 
 ---
 
-## 7. Component Inventory
+## 20. Implementation Checklist
 
-Summary of all 98.css components used:
+### 20.1 Phase 1 (MVP) — Visual Foundation
 
-| Component | 98.css Element | Usage |
-|-----------|----------------|-------|
-| Buttons | `<button>` | Toolbar, dialogs, pagination |
-| Dropdown button | `<button>` + menu | Export menu |
-| Text input | `<input type="text">` | Expressions, names |
-| Checkbox | `<input type="checkbox">` | Column selection |
-| Radio | `<input type="radio">` | Sort order, export options |
-| Select dropdown | `<select>` | Column pickers |
-| Fieldset | `<fieldset>` | Form sections |
-| Window | `<div class="window">` | Popups, drop zone |
-| Title bar | `<div class="title-bar">` | Popup headers |
-| Tree view | `<ul class="tree-view">` | Sources & Models |
-| Tabs | `<menu role="tablist">` | Steps / JSON toggle |
-| Table | `<table>` + styling | Data preview |
-| Status bar | `<div class="status-bar">` | Row count, pagination |
+- [ ] Load normalize.css or modern-normalize
+- [ ] Define CSS custom properties (variables.css)
+- [ ] Load Graphik font (or fallback to Arial)
+- [ ] Implement main grid layout
+- [ ] Style header
+- [ ] Style toolbar with buttons
+- [ ] Style left panel (tree view)
+- [ ] Style steps panel with tabs
+- [ ] Style data preview table
+- [ ] Style buttons (primary, secondary, danger)
+- [ ] Style form elements (input, select, checkbox, radio)
+- [ ] Style modals/dialogs
+- [ ] Style all transform dialog forms
+- [ ] Style error states
+- [ ] Style loading states
+- [ ] Style empty states / drop zone
+- [ ] Implement focus indicators
+- [ ] Test keyboard navigation
+- [ ] Verify color contrast
+
+### 20.2 Phase 2 — Polish
+
+- [ ] Add hover animations
+- [ ] Add modal open/close animations
+- [ ] Implement toast notifications
+- [ ] Add success states
+- [ ] Optimize table rendering (virtual scrolling?)
+- [ ] Test with real data (1000+ rows)
+- [ ] Test all viewport sizes
+- [ ] Cross-browser testing (Safari specific)
+
+### 20.3 Phase 3 — Refinement
+
+- [ ] Implement drag-to-reorder steps
+- [ ] Add column resize handles
+- [ ] Add column quick actions menu
+- [ ] Consider dark mode (optional)
+- [ ] Performance audit
+- [ ] Accessibility audit
 
 ---
 
-## 8. Responsive Behavior
+## 21. Design Token Reference
 
-| Viewport | Behavior |
-|----------|----------|
-| ≥1024px | Full layout as specified |
-| <1024px | Show warning: "Chumak works best on larger screens" |
-| <768px | Block usage with message |
+Quick reference for developers:
+
+| Token | Value | Usage |
+|-------|-------|-------|
+| `--color-midnight-blue` | #003964 | Primary text, buttons, borders |
+| `--color-cyan` | #00BBCE | Links, accents, active states |
+| `--color-green` | #A7C539 | Success states |
+| `--color-yellow` | #E4E541 | Warnings |
+| `--color-red` | #F15B43 | Errors |
+| `--color-dark-red` | #D33E2C | Delete actions |
+| `--font-family` | Graphik, Arial | All text |
+| `--font-size-base` | 14px | Default text size |
+| `--space-md` | 16px | Default spacing |
+| `--border-radius` | 4px | Default corner radius |
+| `--transition-fast` | 150ms ease-out | Hover effects |
 
 ---
 
-## 9. State Summary
+## 22. Differences from Original 98.css Design
 
-| State | What User Sees |
-|-------|----------------|
-| **First visit** | Welcome modal over ready interface |
-| **No data** | Drop zone in preview area |
-| **Data loaded** | Full interface, preview populated |
-| **Transform editing** | Popup with preview |
-| **Viewing past step** | Data preview shows snapshot, indicator text |
-| **Loading (parsing)** | "Loading..." text or spinner in drop zone |
-| **Error (parse/file)** | Error dialog or inline message |
+| Aspect | 98.css Version | KSE-Inspired Version |
+|--------|----------------|---------------------|
+| **Framework** | 98.css components | Custom CSS |
+| **Visual style** | Retro Windows 98 | Clean, modern, rigorous |
+| **Colors** | System grays, blue | KSE palette (Dark Blue, Cyan, etc.) |
+| **Typography** | System fonts | Graphik font family |
+| **Window chrome** | 3D beveled frames | Flat 1px borders |
+| **Borders** | Multiple shades (inset/outset) | Single 1px solid borders |
+| **Buttons** | 3D raised/pressed | Flat with subtle hover |
+| **Complexity** | High visual weight | Minimal, information-first |
+| **Customizability** | Limited (framework styles) | Full control via CSS variables |
 
+---
+
+## 23. Summary
+
+This redesigned UX specification provides:
+
+1. **Clean, rigorous visual design** inspired by KSE brand guidelines
+2. **Information density** without visual clutter
+3. **Custom CSS** with full control (no framework lock-in)
+4. **Browser normalization** via normalize.css/modern-normalize
+5. **Consistent design tokens** via CSS custom properties
+6. **Accessibility-first** approach (keyboard nav, focus states, ARIA)
+7. **Maintainable CSS architecture** (BEM naming, modular files)
+8. **Simple interactions** (minimal animations, fast transitions)
+
+The design maintains all functionality from the original 98.css version while providing a modern, professional appearance suitable for a KSE-affiliated product.
+
+---
+
+**End of UX Specification**
