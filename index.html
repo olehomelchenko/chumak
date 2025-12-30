@@ -8,6 +8,8 @@
   <link rel="stylesheet" href="styles/chumak.css">
   <script src="https://unpkg.com/feather-icons"></script>
   <script src="https://unpkg.com/papaparse@5/papaparse.min.js"></script>
+  <script src="https://unpkg.com/arquero@5/dist/arquero.min.js"></script>
+  <script src="src/transforms.js"></script>
   <script src="https://unpkg.com/alpinejs@3/dist/cdn.min.js" defer></script>
 </head>
 <body x-data="chumakApp()">
@@ -210,7 +212,7 @@
         <h2 class="panel-section__header">Sources & Models</h2>
         <div class="tree-view">
 
-          <template x-for="source in sources" :key="source.name">
+          <template x-for="source in sources" :key="source.id">
             <div>
               <!-- Source -->
               <div class="tree-item tree-item--source">
@@ -219,8 +221,8 @@
               </div>
 
               <!-- Models for this source -->
-              <template x-for="model in models.filter(m => m.sourceName === source.name)" :key="model.name">
-                <div class="tree-item tree-item--model" :class="{ 'tree-item--active': activeModel?.name === model.name }">
+              <template x-for="model in models.filter(m => m.sourceId === source.id)" :key="model.id">
+                <div class="tree-item tree-item--model" :class="{ 'tree-item--active': activeModel?.id === model.id }">
                   <span class="tree-item__indent"></span>
                   <span class="tree-item__icon">📊</span>
                   <span class="tree-item__name" x-text="model.name"></span>
@@ -295,8 +297,23 @@
           <div x-show="!currentData" style="padding: 1rem; color: #888; font-size: 0.875rem;">
             Import a CSV file to begin transforming data.
           </div>
-          <div x-show="currentData" style="padding: 1rem; color: #888; font-size: 0.875rem;">
-            No transformation steps yet.
+
+          <!-- Show steps if any exist -->
+          <template x-if="currentData && activeModel?.steps?.length > 0">
+            <div>
+              <template x-for="(step, index) in activeModel?.steps || []" :key="index">
+                <div class="step-item">
+                  <span class="step-item__number" x-text="`${index + 1}.`"></span>
+                  <span class="step-item__description" x-text="describeTransform(step)"></span>
+                </div>
+              </template>
+            </div>
+          </template>
+
+          <!-- Show "no steps" message if data loaded but no steps -->
+          <div x-show="currentData && (!activeModel?.steps || activeModel?.steps?.length === 0)"
+               style="padding: 1rem; color: #888; font-size: 0.875rem;">
+            No transformation steps yet. Use the toolbar above to transform your data.
           </div>
 
           <!-- PLACEHOLDER DATA - preserved for reference -->
@@ -332,7 +349,17 @@
           <div x-show="!currentData" style="padding: 1rem; color: #888; font-size: 0.875rem;">
             Import a CSV file to begin transforming data.
           </div>
-          <pre x-show="currentData" class="json-view__content">No workflow defined yet.</pre>
+
+          <!-- Show JSON if steps exist -->
+          <pre x-show="currentData && activeModel?.steps?.length > 0"
+               class="json-view__content"
+               x-text="JSON.stringify({ transforms: activeModel?.steps || [] }, null, 2)"></pre>
+
+          <!-- Show "no steps" message -->
+          <div x-show="currentData && (!activeModel?.steps || activeModel?.steps?.length === 0)"
+               style="padding: 1rem; color: #888; font-size: 0.875rem;">
+            No transformation steps yet.
+          </div>
 
           <!-- PLACEHOLDER DATA - preserved for reference -->
           <!--
@@ -650,58 +677,38 @@
         <label class="form-label">Choose columns to keep:</label>
 
         <div class="checkbox-list">
-          <label class="checkbox-item">
-            <input type="checkbox" checked>
-            <span>region</span>
-          </label>
-          <label class="checkbox-item">
-            <input type="checkbox" checked>
-            <span>sales</span>
-          </label>
-          <label class="checkbox-item">
-            <input type="checkbox">
-            <span>cost</span>
-          </label>
-          <label class="checkbox-item">
-            <input type="checkbox" checked>
-            <span>profit</span>
-          </label>
-          <label class="checkbox-item">
-            <input type="checkbox" checked>
-            <span>profit_margin</span>
-          </label>
-          <label class="checkbox-item">
-            <input type="checkbox" checked>
-            <span>date</span>
-          </label>
+          <template x-for="(column, index) in columns" :key="index">
+            <label class="checkbox-item">
+              <input type="checkbox" x-model="selectedColumns[index]">
+              <span x-text="column"></span>
+            </label>
+          </template>
         </div>
 
         <div class="form-actions">
-          <button class="button button--text">Select All</button>
-          <button class="button button--text">Select None</button>
+          <button class="button button--text" @click="selectAllColumns()">Select All</button>
+          <button class="button button--text" @click="selectNoColumns()">Select None</button>
         </div>
 
-        <div class="preview-section">
-          <div class="preview-section__header">Preview (5 columns)</div>
+        <div class="preview-section" x-show="getSelectedColumnsList().length > 0">
+          <div class="preview-section__header" x-text="`Preview (${getSelectedColumnsList().length} column${getSelectedColumnsList().length !== 1 ? 's' : ''})`"></div>
           <div class="preview-table">
             <table class="data-table data-table--compact">
               <thead>
                 <tr>
-                  <th class="data-table__header">region</th>
-                  <th class="data-table__header data-table__header--number">sales</th>
-                  <th class="data-table__header data-table__header--number">profit</th>
-                  <th class="data-table__header data-table__header--number">profit_margin</th>
-                  <th class="data-table__header">date</th>
-              </tr>
+                  <template x-for="column in getSelectedColumnsList()" :key="column">
+                    <th class="data-table__header" x-text="column"></th>
+                  </template>
+                </tr>
               </thead>
               <tbody>
-              <tr class="data-table__row">
-                <td class="data-table__cell">North</td>
-                  <td class="data-table__cell data-table__cell--number">1,500</td>
-                  <td class="data-table__cell data-table__cell--number">320</td>
-                  <td class="data-table__cell data-table__cell--number">21.3</td>
-                <td class="data-table__cell">2025-01-15</td>
-              </tr>
+                <template x-for="row in currentData?.slice(0, 3) || []" :key="row">
+                  <tr class="data-table__row">
+                    <template x-for="column in getSelectedColumnsList()" :key="column">
+                      <td class="data-table__cell" x-text="row[column]"></td>
+                    </template>
+                  </tr>
+                </template>
               </tbody>
             </table>
           </div>
@@ -710,7 +717,7 @@
 
       <div class="modal__footer">
         <button class="button button--secondary" @click="closeDialog()">Cancel</button>
-        <button class="button button--primary" @click="closeDialog()">Apply</button>
+        <button class="button button--primary" @click="applySelectTransform()">Apply</button>
       </div>
     </div>
   </div>
@@ -841,9 +848,18 @@
         currentData: null,
         columns: [],
 
+        // Transform state
+        selectedColumns: [],  // For Select dialog checkboxes
+
         // Dialog methods
         openDialog(dialogName) {
           this.activeDialog = dialogName;
+
+          // Initialize state for specific dialogs
+          if (dialogName === 'select') {
+            // Select all columns by default
+            this.selectedColumns = this.columns.map(() => true);
+          }
         },
 
         closeDialog() {
@@ -1027,10 +1043,26 @@
           const mainModel = {
             id: `mdl_${Date.now()}`,
             name: 'main',
-            sourceName: file.name,
+            sourceId: source.id,  // Link to source by ID, not name
             steps: [],
             data: data
           };
+
+          // Add CSV import configuration as the first transformation step
+          const importStep = {
+            import: {
+              source: file.name,
+              delimiter: delimiter,
+              headerMode: headerMode
+            }
+          };
+
+          // Add custom headers to the step if they were used
+          if (headerMode === 'manual' && customHeaders) {
+            importStep.import.customHeaders = customHeaders;
+          }
+
+          mainModel.steps.push(importStep);
           this.models.push(mainModel);
 
           // Display
@@ -1058,6 +1090,54 @@
           }
 
           return 'string';
+        },
+
+        // Transform methods
+        describeTransform(transform) {
+          return describeTransform(transform);
+        },
+
+        selectAllColumns() {
+          this.selectedColumns = this.columns.map(() => true);
+        },
+
+        selectNoColumns() {
+          this.selectedColumns = this.columns.map(() => false);
+        },
+
+        getSelectedColumnsList() {
+          return this.columns.filter((col, idx) => this.selectedColumns[idx]);
+        },
+
+        applySelectTransform() {
+          const selectedCols = this.getSelectedColumnsList();
+
+          if (selectedCols.length === 0) {
+            alert('Please select at least one column');
+            return;
+          }
+
+          try {
+            // Create transform specification
+            const transform = { select: selectedCols };
+
+            // Apply to current data using Arquero
+            const table = aq.from(this.currentData);
+            const result = applyTransform(table, transform);
+
+            // Update model state
+            this.activeModel.steps.push(transform);
+
+            // Update current data and columns
+            this.currentData = result.objects();
+            this.columns = selectedCols;
+
+            // Close dialog
+            this.closeDialog();
+          } catch (error) {
+            console.error('Transform error:', error);
+            alert('Error applying transform: ' + error.message);
+          }
         }
       }
     }
