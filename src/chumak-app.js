@@ -28,9 +28,11 @@ function chumakApp() {
         // Data state
         sources: [],
         models: [],
+        activeSource: null,       // Currently selected source (for dataset info view)
         activeModel: null,
         currentData: null,
         columns: [],
+        viewMode: 'empty',        // 'empty', 'dataset-info', or 'model'
 
         // Transform state
         selectedColumns: [],  // For Select dialog checkboxes
@@ -545,22 +547,27 @@ function chumakApp() {
             }
         },
 
-        // Switch to a source (selects first model for that source)
+        // Switch to a source (shows dataset info view)
         switchToSource(source) {
-            // Find first model for this source
-            const firstModel = this.models.find(m => m.sourceId === source.id);
+            this.activeSource = source;
+            this.activeModel = null;
+            this.currentData = source.data;  // Show source data
+            this.columns = source.columns.map(c => c.name);
+            this.viewMode = 'dataset-info';
+            this.activeStepIndex = null;
+            this.viewingIntermediate = false;
 
-            if (firstModel) {
-                this.switchToModel(firstModel);
-            } else {
-                console.warn('No models found for source:', source.name);
-            }
+            console.log('Viewing dataset info for:', source.name);
         },
 
         // Switch to a different model
         switchToModel(model) {
+            this.activeSource = null;
             this.activeModel = model;
             this.currentData = model.data;
+            this.viewMode = 'model';
+            this.activeStepIndex = null;
+            this.viewingIntermediate = false;
 
             // Update columns from the model's data
             if (this.currentData && this.currentData.length > 0) {
@@ -570,6 +577,65 @@ function chumakApp() {
             }
 
             console.log('Switched to model:', model.name);
+        },
+
+        // Rename source
+        async renameSource(source) {
+            const newName = prompt('Enter new name for source:', source.name);
+
+            if (!newName || newName.trim() === '') {
+                return;  // User cancelled or entered empty name
+            }
+
+            if (newName.trim() === source.name) {
+                return;  // No change
+            }
+
+            // Update source name
+            source.name = newName.trim();
+
+            // Auto-save
+            await autoSave(this.sources, this.models);
+
+            console.log('Source renamed to:', newName.trim());
+        },
+
+        // Delete source and all its models
+        async deleteSource(source) {
+            const modelCount = this.models.filter(m => m.sourceId === source.id).length;
+            const message = modelCount > 0
+                ? `Delete source "${source.name}" and its ${modelCount} model${modelCount > 1 ? 's' : ''}?\n\nThis cannot be undone.`
+                : `Delete source "${source.name}"?\n\nThis cannot be undone.`;
+
+            if (!confirm(message)) {
+                return;
+            }
+
+            try {
+                // Remove all models for this source
+                this.models = this.models.filter(m => m.sourceId !== source.id);
+
+                // Remove source
+                this.sources = this.sources.filter(s => s.id !== source.id);
+
+                // If we were viewing this source or its models, clear the view
+                if (this.activeSource?.id === source.id ||
+                    this.models.find(m => m.id === this.activeModel?.id && m.sourceId === source.id)) {
+                    this.activeSource = null;
+                    this.activeModel = null;
+                    this.currentData = null;
+                    this.columns = [];
+                    this.viewMode = 'empty';
+                }
+
+                // Auto-save
+                await autoSave(this.sources, this.models);
+
+                console.log('Source deleted:', source.name);
+            } catch (error) {
+                console.error('Error deleting source:', error);
+                alert('Failed to delete source: ' + error.message);
+            }
         },
 
         // Clear all data (for debugging)

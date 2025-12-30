@@ -411,10 +411,71 @@ Tree view showing data hierarchy.
 - **Selected item:** Cyan background (10% opacity)
 - **Hover:** Cyan background (5% opacity)
 
+**Interaction:**
+- Click source → Show dataset information view (metadata, models list, schema)
+- Click model → Show model data with transform steps
+
 **Tree structure:**
 - Use `<ul>` with custom list styles
 - Collapsible sources (click to expand/collapse)
 - Icon rotates: ▶ (collapsed) → ▼ (expanded)
+
+### 6.3.1 Dataset Information View ✅ Implemented
+
+When clicking a source in the tree, the main content area shows comprehensive dataset information instead of automatically selecting the first model.
+
+**Layout:**
+```
+┌─────────────────────────────────────────────────────────────┐
+│ sales_data                           [Rename]  [Delete]     │
+│ Dataset Source                                              │
+├─────────────────────────────────────────────────────────────┤
+│                                                             │
+│ ┌─ Dataset Information ───┐  ┌─ Models (1) ──────────────┐ │
+│ │ Source Name: sales_data │  │ 📊 main                   │ │
+│ │ Original File: sales.csv│  │    0 steps • 432 rows  →  │ │
+│ │ Rows: 432               │  └───────────────────────────┘ │
+│ │ Columns: 5              │                                │
+│ │ File Size: 12.4 KB      │                                │
+│ │ Imported: 1/15/25 10am  │                                │
+│ └─────────────────────────┘                                │
+│                                                             │
+│ ┌─ Column Schema ─────────────────────────────────────────┐ │
+│ │ Column Name    Type      Position                      │ │
+│ │ region         string    1                             │ │
+│ │ sales          number    2                             │ │
+│ │ profit         number    3                             │ │
+│ │ date           date      4                             │ │
+│ │ active         string    5                             │ │
+│ └─────────────────────────────────────────────────────────┘ │
+└─────────────────────────────────────────────────────────────┘
+```
+
+**Header section:**
+- Title: Source name in 24px Medium
+- Subtitle: "Dataset Source" in 13px uppercase
+- Actions: Rename and Delete buttons (secondary and danger styles)
+
+**Dataset Information card:**
+- Metadata in definition list format
+- Label-value pairs with monospace values
+- Source name, original filename, row count, column count, file size, import timestamp
+
+**Models list card:**
+- Badge showing model count
+- Clickable cards for each model
+- Model icon, name, step count, row count
+- Hover effect with arrow indicator
+- Click to switch to model view
+
+**Column Schema table:**
+- Full-width table showing all columns
+- Type badges with color coding (string: blue, number: purple, date: orange)
+- Original position in source file
+
+**Management Actions:**
+- **Rename:** Prompt dialog for new source name, saves to IndexedDB
+- **Delete:** Confirmation with model count warning, removes source and all models, returns to empty state if viewing deleted source
 
 ### 6.4 Steps Panel
 

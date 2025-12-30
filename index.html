@@ -236,6 +236,7 @@
             <div>
               <!-- Source -->
               <div class="tree-item tree-item--source"
+                   :class="{ 'tree-item--active': activeSource?.id === source.id }"
                    @click="switchToSource(source)"
                    style="cursor: pointer;">
                 <span class="tree-item__icon">📄</span>
@@ -451,7 +452,7 @@
 
     <!-- Default/Empty State with Drag-n-Drop -->
     <div
-      x-show="!currentData"
+      x-show="viewMode === 'empty'"
       class="empty-state"
       :class="{ 'empty-state--dragover': isDragging }"
       @dragover.prevent="isDragging = true"
@@ -465,8 +466,110 @@
       </div>
     </div>
 
+    <!-- Dataset Info View -->
+    <div x-show="viewMode === 'dataset-info'" class="dataset-info">
+      <div class="dataset-info__header">
+        <div>
+          <h1 class="dataset-info__title" x-text="activeSource?.name"></h1>
+          <p class="dataset-info__subtitle">Dataset Source</p>
+        </div>
+        <div class="dataset-info__actions">
+          <button class="button button--secondary" @click="renameSource(activeSource)">
+            <i data-feather="edit-2" style="width: 16px; height: 16px;"></i>
+            Rename
+          </button>
+          <button class="button button--danger" @click="deleteSource(activeSource)">
+            <i data-feather="trash-2" style="width: 16px; height: 16px;"></i>
+            Delete
+          </button>
+        </div>
+      </div>
+
+      <div class="dataset-info__content">
+        <!-- Metadata Card -->
+        <div class="info-card">
+          <h3 class="info-card__title">Dataset Information</h3>
+          <dl class="info-list">
+            <div class="info-list__item">
+              <dt class="info-list__label">Source Name</dt>
+              <dd class="info-list__value" x-text="activeSource?.name"></dd>
+            </div>
+            <div class="info-list__item">
+              <dt class="info-list__label">Original File</dt>
+              <dd class="info-list__value" x-text="activeSource?.fileName"></dd>
+            </div>
+            <div class="info-list__item">
+              <dt class="info-list__label">Rows</dt>
+              <dd class="info-list__value" x-text="activeSource?.rowCount?.toLocaleString()"></dd>
+            </div>
+            <div class="info-list__item">
+              <dt class="info-list__label">Columns</dt>
+              <dd class="info-list__value" x-text="activeSource?.columns?.length"></dd>
+            </div>
+            <div class="info-list__item">
+              <dt class="info-list__label">File Size</dt>
+              <dd class="info-list__value" x-text="`${(activeSource?.rawSize / 1024).toFixed(1)} KB`"></dd>
+            </div>
+            <div class="info-list__item">
+              <dt class="info-list__label">Imported</dt>
+              <dd class="info-list__value" x-text="activeSource?.createdAt ? new Date(activeSource.createdAt).toLocaleString() : 'Unknown'"></dd>
+            </div>
+          </dl>
+        </div>
+
+        <!-- Models List Card -->
+        <div class="info-card">
+          <h3 class="info-card__title">
+            Models
+            <span class="badge" x-text="models.filter(m => m.sourceId === activeSource?.id).length"></span>
+          </h3>
+          <div class="models-list">
+            <template x-for="model in models.filter(m => m.sourceId === activeSource?.id)" :key="model.id">
+              <div class="model-card" @click="switchToModel(model)" style="cursor: pointer;">
+                <div class="model-card__icon">📊</div>
+                <div class="model-card__content">
+                  <div class="model-card__name" x-text="model.name"></div>
+                  <div class="model-card__meta">
+                    <span x-text="`${model.steps?.length - 1 || 0} step${model.steps?.length - 1 !== 1 ? 's' : ''}`"></span>
+                    <span>•</span>
+                    <span x-text="`${model.data?.length?.toLocaleString() || 0} rows`"></span>
+                  </div>
+                </div>
+                <div class="model-card__arrow">→</div>
+              </div>
+            </template>
+          </div>
+        </div>
+
+        <!-- Column Schema Card -->
+        <div class="info-card info-card--full">
+          <h3 class="info-card__title">Column Schema</h3>
+          <table class="schema-table">
+            <thead>
+              <tr>
+                <th class="schema-table__header">Column Name</th>
+                <th class="schema-table__header">Type</th>
+                <th class="schema-table__header">Position</th>
+              </tr>
+            </thead>
+            <tbody>
+              <template x-for="column in activeSource?.columns" :key="column.name">
+                <tr class="schema-table__row">
+                  <td class="schema-table__cell" x-text="column.name"></td>
+                  <td class="schema-table__cell">
+                    <span class="type-badge" :class="`type-badge--${column.inferredType}`" x-text="column.inferredType"></span>
+                  </td>
+                  <td class="schema-table__cell" x-text="column.originalPosition + 1"></td>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
     <!-- Pagination -->
-    <div class="pagination" x-show="currentData">
+    <div class="pagination" x-show="viewMode === 'model'">
       <span class="pagination__info" x-text="`Showing 1-${Math.min(100, currentData?.length || 0)} of ${currentData?.length || 0}`"></span>
       <div class="pagination__controls">
         <button class="button button--secondary button--small" disabled>‹</button>
@@ -475,7 +578,7 @@
     </div>
 
     <!-- Data Preview Table -->
-    <div class="table-container" x-show="currentData">
+    <div class="table-container" x-show="viewMode === 'model'">
       <table class="data-table">
         <thead>
           <tr>
