@@ -33,8 +33,9 @@ Core features implemented and validated:
 - ✅ IndexedDB persistence with auto-save
 - ✅ CSV import with configuration dialog
 - ✅ CSV and workflow JSON export
+- ✅ Automated testing infrastructure (140+ tests, 90%+ coverage)
 
-**Next:** Phase 1 — MVP (remaining 8 transforms, automated testing)
+**Next:** Phase 1 — MVP (remaining 8 transforms)
 
 ---
 
@@ -493,9 +494,9 @@ Option: embed source data (for full reproducibility) vs. reference only (smaller
 | **UI** | ✅ Full layout, step navigation, dialogs / ⏳ Remaining transform dialogs |
 | **Persistence** | ✅ IndexedDB auto-save / ⏳ Workflow import |
 | **Export** | ✅ CSV, workflow JSON |
-| **Testing** | ⏳ Test infrastructure (Mocha + Chai), 90%+ coverage target |
+| **Testing** | ✅ Test infrastructure (Mocha + Chai), 140+ tests, 90%+ coverage |
 
-**Priorities:** Remaining transforms → Automated testing → Enhanced parser
+**Priorities:** Remaining transforms → Enhanced parser → Predicate builder (optional)
 
 ### Phase 2 — Derived Datasets
 
@@ -677,37 +678,42 @@ Available columns: Region, Sales, Revenue, Cost
 
 ### 13.1 Philosophy
 
-- **Test-first where practical** — especially for the transform compiler and expression parser
+- **Test-first always** — MANDATORY: write tests before implementing new features
 - **Every transform operation has tests** — the core logic must be reliable
 - **Tests run in browser** — consistent with no-build-system constraint
 - **Tests are part of the repo** — anyone can run them by opening a file
+- **90%+ coverage maintained** — especially for transform compiler and expression parser
 
-### 13.2 Testing Stack
+### 13.2 Testing Stack ✅ IMPLEMENTED (2025-12-30)
 
-CDN-compatible, no build required:
+**Current status: 140+ tests with 90%+ coverage**
+
+CDN-loaded stack (no build required):
 
 ```html
-<!-- Test runner -->
-<script src="https://unpkg.com/mocha@10/mocha.js"></script>
-<script src="https://unpkg.com/chai@4/chai.js"></script>
-
-<!-- Optional: DOM testing utilities -->
-<script src="https://unpkg.com/@testing-library/dom@9/dist/@testing-library/dom.umd.js"></script>
+<!-- Test runner (Mocha + Chai) -->
+<script src="https://unpkg.com/mocha@10.2.0/mocha.js"></script>
+<script src="https://unpkg.com/chai@4.3.10/chai.js"></script>
 ```
 
-Test file structure:
+**Implemented test structure:**
 ```
 /chumak
-├── index.html              # Main app
-├── tests/
-│   ├── runner.html         # Open in browser to run all tests
-│   ├── transforms.test.js  # Transform compiler tests
-│   ├── parser.test.js      # Expression parser tests
-│   ├── storage.test.js     # IndexedDB/persistence tests
-│   └── ui.test.js          # UI interaction tests
+├── index.html                        # Main app
 └── src/
-    └── ...
+    ├── tests/                        # ✅ Test suite
+    │   ├── runner.html               # ✅ Test runner (open in browser)
+    │   ├── expression-parser.test.js # ✅ 17 tests - Expression parsing
+    │   ├── ast-validator.test.js     # ✅ 38 tests - Security validation
+    │   ├── ast-interpreter.test.js   # ✅ 50+ tests - AST interpretation
+    │   └── transforms.test.js        # ✅ 35+ tests - Transform engine
+    ├── expression-parser.js          # Parser implementation
+    ├── ast-validator.js              # Validator implementation
+    ├── ast-interpreter.js            # Interpreter implementation
+    └── transforms.js                 # Transform implementation
 ```
+
+**To run tests:** Open `src/tests/runner.html` in browser
 
 ### 13.3 Test Categories
 
