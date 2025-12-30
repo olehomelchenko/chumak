@@ -231,14 +231,19 @@
           <template x-for="source in sources" :key="source.id">
             <div>
               <!-- Source -->
-              <div class="tree-item tree-item--source">
+              <div class="tree-item tree-item--source"
+                   @click="switchToSource(source)"
+                   style="cursor: pointer;">
                 <span class="tree-item__icon">📄</span>
                 <span class="tree-item__name" x-text="source.name"></span>
               </div>
 
               <!-- Models for this source -->
               <template x-for="model in models.filter(m => m.sourceId === source.id)" :key="model.id">
-                <div class="tree-item tree-item--model" :class="{ 'tree-item--active': activeModel?.id === model.id }">
+                <div class="tree-item tree-item--model"
+                     :class="{ 'tree-item--active': activeModel?.id === model.id }"
+                     @click="switchToModel(model)"
+                     style="cursor: pointer;">
                   <span class="tree-item__indent"></span>
                   <span class="tree-item__icon">📊</span>
                   <span class="tree-item__name" x-text="model.name"></span>
@@ -1330,6 +1335,33 @@
             console.error('Workflow export error:', error);
             alert('Failed to export workflow: ' + error.message);
           }
+        },
+
+        // Switch to a source (selects first model for that source)
+        switchToSource(source) {
+          // Find first model for this source
+          const firstModel = this.models.find(m => m.sourceId === source.id);
+
+          if (firstModel) {
+            this.switchToModel(firstModel);
+          } else {
+            console.warn('No models found for source:', source.name);
+          }
+        },
+
+        // Switch to a different model
+        switchToModel(model) {
+          this.activeModel = model;
+          this.currentData = model.data;
+
+          // Update columns from the model's data
+          if (this.currentData && this.currentData.length > 0) {
+            this.columns = Object.keys(this.currentData[0]);
+          } else {
+            this.columns = [];
+          }
+
+          console.log('Switched to model:', model.name);
         },
 
         // Clear all data (for debugging)
