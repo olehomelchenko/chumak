@@ -24,7 +24,7 @@ Chumak is a browser-based data wrangling tool for cleaning and transforming tabu
 
 ### 1.4 Current Status
 
-**Phase 0 — Walking Skeleton: ✅ COMPLETE** (2025-12-30)
+**Phase 0 — Walking Skeleton: ✅ COMPLETE**
 
 Core features implemented and validated:
 - ✅ Expression parser with security validation
@@ -33,9 +33,9 @@ Core features implemented and validated:
 - ✅ IndexedDB persistence with auto-save
 - ✅ CSV import with configuration dialog
 - ✅ CSV and workflow JSON export
-- ✅ Automated testing infrastructure (140+ tests, 90%+ coverage)
+- ✅ Automated testing infrastructure with comprehensive test suite
 
-**Next:** Phase 1 — MVP (remaining 8 transforms)
+**Next:** Phase 1 — MVP (remaining transforms)
 
 ---
 
@@ -431,9 +431,7 @@ Option: embed source data (for full reproducibility) vs. reference only (smaller
 
 **Goal:** Minimal end-to-end implementation that exercises all architectural layers with one complete path through the system. Proves the architecture works before building on it.
 
-**Status:** ✅ Complete (2025-12-30)
-
-**Actual timeline:** 1 day
+**Status:** ✅ Complete
 
 | Component | Implemented |
 |-----------|-------------|
@@ -458,11 +456,11 @@ Option: embed source data (for full reproducibility) vs. reference only (smaller
 - Arquero's `.filter()` rejects try-catch blocks; workaround: convert to array, filter, convert back
 - IndexedDB structured clone requires JSON serialization; embedded data in sources/models (tech debt for Phase 1)
 
-**Implementation complete** (~640 lines custom code):
-- Expression parser layer (4 files, ~314 lines)
-- Transform engine with filter & select (~112 lines)
-- Storage with IndexedDB auto-save (~165 lines)
-- Step navigation & removal (~175 lines, added 2025-12-30)
+**Implementation complete:**
+- Expression parser layer (expression-parser.js, ast-validator.js, ast-interpreter.js, error-formatter.js)
+- Transform engine with filter & select (transforms.js)
+- Storage with IndexedDB auto-save (storage.js)
+- Step navigation & removal
 - UI integration in `index.html` and `chumak-app.js`
 
 **Key features working:**
@@ -475,8 +473,7 @@ Option: embed source data (for full reproducibility) vs. reference only (smaller
 - ✅ Data persistence across reloads
 
 **Deferred to Phase 1:**
-- Remaining 8 transforms (derive, sort, rename, remove, aggregate, fillna, dropna, replace)
-- Automated testing infrastructure
+- Remaining transforms (derive, sort, rename, remove, aggregate, fillna, dropna, replace)
 - Enhanced parser (bracket notation, error suggestions)
 - Predicate object GUI builder (optional)
 
@@ -494,7 +491,7 @@ Option: embed source data (for full reproducibility) vs. reference only (smaller
 | **UI** | ✅ Full layout, step navigation, dialogs / ⏳ Remaining transform dialogs |
 | **Persistence** | ✅ IndexedDB auto-save / ⏳ Workflow import |
 | **Export** | ✅ CSV, workflow JSON |
-| **Testing** | ✅ Test infrastructure (Mocha + Chai), 140+ tests, 90%+ coverage |
+| **Testing** | ✅ Comprehensive test infrastructure (Mocha + Chai) with high coverage |
 
 **Priorities:** Remaining transforms → Enhanced parser → Predicate builder (optional)
 
@@ -684,9 +681,9 @@ Available columns: Region, Sales, Revenue, Cost
 - **Tests are part of the repo** — anyone can run them by opening a file
 - **90%+ coverage maintained** — especially for transform compiler and expression parser
 
-### 13.2 Testing Stack ✅ IMPLEMENTED (2025-12-30)
+### 13.2 Testing Stack ✅ IMPLEMENTED
 
-**Current status: 140+ tests with 90%+ coverage**
+**Current status: Comprehensive test suite with high coverage**
 
 CDN-loaded stack (no build required):
 
@@ -703,10 +700,10 @@ CDN-loaded stack (no build required):
 └── src/
     ├── tests/                        # ✅ Test suite
     │   ├── runner.html               # ✅ Test runner (open in browser)
-    │   ├── expression-parser.test.js # ✅ 17 tests - Expression parsing
-    │   ├── ast-validator.test.js     # ✅ 38 tests - Security validation
-    │   ├── ast-interpreter.test.js   # ✅ 50+ tests - AST interpretation
-    │   └── transforms.test.js        # ✅ 35+ tests - Transform engine
+    │   ├── expression-parser.test.js # ✅ Expression parsing tests
+    │   ├── ast-validator.test.js     # ✅ Security validation tests
+    │   ├── ast-interpreter.test.js   # ✅ AST interpretation tests
+    │   └── transforms.test.js        # ✅ Transform engine tests
     ├── expression-parser.js          # Parser implementation
     ├── ast-validator.js              # Validator implementation
     ├── ast-interpreter.js            # Interpreter implementation
@@ -750,9 +747,9 @@ CDN-loaded stack (no build required):
 
 | Phase | Coverage Target | Focus |
 |-------|-----------------|-------|
-| Phase 1 | 90%+ for transform compiler | Every transform type, expression edge cases |
-| Phase 1 | 80%+ for persistence | Save, load, export, import |
-| Phase 2 | 90%+ for joins | Join types, key matching, edge cases |
+| Phase 1 | High coverage for transform compiler | Every transform type, expression edge cases |
+| Phase 1 | High coverage for persistence | Save, load, export, import |
+| Phase 2 | High coverage for joins | Join types, key matching, edge cases |
 | Phase 3 | Maintain coverage | New transforms tested before merge |
 
 ### 13.5 Test Data

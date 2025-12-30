@@ -2,7 +2,7 @@
 
 > **Purpose**: Onboarding document for Claude AI sessions working on Chumak
 
-**Current Phase**: Phase 0 Complete ✅ → Starting Phase 1 (MVP)
+**Current Phase**: Phase 0 Complete ✅ → Phase 1 (MVP) In Progress
 
 ---
 
@@ -23,7 +23,7 @@
 
 ## Current Status: Phase 0 Complete ✅
 
-### Phase 0: Walking Skeleton - COMPLETE (2025-12-30)
+### Phase 0: Walking Skeleton - COMPLETE
 
 **All architectural layers validated and working end-to-end**
 
@@ -81,7 +81,7 @@
    - FILTER: Keep rows matching expressions (supports `&&`, `||`, comparisons)
    - Transform description generation for step list
 
-9. **Step Navigation & Removal** ✅ NEW (2025-12-30)
+9. **Step Navigation & Removal** ✅
    - Click steps to view intermediate results (on-demand recomputation)
    - Delete steps with automatic recomputation from source
    - "View final result" button when viewing intermediate steps
@@ -91,10 +91,10 @@
    - CSV export with timestamp filenames
    - Workflow JSON export with full metadata
 
-11. **Automated Testing** ✅ NEW (2025-12-30)
+11. **Automated Testing** ✅
    - Mocha + Chai test infrastructure (browser-based, CDN-loaded)
-   - 140+ tests covering expression parser, AST validator, AST interpreter, and transform engine
-   - 90%+ coverage on core parsing and transform logic
+   - Comprehensive test suite covering expression parser, AST validator, AST interpreter, and transform engine
+   - High coverage on core parsing and transform logic
    - Test runner at src/tests/runner.html
 
 ### Key Implementation Discoveries
@@ -122,7 +122,7 @@
 
 **Phase 1 Priorities (MVP):**
 1. **Remaining transforms**: derive, sort, rename, remove, aggregate, fillna, dropna, replace
-2. ✅ **Automated testing**: Mocha + Chai infrastructure, 140+ tests, 90%+ coverage (COMPLETE 2025-12-30)
+2. ✅ **Automated testing**: Mocha + Chai infrastructure with comprehensive test suite (COMPLETE)
 3. **Enhanced parser**: Bracket notation `[Column Name]`, error suggestions (Levenshtein)
 4. **Predicate builder**: GUI for structured predicates (deferred - expressions working well)
 
@@ -263,12 +263,12 @@ chumak/
     ├── ast-interpreter.js           # Safe execution ✅
     ├── error-formatter.js           # User-friendly errors ✅
     ├── transforms.js                # Transform engine (filter, select) ✅
-    └── tests/                       # Automated test suite ✅ NEW
+    └── tests/                       # Automated test suite ✅
         ├── runner.html              # Test runner (Mocha + Chai)
-        ├── expression-parser.test.js # Expression parser tests (17 tests)
-        ├── ast-validator.test.js    # AST validator tests (38 tests)
-        ├── ast-interpreter.test.js  # AST interpreter tests (50+ tests)
-        └── transforms.test.js       # Transform engine tests (35+ tests)
+        ├── expression-parser.test.js # Expression parser tests
+        ├── ast-validator.test.js    # AST validator tests
+        ├── ast-interpreter.test.js  # AST interpreter tests
+        └── transforms.test.js       # Transform engine tests
 ```
 
 **Future additions (Phase 1):**
@@ -281,9 +281,7 @@ chumak/
 
 ## Implementation Phases
 
-### Phase 0: Walking Skeleton (Current Target)
-
-**Timeline**: 1-2 days
+### Phase 0: Walking Skeleton
 
 **Goal**: Minimal end-to-end implementation that validates all architectural decisions before building more features.
 
@@ -295,8 +293,6 @@ chumak/
 - ✅ CSV export
 - ✅ Workflow JSON export/import
 - ✅ Manual testing (automated tests in Phase 1)
-
-**Code estimate**: ~430 new lines
 
 **Architecture validated**:
 - Expression parser design (jsep + validation + interpretation)
@@ -319,8 +315,6 @@ chumak/
 
 ### Phase 1: MVP
 
-**Timeline**: 3-4 weeks of development
-
 **Goal**: Build out full feature set on proven architecture.
 
 **Scope**:
@@ -330,9 +324,7 @@ chumak/
 - ✅ UI: Full layout, step list, preview, JSON viewer, predicate builder
 - ✅ Persistence: IndexedDB auto-save, workflow export/import
 - ✅ Export: Result CSV, workflow JSON
-- ✅ Testing: 90%+ coverage on transform compiler and parser
-
-**Code estimate**: ~1000 lines custom code + jsep
+- ✅ Testing: High coverage on transform compiler and parser
 
 **Deliberately excluded**:
 - ❌ Function calls (Phase 2)
@@ -432,7 +424,7 @@ When implementing ANY new feature or transform:
 - Browser-based testing (no Node.js required)
 - Mocha + Chai loaded from CDN
 - Test runner: `src/tests/runner.html`
-- Current coverage: 140+ tests with 90%+ coverage
+- Comprehensive test suite with high coverage
 - Test files:
   - `expression-parser.test.js` - Expression parsing
   - `ast-validator.test.js` - Security validation
@@ -651,7 +643,7 @@ Phase 1 whitelist:
 
 ## Next Steps (Implementation Roadmap)
 
-### Phase 0: Walking Skeleton ✅ COMPLETE (2025-12-30)
+### Phase 0: Walking Skeleton ✅ COMPLETE
 
 **All success criteria met!** See PHASE-0-TESTING-CHECKLIST.md for comprehensive testing checklist.
 
@@ -667,18 +659,16 @@ Completed components:
 
 **Goal**: Build out full transform set on proven architecture with test coverage.
 
-**Priority 1: Automated Testing Infrastructure** ✅ COMPLETE (2025-12-30)
+**Priority 1: Automated Testing Infrastructure** ✅ COMPLETE
 1. ✅ Set up test infrastructure
    - Created tests/ directory
    - Added Mocha + Chai from CDN
    - Created test runner HTML at `src/tests/runner.html`
-   - Wrote 140+ tests across all core modules
+   - Comprehensive test suite across all core modules
 
 2. ✅ Test coverage achieved
-   - Expression parser: 90%+ (17 tests)
-   - AST validator: 90%+ (38 tests)
-   - AST interpreter: 90%+ (50+ tests)
-   - Transform engine: 90%+ (35+ tests)
+   - High coverage across expression parser, AST validator, AST interpreter, and transform engine
+   - All core functionality well-tested
 
 **Priority 2: Remaining Transforms** (NEXT)
 3. **Implement core transforms** (using filter as template, WRITE TESTS FIRST)
@@ -750,6 +740,39 @@ Completed components:
 - Bullets for lists
 - Emoji sparingly (status indicators only)
 
+### Documentation Best Practices (CRITICAL)
+
+**Avoid information that quickly goes stale:**
+
+❌ **DON'T include:**
+- Specific dates (e.g., "2025-12-30", "completed on Jan 15")
+- Exact test counts (e.g., "140+ tests", "17 tests")
+- Time estimates (e.g., "1-2 days", "3-4 weeks")
+- Exact line counts (e.g., "~430 lines", "~1000 lines")
+- Specific coverage percentages (e.g., "90.5% coverage")
+- "NEW" markers with dates
+- Version numbers in prose (keep in version history only)
+
+✅ **DO use instead:**
+- Status indicators without dates ("Complete", "In Progress")
+- Qualitative descriptions ("comprehensive test suite", "well-tested")
+- Relative terms ("high coverage", "extensive testing")
+- References to actual code/files ("see tests/ directory", "check git log")
+- Generic completion markers ("✅ COMPLETE" without dates)
+
+**Rationale:** Documentation should describe *what exists* and *how it works*, not *when it was created* or *exact metrics*. Dates and counts become outdated immediately and create maintenance burden. The git history is the source of truth for timeline and progression.
+
+**Examples:**
+
+Bad: "Phase 0 completed on 2025-12-30 with 140+ tests achieving 90%+ coverage in 1-2 days"
+Good: "Phase 0 complete with comprehensive test suite and high coverage"
+
+Bad: "Added 50+ tests for AST interpreter (35 lines of code)"
+Good: "AST interpreter thoroughly tested (see ast-interpreter.test.js)"
+
+Bad: "NEW feature added on 2025-12-30"
+Good: "Recently added feature" OR just describe it without temporal marker
+
 ---
 
 ## Questions to Ask User
@@ -787,11 +810,13 @@ Completed components:
 
 ## Version History
 
-- **2025-01-23**: Initial version (Design phase complete)
+- **Initial version**: Design phase complete
   - Product specification finalized
   - Expression parser research completed
   - Parser design decision documented
   - Documentation structure organized
+- **Phase 0 complete**: Walking skeleton implemented and validated
+  - Expression parser, transforms, persistence, testing infrastructure
 
 ---
 

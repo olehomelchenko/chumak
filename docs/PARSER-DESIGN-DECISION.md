@@ -1,7 +1,6 @@
 # Chumak Expression Parser - Design Decision
 
-**Date**: 2025-01-23
-**Status**: Recommended Approach
+**Status**: Recommended Approach (Implemented in Phase 0)
 **Research basis**: Analysis of 8 production systems (Arquero, Vega-Lite, jsep, filtrex, OpenRefine, ag-Grid, Tidyjs, danfo.js)
 
 ---
@@ -20,7 +19,7 @@ For expression strings, use **jsep** as the parser with AST interpretation (not 
 - ✅ Security-first: No Function() constructor, full sandboxing
 - ✅ User-friendly: Position-aware errors, schema validation, suggestions
 - ✅ Incremental: Simple operators in Phase 1, functions in Phase 2+
-- ✅ Lightweight: ~700 lines custom code + ~600 lines jsep (CDN-loaded)
+- ✅ Lightweight: Compact implementation with jsep library (CDN-loaded)
 - ✅ Extensible: Plugin system for future enhancement
 
 ---
@@ -606,11 +605,11 @@ discount(price, 15)
 
 ## Implementation Phases
 
-### Phase 0: Walking Skeleton ✅ COMPLETE (2025-12-30)
+### Phase 0: Walking Skeleton ✅ COMPLETE
 
 **Goal:** Minimal end-to-end proof that the architecture works. One thin slice through all layers.
 
-**Status:** ✅ Complete (1 day)
+**Status:** ✅ Complete
 
 **Deliverables (all implemented):**
 ```
@@ -627,14 +626,13 @@ discount(price, 15)
 ✅ IndexedDB persistence with auto-save (added during implementation)
 ```
 
-**Actual code:**
-- `src/expression-parser.js`: 32 lines (jsep wrapper)
-- `src/ast-validator.js`: 139 lines (security validation)
-- `src/ast-interpreter.js`: 106 lines (safe evaluation)
-- `src/error-formatter.js`: 37 lines (user-friendly errors)
-- `src/storage.js`: 165 lines (IndexedDB layer, added scope)
+**Implementation files:**
+- `src/expression-parser.js` - jsep wrapper
+- `src/ast-validator.js` - security validation
+- `src/ast-interpreter.js` - safe evaluation
+- `src/error-formatter.js` - user-friendly errors
+- `src/storage.js` - IndexedDB layer
 - Updates to `src/transforms.js` and `index.html`
-- **Total: ~465 lines** (vs. estimated 430)
 
 **Key implementation discoveries:**
 
@@ -666,7 +664,7 @@ discount(price, 15)
 
 ---
 
-### Phase 1: MVP (3-4 weeks)
+### Phase 1: MVP
 
 **Goal:** Build out full feature set on proven architecture.
 
@@ -681,17 +679,8 @@ discount(price, 15)
 ✅ Schema-aware validation (unknown column detection)
 ✅ Error-as-value pattern for row-level failures
 ✅ Expression caching
-✅ Test suite (90%+ coverage)
+✅ Comprehensive test suite with high coverage
 ```
-
-**Code estimate:**
-- Predicate compiler: ~250 lines
-- AST validator: ~150 lines
-- AST transformer: ~100 lines
-- AST interpreter: ~200 lines
-- Error formatter: ~100 lines
-- Test suite: ~500 lines
-- **Total: ~1300 lines** (excluding jsep ~600 lines)
 
 **Non-goals (explicitly deferred):**
 - ❌ Function calls
@@ -700,7 +689,7 @@ discount(price, 15)
 - ❌ User-defined functions
 - ❌ Regex literals
 
-### Phase 2: Functions + Advanced Operators (2-3 weeks)
+### Phase 2: Functions + Advanced Operators
 
 **Additions:**
 ```
@@ -714,7 +703,7 @@ discount(price, 15)
 ✅ Arquero op.* function integration
 ```
 
-### Phase 3: Extensibility (2-3 weeks)
+### Phase 3: Extensibility
 
 **Additions:**
 ```
@@ -972,19 +961,18 @@ worker.onmessage = (e) => {
 ### Performance Targets
 
 **Phase 1 (MVP):**
-- Parse + validate: <10ms per expression
-- Evaluate 100 rows: <50ms per expression
-- UI remains responsive during preview
+- Fast parsing and validation
+- Efficient evaluation for preview (100 rows)
+- Responsive UI during preview
 
 **Phase 2 (Optimized):**
-- Parse + validate: <5ms per expression
-- Evaluate 100 rows: <20ms per expression
-- Support 1000+ row previews
+- Improved performance for larger previews
+- Support for larger row counts
 
 **Phase 3 (Production):**
-- Evaluate 10,000 rows: <200ms per expression
-- Web Worker for 100,000+ rows
-- Streaming evaluation for 1M+ rows
+- Optimized for large datasets
+- Web Worker for very large files
+- Streaming evaluation for maximum scalability
 
 ---
 
@@ -992,7 +980,7 @@ worker.onmessage = (e) => {
 
 ### Test Coverage Targets
 
-**Phase 1:** 90%+ coverage on core expression handling
+**Phase 1:** High coverage on core expression handling
 
 ### Test Categories
 
@@ -1230,7 +1218,6 @@ Bracket notation for spaces/special chars:
 
 ### Decision 1: Use jsep over alternatives
 
-**Date:** 2025-01-23
 **Alternatives considered:**
 1. Acorn (Arquero's choice)
 2. Handwritten parser (GREL's choice)
@@ -1253,7 +1240,6 @@ Bracket notation for spaces/special chars:
 
 ### Decision 2: Interpret AST instead of compiling to functions
 
-**Date:** 2025-01-23
 **Alternatives considered:**
 1. Compile to Function() (ag-Grid, Arquero)
 2. Compile to safe eval() wrapper
@@ -1276,7 +1262,6 @@ Bracket notation for spaces/special chars:
 
 ### Decision 3: Bare identifiers for column references
 
-**Date:** 2025-01-23
 **Alternatives considered:**
 1. `d.column` (Arquero)
 2. `datum.column` (Vega-Lite)
@@ -1299,7 +1284,6 @@ Bracket notation for spaces/special chars:
 
 ### Decision 4: Structured predicates as primary API
 
-**Date:** 2025-01-23
 **Alternatives considered:**
 1. Expression strings only (all other systems)
 2. Predicates only (Vega-Lite partially)
@@ -1413,60 +1397,58 @@ name.upper()
 
 ---
 
-## Appendix: Code Size Estimate
+## Appendix: Implementation Structure
 
-### Phase 1 Breakdown
+### Phase 1 Components
 
 ```
 Core Expression Handling
-├── predicate-compiler.js      (~250 lines)
+├── predicate-compiler.js
 │   ├── Predicate → Arquero
 │   ├── Logical composition
 │   └── Field reference handling
 │
-├── expression-parser.js        (~100 lines)
+├── expression-parser.js
 │   ├── jsep integration
 │   ├── Bracket notation plugin
 │   └── Parse error handling
 │
-├── ast-validator.js            (~150 lines)
+├── ast-validator.js
 │   ├── Node type validation
 │   ├── Operator whitelist
 │   ├── Column name checking
 │   └── Schema suggestions
 │
-├── ast-transformer.js          (~100 lines)
+├── ast-transformer.js
 │   ├── Column prefix injection
 │   ├── Bracket notation handling
 │   └── AST optimization
 │
-├── ast-interpreter.js          (~200 lines)
+├── ast-interpreter.js
 │   ├── Expression evaluation
 │   ├── Null propagation
 │   ├── Error-as-value handling
 │   └── Type coercion
 │
-├── error-formatter.js          (~100 lines)
+├── error-formatter.js
 │   ├── Position highlighting
 │   ├── Suggestion generation
 │   └── Schema context
 │
-├── expression-cache.js         (~50 lines)
+├── expression-cache.js
 │   ├── Cache management
 │   └── Invalidation
 │
-└── utils.js                    (~50 lines)
+└── utils.js
     ├── Schema hashing
     ├── Levenshtein distance (suggestions)
     └── Helper functions
-
-TOTAL CUSTOM CODE: ~1000 lines
 ```
 
 ### External Dependencies
 
 ```
-jsep.min.js                     ~600 lines (~10KB minified)
+jsep.min.js                     (~10KB minified, CDN-loaded)
 arquero.min.js                  (already dependency)
 papaparse.min.js                (already dependency)
 alpine.js                       (already dependency)
@@ -1474,18 +1456,18 @@ alpine.js                       (already dependency)
 
 ### Comparison to Other Systems
 
-| System | Parser | Functions | Total LOC |
-|--------|--------|-----------|-----------|
-| **ag-Grid** | 0 | 0 | ~80 |
-| **Chumak Phase 1** | jsep ~600 | 0 | ~1600 |
-| **OpenRefine** | ~700 | ~9800 | ~10500 |
-| **Arquero** | Acorn | ~5000 | ~6000+ |
+| System | Parser | Functions | Complexity |
+|--------|--------|-----------|------------|
+| **ag-Grid** | None | None | Minimal (insecure) |
+| **Chumak** | jsep | Phased rollout | Moderate |
+| **OpenRefine** | Handwritten | 100+ functions | High |
+| **Arquero** | Acorn | Extensive | High |
 
 **Analysis:**
-- Chumak Phase 1: Reasonable size, focused scope
-- Lighter than GREL/Arquero (no 100+ functions)
-- Heavier than ag-Grid (security/validation required)
-- ~40KB total for expression handling (acceptable)
+- Chumak: Balanced approach with reasonable complexity
+- Lighter than GREL/Arquero (no extensive function library)
+- More secure than ag-Grid (validation + sandboxing)
+- Compact implementation with external parser library
 
 ---
 

@@ -2,7 +2,7 @@
 
 > Named after Ukrainian star-navigating traders, Chumak transforms raw data into insights—guided by clarity and precision.
 
-**Status**: ✅ Phase 0 Complete (Walking Skeleton) → 🚧 Starting Phase 1 (MVP)
+**Status**: ✅ Phase 0 Complete (Walking Skeleton) → 🚧 Phase 1 (MVP) In Progress
 
 ## Documentation
 
@@ -75,7 +75,7 @@
 
 ## Current Phase: Phase 0 Complete ✅
 
-**Walking Skeleton (Phase 0)** - COMPLETE (2025-12-30)
+**Walking Skeleton (Phase 0)** - COMPLETE
 - ✅ Product specification complete
 - ✅ Expression parser design complete
 - ✅ Research and analysis complete
@@ -83,6 +83,7 @@
 - ✅ IndexedDB persistence with auto-save
 - ✅ Filter and Select transforms working
 - ✅ CSV and JSON export functional
+- ✅ Comprehensive automated test suite
 - ✅ All architectural layers validated end-to-end
 
 **Key achievements:**
@@ -90,7 +91,7 @@
 - Proven data flow: CSV import → transform → persist → export
 - Identified and documented implementation discoveries (jsep behavior, Arquero limitations)
 
-**Next:** Phase 1 (MVP) - Remaining transforms, predicate builder, automated testing
+**Next:** Phase 1 (MVP) - Remaining transforms, enhanced parser, predicate builder
 
 ## Target Audience
 
@@ -107,4 +108,3 @@ See [SPECIFICATION.md](SPECIFICATION.md) Section 8 for the phased roadmap and [C
 ---
 
 **License**: TBD
-**Version**: 0.1.0-phase0
