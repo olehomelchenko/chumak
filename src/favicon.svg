@@ -1,0 +1,84 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <!-- Background depth -->
+    <radialGradient id="bg" cx="50%" cy="50%" r="70%">
+      <stop offset="0%" stop-color="#0b1020"/>
+      <stop offset="100%" stop-color="#040611"/>
+    </radialGradient>
+
+    <!-- Event horizon glow -->
+    <linearGradient id="horizon" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#00f6ff"/>
+      <stop offset="70%" stop-color="#8b5cff"/>
+      <stop offset="100%" stop-color="#ffffff"/>
+    </linearGradient>
+
+    <!-- Ordered data beam -->
+    <linearGradient id="beam" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#00f6ff" stop-opacity="0"/>
+      <stop offset="30%" stop-color="#00f6ff"/>
+      <stop offset="100%" stop-color="#ffffff"/>
+    </linearGradient>
+
+    <!-- Soft glow -->
+    <filter id="glow" x="-50%" y="-50%" width="200%" height="200%">
+      <feGaussianBlur stdDeviation="6" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Cosmic background -->
+  <rect width="512" height="512" fill="url(#bg)"/>
+
+  <!-- Subtle starfield -->
+  <g fill="#ffffff" opacity="0.15">
+    <circle cx="80" cy="120" r="1"/>
+    <circle cx="140" cy="60" r="1.2"/>
+    <circle cx="420" cy="90" r="1"/>
+    <circle cx="360" cy="180" r="1.3"/>
+    <circle cx="300" cy="40" r="0.9"/>
+    <circle cx="460" cy="260" r="1.1"/>
+    <circle cx="100" cy="300" r="1"/>
+    <circle cx="60" cy="420" r="1.2"/>
+    <circle cx="420" cy="420" r="1"/>
+  </g>
+
+  <!-- Chaotic incoming data (left) -->
+  <g stroke="#8b5cff" stroke-width="2" stroke-linecap="round" opacity="0.7">
+    <path d="M40 180 L210 240"/>
+    <path d="M60 260 L210 255"/>
+    <path d="M50 320 L210 270"/>
+    <path d="M30 220 L210 245"/>
+  </g>
+
+  <!-- Event horizon: stylized 'C' gate -->
+  <path
+    d="M300 120
+       A140 140 0 1 0 300 392"
+    fill="none"
+    stroke="url(#horizon)"
+    stroke-width="14"
+    stroke-linecap="round"
+    filter="url(#glow)"
+  />
+
+  <!-- Inner energy rim -->
+  <path
+    d="M300 150
+       A110 110 0 1 0 300 362"
+    fill="none"
+    stroke="#00f6ff"
+    stroke-width="4"
+    opacity="0.6"
+  />
+
+  <!-- Ordered outgoing data beam (right) -->
+  <g filter="url(#glow)">
+    <rect x="300" y="238" width="180" height="6" fill="url(#beam)"/>
+    <rect x="300" y="254" width="180" height="6" fill="url(#beam)"/>
+    <rect x="300" y="270" width="180" height="6" fill="url(#beam)"/>
+  </g>
+</svg>
