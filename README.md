@@ -2,7 +2,7 @@
 
 > Named after Ukrainian star-navigating traders, Chumak transforms raw data into insights—guided by clarity and precision.
 
-**Status**: 📋 Design Phase
+**Status**: ✅ Phase 0 Complete (Walking Skeleton) → 🚧 Starting Phase 1 (MVP)
 
 ## Documentation
 
@@ -13,6 +13,13 @@
   - Implementation roadmap and next steps
   - Common pitfalls and best practices
   - Quick reference for all docs
+
+### Testing
+- **[PHASE-0-TESTING-CHECKLIST.md](PHASE-0-TESTING-CHECKLIST.md)** - Manual testing checklist for Phase 0
+  - Comprehensive test scenarios for all implemented features
+  - CSV import, transforms, persistence, export
+  - Error handling and edge cases
+  - Browser compatibility checks
 
 ### Core Specification
 - **[SPECIFICATION.md](SPECIFICATION.md)** - Complete product specification
@@ -66,12 +73,24 @@
 - **Alpine.js** - Reactive UI
 - **No build system** - CDN-loaded libraries, runs in any browser
 
-## Current Phase: Design
+## Current Phase: Phase 0 Complete ✅
 
+**Walking Skeleton (Phase 0)** - COMPLETE (2025-12-30)
 - ✅ Product specification complete
 - ✅ Expression parser design complete
 - ✅ Research and analysis complete
-- ⏭️ Next: Implementation Phase 1 (MVP)
+- ✅ Expression parser implemented (jsep → validation → interpretation)
+- ✅ IndexedDB persistence with auto-save
+- ✅ Filter and Select transforms working
+- ✅ CSV and JSON export functional
+- ✅ All architectural layers validated end-to-end
+
+**Key achievements:**
+- Successfully validated security model (no Function() constructor)
+- Proven data flow: CSV import → transform → persist → export
+- Identified and documented implementation discoveries (jsep behavior, Arquero limitations)
+
+**Next:** Phase 1 (MVP) - Remaining transforms, predicate builder, automated testing
 
 ## Target Audience
 
@@ -81,9 +100,11 @@
 
 ## Contact & Contribution
 
-This is currently a design-phase project. Implementation will follow the phased roadmap in the specification.
+This project is in active development. Phase 0 (Walking Skeleton) is complete, validating all architectural layers. Phase 1 (MVP) implementation is next.
+
+See [SPECIFICATION.md](SPECIFICATION.md) Section 8 for the phased roadmap and [CLAUDE.md](CLAUDE.md) for current status and next steps.
 
 ---
 
 **License**: TBD
-**Version**: 0.1.0-design
+**Version**: 0.1.0-phase0

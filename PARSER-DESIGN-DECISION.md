@@ -606,33 +606,54 @@ discount(price, 15)
 
 ## Implementation Phases
 
-### Phase 0: Walking Skeleton (1-2 days)
+### Phase 0: Walking Skeleton ✅ COMPLETE (2025-12-30)
 
 **Goal:** Minimal end-to-end proof that the architecture works. One thin slice through all layers.
 
-**Deliverables:**
+**Status:** ✅ Complete (1 day)
+
+**Deliverables (all implemented):**
 ```
-✅ jsep integration (CDN-loaded)
+✅ jsep integration (CDN-loaded from jsDelivr)
 ✅ Expression string → AST → validation → interpretation (NO predicate objects yet)
 ✅ Column reference handling (bare identifiers only, no bracket notation yet)
-✅ Basic operators only (+, -, *, /, %, >, <, >=, <=, ==, ===, !=, !==, &&, ||, !)
+✅ Basic operators (+, -, *, /, %, >, <, >=, <=, ==, ===, !=, !==, &&, ||, !)
 ✅ Simple error messages with position highlighting
 ✅ Schema-aware validation (unknown column detection, no suggestions yet)
-✅ Filter transform implementation
+✅ Filter transform implementation (with compound expressions)
+✅ Select transform (pre-existing, validated)
 ✅ CSV export
 ✅ Workflow JSON export/import
+✅ IndexedDB persistence with auto-save (added during implementation)
 ```
 
-**Code estimate:**
-- Expression parser (jsep wrapper): ~80 lines
-- AST validator (column checking): ~100 lines
-- AST interpreter (basic operators): ~120 lines
-- Error formatter (position only): ~50 lines
-- Filter transform: ~30 lines
-- Export functionality: ~50 lines
-- **Total: ~430 lines**
+**Actual code:**
+- `src/expression-parser.js`: 32 lines (jsep wrapper)
+- `src/ast-validator.js`: 139 lines (security validation)
+- `src/ast-interpreter.js`: 106 lines (safe evaluation)
+- `src/error-formatter.js`: 37 lines (user-friendly errors)
+- `src/storage.js`: 165 lines (IndexedDB layer, added scope)
+- Updates to `src/transforms.js` and `index.html`
+- **Total: ~465 lines** (vs. estimated 430)
 
-**Deliberately excluded (defer to Phase 1):**
+**Key implementation discoveries:**
+
+1. **jsep AST node types**: jsep parses `&&` and `||` as `BinaryExpression`, NOT `LogicalExpression` as ESTree spec suggests. This required adding `&&` and `||` to `ALLOWED_BINARY_OPS` and implementing short-circuit evaluation in the `BinaryExpression` case.
+
+2. **Arquero filter limitation**: Arquero's `.filter()` method compiles function bodies and rejects try-catch blocks ("Unsupported expression construct: TryStatement"). Workaround: convert table to array with `.objects()`, filter using standard JavaScript, convert back with `aq.from()`.
+
+3. **IndexedDB structured clone**: IndexedDB requires structured-cloneable objects. PapaParse and Arquero objects needed JSON serialization via `JSON.parse(JSON.stringify())`. This embeds data directly in source/model objects (tech debt for Phase 1 - should use separate `sourceData` store).
+
+4. **jsep CDN versioning**: Generic unpkg URL served ESM module; needed explicit IIFE build: `jsep@1.4.0/dist/iife/jsep.iife.min.js`
+
+**Success criteria (all met):**
+- ✅ Can filter data with expression strings (simple and compound)
+- ✅ Invalid column names show error with position and available columns
+- ✅ Can export/import workflow and replay transformations
+- ✅ Data persists across page reloads
+- ✅ Architecture validated before building more features
+
+**Deferred to Phase 1:**
 - ❌ Predicate object compiler
 - ❌ AST transformer layer
 - ❌ Bracket notation for columns with spaces
@@ -640,14 +661,8 @@ discount(price, 15)
 - ❌ Error-as-value pattern
 - ❌ Expression caching
 - ❌ Derive transform
-- ❌ Automated tests
-- ❌ Remaining transforms
-
-**Success criteria:**
-- Can filter data with expression strings
-- Invalid column names show error with position
-- Can export/import workflow and replay
-- Architecture validated before building more features
+- ❌ Automated tests infrastructure
+- ❌ Remaining transforms (sort, rename, aggregate, etc.)
 
 ---
 

@@ -9,6 +9,12 @@
   <script src="https://unpkg.com/feather-icons"></script>
   <script src="https://unpkg.com/papaparse@5/papaparse.min.js"></script>
   <script src="https://unpkg.com/arquero@5/dist/arquero.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/jsep@1.4.0/dist/iife/jsep.iife.min.js"></script>
+  <script src="src/storage.js"></script>
+  <script src="src/expression-parser.js"></script>
+  <script src="src/ast-validator.js"></script>
+  <script src="src/ast-interpreter.js"></script>
+  <script src="src/error-formatter.js"></script>
   <script src="src/transforms.js"></script>
   <script src="https://unpkg.com/alpinejs@3/dist/cdn.min.js" defer></script>
 </head>
@@ -20,6 +26,16 @@
       <div class="header__logo">
         <span class="header__logo-icon">☆</span>
         <span class="header__logo-text">Chumak</span>
+      </div>
+      <div style="margin-left: auto;">
+        <button
+          class="button button--secondary button--small"
+          @click="clearAllData()"
+          title="Clear all data from IndexedDB (for debugging)"
+          style="background: #D33E2C; color: white; border-color: #D33E2C;"
+        >
+          Clear All Data
+        </button>
       </div>
     </div>
   </header>
@@ -87,7 +103,7 @@
           <i data-feather="upload"></i>
           <span>Import CSV</span>
         </button>
-        <button class="ribbon__button" title="Export current data">
+        <button class="ribbon__button" @click="exportCSV()" :disabled="!currentData" :class="{ 'ribbon__button--disabled': !currentData }" title="Export current data as CSV">
           <i data-feather="download"></i>
           <span>Export CSV</span>
         </button>
@@ -95,7 +111,7 @@
           <i data-feather="link"></i>
           <span>Import URL</span>
         </button>
-        <button class="ribbon__button ribbon__button--disabled" disabled title="Export workflow as JSON (Coming in Phase 1)">
+        <button class="ribbon__button" @click="exportWorkflowJSON()" :disabled="!currentData" :class="{ 'ribbon__button--disabled': !currentData }" title="Export workflow as JSON">
           <i data-feather="file-text"></i>
           <span>Export JSON</span>
         </button>
@@ -558,45 +574,22 @@
 
       <div class="modal__content">
         <label class="form-label">Keep rows where:</label>
-        <input type="text" class="form-input" value="sales > 1000" placeholder="e.g., sales > 1000">
-        <p class="form-help">Examples: sales > 1000, region == "North"</p>
+        <input
+          type="text"
+          class="form-input"
+          x-model="filterExpression"
+          placeholder="e.g., sales > 1000"
+          @input="validateFilterExpression()"
+        >
+        <p class="form-help">Examples: sales > 1000, region == "North", sales > 1000 && region == "North"</p>
 
-        <div class="preview-section">
-          <div class="preview-section__header">Preview (12 rows match)</div>
-          <div class="preview-table">
-            <table class="data-table data-table--compact">
-              <thead>
-                <tr>
-                  <th class="data-table__header">region</th>
-                  <th class="data-table__header data-table__header--number">sales</th>
-                  <th class="data-table__header data-table__header--number">profit</th>
-              </tr>
-              </thead>
-              <tbody>
-              <tr class="data-table__row">
-                <td class="data-table__cell">North</td>
-                  <td class="data-table__cell data-table__cell--number">1,500</td>
-                  <td class="data-table__cell data-table__cell--number">320</td>
-              </tr>
-              <tr class="data-table__row">
-                <td class="data-table__cell">South</td>
-                  <td class="data-table__cell data-table__cell--number">2,100</td>
-                  <td class="data-table__cell data-table__cell--number">450</td>
-              </tr>
-              <tr class="data-table__row">
-                <td class="data-table__cell">West</td>
-                  <td class="data-table__cell data-table__cell--number">1,800</td>
-                  <td class="data-table__cell data-table__cell--number">380</td>
-              </tr>
-              </tbody>
-            </table>
-          </div>
-        </div>
+        <!-- Error message -->
+        <div x-show="filterError" x-text="filterError" style="color: var(--color-red); font-size: 13px; margin-top: 8px; white-space: pre-wrap; font-family: var(--font-family-mono);"></div>
       </div>
 
       <div class="modal__footer">
         <button class="button button--secondary" @click="closeDialog()">Cancel</button>
-        <button class="button button--primary" @click="closeDialog()">Apply</button>
+        <button class="button button--primary" @click="applyFilterTransform()" :disabled="filterError">Apply</button>
       </div>
     </div>
   </div>
@@ -850,6 +843,32 @@
 
         // Transform state
         selectedColumns: [],  // For Select dialog checkboxes
+        filterExpression: '',
+        filterError: null,
+
+        // Initialization
+        async init() {
+          console.log('Initializing Chumak...');
+
+          // Load persisted data from IndexedDB
+          const { sources, models } = await loadInitialData();
+
+          this.sources = sources;
+          this.models = models;
+
+          // If we have data, activate the first model
+          if (models.length > 0) {
+            this.activeModel = models[0];
+            this.currentData = models[0].data;
+
+            // Get columns from the model's data
+            if (this.currentData && this.currentData.length > 0) {
+              this.columns = Object.keys(this.currentData[0]);
+            }
+
+            console.log('Restored session:', sources.length, 'sources,', models.length, 'models');
+          }
+        },
 
         // Dialog methods
         openDialog(dialogName) {
@@ -859,6 +878,10 @@
           if (dialogName === 'select') {
             // Select all columns by default
             this.selectedColumns = this.columns.map(() => true);
+          } else if (dialogName === 'filter') {
+            // Clear filter state
+            this.filterExpression = '';
+            this.filterError = null;
           }
         },
 
@@ -944,7 +967,7 @@
             delimiter: delimiter === '\t' ? '\t' : delimiter,
             skipEmptyLines: true,
             dynamicTyping: true,
-            complete: (results) => {
+            complete: async (results) => {
               if (!results.data || results.data.length === 0) {
                 alert('Error: CSV file is empty');
                 return;
@@ -967,7 +990,7 @@
                   return obj;
                 });
 
-                this.createSource(file, columns, data, headerMode, delimiter);
+                await this.createSource(file, columns, data, headerMode, delimiter);
               } else if (headerMode === 'auto-generate') {
                 // Generate Column 1, Column 2, ...
                 columns = rawData[0]?.map((_, i) => `Column ${i + 1}`) || [];
@@ -979,7 +1002,7 @@
                   return obj;
                 });
 
-                this.createSource(file, columns, data, headerMode, delimiter);
+                await this.createSource(file, columns, data, headerMode, delimiter);
               } else if (headerMode === 'manual') {
                 // Use custom headers
                 columns = customHeaders;
@@ -991,7 +1014,7 @@
                   return obj;
                 });
 
-                this.createSource(file, columns, data, headerMode, delimiter, customHeaders);
+                await this.createSource(file, columns, data, headerMode, delimiter, customHeaders);
               }
             },
             error: (error) => {
@@ -1002,7 +1025,7 @@
         },
 
         // Create Source and default Model
-        createSource(file, columns, data, headerMode, delimiter, customHeaders = null) {
+        async createSource(file, columns, data, headerMode, delimiter, customHeaders = null) {
           // Validate columns: no duplicates, no empty names
           const uniqueColumns = new Set(columns);
           if (uniqueColumns.size !== columns.length) {
@@ -1014,6 +1037,9 @@
             return;
           }
 
+          // Create a clean copy of data (ensure it's serializable for IndexedDB)
+          const cleanData = JSON.parse(JSON.stringify(data));
+
           const source = {
             id: `src_${Date.now()}`,
             name: file.name,
@@ -1022,19 +1048,19 @@
             // CSV configuration
             delimiter: delimiter,
             headerMode: headerMode,
-            customHeaders: customHeaders,
+            customHeaders: customHeaders || null,
 
             // Data metadata
             rawSize: file.size,
-            rowCount: data.length,
+            rowCount: cleanData.length,
             columns: columns.map((name, i) => ({
               name: name,
-              inferredType: this.inferType(data, name),
+              inferredType: this.inferType(cleanData, name),
               originalPosition: i
             })),
             createdAt: new Date().toISOString(),
 
-            data: data
+            data: cleanData
           };
 
           this.sources.push(source);
@@ -1045,7 +1071,7 @@
             name: 'main',
             sourceId: source.id,  // Link to source by ID, not name
             steps: [],
-            data: data
+            data: cleanData
           };
 
           // Add CSV import configuration as the first transformation step
@@ -1067,8 +1093,11 @@
 
           // Display
           this.activeModel = mainModel;
-          this.currentData = data;
+          this.currentData = cleanData;
           this.columns = columns;
+
+          // Auto-save to IndexedDB
+          await autoSave(this.sources, this.models);
 
           // Close dialog
           this.closeDialog();
@@ -1109,7 +1138,7 @@
           return this.columns.filter((col, idx) => this.selectedColumns[idx]);
         },
 
-        applySelectTransform() {
+        async applySelectTransform() {
           const selectedCols = this.getSelectedColumnsList();
 
           if (selectedCols.length === 0) {
@@ -1123,20 +1152,206 @@
 
             // Apply to current data using Arquero
             const table = aq.from(this.currentData);
-            const result = applyTransform(table, transform);
+            const result = applyTransform(table, transform, this.columns);
 
             // Update model state
             this.activeModel.steps.push(transform);
 
             // Update current data and columns
-            this.currentData = result.objects();
+            const transformedData = result.objects();
+            this.currentData = transformedData;
             this.columns = selectedCols;
+
+            // Update the model's data (create clean copy for IndexedDB)
+            this.activeModel.data = JSON.parse(JSON.stringify(transformedData));
+
+            // Auto-save to IndexedDB
+            await autoSave(this.sources, this.models);
 
             // Close dialog
             this.closeDialog();
           } catch (error) {
             console.error('Transform error:', error);
             alert('Error applying transform: ' + error.message);
+          }
+        },
+
+        // Validate filter expression as user types
+        validateFilterExpression() {
+          const expr = this.filterExpression.trim();
+
+          // Empty expression is valid (no filter)
+          if (!expr) {
+            this.filterError = null;
+            return;
+          }
+
+          try {
+            // Parse
+            const ast = parseExpression(expr);
+
+            // Validate
+            const validation = validateAST(ast, this.columns);
+
+            if (!validation.valid) {
+              this.filterError = formatError(validation.error, expr);
+            } else {
+              this.filterError = null;
+            }
+          } catch (error) {
+            // Parse error
+            this.filterError = formatError(error, expr);
+          }
+        },
+
+        // Apply filter transform
+        async applyFilterTransform() {
+          const expr = this.filterExpression.trim();
+
+          if (!expr) {
+            alert('Please enter a filter expression');
+            return;
+          }
+
+          if (this.filterError) {
+            alert('Please fix the expression errors before applying');
+            return;
+          }
+
+          try {
+            // Create transform specification
+            const transform = { filter: expr };
+
+            // Apply to current data using Arquero
+            const table = aq.from(this.currentData);
+            const result = applyTransform(table, transform, this.columns);
+
+            // Update model state
+            this.activeModel.steps.push(transform);
+
+            // Update current data (columns stay the same for filter)
+            const transformedData = result.objects();
+            this.currentData = transformedData;
+
+            // Update the model's data (create clean copy for IndexedDB)
+            this.activeModel.data = JSON.parse(JSON.stringify(transformedData));
+
+            // Auto-save to IndexedDB
+            await autoSave(this.sources, this.models);
+
+            // Close dialog
+            this.closeDialog();
+          } catch (error) {
+            console.error('Filter transform error:', error);
+            alert('Error applying filter: ' + error.message);
+          }
+        },
+
+        // Export current data as CSV
+        exportCSV() {
+          if (!this.currentData || this.currentData.length === 0) {
+            alert('No data to export');
+            return;
+          }
+
+          try {
+            // Convert current data to CSV using PapaParse
+            const csv = Papa.unparse(this.currentData);
+
+            // Create download link
+            const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+
+            // Generate filename
+            const timestamp = new Date().toISOString().slice(0, 10);
+            const filename = `${this.activeModel.name}_${timestamp}.csv`;
+
+            link.setAttribute('href', url);
+            link.setAttribute('download', filename);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            console.log('Exported CSV:', filename);
+          } catch (error) {
+            console.error('CSV export error:', error);
+            alert('Failed to export CSV: ' + error.message);
+          }
+        },
+
+        // Export workflow as JSON
+        exportWorkflowJSON() {
+          if (!this.activeModel) {
+            alert('No workflow to export');
+            return;
+          }
+
+          try {
+            // Create workflow export object
+            const workflow = {
+              version: '1.0',
+              name: this.activeModel.name,
+              exportedAt: new Date().toISOString(),
+              source: {
+                id: this.sources.find(s => s.id === this.activeModel.sourceId)?.id,
+                name: this.sources.find(s => s.id === this.activeModel.sourceId)?.name,
+                columns: this.sources.find(s => s.id === this.activeModel.sourceId)?.columns
+              },
+              model: {
+                id: this.activeModel.id,
+                name: this.activeModel.name,
+                steps: this.activeModel.steps
+              }
+            };
+
+            // Convert to JSON
+            const json = JSON.stringify(workflow, null, 2);
+
+            // Create download link
+            const blob = new Blob([json], { type: 'application/json;charset=utf-8;' });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+
+            // Generate filename
+            const timestamp = new Date().toISOString().slice(0, 10);
+            const filename = `${this.activeModel.name}_workflow_${timestamp}.json`;
+
+            link.setAttribute('href', url);
+            link.setAttribute('download', filename);
+            link.style.visibility = 'hidden';
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            console.log('Exported workflow JSON:', filename);
+          } catch (error) {
+            console.error('Workflow export error:', error);
+            alert('Failed to export workflow: ' + error.message);
+          }
+        },
+
+        // Clear all data (for debugging)
+        async clearAllData() {
+          if (!confirm('Clear all data from IndexedDB? This cannot be undone.')) {
+            return;
+          }
+
+          try {
+            await clearAllData();
+
+            // Reset app state
+            this.sources = [];
+            this.models = [];
+            this.activeModel = null;
+            this.currentData = null;
+            this.columns = [];
+
+            alert('All data cleared successfully');
+          } catch (error) {
+            console.error('Error clearing data:', error);
+            alert('Failed to clear data: ' + error.message);
           }
         }
       }

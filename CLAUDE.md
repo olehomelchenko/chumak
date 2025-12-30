@@ -2,7 +2,7 @@
 
 > **Purpose**: Onboarding document for Claude AI sessions working on Chumak
 
-**Current Phase**: Building Walking Skeleton (Phase 0)
+**Current Phase**: Phase 0 Complete ✅ → Starting Phase 1 (MVP)
 
 ---
 
@@ -21,9 +21,11 @@
 
 ---
 
-## Current Status: Walking Skeleton In Progress 🚧
+## Current Status: Phase 0 Complete ✅
 
-### What's Been Done
+### Phase 0: Walking Skeleton - COMPLETE (2025-12-30)
+
+**All architectural layers validated and working end-to-end**
 
 **Documentation (Complete)**
 1. **Product Specification** - Complete product spec in SPECIFICATION.md
@@ -32,6 +34,7 @@
    - UI design and layouts
    - Testing strategy
    - Performance targets
+   - ✅ Updated with Phase 0 completion status
 
 2. **Expression Parser Research** - Analyzed 8 production systems
    - Vega-Lite (predicate objects)
@@ -47,15 +50,16 @@
    - **Syntax**: Bare identifiers with bracket escape
    - **Phases**: 4-phase rollout (walking skeleton → MVP → functions → extensibility)
    - Full details in PARSER-DESIGN-DECISION.md
+   - ✅ Updated with implementation discoveries
 
-**Implementation (In Progress - Phase 0)**
-4. **UI Layer** - Complete layout and styling (index.html + chumak.css)
+**Implementation (Phase 0 - Complete)**
+
+4. **UI Layer** - Complete layout and styling
    - Header, ribbon toolbar, left panel, main content area
    - Data preview table with pagination
    - Modal dialogs (filter, derive, select, import CSV)
    - Drag-and-drop file import
-   - 965 lines of CSS
-   - 1158 lines of HTML + Alpine.js
+   - ✅ Filter dialog with live validation
 
 5. **Data Import** - Working CSV import with configuration
    - CSV parsing (PapaParse)
@@ -63,18 +67,56 @@
    - Source and Model creation
    - Data display in preview table
 
-6. **Transform Engine** - Minimal implementation started
-   - `applyTransform()` function (transforms.js)
-   - SELECT transform working
+6. **Storage Layer** ✅ NEW
+   - `src/storage.js` (165 lines) - IndexedDB persistence
+   - Auto-save on data changes
+   - Loads saved data on page refresh
+   - Debug "Clear All Data" button
+
+7. **Expression Parser Layer** ✅ COMPLETE
+   - `src/expression-parser.js` (32 lines) - jsep wrapper
+   - `src/ast-validator.js` (139 lines) - Security validation with operator/column whitelisting
+   - `src/ast-interpreter.js` (106 lines) - Safe AST interpretation without Function()
+   - `src/error-formatter.js` (37 lines) - User-friendly errors with position highlighting
+
+8. **Transform Engine** ✅ COMPLETE
+   - `applyTransform()` function in transforms.js
+   - ✅ SELECT transform (working)
+   - ✅ FILTER transform (with compound expressions: `&&`, `||`)
    - Transform description generation
 
-### What's NOT Been Done (Phase 0 Scope)
+9. **Export Functionality** ✅ COMPLETE
+   - CSV export with Papa.unparse()
+   - Workflow JSON export with metadata
+   - Download triggers with timestamp filenames
 
-- ❌ Expression parser layer (jsep + validation + interpretation)
-- ❌ Filter transform implementation
-- ❌ Filter dialog wiring
-- ❌ CSV/JSON export functionality
-- ❌ Automated tests
+### Key Implementation Discoveries
+
+1. **jsep AST Behavior**: jsep parses `&&` and `||` as `BinaryExpression`, not `LogicalExpression` (despite ESTree spec). Required adding logical operators to binary whitelist and implementing short-circuit evaluation in BinaryExpression handler.
+
+2. **Arquero Filter Limitation**: Arquero's `.filter()` compiles function bodies and rejects try-catch blocks. Workaround: convert to array with `.objects()`, filter with standard JavaScript, convert back with `aq.from()`.
+
+3. **IndexedDB Serialization**: Structured clone algorithm requires JSON serialization. Current implementation embeds data in sources/models (tech debt for Phase 1 - should use separate sourceData store).
+
+4. **jsep CDN**: Generic unpkg URL served ESM module. Need explicit IIFE build: `jsep@1.4.0/dist/iife/jsep.iife.min.js`
+
+### Ready for Phase 1
+
+**Phase 0 validated:**
+- ✅ Expression parser pipeline works (parse → validate → interpret)
+- ✅ Security model proven (no Function() constructor, whitelist validation)
+- ✅ Data persistence works (IndexedDB)
+- ✅ Transform system works (filter + select)
+- ✅ Export/import workflows functional
+- ✅ All architectural layers communicating correctly
+
+**Next steps (Phase 1 - MVP):**
+- Remaining transforms (derive, sort, rename, aggregate, fillna, dropna, replace)
+- Predicate object compiler (structured predicates for beginners)
+- Automated test infrastructure (Mocha + Chai)
+- Error suggestions (Levenshtein distance for typos)
+- Bracket notation for column names with spaces
+- Error-as-value pattern for row-level failures
 
 ---
 
@@ -182,12 +224,14 @@
 
 ## File Structure
 
+**Documentation:**
 ```
 chumak/
 ├── README.md                        # Project overview
 ├── CLAUDE.md                        # This file - Claude onboarding
 ├── SPECIFICATION.md                 # Complete product spec
 ├── PARSER-DESIGN-DECISION.md        # Parser design (jsep + predicates)
+├── PHASE-0-TESTING-CHECKLIST.md     # Manual testing checklist ✅ NEW
 └── research/                        # Background research
     ├── README.md                    # Research overview
     ├── RESEARCH-GUIDE.md            # Analysis protocol + comparison table
@@ -197,22 +241,28 @@ chumak/
     └── analysis__ag-grid.md         # ag-Grid deep-dive
 ```
 
-**Future structure (implementation)**:
+**Current implementation (Phase 0 Complete):**
 ```
 chumak/
-├── index.html                       # Main app
-├── tests/
-│   ├── runner.html                  # Test runner
-│   ├── transforms.test.js           # Transform compiler tests
-│   ├── parser.test.js               # Expression parser tests
-│   └── fixtures/                    # Test data
+├── index.html                       # Main app ✅
+├── chumak.css                       # Styles ✅
 └── src/
-    ├── predicate-compiler.js        # Predicate → Arquero
-    ├── expression-parser.js         # jsep integration
-    ├── ast-validator.js             # Security validation
-    ├── ast-interpreter.js           # Safe execution
-    ├── error-formatter.js           # User-friendly errors
-    └── utils.js                     # Helpers
+    ├── storage.js                   # IndexedDB persistence ✅
+    ├── expression-parser.js         # jsep integration ✅
+    ├── ast-validator.js             # Security validation ✅
+    ├── ast-interpreter.js           # Safe execution ✅
+    ├── error-formatter.js           # User-friendly errors ✅
+    └── transforms.js                # Transform engine (filter, select) ✅
+```
+
+**Future additions (Phase 1):**
+```
+└── src/
+    ├── predicate-compiler.js        # Predicate → Arquero (Phase 1)
+    └── tests/                       # Automated test suite (Phase 1)
+        ├── runner.html              # Test runner
+        ├── transforms.test.js       # Transform tests
+        └── parser.test.js           # Parser tests
 ```
 
 ---
@@ -515,9 +565,11 @@ Phase 1 whitelist:
 - **"expressions"** → See PARSER-DESIGN-DECISION.md and SPECIFICATION.md Section 11
 - **"transforms"** → See SPECIFICATION.md Section 5
 - **"UI"** → See SPECIFICATION.md Section 6
-- **"testing"** → See SPECIFICATION.md Section 13
+- **"testing"** → See SPECIFICATION.md Section 13 AND PHASE-0-TESTING-CHECKLIST.md
+- **"manual testing"** → See PHASE-0-TESTING-CHECKLIST.md (comprehensive checklist)
 - **"research"** → See research/ directory
-- **"phase 1"** → See SPECIFICATION.md Section 8 (MVP scope)
+- **"phase 0"** → See SPECIFICATION.md Section 8 (Complete)
+- **"phase 1"** → See SPECIFICATION.md Section 8 (MVP scope - next)
 - **"security"** → See PARSER-DESIGN-DECISION.md Security Analysis section
 
 ### When Implementing...
@@ -532,78 +584,71 @@ Phase 1 whitelist:
 
 ## Next Steps (Implementation Roadmap)
 
-### Immediate Next Steps (Phase 0: Walking Skeleton)
+### Phase 0: Walking Skeleton ✅ COMPLETE (2025-12-30)
 
-**Goal**: Build minimal end-to-end path through all architectural layers.
+**All success criteria met!** See PHASE-0-TESTING-CHECKLIST.md for comprehensive testing checklist.
 
-1. **Add jsep to index.html** (~1 line)
-   - Load jsep from CDN: `<script src="https://unpkg.com/jsep@1/dist/jsep.min.js"></script>`
+Completed components:
+- ✅ Expression parser pipeline (jsep → validation → interpretation)
+- ✅ IndexedDB persistence with auto-save
+- ✅ Filter and Select transforms
+- ✅ CSV and JSON export
+- ✅ Error handling with position indicators
+- ✅ All architectural layers validated
 
-2. **Create expression-parser.js** (~80 lines)
-   - Wrap jsep parsing
-   - Basic error handling
-   - Export `parseExpression(expr)` function
+### Immediate Next Steps (Phase 1: MVP)
 
-3. **Create ast-validator.js** (~100 lines)
-   - Validate AST node types (whitelist: Literal, Identifier, BinaryExpression, LogicalExpression, UnaryExpression)
-   - Validate operators (whitelist: +, -, *, /, %, >, <, >=, <=, ==, ===, !=, !==, &&, ||, !)
-   - Check column names against schema
-   - Export `validateExpression(ast, schema)` function
+**Goal**: Build out full transform set and automated testing on proven architecture.
 
-4. **Create ast-interpreter.js** (~120 lines)
-   - Interpret AST nodes safely (no Function() constructor)
-   - Handle basic operators
-   - Export `interpretExpression(ast, rowData)` function
+**Priority 1: Automated Testing Infrastructure**
+1. **Set up test infrastructure**
+   - Create tests/ directory
+   - Add Mocha + Chai from CDN
+   - Create test runner HTML
+   - Write first test for expression parser
 
-5. **Create error-formatter.js** (~50 lines)
-   - Format validation errors with position highlighting
-   - Export `formatError(error, expression)` function
+2. **Test coverage targets**
+   - Expression parser: 90%+
+   - AST validator: 90%+
+   - AST interpreter: 90%+
+   - Transform engine: 90%+
 
-6. **Implement filter transform** in transforms.js (~30 lines)
-   - Add filter case to `applyTransform()`
-   - Use expression parser + validator + interpreter
-   - Convert to Arquero `.filter()` call
+**Priority 2: Remaining Transforms**
+3. **Implement core transforms** (using filter as template)
+   - derive (new column from expression)
+   - sort (by column, asc/desc)
+   - rename (column renaming)
+   - remove (opposite of select)
 
-7. **Wire filter dialog** in index.html (~50 lines)
-   - Add x-model for filter expression input
-   - Add preview logic (debounced)
-   - Add Apply button handler
-   - Show errors if validation fails
+4. **Implement data cleaning transforms**
+   - fillna (fill null values)
+   - dropna (drop rows with nulls)
+   - replace (find/replace values)
 
-8. **Implement export functionality** (~50 lines)
-   - CSV export: Use PapaParse.unparse()
-   - JSON export: Serialize workflow
-   - Wire Export buttons in ribbon
+5. **Implement aggregation**
+   - aggregate (group by + aggregation functions)
 
-9. **Manual testing**
-   - Test complete workflow: import → filter → select → export CSV
-   - Test workflow export/import reproducibility
-   - Test error messages for invalid expressions
+**Priority 3: Enhanced Parser Features**
+6. **Add predicate object compiler**
+   - Structured predicates for beginners
+   - Predicate → expression string compiler
+   - UI builder for predicates
 
-**Total new code: ~480 lines**
+7. **Add error suggestions**
+   - Levenshtein distance for column name typos
+   - "Did you mean...?" suggestions
 
-### Success Criteria for Phase 0
+8. **Add bracket notation**
+   - Support `[Column Name]` for columns with spaces
+   - Update parser and validator
 
-- ✅ Can import CSV file (already working)
-- ✅ Can filter with expression: `sales > 1000`
-- ✅ Can filter with expression: `region == "North"`
-- ✅ Can filter with expression: `sales > 1000 && region == "North"`
-- ✅ Can combine filter + select transforms
-- ✅ Can export filtered data as CSV
-- ✅ Can export workflow as JSON
-- ✅ Can import workflow JSON and replay transformations
-- ✅ See error for invalid column: `sales > missing_column`
-- ✅ Architecture validated before proceeding to Phase 1
+**Priority 4: Architecture Refinement**
+9. **Refactor IndexedDB storage**
+   - Separate sourceData store (fix tech debt)
+   - Stop embedding data in sources/models
+   - Improve performance for large datasets
 
-### Then After Phase 0
-
-Once walking skeleton works, proceed to Phase 1:
-- Add predicate objects
-- Add remaining transforms (derive, sort, rename, etc.)
-- Add automated testing
-- Add error suggestions (Levenshtein distance)
-- Add IndexedDB persistence
-- Build remaining dialogs
+**See SPECIFICATION.md Section 8 for complete Phase 1 scope**
 
 ---
 
@@ -615,6 +660,12 @@ Once walking skeleton works, proceed to Phase 1:
 - Ask clarifying questions when ambiguous
 - Suggest alternatives when appropriate
 - Flag potential issues proactively
+
+### Output Verbosity
+- **Default: CONCISE** - Keep responses brief and to the point
+- **Only verbose when explicitly requested** - User will say "comprehensive" if they want extensive detail
+- **Applies to**: Checklists, documentation, explanations, code examples
+- **Example**: "list what works" = brief bullet points, NOT extensive multi-section document
 
 ### Code Style (When Writing Code)
 - ES6+ JavaScript (browser-native, no transpilation)

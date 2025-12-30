@@ -22,6 +22,19 @@ Chumak is a browser-based data wrangling tool for cleaning and transforming tabu
 | **Reproducibility** | Workflows can be exported, shared, and replayed. |
 | **Incremental complexity** | UI reveals features as users need them. |
 
+### 1.4 Current Status
+
+**Phase 0 — Walking Skeleton: ✅ COMPLETE** (2025-12-30)
+
+All architectural layers validated and working end-to-end:
+- Expression parser pipeline (jsep → validation → interpretation)
+- IndexedDB persistence with auto-save
+- Filter and Select transforms operational
+- CSV and JSON export functional
+- Data persists across page reloads
+
+**Next:** Phase 1 — MVP (remaining transforms, predicate builder, automated testing)
+
 ---
 
 ## 2. Target Audience
@@ -442,41 +455,53 @@ Option: embed source data (for full reproducibility) vs. reference only (smaller
 
 ## 8. Phased Roadmap
 
-### Phase 0 — Walking Skeleton (Architecture Validation)
+### Phase 0 — Walking Skeleton (Architecture Validation) ✅ COMPLETE
 
 **Goal:** Minimal end-to-end implementation that exercises all architectural layers with one complete path through the system. Proves the architecture works before building on it.
 
-**Timeline:** 1-2 days
+**Status:** ✅ Complete (2025-12-30)
 
-| Component | Scope |
-|-----------|-------|
-| Expression parser | jsep integration, basic AST validation (column checking), basic interpretation (arithmetic + comparison only), simple error formatting |
-| Transforms | **filter** (proves parser works), **select** (already working) |
-| UI | Filter dialog fully wired with expression input, Select dialog (already done) |
-| Export | CSV export, workflow JSON export/import for reproducibility testing |
-| Testing | Manual testing only - automated tests deferred to Phase 1 |
-| Data model | Source/Model structure validated with real data flow |
+**Actual timeline:** 1 day
 
-**Success criteria:**
+| Component | Implemented |
+|-----------|-------------|
+| Expression parser | ✅ jsep integration, AST validation with operator/column whitelisting, safe AST interpretation, error formatting with position highlighting |
+| Transforms | ✅ **filter** (with compound expressions), **select** |
+| UI | ✅ Filter dialog with live validation, Select dialog, data preview |
+| Export | ✅ CSV export, workflow JSON export/import |
+| Persistence | ✅ IndexedDB with auto-save (added during implementation) |
+| Testing | ✅ Manual testing complete |
+
+**Success criteria (all met):**
 - ✅ Can import CSV file
 - ✅ Can filter with expressions: `sales > 1000`, `region == "North"`, `sales > 1000 && region == "North"`
 - ✅ Can select subset of columns
 - ✅ Can export filtered+selected data as CSV
 - ✅ Can export workflow as JSON and reimport to replay transformations
 - ✅ See error message for invalid expressions (e.g., `sales > missing_column`)
+- ✅ Data persists across page reloads (IndexedDB)
 
-**Deliberately excluded (defer to Phase 1):**
-- ❌ Predicate objects (expression strings only)
+**Implementation discoveries:**
+- jsep parses `&&` and `||` as `BinaryExpression` (not `LogicalExpression` as ESTree spec suggests)
+- Arquero's `.filter()` rejects try-catch blocks; workaround: convert to array, filter, convert back
+- IndexedDB structured clone requires JSON serialization; embedded data in sources/models (tech debt for Phase 1)
+
+**Files created:** ~465 lines
+- `src/storage.js` (165 lines) - IndexedDB layer
+- `src/expression-parser.js` (32 lines) - jsep wrapper
+- `src/ast-validator.js` (139 lines) - Security validation
+- `src/ast-interpreter.js` (106 lines) - Safe evaluation
+- `src/error-formatter.js` (37 lines) - User-friendly errors
+- Updates to `src/transforms.js` and `index.html`
+
+**Deferred to Phase 1:**
+- ❌ Predicate objects (expression strings only for now)
 - ❌ Advanced operators (ternary, optional chaining)
 - ❌ Function calls
-- ❌ Derive transform (filter is sufficient proof)
-- ❌ Automated testing
-- ❌ IndexedDB persistence
-- ❌ Error suggestions (just position highlighting)
-- ❌ Step snapshots
-- ❌ Remaining 8+ transforms and dialogs
-
-**Code estimate:** ~430 new lines
+- ❌ Remaining transforms (derive, sort, rename, etc.)
+- ❌ Automated testing infrastructure
+- ❌ Error suggestions (Levenshtein distance for typos)
+- ❌ Step snapshots/caching
 
 ---
 

@@ -11,20 +11,50 @@
  * Apply a single transform to an Arquero table
  * @param {Object} table - Arquero table
  * @param {Object} transform - Transform specification
+ * @param {Array<string>} schema - Column names for validation
  * @returns {Object} Transformed Arquero table
+ * @throws {Error} If transform fails
  */
-function applyTransform(table, transform) {
-  // Phase 1: Support only 'select' transform (simplest)
+function applyTransform(table, transform, schema) {
+  // SELECT: Keep only specified columns
   if (transform.select) {
     return table.select(...transform.select);
   }
 
-  // TODO: Add more transforms incrementally
-  // - filter (needs expression parser)
+  // FILTER: Keep rows matching expression
+  if (transform.filter) {
+    const expression = transform.filter;
+
+    // Parse expression
+    const ast = parseExpression(expression);
+
+    // Validate AST against schema
+    const validation = validateAST(ast, schema);
+    if (!validation.valid) {
+      const errorMsg = formatError(validation.error, expression);
+      throw new Error(`Filter validation failed:\n${errorMsg}`);
+    }
+
+    // Convert table to array, filter with our interpreter, convert back
+    // (Arquero's filter doesn't support try-catch in functions)
+    const rows = table.objects();
+    const filteredRows = rows.filter(row => {
+      try {
+        return interpretAST(ast, row);
+      } catch (error) {
+        console.error('Filter interpretation error for row:', error, row);
+        return false; // Exclude row on error
+      }
+    });
+
+    return aq.from(filteredRows);
+  }
+
+  // TODO: Add more transforms
   // - derive (needs expression parser)
   // - sort, rename, remove, etc.
 
-  throw new Error(`Transform type not implemented yet`);
+  throw new Error(`Transform type '${Object.keys(transform)[0]}' not implemented yet`);
 }
 
 /**
