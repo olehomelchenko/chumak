@@ -40,7 +40,9 @@ function validateAST(ast, schema) {
       error: {
         message: error.message,
         position: error.position || 0,
-        type: error.type || 'validation-error'
+        type: error.type || 'validation-error',
+        // Preserve additional properties (columnName, availableColumns, etc.)
+        ...error
       }
     };
   }

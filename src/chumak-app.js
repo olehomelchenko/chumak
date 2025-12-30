@@ -5,6 +5,8 @@ function chumakApp() {
         ribbonTab: 'data',
         activeTab: 'steps',
         activeStep: null,
+        activeStepIndex: null,        // null = viewing final result, number = viewing step N
+        viewingIntermediate: false,   // true when viewing intermediate step
         activeDialog: null,
         isDragging: false,
 
@@ -563,6 +565,178 @@ function chumakApp() {
             } catch (error) {
                 console.error('Error clearing data:', error);
                 alert('Failed to clear data: ' + error.message);
+            }
+        },
+
+        // ============================================================
+        // Step Navigation & Removal
+        // ============================================================
+
+        /**
+         * Compute data state up to a specific step index
+         * @param {number} stepIndex - Step to compute up to (inclusive)
+         * @returns {Object} { data: Array, columns: Array }
+         */
+        computeUpToStep(stepIndex) {
+            // Get source data
+            const source = this.sources.find(s => s.id === this.activeModel.sourceId);
+            if (!source) {
+                throw new Error('Source not found for active model');
+            }
+
+            // Start with source data
+            let table = aq.from(source.data);
+            let columns = source.columns.map(c => c.name);
+
+            // Apply transforms 0 through stepIndex
+            for (let i = 0; i <= stepIndex; i++) {
+                const step = this.activeModel.steps[i];
+
+                // Skip import step (it's just metadata, not a transform)
+                if (step.import) {
+                    continue;
+                }
+
+                try {
+                    table = applyTransform(table, step, columns);
+
+                    // Update column schema after each step
+                    columns = this.getColumnsAfterStep(columns, step);
+                } catch (error) {
+                    console.error(`Error applying step ${i}:`, error);
+                    throw error;
+                }
+            }
+
+            return {
+                data: table.objects(),
+                columns: columns
+            };
+        },
+
+        /**
+         * Track how column schema changes after a transform
+         * @param {Array<string>} currentColumns - Current column names
+         * @param {Object} step - Transform step
+         * @returns {Array<string>} Updated column names
+         */
+        getColumnsAfterStep(currentColumns, step) {
+            // SELECT: Keep only specified columns
+            if (step.select) {
+                return step.select;
+            }
+
+            // DERIVE: Add new columns
+            if (step.derive) {
+                return [...currentColumns, ...Object.keys(step.derive)];
+            }
+
+            // RENAME: Rename columns
+            if (step.rename) {
+                return currentColumns.map(c => step.rename[c] || c);
+            }
+
+            // REMOVE: Remove columns
+            if (step.remove) {
+                return currentColumns.filter(c => !step.remove.includes(c));
+            }
+
+            // Other transforms (filter, sort, fillna, dropna, replace, aggregate)
+            // don't change column names
+            return currentColumns;
+        },
+
+        /**
+         * View data at an intermediate step
+         * @param {number} stepIndex - Step index to view
+         */
+        viewStep(stepIndex) {
+            try {
+                const result = this.computeUpToStep(stepIndex);
+
+                this.currentData = result.data;
+                this.columns = result.columns;
+                this.activeStepIndex = stepIndex;
+                this.viewingIntermediate = true;
+
+                console.log(`Viewing step ${stepIndex + 1}:`, result.data.length, 'rows');
+            } catch (error) {
+                console.error('Error computing step:', error);
+                alert(`Error viewing step ${stepIndex + 1}: ${error.message}`);
+            }
+        },
+
+        /**
+         * Return to viewing final result
+         */
+        viewFinalResult() {
+            if (!this.activeModel) return;
+
+            this.currentData = this.activeModel.data;
+
+            // Get columns from model data
+            if (this.currentData && this.currentData.length > 0) {
+                this.columns = Object.keys(this.currentData[0]);
+            } else {
+                this.columns = [];
+            }
+
+            this.activeStepIndex = null;
+            this.viewingIntermediate = false;
+
+            console.log('Viewing final result');
+        },
+
+        /**
+         * Remove a step and recompute from source
+         * @param {number} stepIndex - Index of step to remove
+         */
+        async removeStep(stepIndex) {
+            // Can't remove import step (first step)
+            if (this.activeModel.steps[stepIndex].import) {
+                alert('Cannot remove the import step');
+                return;
+            }
+
+            // Confirm deletion
+            const step = this.activeModel.steps[stepIndex];
+            const description = describeTransform(step);
+
+            if (!confirm(`Remove step "${description}"?\n\nThis cannot be undone.`)) {
+                return;
+            }
+
+            try {
+                // Remove step from array
+                this.activeModel.steps.splice(stepIndex, 1);
+
+                // Recompute final result from source
+                // Find last non-import step
+                let lastStepIndex = this.activeModel.steps.length - 1;
+
+                if (lastStepIndex >= 0) {
+                    const result = this.computeUpToStep(lastStepIndex);
+
+                    // Update model with new final result
+                    this.activeModel.data = JSON.parse(JSON.stringify(result.data));
+
+                    // Return to final view
+                    this.viewFinalResult();
+                } else {
+                    // No transforms left, just show source data
+                    const source = this.sources.find(s => s.id === this.activeModel.sourceId);
+                    this.activeModel.data = source.data;
+                    this.viewFinalResult();
+                }
+
+                // Auto-save
+                await autoSave(this.sources, this.models);
+
+                console.log('Step removed and data recomputed');
+
+            } catch (error) {
+                console.error('Error removing step:', error);
+                alert(`Error recomputing after removal: ${error.message}`);
             }
         }
     }

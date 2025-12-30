@@ -327,11 +327,36 @@
           <template x-if="currentData && activeModel?.steps?.length > 0">
             <div>
               <template x-for="(step, index) in activeModel?.steps || []" :key="index">
-                <div class="step-item">
+                <div
+                  class="step-item"
+                  :class="{ 'step-item--active': activeStepIndex === index }"
+                  @click="viewStep(index)"
+                  style="cursor: pointer;"
+                >
                   <span class="step-item__number" x-text="`${index + 1}.`"></span>
                   <span class="step-item__description" x-text="describeTransform(step)"></span>
+                  <button
+                    class="step-item__delete"
+                    @click.stop="removeStep(index)"
+                    x-show="!step.import"
+                    title="Remove this step"
+                  >×</button>
                 </div>
               </template>
+
+              <!-- Info text when viewing intermediate step -->
+              <div
+                x-show="viewingIntermediate"
+                style="padding: 0.75rem 1rem; background: rgba(0, 187, 206, 0.05); border-top: 1px solid var(--color-cyan); margin-top: 0.5rem; font-size: 0.875rem; color: var(--color-dark-gray);"
+              >
+                <span x-text="`Viewing step ${activeStepIndex + 1} of ${activeModel.steps.length}`"></span>
+                <button
+                  @click="viewFinalResult()"
+                  style="margin-left: 1rem; color: var(--color-cyan); text-decoration: underline; background: none; border: none; cursor: pointer; font-size: 0.875rem;"
+                >
+                  View final result
+                </button>
+              </div>
             </div>
           </template>
 
