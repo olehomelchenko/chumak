@@ -751,28 +751,45 @@
 
   <!-- Import CSV Dialog -->
   <div class="modal-backdrop" x-show="activeDialog === 'import-csv'" @click="closeDialog()" x-cloak>
-    <div class="modal" @click.stop style="max-width: 800px;">
+    <div class="modal" @click.stop style="max-width: 70vw; max-height: 70vh; overflow-y: auto;">
       <div class="modal__header">
         <h3 class="modal__title" x-text="`Import CSV: ${importDialogState.fileName || ''}`"></h3>
         <button class="modal__close" @click="closeDialog()">×</button>
       </div>
 
       <div class="modal__content">
-        <!-- Preview Section -->
-        <label class="form-label">Preview (first 5 rows):</label>
-        <div class="preview-table" style="margin-bottom: 1rem;">
-          <table class="data-table data-table--compact">
-            <tbody>
-              <template x-for="(row, rowIndex) in importDialogState.previewRows" :key="rowIndex">
-                <tr class="data-table__row"
-                    :class="{ 'import-preview__row--header': rowIndex === 0 && importDialogState.headerMode === 'first-row' }">
-                  <template x-for="(cell, cellIndex) in row" :key="cellIndex">
-                    <td class="data-table__cell" x-text="cell"></td>
-                  </template>
-                </tr>
-              </template>
-            </tbody>
-          </table>
+        <!-- Source Name -->
+        <div class="form-group">
+          <label class="form-label">Source Name:</label>
+          <input type="text" class="form-input"
+                 x-model="importDialogState.sourceName"
+                 placeholder="e.g., sales_data">
+          <p class="form-help">This name will appear in the Sources panel</p>
+        </div>
+
+        <!-- Delimiter Options -->
+        <div class="form-group">
+          <label class="form-label">Delimiter:</label>
+          <div style="display: flex; gap: 16px; align-items: center;">
+            <label class="checkbox-item" style="margin: 0;">
+              <input type="radio" name="delimiter" value=","
+                     x-model="importDialogState.delimiter"
+                     @change="updateImportPreview()" checked>
+              <span>Comma (,)</span>
+            </label>
+            <label class="checkbox-item" style="margin: 0;">
+              <input type="radio" name="delimiter" value="	"
+                     x-model="importDialogState.delimiter"
+                     @change="updateImportPreview()">
+              <span>Tab</span>
+            </label>
+            <label class="checkbox-item" style="margin: 0;">
+              <input type="radio" name="delimiter" value=";"
+                     x-model="importDialogState.delimiter"
+                     @change="updateImportPreview()">
+              <span>Semicolon (;)</span>
+            </label>
+          </div>
         </div>
 
         <!-- Header Mode Options -->
@@ -781,31 +798,36 @@
 
           <label class="checkbox-item">
             <input type="radio" name="headerMode" value="first-row"
-                   x-model="importDialogState.headerMode" checked>
+                   x-model="importDialogState.headerMode"
+                   @change="updateHeadersForPreview()" checked>
             <span>First row contains headers (recommended)</span>
           </label>
 
           <label class="checkbox-item">
             <input type="radio" name="headerMode" value="auto-generate"
-                   x-model="importDialogState.headerMode">
+                   x-model="importDialogState.headerMode"
+                   @change="updateHeadersForPreview()">
             <span>Auto-generate headers (Column 1, Column 2, ...)</span>
           </label>
 
           <label class="checkbox-item">
             <input type="radio" name="headerMode" value="manual"
-                   x-model="importDialogState.headerMode">
+                   x-model="importDialogState.headerMode"
+                   @change="updateHeadersForPreview()">
             <span>Specify manually</span>
           </label>
         </div>
 
-        <!-- Column Name Inputs (shown for first-row and manual modes) -->
+        <!-- Column Name Inputs (shown only for manual mode) -->
         <div class="form-group"
-             x-show="importDialogState.headerMode !== 'auto-generate'"
+             x-show="importDialogState.headerMode === 'manual'"
              style="max-height: 150px; overflow-y: auto;">
+          <label class="form-label" style="font-size: 13px; margin-bottom: 8px;">Specify column names:</label>
           <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px;">
             <template x-for="(name, index) in importDialogState.customHeaders" :key="index">
               <input type="text" class="form-input"
                      x-model="importDialogState.customHeaders[index]"
+                     @input="updateHeadersForPreview()"
                      :placeholder="`Column ${index + 1}`"
                      style="font-size: 13px; padding: 6px 8px;">
             </template>
@@ -818,27 +840,46 @@
           Columns will be named: Column 1, Column 2, Column 3, ...
         </div>
 
-        <!-- Delimiter Options -->
-        <div class="form-group">
-          <label class="form-label">Delimiter:</label>
-          <div style="display: flex; gap: 16px; align-items: center;">
-            <label class="checkbox-item" style="margin: 0;">
-              <input type="radio" name="delimiter" value=","
-                     x-model="importDialogState.delimiter" checked>
-              <span>Comma (,)</span>
-            </label>
-            <label class="checkbox-item" style="margin: 0;">
-              <input type="radio" name="delimiter" value="	"
-                     x-model="importDialogState.delimiter">
-              <span>Tab</span>
-            </label>
-            <label class="checkbox-item" style="margin: 0;">
-              <input type="radio" name="delimiter" value=";"
-                     x-model="importDialogState.delimiter">
-              <span>Semicolon (;)</span>
-            </label>
+        <!-- Duplicate Columns Warning -->
+        <div x-show="importDialogState.duplicateWarning"
+             style="margin-top: 1rem; padding: 1rem; background: #FFF4E5; border: 1px solid #FFB020; border-radius: 4px;">
+          <div style="display: flex; align-items: start; gap: 0.5rem;">
+            <span style="color: #FFB020; font-size: 20px;">⚠️</span>
+            <div style="flex: 1;">
+              <div style="font-weight: 600; color: #8B5A00; margin-bottom: 0.5rem;">Duplicate Column Names Detected</div>
+              <div style="font-size: 13px; color: #8B5A00; margin-bottom: 0.5rem;" x-text="importDialogState.duplicateWarning"></div>
+              <div style="font-size: 13px; color: #8B5A00;">
+                Duplicates have been automatically renamed by adding a suffix (e.g., "_2", "_3").
+              </div>
+            </div>
           </div>
         </div>
+
+        <!-- Preview Section -->
+        <div style="margin-top: 1.5rem;">
+          <label class="form-label">Preview (first 5 rows):</label>
+          <div class="preview-table">
+            <table class="data-table data-table--compact">
+              <thead>
+                <tr>
+                  <template x-for="(header, index) in importDialogState.previewHeaders" :key="index">
+                    <th class="data-table__header" x-text="header"></th>
+                  </template>
+                </tr>
+              </thead>
+              <tbody>
+                <template x-for="(row, rowIndex) in importDialogState.previewDataRows" :key="rowIndex">
+                  <tr class="data-table__row">
+                    <template x-for="(cell, cellIndex) in row" :key="cellIndex">
+                      <td class="data-table__cell" x-text="cell"></td>
+                    </template>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
       </div>
 
       <div class="modal__footer">

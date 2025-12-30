@@ -13,10 +13,15 @@ function chumakApp() {
         // Import dialog state
         importDialogState: {
             fileName: '',
-            previewRows: [],
+            sourceName: '',           // Custom source name (defaults to fileName)
+            rawPreviewData: [],       // Raw parsed data (array of arrays)
+            previewHeaders: [],       // Headers to display in preview (with duplicates resolved)
+            previewDataRows: [],      // Data rows to display in preview
             headerMode: 'first-row',
             delimiter: ',',
-            customHeaders: []
+            originalHeaders: [],      // Original headers from first row (before duplicate resolution)
+            customHeaders: [],        // Resolved headers (for import)
+            duplicateWarning: ''      // Warning message if duplicates detected
         },
         importFileData: null,
 
@@ -76,10 +81,15 @@ function chumakApp() {
             // Reset import dialog state to defaults
             this.importDialogState = {
                 fileName: '',
-                previewRows: [],
+                sourceName: '',
+                rawPreviewData: [],
+                previewHeaders: [],
+                previewDataRows: [],
                 headerMode: 'first-row',
                 delimiter: ',',
-                customHeaders: []
+                originalHeaders: [],
+                customHeaders: [],
+                duplicateWarning: ''
             };
             this.importFileData = null;
         },
@@ -113,24 +123,37 @@ function chumakApp() {
 
         // Show import configuration dialog
         showImportDialog(file) {
+            // Store file for later
+            this.importFileData = { file };
+
             // Quick parse: First 5 rows, no header assumptions
             Papa.parse(file, {
                 preview: 5,
                 header: false,
                 skipEmptyLines: true,
                 complete: (previewResult) => {
-                    // Extract first row for header preview
+                    // Extract first row for header initialization
                     const firstRow = previewResult.data[0] || [];
 
-                    // Set dialog state
-                    this.importFileData = { file };
+                    // Generate default source name from filename (remove .csv extension)
+                    const defaultName = file.name.replace(/\.csv$/i, '');
+
+                    // Set initial dialog state
+                    const initialHeaders = firstRow.map((cell, i) => cell || `Column ${i + 1}`);
                     this.importDialogState = {
                         fileName: file.name,
-                        previewRows: previewResult.data,
+                        sourceName: defaultName,
+                        rawPreviewData: previewResult.data,
+                        previewHeaders: [],
+                        previewDataRows: [],
                         headerMode: 'first-row',  // Default
                         delimiter: previewResult.meta.delimiter || ',',
-                        customHeaders: firstRow.map((cell, i) => cell || `Column ${i + 1}`)
+                        originalHeaders: initialHeaders,  // Store originals
+                        customHeaders: initialHeaders     // Will be resolved in updateHeadersForPreview
                     };
+
+                    // Initialize preview based on default settings
+                    this.updateHeadersForPreview();
 
                     // Show dialog
                     this.activeDialog = 'import-csv';
@@ -144,8 +167,14 @@ function chumakApp() {
 
         // CSV import: Step 2 - Confirm and create Source
         confirmImport() {
-            const { headerMode, delimiter, customHeaders } = this.importDialogState;
+            const { headerMode, delimiter, customHeaders, sourceName } = this.importDialogState;
             const file = this.importFileData.file;
+
+            // Validate source name
+            if (!sourceName || sourceName.trim() === '') {
+                alert('Please enter a source name');
+                return;
+            }
 
             // Always parse with header: false to get raw data
             Papa.parse(file, {
@@ -163,8 +192,8 @@ function chumakApp() {
                     const rawData = results.data;
 
                     if (headerMode === 'first-row') {
-                        // Extract column names from first row
-                        columns = rawData[0];
+                        // Use the resolved custom headers (which include duplicate resolution)
+                        columns = customHeaders;
 
                         // Data starts from second row (skip header row)
                         const dataRows = rawData.slice(1);
@@ -176,9 +205,10 @@ function chumakApp() {
                             return obj;
                         });
 
-                        await this.createSource(file, columns, data, headerMode, delimiter);
+                        await this.createSource(file, sourceName.trim(), columns, data, headerMode, delimiter, customHeaders);
                     } else if (headerMode === 'auto-generate') {
                         // Generate Column 1, Column 2, ...
+                        // (auto-generated names can't have duplicates, so no resolution needed)
                         columns = rawData[0]?.map((_, i) => `Column ${i + 1}`) || [];
 
                         // All rows are data (including first row)
@@ -188,9 +218,9 @@ function chumakApp() {
                             return obj;
                         });
 
-                        await this.createSource(file, columns, data, headerMode, delimiter);
+                        await this.createSource(file, sourceName.trim(), columns, data, headerMode, delimiter);
                     } else if (headerMode === 'manual') {
-                        // Use custom headers
+                        // Use the resolved custom headers (which include duplicate resolution)
                         columns = customHeaders;
 
                         // All rows are data (including first row)
@@ -200,7 +230,7 @@ function chumakApp() {
                             return obj;
                         });
 
-                        await this.createSource(file, columns, data, headerMode, delimiter, customHeaders);
+                        await this.createSource(file, sourceName.trim(), columns, data, headerMode, delimiter, customHeaders);
                     }
                 },
                 error: (error) => {
@@ -211,13 +241,8 @@ function chumakApp() {
         },
 
         // Create Source and default Model
-        async createSource(file, columns, data, headerMode, delimiter, customHeaders = null) {
-            // Validate columns: no duplicates, no empty names
-            const uniqueColumns = new Set(columns);
-            if (uniqueColumns.size !== columns.length) {
-                alert('Error: Duplicate column names detected. Please fix and try again.');
-                return;
-            }
+        async createSource(file, sourceName, columns, data, headerMode, delimiter, customHeaders = null) {
+            // Validate columns: no empty names (duplicates are already resolved in the dialog)
             if (columns.some(c => !c || c.trim() === '')) {
                 alert('Error: Column names cannot be empty.');
                 return;
@@ -228,7 +253,8 @@ function chumakApp() {
 
             const source = {
                 id: `src_${Date.now()}`,
-                name: file.name,
+                name: sourceName,  // Use custom source name
+                fileName: file.name,  // Store original filename for reference
                 origin: 'file',
 
                 // CSV configuration
@@ -263,7 +289,8 @@ function chumakApp() {
             // Add CSV import configuration as the first transformation step
             const importStep = {
                 import: {
-                    source: file.name,
+                    source: sourceName,
+                    fileName: file.name,  // Store original filename too
                     delimiter: delimiter,
                     headerMode: headerMode
                 }
@@ -738,6 +765,139 @@ function chumakApp() {
                 console.error('Error removing step:', error);
                 alert(`Error recomputing after removal: ${error.message}`);
             }
+        },
+
+        // ============================================================
+        // Import Dialog Live Preview
+        // ============================================================
+
+        /**
+         * Update preview when delimiter changes - reparse the file
+         */
+        updateImportPreview() {
+            const file = this.importFileData.file;
+            const delimiter = this.importDialogState.delimiter;
+
+            // Reparse with new delimiter
+            Papa.parse(file, {
+                preview: 5,
+                header: false,
+                skipEmptyLines: true,
+                delimiter: delimiter === '\t' ? '\t' : delimiter,
+                complete: (previewResult) => {
+                    const firstRow = previewResult.data[0] || [];
+
+                    // Update raw data and original headers
+                    this.importDialogState.rawPreviewData = previewResult.data;
+                    const newHeaders = firstRow.map((cell, i) => cell || `Column ${i + 1}`);
+                    this.importDialogState.originalHeaders = newHeaders;
+                    this.importDialogState.customHeaders = newHeaders;
+
+                    // Update preview display
+                    this.updateHeadersForPreview();
+                },
+                error: (error) => {
+                    console.error('CSV preview error:', error);
+                    alert('Error parsing CSV with selected delimiter: ' + error.message);
+                }
+            });
+        },
+
+        /**
+         * Update preview headers and data rows based on current header mode
+         */
+        updateHeadersForPreview() {
+            const { rawPreviewData, headerMode, originalHeaders, customHeaders } = this.importDialogState;
+
+            if (rawPreviewData.length === 0) {
+                this.importDialogState.previewHeaders = [];
+                this.importDialogState.previewDataRows = [];
+                return;
+            }
+
+            let headers;
+
+            if (headerMode === 'first-row') {
+                // Always use original headers (before resolution) for duplicate detection
+                headers = originalHeaders;
+                // Show rows 2-5 (skip first row which is headers)
+                this.importDialogState.previewDataRows = rawPreviewData.slice(1);
+
+            } else if (headerMode === 'auto-generate') {
+                // Generate Column 1, Column 2, ...
+                const numCols = rawPreviewData[0]?.length || 0;
+                headers = Array.from({ length: numCols }, (_, i) => `Column ${i + 1}`);
+                // Show all rows (including first row)
+                this.importDialogState.previewDataRows = rawPreviewData;
+
+            } else if (headerMode === 'manual') {
+                // Use custom headers from inputs
+                headers = customHeaders;
+                // Show all rows (including first row)
+                this.importDialogState.previewDataRows = rawPreviewData;
+            }
+
+            // Detect and resolve duplicates
+            const { resolvedHeaders, warning } = this.resolveDuplicateHeaders(headers);
+            this.importDialogState.previewHeaders = resolvedHeaders;
+            this.importDialogState.duplicateWarning = warning;
+
+            // Update customHeaders with resolved names (so they're used on import)
+            if (headerMode === 'first-row') {
+                // For first-row mode, store the resolved headers for import
+                this.importDialogState.customHeaders = resolvedHeaders;
+            } else if (headerMode === 'manual') {
+                // For manual mode, user is editing customHeaders directly
+                // Update with resolved names to ensure they see the resolution
+                this.importDialogState.customHeaders = resolvedHeaders;
+            }
+        },
+
+        /**
+         * Detect duplicate headers and resolve them by adding suffixes
+         * @param {Array<string>} headers - Original headers
+         * @returns {Object} { resolvedHeaders: Array<string>, warning: string }
+         */
+        resolveDuplicateHeaders(headers) {
+            const seen = {};
+            const duplicates = [];
+            const resolvedHeaders = [];
+
+            headers.forEach((header, index) => {
+                let finalHeader = header;
+
+                if (seen[header] !== undefined) {
+                    // This is a duplicate
+                    if (!duplicates.some(d => d.name === header)) {
+                        duplicates.push({ name: header, positions: [seen[header] + 1] });
+                    }
+
+                    // Find the duplicate entry and add current position
+                    const dupEntry = duplicates.find(d => d.name === header);
+                    dupEntry.positions.push(index + 1);
+
+                    // Generate unique name with suffix
+                    let suffix = 2;
+                    while (seen[`${header}_${suffix}`] !== undefined) {
+                        suffix++;
+                    }
+                    finalHeader = `${header}_${suffix}`;
+                }
+
+                seen[finalHeader] = index;
+                resolvedHeaders.push(finalHeader);
+            });
+
+            // Generate warning message
+            let warning = '';
+            if (duplicates.length > 0) {
+                const dupList = duplicates.map(d =>
+                    `"${d.name}" at positions ${d.positions.join(', ')}`
+                ).join('; ');
+                warning = `Found ${duplicates.length} duplicate column name${duplicates.length > 1 ? 's' : ''}: ${dupList}`;
+            }
+
+            return { resolvedHeaders, warning };
         }
     }
 }
