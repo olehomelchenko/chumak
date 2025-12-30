@@ -2,7 +2,7 @@
 
 > **Purpose**: Onboarding document for Claude AI sessions working on Chumak
 
-**Current Phase**: Design Complete, Ready for Implementation
+**Current Phase**: Building Walking Skeleton (Phase 0)
 
 ---
 
@@ -21,13 +21,14 @@
 
 ---
 
-## Current Status: Design Phase Complete ✅
+## Current Status: Walking Skeleton In Progress 🚧
 
 ### What's Been Done
 
+**Documentation (Complete)**
 1. **Product Specification** - Complete product spec in SPECIFICATION.md
    - Data model (Sources, Models, Workflows)
-   - Transform operations for 3 phases
+   - Transform operations for 4 phases (0-3)
    - UI design and layouts
    - Testing strategy
    - Performance targets
@@ -44,21 +45,36 @@
    - **Decision**: Hybrid approach (structured predicates + jsep parser)
    - **Security**: AST interpretation, no Function() constructor
    - **Syntax**: Bare identifiers with bracket escape
-   - **Phases**: 3-phase rollout (operators → functions → extensibility)
+   - **Phases**: 4-phase rollout (walking skeleton → MVP → functions → extensibility)
    - Full details in PARSER-DESIGN-DECISION.md
 
-4. **Documentation Structure** - Organized and cross-referenced
-   - Main docs: README.md, SPECIFICATION.md, PARSER-DESIGN-DECISION.md
-   - Research background: research/ directory
-   - All links verified and working
+**Implementation (In Progress - Phase 0)**
+4. **UI Layer** - Complete layout and styling (index.html + chumak.css)
+   - Header, ribbon toolbar, left panel, main content area
+   - Data preview table with pagination
+   - Modal dialogs (filter, derive, select, import CSV)
+   - Drag-and-drop file import
+   - 965 lines of CSS
+   - 1158 lines of HTML + Alpine.js
 
-### What's NOT Been Done
+5. **Data Import** - Working CSV import with configuration
+   - CSV parsing (PapaParse)
+   - Import dialog with header mode selection
+   - Source and Model creation
+   - Data display in preview table
 
-- ❌ No code written yet
-- ❌ No UI mockups created
-- ❌ No tests written
-- ❌ No dependencies installed
-- ❌ No build system set up (intentionally - using CDN libraries)
+6. **Transform Engine** - Minimal implementation started
+   - `applyTransform()` function (transforms.js)
+   - SELECT transform working
+   - Transform description generation
+
+### What's NOT Been Done (Phase 0 Scope)
+
+- ❌ Expression parser layer (jsep + validation + interpretation)
+- ❌ Filter transform implementation
+- ❌ Filter dialog wiring
+- ❌ CSV/JSON export functionality
+- ❌ Automated tests
 
 ---
 
@@ -203,9 +219,47 @@ chumak/
 
 ## Implementation Phases
 
-### Phase 1: MVP (Current Target)
+### Phase 0: Walking Skeleton (Current Target)
+
+**Timeline**: 1-2 days
+
+**Goal**: Minimal end-to-end implementation that validates all architectural decisions before building more features.
+
+**Scope**:
+- ✅ jsep integration (CDN-loaded)
+- ✅ Expression parser: Basic AST validation + interpretation (expression strings only)
+- ✅ Filter transform implementation
+- ✅ Filter dialog fully wired
+- ✅ CSV export
+- ✅ Workflow JSON export/import
+- ✅ Manual testing (automated tests in Phase 1)
+
+**Code estimate**: ~430 new lines
+
+**Architecture validated**:
+- Expression parser design (jsep + validation + interpretation)
+- Transform pipeline (specification → Arquero → display)
+- Data model (Source/Model separation)
+- Dialog pattern (form → preview → apply)
+- Workflow reproducibility (export/import JSON)
+
+**Deliberately excluded** (defer to Phase 1):
+- ❌ Predicate objects (expression strings only for now)
+- ❌ Advanced operators (ternary, optional chaining)
+- ❌ Function calls
+- ❌ Derive transform
+- ❌ Automated testing
+- ❌ IndexedDB persistence
+- ❌ Error suggestions (just position highlighting)
+- ❌ Remaining transforms and dialogs
+
+---
+
+### Phase 1: MVP
 
 **Timeline**: 3-4 weeks of development
+
+**Goal**: Build out full feature set on proven architecture.
 
 **Scope**:
 - ✅ CSV import (file + URL)
@@ -478,65 +532,78 @@ Phase 1 whitelist:
 
 ## Next Steps (Implementation Roadmap)
 
-### Immediate Next Steps (Phase 1 Start)
+### Immediate Next Steps (Phase 0: Walking Skeleton)
 
-1. **Set up project structure**
-   - Create index.html with CDN script tags
-   - Create src/ directory
-   - Create tests/ directory with runner.html
+**Goal**: Build minimal end-to-end path through all architectural layers.
 
-2. **Implement predicate compiler** (~250 lines)
-   - TypeScript interfaces for predicate types
-   - Predicate → Arquero function generator
-   - Logical composition (and/or/not)
-   - Field reference handling
+1. **Add jsep to index.html** (~1 line)
+   - Load jsep from CDN: `<script src="https://unpkg.com/jsep@1/dist/jsep.min.js"></script>`
 
-3. **Integrate jsep parser** (~100 lines)
-   - Load jsep from CDN
-   - Basic parsing wrapper
-   - Error handling
+2. **Create expression-parser.js** (~80 lines)
+   - Wrap jsep parsing
+   - Basic error handling
+   - Export `parseExpression(expr)` function
 
-4. **Implement AST validator** (~150 lines)
-   - Whitelist node types
-   - Whitelist operators
-   - Column name validation
-   - Schema-aware suggestions
+3. **Create ast-validator.js** (~100 lines)
+   - Validate AST node types (whitelist: Literal, Identifier, BinaryExpression, LogicalExpression, UnaryExpression)
+   - Validate operators (whitelist: +, -, *, /, %, >, <, >=, <=, ==, ===, !=, !==, &&, ||, !)
+   - Check column names against schema
+   - Export `validateExpression(ast, schema)` function
 
-5. **Implement AST interpreter** (~200 lines)
-   - Safe expression evaluation
-   - Null propagation
-   - Error-as-value handling
-   - Type coercion
+4. **Create ast-interpreter.js** (~120 lines)
+   - Interpret AST nodes safely (no Function() constructor)
+   - Handle basic operators
+   - Export `interpretExpression(ast, rowData)` function
 
-6. **Create error formatter** (~100 lines)
-   - Position highlighting
-   - User-friendly messages
-   - Suggestions for typos
+5. **Create error-formatter.js** (~50 lines)
+   - Format validation errors with position highlighting
+   - Export `formatError(error, expression)` function
 
-7. **Build UI** (Timeline TBD)
-   - Predicate builder forms
-   - Expression text input
-   - Preview table
-   - Step list
-   - JSON viewer
+6. **Implement filter transform** in transforms.js (~30 lines)
+   - Add filter case to `applyTransform()`
+   - Use expression parser + validator + interpreter
+   - Convert to Arquero `.filter()` call
 
-8. **Write tests** (~500 lines)
-   - Transform compiler tests
-   - Parser tests
-   - Validator tests
-   - Interpreter tests
-   - Integration tests
+7. **Wire filter dialog** in index.html (~50 lines)
+   - Add x-model for filter expression input
+   - Add preview logic (debounced)
+   - Add Apply button handler
+   - Show errors if validation fails
 
-### Success Criteria for Phase 1
+8. **Implement export functionality** (~50 lines)
+   - CSV export: Use PapaParse.unparse()
+   - JSON export: Serialize workflow
+   - Wire Export buttons in ribbon
 
-- ✅ User can load CSV file
-- ✅ User can build filter using predicate builder (no typing expressions)
-- ✅ User can write simple expression (advanced mode)
-- ✅ Preview shows first 100 rows after filter
-- ✅ Invalid expressions show helpful errors
-- ✅ Workflow can be exported as JSON
-- ✅ Exported workflow can be imported and replayed
-- ✅ 90%+ test coverage on core logic
+9. **Manual testing**
+   - Test complete workflow: import → filter → select → export CSV
+   - Test workflow export/import reproducibility
+   - Test error messages for invalid expressions
+
+**Total new code: ~480 lines**
+
+### Success Criteria for Phase 0
+
+- ✅ Can import CSV file (already working)
+- ✅ Can filter with expression: `sales > 1000`
+- ✅ Can filter with expression: `region == "North"`
+- ✅ Can filter with expression: `sales > 1000 && region == "North"`
+- ✅ Can combine filter + select transforms
+- ✅ Can export filtered data as CSV
+- ✅ Can export workflow as JSON
+- ✅ Can import workflow JSON and replay transformations
+- ✅ See error for invalid column: `sales > missing_column`
+- ✅ Architecture validated before proceeding to Phase 1
+
+### Then After Phase 0
+
+Once walking skeleton works, proceed to Phase 1:
+- Add predicate objects
+- Add remaining transforms (derive, sort, rename, etc.)
+- Add automated testing
+- Add error suggestions (Levenshtein distance)
+- Add IndexedDB persistence
+- Build remaining dialogs
 
 ---
 

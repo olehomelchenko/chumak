@@ -606,7 +606,54 @@ discount(price, 15)
 
 ## Implementation Phases
 
+### Phase 0: Walking Skeleton (1-2 days)
+
+**Goal:** Minimal end-to-end proof that the architecture works. One thin slice through all layers.
+
+**Deliverables:**
+```
+✅ jsep integration (CDN-loaded)
+✅ Expression string → AST → validation → interpretation (NO predicate objects yet)
+✅ Column reference handling (bare identifiers only, no bracket notation yet)
+✅ Basic operators only (+, -, *, /, %, >, <, >=, <=, ==, ===, !=, !==, &&, ||, !)
+✅ Simple error messages with position highlighting
+✅ Schema-aware validation (unknown column detection, no suggestions yet)
+✅ Filter transform implementation
+✅ CSV export
+✅ Workflow JSON export/import
+```
+
+**Code estimate:**
+- Expression parser (jsep wrapper): ~80 lines
+- AST validator (column checking): ~100 lines
+- AST interpreter (basic operators): ~120 lines
+- Error formatter (position only): ~50 lines
+- Filter transform: ~30 lines
+- Export functionality: ~50 lines
+- **Total: ~430 lines**
+
+**Deliberately excluded (defer to Phase 1):**
+- ❌ Predicate object compiler
+- ❌ AST transformer layer
+- ❌ Bracket notation for columns with spaces
+- ❌ Error suggestions (Levenshtein distance)
+- ❌ Error-as-value pattern
+- ❌ Expression caching
+- ❌ Derive transform
+- ❌ Automated tests
+- ❌ Remaining transforms
+
+**Success criteria:**
+- Can filter data with expression strings
+- Invalid column names show error with position
+- Can export/import workflow and replay
+- Architecture validated before building more features
+
+---
+
 ### Phase 1: MVP (3-4 weeks)
+
+**Goal:** Build out full feature set on proven architecture.
 
 **Deliverables:**
 ```

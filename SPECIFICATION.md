@@ -442,6 +442,44 @@ Option: embed source data (for full reproducibility) vs. reference only (smaller
 
 ## 8. Phased Roadmap
 
+### Phase 0 — Walking Skeleton (Architecture Validation)
+
+**Goal:** Minimal end-to-end implementation that exercises all architectural layers with one complete path through the system. Proves the architecture works before building on it.
+
+**Timeline:** 1-2 days
+
+| Component | Scope |
+|-----------|-------|
+| Expression parser | jsep integration, basic AST validation (column checking), basic interpretation (arithmetic + comparison only), simple error formatting |
+| Transforms | **filter** (proves parser works), **select** (already working) |
+| UI | Filter dialog fully wired with expression input, Select dialog (already done) |
+| Export | CSV export, workflow JSON export/import for reproducibility testing |
+| Testing | Manual testing only - automated tests deferred to Phase 1 |
+| Data model | Source/Model structure validated with real data flow |
+
+**Success criteria:**
+- ✅ Can import CSV file
+- ✅ Can filter with expressions: `sales > 1000`, `region == "North"`, `sales > 1000 && region == "North"`
+- ✅ Can select subset of columns
+- ✅ Can export filtered+selected data as CSV
+- ✅ Can export workflow as JSON and reimport to replay transformations
+- ✅ See error message for invalid expressions (e.g., `sales > missing_column`)
+
+**Deliberately excluded (defer to Phase 1):**
+- ❌ Predicate objects (expression strings only)
+- ❌ Advanced operators (ternary, optional chaining)
+- ❌ Function calls
+- ❌ Derive transform (filter is sufficient proof)
+- ❌ Automated testing
+- ❌ IndexedDB persistence
+- ❌ Error suggestions (just position highlighting)
+- ❌ Step snapshots
+- ❌ Remaining 8+ transforms and dialogs
+
+**Code estimate:** ~430 new lines
+
+---
+
 ### Phase 1 — MVP
 
 **Goal:** Usable for basic data cleaning exercises.
