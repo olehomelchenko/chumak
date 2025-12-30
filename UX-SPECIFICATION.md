@@ -900,42 +900,13 @@ Main preview updates
 Modal closes
 ```
 
-### 12.4 Step Click Flow
+### 12.4 Step Click Flow ✅ Implemented
 
-```
-User clicks Step 2 in step list
-         │
-         ▼
-   Step 2 highlighted (Cyan background)
-   Data preview shows snapshot at Step 2
-   Info text: "Viewing step 2 of 5"
-```
+Click step → Cyan highlight → Data shows intermediate result → Info banner "Viewing step N of M" with "View final result" button
 
-**Info text styling:**
-- Font: Graphik Regular 13px
-- Color: Medium Gray
-- Position: Below table, right-aligned
+### 12.5 Delete Step Flow ✅ Implemented
 
-### 12.5 Delete Step Flow
-
-```
-User clicks [×] on Step 2
-         │
-         ▼
-┌─ Confirm Delete ────────────────────┐
-│                                     │
-│  Delete "Filter: sales > 1000"?     │
-│                                     │
-│  This will also remove all steps    │
-│  after this one (2 steps).          │
-│                                     │
-│          [Cancel]  [Delete]         │
-└─────────────────────────────────────┘
-         │
-         ▼ (if confirmed)
-   Steps 2-5 removed
-   Data preview updates
-```
+Hover step → × button appears → Click × → Confirmation dialog → Recompute from source → Return to final view
 
 ---
 
@@ -943,142 +914,17 @@ User clicks [×] on Step 2
 
 This section covers all dialogs: import configuration and transform operations. All use consistent styling.
 
-### 13.0 Import CSV (Configuration Dialog)
+### 13.0 Import CSV Dialog ✅ Implemented
 
-**Trigger:** User drops CSV file or clicks "Import CSV" button
+**Features:** 5-row preview, header mode (first-row/auto-gen/manual), delimiter selection, editable column names, validation
 
-**Purpose:** Configure how CSV is parsed before creating Source
+### 13.1 Filter ✅ Implemented
 
-```
-┌─ Import CSV: sales.csv ────────────────────────────────────┐
-│                                                             │
-│  Preview (first 5 rows):                                    │
-│  ┌──────────┬──────────┬──────────┬──────────────┐         │
-│  │ North    │ 1500     │ 320      │ 2025-01-15   │         │
-│  │ South    │ 2100     │ 450      │ 2025-01-16   │         │
-│  │ East     │ 800      │ 120      │ 2025-01-17   │         │
-│  │ West     │ 1800     │ 380      │ 2025-01-18   │         │
-│  │ North    │ 1950     │ 390      │ 2025-01-19   │         │
-│  └──────────┴──────────┴──────────┴──────────────┘         │
-│                                                             │
-│  Column Headers:                                            │
-│  ● First row contains headers (recommended)                 │
-│  ○ Auto-generate headers (Column 1, Column 2, ...)         │
-│  ○ Specify manually                                         │
-│                                                             │
-│  ┌──────────┬──────────┬──────────┬──────────────┐         │
-│  │ region   │ sales    │ profit   │ date         │         │
-│  └──────────┴──────────┴──────────┴──────────────┘         │
-│                                                             │
-│  Delimiter:                                                 │
-│  ● Comma (,)  ○ Tab  ○ Semicolon (;)  ○ Other: [    ]      │
-│                                                             │
-│                              [Cancel]  [Import]            │
-└─────────────────────────────────────────────────────────────┘
-```
+**Features:** Expression input with live validation, error messages with position highlighting, help text with examples
 
-**Field specifications:**
+### 13.2 Select Columns ✅ Implemented
 
-1. **Preview table** (read-only)
-   - Shows first 5 rows exactly as parsed
-   - No styling applied yet
-   - Scrollable if many columns
-   - Helps user verify file loaded correctly
-
-2. **Header mode radio buttons** (required)
-   - **First row contains headers** (default)
-     - Most common case (>90% of CSVs)
-     - When selected: First row in preview gets cyan background highlight
-     - Editable input fields below show extracted names
-   - **Auto-generate headers**
-     - For CSVs without header row
-     - When selected: Hide input fields, show message "Columns will be named: Column 1, Column 2, ..."
-   - **Specify manually**
-     - Advanced option
-     - When selected: Show editable input fields (one per column)
-     - Pre-filled with "Column 1", "Column 2", etc.
-     - User can type custom names
-
-3. **Column name inputs** (conditional, shown only if "First row" or "Manual")
-   - One text input per column
-   - Pre-filled from first row OR "Column N"
-   - Inline validation: warn if duplicate names, empty names, invalid characters
-   - Max width: fit in dialog (scroll if >6 columns)
-
-4. **Delimiter radio buttons** (required)
-   - Auto-detected by PapaParse (usually correct)
-   - Default: Comma (most common)
-   - User can override if auto-detection failed
-   - "Other" option shows small text input (1-2 chars)
-
-**Styling notes:**
-- Use same modal styling as transform dialogs (see Section 9.1)
-- Preview table: Use `.data-table--compact` class
-- Input fields: Use `.form-input` class
-- Radio buttons: Use standard form styling (see Section 8.4)
-- Highlight first row when "First row contains headers" selected:
-  ```css
-  .import-preview__row--header {
-    background: rgba(0, 187, 206, 0.1);
-    font-weight: 500;
-  }
-  ```
-
-**Behavior:**
-- **Cancel**: Close dialog, discard file
-- **Import**:
-  1. Validate inputs (no duplicate column names, no empty names)
-  2. Parse full CSV with chosen configuration
-  3. Create Source with metadata (headerMode, delimiter, customHeaders)
-  4. Create default "main" model
-  5. Display data in preview table
-  6. Close dialog
-
-**Error handling:**
-- Show inline error if duplicate column names
-- Show inline error if CSV parsing fails (malformed file)
-- Disable "Import" button until valid configuration
-
-### 13.1 Filter
-
-```
-┌─ Filter ──────────────────────────────────────────┐
-│                                                   │
-│  Keep rows where:                                 │
-│  ┌────────────────────────────────────────────┐   │
-│  │ sales > 1000                               │   │
-│  └────────────────────────────────────────────┘   │
-│                                                   │
-│  Examples: sales > 1000, region == "North"        │
-│                                                   │
-│  ─── Preview (47 rows match) ──────────────────   │
-│  [mini table]                                     │
-│                                                   │
-│                        [Cancel]  [Apply]          │
-└───────────────────────────────────────────────────┘
-```
-
-### 13.2 Select Columns
-
-```
-┌─ Select Columns ──────────────────────────────────┐
-│                                                   │
-│  Choose columns to keep:                          │
-│                                                   │
-│  ☑ region                                         │
-│  ☑ sales                                          │
-│  ☐ cost                                           │
-│  ☑ profit                                         │
-│  ☐ date                                           │
-│                                                   │
-│  [Select All]  [Select None]                      │
-│                                                   │
-│  ─── Preview ──────────────────────────────────   │
-│  [mini table with selected columns]               │
-│                                                   │
-│                        [Cancel]  [Apply]          │
-└───────────────────────────────────────────────────┘
-```
+**Features:** Checkbox list, Select All/None buttons, preview of selected columns (3 rows)
 
 ### 13.3 Rename
 

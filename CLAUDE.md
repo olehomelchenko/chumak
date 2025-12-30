@@ -55,40 +55,41 @@
 **Implementation (Phase 0 - Complete)**
 
 4. **UI Layer** - Complete layout and styling
-   - Header, ribbon toolbar, left panel, main content area
-   - Data preview table with pagination
-   - Modal dialogs (filter, derive, select, import CSV)
-   - Drag-and-drop file import
-   - ✅ Filter dialog with live validation
+   - Header with ribbon tabs (Data, Transform, Add Column, Reduce, Combine, Model)
+   - Ribbon toolbar with context-sensitive buttons
+   - Left panel (Sources & Models tree, Steps list with JSON view)
+   - Main content area (data preview table with pagination, empty state with drag-and-drop)
+   - Modal dialogs (import CSV with configuration, filter, select)
 
-5. **Data Import** - Working CSV import with configuration
-   - CSV parsing (PapaParse)
-   - Import dialog with header mode selection
-   - Source and Model creation
-   - Data display in preview table
+5. **Data Import** ✅ - Working CSV import with configuration dialog
+   - CSV parsing (PapaParse), delimiter detection
+   - Header mode options (first-row, auto-generate, manual)
+   - Source and Model creation, auto-save to IndexedDB
 
-6. **Storage Layer** ✅ NEW
-   - `src/storage.js` (165 lines) - IndexedDB persistence
-   - Auto-save on data changes
-   - Loads saved data on page refresh
-   - Debug "Clear All Data" button
+6. **Storage Layer** ✅ - IndexedDB persistence
+   - Stores sources (with data) and models (with final results)
+   - Auto-save on all data changes
+   - Loads persisted data on page refresh
 
-7. **Expression Parser Layer** ✅ COMPLETE
-   - `src/expression-parser.js` (32 lines) - jsep wrapper
-   - `src/ast-validator.js` (139 lines) - Security validation with operator/column whitelisting
-   - `src/ast-interpreter.js` (106 lines) - Safe AST interpretation without Function()
-   - `src/error-formatter.js` (37 lines) - User-friendly errors with position highlighting
+7. **Expression Parser Layer** ✅ - Secure expression handling
+   - jsep integration, AST validation with operator/column whitelisting
+   - Safe AST interpretation (no Function() constructor)
+   - User-friendly errors with position highlighting
 
-8. **Transform Engine** ✅ COMPLETE
-   - `applyTransform()` function in transforms.js
-   - ✅ SELECT transform (working)
-   - ✅ FILTER transform (with compound expressions: `&&`, `||`)
-   - Transform description generation
+8. **Transform Engine** ✅ - Working transforms
+   - SELECT: Keep specified columns
+   - FILTER: Keep rows matching expressions (supports `&&`, `||`, comparisons)
+   - Transform description generation for step list
 
-9. **Export Functionality** ✅ COMPLETE
-   - CSV export with Papa.unparse()
-   - Workflow JSON export with metadata
-   - Download triggers with timestamp filenames
+9. **Step Navigation & Removal** ✅ NEW (2025-12-30)
+   - Click steps to view intermediate results (on-demand recomputation)
+   - Delete steps with automatic recomputation from source
+   - "View final result" button when viewing intermediate steps
+   - Column schema tracking through transform pipeline
+
+10. **Export Functionality** ✅ - CSV and workflow export
+   - CSV export with timestamp filenames
+   - Workflow JSON export with full metadata
 
 ### Key Implementation Discoveries
 
@@ -96,27 +97,28 @@
 
 2. **Arquero Filter Limitation**: Arquero's `.filter()` compiles function bodies and rejects try-catch blocks. Workaround: convert to array with `.objects()`, filter with standard JavaScript, convert back with `aq.from()`.
 
-3. **IndexedDB Serialization**: Structured clone algorithm requires JSON serialization. Current implementation embeds data in sources/models (tech debt for Phase 1 - should use separate sourceData store).
+3. **IndexedDB Serialization**: Structured clone algorithm requires JSON serialization. Current implementation embeds data in sources/models (acceptable for Phase 0).
 
 4. **jsep CDN**: Generic unpkg URL served ESM module. Need explicit IIFE build: `jsep@1.4.0/dist/iife/jsep.iife.min.js`
+
+5. **On-Demand Step Computation**: Store only source data + final result, compute intermediate steps on-demand when viewing. Simpler than caching step snapshots (originally in spec), acceptable performance for Phase 1, can optimize with caching in Phase 2 if needed.
 
 ### Ready for Phase 1
 
 **Phase 0 validated:**
 - ✅ Expression parser pipeline works (parse → validate → interpret)
 - ✅ Security model proven (no Function() constructor, whitelist validation)
-- ✅ Data persistence works (IndexedDB)
+- ✅ Data persistence works (IndexedDB with auto-save)
 - ✅ Transform system works (filter + select)
+- ✅ Step navigation works (view intermediate results, remove steps)
 - ✅ Export/import workflows functional
 - ✅ All architectural layers communicating correctly
 
-**Next steps (Phase 1 - MVP):**
-- Remaining transforms (derive, sort, rename, aggregate, fillna, dropna, replace)
-- Predicate object compiler (structured predicates for beginners)
-- Automated test infrastructure (Mocha + Chai)
-- Error suggestions (Levenshtein distance for typos)
-- Bracket notation for column names with spaces
-- Error-as-value pattern for row-level failures
+**Phase 1 Priorities (MVP):**
+1. **Remaining transforms**: derive, sort, rename, remove, aggregate, fillna, dropna, replace
+2. **Automated testing**: Mocha + Chai infrastructure, 90%+ coverage on transform engine
+3. **Enhanced parser**: Bracket notation `[Column Name]`, error suggestions (Levenshtein)
+4. **Predicate builder**: GUI for structured predicates (deferred - expressions working well)
 
 ---
 

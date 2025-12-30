@@ -26,14 +26,15 @@ Chumak is a browser-based data wrangling tool for cleaning and transforming tabu
 
 **Phase 0 — Walking Skeleton: ✅ COMPLETE** (2025-12-30)
 
-All architectural layers validated and working end-to-end:
-- Expression parser pipeline (jsep → validation → interpretation)
-- IndexedDB persistence with auto-save
-- Filter and Select transforms operational
-- CSV and JSON export functional
-- Data persists across page reloads
+Core features implemented and validated:
+- ✅ Expression parser with security validation
+- ✅ Filter & Select transforms
+- ✅ Step navigation (view intermediate results, remove steps)
+- ✅ IndexedDB persistence with auto-save
+- ✅ CSV import with configuration dialog
+- ✅ CSV and workflow JSON export
 
-**Next:** Phase 1 — MVP (remaining transforms, predicate builder, automated testing)
+**Next:** Phase 1 — MVP (remaining 8 transforms, automated testing)
 
 ---
 
@@ -94,7 +95,7 @@ All architectural layers validated and working end-to-end:
 |--------|--------|
 | Initial file size support | Up to 10 MB |
 | Preview rendering | First 100 rows, paginated |
-| Step snapshot | Cached preview per step for instant navigation |
+| Step navigation | On-demand recomputation (acceptable for Phase 1) |
 
 ---
 
@@ -153,26 +154,19 @@ interface ColumnSchema {
 
 #### Model
 
-A transformation pipeline applied to a Source or another Model.
+A transformation pipeline applied to a Source.
 
 ```typescript
 interface Model {
   id: string;
-  name: string;                    // user-defined, e.g., "sales_cleaned"
-  parentId: string;                // Source ID or Model ID
-  parentType: "source" | "model";
-  transforms: Transform[];         // ordered list
-  stepSnapshots: StepSnapshot[];   // cached previews
-  createdAt: string;
-  updatedAt: string;
+  name: string;                    // user-defined, e.g., "main", "cleaned"
+  sourceId: string;                // Source ID
+  steps: Transform[];              // ordered transform list
+  data: Row[];                     // final result (computed)
 }
 
-interface StepSnapshot {
-  stepIndex: number;
-  preview: Row[];                  // first 100 rows at this step
-  rowCount: number;
-  columns: string[];
-}
+// Note: Intermediate results computed on-demand when viewing steps
+// Original design included stepSnapshots for caching, deferred to Phase 2
 ```
 
 #### Workflow
@@ -315,63 +309,40 @@ Join types: `left`, `inner`
 └──────────────────────────────────────────────────────────────────┘
 ```
 
-### 6.2 Panel Behaviors
+### 6.2 Panel Behaviors (✅ Implemented)
 
-#### Sources & Models Panel
-- Tree structure showing Sources and their derived Models
-- Click to switch active model
-- Right-click or menu: rename, delete, duplicate, create derived model
+**Sources & Models Panel**
+- Tree view with clickable sources/models to switch active model
 
-#### Applied Steps Panel
-- Ordered list of transforms for active model
-- Click step → show cached snapshot preview (no revert)
-- Each step has: description, revert button (⟲), delete button (×)
-- Revert button: deletes this step and all subsequent steps
-- Drag to reorder (Phase 3)
+**Steps Panel** (with Steps/JSON tabs)
+- Click step → view intermediate result (on-demand recomputation)
+- Hover → delete button (×) appears (except import step)
+- "View final result" button shown when viewing intermediate steps
+- JSON tab shows transform array
 
-#### Data Preview
-- Shows first 100 rows
-- Pagination controls for additional pages
-- Column headers show inferred type icon
-- Click column header for quick actions (sort, filter, rename, remove)
+**Data Preview**
+- Shows first 100 rows with pagination controls
+- Displays current data state (final or intermediate)
 
-#### Add Transform Panel
-- Shows available operations as buttons/cards
-- Clicking operation opens contextual form
-- Form has sensible defaults pre-filled
-- "Apply" adds step to list
+**Transform Buttons** (ribbon toolbar)
+- Context-sensitive buttons grouped by tab (Data, Transform, Add Column, etc.)
+- Disabled buttons shown for unimplemented transforms
 
-#### JSON Viewer
-- Collapsible panel at bottom
-- Shows full transform array for active model
-- Read-only in Phase 1
-- Syntax highlighted
-- Copy button
+### 6.3 File Handling (✅ Implemented)
 
-### 6.3 File Handling
+| Action | Status |
+|--------|--------|
+| **Import CSV** | ✅ File picker + drag-drop → Config dialog → Creates Source |
+| **Export CSV** | ✅ Downloads transformed data with timestamp |
+| **Export workflow JSON** | ✅ Downloads workflow specification |
+| Import from URL | Phase 2 |
+| Import workflow JSON | Phase 2 |
 
-| Action | Behavior |
-|--------|----------|
-| Import CSV | File picker or drag-drop → Opens import dialog with header/delimiter options → Creates new Source. |
-| Import from URL | Modal with URL input. Fetches and creates Source. |
-| Export result CSV | Downloads transformed data as CSV. |
-| Export workflow | Downloads `.chumak.json` file with full Workflow object. |
-| Import workflow | Loads `.chumak.json`, restores Sources (prompts for re-upload if data missing). |
-
-#### CSV Import Dialog
-
-When user selects/drops a CSV file, show configuration dialog before creating Source:
-
-**Dialog contents:**
-1. **Preview** - First 5 rows (raw, unparsed)
-2. **Header handling options** (radio buttons):
-   - "First row contains headers" (default) - Most common case
-   - "Auto-generate headers (Column 1, Column 2, ...)" - For CSVs without header row
-   - "Specify manually" - Shows editable input fields for custom column names
-3. **Delimiter options** - Auto-detected, can override: Comma, Tab, Semicolon, Other
-4. **Import button** - Confirms configuration and creates Source
-
-**Header mode behavior:**
+**CSV Import Dialog** (✅ implemented):
+- Preview of first 5 rows
+- Header mode: first-row (default), auto-generate, manual
+- Delimiter selection: comma, tab, semicolon
+- Editable column names (for first-row and manual modes)
 
 | Mode | First Row | Column Names | Use Case |
 |------|-----------|--------------|----------|
@@ -486,38 +457,45 @@ Option: embed source data (for full reproducibility) vs. reference only (smaller
 - Arquero's `.filter()` rejects try-catch blocks; workaround: convert to array, filter, convert back
 - IndexedDB structured clone requires JSON serialization; embedded data in sources/models (tech debt for Phase 1)
 
-**Files created:** ~465 lines
-- `src/storage.js` (165 lines) - IndexedDB layer
-- `src/expression-parser.js` (32 lines) - jsep wrapper
-- `src/ast-validator.js` (139 lines) - Security validation
-- `src/ast-interpreter.js` (106 lines) - Safe evaluation
-- `src/error-formatter.js` (37 lines) - User-friendly errors
-- Updates to `src/transforms.js` and `index.html`
+**Implementation complete** (~640 lines custom code):
+- Expression parser layer (4 files, ~314 lines)
+- Transform engine with filter & select (~112 lines)
+- Storage with IndexedDB auto-save (~165 lines)
+- Step navigation & removal (~175 lines, added 2025-12-30)
+- UI integration in `index.html` and `chumak-app.js`
+
+**Key features working:**
+- ✅ CSV import with configuration dialog
+- ✅ Filter transform (with `&&`, `||`, comparisons)
+- ✅ Select transform (column selection)
+- ✅ View intermediate results (click any step)
+- ✅ Remove steps with recomputation
+- ✅ Export CSV and workflow JSON
+- ✅ Data persistence across reloads
 
 **Deferred to Phase 1:**
-- ❌ Predicate objects (expression strings only for now)
-- ❌ Advanced operators (ternary, optional chaining)
-- ❌ Function calls
-- ❌ Remaining transforms (derive, sort, rename, etc.)
-- ❌ Automated testing infrastructure
-- ❌ Error suggestions (Levenshtein distance for typos)
-- ❌ Step snapshots/caching
+- Remaining 8 transforms (derive, sort, rename, remove, aggregate, fillna, dropna, replace)
+- Automated testing infrastructure
+- Enhanced parser (bracket notation, error suggestions)
+- Predicate object GUI builder (optional)
 
 ---
 
-### Phase 1 — MVP
+### Phase 1 — MVP (In Progress)
 
-**Goal:** Usable for basic data cleaning exercises.
+**Goal:** Complete core transform set, add automated testing.
 
-| Component | Scope |
-|-----------|-------|
-| Data import | CSV/TSV from file or URL |
-| Transforms | filter, select, remove, rename, sort, derive, fillna, dropna, replace, aggregate |
-| Expression parser | Structured predicates + expression strings (jsep), basic operators only, no functions |
-| UI | Full layout, step list, preview, JSON viewer, predicate builder |
-| Persistence | IndexedDB auto-save, workflow export/import |
-| Export | Result CSV, workflow JSON |
-| Testing | Test infrastructure, 90%+ coverage on transform compiler and expression parser |
+| Component | Status |
+|-----------|--------|
+| **Data import** | ✅ CSV from file (with config dialog) |
+| **Transforms** | ✅ filter, select / ⏳ derive, sort, rename, remove, aggregate, fillna, dropna, replace |
+| **Expression parser** | ✅ Basic operators, security validation / ⏳ Bracket notation, error suggestions |
+| **UI** | ✅ Full layout, step navigation, dialogs / ⏳ Remaining transform dialogs |
+| **Persistence** | ✅ IndexedDB auto-save / ⏳ Workflow import |
+| **Export** | ✅ CSV, workflow JSON |
+| **Testing** | ⏳ Test infrastructure (Mocha + Chai), 90%+ coverage target |
+
+**Priorities:** Remaining transforms → Automated testing → Enhanced parser
 
 ### Phase 2 — Derived Datasets
 
