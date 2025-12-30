@@ -152,22 +152,22 @@ body {
 .ribbon__tabs {
   display: flex;
   gap: 0;
-  background: var(--color-light-gray);
-  border-bottom: var(--border-width) solid var(--border-color);
-  padding: 0 var(--space-md);
+  background: transparent;
+  padding: 0;
 }
 
 .ribbon__tab {
-  padding: 6px var(--space-md);
+  padding: 8px var(--space-md);
   background: transparent;
   border: none;
-  border-bottom: 2px solid transparent;
+  border-bottom: 3px solid transparent;
   font-family: var(--font-family);
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
   color: var(--color-dark-gray);
   cursor: pointer;
   transition: all var(--transition-fast);
+  height: 100%;
 }
 
 .ribbon__tab:hover:not(:disabled) {
@@ -177,8 +177,9 @@ body {
 
 .ribbon__tab--active {
   color: var(--color-midnight-blue);
-  background: var(--color-white);
+  background: transparent;
   border-bottom-color: var(--color-cyan);
+  font-weight: 500;
 }
 
 .ribbon__tab--disabled {

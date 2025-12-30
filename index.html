@@ -6,6 +6,8 @@
   <title>Chumak — Data Wrangling in the Browser</title>
   <link rel="stylesheet" href="https://unpkg.com/normalize.css@8/normalize.css">
   <link rel="stylesheet" href="styles/chumak.css">
+  <link rel="icon" type="image/x-icon" href="/src/favicon.svg">
+
   <script src="https://unpkg.com/feather-icons"></script>
   <script src="https://unpkg.com/papaparse@5/papaparse.min.js"></script>
   <script src="https://unpkg.com/arquero@5/dist/arquero.min.js"></script>
@@ -21,30 +23,16 @@
 </head>
 <body x-data="chumakApp()">
 
-  <!-- Header -->
+  <!-- Header with Ribbon Tabs -->
   <header class="header">
     <div class="header__content">
       <div class="header__logo">
         <span class="header__logo-icon">☆</span>
         <span class="header__logo-text">Chumak</span>
       </div>
-      <div style="margin-left: auto;">
-        <button
-          class="button button--secondary button--small"
-          @click="clearAllData()"
-          title="Clear all data from IndexedDB (for debugging)"
-          style="background: #D33E2C; color: white; border-color: #D33E2C;"
-        >
-          Clear All Data
-        </button>
-      </div>
-    </div>
-  </header>
 
-  <!-- Ribbon Toolbar -->
-  <div class="ribbon">
-    <!-- Ribbon Tabs -->
-    <div class="ribbon__tabs">
+      <!-- Ribbon Tabs (moved to header) -->
+      <div class="ribbon__tabs" style="margin-left: 2rem;">
       <button
         class="ribbon__tab"
         :class="{ 'ribbon__tab--active': ribbonTab === 'data' }"
@@ -92,8 +80,23 @@
       >
         Model
       </button>
-    </div>
+      </div>
 
+      <div style="margin-left: auto;">
+        <button
+          class="button button--secondary button--small"
+          @click="clearAllData()"
+          title="Clear all data from IndexedDB (for debugging)"
+          style="background: #D33E2C; color: white; border-color: #D33E2C;"
+        >
+          Clear All Data
+        </button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Ribbon Toolbar -->
+  <div class="ribbon">
     <!-- Ribbon Content -->
     <div class="ribbon__content">
 
@@ -124,19 +127,19 @@
           <i data-feather="filter"></i>
           <span>Filter</span>
         </button>
-        <button class="ribbon__button" title="Sort rows">
+        <button class="ribbon__button ribbon__button--disabled" disabled title="Sort rows (Coming soon)">
           <i data-feather="arrow-up-down"></i>
           <span>Sort</span>
         </button>
-        <button class="ribbon__button" title="Drop rows with missing values">
+        <button class="ribbon__button ribbon__button--disabled" disabled title="Drop rows with missing values (Coming soon)">
           <i data-feather="trash-2"></i>
           <span>Drop NA</span>
         </button>
-        <button class="ribbon__button" title="Fill missing values">
+        <button class="ribbon__button ribbon__button--disabled" disabled title="Fill missing values (Coming soon)">
           <i data-feather="edit-3"></i>
           <span>Fill NA</span>
         </button>
-        <button class="ribbon__button" title="Find and replace values">
+        <button class="ribbon__button ribbon__button--disabled" disabled title="Find and replace values (Coming soon)">
           <i data-feather="search"></i>
           <span>Replace</span>
         </button>
@@ -144,11 +147,11 @@
           <i data-feather="columns"></i>
           <span>Select</span>
         </button>
-        <button class="ribbon__button" title="Remove columns">
+        <button class="ribbon__button ribbon__button--disabled" disabled title="Remove columns (Coming soon)">
           <i data-feather="x-square"></i>
           <span>Remove</span>
         </button>
-        <button class="ribbon__button" title="Rename columns">
+        <button class="ribbon__button ribbon__button--disabled" disabled title="Rename columns (Coming soon)">
           <i data-feather="type"></i>
           <span>Rename</span>
         </button>
@@ -156,7 +159,7 @@
 
       <!-- Add Column Tab -->
       <div class="ribbon__panel" x-show="ribbonTab === 'add-column'">
-        <button class="ribbon__button" @click="openDialog('derive')" title="Create new column from expression">
+        <button class="ribbon__button ribbon__button--disabled" disabled title="Create new column from expression (Coming soon)">
           <i data-feather="plus-square"></i>
           <span>Derive</span>
         </button>
@@ -172,7 +175,7 @@
 
       <!-- Reduce Tab -->
       <div class="ribbon__panel" x-show="ribbonTab === 'reduce'">
-        <button class="ribbon__button" title="Group and aggregate data">
+        <button class="ribbon__button ribbon__button--disabled" disabled title="Group and aggregate data (Coming soon)">
           <i data-feather="layers"></i>
           <span>Aggregate</span>
         </button>
