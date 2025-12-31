@@ -13,6 +13,7 @@
   <script src="https://unpkg.com/arquero@5/dist/arquero.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/jsep@1.4.0/dist/iife/jsep.iife.min.js"></script>
   <script src="src/storage.js"></script>
+  <script src="src/ux-settings.js"></script>
   <script src="src/expression-parser.js"></script>
   <script src="src/ast-validator.js"></script>
   <script src="src/ast-interpreter.js"></script>
@@ -570,10 +571,34 @@
 
     <!-- Pagination -->
     <div class="pagination" x-show="viewMode === 'model'">
-      <span class="pagination__info" x-text="`Showing 1-${Math.min(100, currentData?.length || 0)} of ${currentData?.length || 0}`"></span>
-      <div class="pagination__controls">
-        <button class="button button--secondary button--small" disabled>‹</button>
-        <button class="button button--secondary button--small">›</button>
+      <span class="pagination__info" x-text="getPaginationInfo()"></span>
+      <div class="pagination__controls" style="display: flex; align-items: center; gap: 0.5rem;">
+        <button
+          class="button button--secondary button--small"
+          @click="previousPage()"
+          :disabled="currentPage === 1"
+          title="Previous page"
+        >‹</button>
+        <span style="font-size: 0.875rem; color: var(--color-dark-gray);" x-text="`Page ${currentPage} of ${totalPages}`"></span>
+        <button
+          class="button button--secondary button--small"
+          @click="nextPage()"
+          :disabled="currentPage >= totalPages"
+          title="Next page"
+        >›</button>
+        <span style="margin-left: 1rem; font-size: 0.875rem; color: var(--color-dark-gray);">Rows per page:</span>
+        <select
+          class="form-input"
+          style="width: auto; padding: 0.25rem 0.5rem; font-size: 0.875rem;"
+          x-model="pageSize"
+          @change="updatePageSize($event.target.value)"
+        >
+          <option value="100">100</option>
+          <option value="250">250</option>
+          <option value="500">500</option>
+          <option value="1000">1000</option>
+          <option value="2500">2500</option>
+        </select>
       </div>
     </div>
 
@@ -613,7 +638,7 @@
           </tr>
         </thead>
         <tbody>
-          <template x-for="(row, rowIndex) in currentData?.slice(0, 100) || []" :key="rowIndex">
+          <template x-for="(row, rowIndex) in getPaginatedData()" :key="rowIndex">
             <tr class="data-table__row">
               <template x-for="(column, colIndex) in columns" :key="colIndex">
                 <td class="data-table__cell" x-text="row[column]"></td>
