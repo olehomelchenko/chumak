@@ -605,62 +605,19 @@ discount(price, 15)
 
 ## Implementation Phases
 
-### Phase 0: Walking Skeleton ✅ COMPLETE
+### Phase 0: Walking Skeleton ✅
 
-**Goal:** Minimal end-to-end proof that the architecture works. One thin slice through all layers.
+**Goal:** Minimal end-to-end proof that the architecture works.
 
-**Status:** ✅ Complete
+**Implementation files:** See `src/expression-parser.js`, `src/ast-validator.js`, `src/ast-interpreter.js`, `src/error-formatter.js`, `src/storage.js`
 
-**Deliverables (all implemented):**
-```
-✅ jsep integration (CDN-loaded from jsDelivr)
-✅ Expression string → AST → validation → interpretation (NO predicate objects yet)
-✅ Column reference handling (bare identifiers only, no bracket notation yet)
-✅ Basic operators (+, -, *, /, %, >, <, >=, <=, ==, ===, !=, !==, &&, ||, !)
-✅ Simple error messages with position highlighting
-✅ Schema-aware validation (unknown column detection, no suggestions yet)
-✅ Filter transform implementation (with compound expressions)
-✅ Select transform (pre-existing, validated)
-✅ CSV export
-✅ Workflow JSON export/import
-✅ IndexedDB persistence with auto-save (added during implementation)
-```
+**Critical implementation discoveries:**
 
-**Implementation files:**
-- `src/expression-parser.js` - jsep wrapper
-- `src/ast-validator.js` - security validation
-- `src/ast-interpreter.js` - safe evaluation
-- `src/error-formatter.js` - user-friendly errors
-- `src/storage.js` - IndexedDB layer
-- Updates to `src/transforms.js` and `index.html`
-
-**Key implementation discoveries:**
-
-1. **jsep AST node types**: jsep parses `&&` and `||` as `BinaryExpression`, NOT `LogicalExpression` as ESTree spec suggests. This required adding `&&` and `||` to `ALLOWED_BINARY_OPS` and implementing short-circuit evaluation in the `BinaryExpression` case.
+1. **jsep AST node types**: jsep parses `&&` and `||` as `BinaryExpression`, NOT `LogicalExpression` as ESTree spec suggests. Required adding `&&` and `||` to `ALLOWED_BINARY_OPS` and implementing short-circuit evaluation in the `BinaryExpression` case.
 
 2. **Arquero filter limitation**: Arquero's `.filter()` method compiles function bodies and rejects try-catch blocks ("Unsupported expression construct: TryStatement"). Workaround: convert table to array with `.objects()`, filter using standard JavaScript, convert back with `aq.from()`.
 
-3. **IndexedDB structured clone**: IndexedDB requires structured-cloneable objects. PapaParse and Arquero objects needed JSON serialization via `JSON.parse(JSON.stringify())`. This embeds data directly in source/model objects (tech debt for Phase 1 - should use separate `sourceData` store).
-
-4. **jsep CDN versioning**: Generic unpkg URL served ESM module; needed explicit IIFE build: `jsep@1.4.0/dist/iife/jsep.iife.min.js`
-
-**Success criteria (all met):**
-- ✅ Can filter data with expression strings (simple and compound)
-- ✅ Invalid column names show error with position and available columns
-- ✅ Can export/import workflow and replay transformations
-- ✅ Data persists across page reloads
-- ✅ Architecture validated before building more features
-
-**Deferred to Phase 1:**
-- ❌ Predicate object compiler
-- ❌ AST transformer layer
-- ❌ Bracket notation for columns with spaces
-- ❌ Error suggestions (Levenshtein distance)
-- ❌ Error-as-value pattern
-- ❌ Expression caching
-- ❌ Derive transform
-- ❌ Automated tests infrastructure
-- ❌ Remaining transforms (sort, rename, aggregate, etc.)
+3. **IndexedDB structured clone**: IndexedDB requires structured-cloneable objects. PapaParse and Arquero objects needed JSON serialization via `JSON.parse(JSON.stringify())`. Embeds data directly in source/model objects (tech debt for Phase 1).
 
 ---
 
@@ -1301,99 +1258,6 @@ Bracket notation for spaces/special chars:
 - Need to implement both systems
 - Dual syntax to document
 - More complex UI (predicate builder + expression input)
-
----
-
-## Open Questions
-
-### Q1: Should Phase 1 support ternary operator `? :`?
-
-**Pro:**
-- Very useful for derive expressions: `profit > 0 ? "Gain" : "Loss"`
-- Common pattern users expect
-- Easy to implement (jsep supports it)
-
-**Con:**
-- Adds complexity to validator
-- Phase 1 goal is simplicity
-- Can add in Phase 2
-
-**Recommendation:** Defer to Phase 2
-
----
-
-### Q2: Should we support method-style function calls in Phase 2?
-
-```javascript
-// Option A: Function style only
-upper(name)
-length(name)
-
-// Option B: Method style only
-name.upper()
-name.length()
-
-// Option C: Both
-upper(name)
-name.upper()
-```
-
-**Recommendation:** Both (Phase 2)
-- OpenRefine shows method style is intuitive
-- jsep supports MemberExpression
-- Can transform both to same Arquero ops
-
----
-
-### Q3: How to handle type coercion?
-
-```javascript
-// JavaScript allows:
-"5" + 3  →  "53" (string concatenation)
-"5" - 3  →  2 (numeric subtraction)
-
-// Should Chumak:
-// A) Follow JavaScript semantics
-// B) Require explicit type conversion
-// C) Warn but allow
-```
-
-**Recommendation:** A for Phase 1, C for Phase 2
-- Phase 1: Follow JavaScript (least surprising)
-- Phase 2: Add warnings for mixed-type operations
-- Phase 3: Optional strict mode
-
----
-
-## Next Steps
-
-1. **Update SPECIFICATION.md** with parser design decisions
-   - Add predicate object syntax
-   - Change `and`/`or` to `&&`/`||`
-   - Document Phase 1 limitations
-   - Add security notes
-
-2. **Create parser POC** to validate approach
-   - jsep integration
-   - Basic AST validation
-   - Simple interpretation
-   - Verify performance
-
-3. **Design predicate builder UI mockups**
-   - Form-based filter builder
-   - "Advanced" toggle to expression mode
-   - Error display
-
-4. **Write detailed API documentation**
-   - Predicate object schema
-   - Expression syntax reference
-   - Function reference (Phase 2+)
-   - Error message catalog
-
-5. **Set up test infrastructure**
-   - Mocha + Chai (CDN-loaded)
-   - Test runner HTML
-   - Fixture data
 
 ---
 

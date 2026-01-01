@@ -24,18 +24,9 @@ Chumak is a browser-based data wrangling tool for cleaning and transforming tabu
 
 ### 1.4 Current Status
 
-**Phase 0 — Walking Skeleton: ✅ COMPLETE**
+**Phase 0: ✅ Complete** → **Phase 1: In Progress** (MVP - remaining transforms)
 
-Core features implemented and validated:
-- ✅ Expression parser with security validation
-- ✅ Filter & Select transforms
-- ✅ Step navigation (view intermediate results, remove steps)
-- ✅ IndexedDB persistence with auto-save
-- ✅ CSV import with configuration dialog
-- ✅ CSV and workflow JSON export
-- ✅ Automated testing infrastructure with comprehensive test suite
-
-**Next:** Phase 1 — MVP (remaining transforms)
+See [CLAUDE.md](../CLAUDE.md) for detailed current status and session context.
 
 ---
 
@@ -427,55 +418,18 @@ Option: embed source data (for full reproducibility) vs. reference only (smaller
 
 ## 8. Phased Roadmap
 
-### Phase 0 — Walking Skeleton (Architecture Validation) ✅ COMPLETE
+### Phase 0 — Walking Skeleton ✅
 
-**Goal:** Minimal end-to-end implementation that exercises all architectural layers with one complete path through the system. Proves the architecture works before building on it.
+**Goal:** Minimal end-to-end implementation validating all architectural layers.
 
-**Status:** ✅ Complete
+**Completed:** Expression parser (jsep + AST validation/interpretation), filter & select transforms, IndexedDB persistence, CSV import/export, workflow JSON export/import, step navigation.
 
-| Component | Implemented |
-|-----------|-------------|
-| Expression parser | ✅ jsep integration, AST validation with operator/column whitelisting, safe AST interpretation, error formatting with position highlighting |
-| Transforms | ✅ **filter** (with compound expressions), **select** |
-| UI | ✅ Filter dialog with live validation, Select dialog, data preview |
-| Export | ✅ CSV export, workflow JSON export/import |
-| Persistence | ✅ IndexedDB with auto-save (added during implementation) |
-| Testing | ✅ Manual testing complete |
+**Critical discoveries:**
+- jsep parses `&&`/`||` as `BinaryExpression` (not `LogicalExpression`)
+- Arquero's `.filter()` rejects try-catch blocks (workaround: `.objects()` → filter → `aq.from()`)
+- IndexedDB structured clone requires JSON serialization (tech debt: data embedded in sources/models)
 
-**Success criteria (all met):**
-- ✅ Can import CSV file
-- ✅ Can filter with expressions: `sales > 1000`, `region == "North"`, `sales > 1000 && region == "North"`
-- ✅ Can select subset of columns
-- ✅ Can export filtered+selected data as CSV
-- ✅ Can export workflow as JSON and reimport to replay transformations
-- ✅ See error message for invalid expressions (e.g., `sales > missing_column`)
-- ✅ Data persists across page reloads (IndexedDB)
-
-**Implementation discoveries:**
-- jsep parses `&&` and `||` as `BinaryExpression` (not `LogicalExpression` as ESTree spec suggests)
-- Arquero's `.filter()` rejects try-catch blocks; workaround: convert to array, filter, convert back
-- IndexedDB structured clone requires JSON serialization; embedded data in sources/models (tech debt for Phase 1)
-
-**Implementation complete:**
-- Expression parser layer (expression-parser.js, ast-validator.js, ast-interpreter.js, error-formatter.js)
-- Transform engine with filter & select (transforms.js)
-- Storage with IndexedDB auto-save (storage.js)
-- Step navigation & removal
-- UI integration in `index.html` and `chumak-app.js`
-
-**Key features working:**
-- ✅ CSV import with configuration dialog
-- ✅ Filter transform (with `&&`, `||`, comparisons)
-- ✅ Select transform (column selection)
-- ✅ View intermediate results (click any step)
-- ✅ Remove steps with recomputation
-- ✅ Export CSV and workflow JSON
-- ✅ Data persistence across reloads
-
-**Deferred to Phase 1:**
-- Remaining transforms (derive, sort, rename, remove, aggregate, fillna, dropna, replace)
-- Enhanced parser (bracket notation, error suggestions)
-- Predicate object GUI builder (optional)
+**Implementation:** See `src/expression-parser.js`, `src/ast-validator.js`, `src/ast-interpreter.js`, `src/transforms.js`, `src/storage.js`
 
 ---
 
@@ -538,20 +492,7 @@ The following are **out of scope** for the foreseeable future:
 
 ---
 
-## 10. Open Questions
-
-| Question | Status | Notes |
-|----------|--------|-------|
-| ~~Expression syntax~~ | ✅ **Resolved** | Use bare identifiers with bracket escape. See PARSER-DESIGN-DECISION.md |
-| ~~Error handling~~ | ✅ **Resolved** | Position-aware errors with suggestions. See PARSER-DESIGN-DECISION.md |
-| Large file UX | Open | Stream parsing with progress bar? Or reject files over limit? |
-| Step descriptions | Open | Auto-generated, user-editable, or both? |
-| Undo granularity | Open | Is step-level revert sufficient, or need finer undo? |
-| Visual identity | Open | Logo, color scheme — star/navigation theme? |
-
----
-
-## 11. Appendix: Expression Syntax
+## 10. Appendix: Expression Syntax
 
 > **Note**: Full parser design details in [PARSER-DESIGN-DECISION.md](PARSER-DESIGN-DECISION.md)
 
@@ -657,7 +598,7 @@ Available columns: Region, Sales, Revenue, Cost
 
 ---
 
-## 12. Appendix: Branding Notes
+## 11. Appendix: Branding Notes
 
 **Name:** Chumak (Чумак)
 
@@ -671,9 +612,9 @@ Available columns: Region, Sales, Revenue, Cost
 
 **Tone:** Practical, trustworthy, quietly cultural — a tool that gets the job done, with a story behind it.
 
-## 13. Testing Strategy
+## 12. Testing Strategy
 
-### 13.1 Philosophy
+### 12.1 Philosophy
 
 - **Test-first always** — MANDATORY: write tests before implementing new features
 - **Every transform operation has tests** — the core logic must be reliable
@@ -681,7 +622,7 @@ Available columns: Region, Sales, Revenue, Cost
 - **Tests are part of the repo** — anyone can run them by opening a file
 - **90%+ coverage maintained** — especially for transform compiler and expression parser
 
-### 13.2 Testing Stack ✅ IMPLEMENTED
+### 12.2 Testing Stack ✅ IMPLEMENTED
 
 **Current status: Comprehensive test suite with high coverage**
 
@@ -712,7 +653,7 @@ CDN-loaded stack (no build required):
 
 **To run tests:** Open `src/tests/runner.html` in browser
 
-### 13.3 Test Categories
+### 12.3 Test Categories
 
 #### Unit Tests (Priority: Critical)
 
@@ -743,7 +684,7 @@ CDN-loaded stack (no build required):
 | **Step interaction** | Click, revert, delete work | Click step shows snapshot; revert removes subsequent |
 | **JSON viewer** | Displays current transforms | Add steps, JSON panel shows them |
 
-### 13.4 Test Coverage Targets
+### 12.4 Test Coverage Targets
 
 | Phase | Coverage Target | Focus |
 |-------|-----------------|-------|
@@ -752,7 +693,7 @@ CDN-loaded stack (no build required):
 | Phase 2 | High coverage for joins | Join types, key matching, edge cases |
 | Phase 3 | Maintain coverage | New transforms tested before merge |
 
-### 13.5 Test Data
+### 12.5 Test Data
 
 Maintain a set of fixture files:
 
@@ -766,7 +707,7 @@ Maintain a set of fixture files:
 └── unicode.csv             # Non-ASCII content, UTF-8
 ```
 
-### 13.6 Test Patterns
+### 12.6 Test Patterns
 
 #### Transform Test Pattern
 
@@ -842,7 +783,7 @@ describe('workflow persistence', () => {
 });
 ```
 
-### 13.7 Running Tests
+### 12.7 Running Tests
 
 #### Development
 
@@ -859,7 +800,7 @@ If GitHub Actions added later:
 - run: npx mocha-headless-chrome -f http://localhost:3000/tests/runner.html
 ```
 
-### 13.8 Test-Driven Development Workflow
+### 12.8 Test-Driven Development Workflow
 
 For each new transform:
 
