@@ -1217,3 +1217,137 @@ body {
   background: var(--color-red);
   color: var(--color-white);
 }
+
+/* ============================================
+   Slide-in Panel (for Join dialog)
+   ============================================ */
+
+.slide-panel-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
+  z-index: 9998;
+  animation: fadeIn 0.2s ease-in-out;
+}
+
+.slide-panel {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  width: min(600px, 90vw);
+  background: var(--color-white);
+  box-shadow: -4px 0 12px rgba(0, 0, 0, 0.15);
+  z-index: 9999;
+  display: flex;
+  flex-direction: column;
+  animation: slideInRight 0.3s ease-out;
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(100%);
+  }
+  to {
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.slide-panel__header {
+  padding: 1.5rem;
+  border-bottom: 1px solid var(--color-medium-gray);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  background: var(--color-light-gray);
+}
+
+.slide-panel__title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-midnight-blue);
+  margin: 0;
+}
+
+.slide-panel__close {
+  background: none;
+  border: none;
+  font-size: 2rem;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--color-dark-gray);
+  padding: 0;
+  width: 2rem;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: background 0.2s, color 0.2s;
+}
+
+.slide-panel__close:hover {
+  background: rgba(0, 0, 0, 0.1);
+  color: var(--color-midnight-blue);
+}
+
+.slide-panel__content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1.5rem;
+}
+
+.slide-panel__footer {
+  padding: 1rem 1.5rem;
+  border-top: 1px solid var(--color-medium-gray);
+  display: flex;
+  gap: 0.75rem;
+  justify-content: flex-end;
+  background: var(--color-light-gray);
+}
+
+/* Radio button styling for join type selection */
+.radio-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--color-medium-gray);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  user-select: none;
+}
+
+.radio-label:hover {
+  background: var(--color-light-gray);
+  border-color: var(--color-cyan);
+}
+
+.radio-label input[type="radio"] {
+  margin: 0;
+  cursor: pointer;
+}
+
+.radio-label input[type="radio"]:checked + span {
+  font-weight: var(--font-weight-medium);
+  color: var(--color-midnight-blue);
+}
+
+.radio-label:has(input:checked) {
+  background: var(--color-light-gray);
+  border-color: var(--color-cyan);
+  box-shadow: 0 0 0 1px var(--color-cyan);
+}

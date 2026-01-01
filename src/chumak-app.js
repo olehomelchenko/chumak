@@ -47,6 +47,20 @@ function chumakApp() {
         filterExpression: '',
         filterError: null,
 
+        // Join dialog state
+        joinDialogState: {
+            rightModel: null,         // Selected model/source to join with
+            joinType: 'left',         // 'inner', 'left', 'right', 'full', 'cross'
+            keyPairs: [[null, null]], // Array of [leftKey, rightKey] pairs
+            suffixes: ['_x', '_y'],   // Column name suffixes for conflicts
+            availableTargets: [],     // Models and sources available for joining
+            leftColumns: [],          // Current model's columns
+            rightColumns: [],         // Right model's columns
+            previewData: null,        // Preview result
+            previewError: null,       // Preview error message
+            isPreviewing: false       // Loading state for preview
+        },
+
         // Initialization
         async init() {
             console.log('Initializing Chumak...');
@@ -94,6 +108,9 @@ function chumakApp() {
                 // Clear filter state
                 this.filterExpression = '';
                 this.filterError = null;
+            } else if (dialogName === 'join') {
+                // Initialize join dialog
+                this.initializeJoinDialog();
             }
         },
 
@@ -113,6 +130,20 @@ function chumakApp() {
                 duplicateWarning: ''
             };
             this.importFileData = null;
+
+            // Reset join dialog state
+            this.joinDialogState = {
+                rightModel: null,
+                joinType: 'left',
+                keyPairs: [[null, null]],
+                suffixes: ['_x', '_y'],
+                availableTargets: [],
+                leftColumns: [],
+                rightColumns: [],
+                previewData: null,
+                previewError: null,
+                isPreviewing: false
+            };
         },
 
         // CSV import: Step 1 - Show import dialog
@@ -443,7 +474,8 @@ function chumakApp() {
 
                 // Apply to current data using Arquero
                 const table = aq.from(this.currentData);
-                const result = applyTransform(table, transform, this.columns);
+                const context = { sources: this.sources, models: this.models };
+                const result = applyTransform(table, transform, this.columns, context);
 
                 // Update model state
                 this.activeModel.steps.push(transform);
@@ -518,7 +550,8 @@ function chumakApp() {
 
                 // Apply to current data using Arquero
                 const table = aq.from(this.currentData);
-                const result = applyTransform(table, transform, this.columns);
+                const context = { sources: this.sources, models: this.models };
+                const result = applyTransform(table, transform, this.columns, context);
 
                 // Update model state
                 this.activeModel.steps.push(transform);
@@ -541,6 +574,206 @@ function chumakApp() {
             } catch (error) {
                 console.error('Filter transform error:', error);
                 alert('Error applying filter: ' + error.message);
+            }
+        },
+
+        // Join transform methods
+        initializeJoinDialog() {
+            // Build list of available join targets (all models and sources except current)
+            const availableTargets = [];
+
+            // Add all models (except current one)
+            this.models.forEach(model => {
+                if (model.id !== this.activeModel.id) {
+                    availableTargets.push({
+                        id: model.id,
+                        name: model.name,
+                        type: 'model',
+                        sourceName: this.sources.find(s => s.id === model.sourceId)?.name || 'Unknown'
+                    });
+                }
+            });
+
+            // Add all sources
+            this.sources.forEach(source => {
+                availableTargets.push({
+                    id: source.id,
+                    name: source.name,
+                    type: 'source',
+                    sourceName: source.name
+                });
+            });
+
+            this.joinDialogState = {
+                rightModel: availableTargets[0]?.id || null,
+                joinType: 'left',
+                keyPairs: [[null, null]],
+                suffixes: ['_x', '_y'],
+                availableTargets: availableTargets,
+                leftColumns: this.columns,
+                rightColumns: this.getColumnsForTarget(availableTargets[0]?.id),
+                previewData: null,
+                previewError: null,
+                isPreviewing: false
+            };
+        },
+
+        getColumnsForTarget(targetId) {
+            if (!targetId) return [];
+
+            // Try to find in models first
+            const model = this.models.find(m => m.id === targetId);
+            if (model && model.data && model.data.length > 0) {
+                return Object.keys(model.data[0]);
+            }
+
+            // Try to find in sources
+            const source = this.sources.find(s => s.id === targetId);
+            if (source && source.data && source.data.length > 0) {
+                return Object.keys(source.data[0]);
+            }
+
+            return [];
+        },
+
+        onJoinTargetChange() {
+            // Update right columns when target changes
+            this.joinDialogState.rightColumns = this.getColumnsForTarget(this.joinDialogState.rightModel);
+            // Reset key pairs
+            this.joinDialogState.keyPairs = [[null, null]];
+            // Clear preview
+            this.joinDialogState.previewData = null;
+            this.joinDialogState.previewError = null;
+        },
+
+        addJoinKeyPair() {
+            this.joinDialogState.keyPairs.push([null, null]);
+        },
+
+        removeJoinKeyPair(index) {
+            if (this.joinDialogState.keyPairs.length > 1) {
+                this.joinDialogState.keyPairs.splice(index, 1);
+            }
+        },
+
+        async previewJoin() {
+            const state = this.joinDialogState;
+
+            // Validate inputs
+            if (!state.rightModel) {
+                state.previewError = 'Please select a model or source to join with';
+                return;
+            }
+
+            // Validate key pairs (at least one complete pair required, unless cross join)
+            if (state.joinType !== 'cross') {
+                const hasCompleteKeyPair = state.keyPairs.some(pair => pair[0] && pair[1]);
+                if (!hasCompleteKeyPair) {
+                    state.previewError = 'Please specify at least one complete key pair';
+                    return;
+                }
+
+                // Filter out incomplete pairs for the join
+                const completePairs = state.keyPairs.filter(pair => pair[0] && pair[1]);
+                if (completePairs.length === 0) {
+                    state.previewError = 'Please specify at least one complete key pair';
+                    return;
+                }
+            }
+
+            state.isPreviewing = true;
+            state.previewError = null;
+            state.previewData = null;
+
+            try {
+                // Build transform
+                const transform = {
+                    join: {
+                        right: state.rightModel,
+                        on: state.keyPairs.filter(pair => pair[0] && pair[1]),
+                        how: state.joinType,
+                        suffixes: state.suffixes
+                    }
+                };
+
+                // Apply transform to preview
+                const table = aq.from(this.currentData);
+                const context = { sources: this.sources, models: this.models };
+                const result = applyTransform(table, transform, this.columns, context);
+
+                // Get preview (first 100 rows)
+                const allData = result.objects();
+                state.previewData = {
+                    rows: allData.slice(0, 100),
+                    totalRows: allData.length,
+                    columns: result.columnNames()
+                };
+
+            } catch (error) {
+                console.error('Join preview error:', error);
+                state.previewError = error.message;
+            } finally {
+                state.isPreviewing = false;
+            }
+        },
+
+        async applyJoinTransform() {
+            const state = this.joinDialogState;
+
+            // Validate inputs
+            if (!state.rightModel) {
+                alert('Please select a model or source to join with');
+                return;
+            }
+
+            // Validate key pairs (unless cross join)
+            if (state.joinType !== 'cross') {
+                const completePairs = state.keyPairs.filter(pair => pair[0] && pair[1]);
+                if (completePairs.length === 0) {
+                    alert('Please specify at least one complete key pair');
+                    return;
+                }
+            }
+
+            try {
+                // Build transform
+                const completePairs = state.keyPairs.filter(pair => pair[0] && pair[1]);
+                const transform = {
+                    join: {
+                        right: state.rightModel,
+                        on: completePairs,
+                        how: state.joinType,
+                        suffixes: state.suffixes
+                    }
+                };
+
+                // Apply transform
+                const table = aq.from(this.currentData);
+                const context = { sources: this.sources, models: this.models };
+                const result = applyTransform(table, transform, this.columns, context);
+
+                // Update model state
+                this.activeModel.steps.push(transform);
+
+                // Update current data and columns
+                const transformedData = result.objects();
+                this.currentData = transformedData;
+                this.columns = result.columnNames();
+
+                // Update the model's data (create clean copy for IndexedDB)
+                this.activeModel.data = JSON.parse(JSON.stringify(transformedData));
+
+                // Update pagination
+                this.updatePagination();
+
+                // Auto-save to IndexedDB
+                await autoSave(this.sources, this.models);
+
+                // Close dialog
+                this.closeDialog();
+            } catch (error) {
+                console.error('Join transform error:', error);
+                alert('Error applying join: ' + error.message);
             }
         },
 
@@ -965,7 +1198,8 @@ function chumakApp() {
                 }
 
                 try {
-                    table = applyTransform(table, step, columns);
+                    const context = { sources: this.sources, models: this.models };
+                    table = applyTransform(table, step, columns, context);
 
                     // Update column schema after each step
                     columns = this.getColumnsAfterStep(columns, step);
