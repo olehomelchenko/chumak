@@ -830,6 +830,41 @@
       </div>
 
       <div class="modal__content">
+        <!-- Pattern Matching Section -->
+        <div class="form-group" style="margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--color-border);">
+          <label class="form-label">Pattern Matching (optional):</label>
+
+          <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
+            <select class="form-input" x-model="selectPatternMode" @change="applyColumnPattern()" style="width: 120px;">
+              <option value="include">Include</option>
+              <option value="exclude">Exclude</option>
+            </select>
+
+            <select class="form-input" x-model="selectPatternMatchType" @change="applyColumnPattern()" style="width: 140px;">
+              <option value="prefix">Starts with</option>
+              <option value="suffix">Ends with</option>
+              <option value="exact">Exact match</option>
+            </select>
+
+            <input
+              type="text"
+              class="form-input"
+              x-model="selectPatternText"
+              @input="applyColumnPattern()"
+              placeholder="e.g., sales_ or _2023"
+              style="flex: 1;"
+            >
+          </div>
+
+          <p class="form-help">
+            Use patterns to quickly select/deselect columns. Examples: "sales_" for columns starting with "sales_", "_2023" for year columns
+          </p>
+
+          <div x-show="selectPatternText.trim() !== ''" style="margin-top: 0.5rem; font-size: 0.875rem; color: var(--color-dark-gray);">
+            <span x-text="getPatternMatchInfo()"></span>
+          </div>
+        </div>
+
         <label class="form-label">Choose columns to keep:</label>
 
         <div class="checkbox-list">
@@ -858,7 +893,7 @@
                 </tr>
               </thead>
               <tbody>
-                <template x-for="row in currentData?.slice(0, 3) || []" :key="row">
+                <template x-for="(row, rowIndex) in currentData?.slice(0, 3) || []" :key="rowIndex">
                   <tr class="data-table__row">
                     <template x-for="column in getSelectedColumnsList()" :key="column">
                       <td class="data-table__cell" x-text="row[column]"></td>

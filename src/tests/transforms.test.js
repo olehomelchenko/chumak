@@ -56,6 +56,56 @@ describe('Transform Engine', () => {
     });
   });
 
+  describe('matchColumnPattern()', () => {
+    it('should match columns with prefix pattern', () => {
+      const columns = ['sales_2023', 'sales_2024', 'revenue', 'cost'];
+      const result = matchColumnPattern(columns, { mode: 'include', pattern: 'sales_', matchType: 'prefix' });
+      expect(result).to.deep.equal(['sales_2023', 'sales_2024']);
+    });
+
+    it('should match columns with suffix pattern', () => {
+      const columns = ['sales_2023', 'revenue_2023', 'cost', 'profit_2023'];
+      const result = matchColumnPattern(columns, { mode: 'include', pattern: '_2023', matchType: 'suffix' });
+      expect(result).to.deep.equal(['sales_2023', 'revenue_2023', 'profit_2023']);
+    });
+
+    it('should match columns with exact pattern', () => {
+      const columns = ['sales', 'Sales', 'revenue', 'SALES'];
+      const result = matchColumnPattern(columns, { mode: 'include', pattern: 'sales', matchType: 'exact' });
+      expect(result).to.deep.equal(['sales']);
+    });
+
+    it('should exclude columns with prefix pattern', () => {
+      const columns = ['sales_2023', 'sales_2024', 'revenue', 'cost'];
+      const result = matchColumnPattern(columns, { mode: 'exclude', pattern: 'sales_', matchType: 'prefix' });
+      expect(result).to.deep.equal(['revenue', 'cost']);
+    });
+
+    it('should exclude columns with suffix pattern', () => {
+      const columns = ['sales_2023', 'revenue_2023', 'cost', 'profit'];
+      const result = matchColumnPattern(columns, { mode: 'exclude', pattern: '_2023', matchType: 'suffix' });
+      expect(result).to.deep.equal(['cost', 'profit']);
+    });
+
+    it('should return all columns when pattern is empty', () => {
+      const columns = ['sales', 'revenue', 'cost'];
+      const result = matchColumnPattern(columns, { mode: 'include', pattern: '', matchType: 'prefix' });
+      expect(result).to.deep.equal(['sales', 'revenue', 'cost']);
+    });
+
+    it('should return empty array when no columns match', () => {
+      const columns = ['sales', 'revenue', 'cost'];
+      const result = matchColumnPattern(columns, { mode: 'include', pattern: 'profit_', matchType: 'prefix' });
+      expect(result).to.deep.equal([]);
+    });
+
+    it('should be case-sensitive', () => {
+      const columns = ['Sales', 'sales', 'SALES'];
+      const result = matchColumnPattern(columns, { mode: 'include', pattern: 'sales', matchType: 'prefix' });
+      expect(result).to.deep.equal(['sales']);
+    });
+  });
+
   describe('applyTransform() - FILTER', () => {
     it('should filter with simple comparison', () => {
       const table = createTestTable();

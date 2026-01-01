@@ -41,6 +41,9 @@ function chumakApp() {
 
         // Transform state
         selectedColumns: [],  // For Select dialog checkboxes
+        selectPatternText: '',  // Pattern text for select dialog
+        selectPatternMatchType: 'prefix',  // 'prefix', 'suffix', or 'exact'
+        selectPatternMode: 'include',  // 'include' or 'exclude'
         filterExpression: '',
         filterError: null,
 
@@ -83,6 +86,10 @@ function chumakApp() {
             if (dialogName === 'select') {
                 // Select all columns by default
                 this.selectedColumns = this.columns.map(() => true);
+                // Reset pattern state
+                this.selectPatternText = '';
+                this.selectPatternMatchType = 'prefix';
+                this.selectPatternMode = 'include';
             } else if (dialogName === 'filter') {
                 // Clear filter state
                 this.filterExpression = '';
@@ -371,6 +378,55 @@ function chumakApp() {
 
         getSelectedColumnsList() {
             return this.columns.filter((col, idx) => this.selectedColumns[idx]);
+        },
+
+        /**
+         * Apply column pattern to update checkbox selections
+         */
+        applyColumnPattern() {
+            if (!this.selectPatternText || this.selectPatternText.trim() === '') {
+                // No pattern - do nothing
+                return;
+            }
+
+            // Get matching columns
+            const matched = matchColumnPattern(this.columns, {
+                pattern: this.selectPatternText,
+                matchType: this.selectPatternMatchType,
+                mode: this.selectPatternMode
+            });
+
+            // Update selectedColumns based on matched columns
+            this.selectedColumns = this.columns.map(col => matched.includes(col));
+        },
+
+        /**
+         * Get info text about current pattern matching
+         */
+        getPatternMatchInfo() {
+            if (!this.selectPatternText || this.selectPatternText.trim() === '') {
+                return '';
+            }
+
+            const matched = matchColumnPattern(this.columns, {
+                pattern: this.selectPatternText,
+                matchType: this.selectPatternMatchType,
+                mode: this.selectPatternMode
+            });
+
+            const totalColumns = this.columns.length;
+            const matchedCount = matched.length;
+            const removedCount = totalColumns - matchedCount;
+
+            if (matchedCount === 0) {
+                return 'No columns match this pattern';
+            }
+
+            if (this.selectPatternMode === 'include') {
+                return `${matchedCount} of ${totalColumns} columns selected, ${removedCount} will be removed`;
+            } else {
+                return `${matchedCount} of ${totalColumns} columns excluded, ${removedCount} will be kept`;
+            }
         },
 
         async applySelectTransform() {

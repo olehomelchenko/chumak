@@ -221,7 +221,7 @@ Inspired by Vega-Lite. Each transform is one object in an array.
 | Operation | JSON Syntax | Notes |
 |-----------|-------------|-------|
 | **Filter** | `{ "filter": "expression" }` | Keep rows matching condition |
-| **Select** | `{ "select": ["col1", "col2"] }` | Keep only listed columns |
+| **Select** | `{ "select": ["col1", "col2"] }` | Keep only listed columns. UI supports pattern matching (prefix/suffix/exact) for quick selection |
 | **Remove** | `{ "remove": ["col1"] }` | Drop listed columns |
 | **Rename** | `{ "rename": { "old": "new" } }` | Rename columns |
 | **Sort** | `{ "sort": { "field": "col", "order": "ascending" } }` | Single or multi-field |
@@ -486,9 +486,9 @@ Option: embed source data (for full reproducibility) vs. reference only (smaller
 | Component | Status |
 |-----------|--------|
 | **Data import** | ✅ CSV from file (with config dialog) |
-| **Transforms** | ✅ filter, select / ⏳ derive, sort, rename, remove, aggregate, fillna, dropna, replace |
+| **Transforms** | ✅ filter, select (with pattern matching) / ⏳ derive, sort, rename, remove, aggregate, fillna, dropna, replace |
 | **Expression parser** | ✅ Basic operators, security validation / ⏳ Bracket notation, error suggestions |
-| **UI** | ✅ Full layout, step navigation, dialogs / ⏳ Remaining transform dialogs |
+| **UI** | ✅ Full layout, step navigation, dialogs, pattern matching for select / ⏳ Remaining transform dialogs |
 | **Persistence** | ✅ IndexedDB auto-save / ⏳ Workflow import |
 | **Export** | ✅ CSV, workflow JSON |
 | **Testing** | ✅ Comprehensive test infrastructure (Mocha + Chai) with high coverage |

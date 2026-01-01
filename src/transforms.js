@@ -8,6 +8,41 @@
 // Note: Arquero is loaded globally as window.aq from CDN
 
 /**
+ * Match columns based on pattern (prefix/suffix/exact)
+ * @param {Array<string>} columns - All column names
+ * @param {Object} options - Pattern matching options
+ * @param {string} options.pattern - Pattern to match
+ * @param {string} options.matchType - 'prefix', 'suffix', or 'exact'
+ * @param {string} options.mode - 'include' or 'exclude'
+ * @returns {Array<string>} Filtered column names
+ */
+function matchColumnPattern(columns, options) {
+  const { pattern, matchType, mode } = options;
+
+  // If pattern is empty, return all columns for include mode, none for exclude
+  if (!pattern || pattern.trim() === '') {
+    return mode === 'include' ? [...columns] : [];
+  }
+
+  let matched = [];
+
+  if (matchType === 'prefix') {
+    matched = columns.filter(col => col.startsWith(pattern));
+  } else if (matchType === 'suffix') {
+    matched = columns.filter(col => col.endsWith(pattern));
+  } else if (matchType === 'exact') {
+    matched = columns.filter(col => col === pattern);
+  }
+
+  // Return matched or inverse based on mode
+  if (mode === 'include') {
+    return matched;
+  } else {
+    return columns.filter(col => !matched.includes(col));
+  }
+}
+
+/**
  * Apply a single transform to an Arquero table
  * @param {Object} table - Arquero table
  * @param {Object} transform - Transform specification
