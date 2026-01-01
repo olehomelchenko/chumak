@@ -106,14 +106,14 @@ function applyTransform(table, transform, schema, context = null) {
     let rightTable = null;
     let rightName = 'unknown';
 
-    // Try to find in models first
-    const rightModel = context.models.find(m => m.id === right);
+    // Try to find in models first (by ID or name)
+    const rightModel = context.models.find(m => m.id === right || m.name === right);
     if (rightModel) {
       rightTable = aq.from(rightModel.data);
       rightName = rightModel.name;
     } else {
-      // Try to find in sources
-      const rightSource = context.sources.find(s => s.id === right);
+      // Try to find in sources (by ID or name)
+      const rightSource = context.sources.find(s => s.id === right || s.name === right);
       if (rightSource) {
         rightTable = aq.from(rightSource.data);
         rightName = rightSource.name;
@@ -155,13 +155,62 @@ function applyTransform(table, transform, schema, context = null) {
     return result;
   }
 
-  // TODO: Add more transforms
-  // - derive (needs expression parser)
-  // - sort, rename, remove, etc.
+  // DERIVE: Create new columns from expressions
+  if (transform.derive) {
+    const derivations = transform.derive;
+    let resultRows = table.objects();
+
+    for (const [newCol, expression] of Object.entries(derivations)) {
+      const ast = parseExpression(expression);
+      const validation = validateAST(ast, schema);
+      if (!validation.valid) {
+        throw new Error(`Derive validation failed for '${newCol}':\n${formatError(validation.error, expression)}`);
+      }
+
+      resultRows = resultRows.map(row => {
+        try {
+          // Use a spread to avoid mutating the original row if possible,
+          // though since we did .objects() we are already working on copies.
+          const val = interpretAST(ast, row);
+          return { ...row, [newCol]: val };
+        } catch (error) {
+          console.error(`Derive error for column '${newCol}' on row:`, error, row);
+          return { ...row, [newCol]: { type: 'error', message: error.message } };
+        }
+      });
+    }
+
+    const result = aq.from(resultRows);
+    perfLogger.log(describeTransform(transform), table, result, performance.now() - start);
+    return result;
+  }
+
+  // SORT: Sort by column(s)
+  if (transform.sort) {
+    const { field, order } = transform.sort;
+    const result = order === 'desc' ? table.orderby(aq.desc(field)) : table.orderby(field);
+    perfLogger.log(describeTransform(transform), table, result, performance.now() - start);
+    return result;
+  }
+
+  // RENAME: Rename columns
+  if (transform.rename) {
+    const result = table.rename(transform.rename);
+    perfLogger.log(describeTransform(transform), table, result, performance.now() - start);
+    return result;
+  }
+
+  // REMOVE: Drop columns
+  if (transform.remove) {
+    const result = table.not(...transform.remove);
+    perfLogger.log(describeTransform(transform), table, result, performance.now() - start);
+    return result;
+  }
 
   const transformType = Object.keys(transform)[0];
   throw new Error(`Transform type '${transformType}' not implemented yet`);
 }
+
 
 /**
  * Generate human-readable description for steps list
@@ -192,13 +241,15 @@ function describeTransform(transform, rightName = null) {
   }
 
   if (transform.filter) {
-    // TODO: Pretty-print filter expression
-    return 'Filter';
+    const expr = transform.filter;
+    // Simple truncation for long expressions
+    const displayExpr = expr.length > 30 ? expr.substring(0, 27) + '...' : expr;
+    return `Filter: ${displayExpr}`;
   }
 
   if (transform.join) {
     const how = transform.join.how || 'inner';
-    const name = rightName || 'table';
+    const name = rightName || (transform.join.right.startsWith('mdl_') ? 'model' : 'source');
     return `Join (${how}): ${name}`;
   }
 

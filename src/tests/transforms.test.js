@@ -288,7 +288,7 @@ describe('Transform Engine', () => {
     it('should describe filter transform', () => {
       const transform = { filter: 'sales > 1000' };
       const desc = describeTransform(transform);
-      expect(desc).to.equal('Filter');
+      expect(desc).to.equal('Filter: sales > 1000');
     });
 
     it('should describe derive transform', () => {
@@ -297,6 +297,20 @@ describe('Transform Engine', () => {
       expect(desc).to.include('Derive:');
       expect(desc).to.include('profit');
       expect(desc).to.include('margin');
+    });
+
+    it('should describe join transform', () => {
+      const transform = {
+        join: {
+          right: 'mdl_123',
+          how: 'left'
+        }
+      };
+      const desc = describeTransform(transform);
+      expect(desc).to.equal('Join (left): model');
+
+      const descWithName = describeTransform(transform, 'Sales Data');
+      expect(descWithName).to.equal('Join (left): Sales Data');
     });
 
     it('should describe sort transform', () => {

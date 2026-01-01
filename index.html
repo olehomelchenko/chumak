@@ -116,7 +116,7 @@
           <i data-feather="filter"></i>
           <span>Filter</span>
         </button>
-        <button class="ribbon__button ribbon__button--disabled" disabled title="Sort rows (Coming soon)">
+        <button class="ribbon__button" @click="openDialog('sort')" title="Sort rows">
           <i data-feather="arrow-up-down"></i>
           <span>Sort</span>
         </button>
@@ -137,11 +137,11 @@
           <i data-feather="columns"></i>
           <span>Select</span>
         </button>
-        <button class="ribbon__button ribbon__button--disabled" disabled title="Remove columns (Coming soon)">
+        <button class="ribbon__button" @click="openDialog('remove')" title="Remove columns">
           <i data-feather="x-square"></i>
           <span>Remove</span>
         </button>
-        <button class="ribbon__button ribbon__button--disabled" disabled title="Rename columns (Coming soon)">
+        <button class="ribbon__button" @click="openDialog('rename')" title="Rename columns">
           <i data-feather="type"></i>
           <span>Rename</span>
         </button>
@@ -149,8 +149,7 @@
 
       <!-- Add Column Tab -->
       <div class="ribbon__panel" x-show="ribbonTab === 'add-column'">
-        <button class="ribbon__button ribbon__button--disabled" disabled
-          title="Create new column from expression (Coming soon)">
+        <button class="ribbon__button" @click="openDialog('derive')" title="Create new column from expression">
           <i data-feather="plus-square"></i>
           <span>Derive</span>
         </button>
@@ -736,55 +735,124 @@
       <div class="modal__content">
         <div class="form-group">
           <label class="form-label">New column name:</label>
-          <input type="text" class="form-input" value="profit_margin" placeholder="e.g., profit_margin">
+          <input type="text" class="form-input" x-model="deriveDialogState.columnName"
+            placeholder="e.g., profit_margin">
         </div>
 
         <div class="form-group">
           <label class="form-label">Expression:</label>
-          <input type="text" class="form-input" value="(profit / sales) * 100" placeholder="e.g., revenue - cost">
-          <p class="form-help">Examples: revenue - cost, price * quantity</p>
+          <input type="text" class="form-input" x-model="deriveDialogState.expression"
+            placeholder="e.g., (profit / sales) * 100" @input="validateDeriveExpression()">
+          <p class="form-help">Examples: revenue - cost, price * quantity, (profit / sales) * 100</p>
         </div>
 
-        <div class="preview-section">
-          <div class="preview-section__header">Preview</div>
-          <div class="preview-table">
-            <table class="data-table data-table--compact">
-              <thead>
-                <tr>
-                  <th class="data-table__header">region</th>
-                  <th class="data-table__header data-table__header--number">sales</th>
-                  <th class="data-table__header data-table__header--number">profit</th>
-                  <th class="data-table__header data-table__header--number">profit_margin</th>
-                </tr>
-              </thead>
-              <tbody>
-                <tr class="data-table__row">
-                  <td class="data-table__cell">North</td>
-                  <td class="data-table__cell data-table__cell--number">1,500</td>
-                  <td class="data-table__cell data-table__cell--number">320</td>
-                  <td class="data-table__cell data-table__cell--number">21.3</td>
-                </tr>
-                <tr class="data-table__row">
-                  <td class="data-table__cell">South</td>
-                  <td class="data-table__cell data-table__cell--number">2,100</td>
-                  <td class="data-table__cell data-table__cell--number">450</td>
-                  <td class="data-table__cell data-table__cell--number">21.4</td>
-                </tr>
-                <tr class="data-table__row">
-                  <td class="data-table__cell">West</td>
-                  <td class="data-table__cell data-table__cell--number">1,800</td>
-                  <td class="data-table__cell data-table__cell--number">380</td>
-                  <td class="data-table__cell data-table__cell--number">21.1</td>
-                </tr>
-              </tbody>
-            </table>
+        <!-- Error message -->
+        <div x-show="deriveDialogState.error" x-text="deriveDialogState.error"
+          style="color: var(--color-red); font-size: 13px; margin-top: 8px; white-space: pre-wrap; font-family: var(--font-family-mono);">
+        </div>
+      </div>
+
+      <div class="modal__footer">
+        <button class="button button--secondary" @click="closeDialog()">Cancel</button>
+        <button class="button button--primary" @click="applyDeriveTransform()"
+          :disabled="deriveDialogState.error">Apply</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Sort Dialog -->
+  <div class="modal-backdrop" x-show="activeDialog === 'sort'" @click="closeDialog()" x-cloak>
+    <div class="modal" @click.stop>
+      <div class="modal__header">
+        <h3 class="modal__title">Sort</h3>
+        <button class="modal__close" @click="closeDialog()">×</button>
+      </div>
+
+      <div class="modal__content">
+        <div class="form-group">
+          <label class="form-label">Sort by:</label>
+          <select class="form-input" x-model="sortDialogState.field">
+            <template x-for="col in columns" :key="col">
+              <option :value="col" x-text="col"></option>
+            </template>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label class="form-label">Order:</label>
+          <div style="display: flex; gap: 1rem;">
+            <label class="radio-label">
+              <input type="radio" x-model="sortDialogState.order" value="asc">
+              <span>Ascending</span>
+            </label>
+            <label class="radio-label">
+              <input type="radio" x-model="sortDialogState.order" value="desc">
+              <span>Descending</span>
+            </label>
           </div>
         </div>
       </div>
 
       <div class="modal__footer">
         <button class="button button--secondary" @click="closeDialog()">Cancel</button>
-        <button class="button button--primary" @click="closeDialog()">Apply</button>
+        <button class="button button--primary" @click="applySortTransform()">Apply</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Rename Dialog -->
+  <div class="modal-backdrop" x-show="activeDialog === 'rename'" @click="closeDialog()" x-cloak>
+    <div class="modal" @click.stop style="max-width: 500px;">
+      <div class="modal__header">
+        <h3 class="modal__title">Rename Columns</h3>
+        <button class="modal__close" @click="closeDialog()">×</button>
+      </div>
+
+      <div class="modal__content" style="max-height: 400px; overflow-y: auto;">
+        <p class="form-help" style="margin-bottom: 1rem;">Edit column names below:</p>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; align-items: center;">
+          <template x-for="col in columns" :key="col">
+            <div style="display: contents;">
+              <div
+                style="font-size: 0.875rem; font-weight: 500; color: var(--color-dark-gray); overflow: hidden; text-overflow: ellipsis;"
+                x-text="col"></div>
+              <input type="text" class="form-input" x-model="renameDialogState.renames[col]"
+                style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">
+            </div>
+          </template>
+        </div>
+      </div>
+
+      <div class="modal__footer">
+        <button class="button button--secondary" @click="closeDialog()">Cancel</button>
+        <button class="button button--primary" @click="applyRenameTransform()">Apply</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Remove Dialog -->
+  <div class="modal-backdrop" x-show="activeDialog === 'remove'" @click="closeDialog()" x-cloak>
+    <div class="modal" @click.stop>
+      <div class="modal__header">
+        <h3 class="modal__title">Remove Columns</h3>
+        <button class="modal__close" @click="closeDialog()">×</button>
+      </div>
+
+      <div class="modal__content">
+        <p class="form-help" style="margin-bottom: 1rem;">Select columns to remove from the dataset:</p>
+        <div class="checkbox-list" style="max-height: 300px; overflow-y: auto;">
+          <template x-for="(col, index) in columns" :key="index">
+            <label class="checkbox-item">
+              <input type="checkbox" x-model="removedColumns[index]">
+              <span x-text="col"></span>
+            </label>
+          </template>
+        </div>
+      </div>
+
+      <div class="modal__footer">
+        <button class="button button--secondary" @click="closeDialog()">Cancel</button>
+        <button class="button button--primary" @click="applyRemoveTransform()">Apply</button>
       </div>
     </div>
   </div>

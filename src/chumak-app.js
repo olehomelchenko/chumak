@@ -61,6 +61,27 @@ function chumakApp() {
             isPreviewing: false       // Loading state for preview
         },
 
+        // Derive dialog state
+        deriveDialogState: {
+            columnName: '',
+            expression: '',
+            error: null
+        },
+
+        // Sort dialog state
+        sortDialogState: {
+            field: '',
+            order: 'asc'
+        },
+
+        // Rename dialog state
+        renameDialogState: {
+            renames: {} // Map of oldName -> newName
+        },
+
+        // Remove state
+        removedColumns: [], // For remove dialog checkboxes
+
         // Initialization
         async init() {
             console.log('Initializing Chumak...');
@@ -111,6 +132,16 @@ function chumakApp() {
             } else if (dialogName === 'join') {
                 // Initialize join dialog
                 this.initializeJoinDialog();
+            } else if (dialogName === 'derive') {
+                this.deriveDialogState = { columnName: '', expression: '', error: null };
+            } else if (dialogName === 'sort') {
+                this.sortDialogState = { field: this.columns[0] || '', order: 'asc' };
+            } else if (dialogName === 'rename') {
+                const renames = {};
+                this.columns.forEach(col => { renames[col] = col; });
+                this.renameDialogState = { renames };
+            } else if (dialogName === 'remove') {
+                this.removedColumns = this.columns.map(() => false);
             }
         },
 
@@ -633,6 +664,165 @@ function chumakApp() {
             }
         },
 
+        // Validate derive expression as user types
+        validateDeriveExpression() {
+            const { columnName, expression } = this.deriveDialogState;
+            const expr = expression.trim();
+
+            if (!expr) {
+                this.deriveDialogState.error = null;
+                return;
+            }
+
+            try {
+                const ast = parseExpression(expr);
+                const validation = validateAST(ast, this.columns);
+                if (!validation.valid) {
+                    this.deriveDialogState.error = formatError(validation.error, expr);
+                } else {
+                    this.deriveDialogState.error = null;
+                }
+            } catch (error) {
+                this.deriveDialogState.error = formatError(error, expr);
+            }
+        },
+
+        // Apply derive transform
+        async applyDeriveTransform() {
+            const { columnName, expression } = this.deriveDialogState;
+            if (!columnName || !expression) {
+                alert('Please provide both column name and expression');
+                return;
+            }
+
+            if (this.deriveDialogState.error) {
+                alert('Please fix the expression errors before applying');
+                return;
+            }
+
+            if (this.columns.includes(columnName)) {
+                if (!confirm(`Column "${columnName}" already exists. It will be overwritten. Continue?`)) return;
+            }
+
+            try {
+                const transform = { derive: { [columnName]: expression } };
+                const table = aq.from(this.currentData);
+                const context = { sources: this.sources, models: this.models };
+                const result = applyTransform(table, transform, this.columns, context);
+
+                this.activeModel.steps.push(transform);
+                const transformedData = result.objects();
+                this.currentData = transformedData;
+                this.columns = result.columnNames();
+                this.activeModel.data = JSON.parse(JSON.stringify(transformedData));
+
+                this.updatePagination();
+                await autoSave(this.sources, this.models);
+                this.closeDialog();
+            } catch (error) {
+                console.error('Derive transform error:', error);
+                alert('Error applying derive: ' + error.message);
+            }
+        },
+
+        // Apply sort transform
+        async applySortTransform() {
+            const { field, order } = this.sortDialogState;
+            if (!field) {
+                alert('Please select a column to sort by');
+                return;
+            }
+
+            try {
+                const transform = { sort: { field, order } };
+                const table = aq.from(this.currentData);
+                const context = { sources: this.sources, models: this.models };
+                const result = applyTransform(table, transform, this.columns, context);
+
+                this.activeModel.steps.push(transform);
+                const transformedData = result.objects();
+                this.currentData = transformedData;
+                this.activeModel.data = JSON.parse(JSON.stringify(transformedData));
+
+                this.updatePagination();
+                await autoSave(this.sources, this.models);
+                this.closeDialog();
+            } catch (error) {
+                console.error('Sort transform error:', error);
+                alert('Error applying sort: ' + error.message);
+            }
+        },
+
+        // Apply rename transform
+        async applyRenameTransform() {
+            const { renames } = this.renameDialogState;
+            const actualRenames = {};
+            for (const [oldName, newName] of Object.entries(renames)) {
+                if (oldName !== newName && newName && newName.trim() !== '') {
+                    actualRenames[oldName] = newName.trim();
+                }
+            }
+
+            if (Object.keys(actualRenames).length === 0) {
+                this.closeDialog();
+                return;
+            }
+
+            try {
+                const transform = { rename: actualRenames };
+                const table = aq.from(this.currentData);
+                const context = { sources: this.sources, models: this.models };
+                const result = applyTransform(table, transform, this.columns, context);
+
+                this.activeModel.steps.push(transform);
+                const transformedData = result.objects();
+                this.currentData = transformedData;
+                this.columns = result.columnNames();
+                this.activeModel.data = JSON.parse(JSON.stringify(transformedData));
+
+                this.updatePagination();
+                await autoSave(this.sources, this.models);
+                this.closeDialog();
+            } catch (error) {
+                console.error('Rename transform error:', error);
+                alert('Error applying rename: ' + error.message);
+            }
+        },
+
+        // Apply remove transform
+        async applyRemoveTransform() {
+            const colsToRemove = this.columns.filter((_, idx) => this.removedColumns[idx]);
+            if (colsToRemove.length === 0) {
+                this.closeDialog();
+                return;
+            }
+
+            if (colsToRemove.length === this.columns.length) {
+                alert('Cannot remove all columns');
+                return;
+            }
+
+            try {
+                const transform = { remove: colsToRemove };
+                const table = aq.from(this.currentData);
+                const context = { sources: this.sources, models: this.models };
+                const result = applyTransform(table, transform, this.columns, context);
+
+                this.activeModel.steps.push(transform);
+                const transformedData = result.objects();
+                this.currentData = transformedData;
+                this.columns = result.columnNames();
+                this.activeModel.data = JSON.parse(JSON.stringify(transformedData));
+
+                this.updatePagination();
+                await autoSave(this.sources, this.models);
+                this.closeDialog();
+            } catch (error) {
+                console.error('Remove transform error:', error);
+                alert('Error applying remove: ' + error.message);
+            }
+        },
+
         // Join transform methods
         initializeJoinDialog() {
             // Build list of available join targets (all models and sources except current)
@@ -679,14 +869,24 @@ function chumakApp() {
 
             // Try to find in models first
             const model = this.models.find(m => m.id === targetId);
-            if (model && model.data && model.data.length > 0) {
-                return Object.keys(model.data[0]);
+            if (model) {
+                try {
+                    // Always compute fresh schema to avoid stale results
+                    const result = this.computeModelUpToStep(model, model.steps.length - 1);
+                    return result.columns;
+                } catch (error) {
+                    console.error('Error computing columns for target model:', error);
+                    // Fallback to cached data if possible
+                    if (model.data && model.data.length > 0) {
+                        return Object.keys(model.data[0]);
+                    }
+                }
             }
 
             // Try to find in sources
             const source = this.sources.find(s => s.id === targetId);
-            if (source && source.data && source.data.length > 0) {
-                return Object.keys(source.data[0]);
+            if (source) {
+                return source.columns.map(c => c.name);
             }
 
             return [];
@@ -742,6 +942,13 @@ function chumakApp() {
             state.previewData = null;
 
             try {
+                // Refresh target model data to ensure transformations are respected
+                const targetModel = this.models.find(m => m.id === state.rightModel);
+                if (targetModel && targetModel.steps.length > 0) {
+                    const result = this.computeModelUpToStep(targetModel, targetModel.steps.length - 1);
+                    targetModel.data = result.data;
+                }
+
                 // Build transform
                 const transform = {
                     join: {
@@ -792,6 +999,13 @@ function chumakApp() {
             }
 
             try {
+                // Refresh target model data to ensure transformations are respected
+                const targetModel = this.models.find(m => m.id === state.rightModel);
+                if (targetModel && targetModel.steps.length > 0) {
+                    const result = this.computeModelUpToStep(targetModel, targetModel.steps.length - 1);
+                    targetModel.data = result.data;
+                }
+
                 // Build transform
                 const completePairs = state.keyPairs.filter(pair => pair[0] && pair[1]);
                 const transform = {
@@ -1227,17 +1441,18 @@ function chumakApp() {
         // ============================================================
 
         /**
-         * Compute data state up to a specific step index
+         * Compute data state for any model up to a specific step index
+         * @param {Object} model - Model to compute
          * @param {number} stepIndex - Step to compute up to (inclusive)
          * @returns {Object} { data: Array, columns: Array }
          */
-        computeUpToStep(stepIndex) {
+        computeModelUpToStep(model, stepIndex) {
             const start = performance.now();
 
             // Get source data
-            const source = this.sources.find(s => s.id === this.activeModel.sourceId);
+            const source = this.sources.find(s => s.id === model.sourceId);
             if (!source) {
-                throw new Error('Source not found for active model');
+                throw new Error('Source not found for model');
             }
 
             // Start with source data
@@ -1246,7 +1461,7 @@ function chumakApp() {
 
             // Apply transforms 0 through stepIndex
             for (let i = 0; i <= stepIndex; i++) {
-                const step = this.activeModel.steps[i];
+                const step = model.steps[i];
 
                 // Skip import step (it's just metadata, not a transform)
                 if (step.import) {
@@ -1258,7 +1473,7 @@ function chumakApp() {
                     table = applyTransform(table, step, columns, context);
 
                     // Update column schema after each step
-                    columns = this.getColumnsAfterStep(columns, step);
+                    columns = table.columnNames();
                 } catch (error) {
                     console.error(`Error applying step ${i}:`, error);
                     throw error;
@@ -1270,8 +1485,17 @@ function chumakApp() {
                 columns: columns
             };
 
-            perfLogger.log(`Compute to step ${stepIndex + 1}`, source.data, result.data, performance.now() - start);
+            perfLogger.log(`Compute model '${model.name}' to step ${stepIndex + 1}`, source.data, result.data, performance.now() - start);
             return result;
+        },
+
+        /**
+         * Compute data state for ACTIVE model up to a specific step index
+         * @param {number} stepIndex - Step to compute up to (inclusive)
+         * @returns {Object} { data: Array, columns: Array }
+         */
+        computeUpToStep(stepIndex) {
+            return this.computeModelUpToStep(this.activeModel, stepIndex);
         },
 
         /**
