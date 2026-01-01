@@ -13,9 +13,8 @@ const perfLogger = {
    * @param {Object} input - Input data/table
    * @param {Object} output - Output data/table
    * @param {number} duration - Time in ms
-   * @param {Object} meta - Additional context
    */
-  log(name, input, output, duration, meta = {}) {
+  log(name, input, output, duration) {
     if (!this.enabled) return;
 
     const inputShape = getShape(input);
@@ -24,33 +23,8 @@ const perfLogger = {
 
     console.log(
       `${icon} ${name} — ${duration.toFixed(1)}ms`,
-      `\n  ${inputShape.rows.toLocaleString()}×${inputShape.cols} → ${outputShape.rows.toLocaleString()}×${outputShape.cols}`,
-      meta.details ? `\n  ${meta.details}` : ''
+      `\n  ${inputShape.rows.toLocaleString()}×${inputShape.cols} → ${outputShape.rows.toLocaleString()}×${outputShape.cols}`
     );
-  },
-
-  /**
-   * Measure a function
-   */
-  measure(name, fn, meta = {}) {
-    const start = performance.now();
-    const result = fn();
-    const duration = performance.now() - start;
-
-    this.log(name, meta.input, result, duration, meta);
-    return result;
-  },
-
-  /**
-   * Measure async function
-   */
-  async measureAsync(name, fn, meta = {}) {
-    const start = performance.now();
-    const result = await fn();
-    const duration = performance.now() - start;
-
-    this.log(name, meta.input, result, duration, meta);
-    return result;
   }
 };
 
@@ -78,4 +52,3 @@ function getShape(data) {
 
 // Expose globally
 window.perfLogger = perfLogger;
-window.getShape = getShape;

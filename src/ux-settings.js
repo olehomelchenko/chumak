@@ -3,6 +3,9 @@
  *
  * Stores user preferences for UI/UX settings like pagination page size,
  * theme preferences, etc.
+ *
+ * NOTE: This architecture is intentionally generic to support expansion.
+ * Additional setting categories will be added soon (theme, export format, etc.).
  */
 
 const UX_SETTINGS_KEY = 'chumak-ux-settings';
