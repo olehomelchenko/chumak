@@ -11,6 +11,8 @@ function chumakApp() {
         isDragging: false,
         selectedColumn: null,         // Interactive header selection
         columnToolbarPos: { x: 0, y: 0 },
+        selectedCell: null,           // Interactive cell selection { col, value, type }
+        cellToolbarPos: { x: 0, y: 0 },
 
         // Pagination state
         currentPage: 1,
@@ -194,29 +196,101 @@ function chumakApp() {
         },
 
         updateToolbarPosition() {
-            if (!this.selectedColumn) return;
+            if (this.selectedColumn) {
+                const header = document.querySelector(`.data-table__header[data-col="${this.selectedColumn}"]`);
+                if (header) {
+                    const rect = header.getBoundingClientRect();
+                    const center = rect.left + (rect.width / 2);
+                    const toolbarWidth = 200;
+                    const windowWidth = window.innerWidth;
+                    const margin = 12;
 
-            const header = document.querySelector(`.data-table__header[data-col="${this.selectedColumn}"]`);
-            if (!header) return;
+                    // Clamp X to keep toolbar within viewport
+                    let x = Math.max(toolbarWidth / 2 + margin, Math.min(windowWidth - toolbarWidth / 2 - margin, center));
 
-            const rect = header.getBoundingClientRect();
-            const center = rect.left + (rect.width / 2);
-            const toolbarWidth = 200;
-            const windowWidth = window.innerWidth;
-            const margin = 12;
+                    this.columnToolbarPos = {
+                        x: x,
+                        y: rect.top - 8,
+                        arrowOffset: center - x
+                    };
+                }
+            }
 
-            // Clamp X to keep toolbar within viewport
-            let x = Math.max(toolbarWidth / 2 + margin, Math.min(windowWidth - toolbarWidth / 2 - margin, center));
+            if (this.selectedCell) {
+                const cell = document.querySelector(`.data-table__cell[data-col="${this.selectedCell.col}"][data-row="${this.selectedCell.rowIdx}"]`);
+                if (cell) {
+                    const rect = cell.getBoundingClientRect();
+                    const center = rect.left + (rect.width / 2);
+                    const toolbarWidth = this.selectedCell.type === 'number' ? 180 : 40;
+                    const windowWidth = window.innerWidth;
+                    const margin = 12;
 
-            this.columnToolbarPos = {
-                x: x,
-                y: rect.top - 8,
-                arrowOffset: center - x
-            };
+                    // Clamp X to keep toolbar within viewport
+                    let x = Math.max(toolbarWidth / 2 + margin, Math.min(windowWidth - toolbarWidth / 2 - margin, center));
+
+                    this.cellToolbarPos = {
+                        x: x,
+                        y: rect.top - 8,
+                        arrowOffset: center - x
+                    };
+                }
+            }
         },
 
         clearColumnSelection() {
             this.selectedColumn = null;
+            this.selectedCell = null;
+        },
+
+        selectCell(col, value, rowIdx, event) {
+            // Clear previous selections
+            this.selectedColumn = null;
+
+            // Find type from source columns if available
+            let type = 'string';
+            if (this.activeSource) {
+                const colInfo = this.activeSource.columns.find(c => c.name === col);
+                if (colInfo) type = colInfo.inferredType;
+            } else {
+                // Fallback to basic check
+                type = typeof value === 'number' ? 'number' : 'string';
+            }
+
+            this.selectedCell = { col, value, type, rowIdx };
+
+            this.$nextTick(() => this.updateToolbarPosition());
+        },
+
+        async applyQuickCellFilter(op) {
+            if (!this.selectedCell) return;
+            const { col, value, type } = this.selectedCell;
+
+            let expr = '';
+
+            // Format value for expression
+            let formattedValue = value;
+            if (value === null || value === undefined) {
+                formattedValue = 'null';
+            } else if (type === 'number') {
+                formattedValue = value;
+            } else {
+                // Escape quotes if it's a string
+                formattedValue = `"${String(value).replace(/"/g, '\\"')}"`;
+            }
+
+            if (op === 'exact') expr = `[${col}] == ${formattedValue}`;
+            else if (op === 'gt') expr = `[${col}] > ${formattedValue}`;
+            else if (op === 'gte') expr = `[${col}] >= ${formattedValue}`;
+            else if (op === 'lt') expr = `[${col}] < ${formattedValue}`;
+            else if (op === 'lte') expr = `[${col}] <= ${formattedValue}`;
+
+            if (expr) {
+                this.filterExpression = expr;
+                // We need to ensure filterError is null before applying
+                this.filterError = null;
+                await this.applyFilterTransform();
+            }
+            this.selectedCell = null;
         },
 
         async quickSort(order) {

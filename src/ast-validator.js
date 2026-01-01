@@ -6,7 +6,7 @@
  * - Whitelist allowed operators
  * - Validate column names exist in schema
  * - No suggestions yet (Phase 1)
- * - No bracket notation yet (Phase 1)
+ * - Bracket notation supported via parser-level preprocessing
  */
 
 // Allowed AST node types (from ESTree spec)
