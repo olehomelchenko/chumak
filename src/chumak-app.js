@@ -640,6 +640,9 @@ function chumakApp() {
             this.activeStepIndex = null;
             this.viewingIntermediate = false;
 
+            // Switch to 'data' ribbon tab
+            this.ribbonTab = 'data';
+
             console.log('Viewing dataset info for:', source.name);
         },
 
@@ -652,6 +655,9 @@ function chumakApp() {
             this.activeStepIndex = null;
             this.viewingIntermediate = false;
 
+            // Switch to 'model' ribbon tab
+            this.ribbonTab = 'model';
+
             // Update columns from the model's data
             if (this.currentData && this.currentData.length > 0) {
                 this.columns = Object.keys(this.currentData[0]);
@@ -663,6 +669,186 @@ function chumakApp() {
             this.updatePagination();
 
             console.log('Switched to model:', model.name);
+        },
+
+        // Create a new model from a source
+        async createNewModel(source) {
+            // Prompt for model name
+            const modelName = prompt('Enter name for new model:', `model_${this.models.filter(m => m.sourceId === source.id).length + 1}`);
+
+            if (!modelName || modelName.trim() === '') {
+                return;  // User cancelled or entered empty name
+            }
+
+            // Check for duplicate model names within the same source
+            const existingModel = this.models.find(m =>
+                m.sourceId === source.id && m.name.toLowerCase() === modelName.trim().toLowerCase()
+            );
+
+            if (existingModel) {
+                alert('A model with this name already exists for this source. Please choose a different name.');
+                return;
+            }
+
+            // Create new model with source data and no transforms
+            const newModel = {
+                id: `mdl_${Date.now()}`,
+                name: modelName.trim(),
+                sourceId: source.id,
+                steps: [],
+                data: JSON.parse(JSON.stringify(source.data))  // Deep copy of source data
+            };
+
+            this.models.push(newModel);
+
+            // Switch to the new model
+            this.switchToModel(newModel);
+
+            // Auto-save
+            await autoSave(this.sources, this.models);
+
+            console.log('Created new model:', newModel.name, 'for source:', source.name);
+        },
+
+        // Create new model from currently active model's source
+        async createNewModelFromActive() {
+            if (!this.activeModel) {
+                alert('No active model selected');
+                return;
+            }
+
+            // Find the source for the active model
+            const source = this.sources.find(s => s.id === this.activeModel.sourceId);
+            if (!source) {
+                alert('Source not found for current model');
+                return;
+            }
+
+            await this.createNewModel(source);
+        },
+
+        // Copy current model (with all transforms)
+        async copyCurrentModel() {
+            if (!this.activeModel) {
+                alert('No active model selected');
+                return;
+            }
+
+            // Prompt for new model name
+            const newName = prompt('Enter name for copied model:', `${this.activeModel.name}_copy`);
+
+            if (!newName || newName.trim() === '') {
+                return;  // User cancelled
+            }
+
+            // Check for duplicate names within same source
+            const existingModel = this.models.find(m =>
+                m.sourceId === this.activeModel.sourceId &&
+                m.name.toLowerCase() === newName.trim().toLowerCase()
+            );
+
+            if (existingModel) {
+                alert('A model with this name already exists for this source. Please choose a different name.');
+                return;
+            }
+
+            // Deep copy the current model
+            const copiedModel = {
+                id: `mdl_${Date.now()}`,
+                name: newName.trim(),
+                sourceId: this.activeModel.sourceId,
+                steps: JSON.parse(JSON.stringify(this.activeModel.steps)),
+                data: JSON.parse(JSON.stringify(this.activeModel.data))
+            };
+
+            this.models.push(copiedModel);
+
+            // Switch to copied model
+            this.switchToModel(copiedModel);
+
+            // Auto-save
+            await autoSave(this.sources, this.models);
+
+            console.log('Copied model:', this.activeModel.name, '→', copiedModel.name);
+        },
+
+        // Rename current model
+        async renameCurrentModel() {
+            if (!this.activeModel) {
+                alert('No active model selected');
+                return;
+            }
+
+            const newName = prompt('Enter new name for model:', this.activeModel.name);
+
+            if (!newName || newName.trim() === '') {
+                return;  // User cancelled
+            }
+
+            if (newName.trim() === this.activeModel.name) {
+                return;  // No change
+            }
+
+            // Check for duplicate names within same source
+            const existingModel = this.models.find(m =>
+                m.sourceId === this.activeModel.sourceId &&
+                m.name.toLowerCase() === newName.trim().toLowerCase()
+            );
+
+            if (existingModel) {
+                alert('A model with this name already exists for this source. Please choose a different name.');
+                return;
+            }
+
+            // Update model name
+            this.activeModel.name = newName.trim();
+
+            // Auto-save
+            await autoSave(this.sources, this.models);
+
+            console.log('Model renamed to:', newName.trim());
+        },
+
+        // Delete current model
+        async deleteCurrentModel() {
+            if (!this.activeModel) {
+                alert('No active model selected');
+                return;
+            }
+
+            // Prevent deleting the last model
+            const sourceModels = this.models.filter(m => m.sourceId === this.activeModel.sourceId);
+            if (sourceModels.length === 1) {
+                alert('Cannot delete the last model for this source.');
+                return;
+            }
+
+            if (!confirm(`Delete model "${this.activeModel.name}"?\n\nThis cannot be undone.`)) {
+                return;
+            }
+
+            const deletedModelId = this.activeModel.id;
+            const sourceId = this.activeModel.sourceId;
+
+            // Remove model
+            this.models = this.models.filter(m => m.id !== deletedModelId);
+
+            // Switch to the first remaining model from the same source
+            const remainingModels = this.models.filter(m => m.sourceId === sourceId);
+            if (remainingModels.length > 0) {
+                this.switchToModel(remainingModels[0]);
+            } else {
+                // This shouldn't happen due to the check above, but handle it anyway
+                this.activeModel = null;
+                this.currentData = null;
+                this.columns = [];
+                this.viewMode = 'empty';
+            }
+
+            // Auto-save
+            await autoSave(this.sources, this.models);
+
+            console.log('Model deleted');
         },
 
         // Rename source

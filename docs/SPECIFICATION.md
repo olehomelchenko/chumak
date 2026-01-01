@@ -240,30 +240,55 @@ Inspired by Vega-Lite. Each transform is one object in an array.
 Supported aggregation operations:
 `count`, `sum`, `mean`, `median`, `min`, `max`, `stdev`, `variance`
 
-### 5.2 Phase 2 (Derived Datasets & Joins)
+### 5.2 Phase 1.5 (Multi-Model & Joins) — **MOVED UP FROM PHASE 2**
 
-| Operation | JSON Syntax | Notes |
-|-----------|-------------|-------|
-| **Create derived model** | UI action, not a transform | Reference existing model, add transforms |
-| **Lookup/Join** | `{ "join": { ... } }` | Combine datasets |
+> **Design Decision**: Joins + aggregation unlock multiplicative value (enrichment → summarization workflows). Moving to MVP.
 
-#### Join Specification
+#### Multi-Model Support
+
+**Create multiple models per source** via UI action (not a transform). Each model:
+- References the same source data
+- Has independent transform pipeline
+- Can be joined with other models from the same source
+
+**UI**: "New Model" button in source tree → creates blank model with no transforms
+
+#### Join Transform
 
 ```json
 {
   "join": {
-    "model": "model_abc123",
-    "left_on": ["region_id"],
-    "right_on": ["id"],
-    "type": "left",
-    "select": ["region_name", "population"]
+    "right": "model_abc123",           // Model ID to join with
+    "on": [["region_id", "id"]],       // Array of [left_key, right_key] pairs
+    "how": "left",                     // Join type
+    "suffixes": ["_x", "_y"]           // Column conflict resolution (optional)
   }
 }
 ```
 
-Join types: `left`, `inner`
+**Join types**: `inner`, `left`, `right`, `full`, `cross`
 
-### 5.3 Phase 3 (Advanced Transforms & Polish)
+**Column name conflicts**: When both tables have same column name (not in join keys), append suffixes:
+- Left table columns get `_x` (or custom suffix)
+- Right table columns get `_y` (or custom suffix)
+- Suffixes editable in join settings UI
+
+**UI Design**: Slide-in panel (not popup) that overlaps left sidebar
+- Model selector dropdown
+- Join type radio buttons
+- Key pair selectors (support multiple pairs for compound keys)
+- Suffix customization inputs
+- **Preview button** - Only computes join when clicked
+- Apply/Cancel buttons
+
+### 5.3 Phase 2 (Advanced Aggregation & Window Functions)
+
+| Operation | JSON Syntax | Notes |
+|-----------|-------------|-------|
+| **Window functions** | `{ "window": { ... } }` | Running totals, rank, lag/lead |
+| **Advanced aggregation** | Percentiles, distinct counts | Beyond basic sum/mean/count |
+
+### 5.4 Phase 3 (Advanced Transforms & Polish)
 
 | Operation | JSON Syntax | Notes |
 |-----------|-------------|-------|

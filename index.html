@@ -209,15 +209,19 @@
 
       <!-- Model Tab -->
       <div class="ribbon__panel" x-show="ribbonTab === 'model'">
-        <button class="ribbon__button ribbon__button--disabled" disabled title="Create new model (Coming in Phase 2)">
+        <button class="ribbon__button" @click="createNewModelFromActive()" title="Create new model from current source">
           <i data-feather="plus-circle"></i>
           <span>New Model</span>
         </button>
-        <button class="ribbon__button ribbon__button--disabled" disabled title="Rename current model (Coming in Phase 2)">
+        <button class="ribbon__button" @click="copyCurrentModel()" title="Copy current model with all its transforms">
+          <i data-feather="copy"></i>
+          <span>Copy Model</span>
+        </button>
+        <button class="ribbon__button" @click="renameCurrentModel()" title="Rename current model">
           <i data-feather="edit-2"></i>
           <span>Rename</span>
         </button>
-        <button class="ribbon__button ribbon__button--disabled" disabled title="Delete current model (Coming in Phase 2)">
+        <button class="ribbon__button" @click="deleteCurrentModel()" title="Delete current model">
           <i data-feather="trash-2"></i>
           <span>Delete</span>
         </button>
@@ -256,6 +260,16 @@
                   <span class="tree-item__name" x-text="model.name"></span>
                 </div>
               </template>
+
+              <!-- New Model button -->
+              <div class="tree-item tree-item--action"
+                   @click="createNewModel(source)"
+                   style="cursor: pointer;"
+                   title="Create a new model from this source">
+                <span class="tree-item__indent"></span>
+                <span class="tree-item__icon">➕</span>
+                <span class="tree-item__name" style="color: #666; font-style: italic;">New Model</span>
+              </div>
             </div>
           </template>
 
@@ -540,6 +554,11 @@
                 <div class="model-card__arrow">→</div>
               </div>
             </template>
+
+            <!-- New Model button -->
+            <button class="button button--secondary" @click="createNewModel(activeSource)" style="width: 100%; margin-top: 0.5rem;">
+              ➕ New Model
+            </button>
           </div>
         </div>
 
