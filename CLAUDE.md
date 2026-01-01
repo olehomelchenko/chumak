@@ -495,7 +495,32 @@ Chumak uses jsep + validation (~700 lines, no Function()).
 
 Stick to the roadmap. Simple MVP first.
 
-### 5. Don't Forget Error-as-Value Pattern
+### 5. Don't Over-Engineer (Critical)
+
+**Code size should reflect importance and complexity, not "might need it someday"**
+
+This is a small, focused project. Every line of code is maintenance burden.
+
+**Bad**: 500-line "framework" for simple functionality
+
+**Good**: 80-line focused solution that does exactly what's needed
+
+**Guidelines**:
+- Auxiliary/helper code should be minimal (~50-100 lines)
+- Core features can be larger only if complexity warrants it
+- If a helper file is approaching the size of core features, it's over-engineered
+- YAGNI: You Aren't Gonna Need It—don't build for hypothetical future use cases
+- Simple and focused beats "enterprise-ready" every time
+
+**Balance**: Not too simplistic (brittle, hard to extend), not over-engineered (bloated, hard to understand). Right-sized for current needs.
+
+**Minimize diff noise**:
+- Avoid changes that cause mass re-indentation of existing code
+- Don't wrap entire functions if it forces indenting 50+ lines
+- Add instrumentation at start/end of functions instead of wrapping
+- The git diff should show only the actual functional changes, not formatting churn
+
+### 6. Don't Forget Error-as-Value Pattern
 
 From OpenRefine research:
 
@@ -509,7 +534,7 @@ if (divisor === 0) return { type: 'error', message: 'Division by zero' };
 
 One bad cell shouldn't break 10,000 good cells.
 
-### 6. Don't Forget to Write Tests
+### 7. Don't Forget to Write Tests
 
 **CRITICAL**: Every new feature MUST have tests
 

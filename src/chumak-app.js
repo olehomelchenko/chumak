@@ -256,6 +256,8 @@ function chumakApp() {
 
         // Create Source and default Model
         async createSource(file, sourceName, columns, data, headerMode, delimiter, customHeaders = null) {
+            const start = performance.now();
+
             // Validate columns: no empty names (duplicates are already resolved in the dialog)
             if (columns.some(c => !c || c.trim() === '')) {
                 alert('Error: Column names cannot be empty.');
@@ -329,6 +331,8 @@ function chumakApp() {
 
             // Auto-save to IndexedDB
             await autoSave(this.sources, this.models);
+
+            console.log(`⚡ Import CSV — ${(performance.now() - start).toFixed(1)}ms — ${file.name} (${(file.size / 1024).toFixed(1)} KB)`);
 
             // Close dialog
             this.closeDialog();
@@ -491,6 +495,7 @@ function chumakApp() {
                 return;
             }
 
+            const start = performance.now();
             try {
                 // Convert current data to CSV using PapaParse
                 const csv = Papa.unparse(this.currentData);
@@ -511,7 +516,7 @@ function chumakApp() {
                 link.click();
                 document.body.removeChild(link);
 
-                console.log('Exported CSV:', filename);
+                console.log(`⚡ Export CSV — ${(performance.now() - start).toFixed(1)}ms — ${filename}`);
             } catch (error) {
                 console.error('CSV export error:', error);
                 alert('Failed to export CSV: ' + error.message);
@@ -696,6 +701,8 @@ function chumakApp() {
          * @returns {Object} { data: Array, columns: Array }
          */
         computeUpToStep(stepIndex) {
+            const start = performance.now();
+
             // Get source data
             const source = this.sources.find(s => s.id === this.activeModel.sourceId);
             if (!source) {
@@ -726,10 +733,13 @@ function chumakApp() {
                 }
             }
 
-            return {
+            const result = {
                 data: table.objects(),
                 columns: columns
             };
+
+            perfLogger.log(`Compute to step ${stepIndex + 1}`, source.data, result.data, performance.now() - start);
+            return result;
         },
 
         /**
@@ -1031,7 +1041,6 @@ function chumakApp() {
 
             const start = (this.currentPage - 1) * this.pageSize;
             const end = start + this.pageSize;
-
             return this.currentData.slice(start, end);
         },
 

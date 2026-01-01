@@ -177,10 +177,12 @@ async function loadModels() {
  * @returns {Promise<void>}
  */
 async function autoSave(sources, models) {
+  const start = performance.now();
   try {
     await saveSources(sources);
     await saveModels(models);
     console.log('Auto-saved:', sources.length, 'sources,', models.length, 'models');
+    console.log(`⚡ Save to IndexedDB — ${(performance.now() - start).toFixed(1)}ms`);
   } catch (error) {
     console.error('Auto-save failed:', error);
     // Don't throw - auto-save failures shouldn't break the app

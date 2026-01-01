@@ -16,9 +16,13 @@
  * @throws {Error} If transform fails
  */
 function applyTransform(table, transform, schema) {
+  const start = performance.now();
+
   // SELECT: Keep only specified columns
   if (transform.select) {
-    return table.select(...transform.select);
+    const result = table.select(...transform.select);
+    perfLogger.log(describeTransform(transform), table, result, performance.now() - start);
+    return result;
   }
 
   // FILTER: Keep rows matching expression
@@ -47,14 +51,17 @@ function applyTransform(table, transform, schema) {
       }
     });
 
-    return aq.from(filteredRows);
+    const result = aq.from(filteredRows);
+    perfLogger.log(describeTransform(transform), table, result, performance.now() - start);
+    return result;
   }
 
   // TODO: Add more transforms
   // - derive (needs expression parser)
   // - sort, rename, remove, etc.
 
-  throw new Error(`Transform type '${Object.keys(transform)[0]}' not implemented yet`);
+  const transformType = Object.keys(transform)[0];
+  throw new Error(`Transform type '${transformType}' not implemented yet`);
 }
 
 /**
