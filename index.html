@@ -17,6 +17,7 @@
   <script src="src/ux-settings.js"></script>
   <script src="src/url-state.js"></script>
   <script src="src/performance-logger.js"></script>
+  <script src="src/schema-engine.js"></script>
   <script src="src/expression-parser.js"></script>
   <script src="src/ast-validator.js"></script>
   <script src="src/ast-interpreter.js"></script>
@@ -527,8 +528,8 @@
                 <tr class="schema-table__row">
                   <td class="schema-table__cell" x-text="column.name"></td>
                   <td class="schema-table__cell">
-                    <span class="type-badge" :class="`type-badge--${column.inferredType}`"
-                      x-text="column.inferredType"></span>
+                    <span class="type-badge" :class="`type-badge--${column.type || column.inferredType}`"
+                      x-text="column.type || column.inferredType"></span>
                   </td>
                   <td class="schema-table__cell" x-text="column.originalPosition + 1"></td>
                 </tr>
@@ -644,7 +645,7 @@
             <tr class="data-table__row" @click="clearColumnSelection()">
               <template x-for="(column, colIndex) in columns" :key="colIndex">
                 <td class="data-table__cell"
-                  :class="{ 'data-table__cell--number': inferType(getPaginatedData(), column) === 'number' }"
+                  :class="{ 'data-table__cell--number': ['number', 'integer', 'float'].includes(getColumnType(column)) }"
                   :data-col="column" :data-row="rowIndex" x-text="row[column]"
                   @click.stop="selectCell(column, row[column], rowIndex, $event)"></td>
               </template>

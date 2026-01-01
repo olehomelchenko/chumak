@@ -201,6 +201,13 @@ function compileExpression(expr: string, schema: Schema): CompiledExpression {
 
 ### 3. Validation Layer: Schema-Aware Checks
 
+The validator uses the unified **Model Schema** to perform static analysis before execution.
+
+**Key features:**
+*   **Type Safety**: Prevents impossible operations (e.g., adding a string to a date) during the "parsing" phase.
+*   **Schema Propagation**: Each transform step calculates its resulting schema. `Select` filters columns, `Rename` updates names, and `Derive` predicts the type of the new column based on the expression's AST.
+*   **Granular Inference**: Distinguishes between `integer` and `float` to suggest correct formatting and aggregations.
+
 ```typescript
 interface ValidationRule {
   check: (node: ASTNode, context: ValidationContext) => boolean;

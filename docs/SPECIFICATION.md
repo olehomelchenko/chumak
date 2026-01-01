@@ -142,8 +142,16 @@ interface Source {
 
 interface ColumnSchema {
   name: string;                    // From header, auto-generated, or custom
-  inferredType: "string" | "number" | "boolean" | "date";
+  type: "string" | "integer" | "float" | "boolean" | "date" | "datetime";
+  format?: ColumnFormat;           // Optional formatting metadata
   originalPosition: number;        // 0-indexed column position in CSV
+}
+
+interface ColumnFormat {
+  type?: "number" | "currency" | "percentage" | "date" | "duration";
+  precision?: number;              // Decimal places
+  symbol?: string;                 // Currency symbol, etc.
+  pattern?: string;                // Date format pattern
 }
 ```
 
@@ -157,6 +165,7 @@ interface Model {
   name: string;                    // user-defined, e.g., "main", "cleaned"
   sourceId: string;                // Source ID
   steps: Transform[];              // ordered transform list
+  schema: ColumnSchema[];          // Current schema (names + types)
   data: Row[];                     // final result (computed)
 }
 

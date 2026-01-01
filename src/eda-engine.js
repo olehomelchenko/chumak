@@ -31,7 +31,7 @@ const EDAEngine = {
             uniquePercentage: (uniqueValues.size / totalCount * 100).toFixed(1),
         };
 
-        if (type === 'number') {
+        if (type === 'number' || type === 'integer' || type === 'float') {
             return { ...baseStats, ...this.calculateNumericStats(nonNullValues) };
         } else {
             return { ...baseStats, ...this.calculateCategoricalStats(nonNullValues) };

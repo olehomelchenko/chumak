@@ -138,7 +138,20 @@ function chumakApp() {
 
             // Sync columns and pagination if we have data
             if (this.currentData && this.currentData.length > 0) {
-                this.columns = Object.keys(this.currentData[0]);
+                // Self-healing: Ensure active model has a schema
+                if (this.activeModel && (!this.activeModel.schema || this.activeModel.schema.length === 0)) {
+                    console.log('Self-healing: Generating missing schema for active model');
+                    this.activeModel.schema = SchemaEngine.createInitialSchema(this.activeModel.data);
+                }
+
+                // Set columns from current schema if available, else fallback to keys
+                if (this.activeModel?.schema) {
+                    this.columns = this.activeModel.schema.map(c => c.name);
+                } else if (this.activeSource?.columns) {
+                    this.columns = this.activeSource.columns.map(c => c.name);
+                } else {
+                    this.columns = Object.keys(this.currentData[0]);
+                }
             }
             this.updatePagination();
 
@@ -236,11 +249,19 @@ function chumakApp() {
 
             // Calculate EDA stats
             if (this.selectedColumn && this.currentData) {
-                const type = this.inferType(this.currentData, this.selectedColumn);
+                // Get type from unified schema if possible, else infer
+                let colSchema = null;
+                if (this.activeModel?.schema) {
+                    colSchema = this.activeModel.schema.find(c => c.name === this.selectedColumn);
+                } else if (this.activeSource?.columns) {
+                    colSchema = this.activeSource.columns.find(c => c.name === this.selectedColumn);
+                }
+
+                const type = colSchema ? colSchema.type : SchemaEngine.inferType(this.currentData.slice(0, 20).map(r => r[this.selectedColumn]));
                 this.edaStats = EDAEngine.calculateStats(this.currentData, this.selectedColumn, type);
 
-                // Draw charts based on type
-                if (type === 'number') {
+                // Draw charts based on type (integer/float are both numeric)
+                if (type === 'integer' || type === 'float' || type === 'number') {
                     this.$nextTick(() => {
                         ChartsEngine.renderBoxPlot('#eda-boxplot', this.currentData, this.selectedColumn);
                     });
@@ -311,9 +332,12 @@ function chumakApp() {
 
             // Find type from source columns if available
             let type = 'string';
-            if (this.activeSource) {
+            if (this.activeModel?.schema) {
+                const colInfo = this.activeModel.schema.find(c => c.name === col);
+                if (colInfo) type = colInfo.type;
+            } else if (this.activeSource) {
                 const colInfo = this.activeSource.columns.find(c => c.name === col);
-                if (colInfo) type = colInfo.inferredType;
+                if (colInfo) type = colInfo.type || colInfo.inferredType;
             } else {
                 // Fallback to basic check
                 type = typeof value === 'number' ? 'number' : 'string';
@@ -673,11 +697,7 @@ function chumakApp() {
                 // Data metadata
                 rawSize: file.size,
                 rowCount: cleanData.length,
-                columns: columns.map((name, i) => ({
-                    name: name,
-                    inferredType: this.inferType(cleanData, name),
-                    originalPosition: i
-                })),
+                columns: SchemaEngine.createInitialSchema(cleanData),
                 createdAt: new Date().toISOString(),
 
                 data: cleanData
@@ -691,6 +711,7 @@ function chumakApp() {
                 name: 'main',
                 sourceId: source.id,  // Link to source by ID, not name
                 steps: [],
+                schema: JSON.parse(JSON.stringify(source.columns)),
                 data: cleanData
             };
 
@@ -730,23 +751,6 @@ function chumakApp() {
             this.closeDialog();
         },
 
-        // Infer type from sample data
-        inferType(data, columnName) {
-            if (data.length === 0) return 'string';
-
-            const sample = data.slice(0, 10).map(row => row[columnName]);
-
-            // Check if all samples are numbers
-            if (sample.every(val => typeof val === 'number')) return 'number';
-
-            // Check if all samples look like dates
-            // (Simple check: contains dashes or slashes)
-            if (sample.every(val => typeof val === 'string' && /\d{4}[-\/]\d{2}[-\/]\d{2}/.test(val))) {
-                return 'date';
-            }
-
-            return 'string';
-        },
 
         // Transform methods
         describeTransform(transform) {
@@ -814,6 +818,44 @@ function chumakApp() {
             }
         },
 
+        async applyStepResult(transform, resultTable) {
+            // Update model steps
+            this.activeModel.steps.push(transform);
+
+            // Update current data and schema
+            const transformedData = resultTable.objects();
+            this.currentData = transformedData;
+
+            // Propagation: Calculate next schema
+            const sampleData = resultTable.slice(0, 20).objects();
+            this.activeModel.schema = SchemaEngine.deriveNextSchema(this.activeModel.schema, transform, sampleData);
+            this.columns = this.activeModel.schema.map(c => c.name);
+
+            // Update the model's data
+            this.activeModel.data = JSON.parse(JSON.stringify(transformedData));
+
+            // Update pagination
+            this.updatePagination();
+
+            // Auto-save to IndexedDB
+            await autoSave(this.sources, this.models);
+
+            // Close dialog
+            this.closeDialog();
+        },
+
+        getColumnType(colName) {
+            if (this.activeModel?.schema) {
+                const col = this.activeModel.schema.find(c => c.name === colName);
+                if (col) return col.type;
+            }
+            if (this.activeSource?.columns) {
+                const col = this.activeSource.columns.find(c => c.name === colName);
+                if (col) return col.type || col.inferredType;
+            }
+            return 'string';
+        },
+
         async applySelectTransform() {
             const selectedCols = this.getSelectedColumnsList();
 
@@ -831,25 +873,7 @@ function chumakApp() {
                 const context = { sources: this.sources, models: this.models };
                 const result = applyTransform(table, transform, this.columns, context);
 
-                // Update model state
-                this.activeModel.steps.push(transform);
-
-                // Update current data and columns
-                const transformedData = result.objects();
-                this.currentData = transformedData;
-                this.columns = selectedCols;
-
-                // Update the model's data (create clean copy for IndexedDB)
-                this.activeModel.data = JSON.parse(JSON.stringify(transformedData));
-
-                // Update pagination
-                this.updatePagination();
-
-                // Auto-save to IndexedDB
-                await autoSave(this.sources, this.models);
-
-                // Close dialog
-                this.closeDialog();
+                await this.applyStepResult(transform, result);
             } catch (error) {
                 console.error('Transform error:', error);
                 alert('Error applying transform: ' + error.message);
@@ -907,24 +931,7 @@ function chumakApp() {
                 const context = { sources: this.sources, models: this.models };
                 const result = applyTransform(table, transform, this.columns, context);
 
-                // Update model state
-                this.activeModel.steps.push(transform);
-
-                // Update current data (columns stay the same for filter)
-                const transformedData = result.objects();
-                this.currentData = transformedData;
-
-                // Update the model's data (create clean copy for IndexedDB)
-                this.activeModel.data = JSON.parse(JSON.stringify(transformedData));
-
-                // Update pagination
-                this.updatePagination();
-
-                // Auto-save to IndexedDB
-                await autoSave(this.sources, this.models);
-
-                // Close dialog
-                this.closeDialog();
+                await this.applyStepResult(transform, result);
             } catch (error) {
                 console.error('Filter transform error:', error);
                 alert('Error applying filter: ' + error.message);
@@ -977,15 +984,7 @@ function chumakApp() {
                 const context = { sources: this.sources, models: this.models };
                 const result = applyTransform(table, transform, this.columns, context);
 
-                this.activeModel.steps.push(transform);
-                const transformedData = result.objects();
-                this.currentData = transformedData;
-                this.columns = result.columnNames();
-                this.activeModel.data = JSON.parse(JSON.stringify(transformedData));
-
-                this.updatePagination();
-                await autoSave(this.sources, this.models);
-                this.closeDialog();
+                await this.applyStepResult(transform, result);
             } catch (error) {
                 console.error('Derive transform error:', error);
                 alert('Error applying derive: ' + error.message);
@@ -1006,14 +1005,7 @@ function chumakApp() {
                 const context = { sources: this.sources, models: this.models };
                 const result = applyTransform(table, transform, this.columns, context);
 
-                this.activeModel.steps.push(transform);
-                const transformedData = result.objects();
-                this.currentData = transformedData;
-                this.activeModel.data = JSON.parse(JSON.stringify(transformedData));
-
-                this.updatePagination();
-                await autoSave(this.sources, this.models);
-                this.closeDialog();
+                await this.applyStepResult(transform, result);
             } catch (error) {
                 console.error('Sort transform error:', error);
                 alert('Error applying sort: ' + error.message);
@@ -1041,15 +1033,7 @@ function chumakApp() {
                 const context = { sources: this.sources, models: this.models };
                 const result = applyTransform(table, transform, this.columns, context);
 
-                this.activeModel.steps.push(transform);
-                const transformedData = result.objects();
-                this.currentData = transformedData;
-                this.columns = result.columnNames();
-                this.activeModel.data = JSON.parse(JSON.stringify(transformedData));
-
-                this.updatePagination();
-                await autoSave(this.sources, this.models);
-                this.closeDialog();
+                await this.applyStepResult(transform, result);
             } catch (error) {
                 console.error('Rename transform error:', error);
                 alert('Error applying rename: ' + error.message);
@@ -1075,15 +1059,7 @@ function chumakApp() {
                 const context = { sources: this.sources, models: this.models };
                 const result = applyTransform(table, transform, this.columns, context);
 
-                this.activeModel.steps.push(transform);
-                const transformedData = result.objects();
-                this.currentData = transformedData;
-                this.columns = result.columnNames();
-                this.activeModel.data = JSON.parse(JSON.stringify(transformedData));
-
-                this.updatePagination();
-                await autoSave(this.sources, this.models);
-                this.closeDialog();
+                await this.applyStepResult(transform, result);
             } catch (error) {
                 console.error('Remove transform error:', error);
                 alert('Error applying remove: ' + error.message);
@@ -1289,25 +1265,7 @@ function chumakApp() {
                 const context = { sources: this.sources, models: this.models };
                 const result = applyTransform(table, transform, this.columns, context);
 
-                // Update model state
-                this.activeModel.steps.push(transform);
-
-                // Update current data and columns
-                const transformedData = result.objects();
-                this.currentData = transformedData;
-                this.columns = result.columnNames();
-
-                // Update the model's data (create clean copy for IndexedDB)
-                this.activeModel.data = JSON.parse(JSON.stringify(transformedData));
-
-                // Update pagination
-                this.updatePagination();
-
-                // Auto-save to IndexedDB
-                await autoSave(this.sources, this.models);
-
-                // Close dialog
-                this.closeDialog();
+                await this.applyStepResult(transform, result);
             } catch (error) {
                 console.error('Join transform error:', error);
                 alert('Error applying join: ' + error.message);
@@ -1456,6 +1414,13 @@ function chumakApp() {
         switchToModel(model) {
             this.activeSource = null;
             this.activeModel = model;
+
+            // Self-healing: Ensure model has a schema if data is present
+            if (model.data && model.data.length > 0 && (!model.schema || model.schema.length === 0)) {
+                console.log('Self-healing: Generating schema for existing model on switch');
+                model.schema = SchemaEngine.createInitialSchema(model.data);
+            }
+
             this.currentData = model.data;
             this.viewMode = 'model';
             this.activeStepIndex = null;
@@ -1467,9 +1432,9 @@ function chumakApp() {
                 this.ribbonTab = 'transform';
             }
 
-            // Update columns from the model's data
+            // Update columns from the model's schema or data
             if (this.currentData && this.currentData.length > 0) {
-                this.columns = Object.keys(this.currentData[0]);
+                this.columns = model.schema ? model.schema.map(c => c.name) : Object.keys(this.currentData[0]);
             } else {
                 this.columns = [];
             }
@@ -1505,6 +1470,7 @@ function chumakApp() {
                 name: modelName.trim(),
                 sourceId: source.id,
                 steps: [],
+                schema: JSON.parse(JSON.stringify(source.columns)),
                 data: JSON.parse(JSON.stringify(source.data))  // Deep copy of source data
             };
 
@@ -1567,6 +1533,7 @@ function chumakApp() {
                 name: newName.trim(),
                 sourceId: this.activeModel.sourceId,
                 steps: JSON.parse(JSON.stringify(this.activeModel.steps)),
+                schema: this.activeModel.schema ? JSON.parse(JSON.stringify(this.activeModel.schema)) : null,
                 data: JSON.parse(JSON.stringify(this.activeModel.data))
             };
 
@@ -1746,12 +1713,6 @@ function chumakApp() {
         // Step Navigation & Removal
         // ============================================================
 
-        /**
-         * Compute data state for any model up to a specific step index
-         * @param {Object} model - Model to compute
-         * @param {number} stepIndex - Step to compute up to (inclusive)
-         * @returns {Object} { data: Array, columns: Array }
-         */
         computeModelUpToStep(model, stepIndex) {
             const start = performance.now();
 
@@ -1761,9 +1722,10 @@ function chumakApp() {
                 throw new Error('Source not found for model');
             }
 
-            // Start with source data
+            // Start with source data and its initial schema
             let table = aq.from(source.data);
-            let columns = source.columns.map(c => c.name);
+            let schema = JSON.parse(JSON.stringify(source.columns));
+            let columns = schema.map(c => c.name);
 
             // Apply transforms 0 through stepIndex
             for (let i = 0; i <= stepIndex; i++) {
@@ -1779,7 +1741,14 @@ function chumakApp() {
                     table = applyTransform(table, step, columns, context);
 
                     // Update column schema after each step
-                    columns = table.columnNames();
+                    // We only get objects if we need to infer types (like in derive)
+                    let sampleData = [];
+                    if (step.derive || step.join) {
+                        sampleData = table.slice(0, 20).objects();
+                    }
+
+                    schema = SchemaEngine.deriveNextSchema(schema, step, sampleData);
+                    columns = schema.map(c => c.name);
                 } catch (error) {
                     console.error(`Error applying step ${i}:`, error);
                     throw error;
@@ -1788,6 +1757,7 @@ function chumakApp() {
 
             const result = {
                 data: table.objects(),
+                schema: schema,
                 columns: columns
             };
 
@@ -1846,6 +1816,7 @@ function chumakApp() {
 
                 this.currentData = result.data;
                 this.columns = result.columns;
+                this.activeModel.schema = result.schema; // Keep track of schema at this step
                 this.activeStepIndex = stepIndex;
                 this.viewingIntermediate = true;
 

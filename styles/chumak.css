@@ -1363,12 +1363,20 @@ body {
   color: #1565C0;
 }
 
-.type-badge--number {
+.type-badge--number,
+.type-badge--integer,
+.type-badge--float {
   background: #F3E5F5;
   color: #6A1B9A;
 }
 
-.type-badge--date {
+.type-badge--boolean {
+  background: #E8F5E9;
+  color: #2E7D32;
+}
+
+.type-badge--date,
+.type-badge--datetime {
   background: #FFF3E0;
   color: #E65100;
 }
