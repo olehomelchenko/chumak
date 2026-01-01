@@ -22,6 +22,11 @@
   <script src="src/ast-interpreter.js"></script>
   <script src="src/error-formatter.js"></script>
   <script src="src/transforms.js"></script>
+  <script src="src/eda-engine.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vega@5"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vega-lite@5"></script>
+  <script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
+  <script src="src/charts.js"></script>
   <script src="src/chumak-app.js"></script>
   <script src="https://unpkg.com/alpinejs@3/dist/cdn.min.js" defer></script>
 </head>
@@ -706,6 +711,106 @@
       </table>
     </div>
 
+    <!-- EDA Panel -->
+    <div x-show="selectedColumn && edaStats" class="eda-panel" x-cloak>
+      <div class="eda-panel__header">
+        <div class="eda-panel__title">
+          <span class="eda-panel__column-name" x-text="selectedColumn"></span>
+          <span class="type-badge" :class="`type-badge--${edaStats?.type}`" x-text="edaStats?.type"></span>
+        </div>
+        <button class="eda-panel__close" @click="clearColumnSelection()">×</button>
+      </div>
+
+      <div class="eda-panel__content">
+        <!-- Common Stats -->
+        <div class="eda-section">
+          <div class="eda-section__title">Overview</div>
+          <div class="eda-grid">
+            <div class="eda-stat">
+              <div class="eda-stat__label">Total Rows</div>
+              <div class="eda-stat__value" x-text="edaStats?.totalCount?.toLocaleString()"></div>
+            </div>
+            <div class="eda-stat" :title="`${edaStats?.nullPercentage}% missing`">
+              <div class="eda-stat__label">Missing</div>
+              <div class="eda-stat__value" x-text="edaStats?.nullCount?.toLocaleString()"></div>
+              <div class="eda-stat__sub" x-text="`${edaStats?.nullPercentage}%`"
+                :style="`color: ${edaStats?.nullCount > 0 ? 'var(--color-red)' : 'inherit'}`"></div>
+            </div>
+            <div class="eda-stat">
+              <div class="eda-stat__label">Unique Values</div>
+              <div class="eda-stat__value" x-text="edaStats?.uniqueCount?.toLocaleString()"></div>
+              <div class="eda-stat__sub" x-text="`${edaStats?.uniquePercentage}%`"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Numeric Stats -->
+        <template x-if="edaStats?.type === 'number'">
+          <div class="eda-section eda-section--wide">
+            <div class="eda-section__title">Distribution & Outliers</div>
+            <div style="display: flex; gap: var(--space-lg); align-items: center;">
+              <div id="eda-boxplot" style="flex: 1; min-width: 0; height: 100px;"></div>
+
+              <div class="eda-stats-flow">
+                <div class="eda-flow-item" @click="selectEdaStat('Min', edaStats.raw.min, $event)">
+                  <div class="eda-flow-item__label">Min</div>
+                  <div class="eda-flow-item__value" x-text="edaStats.min"></div>
+                </div>
+                <div class="eda-flow-connector"></div>
+                <div class="eda-flow-item" @click="selectEdaStat('P25', edaStats.raw.p25, $event)">
+                  <div class="eda-flow-item__label">25%</div>
+                  <div class="eda-flow-item__value" x-text="edaStats.p25"></div>
+                </div>
+                <div class="eda-flow-connector"></div>
+                <div class="eda-flow-item" @click="selectEdaStat('Median', edaStats.raw.median, $event)">
+                  <div class="eda-flow-item__label">Median</div>
+                  <div class="eda-flow-item__value" x-text="edaStats.median"
+                    style="color: var(--color-cyan); font-weight: bold;"></div>
+                </div>
+                <div class="eda-flow-connector"></div>
+                <div class="eda-flow-item" @click="selectEdaStat('P75', edaStats.raw.p75, $event)">
+                  <div class="eda-flow-item__label">75%</div>
+                  <div class="eda-flow-item__value" x-text="edaStats.p75"></div>
+                </div>
+                <div class="eda-flow-connector"></div>
+                <div class="eda-flow-item" @click="selectEdaStat('Max', edaStats.raw.max, $event)">
+                  <div class="eda-flow-item__label">Max</div>
+                  <div class="eda-flow-item__value" x-text="edaStats.max"></div>
+                </div>
+
+                <div style="width: 1px; background: var(--border-color); margin: 0 var(--space-md); height: 24px;">
+                </div>
+
+                <div class="eda-flow-item">
+                  <div class="eda-flow-item__label">Mean</div>
+                  <div class="eda-flow-item__value" x-text="edaStats.mean"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </template>
+
+        <!-- Categorical Stats (Top Frequencies) -->
+        <template x-if="edaStats?.type !== 'number'">
+          <div class="eda-section">
+            <div class="eda-section__title">Top Values</div>
+            <div class="eda-frequencies">
+              <template x-for="item in edaStats?.topValues" :key="item.value">
+                <div class="eda-freq-item">
+                  <div class="eda-freq-item__label" :title="item.value" x-text="item.value || '(empty)'"></div>
+                  <div class="eda-freq-item__bar-container">
+                    <div class="eda-freq-item__bar" :style="`width: ${item.percentage}%`"></div>
+                  </div>
+                  <div class="eda-freq-item__value" x-text="`${item.count.toLocaleString()} (${item.percentage}%)`">
+                  </div>
+                </div>
+              </template>
+            </div>
+          </div>
+        </template>
+      </div>
+    </div>
+
   </main>
 
   <!-- Filter Dialog -->
@@ -1285,7 +1390,7 @@
   <div x-show="selectedCell" class="cell-toolbar"
     :style="`left: ${cellToolbarPos.x}px; top: ${cellToolbarPos.y}px; --arrow-offset: ${cellToolbarPos.arrowOffset}px;`"
     @click.stop x-cloak>
-    <button class="cell-toolbar__button" @click="applyQuickCellFilter('exact')"
+    <button class="cell-toolbar__button" @click="applyQuickCellFilter('exact')" x-show="!selectedCell?.isEda"
       :title="selectedCell?.type === 'number' ? 'Filter by exact value (=)' : 'Filter by this value'">
       <i data-feather="filter"></i>
       <span x-show="selectedCell?.type === 'number'"
@@ -1294,7 +1399,8 @@
 
     <template x-if="selectedCell?.type === 'number'">
       <div style="display: flex; gap: 2px;">
-        <div style="width: 1px; background: var(--color-medium-gray); margin: 4px 2px;"></div>
+        <div x-show="!selectedCell?.isEda" style="width: 1px; background: var(--color-medium-gray); margin: 4px 2px;">
+        </div>
         <button class="cell-toolbar__button" @click="applyQuickCellFilter('gt')" title="Keep values greater than (>)">
           <span style="font-size: 14px; font-weight: bold; font-family: var(--font-family-mono);">&gt;</span>
         </button>

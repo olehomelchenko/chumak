@@ -13,6 +13,7 @@ function chumakApp() {
         columnToolbarPos: { x: 0, y: 0 },
         selectedCell: null,           // Interactive cell selection { col, value, type }
         cellToolbarPos: { x: 0, y: 0 },
+        edaStats: null,               // Stats for the selected column
 
         // Pagination state
         currentPage: 1,
@@ -232,6 +233,21 @@ function chumakApp() {
 
             // Wait for next tick to ensure DOM is updated if needed, though here it's fine
             this.$nextTick(() => this.updateToolbarPosition());
+
+            // Calculate EDA stats
+            if (this.selectedColumn && this.currentData) {
+                const type = this.inferType(this.currentData, this.selectedColumn);
+                this.edaStats = EDAEngine.calculateStats(this.currentData, this.selectedColumn, type);
+
+                // Draw boxplot for numerical columns
+                if (type === 'number') {
+                    this.$nextTick(() => {
+                        ChartsEngine.renderBoxPlot('#eda-boxplot', this.currentData, this.selectedColumn);
+                    });
+                }
+            } else {
+                this.edaStats = null;
+            }
         },
 
         updateToolbarPosition() {
@@ -256,6 +272,9 @@ function chumakApp() {
             }
 
             if (this.selectedCell) {
+                // If it's an EDA stat, don't try to find it in the data table
+                if (this.selectedCell.isEda) return;
+
                 const cell = document.querySelector(`.data-table__cell[data-col="${this.selectedCell.col}"][data-row="${this.selectedCell.rowIdx}"]`);
                 if (cell) {
                     const rect = cell.getBoundingClientRect();
@@ -279,6 +298,7 @@ function chumakApp() {
         clearColumnSelection() {
             this.selectedColumn = null;
             this.selectedCell = null;
+            this.edaStats = null;
         },
 
         selectCell(col, value, rowIdx, event) {
@@ -298,6 +318,41 @@ function chumakApp() {
             this.selectedCell = { col, value, type, rowIdx };
 
             this.$nextTick(() => this.updateToolbarPosition());
+        },
+
+        selectEdaStat(label, rawValue, event) {
+            // Capture element before the next tick as currentTarget will be nullified
+            const el = event.currentTarget;
+
+            // Clear previous cell selection to reset positioning
+            this.selectedCell = null;
+
+            // Set up cell data to reuse cell-toolbar for numbers
+            this.selectedCell = {
+                col: this.selectedColumn,
+                value: rawValue,
+                type: 'number',
+                isEda: true,
+                edaLabel: label
+            };
+
+            this.$nextTick(() => {
+                if (!el) return;
+                const rect = el.getBoundingClientRect();
+                const center = rect.left + (rect.width / 2);
+                const toolbarWidth = 180;
+                const windowWidth = window.innerWidth;
+                const margin = 12;
+
+                // Clamp X to keep toolbar within viewport
+                let x = Math.max(toolbarWidth / 2 + margin, Math.min(windowWidth - toolbarWidth / 2 - margin, center));
+
+                this.cellToolbarPos = {
+                    x: x,
+                    y: rect.top - 8,
+                    arrowOffset: center - x
+                };
+            });
         },
 
         async applyQuickCellFilter(op) {

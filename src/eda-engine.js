@@ -1,0 +1,120 @@
+/**
+ * Chumak EDA Engine
+ * 
+ * Provides statistical analysis and data profiling for columns.
+ */
+
+const EDAEngine = {
+    /**
+     * Calculate summary statistics for a column
+     * @param {Array<Object>} data - Array of row objects
+     * @param {string} column - Column name
+     * @param {string} type - Inferred type ('number', 'string', 'date')
+     * @returns {Object} Summary statistics
+     */
+    calculateStats(data, column, type) {
+        if (!data || data.length === 0) return null;
+
+        const values = data.map(row => row[column]);
+        const totalCount = values.length;
+        const nullCount = values.filter(v => v === null || v === undefined || v === '').length;
+        const nonNullValues = values.filter(v => v !== null && v !== undefined && v !== '');
+        const uniqueValues = new Set(nonNullValues);
+
+        const baseStats = {
+            column,
+            type,
+            totalCount,
+            nullCount,
+            nullPercentage: (nullCount / totalCount * 100).toFixed(1),
+            uniqueCount: uniqueValues.size,
+            uniquePercentage: (uniqueValues.size / totalCount * 100).toFixed(1),
+        };
+
+        if (type === 'number') {
+            return { ...baseStats, ...this.calculateNumericStats(nonNullValues) };
+        } else {
+            return { ...baseStats, ...this.calculateCategoricalStats(nonNullValues) };
+        }
+    },
+
+    /**
+     * Calculate numeric statistics
+     * @param {Array<number>} values - Non-null numeric values
+     */
+    calculateNumericStats(values) {
+        if (values.length === 0) return {};
+
+        const sorted = [...values].sort((a, b) => a - b);
+        const min = sorted[0];
+        const max = sorted[sorted.length - 1];
+        const sum = sorted.reduce((a, b) => a + b, 0);
+        const mean = sum / sorted.length;
+
+        const median = this.getPercentile(sorted, 0.5);
+        const p25 = this.getPercentile(sorted, 0.25);
+        const p75 = this.getPercentile(sorted, 0.75);
+
+        return {
+            min: this.formatNumber(min),
+            max: this.formatNumber(max),
+            mean: this.formatNumber(mean),
+            median: this.formatNumber(median),
+            p25: this.formatNumber(p25),
+            p75: this.formatNumber(p75),
+            // Raw values for filtering
+            raw: { min, max, mean, median, p25, p75 }
+        };
+    },
+
+    /**
+     * Calculate categorical statistics (frequencies)
+     * @param {Array} values - Non-null values
+     */
+    calculateCategoricalStats(values) {
+        if (values.length === 0) return { topValues: [] };
+
+        const frequencies = {};
+        values.forEach(v => {
+            frequencies[v] = (frequencies[v] || 0) + 1;
+        });
+
+        const sortedFreqs = Object.entries(frequencies)
+            .map(([value, count]) => ({
+                value,
+                count,
+                percentage: (count / values.length * 100).toFixed(1)
+            }))
+            .sort((a, b) => b.count - a.count);
+
+        return {
+            topValues: sortedFreqs.slice(0, 5)
+        };
+    },
+
+    /**
+     * Get percentile from sorted array
+     */
+    getPercentile(sorted, p) {
+        const pos = (sorted.length - 1) * p;
+        const base = Math.floor(pos);
+        const rest = pos - base;
+        if (sorted[base + 1] !== undefined) {
+            return sorted[base] + rest * (sorted[base + 1] - sorted[base]);
+        } else {
+            return sorted[base];
+        }
+    },
+
+    /**
+     * Format number for display
+     */
+    formatNumber(val) {
+        if (val === null || val === undefined) return '-';
+        if (Number.isInteger(val)) return val.toLocaleString();
+        return val.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 2 });
+    }
+};
+
+// Export for use in app
+window.EDAEngine = EDAEngine;
