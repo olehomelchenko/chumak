@@ -104,6 +104,33 @@ Accept `sales > 1000` (not `d.sales` or `datum.sales`) - simplest for non-progra
 
 ---
 
+## Codebase Map
+
+**Before implementing, check if it already exists below.**
+
+### Core Modules (Expression Pipeline)
+- **[expression-parser.js](src/expression-parser.js)** - jsep wrapper, entry point for parsing
+- **[ast-validator.js](src/ast-validator.js)** - Whitelist validation (security layer)
+- **[ast-interpreter.js](src/ast-interpreter.js)** - Safe AST execution (no Function() constructor)
+- **[transforms.js](src/transforms.js)** - Transform implementations (filter, select, derive, etc.)
+
+### Infrastructure
+- **[storage.js](src/storage.js)** - IndexedDB persistence (sources, models, settings)
+- **[error-formatter.js](src/error-formatter.js)** - User-friendly error messages with position highlighting
+- **[performance-logger.js](src/performance-logger.js)** - Optional performance tracking (toggle-able)
+- **[ux-settings.js](src/ux-settings.js)** - localStorage preferences (pagination, theme, etc.)
+
+### Application
+- **[chumak-app.js](src/chumak-app.js)** - Main Alpine.js component (UI state & logic)
+
+### Tests
+- **[src/tests/runner.html](src/tests/runner.html)** - Browser test runner (Mocha + Chai)
+- Test files mirror module names: `expression-parser.test.js`, `ast-validator.test.js`, etc.
+
+**Tip**: Each module has header comments with purpose and exports. Read headers before implementing.
+
+---
+
 ## Documentation Map
 
 - **SPECIFICATION.md** - Complete product spec (data model, transforms, UI, phases)
