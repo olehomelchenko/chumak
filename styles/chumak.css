@@ -256,6 +256,14 @@ body {
   border-color: transparent;
 }
 
+.ribbon__divider {
+  width: 1px;
+  height: 32px;
+  background: var(--border-color);
+  margin: 0 var(--space-xs);
+  align-self: center;
+}
+
 /* ============================================
    Left Panel
    ============================================ */
@@ -782,6 +790,19 @@ body {
   gap: var(--space-sm);
 }
 
+.pagination__divider {
+  width: 1px;
+  height: 20px;
+  background: var(--border-color);
+  margin: 0 var(--space-xs);
+}
+
+.model-actions {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
 /* ============================================
    Buttons
    ============================================ */
@@ -819,9 +840,37 @@ body {
 }
 
 .button--secondary {
-  background: var(--color-white);
+  background: var(--color-light-gray);
   color: var(--color-midnight-blue);
-  border: var(--border-width) solid var(--color-midnight-blue);
+  border: var(--border-width) solid var(--border-color);
+}
+
+.button--ghost {
+  background: transparent;
+  color: var(--color-midnight-blue);
+  border: 1px solid transparent;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.button--ghost:hover:not(:disabled) {
+  background: rgba(0, 187, 206, 0.08);
+  border-color: var(--color-cyan);
+}
+
+.button--ghost i {
+  width: 14px;
+  height: 14px;
+}
+
+.button--danger-text {
+  color: var(--color-red);
+}
+
+.button--danger-text:hover:not(:disabled) {
+  background: rgba(241, 91, 67, 0.1);
+  border-color: var(--color-red);
 }
 
 .button--secondary:hover {

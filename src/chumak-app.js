@@ -1400,6 +1400,41 @@ function chumakApp() {
             }
         },
 
+        // Export current data as JSON
+        exportDataJSON() {
+            if (!this.currentData || this.currentData.length === 0) {
+                alert('No data to export');
+                return;
+            }
+
+            const start = performance.now();
+            try {
+                // Convert current data to JSON
+                const json = JSON.stringify(this.currentData, null, 2);
+
+                // Create download link
+                const blob = new Blob([json], { type: 'application/json;charset=utf-8;' });
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+
+                // Generate filename
+                const timestamp = new Date().toISOString().slice(0, 10);
+                const filename = `${this.activeModel.name}_data_${timestamp}.json`;
+
+                link.setAttribute('href', url);
+                link.setAttribute('download', filename);
+                link.style.visibility = 'hidden';
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+
+                console.log(`⚡ Export JSON — ${(performance.now() - start).toFixed(1)}ms — ${filename}`);
+            } catch (error) {
+                console.error('JSON export error:', error);
+                alert('Failed to export JSON: ' + error.message);
+            }
+        },
+
         // Switch to a source (shows dataset info view)
         switchToSource(source) {
             this.activeSource = source;
@@ -1427,8 +1462,10 @@ function chumakApp() {
             this.viewingIntermediate = false;
             this.clearColumnSelection();
 
-            // Switch to 'model' ribbon tab
-            this.ribbonTab = 'model';
+            // Switch to 'transform' ribbon tab by default
+            if (this.ribbonTab === 'model' || !this.ribbonTab) {
+                this.ribbonTab = 'transform';
+            }
 
             // Update columns from the model's data
             if (this.currentData && this.currentData.length > 0) {
