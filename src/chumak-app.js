@@ -9,6 +9,8 @@ function chumakApp() {
         viewingIntermediate: false,   // true when viewing intermediate step
         activeDialog: null,
         isDragging: false,
+        selectedColumn: null,         // Interactive header selection
+        columnToolbarPos: { x: 0, y: 0 },
 
         // Pagination state
         currentPage: 1,
@@ -143,6 +145,8 @@ function chumakApp() {
             } else if (dialogName === 'remove') {
                 this.removedColumns = this.columns.map(() => false);
             }
+
+            this.clearColumnSelection();
         },
 
         closeDialog() {
@@ -175,6 +179,97 @@ function chumakApp() {
                 previewError: null,
                 isPreviewing: false
             };
+        },
+
+        // Header Interactivity Methods
+        selectColumn(col, event) {
+            if (this.selectedColumn === col) {
+                this.selectedColumn = null;
+                return;
+            }
+            this.selectedColumn = col;
+
+            // Wait for next tick to ensure DOM is updated if needed, though here it's fine
+            this.$nextTick(() => this.updateToolbarPosition());
+        },
+
+        updateToolbarPosition() {
+            if (!this.selectedColumn) return;
+
+            const header = document.querySelector(`.data-table__header[data-col="${this.selectedColumn}"]`);
+            if (!header) return;
+
+            const rect = header.getBoundingClientRect();
+            const center = rect.left + (rect.width / 2);
+            const toolbarWidth = 200;
+            const windowWidth = window.innerWidth;
+            const margin = 12;
+
+            // Clamp X to keep toolbar within viewport
+            let x = Math.max(toolbarWidth / 2 + margin, Math.min(windowWidth - toolbarWidth / 2 - margin, center));
+
+            this.columnToolbarPos = {
+                x: x,
+                y: rect.top - 8,
+                arrowOffset: center - x
+            };
+        },
+
+        clearColumnSelection() {
+            this.selectedColumn = null;
+        },
+
+        async quickSort(order) {
+            if (!this.selectedColumn) return;
+
+            this.sortDialogState.field = this.selectedColumn;
+            this.sortDialogState.order = order;
+            await this.applySortTransform();
+            this.selectedColumn = null;
+        },
+
+        quickFilter() {
+            if (!this.selectedColumn) return;
+
+            this.openDialog('filter');
+            this.filterExpression = `${this.selectedColumn} == `;
+            // Optional: focus the input after a short delay
+            setTimeout(() => {
+                const input = document.querySelector('.modal input[x-model="filterExpression"]');
+                if (input) {
+                    input.focus();
+                    // Put cursor at the end
+                    input.setSelectionRange(input.value.length, input.value.length);
+                }
+            }, 50);
+        },
+
+        quickRename() {
+            if (!this.selectedColumn) return;
+
+            const col = this.selectedColumn;
+            this.openDialog('rename');
+            // Selection is cleared by openDialog if we don't handle it, 
+            // but we want the rename dialog to focus on this column
+            setTimeout(() => {
+                const input = document.querySelector(`.modal input[data-col="${col}"]`);
+                if (input) {
+                    input.focus();
+                    input.select();
+                }
+            }, 50);
+        },
+
+        async quickRemove() {
+            if (!this.selectedColumn) return;
+
+            const col = this.selectedColumn;
+            if (confirm(`Are you sure you want to remove column "${col}"?`)) {
+                // Set the removedColumns state to only the selected column
+                this.removedColumns = this.columns.map(c => c === col);
+                await this.applyRemoveTransform();
+                this.selectedColumn = null;
+            }
         },
 
         // CSV import: Step 1 - Show import dialog
@@ -1142,6 +1237,7 @@ function chumakApp() {
             this.viewMode = 'dataset-info';
             this.activeStepIndex = null;
             this.viewingIntermediate = false;
+            this.clearColumnSelection();
 
             // Switch to 'data' ribbon tab
             this.ribbonTab = 'data';
@@ -1157,6 +1253,7 @@ function chumakApp() {
             this.viewMode = 'model';
             this.activeStepIndex = null;
             this.viewingIntermediate = false;
+            this.clearColumnSelection();
 
             // Switch to 'model' ribbon tab
             this.ribbonTab = 'model';
@@ -1822,6 +1919,7 @@ function chumakApp() {
         previousPage() {
             if (this.currentPage > 1) {
                 this.currentPage--;
+                this.clearColumnSelection();
             }
         },
 
@@ -1831,6 +1929,7 @@ function chumakApp() {
         nextPage() {
             if (this.currentPage < this.totalPages) {
                 this.currentPage++;
+                this.clearColumnSelection();
             }
         },
 
@@ -1845,6 +1944,8 @@ function chumakApp() {
             }
 
             this.pageSize = size;
+            this.clearColumnSelection();
+            this.updatePagination();
 
             // Save to UX settings
             updateUXSetting('pagination', 'pageSize', size);

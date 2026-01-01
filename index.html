@@ -574,12 +574,13 @@
     </div>
 
     <!-- Data Preview Table -->
-    <div class="table-container" x-show="viewMode === 'model'">
+    <div class="table-container" x-show="viewMode === 'model'" @scroll.passive="updateToolbarPosition()">
       <table class="data-table">
         <thead>
           <tr>
             <template x-for="(column, index) in columns" :key="index">
-              <th class="data-table__header" x-text="column"></th>
+              <th class="data-table__header" :class="{ 'data-table__header--selected': selectedColumn === column }"
+                x-text="column" :data-col="column" @click.stop="selectColumn(column, $event)"></th>
             </template>
 
             <!-- PLACEHOLDER DATA - preserved for reference -->
@@ -610,7 +611,7 @@
         </thead>
         <tbody>
           <template x-for="(row, rowIndex) in getPaginatedData()" :key="rowIndex">
-            <tr class="data-table__row">
+            <tr class="data-table__row" @click="clearColumnSelection()">
               <template x-for="(column, colIndex) in columns" :key="colIndex">
                 <td class="data-table__cell" x-text="row[column]"></td>
               </template>
@@ -816,7 +817,7 @@
               <div
                 style="font-size: 0.875rem; font-weight: 500; color: var(--color-dark-gray); overflow: hidden; text-overflow: ellipsis;"
                 x-text="col"></div>
-              <input type="text" class="form-input" x-model="renameDialogState.renames[col]"
+              <input type="text" class="form-input" x-model="renameDialogState.renames[col]" :data-col="col"
                 style="padding: 0.25rem 0.5rem; font-size: 0.875rem;">
             </div>
           </template>
@@ -1247,6 +1248,29 @@
     </div>
   </div>
 
+  <!-- Column Toolbar -->
+  <div x-show="selectedColumn" class="column-toolbar"
+    :style="`left: ${columnToolbarPos.x}px; top: ${columnToolbarPos.y}px; --arrow-offset: ${columnToolbarPos.arrowOffset}px;`"
+    @click.stop>
+    <button class="column-toolbar__button" @click="quickSort('asc')" title="Sort Ascending">
+      <i data-feather="arrow-up"></i>
+    </button>
+    <button class="column-toolbar__button" @click="quickSort('desc')" title="Sort Descending">
+      <i data-feather="arrow-down"></i>
+    </button>
+    <div style="width: 1px; background: var(--color-medium-gray); margin: 4px 2px;"></div>
+    <button class="column-toolbar__button" @click="quickFilter()" title="Filter by this column">
+      <i data-feather="filter"></i>
+    </button>
+    <button class="column-toolbar__button" @click="quickRename()" title="Rename this column">
+      <i data-feather="edit-2"></i>
+    </button>
+    <button class="column-toolbar__button" @click="quickRemove()" title="Remove this column"
+      style="color: var(--color-dark-red);">
+      <i data-feather="trash-2"></i>
+    </button>
+  </div>
+
   <script>
     // Initialize Feather icons after page load
     document.addEventListener('DOMContentLoaded', () => {
@@ -1255,7 +1279,14 @@
 
     // Re-render icons when Alpine updates
     document.addEventListener('alpine:initialized', () => {
-      setTimeout(() => feather.replace(), 50);
+      // Re-replace icons when dynamic content might have been added
+      // We also do it on specific Alpine events if needed
+      Alpine.effect(() => {
+        // This runs whenever any tracked Alpine state changes
+        // but we only want to trigger it when the toolbar becomes visible
+        // so we'll do it more specifically in the next step if needed
+        setTimeout(() => feather.replace(), 0);
+      });
     });
   </script>
 
