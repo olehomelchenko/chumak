@@ -856,6 +856,19 @@ function chumakApp() {
             return 'string';
         },
 
+        getTypeIndicator(colName) {
+            const type = this.getColumnType(colName);
+            switch (type) {
+                case 'string': return 'Abc';
+                case 'integer': return '#';
+                case 'float': return '1.1';
+                case 'boolean': return '✓';
+                case 'date': return '📅';
+                case 'datetime': return '🕒';
+                default: return 'Abc';
+            }
+        },
+
         async applySelectTransform() {
             const selectedCols = this.getSelectedColumnsList();
 

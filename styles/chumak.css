@@ -617,6 +617,23 @@ body {
   background: var(--color-medium-gray);
 }
 
+.type-indicator {
+  display: inline-block;
+  margin-right: 6px;
+  font-family: var(--font-family-mono);
+  font-size: 10px;
+  color: var(--color-dark-gray);
+  vertical-align: middle;
+  opacity: 0.7;
+  width: 20px;
+  text-align: center;
+}
+
+.data-table__header--selected .type-indicator {
+  color: var(--color-white);
+  opacity: 0.9;
+}
+
 .data-table__header--selected {
   background: var(--color-cyan) !important;
   color: var(--color-white) !important;

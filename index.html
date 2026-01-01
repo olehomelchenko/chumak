@@ -611,7 +611,10 @@
           <tr>
             <template x-for="(column, index) in columns" :key="index">
               <th class="data-table__header" :class="{ 'data-table__header--selected': selectedColumn === column }"
-                x-text="column" :data-col="column" @click.stop="selectColumn(column, $event)"></th>
+                :data-col="column" @click.stop="selectColumn(column, $event)">
+                <span class="type-indicator" x-text="getTypeIndicator(column)"></span>
+                <span x-text="column"></span>
+              </th>
             </template>
 
             <!-- PLACEHOLDER DATA - preserved for reference -->
