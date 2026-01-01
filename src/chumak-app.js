@@ -173,6 +173,62 @@ function chumakApp() {
             this.showImportDialog(file);
         },
 
+        /**
+         * Global paste handler to import CSV data from clipboard.
+         * Intercepts paste events on the window, unless an input is focused.
+         * @param {ClipboardEvent} event 
+         */
+        handlePaste(event) {
+            // Don't intercept paste if we're in an input or textarea
+            if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA' || event.target.isContentEditable) {
+                return;
+            }
+
+            const clipboardData = event.clipboardData || window.clipboardData;
+            if (!clipboardData) return;
+
+            // 1. Try to get files from clipboard (some browsers support this)
+            if (clipboardData.files && clipboardData.files.length > 0) {
+                const file = clipboardData.files[0];
+                if (file.name.toLowerCase().endsWith('.csv') || file.type === 'text/csv' || file.type === 'text/plain') {
+                    this.showImportDialog(file);
+                    return;
+                }
+            }
+
+            // 2. Try to get text from clipboard
+            const pastedText = clipboardData.getData('text');
+            if (pastedText && pastedText.trim().length > 0) {
+                // Create a virtual file from the pasted text
+                // We use a .csv extension to trigger the CSV logic correctly
+                const file = new File([pastedText], 'Pasted Data.csv', { type: 'text/csv' });
+                this.showImportDialog(file);
+            }
+        },
+
+        /**
+         * Manually trigger clipboard read to import data.
+         * Requires secure context and user permission.
+         */
+        async promptPaste() {
+            try {
+                if (navigator.clipboard && navigator.clipboard.readText) {
+                    const text = await navigator.clipboard.readText();
+                    if (text && text.trim().length > 0) {
+                        const file = new File([text], 'Pasted Data.csv', { type: 'text/csv' });
+                        this.showImportDialog(file);
+                    } else {
+                        alert('Clipboard is empty or does not contain text. Try copying some CSV data first.');
+                    }
+                } else {
+                    alert('Your browser does not support direct clipboard access. Please use Ctrl+V to paste data.');
+                }
+            } catch (err) {
+                console.warn('Clipboard access denied:', err);
+                alert('Please press Ctrl+V to paste your data directly.');
+            }
+        },
+
         // Show import configuration dialog
         showImportDialog(file) {
             // Store file for later

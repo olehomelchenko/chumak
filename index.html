@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -23,7 +24,8 @@
   <script src="src/chumak-app.js"></script>
   <script src="https://unpkg.com/alpinejs@3/dist/cdn.min.js" defer></script>
 </head>
-<body x-data="chumakApp()">
+
+<body x-data="chumakApp()" @paste.window="handlePaste($event)">
 
   <!-- Header with Ribbon Tabs -->
   <header class="header">
@@ -35,62 +37,41 @@
 
       <!-- Ribbon Tabs (moved to header) -->
       <div class="ribbon__tabs" style="margin-left: 2rem;">
-      <button
-        class="ribbon__tab"
-        :class="{ 'ribbon__tab--active': ribbonTab === 'data' }"
-        @click="ribbonTab = 'data'"
-      >
-        Data
-      </button>
-      <button
-        class="ribbon__tab"
-        :class="{ 'ribbon__tab--active': ribbonTab === 'transform', 'ribbon__tab--disabled': !currentData }"
-        :disabled="!currentData"
-        @click="currentData && (ribbonTab = 'transform')"
-      >
-        Transform
-      </button>
-      <button
-        class="ribbon__tab"
-        :class="{ 'ribbon__tab--active': ribbonTab === 'add-column', 'ribbon__tab--disabled': !currentData }"
-        :disabled="!currentData"
-        @click="currentData && (ribbonTab = 'add-column')"
-      >
-        Add Column
-      </button>
-      <button
-        class="ribbon__tab"
-        :class="{ 'ribbon__tab--active': ribbonTab === 'reduce', 'ribbon__tab--disabled': !currentData }"
-        :disabled="!currentData"
-        @click="currentData && (ribbonTab = 'reduce')"
-      >
-        Reduce
-      </button>
-      <button
-        class="ribbon__tab"
-        :class="{ 'ribbon__tab--active': ribbonTab === 'combine', 'ribbon__tab--disabled': !currentData }"
-        :disabled="!currentData"
-        @click="currentData && (ribbonTab = 'combine')"
-      >
-        Combine
-      </button>
-      <button
-        class="ribbon__tab"
-        :class="{ 'ribbon__tab--active': ribbonTab === 'model', 'ribbon__tab--disabled': !currentData }"
-        :disabled="!currentData"
-        @click="currentData && (ribbonTab = 'model')"
-      >
-        Model
-      </button>
+        <button class="ribbon__tab" :class="{ 'ribbon__tab--active': ribbonTab === 'data' }"
+          @click="ribbonTab = 'data'">
+          Data
+        </button>
+        <button class="ribbon__tab"
+          :class="{ 'ribbon__tab--active': ribbonTab === 'transform', 'ribbon__tab--disabled': !currentData }"
+          :disabled="!currentData" @click="currentData && (ribbonTab = 'transform')">
+          Transform
+        </button>
+        <button class="ribbon__tab"
+          :class="{ 'ribbon__tab--active': ribbonTab === 'add-column', 'ribbon__tab--disabled': !currentData }"
+          :disabled="!currentData" @click="currentData && (ribbonTab = 'add-column')">
+          Add Column
+        </button>
+        <button class="ribbon__tab"
+          :class="{ 'ribbon__tab--active': ribbonTab === 'reduce', 'ribbon__tab--disabled': !currentData }"
+          :disabled="!currentData" @click="currentData && (ribbonTab = 'reduce')">
+          Reduce
+        </button>
+        <button class="ribbon__tab"
+          :class="{ 'ribbon__tab--active': ribbonTab === 'combine', 'ribbon__tab--disabled': !currentData }"
+          :disabled="!currentData" @click="currentData && (ribbonTab = 'combine')">
+          Combine
+        </button>
+        <button class="ribbon__tab"
+          :class="{ 'ribbon__tab--active': ribbonTab === 'model', 'ribbon__tab--disabled': !currentData }"
+          :disabled="!currentData" @click="currentData && (ribbonTab = 'model')">
+          Model
+        </button>
       </div>
 
       <div style="margin-left: auto;">
-        <button
-          class="button button--secondary button--small"
-          @click="clearAllData()"
+        <button class="button button--secondary button--small" @click="clearAllData()"
           title="Clear all data from IndexedDB (for debugging)"
-          style="background: #D33E2C; color: white; border-color: #D33E2C;"
-        >
+          style="background: #D33E2C; color: white; border-color: #D33E2C;">
           Clear All Data
         </button>
       </div>
@@ -105,11 +86,16 @@
       <!-- Data Tab -->
       <div class="ribbon__panel" x-show="ribbonTab === 'data'">
         <input type="file" accept=".csv" style="display: none" x-ref="fileInput" @change="handleFileSelect($event)">
-        <button class="ribbon__button" @click="$refs.fileInput.click()" title="Import CSV file">
+        <button class="ribbon__button" @click="$refs.fileInput.click()" title="Import CSV file (or Ctrl+V to paste)">
           <i data-feather="upload"></i>
           <span>Import CSV</span>
         </button>
-        <button class="ribbon__button" @click="exportCSV()" :disabled="!currentData" :class="{ 'ribbon__button--disabled': !currentData }" title="Export current data as CSV">
+        <button class="ribbon__button" @click="promptPaste()" title="Paste data from clipboard (Ctrl+V)">
+          <i data-feather="clipboard"></i>
+          <span>Paste</span>
+        </button>
+        <button class="ribbon__button" @click="exportCSV()" :disabled="!currentData"
+          :class="{ 'ribbon__button--disabled': !currentData }" title="Export current data as CSV">
           <i data-feather="download"></i>
           <span>Export CSV</span>
         </button>
@@ -117,7 +103,8 @@
           <i data-feather="link"></i>
           <span>Import URL</span>
         </button>
-        <button class="ribbon__button" @click="exportWorkflowJSON()" :disabled="!currentData" :class="{ 'ribbon__button--disabled': !currentData }" title="Export workflow as JSON">
+        <button class="ribbon__button" @click="exportWorkflowJSON()" :disabled="!currentData"
+          :class="{ 'ribbon__button--disabled': !currentData }" title="Export workflow as JSON">
           <i data-feather="file-text"></i>
           <span>Export JSON</span>
         </button>
@@ -133,7 +120,8 @@
           <i data-feather="arrow-up-down"></i>
           <span>Sort</span>
         </button>
-        <button class="ribbon__button ribbon__button--disabled" disabled title="Drop rows with missing values (Coming soon)">
+        <button class="ribbon__button ribbon__button--disabled" disabled
+          title="Drop rows with missing values (Coming soon)">
           <i data-feather="trash-2"></i>
           <span>Drop NA</span>
         </button>
@@ -161,7 +149,8 @@
 
       <!-- Add Column Tab -->
       <div class="ribbon__panel" x-show="ribbonTab === 'add-column'">
-        <button class="ribbon__button ribbon__button--disabled" disabled title="Create new column from expression (Coming soon)">
+        <button class="ribbon__button ribbon__button--disabled" disabled
+          title="Create new column from expression (Coming soon)">
           <i data-feather="plus-square"></i>
           <span>Derive</span>
         </button>
@@ -181,7 +170,8 @@
           <i data-feather="layers"></i>
           <span>Aggregate</span>
         </button>
-        <button class="ribbon__button ribbon__button--disabled" disabled title="Remove duplicate rows (Coming in Phase 2)">
+        <button class="ribbon__button ribbon__button--disabled" disabled
+          title="Remove duplicate rows (Coming in Phase 2)">
           <i data-feather="check-square"></i>
           <span>Distinct</span>
         </button>
@@ -235,51 +225,45 @@
 
     <!-- Sources & Models -->
     <section class="panel-section">
-        <h2 class="panel-section__header">Sources & Models</h2>
-        <div class="tree-view">
+      <h2 class="panel-section__header">Sources & Models</h2>
+      <div class="tree-view">
 
-          <template x-for="source in sources" :key="source.id">
-            <div>
-              <!-- Source -->
-              <div class="tree-item tree-item--source"
-                   :class="{ 'tree-item--active': activeSource?.id === source.id }"
-                   @click="switchToSource(source)"
-                   style="cursor: pointer;">
-                <span class="tree-item__icon">📄</span>
-                <span class="tree-item__name" x-text="source.name"></span>
-              </div>
-
-              <!-- Models for this source -->
-              <template x-for="model in models.filter(m => m.sourceId === source.id)" :key="model.id">
-                <div class="tree-item tree-item--model"
-                     :class="{ 'tree-item--active': activeModel?.id === model.id }"
-                     @click="switchToModel(model)"
-                     style="cursor: pointer;">
-                  <span class="tree-item__indent"></span>
-                  <span class="tree-item__icon">📊</span>
-                  <span class="tree-item__name" x-text="model.name"></span>
-                </div>
-              </template>
-
-              <!-- New Model button -->
-              <div class="tree-item tree-item--action"
-                   @click="createNewModel(source)"
-                   style="cursor: pointer;"
-                   title="Create a new model from this source">
-                <span class="tree-item__indent"></span>
-                <span class="tree-item__icon">➕</span>
-                <span class="tree-item__name" style="color: #666; font-style: italic;">New Model</span>
-              </div>
+        <template x-for="source in sources" :key="source.id">
+          <div>
+            <!-- Source -->
+            <div class="tree-item tree-item--source" :class="{ 'tree-item--active': activeSource?.id === source.id }"
+              @click="switchToSource(source)" style="cursor: pointer;">
+              <span class="tree-item__icon">📄</span>
+              <span class="tree-item__name" x-text="source.name"></span>
             </div>
-          </template>
 
-          <!-- Show message when no sources -->
-          <div x-show="sources.length === 0" style="padding: 1rem; color: #888; font-size: 0.875rem;">
-            No data sources imported yet. Click "Import CSV" to get started.
+            <!-- Models for this source -->
+            <template x-for="model in models.filter(m => m.sourceId === source.id)" :key="model.id">
+              <div class="tree-item tree-item--model" :class="{ 'tree-item--active': activeModel?.id === model.id }"
+                @click="switchToModel(model)" style="cursor: pointer;">
+                <span class="tree-item__indent"></span>
+                <span class="tree-item__icon">📊</span>
+                <span class="tree-item__name" x-text="model.name"></span>
+              </div>
+            </template>
+
+            <!-- New Model button -->
+            <div class="tree-item tree-item--action" @click="createNewModel(source)" style="cursor: pointer;"
+              title="Create a new model from this source">
+              <span class="tree-item__indent"></span>
+              <span class="tree-item__icon">➕</span>
+              <span class="tree-item__name" style="color: #666; font-style: italic;">New Model</span>
+            </div>
           </div>
+        </template>
 
-          <!-- PLACEHOLDER DATA - preserved for reference -->
-          <!--
+        <!-- Show message when no sources -->
+        <div x-show="sources.length === 0" style="padding: 1rem; color: #888; font-size: 0.875rem;">
+          No data sources imported yet. Click "Import CSV" to get started.
+        </div>
+
+        <!-- PLACEHOLDER DATA - preserved for reference -->
+        <!--
           <div class="tree-item tree-item--source">
             <span class="tree-item__icon">📄</span>
             <span class="tree-item__name">sales.csv</span>
@@ -310,81 +294,61 @@
             <span class="tree-item__name">regions.csv</span>
           </div>
           -->
-          <!-- END PLACEHOLDER DATA -->
+        <!-- END PLACEHOLDER DATA -->
 
-        </div>
-      </section>
+      </div>
+    </section>
 
-      <!-- Steps Panel -->
-      <section class="panel-section panel-section--flex">
-        <div class="tabs">
-          <button
-            class="tab"
-            :class="{ 'tab--active': activeTab === 'steps' }"
-            @click="activeTab = 'steps'"
-          >
-            Steps
-          </button>
-          <button
-            class="tab"
-            :class="{ 'tab--active': activeTab === 'json' }"
-            @click="activeTab = 'json'"
-          >
-            JSON
-          </button>
+    <!-- Steps Panel -->
+    <section class="panel-section panel-section--flex">
+      <div class="tabs">
+        <button class="tab" :class="{ 'tab--active': activeTab === 'steps' }" @click="activeTab = 'steps'">
+          Steps
+        </button>
+        <button class="tab" :class="{ 'tab--active': activeTab === 'json' }" @click="activeTab = 'json'">
+          JSON
+        </button>
+      </div>
+
+      <!-- Steps List -->
+      <div class="steps-list" x-show="activeTab === 'steps'">
+        <div x-show="!currentData" style="padding: 1rem; color: #888; font-size: 0.875rem;">
+          Import a CSV file to begin transforming data.
         </div>
 
-        <!-- Steps List -->
-        <div class="steps-list" x-show="activeTab === 'steps'">
-          <div x-show="!currentData" style="padding: 1rem; color: #888; font-size: 0.875rem;">
-            Import a CSV file to begin transforming data.
-          </div>
-
-          <!-- Show steps if any exist -->
-          <template x-if="currentData && activeModel?.steps?.length > 0">
-            <div>
-              <template x-for="(step, index) in activeModel?.steps || []" :key="index">
-                <div
-                  class="step-item"
-                  :class="{ 'step-item--active': activeStepIndex === index }"
-                  @click="viewStep(index)"
-                  style="cursor: pointer;"
-                >
-                  <span class="step-item__number" x-text="`${index + 1}.`"></span>
-                  <span class="step-item__description" x-text="describeTransform(step)"></span>
-                  <button
-                    class="step-item__delete"
-                    @click.stop="removeStep(index)"
-                    x-show="!step.import"
-                    title="Remove this step"
-                  >×</button>
-                </div>
-              </template>
-
-              <!-- Info text when viewing intermediate step -->
-              <div
-                x-show="viewingIntermediate"
-                style="padding: 0.75rem 1rem; background: rgba(0, 187, 206, 0.05); border-top: 1px solid var(--color-cyan); margin-top: 0.5rem; font-size: 0.875rem; color: var(--color-dark-gray);"
-              >
-                <span x-text="`Viewing step ${activeStepIndex + 1} of ${activeModel.steps.length}`"></span>
-                <button
-                  @click="viewFinalResult()"
-                  style="margin-left: 1rem; color: var(--color-cyan); text-decoration: underline; background: none; border: none; cursor: pointer; font-size: 0.875rem;"
-                >
-                  View final result
-                </button>
+        <!-- Show steps if any exist -->
+        <template x-if="currentData && activeModel?.steps?.length > 0">
+          <div>
+            <template x-for="(step, index) in activeModel?.steps || []" :key="index">
+              <div class="step-item" :class="{ 'step-item--active': activeStepIndex === index }"
+                @click="viewStep(index)" style="cursor: pointer;">
+                <span class="step-item__number" x-text="`${index + 1}.`"></span>
+                <span class="step-item__description" x-text="describeTransform(step)"></span>
+                <button class="step-item__delete" @click.stop="removeStep(index)" x-show="!step.import"
+                  title="Remove this step">×</button>
               </div>
+            </template>
+
+            <!-- Info text when viewing intermediate step -->
+            <div x-show="viewingIntermediate"
+              style="padding: 0.75rem 1rem; background: rgba(0, 187, 206, 0.05); border-top: 1px solid var(--color-cyan); margin-top: 0.5rem; font-size: 0.875rem; color: var(--color-dark-gray);">
+              <span x-text="`Viewing step ${activeStepIndex + 1} of ${activeModel.steps.length}`"></span>
+              <button @click="viewFinalResult()"
+                style="margin-left: 1rem; color: var(--color-cyan); text-decoration: underline; background: none; border: none; cursor: pointer; font-size: 0.875rem;">
+                View final result
+              </button>
             </div>
-          </template>
-
-          <!-- Show "no steps" message if data loaded but no steps -->
-          <div x-show="currentData && (!activeModel?.steps || activeModel?.steps?.length === 0)"
-               style="padding: 1rem; color: #888; font-size: 0.875rem;">
-            No transformation steps yet. Use the toolbar above to transform your data.
           </div>
+        </template>
 
-          <!-- PLACEHOLDER DATA - preserved for reference -->
-          <!--
+        <!-- Show "no steps" message if data loaded but no steps -->
+        <div x-show="currentData && (!activeModel?.steps || activeModel?.steps?.length === 0)"
+          style="padding: 1rem; color: #888; font-size: 0.875rem;">
+          No transformation steps yet. Use the toolbar above to transform your data.
+        </div>
+
+        <!-- PLACEHOLDER DATA - preserved for reference -->
+        <!--
           <div class="step-item" :class="{ 'step-item--active': activeStep === 1 }" @click="activeStep = 1">
             <span class="step-item__number">1.</span>
             <span class="step-item__description">Filter: sales > 1000</span>
@@ -408,28 +372,27 @@
 
           <button class="add-step-button">+ Add Step</button>
           -->
-          <!-- END PLACEHOLDER DATA -->
+        <!-- END PLACEHOLDER DATA -->
+      </div>
+
+      <!-- JSON View -->
+      <div class="json-view" x-show="activeTab === 'json'">
+        <div x-show="!currentData" style="padding: 1rem; color: #888; font-size: 0.875rem;">
+          Import a CSV file to begin transforming data.
         </div>
 
-        <!-- JSON View -->
-        <div class="json-view" x-show="activeTab === 'json'">
-          <div x-show="!currentData" style="padding: 1rem; color: #888; font-size: 0.875rem;">
-            Import a CSV file to begin transforming data.
-          </div>
+        <!-- Show JSON if steps exist -->
+        <pre x-show="currentData && activeModel?.steps?.length > 0" class="json-view__content"
+          x-text="JSON.stringify({ transforms: activeModel?.steps || [] }, null, 2)"></pre>
 
-          <!-- Show JSON if steps exist -->
-          <pre x-show="currentData && activeModel?.steps?.length > 0"
-               class="json-view__content"
-               x-text="JSON.stringify({ transforms: activeModel?.steps || [] }, null, 2)"></pre>
+        <!-- Show "no steps" message -->
+        <div x-show="currentData && (!activeModel?.steps || activeModel?.steps?.length === 0)"
+          style="padding: 1rem; color: #888; font-size: 0.875rem;">
+          No transformation steps yet.
+        </div>
 
-          <!-- Show "no steps" message -->
-          <div x-show="currentData && (!activeModel?.steps || activeModel?.steps?.length === 0)"
-               style="padding: 1rem; color: #888; font-size: 0.875rem;">
-            No transformation steps yet.
-          </div>
-
-          <!-- PLACEHOLDER DATA - preserved for reference -->
-          <!--
+        <!-- PLACEHOLDER DATA - preserved for reference -->
+        <!--
           <pre class="json-view__content">{
   "transforms": [
     { "filter": "sales > 1000" },
@@ -457,9 +420,9 @@
 }</pre>
           <button class="button button--secondary button--small json-view__copy">Copy</button>
           -->
-          <!-- END PLACEHOLDER DATA -->
-        </div>
-      </section>
+        <!-- END PLACEHOLDER DATA -->
+      </div>
+    </section>
 
   </aside>
 
@@ -467,18 +430,14 @@
   <main class="main-content">
 
     <!-- Default/Empty State with Drag-n-Drop -->
-    <div
-      x-show="viewMode === 'empty'"
-      class="empty-state"
-      :class="{ 'empty-state--dragover': isDragging }"
-      @dragover.prevent="isDragging = true"
-      @dragleave.prevent="isDragging = false"
-      @drop.prevent="handleFileDrop($event)"
-    >
+    <div x-show="viewMode === 'empty'" class="empty-state" :class="{ 'empty-state--dragover': isDragging }"
+      @dragover.prevent="isDragging = true" @dragleave.prevent="isDragging = false"
+      @drop.prevent="handleFileDrop($event)">
       <div class="empty-state__content">
         <i data-feather="upload-cloud" class="empty-state__icon"></i>
         <h2 class="empty-state__title">Get Started with Chumak</h2>
-        <p class="empty-state__text">Drag and drop a CSV file here, or use the "Import CSV" button in the Data tab</p>
+        <p class="empty-state__text">Drag and drop a CSV file, paste from clipboard (Ctrl+V), or use the "Import CSV"
+          button</p>
       </div>
     </div>
 
@@ -528,7 +487,8 @@
             </div>
             <div class="info-list__item">
               <dt class="info-list__label">Imported</dt>
-              <dd class="info-list__value" x-text="activeSource?.createdAt ? new Date(activeSource.createdAt).toLocaleString() : 'Unknown'"></dd>
+              <dd class="info-list__value"
+                x-text="activeSource?.createdAt ? new Date(activeSource.createdAt).toLocaleString() : 'Unknown'"></dd>
             </div>
           </dl>
         </div>
@@ -546,7 +506,8 @@
                 <div class="model-card__content">
                   <div class="model-card__name" x-text="model.name"></div>
                   <div class="model-card__meta">
-                    <span x-text="`${model.steps?.length - 1 || 0} step${model.steps?.length - 1 !== 1 ? 's' : ''}`"></span>
+                    <span
+                      x-text="`${model.steps?.length - 1 || 0} step${model.steps?.length - 1 !== 1 ? 's' : ''}`"></span>
                     <span>•</span>
                     <span x-text="`${model.data?.length?.toLocaleString() || 0} rows`"></span>
                   </div>
@@ -556,7 +517,8 @@
             </template>
 
             <!-- New Model button -->
-            <button class="button button--secondary" @click="createNewModel(activeSource)" style="width: 100%; margin-top: 0.5rem;">
+            <button class="button button--secondary" @click="createNewModel(activeSource)"
+              style="width: 100%; margin-top: 0.5rem;">
               ➕ New Model
             </button>
           </div>
@@ -578,7 +540,8 @@
                 <tr class="schema-table__row">
                   <td class="schema-table__cell" x-text="column.name"></td>
                   <td class="schema-table__cell">
-                    <span class="type-badge" :class="`type-badge--${column.inferredType}`" x-text="column.inferredType"></span>
+                    <span class="type-badge" :class="`type-badge--${column.inferredType}`"
+                      x-text="column.inferredType"></span>
                   </td>
                   <td class="schema-table__cell" x-text="column.originalPosition + 1"></td>
                 </tr>
@@ -593,26 +556,15 @@
     <div class="pagination" x-show="viewMode === 'model'">
       <span class="pagination__info" x-text="getPaginationInfo()"></span>
       <div class="pagination__controls" style="display: flex; align-items: center; gap: 0.5rem;">
-        <button
-          class="button button--secondary button--small"
-          @click="previousPage()"
-          :disabled="currentPage === 1"
-          title="Previous page"
-        >‹</button>
-        <span style="font-size: 0.875rem; color: var(--color-dark-gray);" x-text="`Page ${currentPage} of ${totalPages}`"></span>
-        <button
-          class="button button--secondary button--small"
-          @click="nextPage()"
-          :disabled="currentPage >= totalPages"
-          title="Next page"
-        >›</button>
+        <button class="button button--secondary button--small" @click="previousPage()" :disabled="currentPage === 1"
+          title="Previous page">‹</button>
+        <span style="font-size: 0.875rem; color: var(--color-dark-gray);"
+          x-text="`Page ${currentPage} of ${totalPages}`"></span>
+        <button class="button button--secondary button--small" @click="nextPage()" :disabled="currentPage >= totalPages"
+          title="Next page">›</button>
         <span style="margin-left: 1rem; font-size: 0.875rem; color: var(--color-dark-gray);">Rows per page:</span>
-        <select
-          class="form-input"
-          style="width: auto; padding: 0.25rem 0.5rem; font-size: 0.875rem;"
-          x-model="pageSize"
-          @change="updatePageSize($event.target.value)"
-        >
+        <select class="form-input" style="width: auto; padding: 0.25rem 0.5rem; font-size: 0.875rem;" x-model="pageSize"
+          @change="updatePageSize($event.target.value)">
           <option value="100">100</option>
           <option value="250">250</option>
           <option value="500">500</option>
@@ -756,17 +708,14 @@
 
       <div class="modal__content">
         <label class="form-label">Keep rows where:</label>
-        <input
-          type="text"
-          class="form-input"
-          x-model="filterExpression"
-          placeholder="e.g., sales > 1000"
-          @input="validateFilterExpression()"
-        >
+        <input type="text" class="form-input" x-model="filterExpression" placeholder="e.g., sales > 1000"
+          @input="validateFilterExpression()">
         <p class="form-help">Examples: sales > 1000, region == "North", sales > 1000 && region == "North"</p>
 
         <!-- Error message -->
-        <div x-show="filterError" x-text="filterError" style="color: var(--color-red); font-size: 13px; margin-top: 8px; white-space: pre-wrap; font-family: var(--font-family-mono);"></div>
+        <div x-show="filterError" x-text="filterError"
+          style="color: var(--color-red); font-size: 13px; margin-top: 8px; white-space: pre-wrap; font-family: var(--font-family-mono);">
+        </div>
       </div>
 
       <div class="modal__footer">
@@ -806,27 +755,27 @@
                   <th class="data-table__header data-table__header--number">sales</th>
                   <th class="data-table__header data-table__header--number">profit</th>
                   <th class="data-table__header data-table__header--number">profit_margin</th>
-              </tr>
+                </tr>
               </thead>
               <tbody>
-              <tr class="data-table__row">
-                <td class="data-table__cell">North</td>
+                <tr class="data-table__row">
+                  <td class="data-table__cell">North</td>
                   <td class="data-table__cell data-table__cell--number">1,500</td>
                   <td class="data-table__cell data-table__cell--number">320</td>
                   <td class="data-table__cell data-table__cell--number">21.3</td>
-              </tr>
-              <tr class="data-table__row">
-                <td class="data-table__cell">South</td>
+                </tr>
+                <tr class="data-table__row">
+                  <td class="data-table__cell">South</td>
                   <td class="data-table__cell data-table__cell--number">2,100</td>
                   <td class="data-table__cell data-table__cell--number">450</td>
                   <td class="data-table__cell data-table__cell--number">21.4</td>
-              </tr>
-              <tr class="data-table__row">
-                <td class="data-table__cell">West</td>
+                </tr>
+                <tr class="data-table__row">
+                  <td class="data-table__cell">West</td>
                   <td class="data-table__cell data-table__cell--number">1,800</td>
                   <td class="data-table__cell data-table__cell--number">380</td>
                   <td class="data-table__cell data-table__cell--number">21.1</td>
-              </tr>
+                </tr>
               </tbody>
             </table>
           </div>
@@ -850,7 +799,8 @@
 
       <div class="modal__content">
         <!-- Pattern Matching Section -->
-        <div class="form-group" style="margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--color-border);">
+        <div class="form-group"
+          style="margin-bottom: 1.5rem; padding-bottom: 1.5rem; border-bottom: 1px solid var(--color-border);">
           <label class="form-label">Pattern Matching (optional):</label>
 
           <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem;">
@@ -859,27 +809,24 @@
               <option value="exclude">Exclude</option>
             </select>
 
-            <select class="form-input" x-model="selectPatternMatchType" @change="applyColumnPattern()" style="width: 140px;">
+            <select class="form-input" x-model="selectPatternMatchType" @change="applyColumnPattern()"
+              style="width: 140px;">
               <option value="prefix">Starts with</option>
               <option value="suffix">Ends with</option>
               <option value="exact">Exact match</option>
             </select>
 
-            <input
-              type="text"
-              class="form-input"
-              x-model="selectPatternText"
-              @input="applyColumnPattern()"
-              placeholder="e.g., sales_ or _2023"
-              style="flex: 1;"
-            >
+            <input type="text" class="form-input" x-model="selectPatternText" @input="applyColumnPattern()"
+              placeholder="e.g., sales_ or _2023" style="flex: 1;">
           </div>
 
           <p class="form-help">
-            Use patterns to quickly select/deselect columns. Examples: "sales_" for columns starting with "sales_", "_2023" for year columns
+            Use patterns to quickly select/deselect columns. Examples: "sales_" for columns starting with "sales_",
+            "_2023" for year columns
           </p>
 
-          <div x-show="selectPatternText.trim() !== ''" style="margin-top: 0.5rem; font-size: 0.875rem; color: var(--color-dark-gray);">
+          <div x-show="selectPatternText.trim() !== ''"
+            style="margin-top: 0.5rem; font-size: 0.875rem; color: var(--color-dark-gray);">
             <span x-text="getPatternMatchInfo()"></span>
           </div>
         </div>
@@ -901,7 +848,9 @@
         </div>
 
         <div class="preview-section" x-show="getSelectedColumnsList().length > 0">
-          <div class="preview-section__header" x-text="`Preview (${getSelectedColumnsList().length} column${getSelectedColumnsList().length !== 1 ? 's' : ''})`"></div>
+          <div class="preview-section__header"
+            x-text="`Preview (${getSelectedColumnsList().length} column${getSelectedColumnsList().length !== 1 ? 's' : ''})`">
+          </div>
           <div class="preview-table">
             <table class="data-table data-table--compact">
               <thead>
@@ -944,9 +893,7 @@
         <!-- Source Name -->
         <div class="form-group">
           <label class="form-label">Source Name:</label>
-          <input type="text" class="form-input"
-                 x-model="importDialogState.sourceName"
-                 placeholder="e.g., sales_data">
+          <input type="text" class="form-input" x-model="importDialogState.sourceName" placeholder="e.g., sales_data">
           <p class="form-help">This name will appear in the Sources panel</p>
         </div>
 
@@ -955,21 +902,18 @@
           <label class="form-label">Delimiter:</label>
           <div style="display: flex; gap: 16px; align-items: center;">
             <label class="checkbox-item" style="margin: 0;">
-              <input type="radio" name="delimiter" value=","
-                     x-model="importDialogState.delimiter"
-                     @change="updateImportPreview()" checked>
+              <input type="radio" name="delimiter" value="," x-model="importDialogState.delimiter"
+                @change="updateImportPreview()" checked>
               <span>Comma (,)</span>
             </label>
             <label class="checkbox-item" style="margin: 0;">
-              <input type="radio" name="delimiter" value="	"
-                     x-model="importDialogState.delimiter"
-                     @change="updateImportPreview()">
+              <input type="radio" name="delimiter" value="	" x-model="importDialogState.delimiter"
+                @change="updateImportPreview()">
               <span>Tab</span>
             </label>
             <label class="checkbox-item" style="margin: 0;">
-              <input type="radio" name="delimiter" value=";"
-                     x-model="importDialogState.delimiter"
-                     @change="updateImportPreview()">
+              <input type="radio" name="delimiter" value=";" x-model="importDialogState.delimiter"
+                @change="updateImportPreview()">
               <span>Semicolon (;)</span>
             </label>
           </div>
@@ -980,57 +924,53 @@
           <label class="form-label">Column Headers:</label>
 
           <label class="checkbox-item">
-            <input type="radio" name="headerMode" value="first-row"
-                   x-model="importDialogState.headerMode"
-                   @change="updateHeadersForPreview()" checked>
+            <input type="radio" name="headerMode" value="first-row" x-model="importDialogState.headerMode"
+              @change="updateHeadersForPreview()" checked>
             <span>First row contains headers (recommended)</span>
           </label>
 
           <label class="checkbox-item">
-            <input type="radio" name="headerMode" value="auto-generate"
-                   x-model="importDialogState.headerMode"
-                   @change="updateHeadersForPreview()">
+            <input type="radio" name="headerMode" value="auto-generate" x-model="importDialogState.headerMode"
+              @change="updateHeadersForPreview()">
             <span>Auto-generate headers (Column 1, Column 2, ...)</span>
           </label>
 
           <label class="checkbox-item">
-            <input type="radio" name="headerMode" value="manual"
-                   x-model="importDialogState.headerMode"
-                   @change="updateHeadersForPreview()">
+            <input type="radio" name="headerMode" value="manual" x-model="importDialogState.headerMode"
+              @change="updateHeadersForPreview()">
             <span>Specify manually</span>
           </label>
         </div>
 
         <!-- Column Name Inputs (shown only for manual mode) -->
-        <div class="form-group"
-             x-show="importDialogState.headerMode === 'manual'"
-             style="max-height: 150px; overflow-y: auto;">
+        <div class="form-group" x-show="importDialogState.headerMode === 'manual'"
+          style="max-height: 150px; overflow-y: auto;">
           <label class="form-label" style="font-size: 13px; margin-bottom: 8px;">Specify column names:</label>
           <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 8px;">
             <template x-for="(name, index) in importDialogState.customHeaders" :key="index">
-              <input type="text" class="form-input"
-                     x-model="importDialogState.customHeaders[index]"
-                     @input="updateHeadersForPreview()"
-                     :placeholder="`Column ${index + 1}`"
-                     style="font-size: 13px; padding: 6px 8px;">
+              <input type="text" class="form-input" x-model="importDialogState.customHeaders[index]"
+                @input="updateHeadersForPreview()" :placeholder="`Column ${index + 1}`"
+                style="font-size: 13px; padding: 6px 8px;">
             </template>
           </div>
         </div>
 
         <!-- Auto-generate message -->
         <div x-show="importDialogState.headerMode === 'auto-generate'"
-             style="color: var(--color-dark-gray); font-size: 14px; padding: 8px 0;">
+          style="color: var(--color-dark-gray); font-size: 14px; padding: 8px 0;">
           Columns will be named: Column 1, Column 2, Column 3, ...
         </div>
 
         <!-- Duplicate Columns Warning -->
         <div x-show="importDialogState.duplicateWarning"
-             style="margin-top: 1rem; padding: 1rem; background: #FFF4E5; border: 1px solid #FFB020; border-radius: 4px;">
+          style="margin-top: 1rem; padding: 1rem; background: #FFF4E5; border: 1px solid #FFB020; border-radius: 4px;">
           <div style="display: flex; align-items: start; gap: 0.5rem;">
             <span style="color: #FFB020; font-size: 20px;">⚠️</span>
             <div style="flex: 1;">
-              <div style="font-weight: 600; color: #8B5A00; margin-bottom: 0.5rem;">Duplicate Column Names Detected</div>
-              <div style="font-size: 13px; color: #8B5A00; margin-bottom: 0.5rem;" x-text="importDialogState.duplicateWarning"></div>
+              <div style="font-weight: 600; color: #8B5A00; margin-bottom: 0.5rem;">Duplicate Column Names Detected
+              </div>
+              <div style="font-size: 13px; color: #8B5A00; margin-bottom: 0.5rem;"
+                x-text="importDialogState.duplicateWarning"></div>
               <div style="font-size: 13px; color: #8B5A00;">
                 Duplicates have been automatically renamed by adding a suffix (e.g., "_2", "_3").
               </div>
@@ -1088,16 +1028,15 @@
         <!-- Join Configuration -->
         <div class="form-group">
           <label class="form-label">Join With</label>
-          <select
-            class="form-input"
-            x-model="joinDialogState.rightModel"
-            @change="onJoinTargetChange()"
-          >
+          <select class="form-input" x-model="joinDialogState.rightModel" @change="onJoinTargetChange()">
             <template x-for="target in joinDialogState.availableTargets" :key="target.id">
-              <option :value="target.id" x-text="`${target.name} (${target.type === 'model' ? 'model' : 'source'} - ${target.sourceName})`"></option>
+              <option :value="target.id"
+                x-text="`${target.name} (${target.type === 'model' ? 'model' : 'source'} - ${target.sourceName})`">
+              </option>
             </template>
           </select>
-          <div x-show="joinDialogState.availableTargets.length === 0" class="form-help" style="color: var(--color-error);">
+          <div x-show="joinDialogState.availableTargets.length === 0" class="form-help"
+            style="color: var(--color-error);">
             No other models or sources available. Create another model or import another dataset first.
           </div>
         </div>
@@ -1129,8 +1068,10 @@
           </div>
           <div class="form-help">
             <span x-show="joinDialogState.joinType === 'inner'">Keep only rows that match in both tables</span>
-            <span x-show="joinDialogState.joinType === 'left'">Keep all rows from left table, matching rows from right</span>
-            <span x-show="joinDialogState.joinType === 'right'">Keep all rows from right table, matching rows from left</span>
+            <span x-show="joinDialogState.joinType === 'left'">Keep all rows from left table, matching rows from
+              right</span>
+            <span x-show="joinDialogState.joinType === 'right'">Keep all rows from right table, matching rows from
+              left</span>
             <span x-show="joinDialogState.joinType === 'full'">Keep all rows from both tables</span>
             <span x-show="joinDialogState.joinType === 'cross'">Cartesian product (all combinations)</span>
           </div>
@@ -1154,19 +1095,11 @@
                   <option :value="col" x-text="col"></option>
                 </template>
               </select>
-              <button
-                class="button button--secondary button--small"
-                @click="removeJoinKeyPair(index)"
-                :disabled="joinDialogState.keyPairs.length === 1"
-                title="Remove key pair"
-              >×</button>
+              <button class="button button--secondary button--small" @click="removeJoinKeyPair(index)"
+                :disabled="joinDialogState.keyPairs.length === 1" title="Remove key pair">×</button>
             </div>
           </template>
-          <button
-            class="button button--secondary button--small"
-            @click="addJoinKeyPair()"
-            style="margin-top: 0.5rem;"
-          >
+          <button class="button button--secondary button--small" @click="addJoinKeyPair()" style="margin-top: 0.5rem;">
             + Add Key Pair
           </button>
           <div class="form-help">Match rows where these columns have equal values</div>
@@ -1176,32 +1109,19 @@
         <div class="form-group">
           <label class="form-label">Column Name Suffixes (for conflicts)</label>
           <div style="display: flex; gap: 0.5rem; align-items: center;">
-            <input
-              type="text"
-              class="form-input"
-              style="flex: 1;"
-              x-model="joinDialogState.suffixes[0]"
-              placeholder="_x"
-            />
+            <input type="text" class="form-input" style="flex: 1;" x-model="joinDialogState.suffixes[0]"
+              placeholder="_x" />
             <span>/</span>
-            <input
-              type="text"
-              class="form-input"
-              style="flex: 1;"
-              x-model="joinDialogState.suffixes[1]"
-              placeholder="_y"
-            />
+            <input type="text" class="form-input" style="flex: 1;" x-model="joinDialogState.suffixes[1]"
+              placeholder="_y" />
           </div>
           <div class="form-help">Applied to left/right columns when names conflict</div>
         </div>
 
         <!-- Preview Button and Results -->
         <div class="form-group">
-          <button
-            class="button button--secondary"
-            @click="previewJoin()"
-            :disabled="joinDialogState.isPreviewing || !joinDialogState.rightModel"
-          >
+          <button class="button button--secondary" @click="previewJoin()"
+            :disabled="joinDialogState.isPreviewing || !joinDialogState.rightModel">
             <span x-show="!joinDialogState.isPreviewing">Preview Join</span>
             <span x-show="joinDialogState.isPreviewing">Previewing...</span>
           </button>
@@ -1217,14 +1137,17 @@
         <div x-show="joinDialogState.previewData" class="form-group">
           <div style="padding: 1rem; background: var(--color-light-gray); border-radius: 4px; margin-bottom: 1rem;">
             <strong>Preview Result:</strong>
-            <div x-text="`${joinDialogState.previewData?.totalRows || 0} rows, ${joinDialogState.previewData?.columns?.length || 0} columns`"></div>
+            <div
+              x-text="`${joinDialogState.previewData?.totalRows || 0} rows, ${joinDialogState.previewData?.columns?.length || 0} columns`">
+            </div>
             <div style="font-size: 0.875rem; color: var(--color-dark-gray); margin-top: 0.5rem;">
               Showing first 100 rows
             </div>
           </div>
 
           <!-- Preview Table (scrollable) -->
-          <div style="max-height: 300px; overflow: auto; border: 1px solid var(--color-medium-gray); border-radius: 4px;">
+          <div
+            style="max-height: 300px; overflow: auto; border: 1px solid var(--color-medium-gray); border-radius: 4px;">
             <table class="data-table" style="font-size: 0.75rem;">
               <thead>
                 <tr>
@@ -1249,11 +1172,7 @@
 
       <div class="slide-panel__footer">
         <button class="button button--secondary" @click="closeDialog()">Cancel</button>
-        <button
-          class="button button--primary"
-          @click="applyJoinTransform()"
-          :disabled="!joinDialogState.rightModel"
-        >
+        <button class="button button--primary" @click="applyJoinTransform()" :disabled="!joinDialogState.rightModel">
           Apply Join
         </button>
       </div>
@@ -1273,4 +1192,5 @@
   </script>
 
 </body>
+
 </html>
