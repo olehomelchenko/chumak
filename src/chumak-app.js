@@ -100,21 +100,60 @@ function chumakApp() {
             this.sources = sources;
             this.models = models;
 
-            // If we have data, activate the first model
-            if (models.length > 0) {
+            // Restore state from URL if present
+            const urlState = getUrlState();
+            let restored = false;
+
+            if (urlState.modelId) {
+                const model = models.find(m => m.id === urlState.modelId);
+                if (model) {
+                    this.activeModel = model;
+                    this.currentData = model.data;
+                    this.viewMode = 'model';
+                    restored = true;
+                }
+            } else if (urlState.sourceId) {
+                const source = sources.find(s => s.id === urlState.sourceId);
+                if (source) {
+                    this.activeSource = source;
+                    this.currentData = source.data;
+                    this.viewMode = 'dataset-info';
+                    restored = true;
+                }
+            }
+
+            if (restored) {
+
+
+
+                console.log('Restored state from URL:', urlState);
+            } else if (models.length > 0) {
+                // If no URL state or invalid, activate the first model (existing behavior)
                 this.activeModel = models[0];
                 this.currentData = models[0].data;
-
-                // Get columns from the model's data
-                if (this.currentData && this.currentData.length > 0) {
-                    this.columns = Object.keys(this.currentData[0]);
-                }
-
-                // Update pagination
-                this.updatePagination();
-
-                console.log('Restored session:', sources.length, 'sources,', models.length, 'models');
+                this.viewMode = 'model';
+                console.log('Restored session: showing first model');
             }
+
+            // Sync columns and pagination if we have data
+            if (this.currentData && this.currentData.length > 0) {
+                this.columns = Object.keys(this.currentData[0]);
+            }
+            this.updatePagination();
+
+            // Set up watchers for URL state sync
+            // Note: we wait a tick to avoid syncing initial load state back to URL immediately
+            this.$nextTick(() => {
+                this.$watch('activeModel', () => this.syncUrlState());
+                this.$watch('activeSource', () => this.syncUrlState());
+
+
+
+                // Final sync to ensure URL is clean
+                this.syncUrlState();
+            });
+
+            console.log('Initialization complete:', sources.length, 'sources,', models.length, 'models');
         },
 
         // Dialog methods
@@ -2029,6 +2068,17 @@ function chumakApp() {
             this.updatePagination();
 
             console.log('Page size updated to:', size);
+        },
+
+        /**
+         * Sync current app state to URL parameters
+         */
+        syncUrlState() {
+            setUrlState({
+                modelId: this.activeModel?.id,
+                sourceId: this.activeSource?.id || this.activeModel?.sourceId
+
+            });
         }
     }
 }
