@@ -24,7 +24,9 @@ Chumak is a browser-based data wrangling tool for cleaning and transforming tabu
 
 ### 1.4 Current Status
 
-**Phase 0: ✅ Complete** → **Phase 1: In Progress** (MVP - remaining transforms)
+**Phase 0: ✅ Complete** → **Phase 1: In Progress**
+
+Significant progress made on core transforms, Joins (Phase 1.5), and URL-based state persistence.
 
 See [CLAUDE.md](../CLAUDE.md) for detailed current status and session context.
 
@@ -80,6 +82,7 @@ See [CLAUDE.md](../CLAUDE.md) for detailed current status and session context.
 |--------------|---------|
 | **localStorage** | User preferences, recent workflow list |
 | **IndexedDB** | Datasets (raw + cached previews), workflows, step snapshots |
+| **URL Hash** | Active Source and Model state (for shareability and refresh persistence) |
 
 ### 3.4 Performance Targets
 
@@ -187,10 +190,10 @@ Inspired by Vega-Lite. Each transform is one object in an array.
 ```json
 {
   "transforms": [
-    // Option 1: Structured predicate (GUI-friendly)
-    { "filter": { "field": "sales", "gt": 1000 } },
+    // Option 1: Structured predicate (GUI-friendly) - Planned
+    // { "filter": { "field": "sales", "gt": 1000 } },
 
-    // Option 2: Expression string (advanced users)
+    // Option 2: Expression string (currently supported)
     { "filter": "sales > 1000 && region == 'North'" },
 
     // Derive always uses expression strings
@@ -209,18 +212,16 @@ Inspired by Vega-Lite. Each transform is one object in an array.
 
 ### 5.1 Phase 1 (MVP)
 
-| Operation | JSON Syntax | Notes |
-|-----------|-------------|-------|
-| **Filter** | `{ "filter": "expression" }` | Keep rows matching condition |
-| **Select** | `{ "select": ["col1", "col2"] }` | Keep only listed columns. UI supports pattern matching (prefix/suffix/exact) for quick selection |
-| **Remove** | `{ "remove": ["col1"] }` | Drop listed columns |
-| **Rename** | `{ "rename": { "old": "new" } }` | Rename columns |
-| **Sort** | `{ "sort": { "field": "col", "order": "ascending" } }` | Single or multi-field |
-| **Derive** | `{ "derive": { "newCol": "expression" } }` | Add calculated column |
-| **Fill missing** | `{ "fillna": { "col": value } }` | Replace nulls/empty |
-| **Drop missing** | `{ "dropna": { "columns": ["col"] } }` | Remove rows with nulls |
-| **Find/replace** | `{ "replace": { "column": "col", "find": "x", "replace": "y" } }` | Text replacement |
-| **Group + Aggregate** | See below | Basic aggregation |
+| **Filter** | `{ "filter": "expression" }` | ✅ Keep rows matching condition |
+| **Select** | `{ "select": ["col1", "col2"] }` | ✅ Keep only listed columns. UI supports pattern matching |
+| **Remove** | `{ "remove": ["col1"] }` | ✅ Drop listed columns |
+| **Rename** | `{ "rename": { "old": "new" } }` | ✅ Rename columns |
+| **Sort** | `{ "sort": { "field": "col", "order": "ascending" } }` | ✅ Single field |
+| **Derive** | `{ "derive": { "newCol": "expression" } }` | ✅ Add calculated column |
+| **Fill missing** | `{ "fillna": { "col": value } }` | ⏳ Replace nulls/empty |
+| **Drop missing** | `{ "dropna": { "columns": ["col"] } }` | ⏳ Remove rows with nulls |
+| **Find/replace** | `{ "replace": { "column": "col", "find": "x", "replace": "y" } }` | ⏳ Text replacement |
+| **Group + Aggregate** | See below | ⏳ Basic aggregation |
 
 #### Group + Aggregate (Phase 1 — Single Output)
 
@@ -240,7 +241,7 @@ Inspired by Vega-Lite. Each transform is one object in an array.
 Supported aggregation operations:
 `count`, `sum`, `mean`, `median`, `min`, `max`, `stdev`, `variance`
 
-### 5.2 Phase 1.5 (Multi-Model & Joins) — **MOVED UP FROM PHASE 2**
+### 5.2 Phase 1.5 (Multi-Model & Joins) — ✅ IMPLEMENTED
 
 > **Design Decision**: Joins + aggregation unlock multiplicative value (enrichment → summarization workflows). Moving to MVP.
 
@@ -350,6 +351,7 @@ Supported aggregation operations:
 | Action | Status |
 |--------|--------|
 | **Import CSV** | ✅ File picker + drag-drop → Config dialog → Creates Source |
+| **Paste CSV** | ✅ Clipboard (Ctrl+V) → Config dialog → Creates Source |
 | **Export CSV** | ✅ Downloads transformed data with timestamp |
 | **Export workflow JSON** | ✅ Downloads workflow specification |
 | Import from URL | Phase 2 |
@@ -464,13 +466,13 @@ Option: embed source data (for full reproducibility) vs. reference only (smaller
 
 | Component | Status |
 |-----------|--------|
-| **Data import** | ✅ CSV from file (with config dialog) |
-| **Transforms** | ✅ filter, select (with pattern matching) / ⏳ derive, sort, rename, remove, aggregate, fillna, dropna, replace |
-| **Expression parser** | ✅ Basic operators, security validation / ⏳ Bracket notation, error suggestions |
-| **UI** | ✅ Full layout, step navigation, dialogs, pattern matching for select / ⏳ Remaining transform dialogs |
-| **Persistence** | ✅ IndexedDB auto-save / ⏳ Workflow import |
+| **Data import** | ✅ CSV from file & clipboard paste |
+| **Transforms** | ✅ filter, select, derive, sort, rename, remove, join |
+| **Expression parser** | ✅ Basic operators, security validation, bracket notation |
+| **UI** | ✅ Full layout, ribbon toolbar, step navigation, floating column toolbar |
+| **Persistence** | ✅ IndexedDB auto-save & URL state persistence |
 | **Export** | ✅ CSV, workflow JSON |
-| **Testing** | ✅ Comprehensive test infrastructure (Mocha + Chai) with high coverage |
+| **Testing** | ✅ Comprehensive test infrastructure (Mocha + Chai) |
 
 **Priorities:** Remaining transforms → Enhanced parser → Predicate builder (optional)
 

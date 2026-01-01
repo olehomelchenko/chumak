@@ -26,13 +26,14 @@
 **Phase 0**: Walking skeleton complete ✅ - All architectural layers validated
 - Expression parser pipeline (jsep → validation → interpretation)
 - IndexedDB persistence with auto-save
-- Filter and Select transforms working
-- CSV and JSON export functional
+- Filter, Select, Derive, Sort, Rename, Remove, and Join transforms working
+- CSV/clipboard import and CSV/JSON export functional
+- URL-based state persistence
 - Automated test infrastructure in place
 
 **Phase 1 (Current)**: Building out full MVP transform set
 - See SPECIFICATION.md Section 8 for complete roadmap
-- Priority: Remaining transforms (derive, sort, rename, remove, aggregate, fillna, dropna, replace)
+- Priority: Remaining transforms (aggregate, fillna, dropna, replace)
 
 **Key technical discoveries** documented in PARSER-DESIGN-DECISION.md:
 - jsep parses `&&`/`||` as BinaryExpression (not LogicalExpression)

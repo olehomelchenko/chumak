@@ -186,14 +186,12 @@ Consistent spacing scale:
 
 ```
 ┌──────────────────────────────────────────────────────────────────┐
-│ HEADER (48px height)                                             │
-│  ☆ Chumak                                                        │
 ├──────────────────────────────────────────────────────────────────┤
-│ RIBBON TABS (32px height)                                        │
-│  [Data] [Transform] [Add Column] [Reduce] [Combine] [Model]     │
+│ HEADER & RIBBON TABS (48px height)                               │
+│  ☆ Chumak                 [Data] [Transform] [Add Column] ...    │
 ├──────────────────────────────────────────────────────────────────┤
 │ RIBBON CONTENT (auto height, ~56px)                              │
-│  [Import CSV] [Export CSV] [Import URL] [Export JSON]  ← Data    │
+│  [Import CSV] [Export CSV] [Paste] [Export JSON]                 │
 ├────────────────────┬─────────────────────────────────────────────┤
 │                    │                                             │
 │ LEFT PANEL         │ MAIN CONTENT AREA                           │
@@ -236,8 +234,8 @@ body {
     "left    main";
 }
 
-.header { grid-area: header; }
-.ribbon { grid-area: ribbon; }  /* Contains tabs + content */
+.header { grid-area: header; } /* Header now contains ribbon tabs */
+.ribbon { grid-area: ribbon; } /* Contains only ribbon content */
 .left-panel { grid-area: left; }
 .main-content { grid-area: main; }
 ```
@@ -261,14 +259,14 @@ body {
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│ ☆ Chumak                                [Import] [Export ▼]  │
+│ ☆ Chumak      [Data] [Transform] ...    [Run Tests] [Clear]  │
 └──────────────────────────────────────────────────────────────┘
 ```
 
 **Elements:**
-- **Logo:** ☆ icon (Unicode star) + "Chumak" in Graphik Medium 18px, Dark Midnight Blue
-- **Import button:** Primary button (Dark Midnight Blue background, White text)
-- **Export dropdown:** Secondary button with dropdown arrow
+- **Logo:** ☆ icon + "Chumak" in 18px Medium
+- **Ribbon Tabs:** Integrated into header for space efficiency
+- **Dev Actions:** "Run Tests" and "Clear All Data" buttons (right-aligned)
 
 **Spacing:**
 - Padding: 0 24px (left/right)
@@ -288,9 +286,7 @@ body {
 
 ```
 ┌──────────────────────────────────────────────────────────────┐
-│ [Data] [Transform] [Add Column] [Reduce] [Combine] [Model]  │ ← Tabs
-├──────────────────────────────────────────────────────────────┤
-│ [Import CSV] [Export CSV] [Import URL] [Export JSON]        │ ← Content
+│ [Import CSV] [Paste] [Export CSV] [Export JSON]              │ ← Content
 └──────────────────────────────────────────────────────────────┘
 ```
 
@@ -365,7 +361,7 @@ body {
 
 | Tab | Operations | Enabled When |
 |-----|------------|--------------|
-| **Data** | Import CSV, Export CSV, Import URL, Export JSON | Always |
+| **Data** | Import CSV, Paste, Export CSV, Export JSON | Always |
 | **Transform** | Filter, Sort, Drop NA, Fill NA, Replace, Select, Remove, Rename | Data loaded |
 | **Add Column** | Derive, Duplicate, Split | Data loaded |
 | **Reduce** | Aggregate, Distinct, Pivot | Data loaded |
@@ -592,11 +588,35 @@ Compact step list with tab toggle.
 - **Selected:** Cyan background (10% opacity)
 - **Alternate rows** (optional): Very light gray (2% opacity) for readability
 
-**Pagination:**
-- Footer row with centered text: "Showing 1-100 of 5,432"
-- Buttons: [<] [>] for prev/next
-- Button style: Secondary buttons, small size
-- Disabled state when at edges
+**Pagination & Filtering:**
+- Footer row (or header) with: "Showing 1-100 of 5,432"
+- Buttons: [‹] [›] for prev/next
+- Row per page selector: 100, 250, 500, etc.
+
+### 6.7 Floating Column Toolbar ✅ IMPLEMENTED
+
+Appears when a column header is clicked.
+
+**Actions:**
+- **Sort Ascending/Descending:** Quick sort on the selected column
+- **Rename:** Opens quick rename input in the toolbar or dialog
+- **Filter:** Opens filter dialog for the column
+- **Remove:** Immediately drops the column
+
+**Styling:**
+- Fixed position anchored slightly above the column header
+- White background, 1px Dark Midnight Blue border
+- Subtle arrow pointing to the column
+- Box shadow for depth
+
+### 6.8 Floating Cell Toolbar ✅ IMPLEMENTED
+
+Appears when a data cell is clicked.
+
+**Actions:**
+- **Keep only this value:** Adds a filter `column == "value"`
+- **Exclude this value:** Adds a filter `column != "value"`
+- **Copy value:** Copies cell content to clipboard
 
 ---
 
@@ -987,7 +1007,7 @@ This section covers all dialogs: import configuration and transform operations. 
 
 **Features:** Checkbox list, Select All/None buttons, preview of selected columns (3 rows)
 
-### 13.3 Rename
+### 13.3 Rename ✅ IMPLEMENTED
 
 ```
 ┌─ Rename Columns ──────────────────────────────────┐
@@ -1008,7 +1028,7 @@ This section covers all dialogs: import configuration and transform operations. 
 └───────────────────────────────────────────────────┘
 ```
 
-### 13.4 Sort
+### 13.4 Sort ✅ IMPLEMENTED
 
 ```
 ┌─ Sort ────────────────────────────────────────────┐
@@ -1027,7 +1047,7 @@ This section covers all dialogs: import configuration and transform operations. 
 └───────────────────────────────────────────────────┘
 ```
 
-### 13.5 Derive
+### 13.5 Derive ✅ IMPLEMENTED
 
 ```
 ┌─ Derive Column ───────────────────────────────────┐
