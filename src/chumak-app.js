@@ -239,10 +239,14 @@ function chumakApp() {
                 const type = this.inferType(this.currentData, this.selectedColumn);
                 this.edaStats = EDAEngine.calculateStats(this.currentData, this.selectedColumn, type);
 
-                // Draw boxplot for numerical columns
+                // Draw charts based on type
                 if (type === 'number') {
                     this.$nextTick(() => {
                         ChartsEngine.renderBoxPlot('#eda-boxplot', this.currentData, this.selectedColumn);
+                    });
+                } else {
+                    this.$nextTick(() => {
+                        ChartsEngine.renderCategoricalBar('#eda-categorical-bar', this.edaStats.topValues);
                     });
                 }
             } else {

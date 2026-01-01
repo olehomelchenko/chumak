@@ -83,12 +83,28 @@ const EDAEngine = {
             .map(([value, count]) => ({
                 value,
                 count,
-                percentage: (count / values.length * 100).toFixed(1)
+                percentage: (count / values.length * 100).toFixed(1),
+                rawPercentage: (count / values.length * 100)
             }))
             .sort((a, b) => b.count - a.count);
 
+        const top5 = sortedFreqs.slice(0, 5);
+        const remaining = sortedFreqs.slice(5);
+
+        if (remaining.length > 0) {
+            const otherCount = remaining.reduce((sum, item) => sum + item.count, 0);
+            const otherPercentage = (otherCount / values.length * 100).toFixed(1);
+            top5.push({
+                value: `Other (${remaining.length})`,
+                count: otherCount,
+                percentage: otherPercentage,
+                rawPercentage: (otherCount / values.length * 100),
+                isOther: true
+            });
+        }
+
         return {
-            topValues: sortedFreqs.slice(0, 5)
+            topValues: top5
         };
     },
 

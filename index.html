@@ -792,19 +792,26 @@
 
         <!-- Categorical Stats (Top Frequencies) -->
         <template x-if="edaStats?.type !== 'number'">
-          <div class="eda-section">
-            <div class="eda-section__title">Top Values</div>
-            <div class="eda-frequencies">
-              <template x-for="item in edaStats?.topValues" :key="item.value">
-                <div class="eda-freq-item">
-                  <div class="eda-freq-item__label" :title="item.value" x-text="item.value || '(empty)'"></div>
-                  <div class="eda-freq-item__bar-container">
-                    <div class="eda-freq-item__bar" :style="`width: ${item.percentage}%`"></div>
+          <div class="eda-section eda-section--wide">
+            <div class="eda-section__title">Frequency Distribution</div>
+            <div style="display: flex; gap: var(--space-xl); align-items: start;">
+              <div id="eda-categorical-bar" style="flex: 1; min-width: 0; min-height: 80px;"></div>
+
+              <div class="eda-frequencies" style="min-width: 300px;">
+                <template x-for="item in edaStats?.topValues" :key="item.value">
+                  <div class="eda-freq-item"
+                    :style="item.isOther ? 'margin-top: 4px; border-top: 1px dashed var(--border-color); padding-top: 4px;' : ''">
+                    <div class="eda-freq-item__label" :title="item.value" x-text="item.value || '(empty)'"></div>
+                    <div class="eda-freq-item__bar-container">
+                      <div class="eda-freq-item__bar"
+                        :style="`width: ${item.percentage}%; background-color: ${item.isOther ? 'var(--color-medium-gray)' : 'var(--color-cyan)'}`">
+                      </div>
+                    </div>
+                    <div class="eda-freq-item__value" x-text="`${item.count.toLocaleString()} (${item.percentage}%)`">
+                    </div>
                   </div>
-                  <div class="eda-freq-item__value" x-text="`${item.count.toLocaleString()} (${item.percentage}%)`">
-                  </div>
-                </div>
-              </template>
+                </template>
+              </div>
             </div>
           </div>
         </template>

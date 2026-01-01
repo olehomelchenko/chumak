@@ -37,9 +37,12 @@ const ChartsEngine = {
             },
             "layer": [
                 {
-                    "transform": [{ "calculate": "random()", "as": "jitter" }],
+                    "transform": [
+                        { "sample": 1000 },
+                        { "calculate": "random()", "as": "jitter" }
+                    ],
                     "mark": {
-                        "type": "point",
+                        "type": "circle",
                         "tooltip": true,
                         "color": "gray",
                         "opacity": 0.2,
@@ -81,6 +84,71 @@ const ChartsEngine = {
             });
         } catch (error) {
             console.error('Error rendering boxplot:', error);
+        }
+    },
+
+    /**
+     * Render a 100% stacked horizontal bar chart for categorical data
+     * @param {string} containerSelector - CSS selector for the container
+     * @param {Array<Object>} aggregatedData - Top frequencies including 'Other'
+     * @param {Object} options - Customization options
+     */
+    async renderCategoricalBar(containerSelector, aggregatedData, options = {}) {
+        if (!aggregatedData || aggregatedData.length === 0) return;
+
+        // Add index for consistent stacking order (first in data = first in bar)
+        const chartData = aggregatedData.map((d, i) => ({ ...d, index: i }));
+
+        const spec = {
+            "$schema": "https://vega.github.io/schema/vega-lite/v6.json",
+            "data": { "values": chartData },
+            "width": options.width || "container",
+            "height": options.height || 40,
+            "padding": { "top": 5, "bottom": 5, "left": 10, "right": 10 },
+            "mark": { "type": "bar", "tooltip": true },
+            "encoding": {
+                "x": {
+                    "field": "count",
+                    "type": "quantitative",
+                    "stack": "normalize",
+                    "axis": null
+                },
+                "color": {
+                    "field": "value",
+                    "type": "nominal",
+                    "scale": {
+                        // Dynamically map values to colors, ensuring "Other" is gray
+                        "domain": aggregatedData.map(d => d.value),
+                        "range": aggregatedData.map((d, i) => {
+                            if (d.isOther) return "#C8C8C8"; // Gray for Other
+                            const colors = ["#003964", "#00BBCE", "#A7C539", "#E4E541", "#F15B43"];
+                            return colors[i] || "#C8C8C8";
+                        })
+                    },
+                    "legend": null
+                },
+                "order": {
+                    "field": "index",
+                    "type": "quantitative"
+                },
+                "tooltip": [
+                    { "field": "value", "title": "Value" },
+                    { "field": "count", "title": "Count" },
+                    { "field": "percentage", "title": "Percentage", "format": ".1f" }
+                ]
+            },
+            "config": {
+                "view": { "stroke": "transparent" }
+            }
+        };
+
+        try {
+            await vegaEmbed(containerSelector, spec, {
+                actions: false,
+                renderer: 'svg'
+            });
+        } catch (error) {
+            console.error('Error rendering categorical bar:', error);
         }
     }
 };
