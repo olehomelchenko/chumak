@@ -1556,9 +1556,10 @@
         <button class="button button--primary" @click="applyAggregateTransform()">Apply</button>
       </div>
     </div>
+  </div>
 
-    <!-- Column Toolbar -->
-    <div x-show="selectedColumn" class="column-toolbar"
+  <!-- Column Toolbar -->
+  <div x-show="selectedColumn" class="column-toolbar"
       :style="`left: ${columnToolbarPos.x}px; top: ${columnToolbarPos.y}px; --arrow-offset: ${columnToolbarPos.arrowOffset}px;`"
       @click.away="selectedColumn = null" @click.stop>
       <button class="column-toolbar__button" @click="quickSort('asc')" title="Sort Ascending">
