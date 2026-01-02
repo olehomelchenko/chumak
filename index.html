@@ -611,7 +611,7 @@
           <tr>
             <template x-for="(column, index) in columns" :key="index">
               <th class="data-table__header" :class="{ 'data-table__header--selected': selectedColumn === column }"
-                :data-col="column" @click.stop="selectColumn(column, $event)">
+                :data-col="column" @click.stop="selectColumn(column, $event)" :title="`Column: ${column}`">
                 <span class="type-indicator" x-text="getTypeIndicator(column)"></span>
                 <span x-text="column"></span>
               </th>
@@ -649,7 +649,7 @@
               <template x-for="(column, colIndex) in columns" :key="colIndex">
                 <td class="data-table__cell"
                   :class="{ 'data-table__cell--number': ['number', 'integer', 'float'].includes(getColumnType(column)) }"
-                  :data-col="column" :data-row="rowIndex" x-text="row[column]"
+                  :data-col="column" :data-row="rowIndex" x-text="row[column]" :title="`${column}: ${row[column]}`"
                   @click.stop="selectCell(column, row[column], rowIndex, $event)"></td>
               </template>
             </tr>

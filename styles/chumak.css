@@ -597,6 +597,7 @@ body {
   border: var(--border-width) solid var(--border-color);
   font-family: var(--font-family-mono);
   font-size: var(--font-size-base);
+  overflow: hidden;
 }
 
 .data-table__header {
@@ -606,32 +607,51 @@ body {
   padding: var(--space-sm) var(--space-md);
   text-align: left;
   border-bottom: var(--border-width) solid var(--border-color);
+  border-right: 1px solid rgba(0, 57, 100, 0.05);
   position: sticky;
   top: 0;
   white-space: nowrap;
   transition: background var(--transition-fast);
   cursor: pointer;
+  max-width: 250px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  z-index: 10;
 }
 
 .data-table__header:hover {
   background: var(--color-medium-gray);
 }
 
+
 .type-indicator {
-  display: inline-block;
-  margin-right: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 8px;
   font-family: var(--font-family-mono);
   font-size: 10px;
+  font-weight: bold;
   color: var(--color-dark-gray);
   vertical-align: middle;
-  opacity: 0.7;
-  width: 20px;
-  text-align: center;
+  background: #f0f0f0;
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  width: 28px;
+  height: 20px;
+  transition: all var(--transition-fast);
+}
+
+.data-table__header:hover .type-indicator {
+  border-color: var(--color-cyan);
+  background: var(--color-white);
+  color: var(--color-cyan);
 }
 
 .data-table__header--selected .type-indicator {
-  color: var(--color-white);
-  opacity: 0.9;
+  color: var(--color-midnight-blue);
+  background: var(--color-white);
+  border-color: var(--color-white);
 }
 
 .data-table__header--selected {
@@ -753,21 +773,32 @@ body {
 }
 
 .data-table__row:hover {
-  background: rgba(0, 187, 206, 0.03);
+  background-color: rgba(0, 187, 206, 0.03) !important;
 }
 
 .data-table__row:nth-child(even) {
-  background: rgba(0, 0, 0, 0.02);
+  background-color: rgba(0, 57, 100, 0.02);
 }
 
 .data-table__row:nth-child(even):hover {
-  background: rgba(0, 187, 206, 0.05);
+  background-color: rgba(0, 187, 206, 0.06) !important;
 }
 
 .data-table__cell {
   padding: var(--space-sm) var(--space-md);
   border-bottom: var(--border-width) solid var(--color-light-gray);
+  border-right: 1px solid rgba(0, 57, 100, 0.05);
   color: var(--color-midnight-blue);
+  max-width: 250px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.data-table__cell:hover {
+  background-color: rgba(0, 187, 206, 0.12) !important;
+  /* Clearly more highlighted than the column */
+  color: var(--color-cyan);
 }
 
 .data-table__cell--number {
