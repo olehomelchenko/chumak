@@ -734,7 +734,8 @@
     </div>
 
     <!-- EDA Panel -->
-    <div x-show="selectedColumn && edaStats" class="eda-panel" x-cloak>
+    <div x-show="selectedColumn && edaStats" class="eda-panel" x-cloak
+      @click.stop="if (!$event.target.closest('.eda-flow-item')) selectedCell = null">
       <div class="eda-panel__header">
         <div class="eda-panel__title">
           <span class="eda-panel__column-name" x-text="selectedColumn"></span>
@@ -767,11 +768,32 @@
         </div>
 
         <!-- Numeric Stats -->
-        <template x-if="edaStats?.type === 'number'">
+        <template x-if="['number', 'integer', 'float'].includes(edaStats?.type)">
           <div class="eda-section eda-section--wide">
-            <div class="eda-section__title">Distribution & Outliers</div>
-            <div style="display: flex; gap: var(--space-lg); align-items: center;">
-              <div id="eda-boxplot" style="flex: 1; min-width: 0; height: 100px;"></div>
+            <div class="eda-section__title" style="display: flex; justify-content: space-between; align-items: center;">
+              <span>Distribution & Outliers</span>
+              <div class="chart-switcher">
+                <button class="chart-switcher__btn"
+                  :class="{ 'chart-switcher__btn--active': edaChartView === 'boxplot' }"
+                  @click="setEdaChartView('boxplot')">Box Plot</button>
+                <button class="chart-switcher__btn"
+                  :class="{ 'chart-switcher__btn--active': edaChartView === 'histogram' }"
+                  @click="setEdaChartView('histogram')">Histogram</button>
+              </div>
+            </div>
+            <div style="display: flex; gap: var(--space-lg); align-items: center; position: relative;">
+              <div x-show="edaChartView === 'boxplot'" id="eda-boxplot" style="flex: 1; min-width: 0; height: 100px;">
+              </div>
+              <div x-show="edaChartView === 'histogram'" id="eda-histogram"
+                style="flex: 1; min-width: 0; height: 100px;"></div>
+
+              <!-- Brushing Action Button -->
+              <div x-show="edaChartView === 'histogram' && edaBrushSelection"
+                style="position: absolute; top: -10px; right: 0; z-index: 10;" x-transition>
+                <button class="button button--primary button--small" @click="applyBrushFilter()">
+                  Keep Only Selection
+                </button>
+              </div>
 
               <div class="eda-stats-flow">
                 <div class="eda-flow-item" @click="selectEdaStat('Min', edaStats.raw.min, $event)">
@@ -813,7 +835,7 @@
         </template>
 
         <!-- Categorical Stats (Top Frequencies) -->
-        <template x-if="edaStats?.type !== 'number'">
+        <template x-if="!['number', 'integer', 'float'].includes(edaStats?.type)">
           <div class="eda-section eda-section--wide">
             <div class="eda-section__title">Frequency Distribution</div>
             <div style="display: flex; gap: var(--space-xl); align-items: start;">
@@ -1395,7 +1417,7 @@
   <!-- Column Toolbar -->
   <div x-show="selectedColumn" class="column-toolbar"
     :style="`left: ${columnToolbarPos.x}px; top: ${columnToolbarPos.y}px; --arrow-offset: ${columnToolbarPos.arrowOffset}px;`"
-    @click.stop>
+    @click.away="selectedColumn = null" @click.stop>
     <button class="column-toolbar__button" @click="quickSort('asc')" title="Sort Ascending">
       <i data-feather="arrow-up"></i>
     </button>
@@ -1418,15 +1440,22 @@
   <!-- Cell Toolbar -->
   <div x-show="selectedCell" class="cell-toolbar"
     :style="`left: ${cellToolbarPos.x}px; top: ${cellToolbarPos.y}px; --arrow-offset: ${cellToolbarPos.arrowOffset}px;`"
-    @click.stop x-cloak>
+    @click.away="selectedCell = null" @click.stop x-cloak>
     <button class="cell-toolbar__button" @click="applyQuickCellFilter('exact')" x-show="!selectedCell?.isEda"
-      :title="selectedCell?.type === 'number' ? 'Filter by exact value (=)' : 'Filter by this value'">
+      :title="['number', 'integer', 'float'].includes(selectedCell?.type) ? 'Keep only this value (=)' : 'Keep only this value'">
       <i data-feather="filter"></i>
-      <span x-show="selectedCell?.type === 'number'"
+      <span x-show="['number', 'integer', 'float'].includes(selectedCell?.type)"
         style="font-size: 10px; margin-left: 2px; font-weight: bold;">=</span>
     </button>
 
-    <template x-if="selectedCell?.type === 'number'">
+    <button class="cell-toolbar__button" @click="applyQuickCellFilter('not')" x-show="!selectedCell?.isEda"
+      :title="['number', 'integer', 'float'].includes(selectedCell?.type) ? 'Exclude this value (&ne;)' : 'Exclude this value'"
+      style="color: var(--color-dark-red);">
+      <i data-feather="filter"></i>
+      <span style="font-size: 10px; margin-left: 2px; font-weight: bold;">&ne;</span>
+    </button>
+
+    <template x-if="['number', 'integer', 'float'].includes(selectedCell?.type)">
       <div style="display: flex; gap: 2px;">
         <div x-show="!selectedCell?.isEda" style="width: 1px; background: var(--color-medium-gray); margin: 4px 2px;">
         </div>

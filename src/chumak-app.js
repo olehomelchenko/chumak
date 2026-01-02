@@ -14,6 +14,8 @@ function chumakApp() {
         selectedCell: null,           // Interactive cell selection { col, value, type }
         cellToolbarPos: { x: 0, y: 0 },
         edaStats: null,               // Stats for the selected column
+        edaChartView: 'boxplot',      // 'boxplot' or 'histogram'
+        edaBrushSelection: null,      // { min, max } for histogram brush selection
 
         // Pagination state
         currentPage: 1,
@@ -260,10 +262,17 @@ function chumakApp() {
                 const type = colSchema ? colSchema.type : SchemaEngine.inferType(this.currentData.slice(0, 20).map(r => r[this.selectedColumn]));
                 this.edaStats = EDAEngine.calculateStats(this.currentData, this.selectedColumn, type);
 
+                // Reset brush selection when switching columns
+                this.edaBrushSelection = null;
+
                 // Draw charts based on type (integer/float are both numeric)
-                if (type === 'integer' || type === 'float' || type === 'number') {
+                if (['integer', 'float', 'number'].includes(type)) {
                     this.$nextTick(() => {
-                        ChartsEngine.renderBoxPlot('#eda-boxplot', this.currentData, this.selectedColumn);
+                        if (this.edaChartView === 'boxplot') {
+                            ChartsEngine.renderBoxPlot('#eda-boxplot', this.currentData, this.selectedColumn);
+                        } else {
+                            ChartsEngine.renderHistogram('#eda-histogram', this.currentData, this.selectedColumn, (sel) => this.handleBrushSelection(sel));
+                        }
                     });
                 } else {
                     this.$nextTick(() => {
@@ -272,6 +281,7 @@ function chumakApp() {
                 }
             } else {
                 this.edaStats = null;
+                this.edaBrushSelection = null;
             }
         },
 
@@ -304,7 +314,7 @@ function chumakApp() {
                 if (cell) {
                     const rect = cell.getBoundingClientRect();
                     const center = rect.left + (rect.width / 2);
-                    const toolbarWidth = this.selectedCell.type === 'number' ? 180 : 40;
+                    const toolbarWidth = ['number', 'integer', 'float'].includes(this.selectedCell.type) ? 220 : 80;
                     const windowWidth = window.innerWidth;
                     const margin = 12;
 
@@ -324,6 +334,7 @@ function chumakApp() {
             this.selectedColumn = null;
             this.selectedCell = null;
             this.edaStats = null;
+            this.edaBrushSelection = null;
         },
 
         selectCell(col, value, rowIdx, event) {
@@ -368,7 +379,7 @@ function chumakApp() {
                 if (!el) return;
                 const rect = el.getBoundingClientRect();
                 const center = rect.left + (rect.width / 2);
-                const toolbarWidth = 180;
+                const toolbarWidth = 220;
                 const windowWidth = window.innerWidth;
                 const margin = 12;
 
@@ -383,6 +394,46 @@ function chumakApp() {
             });
         },
 
+        setEdaChartView(view) {
+            this.edaChartView = view;
+            this.edaBrushSelection = null;
+            // Re-render chart
+            if (this.selectedColumn && this.edaStats) {
+                const type = this.edaStats.type;
+                if (['integer', 'float', 'number'].includes(type)) {
+                    this.$nextTick(() => {
+                        if (view === 'boxplot') {
+                            ChartsEngine.renderBoxPlot('#eda-boxplot', this.currentData, this.selectedColumn);
+                        } else {
+                            ChartsEngine.renderHistogram('#eda-histogram', this.currentData, this.selectedColumn, (sel) => this.handleBrushSelection(sel));
+                        }
+                    });
+                }
+            }
+        },
+
+        handleBrushSelection(selection) {
+            this.edaBrushSelection = selection;
+        },
+
+        async applyBrushFilter() {
+            if (!this.edaBrushSelection || !this.selectedColumn) return;
+            const { min, max } = this.edaBrushSelection;
+            const col = this.selectedColumn;
+
+            // Format values properly (keeping decimals for float/number)
+            const fmtMin = Number.isInteger(min) ? min : min.toFixed(4);
+            const fmtMax = Number.isInteger(max) ? max : max.toFixed(4);
+
+            const expr = `[${col}] >= ${fmtMin} && [${col}] <= ${fmtMax}`;
+            this.filterExpression = expr;
+            this.filterError = null;
+            await this.applyFilterTransform();
+
+            // Clear selection and panel
+            this.clearColumnSelection();
+        },
+
         async applyQuickCellFilter(op) {
             if (!this.selectedCell) return;
             const { col, value, type } = this.selectedCell;
@@ -393,7 +444,7 @@ function chumakApp() {
             let formattedValue = value;
             if (value === null || value === undefined) {
                 formattedValue = 'null';
-            } else if (type === 'number') {
+            } else if (type === 'number' || type === 'integer' || type === 'float') {
                 formattedValue = value;
             } else {
                 // Escape quotes if it's a string
@@ -401,6 +452,7 @@ function chumakApp() {
             }
 
             if (op === 'exact') expr = `[${col}] == ${formattedValue}`;
+            else if (op === 'not') expr = `[${col}] != ${formattedValue}`;
             else if (op === 'gt') expr = `[${col}] > ${formattedValue}`;
             else if (op === 'gte') expr = `[${col}] >= ${formattedValue}`;
             else if (op === 'lt') expr = `[${col}] < ${formattedValue}`;

@@ -150,6 +150,102 @@ const ChartsEngine = {
         } catch (error) {
             console.error('Error rendering categorical bar:', error);
         }
+    },
+
+    /**
+     * Render a histogram with brushing for numerical data
+     * @param {string} containerSelector - CSS selector for the container
+     * @param {Array<Object>} data - Array of row objects
+     * @param {string} column - Column name
+     * @param {Function} onBrush - Callback function when selection changes
+     * @param {Object} options - Customization options
+     */
+    async renderHistogram(containerSelector, data, column, onBrush, options = {}) {
+        if (!data || data.length === 0 || !column) return;
+
+        // Prepare data: filter out nulls
+        const chartData = data
+            .map(row => ({ [column]: row[column] }))
+            .filter(row => row[column] !== null && row[column] !== undefined && row[column] !== '');
+
+        const spec = {
+            "$schema": "https://vega.github.io/schema/vega-lite/v6.json",
+            "data": { "values": chartData },
+            "width": options.width || "container",
+            "height": options.height || 80,
+            "padding": { "top": 10, "bottom": 25, "left": 10, "right": 10 },
+            "encoding": {
+                "x": {
+                    "field": column,
+                    "type": "quantitative",
+                    "bin": { "maxbins": options.maxbins || 40 },
+                    "title": "",
+                    "axis": { "grid": false, "labels": true, "ticks": true }
+                },
+                "y": {
+                    "aggregate": "count",
+                    "type": "quantitative",
+                    "axis": null
+                }
+            },
+            "layer": [
+                {
+                    "params": [
+                        {
+                            "name": "brush",
+                            "select": {
+                                "type": "interval",
+                                "encodings": ["x"]
+                            }
+                        }
+                    ],
+                    "mark": {
+                        "type": "bar",
+                        "color": "#eeeeee",
+                        "tooltip": true
+                    }
+                },
+                {
+                    "transform": [
+                        { "filter": { "param": "brush" } }
+                    ],
+                    "mark": {
+                        "type": "bar",
+                        "color": "#00BBCE" // Brand Cyan
+                    }
+                }
+            ],
+            "config": {
+                "view": { "stroke": "transparent" },
+                "axis": {
+                    "labelFontSize": 10,
+                    "labelColor": "#646464"
+                }
+            }
+        };
+
+        try {
+            const result = await vegaEmbed(containerSelector, spec, {
+                actions: false,
+                renderer: 'svg'
+            });
+
+            // Listen to selection changes
+            if (onBrush) {
+                result.view.addSignalListener('brush', (name, value) => {
+                    if (value && value[column]) {
+                        onBrush({
+                            min: value[column][0],
+                            max: value[column][1]
+                        });
+                    } else {
+                        onBrush(null);
+                    }
+                });
+            }
+        } catch (error) {
+            console.error('Error rendering histogram:', error);
+        }
     }
 };
 
