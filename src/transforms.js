@@ -27,18 +27,18 @@ function matchColumnPattern(columns, options) {
   let matched = [];
 
   if (matchType === 'prefix') {
-    matched = columns.filter(col => col.startsWith(pattern));
+    matched = columns.filter((col) => col.startsWith(pattern));
   } else if (matchType === 'suffix') {
-    matched = columns.filter(col => col.endsWith(pattern));
+    matched = columns.filter((col) => col.endsWith(pattern));
   } else if (matchType === 'exact') {
-    matched = columns.filter(col => col === pattern);
+    matched = columns.filter((col) => col === pattern);
   }
 
   // Return matched or inverse based on mode
   if (mode === 'include') {
     return matched;
   } else {
-    return columns.filter(col => !matched.includes(col));
+    return columns.filter((col) => !matched.includes(col));
   }
 }
 
@@ -80,7 +80,7 @@ function applyTransform(table, transform, schema, context = null) {
     // Convert table to array, filter with our interpreter, convert back
     // (Arquero's filter doesn't support try-catch in functions)
     const rows = table.objects();
-    const filteredRows = rows.filter(row => {
+    const filteredRows = rows.filter((row) => {
       try {
         return interpretAST(ast, row);
       } catch (error) {
@@ -107,13 +107,13 @@ function applyTransform(table, transform, schema, context = null) {
     let rightName = 'unknown';
 
     // Try to find in models first (by ID or name)
-    const rightModel = context.models.find(m => m.id === right || m.name === right);
+    const rightModel = context.models.find((m) => m.id === right || m.name === right);
     if (rightModel) {
       rightTable = aq.from(rightModel.data);
       rightName = rightModel.name;
     } else {
       // Try to find in sources (by ID or name)
-      const rightSource = context.sources.find(s => s.id === right || s.name === right);
+      const rightSource = context.sources.find((s) => s.id === right || s.name === right);
       if (rightSource) {
         rightTable = aq.from(rightSource.data);
         rightName = rightSource.name;
@@ -126,8 +126,8 @@ function applyTransform(table, transform, schema, context = null) {
 
     // Build join keys
     // on: [["leftKey", "rightKey"], ["leftKey2", "rightKey2"], ...]
-    const leftKeys = on.map(pair => pair[0]);
-    const rightKeys = on.map(pair => pair[1]);
+    const leftKeys = on.map((pair) => pair[0]);
+    const rightKeys = on.map((pair) => pair[1]);
 
     // Determine join method based on 'how'
     let result;
@@ -135,13 +135,33 @@ function applyTransform(table, transform, schema, context = null) {
 
     try {
       if (how === 'inner' || !how) {
-        result = table.join(rightTable, leftKeys.length === 1 ? [leftKeys[0], rightKeys[0]] : [leftKeys, rightKeys], null, { suffix: joinSuffixes });
+        result = table.join(
+          rightTable,
+          leftKeys.length === 1 ? [leftKeys[0], rightKeys[0]] : [leftKeys, rightKeys],
+          null,
+          { suffix: joinSuffixes }
+        );
       } else if (how === 'left') {
-        result = table.join_left(rightTable, leftKeys.length === 1 ? [leftKeys[0], rightKeys[0]] : [leftKeys, rightKeys], null, { suffix: joinSuffixes });
+        result = table.join_left(
+          rightTable,
+          leftKeys.length === 1 ? [leftKeys[0], rightKeys[0]] : [leftKeys, rightKeys],
+          null,
+          { suffix: joinSuffixes }
+        );
       } else if (how === 'right') {
-        result = table.join_right(rightTable, leftKeys.length === 1 ? [leftKeys[0], rightKeys[0]] : [leftKeys, rightKeys], null, { suffix: joinSuffixes });
+        result = table.join_right(
+          rightTable,
+          leftKeys.length === 1 ? [leftKeys[0], rightKeys[0]] : [leftKeys, rightKeys],
+          null,
+          { suffix: joinSuffixes }
+        );
       } else if (how === 'full') {
-        result = table.join_full(rightTable, leftKeys.length === 1 ? [leftKeys[0], rightKeys[0]] : [leftKeys, rightKeys], null, { suffix: joinSuffixes });
+        result = table.join_full(
+          rightTable,
+          leftKeys.length === 1 ? [leftKeys[0], rightKeys[0]] : [leftKeys, rightKeys],
+          null,
+          { suffix: joinSuffixes }
+        );
       } else if (how === 'cross') {
         result = table.cross(rightTable, null, { suffix: joinSuffixes });
       } else {
@@ -151,7 +171,12 @@ function applyTransform(table, transform, schema, context = null) {
       throw new Error(`Join failed: ${error.message}`);
     }
 
-    perfLogger.log(describeTransform(transform, rightName), table, result, performance.now() - start);
+    perfLogger.log(
+      describeTransform(transform, rightName),
+      table,
+      result,
+      performance.now() - start
+    );
     return result;
   }
 
@@ -164,10 +189,12 @@ function applyTransform(table, transform, schema, context = null) {
       const ast = parseExpression(expression);
       const validation = validateAST(ast, schema);
       if (!validation.valid) {
-        throw new Error(`Derive validation failed for '${newCol}':\n${formatError(validation.error, expression)}`);
+        throw new Error(
+          `Derive validation failed for '${newCol}':\n${formatError(validation.error, expression)}`
+        );
       }
 
-      resultRows = resultRows.map(row => {
+      resultRows = resultRows.map((row) => {
         try {
           // Use a spread to avoid mutating the original row if possible,
           // though since we did .objects() we are already working on copies.
@@ -218,7 +245,7 @@ function applyTransform(table, transform, schema, context = null) {
     }
 
     // 2. Rollup (Aggregations)
-    // We need to convert our JSON string expressions (e.g., "op.mean('sales')") 
+    // We need to convert our JSON string expressions (e.g., "op.mean('sales')")
     // into actual Arquero table expressions.
     const rollupSpecs = {};
 
@@ -228,7 +255,9 @@ function applyTransform(table, transform, schema, context = null) {
       const match = exprString.match(/^op\.(\w+)\((?:'([^']+)'|"?([^"]+)"?)?\)$/);
 
       if (!match) {
-        throw new Error(`Invalid aggregation expression: "${exprString}". Supported format: op.mean('col')`);
+        throw new Error(
+          `Invalid aggregation expression: "${exprString}". Supported format: op.mean('col')`
+        );
       }
 
       const funcName = match[1]; // e.g., 'mean'
@@ -249,10 +278,10 @@ function applyTransform(table, transform, schema, context = null) {
     const result = groupedTable.rollup(rollupSpecs);
 
     // If grouped, Arquero returns a grouped table. Usually we want a flat table for the next steps/display.
-    // .ungroup() is implicitly done by rollup if it creates a new table structure, 
+    // .ungroup() is implicitly done by rollup if it creates a new table structure,
     // but explicit ungroup ensures it's a standard table.
-    // However, rollup() output is usually flat unless it was preserved. 
-    // Arquero docs say: "The output table persists a groupby specification." 
+    // However, rollup() output is usually flat unless it was preserved.
+    // Arquero docs say: "The output table persists a groupby specification."
     // So we should ungroup to treat it as a new flat source.
     const flatResult = result.ungroup();
 
@@ -272,7 +301,6 @@ function applyTransform(table, transform, schema, context = null) {
   const transformType = Object.keys(transform)[0];
   throw new Error(`Transform type '${transformType}' not implemented yet`);
 }
-
 
 /**
  * Generate human-readable description for steps list

@@ -1,6 +1,4 @@
-
-
-Example of a histogram: 
+Example of a histogram:
 
 ```
 {
@@ -65,5 +63,3 @@ Example of a histogram:
 }
 
 ```
-
-

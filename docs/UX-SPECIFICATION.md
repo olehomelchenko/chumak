@@ -4,17 +4,18 @@
 
 ### 1.1 Design System & Philosophy
 
-| Aspect | Decision |
-|--------|----------|
-| **CSS Framework** | Custom CSS with normalize.css for browser consistency |
-| **Design Inspiration** | KSE Visual Identity (simplified for web app) |
-| **Philosophy** | Information-dense, rigorous, clean — no decorative elements |
-| **Target** | Desktop, 13"+ screens |
-| **Browser** | Chrome, Safari (latest 2 versions) |
+| Aspect                 | Decision                                                    |
+| ---------------------- | ----------------------------------------------------------- |
+| **CSS Framework**      | Custom CSS with normalize.css for browser consistency       |
+| **Design Inspiration** | KSE Visual Identity (simplified for web app)                |
+| **Philosophy**         | Information-dense, rigorous, clean — no decorative elements |
+| **Target**             | Desktop, 13"+ screens                                       |
+| **Browser**            | Chrome, Safari (latest 2 versions)                          |
 
 ### 1.2 Visual Principles
 
 **Core principles:**
+
 - **Rigorous simplicity** — no shadows, gradients, or decorative effects
 - **Information density** — prioritize data visibility over whitespace
 - **Color discipline** — use only brand colors, Dark Midnight Blue always present
@@ -27,15 +28,16 @@
 
 ```html
 <!-- Browser normalization (choose one) -->
-<link rel="stylesheet" href="https://unpkg.com/normalize.css@8/normalize.css">
+<link rel="stylesheet" href="https://unpkg.com/normalize.css@8/normalize.css" />
 <!-- OR -->
-<link rel="stylesheet" href="https://unpkg.com/modern-normalize@2/modern-normalize.css">
+<link rel="stylesheet" href="https://unpkg.com/modern-normalize@2/modern-normalize.css" />
 
 <!-- Custom Chumak styles -->
-<link rel="stylesheet" href="styles/chumak.css">
+<link rel="stylesheet" href="styles/chumak.css" />
 ```
 
 **Why normalize.css/modern-normalize:**
+
 - Consistent baseline across browsers
 - Minimal, non-opinionated
 - ~3-5KB, single file
@@ -50,41 +52,42 @@
 
 Adapted from KSE brand guidelines:
 
-| Color Name | RGB | Hex | Usage |
-|------------|-----|-----|-------|
-| **Dark Midnight Blue** | 0, 57, 100 | `#003964` | Primary: headers, text, borders |
-| **Cyan** | 0, 187, 206 | `#00BBCE` | Accent: data highlights, links, active states |
-| **Green** | 167, 197, 57 | `#A7C539` | Accent: success states, positive indicators |
-| **Yellow** | 228, 229, 65 | `#E4E541` | Accent: warnings, highlights |
-| **Red** | 241, 91, 67 | `#F15B43` | Accent: errors, critical actions |
-| **Dark Red** | 211, 62, 44 | `#D33E2C` | Accent: delete/destructive actions |
-| **White** | 255, 255, 255 | `#FFFFFF` | Background, contrast |
-| **Light Gray** | 245, 245, 245 | `#F5F5F5` | Subtle backgrounds, disabled states |
-| **Medium Gray** | 200, 200, 200 | `#C8C8C8` | Borders, separators |
-| **Dark Gray** | 100, 100, 100 | `#646464` | Secondary text |
+| Color Name             | RGB           | Hex       | Usage                                         |
+| ---------------------- | ------------- | --------- | --------------------------------------------- |
+| **Dark Midnight Blue** | 0, 57, 100    | `#003964` | Primary: headers, text, borders               |
+| **Cyan**               | 0, 187, 206   | `#00BBCE` | Accent: data highlights, links, active states |
+| **Green**              | 167, 197, 57  | `#A7C539` | Accent: success states, positive indicators   |
+| **Yellow**             | 228, 229, 65  | `#E4E541` | Accent: warnings, highlights                  |
+| **Red**                | 241, 91, 67   | `#F15B43` | Accent: errors, critical actions              |
+| **Dark Red**           | 211, 62, 44   | `#D33E2C` | Accent: delete/destructive actions            |
+| **White**              | 255, 255, 255 | `#FFFFFF` | Background, contrast                          |
+| **Light Gray**         | 245, 245, 245 | `#F5F5F5` | Subtle backgrounds, disabled states           |
+| **Medium Gray**        | 200, 200, 200 | `#C8C8C8` | Borders, separators                           |
+| **Dark Gray**          | 100, 100, 100 | `#646464` | Secondary text                                |
 
 ### 2.2 Color Application Rules
 
 **From KSE guidelines:**
+
 1. Dark Midnight Blue appears on every screen
 2. Use maximum 5 colors per view (always including Dark Midnight Blue)
 3. No additional colors outside this palette
 
 **Chumak-specific applications:**
 
-| Element | Color | Notes |
-|---------|-------|-------|
-| **Primary text** | Dark Midnight Blue | Headers, labels, body text |
-| **Secondary text** | Dark Gray | Help text, metadata |
-| **Links** | Cyan | Hover: underline |
-| **Active/selected** | Cyan background (10% opacity) | Selected rows, active tabs |
-| **Success indicators** | Green | "Applied", "Saved", checkmarks |
-| **Warnings** | Yellow text + Light Yellow background | Non-blocking issues |
-| **Errors** | Red text + Light Red background | Blocking issues |
-| **Delete actions** | Dark Red | Destructive buttons |
-| **Primary buttons** | Dark Midnight Blue background, White text | Main actions |
-| **Secondary buttons** | White background, Dark Midnight Blue border + text | Cancel, secondary actions |
-| **Disabled elements** | Light Gray background, Medium Gray text | Inactive states |
+| Element                | Color                                              | Notes                          |
+| ---------------------- | -------------------------------------------------- | ------------------------------ |
+| **Primary text**       | Dark Midnight Blue                                 | Headers, labels, body text     |
+| **Secondary text**     | Dark Gray                                          | Help text, metadata            |
+| **Links**              | Cyan                                               | Hover: underline               |
+| **Active/selected**    | Cyan background (10% opacity)                      | Selected rows, active tabs     |
+| **Success indicators** | Green                                              | "Applied", "Saved", checkmarks |
+| **Warnings**           | Yellow text + Light Yellow background              | Non-blocking issues            |
+| **Errors**             | Red text + Light Red background                    | Blocking issues                |
+| **Delete actions**     | Dark Red                                           | Destructive buttons            |
+| **Primary buttons**    | Dark Midnight Blue background, White text          | Main actions                   |
+| **Secondary buttons**  | White background, Dark Midnight Blue border + text | Cancel, secondary actions      |
+| **Disabled elements**  | Light Gray background, Medium Gray text            | Inactive states                |
 
 ---
 
@@ -97,33 +100,47 @@ Adapted from KSE brand guidelines:
 
 ```css
 /* Heading font */
-font-family: 'Graphik', Arial, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+font-family:
+  'Graphik',
+  Arial,
+  -apple-system,
+  BlinkMacSystemFont,
+  'Segoe UI',
+  sans-serif;
 font-weight: 500; /* Graphik Medium */
 
 /* Body font */
-font-family: 'Graphik', Arial, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+font-family:
+  'Graphik',
+  Arial,
+  -apple-system,
+  BlinkMacSystemFont,
+  'Segoe UI',
+  sans-serif;
 font-weight: 400; /* Graphik Regular */
 ```
 
 **Font loading strategy:**
+
 - Host Graphik locally or use CSS `@font-face` with fallback
 - Use `font-display: swap` to avoid FOIT (Flash of Invisible Text)
 - Acceptable to fall back to Arial if Graphik unavailable
 
 ### 3.2 Type Scale
 
-| Element | Font | Size | Weight | Line Height | Color | Usage |
-|---------|------|------|--------|-------------|-------|-------|
-| **H1 (Page title)** | Graphik | 24px | Medium (500) | 1.15 | Dark Midnight Blue | Main app title |
-| **H2 (Section)** | Graphik | 18px | Medium (500) | 1.15 | Dark Midnight Blue | Panel headers |
-| **H3 (Subsection)** | Graphik | 16px | Medium (500) | 1.15 | Dark Midnight Blue | Dialog headers |
-| **Body** | Graphik | 14px | Regular (400) | 1.3 | Dark Midnight Blue | Default text |
-| **Small** | Graphik | 12px | Regular (400) | 1.3 | Dark Gray | Metadata, help text |
-| **Monospace** | 'SF Mono', 'Consolas', monospace | 13px | Regular | 1.4 | Dark Midnight Blue | JSON, expressions |
+| Element             | Font                             | Size | Weight        | Line Height | Color              | Usage               |
+| ------------------- | -------------------------------- | ---- | ------------- | ----------- | ------------------ | ------------------- |
+| **H1 (Page title)** | Graphik                          | 24px | Medium (500)  | 1.15        | Dark Midnight Blue | Main app title      |
+| **H2 (Section)**    | Graphik                          | 18px | Medium (500)  | 1.15        | Dark Midnight Blue | Panel headers       |
+| **H3 (Subsection)** | Graphik                          | 16px | Medium (500)  | 1.15        | Dark Midnight Blue | Dialog headers      |
+| **Body**            | Graphik                          | 14px | Regular (400) | 1.3         | Dark Midnight Blue | Default text        |
+| **Small**           | Graphik                          | 12px | Regular (400) | 1.3         | Dark Gray          | Metadata, help text |
+| **Monospace**       | 'SF Mono', 'Consolas', monospace | 13px | Regular       | 1.4         | Dark Midnight Blue | JSON, expressions   |
 
 ### 3.3 Typography Rules
 
 From KSE guidelines:
+
 - **Headings:** Line height 1.15, fills ~85% of container width (large size)
 - **Body:** Line height 1.3, comfortable reading width
 - **No excessive bolding** — use Medium (500) for emphasis, not Bold (700)
@@ -152,6 +169,7 @@ For Chumak, simplified to **2-block horizontal layout**:
 ```
 
 **Proportions:**
+
 - Left panel: ~300px fixed (1x)
 - Main content: Remaining space (3x proportional)
 - Ratio approximately 1:3
@@ -159,6 +177,7 @@ For Chumak, simplified to **2-block horizontal layout**:
 ### 4.2 Line Designation
 
 Use **1px solid borders** (0.75pt → 1px at 96 DPI) in Medium Gray (`#C8C8C8`) to separate:
+
 - Header from body
 - Left panel from main content
 - Panel sections (Sources from Steps)
@@ -170,13 +189,13 @@ Use **1px solid borders** (0.75pt → 1px at 96 DPI) in Medium Gray (`#C8C8C8`) 
 
 Consistent spacing scale:
 
-| Token | Size | Usage |
-|-------|------|-------|
-| `--space-xs` | 4px | Tight spacing, icon padding |
-| `--space-sm` | 8px | Form field gaps, button padding |
-| `--space-md` | 16px | Section padding, default gaps |
-| `--space-lg` | 24px | Panel padding, major sections |
-| `--space-xl` | 32px | Page margins |
+| Token        | Size | Usage                           |
+| ------------ | ---- | ------------------------------- |
+| `--space-xs` | 4px  | Tight spacing, icon padding     |
+| `--space-sm` | 8px  | Form field gaps, button padding |
+| `--space-md` | 16px | Section padding, default gaps   |
+| `--space-lg` | 24px | Panel padding, major sections   |
+| `--space-xl` | 32px | Page margins                    |
 
 ---
 
@@ -229,27 +248,35 @@ body {
   grid-template-rows: 48px auto 1fr;
   height: 100vh;
   grid-template-areas:
-    "header  header"
-    "ribbon  ribbon"
-    "left    main";
+    'header  header'
+    'ribbon  ribbon'
+    'left    main';
 }
 
-.header { grid-area: header; } /* Header now contains ribbon tabs */
-.ribbon { grid-area: ribbon; } /* Contains only ribbon content */
-.left-panel { grid-area: left; }
-.main-content { grid-area: main; }
+.header {
+  grid-area: header;
+} /* Header now contains ribbon tabs */
+.ribbon {
+  grid-area: ribbon;
+} /* Contains only ribbon content */
+.left-panel {
+  grid-area: left;
+}
+.main-content {
+  grid-area: main;
+}
 ```
 
 **Note:** Ribbon area is `auto` height (expands to fit tabs + content). Typically 88px total (32px tabs + 56px content).
 
 ### 5.3 Panel Specifications
 
-| Panel | Dimensions | Styling |
-|-------|------------|---------|
-| **Header** | Full width × 48px | Background: White, border-bottom: 1px Dark Midnight Blue |
-| **Ribbon** | Full width × auto (~88px) | Tabs: Light Gray background; Content: White background |
-| **Left Panel** | 300px × remaining | Background: White, border-right: 1px Medium Gray |
-| **Main Content** | Remaining × remaining | Background: White |
+| Panel            | Dimensions                | Styling                                                  |
+| ---------------- | ------------------------- | -------------------------------------------------------- |
+| **Header**       | Full width × 48px         | Background: White, border-bottom: 1px Dark Midnight Blue |
+| **Ribbon**       | Full width × auto (~88px) | Tabs: Light Gray background; Content: White background   |
+| **Left Panel**   | 300px × remaining         | Background: White, border-right: 1px Medium Gray         |
+| **Main Content** | Remaining × remaining     | Background: White                                        |
 
 ---
 
@@ -264,11 +291,13 @@ body {
 ```
 
 **Elements:**
+
 - **Logo:** ☆ icon + "Chumak" in 18px Medium
 - **Ribbon Tabs:** Integrated into header for space efficiency
 - **Dev Actions:** "Run Tests" and "Clear All Data" buttons (right-aligned)
 
 **Spacing:**
+
 - Padding: 0 24px (left/right)
 - Vertical align: center
 
@@ -277,6 +306,7 @@ body {
 **Design decision:** Microsoft Office-style tabbed ribbon instead of flat horizontal toolbar.
 
 **Rationale:**
+
 - Better organization for 20+ transform operations across phases
 - Progressive disclosure (only show relevant operations per tab)
 - Familiar pattern for target users (Excel users)
@@ -291,12 +321,14 @@ body {
 ```
 
 **Tab row (32px height):**
+
 - Background: Light Gray (`#F5F5F5`)
 - Border-bottom: 1px Medium Gray
 - Horizontal layout, no gaps between tabs
 - Only one tab active at a time
 
 **Tab specifications:**
+
 ```css
 .ribbon__tab {
   padding: 6px 16px;
@@ -320,12 +352,14 @@ body {
 ```
 
 **Content row (auto height, ~56px):**
+
 - Background: White
 - Padding: 8px 16px
 - Contains operation buttons relevant to active tab
 - Flex layout with wrapping
 
 **Operation button specifications:**
+
 - Vertical layout: Icon (18px) above text (12px)
 - Min-width: 60px, Height: 40px
 - Gap: 4px between buttons
@@ -334,6 +368,7 @@ body {
 - Font: 12px for text
 
 **Button states:**
+
 ```css
 .ribbon__button {
   /* Default */
@@ -359,28 +394,31 @@ body {
 
 **Tab organization:**
 
-| Tab | Operations | Enabled When |
-|-----|------------|--------------|
-| **Data** | Import CSV, Paste, Export CSV, Export JSON | Always |
-| **Transform** | Filter, Sort, Drop NA, Fill NA, Replace, Select, Remove, Rename | Data loaded |
-| **Add Column** | Derive, Duplicate, Split | Data loaded |
-| **Reduce** | Aggregate, Distinct, Pivot | Data loaded |
-| **Combine** | Join, Union, Append | Data loaded (Phase 2) |
-| **Model** | New Model, Rename, Delete | Data loaded (Phase 2) |
+| Tab            | Operations                                                      | Enabled When          |
+| -------------- | --------------------------------------------------------------- | --------------------- |
+| **Data**       | Import CSV, Paste, Export CSV, Export JSON                      | Always                |
+| **Transform**  | Filter, Sort, Drop NA, Fill NA, Replace, Select, Remove, Rename | Data loaded           |
+| **Add Column** | Derive, Duplicate, Split                                        | Data loaded           |
+| **Reduce**     | Aggregate, Distinct, Pivot                                      | Data loaded           |
+| **Combine**    | Join, Union, Append                                             | Data loaded (Phase 2) |
+| **Model**      | New Model, Rename, Delete                                       | Data loaded (Phase 2) |
 
 **Disabled tab behavior:**
+
 - Transform, Add Column, Reduce, Combine, Model tabs disabled until data loaded
 - Visual: 40% opacity, cursor: not-allowed
 - Clicking disabled tab does nothing
 - Tooltip: "Import data first" (optional enhancement)
 
 **Icons:**
+
 - Library: Feather Icons (https://feathericons.com/)
 - Loading: `<script src="https://unpkg.com/feather-icons"></script>`
 - Initialization: `feather.replace()` after DOM ready
 - Size: 18px × 18px, stroke-width: 2px
 
 **Implementation note:**
+
 - Use Alpine.js reactive state: `ribbonTab = 'data'` (default)
 - Switch tabs by setting `ribbonTab` variable
 - Content panels shown conditionally: `x-show="ribbonTab === 'data'"`
@@ -400,6 +438,7 @@ Tree view showing data hierarchy.
 ```
 
 **Styling:**
+
 - **Header:** "Sources & Models" in Graphik Medium 16px, Dark Midnight Blue
 - **Items:**
   - Source: 📄 icon + name, Graphik Regular 14px
@@ -408,10 +447,12 @@ Tree view showing data hierarchy.
 - **Hover:** Cyan background (5% opacity)
 
 **Interaction:**
+
 - Click source → Show dataset information view (metadata, models list, schema)
 - Click model → Show model data with transform steps
 
 **Tree structure:**
+
 - Use `<ul>` with custom list styles
 - Collapsible sources (click to expand/collapse)
 - Icon rotates: ▶ (collapsed) → ▼ (expanded)
@@ -421,6 +462,7 @@ Tree view showing data hierarchy.
 When clicking a source in the tree, the main content area shows comprehensive dataset information instead of automatically selecting the first model.
 
 **Layout:**
+
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │ sales_data                           [Rename]  [Delete]     │
@@ -448,16 +490,19 @@ When clicking a source in the tree, the main content area shows comprehensive da
 ```
 
 **Header section:**
+
 - Title: Source name in 24px Medium
 - Subtitle: "Dataset Source" in 13px uppercase
 - Actions: Rename and Delete buttons (secondary and danger styles)
 
 **Dataset Information card:**
+
 - Metadata in definition list format
 - Label-value pairs with monospace values
 - Source name, original filename, row count, column count, file size, import timestamp
 
 **Models list card:**
+
 - Badge showing model count
 - Clickable cards for each model
 - Model icon, name, step count, row count
@@ -465,11 +510,13 @@ When clicking a source in the tree, the main content area shows comprehensive da
 - Click to switch to model view
 
 **Column Schema table:**
+
 - Full-width table showing all columns
 - Type badges with color coding (string: blue, number: purple, date: orange)
 - Original position in source file
 
 **Management Actions:**
+
 - **Rename:** Prompt dialog for new source name, saves to IndexedDB
 - **Delete:** Confirmation with model count warning, removes source and all models, returns to empty state if viewing deleted source
 
@@ -488,12 +535,14 @@ Compact step list with tab toggle.
 ```
 
 **Tab styling:**
+
 - Tabs: "Steps" | "JSON" side-by-side
 - Active tab: Cyan bottom border (2px), Dark Midnight Blue text
 - Inactive tab: Medium Gray text, no border
 - Font: Graphik Medium 14px
 
 **Step row:**
+
 - Format: `{index}. {type}: {summary}`
 - Font: Graphik Regular 14px
 - Hover: Cyan background (5% opacity), show [×] delete button
@@ -501,6 +550,7 @@ Compact step list with tab toggle.
 - Delete button: Small [×] on right, Dark Red color
 
 **Add Step button:**
+
 - Full width, left-aligned text
 - Border: 1px dashed Medium Gray
 - Color: Cyan
@@ -522,6 +572,7 @@ Compact step list with tab toggle.
 ```
 
 **Styling:**
+
 - Font: Monospace 13px
 - Color: Dark Midnight Blue
 - Background: Light Gray (subtle)
@@ -530,6 +581,7 @@ Compact step list with tab toggle.
 - No syntax highlighting (MVP) — plain text
 
 **Copy button:**
+
 - Secondary button, small size
 - Bottom-right corner
 
@@ -549,12 +601,14 @@ Compact step list with tab toggle.
 ```
 
 **Table styling:**
+
 - Border: 1px Medium Gray around table
 - Cell padding: 8px 12px
 - Font: Graphik Regular 14px
 - Row separator: 1px Light Gray (subtle)
 
 **Header row:**
+
 - Background: Light Gray
 - Font: Graphik Medium 14px
 - Color: Dark Midnight Blue
@@ -566,6 +620,7 @@ Compact step list with tab toggle.
   - `☑` for boolean
 
 **Column headers:**
+
 - Clickable (select column)
 - Sort indicator: ▼ (descending) or ▲ (ascending)
 - Hover: Cyan background (5% opacity)
@@ -573,22 +628,24 @@ Compact step list with tab toggle.
 
 **Cell styling by type:**
 
-| Type | Alignment | Color | Style |
-|------|-----------|-------|-------|
-| String | Left | Dark Midnight Blue | Normal |
-| Number | Right | Dark Midnight Blue | Tabular numerals |
-| Date | Left | Dark Midnight Blue | ISO format |
-| Boolean | Center | Dark Midnight Blue | true/false |
-| Null/Empty | Center | Medium Gray | Italic, "(empty)" |
-| Error | Left | Red | Italic, error message |
+| Type       | Alignment | Color              | Style                 |
+| ---------- | --------- | ------------------ | --------------------- |
+| String     | Left      | Dark Midnight Blue | Normal                |
+| Number     | Right     | Dark Midnight Blue | Tabular numerals      |
+| Date       | Left      | Dark Midnight Blue | ISO format            |
+| Boolean    | Center    | Dark Midnight Blue | true/false            |
+| Null/Empty | Center    | Medium Gray        | Italic, "(empty)"     |
+| Error      | Left      | Red                | Italic, error message |
 
 **Row states:**
+
 - **Default:** White background
 - **Hover:** Cyan background (3% opacity)
 - **Selected:** Cyan background (10% opacity)
 - **Alternate rows** (optional): Very light gray (2% opacity) for readability
 
 **Pagination & Filtering:**
+
 - Footer row (or header) with: "Showing 1-100 of 5,432"
 - Buttons: [‹] [›] for prev/next
 - Row per page selector: 100, 250, 500, etc.
@@ -598,12 +655,14 @@ Compact step list with tab toggle.
 Appears when a column header is clicked.
 
 **Actions:**
+
 - **Sort Ascending/Descending:** Quick sort on the selected column
 - **Rename:** Opens quick rename input in the toolbar or dialog
 - **Filter:** Opens filter dialog for the column
 - **Remove:** Immediately drops the column
 
 **Styling:**
+
 - Fixed position anchored slightly above the column header
 - White background, 1px Dark Midnight Blue border
 - Subtle arrow pointing to the column
@@ -614,6 +673,7 @@ Appears when a column header is clicked.
 Appears when a data cell is clicked.
 
 **Actions:**
+
 - **Keep only this value:** Adds a filter `column == "value"`
 - **Exclude this value:** Adds a filter `column != "value"`
 - **Copy value:** Copies cell content to clipboard
@@ -625,9 +685,10 @@ Appears when a data cell is clicked.
 ### 7.1 Button Types
 
 **Primary button:**
+
 ```css
 background: #003964; /* Dark Midnight Blue */
-color: #FFFFFF;
+color: #ffffff;
 border: none;
 border-radius: 4px;
 padding: 8px 16px;
@@ -635,8 +696,9 @@ font: Graphik Regular 14px;
 ```
 
 **Secondary button:**
+
 ```css
-background: #FFFFFF;
+background: #ffffff;
 color: #003964; /* Dark Midnight Blue */
 border: 1px solid #003964;
 border-radius: 4px;
@@ -645,9 +707,10 @@ font: Graphik Regular 14px;
 ```
 
 **Danger button:**
+
 ```css
-background: #D33E2C; /* Dark Red */
-color: #FFFFFF;
+background: #d33e2c; /* Dark Red */
+color: #ffffff;
 border: none;
 border-radius: 4px;
 padding: 8px 16px;
@@ -655,9 +718,10 @@ font: Graphik Regular 14px;
 ```
 
 **Text button:**
+
 ```css
 background: transparent;
-color: #00BBCE; /* Cyan */
+color: #00bbce; /* Cyan */
 border: none;
 padding: 4px 8px;
 font: Graphik Regular 14px;
@@ -666,13 +730,13 @@ text-decoration: underline on hover;
 
 ### 7.2 Button States
 
-| State | Style |
-|-------|-------|
-| **Hover (Primary)** | Background: lighter shade (+10% lightness), cursor: pointer |
-| **Hover (Secondary)** | Background: Cyan (5% opacity) |
-| **Active** | Background: darker shade (-10% lightness), slight scale (98%) |
-| **Disabled** | Background: Light Gray, Color: Medium Gray, cursor: not-allowed |
-| **Focus** | Outline: 2px Cyan, offset: 2px |
+| State                 | Style                                                           |
+| --------------------- | --------------------------------------------------------------- |
+| **Hover (Primary)**   | Background: lighter shade (+10% lightness), cursor: pointer     |
+| **Hover (Secondary)** | Background: Cyan (5% opacity)                                   |
+| **Active**            | Background: darker shade (-10% lightness), slight scale (98%)   |
+| **Disabled**          | Background: Light Gray, Color: Medium Gray, cursor: not-allowed |
+| **Focus**             | Outline: 2px Cyan, offset: 2px                                  |
 
 ---
 
@@ -681,15 +745,16 @@ text-decoration: underline on hover;
 ### 8.1 Text Input
 
 ```css
-border: 1px solid #C8C8C8; /* Medium Gray */
+border: 1px solid #c8c8c8; /* Medium Gray */
 border-radius: 4px;
 padding: 8px 12px;
 font: Graphik Regular 14px;
 color: #003964; /* Dark Midnight Blue */
-background: #FFFFFF;
+background: #ffffff;
 ```
 
 **States:**
+
 - **Focus:** Border: 2px Cyan, outline: none
 - **Error:** Border: 2px Red, background: Light Red (5% opacity)
 - **Disabled:** Background: Light Gray, color: Medium Gray
@@ -711,12 +776,13 @@ padding-right: 32px; /* Space for arrow */
 ```css
 width: 18px;
 height: 18px;
-border: 1px solid #C8C8C8;
+border: 1px solid #c8c8c8;
 border-radius: 3px;
-background: #FFFFFF;
+background: #ffffff;
 ```
 
 **Checked state:**
+
 ```css
 background: #003964; /* Dark Midnight Blue */
 border-color: #003964;
@@ -728,12 +794,13 @@ border-color: #003964;
 ```css
 width: 18px;
 height: 18px;
-border: 1px solid #C8C8C8;
+border: 1px solid #c8c8c8;
 border-radius: 50%;
-background: #FFFFFF;
+background: #ffffff;
 ```
 
 **Checked state:**
+
 ```css
 border-color: #003964;
 /* Inner dot via ::after pseudo-element */
@@ -742,11 +809,13 @@ border-color: #003964;
 ### 8.5 Form Layout
 
 **Vertical forms:**
+
 - Label above input
 - Gap: 4px
 - Label font: Graphik Medium 14px
 
 **Horizontal forms:**
+
 - Label left, input right
 - Label width: 120px
 - Gap: 12px
@@ -771,6 +840,7 @@ border-color: #003964;
 ```
 
 **Modal styling:**
+
 - Background: White
 - Border: 1px Medium Gray
 - Border-radius: 8px
@@ -780,15 +850,18 @@ border-color: #003964;
 - Backdrop: Dark Midnight Blue @ 40% opacity
 
 **Title bar:**
+
 - Font: Graphik Medium 18px
 - Color: Dark Midnight Blue
 - Border-bottom: 1px Medium Gray
 - Padding-bottom: 12px
 
 **Content area:**
+
 - Padding: 16px 0
 
 **Footer:**
+
 - Border-top: 1px Medium Gray
 - Padding-top: 16px
 - Buttons right-aligned
@@ -814,6 +887,7 @@ border-color: #003964;
 ```
 
 **Preview section:**
+
 - Border-top: 1px Medium Gray
 - Margin-top: 16px
 - Padding-top: 16px
@@ -845,6 +919,7 @@ border-color: #003964;
 ```
 
 **Drop zone styling:**
+
 - Border: 2px dashed Medium Gray
 - Border-radius: 8px
 - Background: Light Gray (subtle)
@@ -853,10 +928,12 @@ border-color: #003964;
 - Cursor: pointer
 
 **Drag-over state:**
+
 - Border: 2px dashed Cyan
 - Background: Cyan (5% opacity)
 
 **File icon:**
+
 - Unicode 📄 or SVG, 48px size
 - Color: Medium Gray
 
@@ -867,6 +944,7 @@ border-color: #003964;
 ### 11.1 Inline Errors
 
 **Expression error in form:**
+
 ```
 ┌────────────────────────────────────────────┐
 │ sales > > 1000                             │
@@ -875,6 +953,7 @@ border-color: #003964;
 ```
 
 **Styling:**
+
 - Icon: ⚠️ Yellow or Red
 - Font: Graphik Regular 13px
 - Color: Red
@@ -897,6 +976,7 @@ border-color: #003964;
 ```
 
 **Styling:**
+
 - Same as modal
 - Icon: Large ⚠️ (24px), Red
 - Message: Dark Midnight Blue
@@ -910,6 +990,7 @@ border-color: #003964;
 ```
 
 **Styling:**
+
 - Position: Fixed top-right
 - Background: Green
 - Color: White
@@ -926,6 +1007,7 @@ border-color: #003964;
 ### 12.1 First Launch
 
 **Welcome modal** (optional for MVP, can be skipped):
+
 ```
 ┌─────────────────────────────────────────────┐
 │ Welcome to Chumak                           │
@@ -959,6 +1041,7 @@ User drops file onto drop zone
 ```
 
 **Loading state:**
+
 - Spinner: CSS-only animation (rotating border)
 - Color: Cyan
 - Text: "Parsing..." in Dark Gray
@@ -1098,14 +1181,15 @@ This section covers all dialogs: import configuration and transform operations. 
 
 ### 14.1 Viewport Breakpoints
 
-| Viewport Width | Behavior |
-|----------------|----------|
-| ≥1280px | Full layout, optimal experience |
-| 1024px - 1279px | Full layout, slightly cramped |
-| 768px - 1023px | Show warning banner: "Chumak works best on larger screens (1280px+)" |
-| <768px | Block usage with message: "Please use a larger screen" |
+| Viewport Width  | Behavior                                                             |
+| --------------- | -------------------------------------------------------------------- |
+| ≥1280px         | Full layout, optimal experience                                      |
+| 1024px - 1279px | Full layout, slightly cramped                                        |
+| 768px - 1023px  | Show warning banner: "Chumak works best on larger screens (1280px+)" |
+| <768px          | Block usage with message: "Please use a larger screen"               |
 
 **Warning banner styling:**
+
 - Background: Yellow
 - Color: Dark Midnight Blue
 - Padding: 8px 16px
@@ -1119,18 +1203,19 @@ This section covers all dialogs: import configuration and transform operations. 
 
 ### 15.1 Keyboard Navigation
 
-| Key | Action |
-|-----|--------|
-| Tab | Navigate focusable elements |
-| Shift+Tab | Navigate backwards |
-| Enter | Activate button, submit form |
-| Escape | Close modal/dialog |
-| Space | Toggle checkbox/radio |
+| Key        | Action                                        |
+| ---------- | --------------------------------------------- |
+| Tab        | Navigate focusable elements                   |
+| Shift+Tab  | Navigate backwards                            |
+| Enter      | Activate button, submit form                  |
+| Escape     | Close modal/dialog                            |
+| Space      | Toggle checkbox/radio                         |
 | Arrow keys | Navigate table cells, select dropdown options |
 
 ### 15.2 Focus Indicators
 
 All interactive elements have visible focus state:
+
 - Outline: 2px solid Cyan
 - Offset: 2px
 - Border-radius: 4px (matches element)
@@ -1145,6 +1230,7 @@ All interactive elements have visible focus state:
 ### 15.4 Color Contrast
 
 All text meets WCAG AA standards:
+
 - Primary text (Dark Midnight Blue on White): 8.12:1 ✓
 - Secondary text (Dark Gray on White): 4.54:1 ✓
 - Cyan links (on White): 3.18:1 (⚠️ use underline for clarity)
@@ -1160,7 +1246,7 @@ CSS-only spinner (no images):
 ```css
 .spinner {
   border: 3px solid rgba(0, 187, 206, 0.1);
-  border-top-color: #00BBCE;
+  border-top-color: #00bbce;
   border-radius: 50%;
   width: 40px;
   height: 40px;
@@ -1180,6 +1266,7 @@ For file parsing or long operations:
 ```
 
 **Styling:**
+
 - Height: 8px
 - Background: Light Gray
 - Fill: Cyan
@@ -1194,6 +1281,7 @@ For file parsing or long operations:
 From KSE guidelines: **Simple and rigorous, no decorative effects.**
 
 For Chumak:
+
 - Use transitions sparingly
 - Fast durations (150-200ms)
 - Ease-out easing for natural feel
@@ -1201,13 +1289,13 @@ For Chumak:
 
 ### 17.2 Allowed Animations
 
-| Element | Animation | Duration | Easing |
-|---------|-----------|----------|--------|
-| Button hover | Background color | 150ms | ease-out |
-| Modal open | Opacity + scale (1.05 → 1) | 200ms | ease-out |
-| Toast notification | Slide in from top | 200ms | ease-out |
-| Tab switch | Opacity | 150ms | ease-out |
-| Spinner | Rotation | 1s | linear, infinite |
+| Element            | Animation                  | Duration | Easing           |
+| ------------------ | -------------------------- | -------- | ---------------- |
+| Button hover       | Background color           | 150ms    | ease-out         |
+| Modal open         | Opacity + scale (1.05 → 1) | 200ms    | ease-out         |
+| Toast notification | Slide in from top          | 200ms    | ease-out         |
+| Tab switch         | Opacity                    | 150ms    | ease-out         |
+| Spinner            | Rotation                   | 1s       | linear, infinite |
 
 ### 17.3 Disallowed
 
@@ -1246,14 +1334,14 @@ Define design tokens as CSS variables:
 :root {
   /* Colors */
   --color-midnight-blue: #003964;
-  --color-cyan: #00BBCE;
-  --color-green: #A7C539;
-  --color-yellow: #E4E541;
-  --color-red: #F15B43;
-  --color-dark-red: #D33E2C;
-  --color-white: #FFFFFF;
-  --color-light-gray: #F5F5F5;
-  --color-medium-gray: #C8C8C8;
+  --color-cyan: #00bbce;
+  --color-green: #a7c539;
+  --color-yellow: #e4e541;
+  --color-red: #f15b43;
+  --color-dark-red: #d33e2c;
+  --color-white: #ffffff;
+  --color-light-gray: #f5f5f5;
+  --color-medium-gray: #c8c8c8;
   --color-dark-gray: #646464;
 
   /* Typography */
@@ -1304,14 +1392,18 @@ Use BEM (Block Element Modifier):
 
 ```css
 /* Block */
-.button { }
+.button {
+}
 
 /* Element */
-.button__icon { }
+.button__icon {
+}
 
 /* Modifier */
-.button--primary { }
-.button--disabled { }
+.button--primary {
+}
+.button--disabled {
+}
 ```
 
 ### 18.4 Utility Classes
@@ -1320,21 +1412,39 @@ Minimal utility classes for common patterns:
 
 ```css
 /* Spacing */
-.mt-md { margin-top: var(--space-md); }
-.p-lg { padding: var(--space-lg); }
+.mt-md {
+  margin-top: var(--space-md);
+}
+.p-lg {
+  padding: var(--space-lg);
+}
 
 /* Typography */
-.text-secondary { color: var(--color-dark-gray); }
-.text-center { text-align: center; }
+.text-secondary {
+  color: var(--color-dark-gray);
+}
+.text-center {
+  text-align: center;
+}
 
 /* Flexbox */
-.flex { display: flex; }
-.flex-between { justify-content: space-between; }
-.flex-center { align-items: center; }
+.flex {
+  display: flex;
+}
+.flex-between {
+  justify-content: space-between;
+}
+.flex-center {
+  align-items: center;
+}
 
 /* Visibility */
-.hidden { display: none; }
-.sr-only { /* Screen reader only */ }
+.hidden {
+  display: none;
+}
+.sr-only {
+  /* Screen reader only */
+}
 ```
 
 ---
@@ -1343,12 +1453,12 @@ Minimal utility classes for common patterns:
 
 ### 19.1 Target Browsers
 
-| Browser | Minimum Version |
-|---------|----------------|
-| Chrome | Latest 2 versions |
-| Safari | Latest 2 versions |
+| Browser | Minimum Version                     |
+| ------- | ----------------------------------- |
+| Chrome  | Latest 2 versions                   |
+| Safari  | Latest 2 versions                   |
 | Firefox | Not officially supported (may work) |
-| Edge | Not officially supported (may work) |
+| Edge    | Not officially supported (may work) |
 
 ### 19.2 Required Features
 
@@ -1362,6 +1472,7 @@ Minimal utility classes for common patterns:
 ### 19.3 Polyfills
 
 None required for target browsers. If expanding support:
+
 - Use `@supports` queries for progressive enhancement
 - Fallback to simpler layouts if Grid unavailable
 
@@ -1417,35 +1528,35 @@ None required for target browsers. If expanding support:
 
 Quick reference for developers:
 
-| Token | Value | Usage |
-|-------|-------|-------|
-| `--color-midnight-blue` | #003964 | Primary text, buttons, borders |
-| `--color-cyan` | #00BBCE | Links, accents, active states |
-| `--color-green` | #A7C539 | Success states |
-| `--color-yellow` | #E4E541 | Warnings |
-| `--color-red` | #F15B43 | Errors |
-| `--color-dark-red` | #D33E2C | Delete actions |
-| `--font-family` | Graphik, Arial | All text |
-| `--font-size-base` | 14px | Default text size |
-| `--space-md` | 16px | Default spacing |
-| `--border-radius` | 4px | Default corner radius |
-| `--transition-fast` | 150ms ease-out | Hover effects |
+| Token                   | Value          | Usage                          |
+| ----------------------- | -------------- | ------------------------------ |
+| `--color-midnight-blue` | #003964        | Primary text, buttons, borders |
+| `--color-cyan`          | #00BBCE        | Links, accents, active states  |
+| `--color-green`         | #A7C539        | Success states                 |
+| `--color-yellow`        | #E4E541        | Warnings                       |
+| `--color-red`           | #F15B43        | Errors                         |
+| `--color-dark-red`      | #D33E2C        | Delete actions                 |
+| `--font-family`         | Graphik, Arial | All text                       |
+| `--font-size-base`      | 14px           | Default text size              |
+| `--space-md`            | 16px           | Default spacing                |
+| `--border-radius`       | 4px            | Default corner radius          |
+| `--transition-fast`     | 150ms ease-out | Hover effects                  |
 
 ---
 
 ## 22. Differences from Original 98.css Design
 
-| Aspect | 98.css Version | KSE-Inspired Version |
-|--------|----------------|---------------------|
-| **Framework** | 98.css components | Custom CSS |
-| **Visual style** | Retro Windows 98 | Clean, modern, rigorous |
-| **Colors** | System grays, blue | KSE palette (Dark Blue, Cyan, etc.) |
-| **Typography** | System fonts | Graphik font family |
-| **Window chrome** | 3D beveled frames | Flat 1px borders |
-| **Borders** | Multiple shades (inset/outset) | Single 1px solid borders |
-| **Buttons** | 3D raised/pressed | Flat with subtle hover |
-| **Complexity** | High visual weight | Minimal, information-first |
-| **Customizability** | Limited (framework styles) | Full control via CSS variables |
+| Aspect              | 98.css Version                 | KSE-Inspired Version                |
+| ------------------- | ------------------------------ | ----------------------------------- |
+| **Framework**       | 98.css components              | Custom CSS                          |
+| **Visual style**    | Retro Windows 98               | Clean, modern, rigorous             |
+| **Colors**          | System grays, blue             | KSE palette (Dark Blue, Cyan, etc.) |
+| **Typography**      | System fonts                   | Graphik font family                 |
+| **Window chrome**   | 3D beveled frames              | Flat 1px borders                    |
+| **Borders**         | Multiple shades (inset/outset) | Single 1px solid borders            |
+| **Buttons**         | 3D raised/pressed              | Flat with subtle hover              |
+| **Complexity**      | High visual weight             | Minimal, information-first          |
+| **Customizability** | Limited (framework styles)     | Full control via CSS variables      |
 
 ---
 

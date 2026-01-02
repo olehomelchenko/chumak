@@ -20,7 +20,7 @@ function parseExpression(expression) {
   }
 
   // Pre-process for bracket notation [Column Name]
-  // We replace [Col Name] with placeholders of the PRECISE same length 
+  // We replace [Col Name] with placeholders of the PRECISE same length
   // to maintain accurate error positions (pointers).
   const colMatches = [];
   const processedExpr = expression.replace(/\[([^\]]+)\]/g, (match, colName) => {
@@ -53,21 +53,21 @@ function parseExpression(expression) {
     throw {
       message: error.message,
       position: error.index || 0,
-      expression: expression
+      expression: expression,
     };
   }
 }
 
 /**
  * Recursively walk AST and restore column names from placeholders
- * @param {Object} node 
- * @param {Array} colMatches 
+ * @param {Object} node
+ * @param {Array} colMatches
  */
 function restoreColumnNames(node, colMatches) {
   if (!node || typeof node !== 'object') return;
 
   if (node.type === 'Identifier') {
-    const match = colMatches.find(m => m.placeholder === node.name);
+    const match = colMatches.find((m) => m.placeholder === node.name);
     if (match) {
       node.name = match.colName;
     }
@@ -78,7 +78,7 @@ function restoreColumnNames(node, colMatches) {
     const child = node[key];
     if (child && typeof child === 'object') {
       if (Array.isArray(child)) {
-        child.forEach(c => restoreColumnNames(c, colMatches));
+        child.forEach((c) => restoreColumnNames(c, colMatches));
       } else {
         restoreColumnNames(child, colMatches);
       }

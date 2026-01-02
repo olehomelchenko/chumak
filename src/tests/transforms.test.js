@@ -10,7 +10,7 @@ describe('Transform Engine', () => {
       { sales: 1500, revenue: 7000, cost: 4000, region: 'South', status: 'active' },
       { sales: 800, revenue: 4000, cost: 2500, region: 'North', status: 'pending' },
       { sales: 2000, revenue: 10000, cost: 6000, region: 'East', status: 'active' },
-      { sales: 500, revenue: 3000, cost: 2000, region: 'West', status: 'inactive' }
+      { sales: 500, revenue: 3000, cost: 2000, region: 'West', status: 'inactive' },
     ]);
   }
 
@@ -18,7 +18,13 @@ describe('Transform Engine', () => {
     it('should select single column', () => {
       const table = createTestTable();
       const transform = { select: ['sales'] };
-      const result = applyTransform(table, transform, ['sales', 'revenue', 'cost', 'region', 'status']);
+      const result = applyTransform(table, transform, [
+        'sales',
+        'revenue',
+        'cost',
+        'region',
+        'status',
+      ]);
 
       const columns = result.columnNames();
       expect(columns).to.deep.equal(['sales']);
@@ -28,7 +34,13 @@ describe('Transform Engine', () => {
     it('should select multiple columns', () => {
       const table = createTestTable();
       const transform = { select: ['sales', 'region', 'status'] };
-      const result = applyTransform(table, transform, ['sales', 'revenue', 'cost', 'region', 'status']);
+      const result = applyTransform(table, transform, [
+        'sales',
+        'revenue',
+        'cost',
+        'region',
+        'status',
+      ]);
 
       const columns = result.columnNames();
       expect(columns).to.deep.equal(['sales', 'region', 'status']);
@@ -38,7 +50,13 @@ describe('Transform Engine', () => {
     it('should preserve column order in select', () => {
       const table = createTestTable();
       const transform = { select: ['status', 'region', 'sales'] };
-      const result = applyTransform(table, transform, ['sales', 'revenue', 'cost', 'region', 'status']);
+      const result = applyTransform(table, transform, [
+        'sales',
+        'revenue',
+        'cost',
+        'region',
+        'status',
+      ]);
 
       const columns = result.columnNames();
       expect(columns).to.deep.equal(['status', 'region', 'sales']);
@@ -59,49 +77,81 @@ describe('Transform Engine', () => {
   describe('matchColumnPattern()', () => {
     it('should match columns with prefix pattern', () => {
       const columns = ['sales_2023', 'sales_2024', 'revenue', 'cost'];
-      const result = matchColumnPattern(columns, { mode: 'include', pattern: 'sales_', matchType: 'prefix' });
+      const result = matchColumnPattern(columns, {
+        mode: 'include',
+        pattern: 'sales_',
+        matchType: 'prefix',
+      });
       expect(result).to.deep.equal(['sales_2023', 'sales_2024']);
     });
 
     it('should match columns with suffix pattern', () => {
       const columns = ['sales_2023', 'revenue_2023', 'cost', 'profit_2023'];
-      const result = matchColumnPattern(columns, { mode: 'include', pattern: '_2023', matchType: 'suffix' });
+      const result = matchColumnPattern(columns, {
+        mode: 'include',
+        pattern: '_2023',
+        matchType: 'suffix',
+      });
       expect(result).to.deep.equal(['sales_2023', 'revenue_2023', 'profit_2023']);
     });
 
     it('should match columns with exact pattern', () => {
       const columns = ['sales', 'Sales', 'revenue', 'SALES'];
-      const result = matchColumnPattern(columns, { mode: 'include', pattern: 'sales', matchType: 'exact' });
+      const result = matchColumnPattern(columns, {
+        mode: 'include',
+        pattern: 'sales',
+        matchType: 'exact',
+      });
       expect(result).to.deep.equal(['sales']);
     });
 
     it('should exclude columns with prefix pattern', () => {
       const columns = ['sales_2023', 'sales_2024', 'revenue', 'cost'];
-      const result = matchColumnPattern(columns, { mode: 'exclude', pattern: 'sales_', matchType: 'prefix' });
+      const result = matchColumnPattern(columns, {
+        mode: 'exclude',
+        pattern: 'sales_',
+        matchType: 'prefix',
+      });
       expect(result).to.deep.equal(['revenue', 'cost']);
     });
 
     it('should exclude columns with suffix pattern', () => {
       const columns = ['sales_2023', 'revenue_2023', 'cost', 'profit'];
-      const result = matchColumnPattern(columns, { mode: 'exclude', pattern: '_2023', matchType: 'suffix' });
+      const result = matchColumnPattern(columns, {
+        mode: 'exclude',
+        pattern: '_2023',
+        matchType: 'suffix',
+      });
       expect(result).to.deep.equal(['cost', 'profit']);
     });
 
     it('should return all columns when pattern is empty', () => {
       const columns = ['sales', 'revenue', 'cost'];
-      const result = matchColumnPattern(columns, { mode: 'include', pattern: '', matchType: 'prefix' });
+      const result = matchColumnPattern(columns, {
+        mode: 'include',
+        pattern: '',
+        matchType: 'prefix',
+      });
       expect(result).to.deep.equal(['sales', 'revenue', 'cost']);
     });
 
     it('should return empty array when no columns match', () => {
       const columns = ['sales', 'revenue', 'cost'];
-      const result = matchColumnPattern(columns, { mode: 'include', pattern: 'profit_', matchType: 'prefix' });
+      const result = matchColumnPattern(columns, {
+        mode: 'include',
+        pattern: 'profit_',
+        matchType: 'prefix',
+      });
       expect(result).to.deep.equal([]);
     });
 
     it('should be case-sensitive', () => {
       const columns = ['Sales', 'sales', 'SALES'];
-      const result = matchColumnPattern(columns, { mode: 'include', pattern: 'sales', matchType: 'prefix' });
+      const result = matchColumnPattern(columns, {
+        mode: 'include',
+        pattern: 'sales',
+        matchType: 'prefix',
+      });
       expect(result).to.deep.equal(['sales']);
     });
   });
@@ -110,7 +160,13 @@ describe('Transform Engine', () => {
     it('should filter with simple comparison', () => {
       const table = createTestTable();
       const transform = { filter: 'sales > 1000' };
-      const result = applyTransform(table, transform, ['sales', 'revenue', 'cost', 'region', 'status']);
+      const result = applyTransform(table, transform, [
+        'sales',
+        'revenue',
+        'cost',
+        'region',
+        'status',
+      ]);
 
       expect(result.numRows()).to.equal(2); // 1500 and 2000
       const rows = result.objects();
@@ -121,17 +177,29 @@ describe('Transform Engine', () => {
     it('should filter with equality', () => {
       const table = createTestTable();
       const transform = { filter: 'region == "North"' };
-      const result = applyTransform(table, transform, ['sales', 'revenue', 'cost', 'region', 'status']);
+      const result = applyTransform(table, transform, [
+        'sales',
+        'revenue',
+        'cost',
+        'region',
+        'status',
+      ]);
 
       expect(result.numRows()).to.equal(2);
       const rows = result.objects();
-      expect(rows.every(r => r.region === 'North')).to.be.true;
+      expect(rows.every((r) => r.region === 'North')).to.be.true;
     });
 
     it('should filter with logical AND', () => {
       const table = createTestTable();
       const transform = { filter: 'sales > 1000 && region == "South"' };
-      const result = applyTransform(table, transform, ['sales', 'revenue', 'cost', 'region', 'status']);
+      const result = applyTransform(table, transform, [
+        'sales',
+        'revenue',
+        'cost',
+        'region',
+        'status',
+      ]);
 
       expect(result.numRows()).to.equal(1);
       const rows = result.objects();
@@ -142,7 +210,13 @@ describe('Transform Engine', () => {
     it('should filter with logical OR', () => {
       const table = createTestTable();
       const transform = { filter: 'region == "North" || region == "South"' };
-      const result = applyTransform(table, transform, ['sales', 'revenue', 'cost', 'region', 'status']);
+      const result = applyTransform(table, transform, [
+        'sales',
+        'revenue',
+        'cost',
+        'region',
+        'status',
+      ]);
 
       expect(result.numRows()).to.equal(3); // 2 North + 1 South
     });
@@ -150,7 +224,13 @@ describe('Transform Engine', () => {
     it('should filter with complex expression', () => {
       const table = createTestTable();
       const transform = { filter: '(sales > 1000 && region == "South") || status == "inactive"' };
-      const result = applyTransform(table, transform, ['sales', 'revenue', 'cost', 'region', 'status']);
+      const result = applyTransform(table, transform, [
+        'sales',
+        'revenue',
+        'cost',
+        'region',
+        'status',
+      ]);
 
       expect(result.numRows()).to.equal(2); // South with sales > 1000, and inactive
     });
@@ -158,17 +238,29 @@ describe('Transform Engine', () => {
     it('should filter with arithmetic expression', () => {
       const table = createTestTable();
       const transform = { filter: 'revenue - cost > 3000' };
-      const result = applyTransform(table, transform, ['sales', 'revenue', 'cost', 'region', 'status']);
+      const result = applyTransform(table, transform, [
+        'sales',
+        'revenue',
+        'cost',
+        'region',
+        'status',
+      ]);
 
       expect(result.numRows()).to.equal(1); // Only row 4: 10000 - 6000 = 4000 > 3000
       const rows = result.objects();
-      expect(rows.every(r => r.revenue - r.cost > 3000)).to.be.true;
+      expect(rows.every((r) => r.revenue - r.cost > 3000)).to.be.true;
     });
 
     it('should return empty table when no rows match', () => {
       const table = createTestTable();
       const transform = { filter: 'sales > 10000' };
-      const result = applyTransform(table, transform, ['sales', 'revenue', 'cost', 'region', 'status']);
+      const result = applyTransform(table, transform, [
+        'sales',
+        'revenue',
+        'cost',
+        'region',
+        'status',
+      ]);
 
       expect(result.numRows()).to.equal(0);
     });
@@ -176,7 +268,13 @@ describe('Transform Engine', () => {
     it('should return all rows when all match', () => {
       const table = createTestTable();
       const transform = { filter: 'sales > 0' };
-      const result = applyTransform(table, transform, ['sales', 'revenue', 'cost', 'region', 'status']);
+      const result = applyTransform(table, transform, [
+        'sales',
+        'revenue',
+        'cost',
+        'region',
+        'status',
+      ]);
 
       expect(result.numRows()).to.equal(5);
     });
@@ -207,12 +305,18 @@ describe('Transform Engine', () => {
         { op: '>=', expected: 3 },
         { op: '<=', expected: 3 },
         { op: '==', expected: 1 },
-        { op: '!=', expected: 4 }
+        { op: '!=', expected: 4 },
       ];
 
       operators.forEach(({ op, expected }) => {
         const transform = { filter: `sales ${op} 1000` };
-        const result = applyTransform(table, transform, ['sales', 'revenue', 'cost', 'region', 'status']);
+        const result = applyTransform(table, transform, [
+          'sales',
+          'revenue',
+          'cost',
+          'region',
+          'status',
+        ]);
         expect(result.numRows()).to.equal(expected);
       });
     });
@@ -221,7 +325,7 @@ describe('Transform Engine', () => {
       const table = aq.from([
         { active: true, name: 'A' },
         { active: false, name: 'B' },
-        { active: true, name: 'C' }
+        { active: true, name: 'C' },
       ]);
 
       const transform = { filter: '!active' };
@@ -234,7 +338,13 @@ describe('Transform Engine', () => {
     it('should preserve all columns after filter', () => {
       const table = createTestTable();
       const transform = { filter: 'sales > 1000' };
-      const result = applyTransform(table, transform, ['sales', 'revenue', 'cost', 'region', 'status']);
+      const result = applyTransform(table, transform, [
+        'sales',
+        'revenue',
+        'cost',
+        'region',
+        'status',
+      ]);
 
       const columns = result.columnNames();
       expect(columns).to.deep.equal(['sales', 'revenue', 'cost', 'region', 'status']);
@@ -253,7 +363,13 @@ describe('Transform Engine', () => {
     it('should pass through data unchanged', () => {
       const table = createTestTable();
       const transform = { types: { sales: 'integer', region: 'string' } };
-      const result = applyTransform(table, transform, ['sales', 'revenue', 'cost', 'region', 'status']);
+      const result = applyTransform(table, transform, [
+        'sales',
+        'revenue',
+        'cost',
+        'region',
+        'status',
+      ]);
 
       expect(result.numRows()).to.equal(5);
       expect(result.columnNames()).to.deep.equal(table.columnNames());
@@ -277,8 +393,8 @@ describe('Transform Engine', () => {
       const transform = {
         import: {
           source: 'data.csv',
-          headerMode: 'first-row'
-        }
+          headerMode: 'first-row',
+        },
       };
       const desc = describeTransform(transform);
       expect(desc).to.include('Import: data.csv');
@@ -315,8 +431,8 @@ describe('Transform Engine', () => {
       const transform = {
         join: {
           right: 'mdl_123',
-          how: 'left'
-        }
+          how: 'left',
+        },
       };
       const desc = describeTransform(transform);
       expect(desc).to.equal('Join (left): model');
@@ -359,8 +475,8 @@ describe('Transform Engine', () => {
       const transform = {
         import: {
           source: 'data.csv',
-          headerMode: 'auto-generate'
-        }
+          headerMode: 'auto-generate',
+        },
       };
       const desc = describeTransform(transform);
       expect(desc).to.include('auto-generated headers');
@@ -370,8 +486,8 @@ describe('Transform Engine', () => {
       const transform = {
         import: {
           source: 'data.csv',
-          headerMode: 'manual'
-        }
+          headerMode: 'manual',
+        },
       };
       const desc = describeTransform(transform);
       expect(desc).to.include('custom headers');

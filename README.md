@@ -7,6 +7,7 @@
 ## Documentation
 
 ### For AI Sessions
+
 - **[CLAUDE.md](CLAUDE.md)** - Onboarding document for Claude AI sessions
   - Project context and current status
   - Key design decisions and rationale
@@ -15,6 +16,7 @@
   - Quick reference for all docs
 
 ### Testing
+
 - **[PHASE-0-TESTING-CHECKLIST.md](PHASE-0-TESTING-CHECKLIST.md)** - Manual testing checklist for Phase 0
   - Comprehensive test scenarios for all implemented features
   - CSV import, transforms, persistence, export
@@ -22,6 +24,7 @@
   - Browser compatibility checks
 
 ### Core Specification
+
 - **[SPECIFICATION.md](SPECIFICATION.md)** - Complete product specification
   - What Chumak is and who it's for
   - Technical architecture and constraints
@@ -31,6 +34,7 @@
   - Testing strategy
 
 ### Design Decisions
+
 - **[PARSER-DESIGN-DECISION.md](PARSER-DESIGN-DECISION.md)** - Expression parser design
   - Comprehensive analysis of parser options
   - Recommended architecture (jsep + predicates)
@@ -39,6 +43,7 @@
   - Based on research of 8 production systems
 
 ### Research
+
 - **[research/](research/)** - Background research on expression parser design
   - Analysis of Vega-Lite, Arquero, OpenRefine, ag-Grid, and others
   - Comparison table of approaches
@@ -48,22 +53,24 @@
 ## Quick Start
 
 **For Contributors:**
+
 1. Read [SPECIFICATION.md](SPECIFICATION.md) for product vision and architecture
 2. Read [PARSER-DESIGN-DECISION.md](PARSER-DESIGN-DECISION.md) for parser implementation approach
 3. Check the phased roadmap in SPECIFICATION.md Section 8
 
 **For Researchers:**
+
 - See [research/](research/) for detailed analysis of existing systems
 
 ## Design Principles
 
-| Principle | Implication |
-|-----------|-------------|
-| **Local-first** | All data stays in browser. No uploads, no accounts. |
-| **Progressive disclosure** | Simple defaults, optional advanced configuration. |
-| **Declarative specification** | Transformations are data (JSON), not code. |
-| **Reproducibility** | Workflows can be exported, shared, and replayed. |
-| **Security-first** | Untrusted expressions sandboxed, no code injection. |
+| Principle                     | Implication                                         |
+| ----------------------------- | --------------------------------------------------- |
+| **Local-first**               | All data stays in browser. No uploads, no accounts. |
+| **Progressive disclosure**    | Simple defaults, optional advanced configuration.   |
+| **Declarative specification** | Transformations are data (JSON), not code.          |
+| **Reproducibility**           | Workflows can be exported, shared, and replayed.    |
+| **Security-first**            | Untrusted expressions sandboxed, no code injection. |
 
 ## Technology Stack
 
@@ -76,6 +83,7 @@
 ## Current Phase: Phase 0 Complete ✅
 
 **Walking Skeleton (Phase 0)** - COMPLETE
+
 - ✅ Product specification complete
 - ✅ Expression parser design complete
 - ✅ Research and analysis complete
@@ -87,6 +95,7 @@
 - ✅ All architectural layers validated end-to-end
 
 **Key achievements:**
+
 - Successfully validated security model (no Function() constructor)
 - Proven data flow: CSV import → transform → persist → export
 - Identified and documented implementation discoveries (jsep behavior, Arquero limitations)

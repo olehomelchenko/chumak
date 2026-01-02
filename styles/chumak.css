@@ -5,14 +5,14 @@
 :root {
   /* Colors - KSE Palette */
   --color-midnight-blue: #003964;
-  --color-cyan: #00BBCE;
-  --color-green: #A7C539;
-  --color-yellow: #E4E541;
-  --color-red: #F15B43;
-  --color-dark-red: #D33E2C;
-  --color-white: #FFFFFF;
-  --color-light-gray: #F5F5F5;
-  --color-medium-gray: #C8C8C8;
+  --color-cyan: #00bbce;
+  --color-green: #a7c539;
+  --color-yellow: #e4e541;
+  --color-red: #f15b43;
+  --color-dark-red: #d33e2c;
+  --color-white: #ffffff;
+  --color-light-gray: #f5f5f5;
+  --color-medium-gray: #c8c8c8;
   --color-dark-gray: #646464;
 
   /* Typography */
@@ -90,9 +90,9 @@ body {
   grid-template-rows: var(--header-height) auto 1fr;
   height: 100vh;
   grid-template-areas:
-    "header  header"
-    "ribbon  ribbon"
-    "left    main";
+    'header  header'
+    'ribbon  ribbon'
+    'left    main';
 }
 
 /* ============================================
@@ -295,7 +295,7 @@ body {
   padding-bottom: var(--space-sm);
 }
 
-.panel-section+.panel-section {
+.panel-section + .panel-section {
   border-top: var(--border-width) solid var(--border-color);
 }
 
@@ -622,7 +622,6 @@ body {
 .data-table__header:hover {
   background: var(--color-medium-gray);
 }
-
 
 .type-indicator {
   display: inline-flex;
@@ -1154,7 +1153,7 @@ body {
   background: rgba(0, 187, 206, 0.05);
 }
 
-.checkbox-item input[type="checkbox"] {
+.checkbox-item input[type='checkbox'] {
   width: 18px;
   height: 18px;
   cursor: pointer;
@@ -1364,7 +1363,7 @@ body {
 }
 
 .model-card:hover {
-  background: #E8F8FA;
+  background: #e8f8fa;
   border-color: var(--color-cyan);
   transform: translateX(4px);
 }
@@ -1447,26 +1446,26 @@ body {
 }
 
 .type-badge--string {
-  background: #E3F2FD;
-  color: #1565C0;
+  background: #e3f2fd;
+  color: #1565c0;
 }
 
 .type-badge--number,
 .type-badge--integer,
 .type-badge--float {
-  background: #F3E5F5;
-  color: #6A1B9A;
+  background: #f3e5f5;
+  color: #6a1b9a;
 }
 
 .type-badge--boolean {
-  background: #E8F5E9;
-  color: #2E7D32;
+  background: #e8f5e9;
+  color: #2e7d32;
 }
 
 .type-badge--date,
 .type-badge--datetime {
-  background: #FFF3E0;
-  color: #E65100;
+  background: #fff3e0;
+  color: #e65100;
 }
 
 /* Danger Button */
@@ -1560,7 +1559,9 @@ body {
   align-items: center;
   justify-content: center;
   border-radius: 4px;
-  transition: background 0.2s, color 0.2s;
+  transition:
+    background 0.2s,
+    color 0.2s;
 }
 
 .slide-panel__close:hover {
@@ -1601,12 +1602,12 @@ body {
   border-color: var(--color-cyan);
 }
 
-.radio-label input[type="radio"] {
+.radio-label input[type='radio'] {
   margin: 0;
   cursor: pointer;
 }
 
-.radio-label input[type="radio"]:checked+span {
+.radio-label input[type='radio']:checked + span {
   font-weight: var(--font-weight-medium);
   color: var(--color-midnight-blue);
 }

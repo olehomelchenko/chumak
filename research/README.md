@@ -9,16 +9,17 @@ Before implementing the parser, we analyzed 8 production systems to understand d
 ## Contents
 
 ### Research Protocol
+
 - **[RESEARCH-GUIDE.md](RESEARCH-GUIDE.md)** - Structured analysis protocol with comparison table (completed)
 
 ### Detailed Analysis Reports
 
-| Project | Type | Key Finding | Analysis |
-|---------|------|-------------|----------|
-| **Vega-Lite** | Declarative viz compiler | Predicate objects as primary API | [analysis__vega-lite.md](analysis__vega-lite.md) |
-| **Arquero** | Data transformation | Acorn parser + AST rewriting (complex) | [analysis__arquero.md](analysis__arquero.md) |
-| **OpenRefine** | Data cleaning tool | GREL: handwritten parser, errors-as-values | [analysis__openrefine.md](analysis__openrefine.md) |
-| **ag-Grid** | Enterprise datagrid | Direct eval (insecure but simple) | [analysis__ag-grid.md](analysis__ag-grid.md) |
+| Project        | Type                     | Key Finding                                | Analysis                                             |
+| -------------- | ------------------------ | ------------------------------------------ | ---------------------------------------------------- |
+| **Vega-Lite**  | Declarative viz compiler | Predicate objects as primary API           | [analysis\_\_vega-lite.md](analysis__vega-lite.md)   |
+| **Arquero**    | Data transformation      | Acorn parser + AST rewriting (complex)     | [analysis\_\_arquero.md](analysis__arquero.md)       |
+| **OpenRefine** | Data cleaning tool       | GREL: handwritten parser, errors-as-values | [analysis\_\_openrefine.md](analysis__openrefine.md) |
+| **ag-Grid**    | Enterprise datagrid      | Direct eval (insecure but simple)          | [analysis\_\_ag-grid.md](analysis__ag-grid.md)       |
 
 **Note**: jsep, filtrex, Tidyjs, and danfo.js were covered in the comparison table but not analyzed in detail, as their approaches were adequately represented by the systems above.
 
@@ -33,6 +34,7 @@ Before implementing the parser, we analyzed 8 production systems to understand d
 ## Research Methodology
 
 Each project was analyzed through 9 phases:
+
 1. Orientation (structure, terminology)
 2. Entry Point (API, input types)
 3. Parsing Mechanism (approach, AST)
@@ -54,5 +56,6 @@ See [RESEARCH-GUIDE.md](RESEARCH-GUIDE.md) for the complete protocol.
 ## Integration with Main Docs
 
 The findings from this research are integrated into:
+
 - [SPECIFICATION.md](../SPECIFICATION.md) - Updated Section 11 (Expression Syntax)
 - [PARSER-DESIGN-DECISION.md](../PARSER-DESIGN-DECISION.md) - Comprehensive design document

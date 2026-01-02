@@ -1,40 +1,39 @@
 ---
-title: "Expressions | Arquero API Reference"
-source: "https://idl.uw.edu/arquero/api/expressions"
+title: 'Expressions | Arquero API Reference'
+source: 'https://idl.uw.edu/arquero/api/expressions'
 author:
-  - "[[arquero]]"
+  - '[[arquero]]'
 published:
 created: 2026-01-01
-description: "Query processing and transformation of array-backed data tables."
+description: 'Query processing and transformation of array-backed data tables.'
 tags:
-  - "clippings"
+  - 'clippings'
 ---
+
 ## arquero
 
 ## Arquero API Reference
 
 | [Top-Level](https://idl.uw.edu/arquero/api) | [Table](https://idl.uw.edu/arquero/api/table) | [Verbs](https://idl.uw.edu/arquero/api/verbs) | [Op Functions](https://idl.uw.edu/arquero/api/op) | [**Expressions**](https://idl.uw.edu/arquero/api/expressions) | [Extensibility](https://idl.uw.edu/arquero/api/extensibility) |
-| --- | --- | --- | --- | --- | --- |
+| ------------------------------------------- | --------------------------------------------- | --------------------------------------------- | ------------------------------------------------- | ------------------------------------------------------------- | ------------------------------------------------------------- |
 
 - [Table Expressions](https://idl.uw.edu/arquero/api/#table)
-	- [Limitations](https://idl.uw.edu/arquero/api/#limitations)
-	- [Column Shorthands](https://idl.uw.edu/arquero/api/#column-shorthands)
-	- [Aggregate & Window Shorthands](https://idl.uw.edu/arquero/api/#aggregate-window-shorthands)
+  - [Limitations](https://idl.uw.edu/arquero/api/#limitations)
+  - [Column Shorthands](https://idl.uw.edu/arquero/api/#column-shorthands)
+  - [Aggregate & Window Shorthands](https://idl.uw.edu/arquero/api/#aggregate-window-shorthands)
 - [Two-Table Expressions](https://idl.uw.edu/arquero/api/#two-table)
-	- [Column Shorthands](https://idl.uw.edu/arquero/api/#two-table-column-shorthands)
+  - [Column Shorthands](https://idl.uw.edu/arquero/api/#two-table-column-shorthands)
 - [Why are only `op` functions supported?](https://idl.uw.edu/arquero/api/#why-op-functions-only)
-
-  
 
 ## Table Expressions
 
-Most Arquero [verbs](https://idl.uw.edu/arquero/api/verbs) accept *table expressions*: functions defined over table column values. For example, the `derive` verb creates new columns based on the provided expressions:
+Most Arquero [verbs](https://idl.uw.edu/arquero/api/verbs) accept _table expressions_: functions defined over table column values. For example, the `derive` verb creates new columns based on the provided expressions:
 
 ```js
 table.derive({
-  raise: d => op.pow(d.col1, d.col2),
-  'col diff': d => d.col1 - d['base col']
-})
+  raise: (d) => op.pow(d.col1, d.col2),
+  'col diff': (d) => d.col1 - d['base col'],
+});
 ```
 
 In the example above, the two [arrow function expressions](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Arrow_functions) are table expressions. The input argument `d` represents a row of the data table, whose properties are column names. Table expressions can include standard JavaScript expressions and invoke functions defined on the [`op` object](https://idl.uw.edu/arquero/api/op), which, depending on the context, may include [standard](https://idl.uw.edu/arquero/api/op#functions), [aggregate](https://idl.uw.edu/arquero/api/op#aggregate-functions), or [window](https://idl.uw.edu/arquero/api/op#window-functions) functions.
@@ -51,27 +50,25 @@ At first glance table expressions look like normal JavaScript functions… but h
 
 Examples 1 through 5 are function definitions, while examples 6 and 7 are string literals. Let’s walk through each:
 
-- *Examples 1-3*: These are just different variants of writing standard JavaScript functions: traditional function definitions, arrow function definitions, and [destructured arguments](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment).
-- *Examples 4-5*: While it is conventional to use the [`op` object](https://idl.uw.edu/arquero/api/op) to invoke functions, it is not required. For *any* function invocation, the function name will be looked up on the `op` object, even if the function is called directly (as in Example 4) or as the result of a nested property lookup (Example 5). Internally, Arquero’s parser doesn’t care if you call `sqrt()`, `op.sqrt()`, or `aq.op.sqrt()`; any will work. That said, using an explicit `op` object avoids errors and allows linting and auto-complete to proceed unimpeded.
-- *Examples 6-7*: To parse table expressions, Arquero first maps input functions to source code strings. We can simply skip this step and pass a string directly, as in Example 6. For Example 7, the string contains an expression but not a function definition. In this case, an implicit function definition is assumed and the row identifier defaults to `d`; using an identifier other than `d` will fail. In contrast, with an explicit function definition you are free to rename the argument as you see fit.
+- _Examples 1-3_: These are just different variants of writing standard JavaScript functions: traditional function definitions, arrow function definitions, and [destructured arguments](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Destructuring_assignment).
+- _Examples 4-5_: While it is conventional to use the [`op` object](https://idl.uw.edu/arquero/api/op) to invoke functions, it is not required. For _any_ function invocation, the function name will be looked up on the `op` object, even if the function is called directly (as in Example 4) or as the result of a nested property lookup (Example 5). Internally, Arquero’s parser doesn’t care if you call `sqrt()`, `op.sqrt()`, or `aq.op.sqrt()`; any will work. That said, using an explicit `op` object avoids errors and allows linting and auto-complete to proceed unimpeded.
+- _Examples 6-7_: To parse table expressions, Arquero first maps input functions to source code strings. We can simply skip this step and pass a string directly, as in Example 6. For Example 7, the string contains an expression but not a function definition. In this case, an implicit function definition is assumed and the row identifier defaults to `d`; using an identifier other than `d` will fail. In contrast, with an explicit function definition you are free to rename the argument as you see fit.
 
 ### Limitations
 
-A number of JavaScript features are not allowed in table expressions, including internal function definitions, variable updates, and `for` loops. The *only* function calls allowed are those provided by the `op` object. ([Why? Read below for more…](https://idl.uw.edu/arquero/api/#why-op-functions-only)) Most notably, parsed table expressions **do not support closures**. As a result, table expressions can not access variables defined in the enclosing scope.
+A number of JavaScript features are not allowed in table expressions, including internal function definitions, variable updates, and `for` loops. The _only_ function calls allowed are those provided by the `op` object. ([Why? Read below for more…](https://idl.uw.edu/arquero/api/#why-op-functions-only)) Most notably, parsed table expressions **do not support closures**. As a result, table expressions can not access variables defined in the enclosing scope.
 
 To include external variables in a table expression, use the [`params()` method](https://idl.uw.edu/arquero/api/table#params) method to bind a parameter value to a table context. Parameters can then be accessed by including a second argument to a table expression; all bound parameters are available as properties of that argument (default name `$`):
 
 ```js
-table
-  .params({ threshold: 5 })
-  .filter((d, $) => d.value < $.threshold)
+table.params({ threshold: 5 }).filter((d, $) => d.value < $.threshold);
 ```
 
-To pass in a standard JavaScript function that will be called directly (rather than parsed and rewritten), use the [`escape()` expression helper](https://idl.uw.edu/arquero/api/#escape). Escaped functions *do* support closures and so can refer to variables defined in an enclosing scope. However, escaped functions do not support aggregate or window operations; they also sidestep internal optimizations and result in an error when attempting to serialize Arquero queries (for example, to pass transformations to a worker thread).
+To pass in a standard JavaScript function that will be called directly (rather than parsed and rewritten), use the [`escape()` expression helper](https://idl.uw.edu/arquero/api/#escape). Escaped functions _do_ support closures and so can refer to variables defined in an enclosing scope. However, escaped functions do not support aggregate or window operations; they also sidestep internal optimizations and result in an error when attempting to serialize Arquero queries (for example, to pass transformations to a worker thread).
 
 ```js
 const threshold = 5;
-table.filter(aq.escape(d => d.value < threshold))
+table.filter(aq.escape((d) => d.value < threshold));
 ```
 
 Alternatively, for programmatic generation of table expressions one can fallback to a generating a string – rather than a proper function definition – and use that instead:
@@ -103,14 +100,12 @@ For [aggregate](https://idl.uw.edu/arquero/api/op#aggregate-functions) and [wind
 
 The second example produces an object that, when coerced to a string, generates `'d => op.mean(d["value"])'` as a result.
 
-  
-
 ## Two-Table Expressions
 
-For [join](https://idl.uw.edu/arquero/api/verbs#joins) verbs, Arquero also supports *two-table* table expressions. Two-table expressions have an expanded signature that accepts two rows as input, one from the “left” table and one from the “right” table.
+For [join](https://idl.uw.edu/arquero/api/verbs#joins) verbs, Arquero also supports _two-table_ table expressions. Two-table expressions have an expanded signature that accepts two rows as input, one from the “left” table and one from the “right” table.
 
 ```js
-table.join(otherTable, (a, b) => op.equal(a.key, b.key))
+table.join(otherTable, (a, b) => op.equal(a.key, b.key));
 ```
 
 The use of aggregate and window functions is not allowed within two-table expressions. Otherwise, two-table expressions have the same capabilities and limitations as normal (single-table) table expressions.
@@ -120,7 +115,7 @@ Bound parameters can be accessed by including a third argument:
 ```js
 table
   .params({ threshold: 1.5 })
-  .join(otherTable, (a, b, $) => op.abs(a.value - b.value) < $.threshold)
+  .join(otherTable, (a, b, $) => op.abs(a.value - b.value) < $.threshold);
 ```
 
 ### Two-Table Column Shorthands
@@ -139,8 +134,8 @@ All of which are in turn equivalent to using the following two-table expressions
 table.join(other, ['x', 'u'], {
   x: (a, b) => a.x,
   y: (a, b) => a.y,
-  v: (a, b) => b.v
-})
+  v: (a, b) => b.v,
+});
 ```
 
 ## Why are only op functions supported?
@@ -157,4 +152,4 @@ So why do we do this? Here are a few reasons:
 
 Of course, one might wish to make different trade-offs. Arquero is designed to support common use cases while also being applicable to more complex production setups. This goal comes with the cost of more rigid management of functions. However, Arquero can be extended with custom variables, functions, and even new table methods or verbs! As starting points, see the [params](https://idl.uw.edu/arquero/api/table#params) and [addFunction](https://idl.uw.edu/arquero/api/extensibility#addFunction) methods to introduce external variables or register new `op` functions.
 
-All that being said, Arquero provides an escape hatch: use the [`escape()` expression helper](https://idl.uw.edu/arquero/api/#escape) to apply a standard JavaScript function *as-is*, skipping any internal parsing and code generation. As a result, escaped functions do *not* support aggregation and window operations, as these depend on Arquero’s internal parsing and code generation.
+All that being said, Arquero provides an escape hatch: use the [`escape()` expression helper](https://idl.uw.edu/arquero/api/#escape) to apply a standard JavaScript function _as-is_, skipping any internal parsing and code generation. As a result, escaped functions do _not_ support aggregation and window operations, as these depend on Arquero’s internal parsing and code generation.

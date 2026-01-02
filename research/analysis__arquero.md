@@ -189,10 +189,13 @@ From `test/expression/parse-test.js` (650+ lines):
 3. **Assumes JavaScript knowledge** - Users must understand arrow functions, JS operators, precedence. Not beginner-friendly.
 
 4. **Poor error messages** - Technical jargon, no suggestions, no context. Example:
+
    ```
    "Invalid column reference: \"d.foo\""
    ```
+
    vs. friendly:
+
    ```
    "Column 'foo' not found. Did you mean 'Foo'? Available columns: bar, baz, qux"
    ```
@@ -214,12 +217,14 @@ From `test/expression/parse-test.js` (650+ lines):
 ### What can be directly reused?
 
 **Not much directly** - Arquero's approach is tailored for:
+
 - JavaScript developers
 - Programmatic data manipulation (APIs, not UI)
 - High-performance requirements
 - Complex expressions with aggregates, windows, etc.
 
 Chumak targets:
+
 - Non-programmers
 - Visual UI-driven transformation
 - Simple filter/calculate expressions
@@ -274,12 +279,14 @@ Chumak targets:
 ### Recommended approach for Chumak
 
 **Option A: Lightweight parser (jsep or similar)**
+
 - Parse simple expressions to AST
 - Interpret AST or generate Arquero-compatible function
 - Simpler, easier to understand
 - Good for Phase 1
 
 **Option B: Acorn + minimal rewriting**
+
 - Use acorn for robust parsing
 - Walk AST to validate (no loops, etc.)
 - Auto-inject column prefix where needed
@@ -287,6 +294,7 @@ Chumak targets:
 - More powerful, but more complex
 
 **Option C: Hybrid**
+
 - Phase 1: Use jsep for simple expressions
 - Phase 2+: Upgrade to acorn if more complexity needed
 - Allows starting simple, scaling later
@@ -298,6 +306,7 @@ Arquero is the **execution engine** for Chumak, not the expression parser model 
 ## Code Snippets of Interest
 
 ### Parse entry point
+
 ```javascript
 // src/expression/parse.js
 export function parse(input, opt = {}) {
@@ -308,9 +317,7 @@ export function parse(input, opt = {}) {
   for (const [name, value] of entries(input)) {
     ctx.value(
       name + '',
-      value.escape
-        ? parseEscape(ctx, value, params)
-        : parseExpression(ctx, value)
+      value.escape ? parseEscape(ctx, value, params) : parseExpression(ctx, value)
     );
   }
   return { names, exprs, ops };
@@ -318,6 +325,7 @@ export function parse(input, opt = {}) {
 ```
 
 ### Column reference rewriting
+
 ```javascript
 // src/expression/parse-expression.js
 MemberExpression(node, ctx, parent) {
@@ -338,12 +346,14 @@ MemberExpression(node, ctx, parent) {
 ```
 
 ### Code generation for column access
+
 ```javascript
 // src/expression/codegen.js
 const visitors = {
-  Column: (node, opt) => node.array
-    ? get(node, opt)  // data.col[row]
-    : ref(node, opt, 'at'),  // data.col.at(row)
+  Column: (node, opt) =>
+    node.array
+      ? get(node, opt) // data.col[row]
+      : ref(node, opt, 'at'), // data.col.at(row)
   // ...
 };
 
@@ -354,11 +364,12 @@ const ref = (node, opt, method) => {
 ```
 
 ### Function compilation
+
 ```javascript
 // src/expression/compile.js
 function _compile(code, fn, params) {
   code = `"use strict"; return ${code};`;
-  return (Function('fn', '$', code))(fn, params);
+  return Function('fn', '$', code)(fn, params);
 }
 
 export const compile = {
@@ -368,9 +379,10 @@ export const compile = {
 ```
 
 ### Security validation
+
 ```javascript
 // src/expression/parse-expression.js
-const NO = msg => (node, ctx) => ctx.error(node, msg + ' not allowed');
+const NO = (msg) => (node, ctx) => ctx.error(node, msg + ' not allowed');
 
 const visitors = {
   FunctionDeclaration: NO('Function definitions'),
@@ -382,6 +394,7 @@ const visitors = {
 ```
 
 ### Function registration
+
 ```javascript
 // src/op/register.js
 export function addFunction(name, fn, options = {}) {
@@ -399,6 +412,7 @@ export function addFunction(name, fn, options = {}) {
 ```
 
 ### Dictionary column optimization
+
 ```javascript
 // src/expression/rewrite.js
 export function rewrite(ref, name, index = 0, col = undefined, op = undefined) {
@@ -408,9 +422,7 @@ export function rewrite(ref, name, index = 0, col = undefined, op = undefined) {
 
   // proceed only if has parent op and is a dictionary column
   if (op && col && isFunction(col.keyFor)) {
-    const lit = dictOps[op.operator]
-      ? op.left === ref ? op.right : op.left
-      : null;
+    const lit = dictOps[op.operator] ? (op.left === ref ? op.right : op.left) : null;
 
     // rewrite as dictionary lookup if other arg is a literal
     if (lit && lit.type === Literal) {

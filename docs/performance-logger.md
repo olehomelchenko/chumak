@@ -6,14 +6,22 @@ Simple helper to track operation timing and data shape changes.
 
 ```javascript
 // Measure a sync function
-const result = perfLogger.measure('filter', () => {
-  return applyTransform(table, transform, columns);
-}, { input: table, details: 'sales > 1000' });
+const result = perfLogger.measure(
+  'filter',
+  () => {
+    return applyTransform(table, transform, columns);
+  },
+  { input: table, details: 'sales > 1000' }
+);
 
 // Measure async
-const data = await perfLogger.measureAsync('import CSV', async () => {
-  return await parseCSV(file);
-}, { details: file.name });
+const data = await perfLogger.measureAsync(
+  'import CSV',
+  async () => {
+    return await parseCSV(file);
+  },
+  { details: file.name }
+);
 
 // Manual timing
 const start = performance.now();
@@ -35,5 +43,5 @@ Icons: ⚡ fast (<50ms) | ✓ ok (<200ms) | ⏱️ slow (<500ms) | ⚠️ warnin
 ## Toggle
 
 ```javascript
-perfLogger.enabled = false  // disable
+perfLogger.enabled = false; // disable
 ```

@@ -66,7 +66,7 @@ async function saveSources(sources) {
 
     clearRequest.onsuccess = () => {
       // Add all sources (with defensive cloning to ensure serializability)
-      sources.forEach(source => {
+      sources.forEach((source) => {
         // Deep clone to remove any non-serializable properties
         const cleanSource = JSON.parse(JSON.stringify(source));
         store.put(cleanSource);
@@ -126,7 +126,7 @@ async function saveModels(models) {
 
     clearRequest.onsuccess = () => {
       // Add all models (with defensive cloning to ensure serializability)
-      models.forEach(model => {
+      models.forEach((model) => {
         // Deep clone to remove any non-serializable properties
         const cleanModel = JSON.parse(JSON.stringify(model));
         store.put(cleanModel);
@@ -221,10 +221,7 @@ async function clearAllData() {
  */
 async function loadInitialData() {
   try {
-    const [sources, models] = await Promise.all([
-      loadSources(),
-      loadModels()
-    ]);
+    const [sources, models] = await Promise.all([loadSources(), loadModels()]);
 
     console.log('Loaded from IndexedDB:', sources.length, 'sources,', models.length, 'models');
 

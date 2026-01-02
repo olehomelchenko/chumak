@@ -11,6 +11,7 @@
 **Chumak** is a browser-based data wrangling tool for cleaning and transforming tabular data. Think "Power Query in the browser" or "OpenRefine but simpler."
 
 **Key characteristics:**
+
 - Runs entirely in browser (no backend)
 - Visual pipeline builder (like Power Query)
 - Declarative JSON specification for transforms
@@ -24,6 +25,7 @@
 ## Current Status
 
 **Phase 0**: Walking skeleton complete ✅ - All architectural layers validated
+
 - Expression parser pipeline (jsep → validation → interpretation)
 - IndexedDB persistence with auto-save
 - Filter, Select, Derive, Sort, Rename, Remove, and Join transforms working
@@ -32,10 +34,12 @@
 - Automated test infrastructure in place
 
 **Phase 1 (Current)**: Building out full MVP transform set
+
 - See SPECIFICATION.md Section 8 for complete roadmap
 - Priority: Remaining transforms (aggregate, fillna, dropna, replace)
 
 **Key technical discoveries** documented in PARSER-DESIGN-DECISION.md:
+
 - jsep parses `&&`/`||` as BinaryExpression (not LogicalExpression)
 - Arquero `.filter()` rejects try-catch blocks (workaround: `.objects()` → filter → `aq.from()`)
 - On-demand step computation (compute intermediate results when viewing, don't cache)
@@ -94,6 +98,7 @@ Accept `sales > 1000` (not `d.sales` or `datum.sales`) - simplest for non-progra
 ## Technology Stack
 
 **Core Dependencies (CDN-loaded)**:
+
 - PapaParse (~35KB) - CSV parsing
 - Arquero (~200KB) - Data transformation runtime
 - jsep (~10KB) - Expression parser
@@ -110,21 +115,25 @@ Accept `sales > 1000` (not `d.sales` or `datum.sales`) - simplest for non-progra
 **Before implementing, check if it already exists below.**
 
 ### Core Modules (Expression Pipeline)
+
 - **[expression-parser.js](src/expression-parser.js)** - jsep wrapper, entry point for parsing
 - **[ast-validator.js](src/ast-validator.js)** - Whitelist validation (security layer)
 - **[ast-interpreter.js](src/ast-interpreter.js)** - Safe AST execution (no Function() constructor)
 - **[transforms.js](src/transforms.js)** - Transform implementations (filter, select, derive, etc.)
 
 ### Infrastructure
+
 - **[storage.js](src/storage.js)** - IndexedDB persistence (sources, models, settings)
 - **[error-formatter.js](src/error-formatter.js)** - User-friendly error messages with position highlighting
 - **[performance-logger.js](src/performance-logger.js)** - Optional performance tracking (toggle-able)
 - **[ux-settings.js](src/ux-settings.js)** - localStorage preferences (pagination, theme, etc.)
 
 ### Application
+
 - **[chumak-app.js](src/chumak-app.js)** - Main Alpine.js component (UI state & logic)
 
 ### Tests
+
 - **[src/tests/runner.html](src/tests/runner.html)** - Browser test runner (Mocha + Chai)
 - Test files mirror module names: `expression-parser.test.js`, `ast-validator.test.js`, etc.
 
@@ -146,6 +155,7 @@ Accept `sales > 1000` (not `d.sales` or `datum.sales`) - simplest for non-progra
 ### User Profile (Critical)
 
 **Target users**: Non-programmers
+
 - Students learning data wrangling
 - Analysts transforming spreadsheet data to tidy format
 - Users needing quick CSV cleaning
@@ -153,6 +163,7 @@ Accept `sales > 1000` (not `d.sales` or `datum.sales`) - simplest for non-progra
 **NOT target users**: JavaScript developers, data scientists with Python/R, enterprise users
 
 **Implication**: Everything beginner-friendly
+
 - Plain language errors (not "identifier not found")
 - Visual predicate builder (not raw expressions)
 - Helpful typo suggestions
@@ -162,6 +173,7 @@ Accept `sales > 1000` (not `d.sales` or `datum.sales`) - simplest for non-progra
 **Environment**: Browser-based, untrusted user input
 
 **Mitigation**:
+
 - Never use Function() constructor with user input
 - Always validate AST before execution
 - Whitelist operators and functions (Phase 1: arithmetic, comparison, logical only)
@@ -171,6 +183,7 @@ Accept `sales > 1000` (not `d.sales` or `datum.sales`) - simplest for non-progra
 ### Arquero Relationship
 
 **Arquero is the runtime, not the model**:
+
 - Chumak uses Arquero for data transformation execution
 - Chumak does NOT copy Arquero's parser approach (Acorn + Function() constructor)
 - Flow: User input → Parse & validate (Chumak) → Generate Arquero function → Execute (Arquero runtime)
@@ -200,12 +213,15 @@ Accept `sales > 1000` (not `d.sales` or `datum.sales`) - simplest for non-progra
 ## Common Pitfalls to Avoid
 
 ### 1. Don't Use Function() Constructor
+
 See Security Requirements above - this is non-negotiable.
 
 ### 2. Don't Copy Arquero's Parser
+
 Arquero uses Acorn (~800 lines) + Function() constructor. Chumak uses jsep + validation (~700 lines, no Function()).
 
 ### 3. Don't Force JavaScript Syntax on Users
+
 Bad: Require `d.sales > 1000` (Arquero style)
 Good: Accept `sales > 1000` (bare identifier)
 
@@ -213,7 +229,9 @@ Bad: "identifier not found"
 Good: "Column 'Slaes' not found. Did you mean 'Sales'?"
 
 ### 4. Don't Add Features Prematurely
+
 Phase 1 scope is deliberately limited:
+
 - No functions (Phase 2)
 - No joins (Phase 2)
 - No pivot/unpivot (Phase 3)
@@ -227,6 +245,7 @@ Stick to roadmap. Simple MVP first.
 This is a small, focused project. Every line of code is maintenance burden.
 
 **Guidelines**:
+
 - Auxiliary/helper code should be minimal (~50-100 lines)
 - Core features can be larger only if complexity warrants it
 - YAGNI: Don't build for hypothetical future use cases
@@ -235,6 +254,7 @@ This is a small, focused project. Every line of code is maintenance burden.
 **Balance**: Not too simplistic (brittle), not over-engineered (bloated). Right-sized for current needs.
 
 **Minimize diff noise**:
+
 - Avoid mass re-indentation of existing code
 - Don't wrap entire functions if it forces indenting 50+ lines
 - Add instrumentation at start/end instead of wrapping
@@ -265,11 +285,13 @@ See Testing Philosophy above. Tests in `src/tests/runner.html`, 90%+ coverage re
 ## Quick Reference
 
 ### When Starting a New Session
+
 1. Read this file (CLAUDE.md) first
 2. Check git status
 3. Ask user what they want to work on
 
 ### Documentation Pointers
+
 - **Expressions/syntax** → PARSER-DESIGN-DECISION.md, SPECIFICATION.md Section 11
 - **Transforms** → SPECIFICATION.md Section 5
 - **UI** → SPECIFICATION.md Section 6
@@ -279,6 +301,7 @@ See Testing Philosophy above. Tests in `src/tests/runner.html`, 90%+ coverage re
 - **Security** → PARSER-DESIGN-DECISION.md Security Analysis
 
 ### When Implementing
+
 1. Write tests FIRST in `src/tests/`
 2. Implement feature
 3. Run `src/tests/runner.html` to verify
@@ -289,17 +312,20 @@ See Testing Philosophy above. Tests in `src/tests/runner.html`, 90%+ coverage re
 ## Communication Guidelines
 
 ### Tone & Style
+
 - Professional but friendly
 - Assume domain knowledge (data wrangling concepts)
 - Ask clarifying questions when ambiguous
 - Flag potential issues proactively
 
 ### Output Verbosity
+
 - **Default: CONCISE** - Brief and to the point
 - **Only verbose when explicitly requested** - User will say "comprehensive" for detail
 - **Example**: "list what works" = brief bullets, NOT extensive multi-section document
 
 **Effective concise style**:
+
 - Lead with actionable summary
 - Use tables and bullets for structure
 - Include specific file references with line numbers
@@ -307,6 +333,7 @@ See Testing Philosophy above. Tests in `src/tests/runner.html`, 90%+ coverage re
 - Balance: Informative without verbose, specific without exhaustive
 
 ### Code Style
+
 - ES6+ JavaScript (browser-native, no transpilation)
 - Functional style preferred
 - Clear variable names
@@ -315,6 +342,7 @@ See Testing Philosophy above. Tests in `src/tests/runner.html`, 90%+ coverage re
 - 2-space indent
 
 ### Documentation Style
+
 - Markdown, short paragraphs (3-4 lines max)
 - Code examples for clarity
 - Tables for comparisons
@@ -326,34 +354,40 @@ See Testing Philosophy above. Tests in `src/tests/runner.html`, 90%+ coverage re
 **Avoid information that quickly goes stale:**
 
 ❌ **DON'T include**:
+
 - Specific dates, exact test counts, time estimates
 - Exact line counts, specific coverage percentages
 - "NEW" markers with dates
 
 ✅ **DO use instead**:
+
 - Status indicators without dates ("Complete", "In Progress")
 - Qualitative descriptions ("comprehensive test suite", "well-tested")
 - References to actual code/files ("see tests/ directory", "check git log")
 
-**Rationale**: Documentation describes *what exists* and *how it works*, not *when* or *exact metrics*. Git history is source of truth for timeline.
+**Rationale**: Documentation describes _what exists_ and _how it works_, not _when_ or _exact metrics_. Git history is source of truth for timeline.
 
 ---
 
 ## Questions to Ask User
 
 ### When Unclear About Scope
+
 - "Should this be in Phase 1, or defer to Phase 2?"
 - "Does this need to work for all cases, or is 80% coverage acceptable for MVP?"
 
 ### When Multiple Approaches Exist
+
 - "I see two ways: [A] and [B]. Which aligns better?"
 - "Research showed [project X] did [approach Y]. Follow that, or adapt?"
 
 ### When Security Considerations Arise
+
 - "This could be a security risk if [scenario]. Add validation?"
 - "This requires executing user code. Whitelist, or defer to Phase 2?"
 
 ### When Performance Trade-offs Exist
+
 - "Simple approach is slower but easier. Acceptable for Phase 1?"
 - "Optimizing would add [N] lines. Worth it for Phase 1?"
 

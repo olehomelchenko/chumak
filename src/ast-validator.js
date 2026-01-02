@@ -11,16 +11,32 @@
 
 // Allowed AST node types (from ESTree spec)
 const ALLOWED_NODE_TYPES = [
-  'Literal',           // Numbers, strings, booleans, null
-  'Identifier',        // Column references
-  'BinaryExpression',  // +, -, *, /, %, >, <, >=, <=, ==, ===, !=, !==
+  'Literal', // Numbers, strings, booleans, null
+  'Identifier', // Column references
+  'BinaryExpression', // +, -, *, /, %, >, <, >=, <=, ==, ===, !=, !==
   'LogicalExpression', // &&, ||
-  'UnaryExpression'    // !, -, +
+  'UnaryExpression', // !, -, +
 ];
 
 // Allowed operators for each expression type
 // Note: jsep treats && and || as BinaryExpression by default, not LogicalExpression
-const ALLOWED_BINARY_OPS = ['+', '-', '*', '/', '%', '>', '<', '>=', '<=', '==', '===', '!=', '!==', '&&', '||'];
+const ALLOWED_BINARY_OPS = [
+  '+',
+  '-',
+  '*',
+  '/',
+  '%',
+  '>',
+  '<',
+  '>=',
+  '<=',
+  '==',
+  '===',
+  '!=',
+  '!==',
+  '&&',
+  '||',
+];
 const ALLOWED_LOGICAL_OPS = ['&&', '||'];
 const ALLOWED_UNARY_OPS = ['!', '-', '+'];
 
@@ -42,8 +58,8 @@ function validateAST(ast, schema) {
         position: error.position || 0,
         type: error.type || 'validation-error',
         // Preserve additional properties (columnName, availableColumns, etc.)
-        ...error
-      }
+        ...error,
+      },
     };
   }
 }
@@ -58,7 +74,7 @@ function validateNode(node, schema) {
   if (!node || typeof node !== 'object') {
     throw {
       message: 'Invalid AST node',
-      position: 0
+      position: 0,
     };
   }
 
@@ -67,7 +83,7 @@ function validateNode(node, schema) {
     throw {
       message: `Expression type '${node.type}' is not allowed`,
       position: node.start || 0,
-      type: 'disallowed-node-type'
+      type: 'disallowed-node-type',
     };
   }
 
@@ -85,7 +101,7 @@ function validateNode(node, schema) {
           position: node.start || 0,
           type: 'unknown-column',
           columnName: node.name,
-          availableColumns: schema
+          availableColumns: schema,
         };
       }
       break;
@@ -96,7 +112,7 @@ function validateNode(node, schema) {
         throw {
           message: `Operator '${node.operator}' is not allowed`,
           position: node.start || 0,
-          type: 'disallowed-operator'
+          type: 'disallowed-operator',
         };
       }
       // Recursively validate left and right
@@ -110,7 +126,7 @@ function validateNode(node, schema) {
         throw {
           message: `Logical operator '${node.operator}' is not allowed`,
           position: node.start || 0,
-          type: 'disallowed-operator'
+          type: 'disallowed-operator',
         };
       }
       // Recursively validate left and right
@@ -124,7 +140,7 @@ function validateNode(node, schema) {
         throw {
           message: `Unary operator '${node.operator}' is not allowed`,
           position: node.start || 0,
-          type: 'disallowed-operator'
+          type: 'disallowed-operator',
         };
       }
       // Recursively validate argument
@@ -135,7 +151,7 @@ function validateNode(node, schema) {
       // This shouldn't happen if ALLOWED_NODE_TYPES is correct
       throw {
         message: `Unexpected node type: ${node.type}`,
-        position: node.start || 0
+        position: node.start || 0,
       };
   }
 }

@@ -11,7 +11,7 @@ describe('AST Interpreter', () => {
     status: 'active',
     active: true,
     price: 99.99,
-    quantity: null
+    quantity: null,
   };
 
   describe('interpretAST()', () => {
@@ -148,7 +148,9 @@ describe('AST Interpreter', () => {
     });
 
     it('should evaluate deeply nested logical expression', () => {
-      const ast = parseExpression('(sales > 1000 && region == "North") || (status == "VIP" && active)');
+      const ast = parseExpression(
+        '(sales > 1000 && region == "North") || (status == "VIP" && active)'
+      );
       const result = interpretAST(ast, testRow);
       expect(result).to.be.true;
     });

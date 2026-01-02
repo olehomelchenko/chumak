@@ -22,11 +22,7 @@ function formatError(error, expression) {
   const pointer = '↑';
 
   // Format as multi-line message
-  const formatted = [
-    message,
-    expression,
-    spaces + pointer
-  ].join('\n');
+  const formatted = [message, expression, spaces + pointer].join('\n');
 
   // Add available columns if this is a column error
   if (error.type === 'unknown-column' && error.availableColumns) {

@@ -62,7 +62,7 @@ describe('AST Validator', () => {
 
     it('should validate all arithmetic operators', () => {
       const operators = ['+', '-', '*', '/', '%'];
-      operators.forEach(op => {
+      operators.forEach((op) => {
         const ast = parseExpression(`revenue ${op} cost`);
         const result = validateAST(ast, testSchema);
         expect(result.valid).to.be.true;
@@ -71,7 +71,7 @@ describe('AST Validator', () => {
 
     it('should validate all comparison operators', () => {
       const operators = ['>', '<', '>=', '<=', '==', '===', '!=', '!=='];
-      operators.forEach(op => {
+      operators.forEach((op) => {
         const ast = parseExpression(`sales ${op} 1000`);
         const result = validateAST(ast, testSchema);
         expect(result.valid).to.be.true;
@@ -118,7 +118,7 @@ describe('AST Validator', () => {
       const invalidAst = {
         type: 'CallExpression',
         callee: { type: 'Identifier', name: 'alert' },
-        arguments: []
+        arguments: [],
       };
       const result = validateAST(invalidAst, testSchema);
       expect(result.valid).to.be.false;
@@ -182,13 +182,17 @@ describe('AST Validator', () => {
     });
 
     it('should validate deeply nested expression', () => {
-      const ast = parseExpression('((sales > 1000 && region == "North") || (status == "VIP" && active)) && revenue > 5000');
+      const ast = parseExpression(
+        '((sales > 1000 && region == "North") || (status == "VIP" && active)) && revenue > 5000'
+      );
       const result = validateAST(ast, testSchema);
       expect(result.valid).to.be.true;
     });
 
     it('should reject unknown column deep in nested expression', () => {
-      const ast = parseExpression('((sales > 1000 && region == "North") || (unknownStatus == "VIP" && active)) && revenue > 5000');
+      const ast = parseExpression(
+        '((sales > 1000 && region == "North") || (unknownStatus == "VIP" && active)) && revenue > 5000'
+      );
       const result = validateAST(ast, testSchema);
       expect(result.valid).to.be.false;
       expect(result.error.type).to.equal('unknown-column');
@@ -206,7 +210,7 @@ describe('AST Validator', () => {
       const ast = {
         type: 'Literal',
         value: true,
-        raw: 'true'
+        raw: 'true',
       };
       const result = validateAST(ast, testSchema);
       expect(result.valid).to.be.true;
@@ -216,7 +220,7 @@ describe('AST Validator', () => {
       const ast = {
         type: 'Literal',
         value: null,
-        raw: 'null'
+        raw: 'null',
       };
       const result = validateAST(ast, testSchema);
       expect(result.valid).to.be.true;

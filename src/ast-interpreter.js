@@ -57,27 +57,44 @@ function evaluateNode(node, rowData) {
       const right = evaluateNode(node.right, rowData);
 
       // Null propagation (except for == and !=)
-      if ((left === null || left === undefined || right === null || right === undefined) &&
-          node.operator !== '==' && node.operator !== '!=' &&
-          node.operator !== '===' && node.operator !== '!==') {
+      if (
+        (left === null || left === undefined || right === null || right === undefined) &&
+        node.operator !== '==' &&
+        node.operator !== '!=' &&
+        node.operator !== '===' &&
+        node.operator !== '!=='
+      ) {
         return null;
       }
 
       // Arithmetic and comparison operators
       switch (node.operator) {
-        case '+': return left + right;
-        case '-': return left - right;
-        case '*': return left * right;
-        case '/': return left / right;
-        case '%': return left % right;
-        case '>': return left > right;
-        case '<': return left < right;
-        case '>=': return left >= right;
-        case '<=': return left <= right;
-        case '==': return left == right;
-        case '===': return left === right;
-        case '!=': return left != right;
-        case '!==': return left !== right;
+        case '+':
+          return left + right;
+        case '-':
+          return left - right;
+        case '*':
+          return left * right;
+        case '/':
+          return left / right;
+        case '%':
+          return left % right;
+        case '>':
+          return left > right;
+        case '<':
+          return left < right;
+        case '>=':
+          return left >= right;
+        case '<=':
+          return left <= right;
+        case '==':
+          return left == right;
+        case '===':
+          return left === right;
+        case '!=':
+          return left != right;
+        case '!==':
+          return left !== right;
         default:
           throw new Error(`Unknown binary operator: ${node.operator}`);
       }
@@ -106,9 +123,12 @@ function evaluateNode(node, rowData) {
       const arg = evaluateNode(node.argument, rowData);
 
       switch (node.operator) {
-        case '!': return !arg;
-        case '-': return -arg;
-        case '+': return +arg;
+        case '!':
+          return !arg;
+        case '-':
+          return -arg;
+        case '+':
+          return +arg;
         default:
           throw new Error(`Unknown unary operator: ${node.operator}`);
       }

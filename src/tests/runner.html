@@ -1,56 +1,54 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Chumak Test Runner</title>
 
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Chumak Test Runner</title>
+    <!-- Mocha CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/mocha@10.2.0/mocha.css" />
+  </head>
 
-  <!-- Mocha CSS -->
-  <link rel="stylesheet" href="https://unpkg.com/mocha@10.2.0/mocha.css">
-</head>
+  <body>
+    <div id="mocha"></div>
 
-<body>
-  <div id="mocha"></div>
+    <!-- Mocha + Chai from CDN -->
+    <script src="https://unpkg.com/mocha@10.2.0/mocha.js"></script>
+    <script src="https://unpkg.com/chai@4.3.10/chai.js"></script>
 
-  <!-- Mocha + Chai from CDN -->
-  <script src="https://unpkg.com/mocha@10.2.0/mocha.js"></script>
-  <script src="https://unpkg.com/chai@4.3.10/chai.js"></script>
+    <!-- jsep (expression parser) -->
+    <script src="https://unpkg.com/jsep@1.4.0/dist/iife/jsep.iife.min.js"></script>
 
-  <!-- jsep (expression parser) -->
-  <script src="https://unpkg.com/jsep@1.4.0/dist/iife/jsep.iife.min.js"></script>
+    <!-- PapaParse (CSV) -->
+    <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
 
-  <!-- PapaParse (CSV) -->
-  <script src="https://unpkg.com/papaparse@5.4.1/papaparse.min.js"></script>
+    <!-- Arquero (data transformation) -->
+    <script src="https://unpkg.com/arquero@5.2.0/dist/arquero.min.js"></script>
 
-  <!-- Arquero (data transformation) -->
-  <script src="https://unpkg.com/arquero@5.2.0/dist/arquero.min.js"></script>
+    <!-- Source files under test -->
+    <script src="../performance-logger.js"></script>
+    <script src="../expression-parser.js"></script>
+    <script src="../ast-validator.js"></script>
+    <script src="../ast-interpreter.js"></script>
+    <script src="../error-formatter.js"></script>
+    <script src="../transforms.js"></script>
 
-  <!-- Source files under test -->
-  <script src="../performance-logger.js"></script>
-  <script src="../expression-parser.js"></script>
-  <script src="../ast-validator.js"></script>
-  <script src="../ast-interpreter.js"></script>
-  <script src="../error-formatter.js"></script>
-  <script src="../transforms.js"></script>
+    <!-- Setup Mocha -->
+    <script>
+      mocha.setup('bdd');
+      const { expect } = chai;
+    </script>
 
-  <!-- Setup Mocha -->
-  <script>
-    mocha.setup('bdd');
-    const { expect } = chai;
-  </script>
+    <!-- Test files -->
+    <script src="expression-parser.test.js"></script>
+    <script src="ast-validator.test.js"></script>
+    <script src="ast-interpreter.test.js"></script>
+    <script src="transforms.test.js"></script>
+    <script src="join.test.js"></script>
 
-  <!-- Test files -->
-  <script src="expression-parser.test.js"></script>
-  <script src="ast-validator.test.js"></script>
-  <script src="ast-interpreter.test.js"></script>
-  <script src="transforms.test.js"></script>
-  <script src="join.test.js"></script>
-
-  <!-- Run tests -->
-  <script>
-    mocha.run();
-  </script>
-</body>
-
+    <!-- Run tests -->
+    <script>
+      mocha.run();
+    </script>
+  </body>
 </html>

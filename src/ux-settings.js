@@ -13,8 +13,8 @@ const UX_SETTINGS_KEY = 'chumak-ux-settings';
 // Default settings
 const DEFAULT_SETTINGS = {
   pagination: {
-    pageSize: 500  // Generous default
-  }
+    pageSize: 500, // Generous default
+  },
 };
 
 /**
@@ -30,8 +30,8 @@ function loadUXSettings() {
       return {
         pagination: {
           ...DEFAULT_SETTINGS.pagination,
-          ...parsed.pagination
-        }
+          ...parsed.pagination,
+        },
       };
     }
   } catch (error) {

@@ -25,7 +25,7 @@ const perfLogger = {
       `${icon} ${name} — ${duration.toFixed(1)}ms`,
       `\n  ${inputShape.rows.toLocaleString()}×${inputShape.cols} → ${outputShape.rows.toLocaleString()}×${outputShape.cols}`
     );
-  }
+  },
 };
 
 /**
@@ -43,7 +43,7 @@ function getShape(data) {
   if (Array.isArray(data)) {
     return {
       rows: data.length,
-      cols: data.length > 0 ? Object.keys(data[0]).length : 0
+      cols: data.length > 0 ? Object.keys(data[0]).length : 0,
     };
   }
 

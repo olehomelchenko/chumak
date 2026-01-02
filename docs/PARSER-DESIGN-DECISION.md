@@ -10,12 +10,14 @@
 **Recommendation: Hybrid Strategy with Structured Predicates + jsep Parser**
 
 Chumak will use a **dual-mode input system**:
+
 1. **Structured predicate objects** (80% of use cases) - GUI-driven, type-safe, beginner-friendly
 2. **Expression strings** (20% of use cases) - Advanced users, escape hatch for complex logic
 
 For expression strings, use **jsep** as the parser with AST interpretation (not code generation) for security and validation.
 
 **Key characteristics:**
+
 - ✅ Security-first: No Function() constructor, full sandboxing
 - ✅ User-friendly: Position-aware errors, schema validation, suggestions
 - ✅ Incremental: Simple operators in Phase 1, functions in Phase 2+
@@ -28,17 +30,18 @@ For expression strings, use **jsep** as the parser with AST interpretation (not 
 
 ### Approaches Analyzed
 
-| Project | Input Type | Parser | Security | Error Quality | Complexity | Verdict |
-|---------|------------|--------|----------|---------------|------------|---------|
-| **Vega-Lite** | Objects + strings | None (pass-through) | Delegates to runtime | Generic | Low | ✅ Predicates pattern |
-| **Arquero** | Functions only | Acorn + AST rewrite | Validated sandbox | Technical | High | ⚠️ Too complex |
-| **jsep** | Strings | Handwritten (~600 LOC) | Parser-only (safe) | Basic position | Medium | ✅ Best fit |
-| **OpenRefine** | Strings | Handwritten (~700 LOC) | Parser-only (safe) | Offset-based | Medium | ✅ Error patterns |
-| **ag-Grid** | Strings or functions | None (direct eval) | ❌ None | Generic dump | Minimal | ❌ Insecure |
+| Project        | Input Type           | Parser                 | Security             | Error Quality  | Complexity | Verdict               |
+| -------------- | -------------------- | ---------------------- | -------------------- | -------------- | ---------- | --------------------- |
+| **Vega-Lite**  | Objects + strings    | None (pass-through)    | Delegates to runtime | Generic        | Low        | ✅ Predicates pattern |
+| **Arquero**    | Functions only       | Acorn + AST rewrite    | Validated sandbox    | Technical      | High       | ⚠️ Too complex        |
+| **jsep**       | Strings              | Handwritten (~600 LOC) | Parser-only (safe)   | Basic position | Medium     | ✅ Best fit           |
+| **OpenRefine** | Strings              | Handwritten (~700 LOC) | Parser-only (safe)   | Offset-based   | Medium     | ✅ Error patterns     |
+| **ag-Grid**    | Strings or functions | None (direct eval)     | ❌ None              | Generic dump   | Minimal    | ❌ Insecure           |
 
 ### Key Insights
 
 #### 1. **Predicate Objects Win for Beginners** (Vega-Lite)
+
 ```json
 // Instead of forcing users to write:
 "sales > 1000 && region == 'North'"
@@ -53,27 +56,31 @@ For expression strings, use **jsep** as the parser with AST interpretation (not 
 ```
 
 **Benefits:**
+
 - No syntax errors possible
 - Type-safe validation
 - Maps naturally to form inputs
 - Easier to teach
 
 #### 2. **Expression Strings as Escape Hatch** (All projects)
+
 ```javascript
 // For 20% of cases predicates can't handle:
 { "filter": "(revenue - cost) / revenue > 0.2" }
 ```
 
 **Benefits:**
+
 - Power users get full expressiveness
 - Handles edge cases predicates don't cover
 - Gradual learning curve
 
 #### 3. **Parser-Only Approach is Safer** (jsep, OpenRefine)
+
 ```javascript
 // ❌ Never do this (ag-Grid's approach)
 const fn = new Function('d', userExpression);
-fn(rowData);  // Can execute arbitrary code
+fn(rowData); // Can execute arbitrary code
 
 // ✅ Always do this (jsep approach)
 const ast = jsep(userExpression);
@@ -82,12 +89,14 @@ const result = interpretAST(ast, rowData);
 ```
 
 **Security analysis:**
+
 - Acorn: Requires sandboxing, still uses Function()
 - jsep: Parser-only, returns AST, no execution
 - ag-Grid: No validation, full JavaScript access
 - **Winner**: jsep (parse → validate → interpret)
 
 #### 4. **Errors-as-Values Essential for Data Wrangling** (OpenRefine)
+
 ```javascript
 // Don't throw exceptions (breaks entire column)
 // Return error objects (isolates failures)
@@ -99,11 +108,13 @@ const result = interpretAST(ast, rowData);
 ```
 
 **Rationale:**
+
 - One bad cell shouldn't fail 10,000 good cells
 - User can see which rows failed
 - Allows workflow to continue
 
 #### 5. **Position-Aware Errors Non-Negotiable** (All projects need improvement)
+
 ```javascript
 // Bad (ag-Grid)
 "Processing of the expression failed"
@@ -133,12 +144,9 @@ type FieldPredicate =
   | { field: string; gte: number }
   | { field: string; lte: number }
   | { field: string; oneOf: any[] }
-  | { field: string; range: [number, number] }
+  | { field: string; range: [number, number] };
 
-type LogicalPredicate =
-  | { and: Predicate[] }
-  | { or: Predicate[] }
-  | { not: Predicate }
+type LogicalPredicate = { and: Predicate[] } | { or: Predicate[] } | { not: Predicate };
 
 type Predicate = FieldPredicate | LogicalPredicate | string;
 
@@ -153,11 +161,12 @@ interface FilterTransform {
 interface DeriveTransform {
   derive: {
     [columnName: string]: Expression;
-  }
+  };
 }
 ```
 
 **UI Flow:**
+
 1. User opens filter dialog → sees predicate builder (dropdowns, inputs)
 2. For simple cases: never needs to see expression syntax
 3. "Advanced" toggle → switches to expression text input
@@ -186,12 +195,13 @@ function compileExpression(expr: string, schema: Schema): CompiledExpression {
   return {
     ast,
     arqueroFn,
-    dependencies: extractColumnDependencies(ast)
+    dependencies: extractColumnDependencies(ast),
   };
 }
 ```
 
 **Why jsep:**
+
 - **Zero dependencies** - self-contained, CDN-loadable
 - **Small footprint** - ~600 lines, ~10KB minified
 - **ESTree-compatible AST** - standard format, well-documented
@@ -204,9 +214,10 @@ function compileExpression(expr: string, schema: Schema): CompiledExpression {
 The validator uses the unified **Model Schema** to perform static analysis before execution.
 
 **Key features:**
-*   **Type Safety**: Prevents impossible operations (e.g., adding a string to a date) during the "parsing" phase.
-*   **Schema Propagation**: Each transform step calculates its resulting schema. `Select` filters columns, `Rename` updates names, and `Derive` predicts the type of the new column based on the expression's AST.
-*   **Granular Inference**: Distinguishes between `integer` and `float` to suggest correct formatting and aggregations.
+
+- **Type Safety**: Prevents impossible operations (e.g., adding a string to a date) during the "parsing" phase.
+- **Schema Propagation**: Each transform step calculates its resulting schema. `Select` filters columns, `Rename` updates names, and `Derive` predicts the type of the new column based on the expression's AST.
+- **Granular Inference**: Distinguishes between `integer` and `float` to suggest correct formatting and aggregations.
 
 ```typescript
 interface ValidationRule {
@@ -219,45 +230,46 @@ const Phase1Rules: ValidationRule[] = [
   {
     check: (node) =>
       node.type === 'BinaryExpression' &&
-      ['+', '-', '*', '/', '%', '>', '<', '>=', '<=', '==', '===', '!=', '!=='].includes(node.operator),
+      ['+', '-', '*', '/', '%', '>', '<', '>=', '<=', '==', '===', '!=', '!=='].includes(
+        node.operator
+      ),
     error: (node) => ({
       message: `Operator '${node.operator}' not allowed in Phase 1`,
       position: node.start,
-      suggestion: "Use basic arithmetic and comparison operators only"
-    })
+      suggestion: 'Use basic arithmetic and comparison operators only',
+    }),
   },
 
   // Validate column names
   {
     check: (node, ctx) =>
-      node.type === 'Identifier' &&
-      (ctx.schema.hasColumn(node.name) || isReservedWord(node.name)),
+      node.type === 'Identifier' && (ctx.schema.hasColumn(node.name) || isReservedWord(node.name)),
     error: (node, ctx) => ({
       message: `Column '${node.name}' not found`,
       position: node.start,
-      suggestion: `Did you mean '${ctx.schema.suggestColumn(node.name)}'?`
-    })
+      suggestion: `Did you mean '${ctx.schema.suggestColumn(node.name)}'?`,
+    }),
   },
 
   // Reject function calls (Phase 1)
   {
     check: (node) => node.type !== 'CallExpression',
     error: (node) => ({
-      message: "Function calls not supported yet",
+      message: 'Function calls not supported yet',
       position: node.start,
-      suggestion: "Functions will be available in a future update"
-    })
+      suggestion: 'Functions will be available in a future update',
+    }),
   },
 
   // Reject assignments
   {
     check: (node) => node.type !== 'AssignmentExpression',
     error: (node) => ({
-      message: "Assignments not allowed in expressions",
+      message: 'Assignments not allowed in expressions',
       position: node.start,
-      suggestion: "Use comparison operator '==' instead of '='"
-    })
-  }
+      suggestion: "Use comparison operator '==' instead of '='",
+    }),
+  },
 ];
 ```
 
@@ -282,26 +294,38 @@ function interpretAST(node: ASTNode, rowData: any): any {
       const right = interpretAST(node.right, rowData);
 
       // Null propagation (except for == and !=)
-      if ((left === null || right === null) &&
-          node.operator !== '==' && node.operator !== '!=') {
+      if ((left === null || right === null) && node.operator !== '==' && node.operator !== '!=') {
         return null;
       }
 
       // Arithmetic operators
       switch (node.operator) {
-        case '+': return left + right;
-        case '-': return left - right;
-        case '*': return left * right;
-        case '/': return left / right;
-        case '%': return left % right;
-        case '>': return left > right;
-        case '<': return left < right;
-        case '>=': return left >= right;
-        case '<=': return left <= right;
-        case '==': return left == right;
-        case '===': return left === right;
-        case '!=': return left != right;
-        case '!==': return left !== right;
+        case '+':
+          return left + right;
+        case '-':
+          return left - right;
+        case '*':
+          return left * right;
+        case '/':
+          return left / right;
+        case '%':
+          return left % right;
+        case '>':
+          return left > right;
+        case '<':
+          return left < right;
+        case '>=':
+          return left >= right;
+        case '<=':
+          return left <= right;
+        case '==':
+          return left == right;
+        case '===':
+          return left === right;
+        case '!=':
+          return left != right;
+        case '!==':
+          return left !== right;
         default:
           throw new EvalError(`Unknown operator: ${node.operator}`);
       }
@@ -320,9 +344,12 @@ function interpretAST(node: ASTNode, rowData: any): any {
     case 'UnaryExpression':
       const arg = interpretAST(node.argument, rowData);
       switch (node.operator) {
-        case '!': return !arg;
-        case '-': return -arg;
-        case '+': return +arg;
+        case '!':
+          return !arg;
+        case '-':
+          return -arg;
+        case '+':
+          return +arg;
         default:
           throw new EvalError(`Unknown unary operator: ${node.operator}`);
       }
@@ -334,12 +361,14 @@ function interpretAST(node: ASTNode, rowData: any): any {
 ```
 
 **Why interpret instead of compile:**
+
 - **Security**: No code execution, just data transformation
 - **Validation**: Can check every step
 - **Debugging**: Can log intermediate values
 - **Performance**: Acceptable for 100-row previews
 
 **Performance trade-off:**
+
 - Interpretation: ~2-5x slower than compiled functions
 - Acceptable: Preview only evaluates 100 rows
 - Optimization: Cache parsed/validated ASTs
@@ -348,11 +377,11 @@ function interpretAST(node: ASTNode, rowData: any): any {
 
 ```typescript
 interface UserFriendlyError {
-  message: string;           // Plain language explanation
-  expression: string;        // Original expression
-  position: number;          // Character offset
-  snippet: string;           // Code snippet with highlight
-  suggestion?: string;       // How to fix
+  message: string; // Plain language explanation
+  expression: string; // Original expression
+  position: number; // Character offset
+  snippet: string; // Code snippet with highlight
+  suggestion?: string; // How to fix
   availableColumns?: string[]; // Schema context
 }
 
@@ -369,7 +398,7 @@ function formatError(error: ValidationError, expr: string, schema: Schema): User
     position: error.position,
     snippet: `${snippet}\n${pointer}`,
     suggestion: error.suggestion,
-    availableColumns: error.type === 'unknown-column' ? schema.columnNames : undefined
+    availableColumns: error.type === 'unknown-column' ? schema.columnNames : undefined,
   };
 }
 
@@ -408,12 +437,14 @@ region == "North"
 ```
 
 **Implementation:**
+
 1. jsep parses `sales` as `Identifier` node
 2. Validator checks if "sales" exists in schema
 3. Transformer rewrites to Arquero syntax: `sales` → `d.sales`
 4. Generator outputs: `d => d.sales > 1000`
 
 **Bracket notation handling:**
+
 ```javascript
 // User writes:
 [Total Sales] > 1000
@@ -432,11 +463,11 @@ d => d["Total Sales"] > 1000
 
 ```javascript
 // For advanced users who want Arquero-compatible syntax
-d.sales > 1000
-d["Total Sales"] > 1000
+d.sales > 1000;
+d['Total Sales'] > 1000;
 
 // Still support bare identifiers
-sales > 1000
+sales > 1000;
 ```
 
 ---
@@ -445,27 +476,28 @@ sales > 1000
 
 ### Phase 1: Basic Operators Only
 
-| Operator | Type | Example | Notes |
-|----------|------|---------|-------|
-| `+` | Arithmetic | `revenue + tax` | Addition |
-| `-` | Arithmetic | `revenue - cost` | Subtraction |
-| `*` | Arithmetic | `price * quantity` | Multiplication |
-| `/` | Arithmetic | `total / count` | Division |
-| `%` | Arithmetic | `value % 10` | Modulo |
-| `>` | Comparison | `sales > 1000` | Greater than |
-| `<` | Comparison | `age < 18` | Less than |
-| `>=` | Comparison | `score >= 90` | Greater or equal |
-| `<=` | Comparison | `price <= 100` | Less or equal |
-| `==` | Comparison | `status == "active"` | Loose equality |
-| `===` | Comparison | `id === 42` | Strict equality |
-| `!=` | Comparison | `region != "Unknown"` | Loose inequality |
-| `!==` | Comparison | `value !== null` | Strict inequality |
-| `&&` | Logical | `a && b` | Logical AND |
-| `\|\|` | Logical | `a \|\| b` | Logical OR |
-| `!` | Logical | `!active` | Logical NOT |
-| `()` | Grouping | `(a + b) * c` | Precedence |
+| Operator | Type       | Example               | Notes             |
+| -------- | ---------- | --------------------- | ----------------- |
+| `+`      | Arithmetic | `revenue + tax`       | Addition          |
+| `-`      | Arithmetic | `revenue - cost`      | Subtraction       |
+| `*`      | Arithmetic | `price * quantity`    | Multiplication    |
+| `/`      | Arithmetic | `total / count`       | Division          |
+| `%`      | Arithmetic | `value % 10`          | Modulo            |
+| `>`      | Comparison | `sales > 1000`        | Greater than      |
+| `<`      | Comparison | `age < 18`            | Less than         |
+| `>=`     | Comparison | `score >= 90`         | Greater or equal  |
+| `<=`     | Comparison | `price <= 100`        | Less or equal     |
+| `==`     | Comparison | `status == "active"`  | Loose equality    |
+| `===`    | Comparison | `id === 42`           | Strict equality   |
+| `!=`     | Comparison | `region != "Unknown"` | Loose inequality  |
+| `!==`    | Comparison | `value !== null`      | Strict inequality |
+| `&&`     | Logical    | `a && b`              | Logical AND       |
+| `\|\|`   | Logical    | `a \|\| b`            | Logical OR        |
+| `!`      | Logical    | `!active`             | Logical NOT       |
+| `()`     | Grouping   | `(a + b) * c`         | Precedence        |
 
 **Deliberately excluded (Phase 1):**
+
 - ❌ Bitwise operators (`&`, `|`, `^`, `~`, `<<`, `>>`)
 - ❌ Assignment operators (`=`, `+=`, `-=`)
 - ❌ Increment/decrement (`++`, `--`)
@@ -477,13 +509,13 @@ sales > 1000
 
 ```javascript
 // Ternary conditional
-profit > 0 ? "Profitable" : "Loss"
+profit > 0 ? 'Profitable' : 'Loss';
 
 // Optional chaining (for nested objects)
-customer?.address?.city
+customer?.address?.city;
 
 // Nullish coalescing
-discount ?? 0
+discount ?? 0;
 ```
 
 ### Phase 3: Custom Operators via jsep Plugins
@@ -507,12 +539,14 @@ jsep.addUnaryOp('not');      // Same precedence as !
 ### Phase 1: No Functions
 
 **Rationale:**
+
 - Keep MVP simple
 - Operators sufficient for basic filtering and calculations
 - Reduce attack surface
 - Easier to validate and test
 
 **User workarounds:**
+
 ```javascript
 // Instead of: upper(name)
 // Use predicate builder or wait for Phase 2
@@ -525,60 +559,61 @@ jsep.addUnaryOp('not');      // Same precedence as !
 
 ```typescript
 // Math functions (via Arquero op.*)
-Math.round(value)
-Math.floor(price)
-Math.ceil(score)
-Math.abs(difference)
-Math.sqrt(area)
-Math.max(a, b, c)
-Math.min(a, b, c)
+Math.round(value);
+Math.floor(price);
+Math.ceil(score);
+Math.abs(difference);
+Math.sqrt(area);
+Math.max(a, b, c);
+Math.min(a, b, c);
 
 // String functions (via Arquero op.*)
-value.toUpperCase()     // Method style
-upper(value)            // Function style (both supported)
-lower(name)
-trim(text)
-substring(text, 0, 10)
-length(name)
+value.toUpperCase(); // Method style
+upper(value); // Function style (both supported)
+lower(name);
+trim(text);
+substring(text, 0, 10);
+length(name);
 
 // Date functions (via Arquero op.*)
-year(date)
-month(date)
-day(date)
-now()
+year(date);
+month(date);
+day(date);
+now();
 
 // Type conversion
-toNumber(value)
-toString(id)
+toNumber(value);
+toString(id);
 ```
 
 **Implementation:**
+
 ```typescript
 const SAFE_FUNCTIONS = {
   // Math
-  'abs': (x) => Math.abs(x),
-  'round': (x) => Math.round(x),
-  'floor': (x) => Math.floor(x),
-  'ceil': (x) => Math.ceil(x),
-  'sqrt': (x) => Math.sqrt(x),
-  'max': (...args) => Math.max(...args),
-  'min': (...args) => Math.min(...args),
+  abs: (x) => Math.abs(x),
+  round: (x) => Math.round(x),
+  floor: (x) => Math.floor(x),
+  ceil: (x) => Math.ceil(x),
+  sqrt: (x) => Math.sqrt(x),
+  max: (...args) => Math.max(...args),
+  min: (...args) => Math.min(...args),
 
   // String
-  'upper': (s) => String(s).toUpperCase(),
-  'lower': (s) => String(s).toLowerCase(),
-  'trim': (s) => String(s).trim(),
-  'length': (s) => String(s).length,
+  upper: (s) => String(s).toUpperCase(),
+  lower: (s) => String(s).toLowerCase(),
+  trim: (s) => String(s).trim(),
+  length: (s) => String(s).length,
 
   // Date
-  'year': (d) => new Date(d).getFullYear(),
-  'month': (d) => new Date(d).getMonth() + 1,
-  'day': (d) => new Date(d).getDate(),
-  'now': () => Date.now(),
+  year: (d) => new Date(d).getFullYear(),
+  month: (d) => new Date(d).getMonth() + 1,
+  day: (d) => new Date(d).getDate(),
+  now: () => Date.now(),
 
   // Type
-  'toNumber': (v) => Number(v),
-  'toString': (v) => String(v)
+  toNumber: (v) => Number(v),
+  toString: (v) => String(v),
 };
 
 // Validation: Check function calls against whitelist
@@ -598,11 +633,12 @@ registerFunction('fullName', (first, last) => `${first} ${last}`);
 registerFunction('discount', (price, pct) => price * (1 - pct / 100));
 
 // Usage in expressions
-fullName(firstName, lastName)
-discount(price, 15)
+fullName(firstName, lastName);
+discount(price, 15);
 ```
 
 **Sandboxing approach:**
+
 - Functions defined as pure data transformations
 - No access to global scope
 - Timeout limits
@@ -633,6 +669,7 @@ discount(price, 15)
 **Goal:** Build out full feature set on proven architecture.
 
 **Deliverables:**
+
 ```
 ✅ jsep integration (CDN-loaded)
 ✅ Predicate object → Arquero compiler
@@ -647,6 +684,7 @@ discount(price, 15)
 ```
 
 **Non-goals (explicitly deferred):**
+
 - ❌ Function calls
 - ❌ Ternary operator
 - ❌ Complex type coercion
@@ -656,6 +694,7 @@ discount(price, 15)
 ### Phase 2: Functions + Advanced Operators
 
 **Additions:**
+
 ```
 ✅ Whitelist safe functions (Math.*, String.*, Date.*)
 ✅ Method-style syntax (value.toUpperCase())
@@ -670,6 +709,7 @@ discount(price, 15)
 ### Phase 3: Extensibility
 
 **Additions:**
+
 ```
 ✅ User-defined function registry
 ✅ Custom operator support (word forms: and, or, not)
@@ -686,11 +726,13 @@ discount(price, 15)
 ### Threat Model
 
 **Assumptions:**
+
 - Untrusted user input (CSV data, expressions)
 - Browser environment (localStorage, DOM access possible)
 - No server-side validation
 
 **Attack vectors:**
+
 1. **Code injection** - Malicious expressions executing arbitrary JavaScript
 2. **Data exfiltration** - Expressions accessing localStorage, making network requests
 3. **Denial of service** - Infinite loops, memory exhaustion
@@ -699,6 +741,7 @@ discount(price, 15)
 ### Mitigation Strategy
 
 #### 1. **No Function() Constructor**
+
 ```javascript
 // ❌ NEVER (ag-Grid's approach)
 const fn = new Function('d', userExpression);
@@ -710,11 +753,13 @@ interpretAST(ast, data);
 ```
 
 **Why:**
+
 - Function() can execute arbitrary code
 - No sandboxing possible
 - Cannot validate before execution
 
 #### 2. **AST Validation**
+
 ```typescript
 // Whitelist allowed node types
 const ALLOWED_NODE_TYPES = [
@@ -723,8 +768,8 @@ const ALLOWED_NODE_TYPES = [
   'BinaryExpression',
   'LogicalExpression',
   'UnaryExpression',
-  'MemberExpression',  // Phase 2: for bracket notation
-  'CallExpression'     // Phase 2: only whitelisted functions
+  'MemberExpression', // Phase 2: for bracket notation
+  'CallExpression', // Phase 2: only whitelisted functions
 ];
 
 function validateNodeType(node: ASTNode) {
@@ -735,8 +780,23 @@ function validateNodeType(node: ASTNode) {
 ```
 
 #### 3. **Operator Whitelist**
+
 ```typescript
-const ALLOWED_BINARY_OPS = ['+', '-', '*', '/', '%', '>', '<', '>=', '<=', '==', '===', '!=', '!=='];
+const ALLOWED_BINARY_OPS = [
+  '+',
+  '-',
+  '*',
+  '/',
+  '%',
+  '>',
+  '<',
+  '>=',
+  '<=',
+  '==',
+  '===',
+  '!=',
+  '!==',
+];
 const ALLOWED_LOGICAL_OPS = ['&&', '||'];
 const ALLOWED_UNARY_OPS = ['!', '-', '+'];
 
@@ -749,6 +809,7 @@ function validateOperator(node: ASTNode) {
 ```
 
 #### 4. **No Property Access** (Phase 1)
+
 ```typescript
 // ❌ Reject in Phase 1
 window.location
@@ -762,10 +823,11 @@ revenue
 ```
 
 #### 5. **Function Whitelist** (Phase 2+)
+
 ```typescript
 const SAFE_FUNCTIONS = {
-  'abs': true,
-  'round': true,
+  abs: true,
+  round: true,
   // ... whitelist
 };
 
@@ -778,6 +840,7 @@ function validateFunctionCall(node: CallExpression) {
 ```
 
 #### 6. **Timeout Protection** (Phase 2+)
+
 ```typescript
 // For complex expressions, limit execution time
 function interpretWithTimeout(ast: ASTNode, data: any, timeout: number = 100): any {
@@ -796,6 +859,7 @@ function interpretWithTimeout(ast: ASTNode, data: any, timeout: number = 100): a
 ### Security Checklist
 
 **Phase 1:**
+
 - ✅ No Function() constructor
 - ✅ AST-only interpretation
 - ✅ Whitelist operators
@@ -804,12 +868,14 @@ function interpretWithTimeout(ast: ASTNode, data: any, timeout: number = 100): a
 - ✅ Reject assignment operators
 
 **Phase 2:**
+
 - ✅ Whitelist functions
 - ✅ Validate function arguments
 - ✅ Timeout protection
 - ✅ Memory limits
 
 **Phase 3:**
+
 - ✅ User function sandboxing
 - ✅ Resource quotas
 - ✅ Security audit
@@ -822,14 +888,15 @@ function interpretWithTimeout(ast: ASTNode, data: any, timeout: number = 100): a
 
 **Trade-off: Interpretation vs Compilation**
 
-| Approach | Speed | Security | Validation | Debugging |
-|----------|-------|----------|------------|-----------|
-| **Function() compilation** | Fast (1x) | ❌ Unsafe | ❌ After execution | ❌ Opaque |
-| **AST interpretation** | Slower (2-5x) | ✅ Safe | ✅ Before execution | ✅ Transparent |
+| Approach                   | Speed         | Security  | Validation          | Debugging      |
+| -------------------------- | ------------- | --------- | ------------------- | -------------- |
+| **Function() compilation** | Fast (1x)     | ❌ Unsafe | ❌ After execution  | ❌ Opaque      |
+| **AST interpretation**     | Slower (2-5x) | ✅ Safe   | ✅ Before execution | ✅ Transparent |
 
 **Decision: AST interpretation for Phase 1**
 
 **Rationale:**
+
 - Preview mode only evaluates 100 rows → acceptable slowdown
 - Security more important than micro-optimization
 - Validation before execution catches errors early
@@ -838,6 +905,7 @@ function interpretWithTimeout(ast: ASTNode, data: any, timeout: number = 100): a
 ### Optimization Strategies
 
 #### 1. **Expression Caching**
+
 ```typescript
 const expressionCache = new Map<string, CompiledExpression>();
 
@@ -855,6 +923,7 @@ function getCompiledExpression(expr: string, schema: Schema): CompiledExpression
 **Impact**: Parse once, reuse for all rows (100x+ speedup)
 
 #### 2. **Schema Hashing**
+
 ```typescript
 class Schema {
   private _hash: string | null = null;
@@ -871,6 +940,7 @@ class Schema {
 **Impact**: O(1) schema comparisons for cache lookups
 
 #### 3. **AST Optimization** (Phase 3)
+
 ```typescript
 // Constant folding
 // Before: 2 + 3 * 4
@@ -881,9 +951,11 @@ class Schema {
 // After:  x
 
 function optimizeAST(ast: ASTNode): ASTNode {
-  if (ast.type === 'BinaryExpression' &&
-      ast.left.type === 'Literal' &&
-      ast.right.type === 'Literal') {
+  if (
+    ast.type === 'BinaryExpression' &&
+    ast.left.type === 'Literal' &&
+    ast.right.type === 'Literal'
+  ) {
     // Evaluate at compile time
     return { type: 'Literal', value: evaluate(ast) };
   }
@@ -894,11 +966,12 @@ function optimizeAST(ast: ASTNode): ASTNode {
 **Impact**: 10-20% speedup for complex expressions
 
 #### 4. **Lazy Evaluation** (Phase 3)
+
 ```typescript
 // Short-circuit logical operators
 if (node.operator === '&&') {
   const left = interpret(node.left, data);
-  if (!left) return false;  // Don't evaluate right if left is false
+  if (!left) return false; // Don't evaluate right if left is false
   return interpret(node.right, data);
 }
 ```
@@ -906,13 +979,14 @@ if (node.operator === '&&') {
 **Impact**: Already implemented in interpretation logic
 
 #### 5. **Web Worker Offloading** (Phase 3)
+
 ```typescript
 // For large datasets, evaluate in background thread
 const worker = new Worker('expression-worker.js');
 
 worker.postMessage({
   expression: compiledExpr,
-  data: largeDataset
+  data: largeDataset,
 });
 
 worker.onmessage = (e) => {
@@ -925,15 +999,18 @@ worker.onmessage = (e) => {
 ### Performance Targets
 
 **Phase 1 (MVP):**
+
 - Fast parsing and validation
 - Efficient evaluation for preview (100 rows)
 - Responsive UI during preview
 
 **Phase 2 (Optimized):**
+
 - Improved performance for larger previews
 - Support for larger row counts
 
 **Phase 3 (Production):**
+
 - Optimized for large datasets
 - Web Worker for very large files
 - Streaming evaluation for maximum scalability
@@ -949,6 +1026,7 @@ worker.onmessage = (e) => {
 ### Test Categories
 
 #### 1. **Parser Tests**
+
 ```javascript
 describe('jsep integration', () => {
   it('parses simple arithmetic', () => {
@@ -971,17 +1049,18 @@ describe('jsep integration', () => {
 ```
 
 #### 2. **Validation Tests**
+
 ```javascript
 describe('AST validation', () => {
   it('rejects unknown columns', () => {
     const schema = new Schema(['a', 'b']);
-    expect(() => validate('c > 1', schema)).toThrow('Column \'c\' not found');
+    expect(() => validate('c > 1', schema)).toThrow("Column 'c' not found");
   });
 
   it('suggests similar column names', () => {
     const schema = new Schema(['Sales', 'Revenue']);
     const error = validate('Slaes > 1000', schema);
-    expect(error.suggestion).toBe('Did you mean \'Sales\'?');
+    expect(error.suggestion).toBe("Did you mean 'Sales'?");
   });
 
   it('rejects function calls in Phase 1', () => {
@@ -995,6 +1074,7 @@ describe('AST validation', () => {
 ```
 
 #### 3. **Interpretation Tests**
+
 ```javascript
 describe('AST interpretation', () => {
   const data = { sales: 1500, cost: 1000, region: 'North' };
@@ -1022,13 +1102,18 @@ describe('AST interpretation', () => {
 ```
 
 #### 4. **Error Message Tests**
+
 ```javascript
 describe('error formatting', () => {
   it('highlights error position', () => {
-    const error = formatError({
-      message: 'Expected )',
-      position: 15
-    }, 'sales > 1000 + (revenue - cost', schema);
+    const error = formatError(
+      {
+        message: 'Expected )',
+        position: 15,
+      },
+      'sales > 1000 + (revenue - cost',
+      schema
+    );
 
     expect(error.snippet).toContain('↑');
   });
@@ -1041,6 +1126,7 @@ describe('error formatting', () => {
 ```
 
 #### 5. **Predicate Compilation Tests**
+
 ```javascript
 describe('predicate to Arquero', () => {
   it('compiles field predicates', () => {
@@ -1054,8 +1140,8 @@ describe('predicate to Arquero', () => {
     const pred = {
       and: [
         { field: 'sales', gt: 1000 },
-        { field: 'region', equal: 'North' }
-      ]
+        { field: 'region', equal: 'North' },
+      ],
     };
     const arqueroFn = compilePredicate(pred);
     expect(arqueroFn({ sales: 1500, region: 'North' })).toBe(true);
@@ -1065,16 +1151,17 @@ describe('predicate to Arquero', () => {
 ```
 
 #### 6. **Integration Tests**
+
 ```javascript
 describe('full pipeline', () => {
   it('compiles and executes filter transform', () => {
     const transform = {
-      filter: 'sales > 1000 && region == "North"'
+      filter: 'sales > 1000 && region == "North"',
     };
 
     const table = aq.table({
       sales: [500, 1500, 2000, 1200],
-      region: ['North', 'North', 'South', 'North']
+      region: ['North', 'North', 'South', 'North'],
     });
 
     const result = applyTransform(table, transform);
@@ -1084,11 +1171,10 @@ describe('full pipeline', () => {
 
   it('handles errors gracefully', () => {
     const transform = {
-      filter: 'invalid_column > 1000'
+      filter: 'invalid_column > 1000',
     };
 
-    expect(() => compileTransform(transform, schema))
-      .toThrow('Column \'invalid_column\' not found');
+    expect(() => compileTransform(transform, schema)).toThrow("Column 'invalid_column' not found");
   });
 });
 ```
@@ -1096,6 +1182,7 @@ describe('full pipeline', () => {
 ### Edge Cases to Test
 
 **Numeric:**
+
 - Division by zero: `1 / 0` → Infinity
 - Negative numbers: `-5 + 3` → -2
 - Decimal precision: `0.1 + 0.2` → 0.30000000000000004 (JavaScript behavior)
@@ -1103,22 +1190,26 @@ describe('full pipeline', () => {
 - Scientific notation: `1e10`
 
 **String:**
+
 - Empty strings: `"" == ""` → true
 - String concatenation: `"Hello" + " " + "World"` → "Hello World"
 - String comparison: `"abc" < "xyz"` → true
 - Quotes in strings: `"He said \"Hi\""` → properly escaped
 
 **Null/Undefined:**
+
 - Null equality: `null == null` → true
 - Null comparison: `null > 0` → false
 - Null arithmetic: `null + 5` → null (propagation)
 - Missing columns: `nonexistent_column > 0` → error
 
 **Boolean:**
+
 - Truthy/falsy: `0 && true` → 0 (JavaScript semantics)
 - Short-circuit: `false && expensive_operation` → false (doesn't evaluate right side)
 
 **Column Names:**
+
 - Spaces: `[Total Sales]`
 - Hyphens: `[price-usd]`
 - Underscores: `customer_id`
@@ -1126,6 +1217,7 @@ describe('full pipeline', () => {
 - Keywords: `class`, `return`, `function` (should work as column names)
 
 **Complex Expressions:**
+
 - Deep nesting: `((a + b) * (c - d)) / ((e + f) * (g - h))`
 - Mixed operators: `a + b * c - d / e`
 - Precedence: `a || b && c` → `a || (b && c)`
@@ -1137,39 +1229,50 @@ describe('full pipeline', () => {
 ### From SPECIFICATION.md (Section 11)
 
 **Current specification (draft):**
+
 ```markdown
 ### Simple expressions (Phase 1)
-
 ```
+
 # Comparisons
+
 sales > 1000
 region == "North"
 profit != 0
 
 # Boolean
+
 sales > 1000 and region == "North"
 status == "active" or status == "pending"
 
 # Arithmetic (in derive)
+
 revenue - cost
-price * quantity
-(revenue - cost) / revenue * 100
+price _ quantity
+(revenue - cost) / revenue _ 100
+
 ```
 
 ### Column references
 
 Unquoted names for simple columns:
 ```
+
 sales > 1000
+
 ```
 
 Bracket notation for spaces/special chars:
 ```
+
 [Total Sales] > 1000
+
 ```
+
 ```
 
 **Updates needed:**
+
 1. Change `and`/`or` to `&&`/`||` (JavaScript standard)
 2. Add predicate object syntax as primary API
 3. Document Phase 1 limitations (no functions)
@@ -1183,6 +1286,7 @@ Bracket notation for spaces/special chars:
 ### Decision 1: Use jsep over alternatives
 
 **Alternatives considered:**
+
 1. Acorn (Arquero's choice)
 2. Handwritten parser (GREL's choice)
 3. Direct eval (ag-Grid's choice)
@@ -1190,12 +1294,14 @@ Bracket notation for spaces/special chars:
 **Decision:** jsep
 
 **Rationale:**
+
 - Acorn: Too complex, still needs Function() constructor
 - Handwritten: Reinventing wheel, ~700 lines of untested code
 - Direct eval: Fundamentally insecure
 - jsep: Sweet spot - lightweight, secure, extensible
 
 **Trade-offs accepted:**
+
 - jsep has quirks and limitations
 - Need to learn jsep's plugin system
 - Adds external dependency (but CDN-loadable)
@@ -1205,6 +1311,7 @@ Bracket notation for spaces/special chars:
 ### Decision 2: Interpret AST instead of compiling to functions
 
 **Alternatives considered:**
+
 1. Compile to Function() (ag-Grid, Arquero)
 2. Compile to safe eval() wrapper
 3. Interpret AST (OpenRefine's approach)
@@ -1212,12 +1319,14 @@ Bracket notation for spaces/special chars:
 **Decision:** Interpret AST
 
 **Rationale:**
+
 - Security: No code execution
 - Validation: Can check every step
 - Debugging: Transparent execution
 - Performance: Acceptable for 100-row previews
 
 **Trade-offs accepted:**
+
 - 2-5x slower than compiled functions
 - More complex interpreter logic
 - Can upgrade to compilation in Phase 3 if needed
@@ -1227,6 +1336,7 @@ Bracket notation for spaces/special chars:
 ### Decision 3: Bare identifiers for column references
 
 **Alternatives considered:**
+
 1. `d.column` (Arquero)
 2. `datum.column` (Vega-Lite)
 3. `cells.column` (OpenRefine)
@@ -1235,11 +1345,13 @@ Bracket notation for spaces/special chars:
 **Decision:** Bare identifiers with bracket escape
 
 **Rationale:**
+
 - Simplest for non-programmers
 - Schema available at parse time
 - Bracket notation for edge cases: `[Total Sales]`
 
 **Trade-offs accepted:**
+
 - Must validate against schema
 - Cannot use arbitrary JavaScript identifiers
 - Requires transformer to add `d.` prefix for Arquero
@@ -1249,6 +1361,7 @@ Bracket notation for spaces/special chars:
 ### Decision 4: Structured predicates as primary API
 
 **Alternatives considered:**
+
 1. Expression strings only (all other systems)
 2. Predicates only (Vega-Lite partially)
 3. Hybrid (both)
@@ -1256,12 +1369,14 @@ Bracket notation for spaces/special chars:
 **Decision:** Hybrid - predicates primary, expressions as escape hatch
 
 **Rationale:**
+
 - Vega-Lite shows predicate objects work well
 - 80% of use cases covered by simple predicates
 - Expression strings for 20% edge cases
 - Best UX for target audience (non-programmers)
 
 **Trade-offs accepted:**
+
 - Need to implement both systems
 - Dual syntax to document
 - More complex UI (predicate builder + expression input)
@@ -1327,14 +1442,15 @@ alpine.js                       (already dependency)
 
 ### Comparison to Other Systems
 
-| System | Parser | Functions | Complexity |
-|--------|--------|-----------|------------|
-| **ag-Grid** | None | None | Minimal (insecure) |
-| **Chumak** | jsep | Phased rollout | Moderate |
-| **OpenRefine** | Handwritten | 100+ functions | High |
-| **Arquero** | Acorn | Extensive | High |
+| System         | Parser      | Functions      | Complexity         |
+| -------------- | ----------- | -------------- | ------------------ |
+| **ag-Grid**    | None        | None           | Minimal (insecure) |
+| **Chumak**     | jsep        | Phased rollout | Moderate           |
+| **OpenRefine** | Handwritten | 100+ functions | High               |
+| **Arquero**    | Acorn       | Extensive      | High               |
 
 **Analysis:**
+
 - Chumak: Balanced approach with reasonable complexity
 - Lighter than GREL/Arquero (no extensive function library)
 - More secure than ag-Grid (validation + sandboxing)
@@ -1345,13 +1461,15 @@ alpine.js                       (already dependency)
 ## References
 
 ### Research Documents
+
 - [research/RESEARCH-GUIDE.md](research/RESEARCH-GUIDE.md) - Analysis protocol
-- [research/analysis__arquero.md](research/analysis__arquero.md) - Arquero deep-dive
-- [research/analysis__vega-lite.md](research/analysis__vega-lite.md) - Vega-Lite deep-dive
-- [research/analysis__openrefine.md](research/analysis__openrefine.md) - OpenRefine/GREL deep-dive
-- [research/analysis__ag-grid.md](research/analysis__ag-grid.md) - ag-Grid deep-dive
+- [research/analysis\_\_arquero.md](research/analysis__arquero.md) - Arquero deep-dive
+- [research/analysis\_\_vega-lite.md](research/analysis__vega-lite.md) - Vega-Lite deep-dive
+- [research/analysis\_\_openrefine.md](research/analysis__openrefine.md) - OpenRefine/GREL deep-dive
+- [research/analysis\_\_ag-grid.md](research/analysis__ag-grid.md) - ag-Grid deep-dive
 
 ### External Documentation
+
 - jsep: https://github.com/EricSmekens/jsep
 - Arquero: https://uwdata.github.io/arquero/
 - Vega-Lite: https://vega.github.io/vega-lite/
