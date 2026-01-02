@@ -249,6 +249,18 @@ describe('Transform Engine', () => {
     });
   });
 
+  describe('applyTransform() - TYPES', () => {
+    it('should pass through data unchanged', () => {
+      const table = createTestTable();
+      const transform = { types: { sales: 'integer', region: 'string' } };
+      const result = applyTransform(table, transform, ['sales', 'revenue', 'cost', 'region', 'status']);
+
+      expect(result.numRows()).to.equal(5);
+      expect(result.columnNames()).to.deep.equal(table.columnNames());
+      expect(result.objects()).to.deep.equal(table.objects());
+    });
+  });
+
   describe('applyTransform() - Error Handling', () => {
     it('should throw error for unimplemented transform', () => {
       const table = createTestTable();
@@ -363,6 +375,12 @@ describe('Transform Engine', () => {
       };
       const desc = describeTransform(transform);
       expect(desc).to.include('custom headers');
+    });
+
+    it('should describe types transform', () => {
+      const transform = { types: { col1: 'integer', col2: 'string' } };
+      const desc = describeTransform(transform);
+      expect(desc).to.equal('Detect types: 2 columns');
     });
   });
 });

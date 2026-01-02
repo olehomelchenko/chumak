@@ -207,6 +207,15 @@ function applyTransform(table, transform, schema, context = null) {
     return result;
   }
 
+  // TYPES: Metadata-only step for Phase 1 (pass-through)
+  if (transform.types) {
+    // In Phase 1, data types are inferred at import time.
+    // This step serves as explicit documentation of those types in the workflow.
+    // In Phase 3, this could handle actual type casting.
+    perfLogger.log(describeTransform(transform), table, table, performance.now() - start);
+    return table;
+  }
+
   const transformType = Object.keys(transform)[0];
   throw new Error(`Transform type '${transformType}' not implemented yet`);
 }
@@ -233,6 +242,11 @@ function describeTransform(transform, rightName = null) {
     }
 
     return desc;
+  }
+
+  if (transform.types) {
+    const count = Object.keys(transform.types).length;
+    return `Detect types: ${count} column${count !== 1 ? 's' : ''}`;
   }
 
   if (transform.select) {

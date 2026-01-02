@@ -31,7 +31,8 @@ const SchemaEngine = {
         // 3. Check for Date/DateTime (strings matching patterns)
         if (nonNullValues.every(v => typeof v === 'string')) {
             // ISO DateTime: 2024-01-01T12:00:00...
-            const isDateTime = nonNullValues.every(v => /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(v));
+            // ISO DateTime: 2024-01-01T12:00:00... OR SQL: 2024-01-01 12:00:00...
+            const isDateTime = nonNullValues.every(v => /^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}:\d{2}/.test(v));
             if (isDateTime) return 'datetime';
 
             // Simple Date: 2024-01-01 or 2024/01/01
@@ -142,6 +143,16 @@ const SchemaEngine = {
                     };
                 });
             }
+        }
+
+        // 6. TYPES: Update column types
+        if (transform.types) {
+            return currentSchema.map(c => {
+                if (transform.types[c.name]) {
+                    return { ...c, type: transform.types[c.name] };
+                }
+                return { ...c };
+            });
         }
 
         // Filters, Sorts, etc. don't change the schema

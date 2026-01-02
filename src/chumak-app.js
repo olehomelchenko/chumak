@@ -783,6 +783,16 @@ function chumakApp() {
             }
 
             mainModel.steps.push(importStep);
+
+            // Add data type detection step
+            const typesStep = {
+                types: {}
+            };
+            source.columns.forEach(col => {
+                typesStep.types[col.name] = col.type;
+            });
+            mainModel.steps.push(typesStep);
+
             this.models.push(mainModel);
 
             // Display
@@ -1538,6 +1548,30 @@ function chumakApp() {
                 schema: JSON.parse(JSON.stringify(source.columns)),
                 data: JSON.parse(JSON.stringify(source.data))  // Deep copy of source data
             };
+
+            // Add import step (reconstructed from source metadata)
+            const importStep = {
+                import: {
+                    source: source.name,
+                    fileName: source.fileName,
+                    delimiter: source.delimiter,
+                    headerMode: source.headerMode
+                }
+            };
+            if (source.customHeaders) {
+                importStep.import.customHeaders = source.customHeaders;
+            }
+            newModel.steps.push(importStep);
+
+            // Add data type detection step
+            const typesStep = {
+                types: {}
+            };
+            source.columns.forEach(col => {
+                typesStep.types[col.name] = col.type;
+            });
+            newModel.steps.push(typesStep);
+
 
             this.models.push(newModel);
 
