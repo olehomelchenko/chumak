@@ -207,6 +207,59 @@ function applyTransform(table, transform, schema, context = null) {
     return result;
   }
 
+  // AGGREGATE: Group and Summarize
+  if (transform.aggregate) {
+    const { groupby, rollup } = transform.aggregate;
+
+    // 1. Grouping
+    let groupedTable = table;
+    if (groupby && groupby.length > 0) {
+      groupedTable = table.groupby(groupby);
+    }
+
+    // 2. Rollup (Aggregations)
+    // We need to convert our JSON string expressions (e.g., "op.mean('sales')") 
+    // into actual Arquero table expressions.
+    const rollupSpecs = {};
+
+    for (const [outCol, exprString] of Object.entries(rollup)) {
+      // Simple parser for Phase 1: matches "op.func('col')" or "op.func()"
+      // Regex matches: op.funcName( 'columnName' ) or op.funcName()
+      const match = exprString.match(/^op\.(\w+)\((?:'([^']+)'|"?([^"]+)"?)?\)$/);
+
+      if (!match) {
+        throw new Error(`Invalid aggregation expression: "${exprString}". Supported format: op.mean('col')`);
+      }
+
+      const funcName = match[1]; // e.g., 'mean'
+      const colName = match[2] || match[3]; // e.g., 'sales', or undefined for count()
+
+      if (!op[funcName]) {
+        throw new Error(`Unknown aggregation function: op.${funcName}`);
+      }
+
+      // Construct Arquero expression
+      if (colName) {
+        rollupSpecs[outCol] = op[funcName](colName);
+      } else {
+        rollupSpecs[outCol] = op[funcName]();
+      }
+    }
+
+    const result = groupedTable.rollup(rollupSpecs);
+
+    // If grouped, Arquero returns a grouped table. Usually we want a flat table for the next steps/display.
+    // .ungroup() is implicitly done by rollup if it creates a new table structure, 
+    // but explicit ungroup ensures it's a standard table.
+    // However, rollup() output is usually flat unless it was preserved. 
+    // Arquero docs say: "The output table persists a groupby specification." 
+    // So we should ungroup to treat it as a new flat source.
+    const flatResult = result.ungroup();
+
+    perfLogger.log(describeTransform(transform), table, flatResult, performance.now() - start);
+    return flatResult;
+  }
+
   // TYPES: Metadata-only step for Phase 1 (pass-through)
   if (transform.types) {
     // In Phase 1, data types are inferred at import time.
@@ -279,6 +332,13 @@ function describeTransform(transform, rightName = null) {
   if (transform.rename) {
     const count = Object.keys(transform.rename).length;
     return `Rename: ${count} column${count !== 1 ? 's' : ''}`;
+  }
+
+  if (transform.aggregate) {
+    const { groupby, rollup } = transform.aggregate;
+    const groups = groupby && groupby.length > 0 ? groupby.join(', ') : 'All rows';
+    const aggs = Object.keys(rollup).length;
+    return `Aggregate: by [${groups}], ${aggs} summar${aggs !== 1 ? 'y' : 'ies'}`;
   }
 
   if (transform.remove) {

@@ -227,7 +227,7 @@ Inspired by Vega-Lite. Each transform is one object in an array.
 | **Rename** | `{ "rename": { "old": "new" } }` | ✅ Rename columns |
 | **Sort** | `{ "sort": { "field": "col", "order": "ascending" } }` | ✅ Single field |
 | **Derive** | `{ "derive": { "newCol": "expression" } }` | ✅ Add calculated column |
-| **Aggregate** | `{ "groupby": ["col"], "rollup": { "mean": "op.mean(col)" } }` | ⏳ High Priority (Next Step) |
+| **Aggregate** | `{ "aggregate": { "groupby": ["col"], "rollup": { "mean": "op.mean(col)" } } }` | ✅ Implemented (Phase 1) |
 | **Fill missing** | `{ "impute": { "col": "value" } }` | ⏳ High Priority |
 | **Deduplicate** | `{ "dedupe": ["col1", "col2"] }` | ⏳ High Priority |
 | **Pivot** | `{ "pivot": ... }` | ⏳ Pending (Phase 1.5) |

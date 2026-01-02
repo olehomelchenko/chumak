@@ -57,7 +57,17 @@ function chumakApp() {
         selectPatternMatchType: 'prefix',  // 'prefix', 'suffix', or 'exact'
         selectPatternMode: 'include',  // 'include' or 'exclude'
         filterExpression: '',
+        filterExpression: '',
         filterError: null,
+
+        // Aggregate dialog state
+        aggregateDialogState: {
+            groupBy: [],            // Array of selected column names
+            aggregations: [],       // Array of { output, func, col }
+            previewData: null,
+            previewError: null,
+            isPreviewing: false
+        },
 
         // Join dialog state
         joinDialogState: {
@@ -206,6 +216,14 @@ function chumakApp() {
                 this.renameDialogState = { renames };
             } else if (dialogName === 'remove') {
                 this.removedColumns = this.columns.map(() => false);
+            } else if (dialogName === 'aggregate') {
+                this.aggregateDialogState = {
+                    groupBy: [],
+                    aggregations: [{ output: 'count', func: 'count', col: '' }],
+                    previewData: null,
+                    previewError: null,
+                    isPreviewing: false
+                };
             }
 
             this.clearColumnSelection();
@@ -213,6 +231,14 @@ function chumakApp() {
 
         closeDialog() {
             this.activeDialog = null;
+            // Reset aggregate state
+            this.aggregateDialogState = {
+                groupBy: [],
+                aggregations: [],
+                previewData: null,
+                previewError: null,
+                isPreviewing: false
+            };
             // Reset import dialog state to defaults
             this.importDialogState = {
                 fileName: '',
@@ -1202,6 +1228,104 @@ function chumakApp() {
             } catch (error) {
                 console.error('Remove transform error:', error);
                 alert('Error applying remove: ' + error.message);
+            }
+        },
+
+        // Aggregate Dialog Methods
+        addAggregation() {
+            this.aggregateDialogState.aggregations.push({ output: '', func: 'mean', col: '' });
+        },
+
+        removeAggregation(index) {
+            this.aggregateDialogState.aggregations.splice(index, 1);
+        },
+
+        updateAggregateOutputName(index) {
+            const agg = this.aggregateDialogState.aggregations[index];
+            if (agg.func === 'count') {
+                agg.output = 'count';
+            } else if (agg.col) {
+                agg.output = `${agg.func}_${agg.col}`;
+            }
+        },
+
+        constructAggregateStep() {
+            const { groupBy, aggregations } = this.aggregateDialogState;
+
+            // Validate
+            if (aggregations.length === 0) {
+                throw new Error("At least one aggregation is required.");
+            }
+
+            const rollup = {};
+            aggregations.forEach(agg => {
+                if (!agg.output) throw new Error("All aggregations must have an output name.");
+                if (agg.output.trim() === '') throw new Error("Output name cannot be empty.");
+
+                if (agg.func === 'count') {
+                    rollup[agg.output] = "op.count()";
+                } else if (agg.func === 'distinct') {
+                    if (!agg.col) throw new Error(`Column required for ${agg.func}`);
+                    rollup[agg.output] = `op.distinct('${agg.col}')`;
+                } else {
+                    if (!agg.col) throw new Error(`Column required for ${agg.func}`);
+                    rollup[agg.output] = `op.${agg.func}('${agg.col}')`;
+                }
+            });
+
+            return {
+                aggregate: {
+                    groupby: groupBy,
+                    rollup: rollup
+                }
+            };
+        },
+
+        async previewAggregate() {
+            this.aggregateDialogState.isPreviewing = true;
+            this.aggregateDialogState.previewError = null;
+            this.aggregateDialogState.previewData = null;
+
+            try {
+                const step = this.constructAggregateStep();
+
+                // Use current data
+                const table = aq.from(this.currentData);
+
+                // Apply transform reuse logic
+                const resultTable = applyTransform(table, step, this.columns);
+
+                // Get preview (first 100 rows)
+                const previewRows = resultTable.slice(0, 100).objects();
+                const previewCols = resultTable.columnNames();
+
+                this.aggregateDialogState.previewData = {
+                    rows: previewRows,
+                    columns: previewCols,
+                    totalRows: resultTable.numRows()
+                };
+
+            } catch (error) {
+                this.aggregateDialogState.previewError = error.message;
+            } finally {
+                this.aggregateDialogState.isPreviewing = false;
+            }
+        },
+
+        async applyAggregateTransform() {
+            try {
+                const step = this.constructAggregateStep();
+                // For aggregate, result relies on logic in previewAggregate essentially
+                // We'll let applyStepResult handle the final computation and storage
+                // But applyStepResult expects us to calculate the result first usually?
+                // Actually applyStepResult takes (transform, resultTable).
+
+                const table = aq.from(this.currentData);
+                const result = applyTransform(table, step, this.columns);
+
+                await this.applyStepResult(step, result);
+            } catch (error) {
+                alert(error.message);
             }
         },
 

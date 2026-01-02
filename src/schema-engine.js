@@ -155,6 +155,52 @@ const SchemaEngine = {
             });
         }
 
+        // 7. AGGREGATE: New schema based on groups + rollups
+        if (transform.aggregate) {
+            const { groupby, rollup } = transform.aggregate;
+            const newSchema = [];
+            let pos = 0;
+
+            // Add GroupBy columns
+            if (groupby) {
+                groupby.forEach(colName => {
+                    const existing = currentSchema.find(c => c.name === colName);
+                    newSchema.push(existing ? { ...existing, originalPosition: pos++ } : { name: colName, type: 'string', originalPosition: pos++ });
+                });
+            }
+
+            // Add Rollup columns
+            if (rollup) {
+                for (const [outName, expr] of Object.entries(rollup)) {
+                    // Infer type from function
+                    let type = 'float'; // Default to numeric
+                    const match = typeof expr === 'string' ? expr.match(/^op\.(\w+)\(/) : null;
+                    const funcName = match ? match[1] : 'unknown';
+
+                    if (['count', 'distinct', 'valid', 'invalid'].includes(funcName)) {
+                        type = 'integer';
+                    } else if (['first', 'last', 'min', 'max'].includes(funcName)) {
+                        // Inherit type from input column if possible
+                        // Parse col from expr: op.min('col')
+                        const colMatch = typeof expr === 'string' ? expr.match(/\(['"]?([^'"]+)['"]?\)/) : null;
+                        if (colMatch) {
+                            const inCol = colMatch[1];
+                            const existing = currentSchema.find(c => c.name === inCol);
+                            if (existing) type = existing.type;
+                        }
+                    }
+
+                    newSchema.push({
+                        name: outName,
+                        type: type,
+                        format: {},
+                        originalPosition: pos++
+                    });
+                }
+            }
+            return newSchema;
+        }
+
         // Filters, Sorts, etc. don't change the schema
         return currentSchema.map(c => ({ ...c }));
     }

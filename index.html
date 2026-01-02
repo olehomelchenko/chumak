@@ -180,7 +180,7 @@
 
       <!-- Reduce Tab -->
       <div class="ribbon__panel" x-show="ribbonTab === 'reduce'">
-        <button class="ribbon__button ribbon__button--disabled" disabled title="Group and aggregate data (Coming soon)">
+        <button class="ribbon__button" @click="openDialog('aggregate')" title="Group and aggregate data">
           <i data-feather="layers"></i>
           <span>Aggregate</span>
         </button>
@@ -1422,117 +1422,252 @@
     </div>
   </div>
 
-  <!-- Column Toolbar -->
-  <div x-show="selectedColumn" class="column-toolbar"
-    :style="`left: ${columnToolbarPos.x}px; top: ${columnToolbarPos.y}px; --arrow-offset: ${columnToolbarPos.arrowOffset}px;`"
-    @click.away="selectedColumn = null" @click.stop>
-    <button class="column-toolbar__button" @click="quickSort('asc')" title="Sort Ascending">
-      <i data-feather="arrow-up"></i>
-    </button>
-    <button class="column-toolbar__button" @click="quickSort('desc')" title="Sort Descending">
-      <i data-feather="arrow-down"></i>
-    </button>
-    <div style="width: 1px; background: var(--color-medium-gray); margin: 4px 2px;"></div>
-    <button class="column-toolbar__button" @click="quickFilter()" title="Filter by this column">
-      <i data-feather="filter"></i>
-    </button>
-    <button class="column-toolbar__button" @click="quickRename()" title="Rename this column">
-      <i data-feather="edit-2"></i>
-    </button>
-    <button class="column-toolbar__button" @click="quickRemove()" title="Remove this column"
-      style="color: var(--color-dark-red);">
-      <i data-feather="trash-2"></i>
-    </button>
-  </div>
+  <!-- Aggregate Dialog (Slide-in Panel) -->
+  <div x-show="activeDialog === 'aggregate'" x-cloak>
+    <!-- Backdrop -->
+    <div class="slide-panel-backdrop" @click="closeDialog()"></div>
 
-  <!-- Cell Toolbar -->
-  <div x-show="selectedCell" class="cell-toolbar"
-    :style="`left: ${cellToolbarPos.x}px; top: ${cellToolbarPos.y}px; --arrow-offset: ${cellToolbarPos.arrowOffset}px;`"
-    @click.away="selectedCell = null" @click.stop x-cloak>
-    <button class="cell-toolbar__button" @click="applyQuickCellFilter('exact')" x-show="!selectedCell?.isEda"
-      :title="['number', 'integer', 'float'].includes(selectedCell?.type) ? 'Keep only this value (=)' : 'Keep only this value'">
-      <i data-feather="filter"></i>
-      <span x-show="['number', 'integer', 'float'].includes(selectedCell?.type)"
-        style="font-size: 10px; margin-left: 2px; font-weight: bold;">=</span>
-    </button>
-
-    <button class="cell-toolbar__button" @click="applyQuickCellFilter('not')" x-show="!selectedCell?.isEda"
-      :title="['number', 'integer', 'float'].includes(selectedCell?.type) ? 'Exclude this value (&ne;)' : 'Exclude this value'"
-      style="color: var(--color-dark-red);">
-      <i data-feather="filter"></i>
-      <span style="font-size: 10px; margin-left: 2px; font-weight: bold;">&ne;</span>
-    </button>
-
-    <template x-if="['number', 'integer', 'float'].includes(selectedCell?.type)">
-      <div style="display: flex; gap: 2px;">
-        <div x-show="!selectedCell?.isEda" style="width: 1px; background: var(--color-medium-gray); margin: 4px 2px;">
-        </div>
-        <button class="cell-toolbar__button" @click="applyQuickCellFilter('gt')" title="Keep values greater than (>)">
-          <span style="font-size: 14px; font-weight: bold; font-family: var(--font-family-mono);">&gt;</span>
-        </button>
-        <button class="cell-toolbar__button" @click="applyQuickCellFilter('gte')"
-          title="Keep values greater than or equal (&ge;)">
-          <span style="font-size: 14px; font-weight: bold; font-family: var(--font-family-mono);">&ge;</span>
-        </button>
-        <button class="cell-toolbar__button" @click="applyQuickCellFilter('lt')" title="Keep values less than (<)">
-          <span style="font-size: 14px; font-weight: bold; font-family: var(--font-family-mono);">&lt;</span>
-        </button>
-        <button class="cell-toolbar__button" @click="applyQuickCellFilter('lte')"
-          title="Keep values less than or equal (&le;)">
-          <span style="font-size: 14px; font-weight: bold; font-family: var(--font-family-mono);">&le;</span>
-        </button>
+    <!-- Slide-in Panel -->
+    <div class="slide-panel" @click.stop>
+      <div class="slide-panel__header">
+        <h2 class="slide-panel__title">Aggregate Data</h2>
+        <button class="slide-panel__close" @click="closeDialog()" title="Close">×</button>
       </div>
-    </template>
-  </div>
 
-  <script>
-    // Initialize Feather icons after page load
-    document.addEventListener('DOMContentLoaded', () => {
-      feather.replace();
-    });
+      <div class="slide-panel__content">
+        <!-- Group By Section -->
+        <div class="form-group">
+          <label class="form-label">Group By (Columns)</label>
+          <div
+            style="max-height: 150px; overflow-y: auto; border: 1px solid var(--color-medium-gray); padding: 0.5rem; border-radius: 4px;">
+            <template x-for="col in columns" :key="col">
+              <label class="checkbox-item">
+                <input type="checkbox" :value="col" x-model="aggregateDialogState.groupBy">
+                <span x-text="col"></span>
+              </label>
+            </template>
+            <div x-show="columns.length === 0" style="color: #888; font-size: 0.8rem;">No columns available</div>
+          </div>
+          <div class="form-help">Selected columns will define the grouping keys.</div>
+        </div>
 
-    // Re-render icons when Alpine updates
-    document.addEventListener('alpine:initialized', () => {
-      // Re-replace icons when dynamic content might have been added
-      // We also do it on specific Alpine events if needed
-      Alpine.effect(() => {
-        // This runs whenever any tracked Alpine state changes
-        // but we only want to trigger it when the toolbar becomes visible
-        // so we'll do it more specifically in the next step if needed
-        setTimeout(() => feather.replace(), 0);
-      });
-    });
-  </script>
+        <!-- Aggregations Section -->
+        <div class="form-group">
+          <label class="form-label">Summarize / Rollup</label>
 
-  <!-- Floating Type Menu -->
-  <div class="type-menu" x-show="typeMenuOpen" x-cloak :style="`top: ${typeMenuPos.y}px; left: ${typeMenuPos.x}px`"
-    @click.away="typeMenuOpen = false">
-    <div style="padding: 4px 8px; font-size: 11px; color: #888; text-transform: uppercase;">
-      Change Type
+          <div style="margin-bottom: 0.5rem;">
+            <template x-for="(agg, index) in aggregateDialogState.aggregations" :key="index">
+              <div
+                style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem; align-items: center; background: #f8f9fa; padding: 4px; border-radius: 4px;">
+                <!-- Function -->
+                <select class="form-input" style="width: 100px;" x-model="agg.func"
+                  @change="updateAggregateOutputName(index)">
+                  <option value="count">Count</option>
+                  <option value="sum">Sum</option>
+                  <option value="mean">Mean</option>
+                  <option value="median">Median</option>
+                  <option value="min">Min</option>
+                  <option value="max">Max</option>
+                  <option value="distinct">Distinct</option>
+                  <option value="stdev">StDev</option>
+                  <option value="first">First</option>
+                  <option value="last">Last</option>
+                </select>
+
+                <!-- Column (hidden for count if desired, but count usually takes one or is generic) -->
+                <!-- For count(), we usually don't need a column in SQL (count(*)), but Arquero's op.count() is argument-less. -->
+                <!-- However valid() needs a col. Let's show column unless func is 'count'. -->
+                <select class="form-input" style="flex: 1;" x-model="agg.col" @change="updateAggregateOutputName(index)"
+                  :disabled="agg.func === 'count'">
+                  <option value="" x-text="agg.func === 'count' ? '(All rows)' : 'Select column...'"></option>
+                  <template x-for="col in columns" :key="col">
+                    <option :value="col" x-text="col"></option>
+                  </template>
+                </select>
+
+                <span>&rarr;</span>
+
+                <!-- Output Name -->
+                <input type="text" class="form-input" style="flex: 1;" x-model="agg.output" placeholder="New Name">
+
+                <button class="button button--secondary button--small" @click="removeAggregation(index)"
+                  :disabled="aggregateDialogState.aggregations.length === 1 && false" title="Remove">×</button>
+              </div>
+            </template>
+          </div>
+
+          <button class="button button--secondary button--small" @click="addAggregation()">
+            + Add Aggregation
+          </button>
+        </div>
+
+        <!-- Preview Button and Results -->
+        <div class="form-group" style="margin-top: 2rem;">
+          <button class="button button--secondary" @click="previewAggregate()"
+            :disabled="aggregateDialogState.isPreviewing">
+            <span x-show="!aggregateDialogState.isPreviewing">Preview Result</span>
+            <span x-show="aggregateDialogState.isPreviewing">Previewing...</span>
+          </button>
+        </div>
+
+        <!-- Preview Error -->
+        <div x-show="aggregateDialogState.previewError" class="error-message" style="margin-bottom: 1rem;">
+          <strong>Preview Error:</strong>
+          <div x-text="aggregateDialogState.previewError"></div>
+        </div>
+
+        <!-- Preview Results -->
+        <div x-show="aggregateDialogState.previewData" class="form-group">
+          <div style="padding: 1rem; background: var(--color-light-gray); border-radius: 4px; margin-bottom: 1rem;">
+            <strong>Preview Result:</strong>
+            <div
+              x-text="`${aggregateDialogState.previewData?.totalRows || 0} rows, ${aggregateDialogState.previewData?.columns?.length || 0} columns`">
+            </div>
+          </div>
+
+          <!-- Preview Table (scrollable) -->
+          <div
+            style="max-height: 250px; overflow: auto; border: 1px solid var(--color-medium-gray); border-radius: 4px;">
+            <table class="data-table" style="font-size: 0.75rem;">
+              <thead>
+                <tr>
+                  <template x-for="col in aggregateDialogState.previewData?.columns" :key="col">
+                    <th class="data-table__header" x-text="col"></th>
+                  </template>
+                </tr>
+              </thead>
+              <tbody>
+                <template x-for="(row, idx) in aggregateDialogState.previewData?.rows" :key="idx">
+                  <tr>
+                    <template x-for="col in aggregateDialogState.previewData?.columns" :key="col">
+                      <td class="data-table__cell" x-text="row[col]"></td>
+                    </template>
+                  </tr>
+                </template>
+              </tbody>
+            </table>
+          </div>
+        </div>
+
+      </div>
+
+      <div class="slide-panel__footer">
+        <button class="button button--secondary" @click="closeDialog()">Cancel</button>
+        <button class="button button--primary" @click="applyAggregateTransform()">Apply</button>
+      </div>
     </div>
-    <button class="type-menu__item" @click="changeColumnType(typeMenuCol, 'string')">
-      <span class="type-badge type-badge--string">string</span> String
-    </button>
-    <button class="type-menu__item" @click="changeColumnType(typeMenuCol, 'integer')">
-      <span class="type-badge type-badge--integer">integer</span> Integer
-    </button>
-    <button class="type-menu__item" @click="changeColumnType(typeMenuCol, 'float')">
-      <span class="type-badge type-badge--float">float</span> Float
-    </button>
-    <button class="type-menu__item" @click="changeColumnType(typeMenuCol, 'boolean')">
-      <span class="type-badge type-badge--boolean">boolean</span> Boolean
-    </button>
-    <button class="type-menu__item" @click="changeColumnType(typeMenuCol, 'date')">
-      <span class="type-badge type-badge--date">date</span> Date
-    </button>
-    <button class="type-menu__item" @click="changeColumnType(typeMenuCol, 'datetime')">
-      <span class="type-badge type-badge--datetime">datetime</span> DateTime
-    </button>
-    <div style="width: 100%; height: 1px; background: var(--color-medium-gray); margin: 4px 0;"></div>
-    <button class="type-menu__item" @click="changeColumnType(typeMenuCol, 'auto')">
-      <i data-feather="zap" style="width: 14px; height: 14px; margin-right: 4px;"></i> Auto-Detect
-    </button>
-  </div>
+
+    <!-- Column Toolbar -->
+    <div x-show="selectedColumn" class="column-toolbar"
+      :style="`left: ${columnToolbarPos.x}px; top: ${columnToolbarPos.y}px; --arrow-offset: ${columnToolbarPos.arrowOffset}px;`"
+      @click.away="selectedColumn = null" @click.stop>
+      <button class="column-toolbar__button" @click="quickSort('asc')" title="Sort Ascending">
+        <i data-feather="arrow-up"></i>
+      </button>
+      <button class="column-toolbar__button" @click="quickSort('desc')" title="Sort Descending">
+        <i data-feather="arrow-down"></i>
+      </button>
+      <div style="width: 1px; background: var(--color-medium-gray); margin: 4px 2px;"></div>
+      <button class="column-toolbar__button" @click="quickFilter()" title="Filter by this column">
+        <i data-feather="filter"></i>
+      </button>
+      <button class="column-toolbar__button" @click="quickRename()" title="Rename this column">
+        <i data-feather="edit-2"></i>
+      </button>
+      <button class="column-toolbar__button" @click="quickRemove()" title="Remove this column"
+        style="color: var(--color-dark-red);">
+        <i data-feather="trash-2"></i>
+      </button>
+    </div>
+
+    <!-- Cell Toolbar -->
+    <div x-show="selectedCell" class="cell-toolbar"
+      :style="`left: ${cellToolbarPos.x}px; top: ${cellToolbarPos.y}px; --arrow-offset: ${cellToolbarPos.arrowOffset}px;`"
+      @click.away="selectedCell = null" @click.stop x-cloak>
+      <button class="cell-toolbar__button" @click="applyQuickCellFilter('exact')" x-show="!selectedCell?.isEda"
+        :title="['number', 'integer', 'float'].includes(selectedCell?.type) ? 'Keep only this value (=)' : 'Keep only this value'">
+        <i data-feather="filter"></i>
+        <span x-show="['number', 'integer', 'float'].includes(selectedCell?.type)"
+          style="font-size: 10px; margin-left: 2px; font-weight: bold;">=</span>
+      </button>
+
+      <button class="cell-toolbar__button" @click="applyQuickCellFilter('not')" x-show="!selectedCell?.isEda"
+        :title="['number', 'integer', 'float'].includes(selectedCell?.type) ? 'Exclude this value (&ne;)' : 'Exclude this value'"
+        style="color: var(--color-dark-red);">
+        <i data-feather="filter"></i>
+        <span style="font-size: 10px; margin-left: 2px; font-weight: bold;">&ne;</span>
+      </button>
+
+      <template x-if="['number', 'integer', 'float'].includes(selectedCell?.type)">
+        <div style="display: flex; gap: 2px;">
+          <div x-show="!selectedCell?.isEda" style="width: 1px; background: var(--color-medium-gray); margin: 4px 2px;">
+          </div>
+          <button class="cell-toolbar__button" @click="applyQuickCellFilter('gt')" title="Keep values greater than (>)">
+            <span style="font-size: 14px; font-weight: bold; font-family: var(--font-family-mono);">&gt;</span>
+          </button>
+          <button class="cell-toolbar__button" @click="applyQuickCellFilter('gte')"
+            title="Keep values greater than or equal (&ge;)">
+            <span style="font-size: 14px; font-weight: bold; font-family: var(--font-family-mono);">&ge;</span>
+          </button>
+          <button class="cell-toolbar__button" @click="applyQuickCellFilter('lt')" title="Keep values less than (<)">
+            <span style="font-size: 14px; font-weight: bold; font-family: var(--font-family-mono);">&lt;</span>
+          </button>
+          <button class="cell-toolbar__button" @click="applyQuickCellFilter('lte')"
+            title="Keep values less than or equal (&le;)">
+            <span style="font-size: 14px; font-weight: bold; font-family: var(--font-family-mono);">&le;</span>
+          </button>
+        </div>
+      </template>
+    </div>
+
+    <script>
+      // Initialize Feather icons after page load
+      document.addEventListener('DOMContentLoaded', () => {
+        feather.replace();
+      });
+
+      // Re-render icons when Alpine updates
+      document.addEventListener('alpine:initialized', () => {
+        // Re-replace icons when dynamic content might have been added
+        // We also do it on specific Alpine events if needed
+        Alpine.effect(() => {
+          // This runs whenever any tracked Alpine state changes
+          // but we only want to trigger it when the toolbar becomes visible
+          // so we'll do it more specifically in the next step if needed
+          setTimeout(() => feather.replace(), 0);
+        });
+      });
+    </script>
+
+    <!-- Floating Type Menu -->
+    <div class="type-menu" x-show="typeMenuOpen" x-cloak :style="`top: ${typeMenuPos.y}px; left: ${typeMenuPos.x}px`"
+      @click.away="typeMenuOpen = false">
+      <div style="padding: 4px 8px; font-size: 11px; color: #888; text-transform: uppercase;">
+        Change Type
+      </div>
+      <button class="type-menu__item" @click="changeColumnType(typeMenuCol, 'string')">
+        <span class="type-badge type-badge--string">string</span> String
+      </button>
+      <button class="type-menu__item" @click="changeColumnType(typeMenuCol, 'integer')">
+        <span class="type-badge type-badge--integer">integer</span> Integer
+      </button>
+      <button class="type-menu__item" @click="changeColumnType(typeMenuCol, 'float')">
+        <span class="type-badge type-badge--float">float</span> Float
+      </button>
+      <button class="type-menu__item" @click="changeColumnType(typeMenuCol, 'boolean')">
+        <span class="type-badge type-badge--boolean">boolean</span> Boolean
+      </button>
+      <button class="type-menu__item" @click="changeColumnType(typeMenuCol, 'date')">
+        <span class="type-badge type-badge--date">date</span> Date
+      </button>
+      <button class="type-menu__item" @click="changeColumnType(typeMenuCol, 'datetime')">
+        <span class="type-badge type-badge--datetime">datetime</span> DateTime
+      </button>
+      <div style="width: 100%; height: 1px; background: var(--color-medium-gray); margin: 4px 0;"></div>
+      <button class="type-menu__item" @click="changeColumnType(typeMenuCol, 'auto')">
+        <i data-feather="zap" style="width: 14px; height: 14px; margin-right: 4px;"></i> Auto-Detect
+      </button>
+    </div>
 
 </body>
 
