@@ -17,6 +17,11 @@ function chumakApp() {
         edaChartView: 'boxplot',      // 'boxplot' or 'histogram'
         edaBrushSelection: null,      // { min, max } for histogram brush selection
 
+        // Type Menu State
+        typeMenuOpen: false,
+        typeMenuPos: { x: 0, y: 0 },
+        typeMenuCol: null,
+
         // Pagination state
         currentPage: 1,
         pageSize: 500,  // Default, will be loaded from UX settings
@@ -283,6 +288,63 @@ function chumakApp() {
                 this.edaStats = null;
                 this.edaBrushSelection = null;
             }
+        },
+        // Interaction handling
+        handleBodyClick(event) {
+            // Close column toolbar if clicking outside
+            if (this.selectedColumn && !event.target.closest('.data-table__header') && !event.target.closest('.column-toolbar') && !event.target.closest('.modal')) {
+                this.selectedColumn = null;
+            }
+
+            if (this.typeMenuOpen && !event.target.closest('.type-menu') && !event.target.closest('.type-indicator')) {
+                this.typeMenuOpen = false;
+                this.typeMenuCol = null;
+            }
+        },
+
+        openTypeMenu(col, event) {
+            this.typeMenuCol = col;
+            this.typeMenuOpen = true;
+            this.selectedColumn = null; // Close other toolbars
+
+            const rect = event.target.getBoundingClientRect();
+            this.typeMenuPos = {
+                x: rect.left,
+                y: rect.bottom + 4
+            };
+        },
+
+        async changeColumnType(col, newType) {
+            this.typeMenuOpen = false;
+
+            let typeToSet = newType;
+            // Handle single-column auto-detection
+            if (newType === 'auto') {
+                const sample = this.currentData.slice(0, 50).map(row => row[col]);
+                typeToSet = SchemaEngine.inferType(sample);
+            }
+
+            // Create a new step intended to update the type of this column
+            const typeStep = {
+                types: {
+                    [col]: typeToSet
+                }
+            };
+
+            await this.applyStepResult(typeStep, this.currentData); // Pass-through data, metadata update
+        },
+
+        async autoDetectSchema() {
+            if (!this.currentData || !this.columns) return;
+
+            const types = {};
+            this.columns.forEach(col => {
+                const sample = this.currentData.slice(0, 50).map(row => row[col]);
+                types[col] = SchemaEngine.inferType(sample);
+            });
+
+            const typeStep = { types };
+            await this.applyStepResult(typeStep, this.currentData);
         },
 
         updateToolbarPosition() {
@@ -885,11 +947,13 @@ function chumakApp() {
             this.activeModel.steps.push(transform);
 
             // Update current data and schema
-            const transformedData = resultTable.objects();
+            // Check if resultTable is an Arquero table or a plain array (for pass-through types transform)
+            const transformedData = (Array.isArray(resultTable)) ? resultTable : resultTable.objects();
             this.currentData = transformedData;
 
             // Propagation: Calculate next schema
-            const sampleData = resultTable.slice(0, 20).objects();
+            const sampleData = (Array.isArray(resultTable)) ? resultTable.slice(0, 20) : resultTable.slice(0, 20).objects();
+
             this.activeModel.schema = SchemaEngine.deriveNextSchema(this.activeModel.schema, transform, sampleData);
             this.columns = this.activeModel.schema.map(c => c.name);
 

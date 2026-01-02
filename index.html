@@ -32,7 +32,8 @@
   <script src="https://unpkg.com/alpinejs@3/dist/cdn.min.js" defer></script>
 </head>
 
-<body x-data="chumakApp()" @paste.window="handlePaste($event)">
+<body x-data="chumakApp()" @paste.window="handlePaste($event)" @click="handleBodyClick($event)">
+
 
   <!-- Header with Ribbon Tabs -->
   <header class="header">
@@ -141,6 +142,12 @@
           <i data-feather="search"></i>
           <span>Replace</span>
         </button>
+        <div class="ribbon__divider"></div>
+        <button class="ribbon__button" @click="autoDetectSchema()" title="Re-run type detection for all columns">
+          <i data-feather="refresh-cw"></i>
+          <span>Auto-Detect</span>
+        </button>
+
         <button class="ribbon__button" @click="openDialog('select')" title="Select columns to keep">
           <i data-feather="columns"></i>
           <span>Select</span>
@@ -612,7 +619,8 @@
             <template x-for="(column, index) in columns" :key="index">
               <th class="data-table__header" :class="{ 'data-table__header--selected': selectedColumn === column }"
                 :data-col="column" @click.stop="selectColumn(column, $event)" :title="`Column: ${column}`">
-                <span class="type-indicator" x-text="getTypeIndicator(column)"></span>
+                <span class="type-indicator" x-text="getTypeIndicator(column)"
+                  @click.stop="openTypeMenu(column, $event)" title="Click to change type"></span>
                 <span x-text="column"></span>
               </th>
             </template>
@@ -1495,6 +1503,36 @@
       });
     });
   </script>
+
+  <!-- Floating Type Menu -->
+  <div class="type-menu" x-show="typeMenuOpen" x-cloak :style="`top: ${typeMenuPos.y}px; left: ${typeMenuPos.x}px`"
+    @click.away="typeMenuOpen = false">
+    <div style="padding: 4px 8px; font-size: 11px; color: #888; text-transform: uppercase;">
+      Change Type
+    </div>
+    <button class="type-menu__item" @click="changeColumnType(typeMenuCol, 'string')">
+      <span class="type-badge type-badge--string">string</span> String
+    </button>
+    <button class="type-menu__item" @click="changeColumnType(typeMenuCol, 'integer')">
+      <span class="type-badge type-badge--integer">integer</span> Integer
+    </button>
+    <button class="type-menu__item" @click="changeColumnType(typeMenuCol, 'float')">
+      <span class="type-badge type-badge--float">float</span> Float
+    </button>
+    <button class="type-menu__item" @click="changeColumnType(typeMenuCol, 'boolean')">
+      <span class="type-badge type-badge--boolean">boolean</span> Boolean
+    </button>
+    <button class="type-menu__item" @click="changeColumnType(typeMenuCol, 'date')">
+      <span class="type-badge type-badge--date">date</span> Date
+    </button>
+    <button class="type-menu__item" @click="changeColumnType(typeMenuCol, 'datetime')">
+      <span class="type-badge type-badge--datetime">datetime</span> DateTime
+    </button>
+    <div style="width: 100%; height: 1px; background: var(--color-medium-gray); margin: 4px 0;"></div>
+    <button class="type-menu__item" @click="changeColumnType(typeMenuCol, 'auto')">
+      <i data-feather="zap" style="width: 14px; height: 14px; margin-right: 4px;"></i> Auto-Detect
+    </button>
+  </div>
 
 </body>
 
