@@ -227,10 +227,11 @@ Inspired by Vega-Lite. Each transform is one object in an array.
 | **Rename** | `{ "rename": { "old": "new" } }` | ✅ Rename columns |
 | **Sort** | `{ "sort": { "field": "col", "order": "ascending" } }` | ✅ Single field |
 | **Derive** | `{ "derive": { "newCol": "expression" } }` | ✅ Add calculated column |
-| **Fill missing** | `{ "fillna": { "col": value } }` | ⏳ Replace nulls/empty |
-| **Drop missing** | `{ "dropna": { "columns": ["col"] } }` | ⏳ Remove rows with nulls |
-| **Find/replace** | `{ "replace": { "column": "col", "find": "x", "replace": "y" } }` | ⏳ Text replacement |
-| **Group + Aggregate** | See below | ⏳ Basic aggregation |
+| **Aggregate** | `{ "groupby": ["col"], "rollup": { "mean": "op.mean(col)" } }` | ⏳ High Priority (Next Step) |
+| **Fill missing** | `{ "impute": { "col": "value" } }` | ⏳ High Priority |
+| **Deduplicate** | `{ "dedupe": ["col1", "col2"] }` | ⏳ High Priority |
+| **Pivot** | `{ "pivot": ... }` | ⏳ Pending (Phase 1.5) |
+| **Fold (Unpivot)** | `{ "fold": ... }` | ⏳ Pending (Phase 1.5) |
 
 #### Group + Aggregate (Phase 1 — Single Output)
 
@@ -482,6 +483,7 @@ Option: embed source data (for full reproducibility) vs. reference only (smaller
 | **Persistence** | ✅ IndexedDB auto-save & URL state persistence |
 | **Export** | ✅ CSV, workflow JSON |
 | **Testing** | ✅ Comprehensive test infrastructure (Mocha + Chai) |
+| **Visualization** | ✅ EDA Charts (Boxplot, Histogram, Categorical Bar) - *Added* |
 
 **Priorities:** Remaining transforms → Enhanced parser → Predicate builder (optional)
 
@@ -520,7 +522,6 @@ The following are **out of scope** for the foreseeable future:
 - User accounts or authentication
 - Server-side processing
 - Real-time collaboration
-- Charts or visualization (may reconsider later)
 - Python/R/SQL code export
 - Mobile-optimized UI
 - Support for Excel files (.xlsx)
