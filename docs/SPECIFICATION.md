@@ -22,13 +22,15 @@ Chumak is a browser-based data wrangling tool for cleaning and transforming tabu
 | **Reproducibility**           | Workflows can be exported, shared, and replayed.    |
 | **Incremental complexity**    | UI reveals features as users need them.             |
 
-### 1.4 Current Status
+### 1.4 Project Status
 
-**Phase 0: ✅ Complete** → **Phase 1: In Progress**
+**Core Features**: Fully functional data wrangling application with comprehensive transform capabilities, schema management, exploratory analysis, and visualization.
 
-Significant progress made on core transforms, Joins (Phase 1.5), and URL-based state persistence.
+**Production Ready**: Automated testing, browser state persistence, CSV import/export, workflow JSON export/import.
 
-See [CLAUDE.md](../CLAUDE.md) for detailed current status and session context.
+**Next Development Focus**: Reshape operations (pivot/fold), data cleaning (dedupe/impute), expression functions (string/date/math).
+
+See [ROADMAP](#8-roadmap) for planned enhancements and [CLAUDE.md](../CLAUDE.md) for technical context.
 
 ---
 
@@ -48,7 +50,7 @@ See [CLAUDE.md](../CLAUDE.md) for detailed current status and session context.
 
 ---
 
-## 3. Technical Constraints
+## 3. Technical Architecture
 
 ### 3.1 Runtime Environment
 
@@ -67,6 +69,9 @@ See [CLAUDE.md](../CLAUDE.md) for detailed current status and session context.
 <script src="https://unpkg.com/arquero@5/dist/arquero.min.js"></script>
 <script src="https://unpkg.com/jsep@1/dist/jsep.min.js"></script>
 <script src="https://unpkg.com/alpinejs@3/dist/cdn.min.js" defer></script>
+<script src="https://cdn.jsdelivr.net/npm/vega@5"></script>
+<script src="https://cdn.jsdelivr.net/npm/vega-lite@5"></script>
+<script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
 ```
 
 | Library       | Purpose                    | Size   |
@@ -75,6 +80,7 @@ See [CLAUDE.md](../CLAUDE.md) for detailed current status and session context.
 | **Arquero**   | Data transformation engine | ~200KB |
 | **jsep**      | Expression parser          | ~10KB  |
 | **Alpine.js** | Reactive UI framework      | ~40KB  |
+| **Vega-Lite** | Chart visualization        | ~200KB |
 
 ### 3.3 Storage
 
@@ -115,7 +121,7 @@ See [CLAUDE.md](../CLAUDE.md) for detailed current status and session context.
 └─────────────────────────────────────────────────────────┘
 ```
 
-### 4.2 Entities
+### 4.2 Core Entities
 
 #### Source
 
@@ -170,7 +176,6 @@ interface Model {
 }
 
 // Note: Intermediate results computed on-demand when viewing steps
-// Original design included stepSnapshots for caching, deferred to Phase 2
 ```
 
 #### Workflow
@@ -194,85 +199,72 @@ interface Workflow {
 
 Inspired by Vega-Lite. Each transform is one object in an array.
 
-**Dual-mode expressions**: Filter transforms accept either structured predicates (primary) or expression strings (advanced). See Section 11 and PARSER-DESIGN-DECISION.md for details.
+**Dual-mode expressions**: Filter transforms accept either structured predicates (planned) or expression strings (current). See Section 10 and [PARSER-DESIGN-DECISION.md](PARSER-DESIGN-DECISION.md) for details.
 
 ```json
 {
   "transforms": [
-    // Option 1: Structured predicate (GUI-friendly) - Planned
-    // { "filter": { "field": "sales", "gt": 1000 } },
-
-    // Option 2: Expression string (currently supported)
+    // Filter (expression string - currently supported)
     { "filter": "sales > 1000 && region == 'North'" },
 
-    // Derive always uses expression strings
+    // Derive (expression string)
     { "derive": { "profit": "revenue - cost" } },
 
     // Other transforms
     { "select": ["region", "sales", "profit"] },
-    { "sort": { "field": "profit", "order": "descending" } }
+    { "sort": { "field": "profit", "order": "descending" } },
+    { "types": { "sales": "integer", "profit": "float" } }
   ]
 }
 ```
 
 ---
 
-## 5. Transformation Operations
+## 5. Implemented Features
 
-### 5.1 Phase 1 (MVP)
+### 5.1 Data Import/Export
 
-| **Filter** | `{ "filter": "expression" }` | ✅ Keep rows matching condition |
-| **Select** | `{ "select": ["col1", "col2"] }` | ✅ Keep only listed columns. UI supports pattern matching |
-| **Remove** | `{ "remove": ["col1"] }` | ✅ Drop listed columns |
-| **Rename** | `{ "rename": { "old": "new" } }` | ✅ Rename columns |
-| **Sort** | `{ "sort": { "field": "col", "order": "ascending" } }` | ✅ Single field |
-| **Derive** | `{ "derive": { "newCol": "expression" } }` | ✅ Add calculated column |
-| **Aggregate** | `{ "aggregate": { "groupby": ["col"], "rollup": { "mean": "op.mean(col)" } } }` | ✅ Implemented (Phase 1) |
-| **Fill missing** | `{ "impute": { "col": "value" } }` | ⏳ High Priority |
-| **Deduplicate** | `{ "dedupe": ["col1", "col2"] }` | ⏳ High Priority |
-| **Pivot** | `{ "pivot": ... }` | ⏳ Pending (Phase 1.5) |
-| **Fold (Unpivot)** | `{ "fold": ... }` | ⏳ Pending (Phase 1.5) |
+| Feature                  | Status | Implementation                                           |
+| ------------------------ | ------ | -------------------------------------------------------- |
+| **Import CSV (file)**    | ✅     | File picker + drag-drop → Config dialog → Creates Source |
+| **Paste CSV**            | ✅     | Clipboard (Ctrl+V) → Config dialog → Creates Source      |
+| **Export CSV**           | ✅     | Downloads transformed data with timestamp                |
+| **Export workflow JSON** | ✅     | Downloads workflow specification                         |
 
-#### Group + Aggregate (Phase 1 — Single Output)
+**CSV Import Dialog**:
 
-```json
-{
-  "aggregate": {
-    "groupby": ["region"],
-    "operations": [
-      { "op": "sum", "field": "sales", "as": "total_sales" },
-      { "op": "mean", "field": "profit", "as": "avg_profit" },
-      { "op": "count", "as": "row_count" }
-    ]
-  }
-}
-```
+- Preview of first 5 rows
+- Header mode: first-row (default), auto-generate, manual
+- Delimiter selection: comma, tab, semicolon
+- Editable column names (for first-row and manual modes)
 
-Supported aggregation operations:
-`count`, `sum`, `mean`, `median`, `min`, `max`, `stdev`, `variance`
+### 5.2 Core Transformations
 
-### 5.2 Phase 1.5 (Multi-Model & Joins) — ✅ IMPLEMENTED
+| Transform     | JSON Syntax                                              | Implementation | Arquero Verb               |
+| ------------- | -------------------------------------------------------- | -------------- | -------------------------- |
+| **Filter**    | `{ "filter": "expression" }`                             | ✅             | Custom AST                 |
+| **Select**    | `{ "select": ["col1", "col2"] }`                         | ✅             | `table.select()`           |
+| **Remove**    | `{ "remove": ["col1"] }`                                 | ✅             | `table.not()`              |
+| **Rename**    | `{ "rename": { "old": "new" } }`                         | ✅             | `table.rename()`           |
+| **Sort**      | `{ "sort": { "field": "col", "order": "asc" } }`         | ✅             | `table.orderby()`          |
+| **Derive**    | `{ "derive": { "newCol": "expression" } }`               | ✅             | Custom AST                 |
+| **Types**     | `{ "types": { "col": "integer" } }`                      | ✅             | Schema override            |
+| **Aggregate** | `{ "aggregate": { "groupby": [...], "rollup": {...} } }` | ✅             | `table.groupby().rollup()` |
 
-> **Design Decision**: Joins + aggregation unlock multiplicative value (enrichment → summarization workflows). Moving to MVP.
+**Pattern Matching in Select**: UI supports prefix/suffix/exact matching for column selection.
 
-#### Multi-Model Support
+### 5.3 Multi-Model & Joins
 
-**Create multiple models per source** via UI action (not a transform). Each model:
+**Multi-Model Support**: Create multiple models per source via UI action (not a transform). Each model has independent transform pipeline.
 
-- References the same source data
-- Has independent transform pipeline
-- Can be joined with other models from the same source
-
-**UI**: "New Model" button in source tree → creates blank model with no transforms
-
-#### Join Transform
+**Join Transform**:
 
 ```json
 {
   "join": {
     "right": "model_abc123", // Model ID to join with
     "on": [["region_id", "id"]], // Array of [left_key, right_key] pairs
-    "how": "left", // Join type
+    "how": "left", // Join type: inner, left, right, full, cross
     "suffixes": ["_x", "_y"] // Column conflict resolution (optional)
   }
 }
@@ -280,136 +272,536 @@ Supported aggregation operations:
 
 **Join types**: `inner`, `left`, `right`, `full`, `cross`
 
-**Column name conflicts**: When both tables have same column name (not in join keys), append suffixes:
+Implementation: Direct wrapper around Arquero's `table.join()` family.
 
-- Left table columns get `_x` (or custom suffix)
-- Right table columns get `_y` (or custom suffix)
-- Suffixes editable in join settings UI
+### 5.4 Schema Management
 
-**UI Design**: Slide-in panel (not popup) that overlaps left sidebar
+**SchemaEngine** ([schema-engine.js](../src/schema-engine.js)):
 
-- Model selector dropdown
-- Join type radio buttons
-- Key pair selectors (support multiple pairs for compound keys)
-- Suffix customization inputs
-- **Preview button** - Only computes join when clicked
-- Apply/Cancel buttons
+- Granular type inference: `integer` vs `float`, `date` vs `datetime`
+- Schema propagation through transformation pipeline
+- Type prediction for derived columns based on AST analysis
+- Auto-detection from sample data
 
-### 5.3 Phase 2 (Advanced Aggregation & Window Functions)
+**Type System**:
 
-| Operation                | JSON Syntax                  | Notes                          |
-| ------------------------ | ---------------------------- | ------------------------------ |
-| **Window functions**     | `{ "window": { ... } }`      | Running totals, rank, lag/lead |
-| **Advanced aggregation** | Percentiles, distinct counts | Beyond basic sum/mean/count    |
+- `string` - Text data
+- `integer` - Whole numbers
+- `float` - Decimal numbers
+- `boolean` - true/false values
+- `date` - Date-only (YYYY-MM-DD)
+- `datetime` - Date with time (YYYY-MM-DD HH:MM:SS)
 
-### 5.4 Phase 3 (Advanced Transforms & Polish)
+**UI Features**:
 
-| Operation         | JSON Syntax                                                               | Notes                    |
-| ----------------- | ------------------------------------------------------------------------- | ------------------------ |
-| **Pivot**         | `{ "pivot": { "rows": "col", "columns": "col", "values": "col" } }`       | Long → wide              |
-| **Unpivot**       | `{ "unpivot": { "columns": ["a", "b"], "as": ["key", "value"] } }`        | Wide → long              |
-| **Split column**  | `{ "split": { "column": "col", "delimiter": ",", "as": ["a", "b"] } }`    | Split into multiple      |
-| **Merge columns** | `{ "concat": { "columns": ["a", "b"], "separator": " ", "as": "full" } }` | Combine columns          |
-| **Cast type**     | `{ "cast": { "column": "col", "type": "number" } }`                       | Explicit type conversion |
+- Type indicators in table headers (visual badges)
+- Floating type menu for manual type changes
+- Global auto-detect schema button
+- Types transform records manual overrides in workflow
+
+### 5.5 Exploratory Data Analysis (EDA)
+
+**EDAEngine** ([eda-engine.js](../src/eda-engine.js)):
+
+**Statistics Calculated**:
+
+- **All types**: Total count, null count, unique values, unique percentage
+- **Numeric**: Min, max, mean, median, Q1, Q3, standard deviation
+- **Categorical**: Top values with frequency counts
+
+**UI**:
+
+- Click column header to show EDA panel
+- Statistics summary card
+- Interactive visualizations (see below)
+
+### 5.6 Visualization
+
+**ChartsEngine** ([charts.js](../src/charts.js)) - Vega-Lite integration:
+
+**Chart Types**:
+
+1. **Boxplot** (numeric columns)
+   - Shows distribution with quartiles
+   - Jittered scatter overlay (sampled to 1000 points)
+   - Outlier detection
+
+2. **Histogram** (numeric columns)
+   - 20-bin histogram with interactive brushing
+   - Brush selection creates filter transform
+   - Responsive width
+
+3. **Categorical Bar Chart** (string columns)
+   - Frequency counts for top values
+   - "Other" category for infrequent values
+   - Horizontal bars for readability
+
+**Chart Switcher**: Toggle between chart types in EDA panel
+
+### 5.7 Expression Parser
+
+**Architecture**: Hybrid approach (structured predicates planned, expression strings current)
+
+See [PARSER-DESIGN-DECISION.md](PARSER-DESIGN-DECISION.md) for comprehensive design rationale.
+
+**Current Support** (expressions):
+
+- **Operators**: Arithmetic (`+`, `-`, `*`, `/`, `%`), Comparison (`>`, `<`, `>=`, `<=`, `==`, `===`, `!=`, `!==`), Logical (`&&`, `||`, `!`)
+- **Column References**: Bare identifiers (`sales > 1000`) or bracket notation (`[Total Sales] > 1000`)
+- **Security**: AST validation, no `Function()` constructor, operator whitelist
+
+**Implementation**:
+
+- Parser: jsep library
+- Validator: [ast-validator.js](../src/ast-validator.js)
+- Interpreter: [ast-interpreter.js](../src/ast-interpreter.js)
+- Error Formatter: [error-formatter.js](../src/error-formatter.js) with position highlighting
+
+**Not Yet Supported** (planned):
+
+- Function calls (Math, String, Date functions)
+- Ternary operator (`? :`)
+- Advanced operators (`?.`, `??`)
+
+### 5.8 UI Features
+
+**Layout**: Microsoft Office-style ribbon toolbar with tabs:
+
+- **Data**: Import, Export, Paste
+- **Transform**: Filter, Sort, Drop NA, Fill NA, Replace, Select, Remove, Rename
+- **Add Column**: Derive, Duplicate, Split
+- **Reduce**: Aggregate, Distinct, Pivot
+- **Combine**: Join, Union, Append
+
+**Interactive Features**:
+
+- **Floating Column Toolbar**: Click column header → Sort, Filter, Rename, Remove actions
+- **Floating Cell Toolbar**: Click cell → Keep/Exclude this value, Copy
+- **Column Hover Highlighting**: Visual feedback on mouseover
+- **Type Indicators**: Visual badges showing column data types
+- **Text Truncation**: Long values with hover tooltips
+- **Step Navigation**: Click step in sidebar → View intermediate result
+
+**Data Preview**:
+
+- First 100 rows (configurable pagination)
+- Sticky headers
+- Horizontal + vertical scroll
+- Right-aligned numbers, tabular numerals
+
+### 5.9 Persistence & State
+
+**Auto-Save**:
+
+- IndexedDB storage with 500ms debounced saves
+- Workflow saved on every change
+- No explicit "Save" button needed
+
+**URL State** ([url-state.js](../src/url-state.js)):
+
+- Hash-based routing: `#/sourceId/modelId`
+- Preserves active view on page refresh
+- Shareable links to specific models
+
+**UX Settings** ([ux-settings.js](../src/ux-settings.js)):
+
+- localStorage for user preferences
+- Pagination settings
+- Panel visibility states
+
+**Performance Logging** ([performance-logger.js](../src/performance-logger.js)):
+
+- Optional transform timing
+- Toggle-able for debugging
+
+### 5.10 Testing Infrastructure
+
+**Comprehensive test suite** (1,281 lines across 5 files):
+
+- Browser-based test runner (Mocha + Chai)
+- Test files: `expression-parser.test.js`, `ast-validator.test.js`, `ast-interpreter.test.js`, `transforms.test.js`, `join.test.js`
+- Run at [src/tests/runner.html](../src/tests/runner.html)
+- High coverage on core transform logic and expression parsing
 
 ---
 
-## 6. User Interface
+## 6. Transform Operations Reference
 
-### 6.1 Main Layout
+### 6.1 Implemented Transforms
 
-```
-┌──────────────────────────────────────────────────────────────────┐
-│  ☆ Chumak                 [Import CSV]  [Export ▼]  [Workflow ▼] │
-├────────────────┬─────────────────────────────────────────────────┤
-│                │                                                 │
-│   Sources &    │              Data Preview                       │
-│    Models      │         (table, 100 rows, paginated)            │
-│   (tree view)  │                                                 │
-│                │                                                 │
-│ ───────────────│                                                 │
-│                │                                                 │
-│   Applied      ├─────────────────────────────────────────────────┤
-│    Steps       │                                                 │
-│   (list)       │         Add Transform Panel                     │
-│                │      (contextual form/buttons)                  │
-│  [+ Add Step]  │                                                 │
-│                │                                                 │
-├────────────────┴─────────────────────────────────────────────────┤
-│   [View JSON]  (collapsible bottom panel, read-only)             │
-└──────────────────────────────────────────────────────────────────┘
+#### Filter
+
+```json
+{ "filter": "sales > 1000 && region == 'North'" }
 ```
 
-### 6.2 Panel Behaviors (✅ Implemented)
+Keep rows matching expression. Security-validated AST interpretation.
 
-**Sources & Models Panel**
+#### Select
 
-- Tree view with clickable sources/models to switch active model
+```json
+{ "select": ["col1", "col2", "col3"] }
+```
 
-**Steps Panel** (with Steps/JSON tabs)
+Keep only listed columns. UI supports pattern matching (prefix/suffix/exact).
 
-- Click step → view intermediate result (on-demand recomputation)
-- Hover → delete button (×) appears (except import step)
-- "View final result" button shown when viewing intermediate steps
-- JSON tab shows transform array
+#### Remove
 
-**Data Preview**
+```json
+{ "remove": ["col1", "col2"] }
+```
 
-- Shows first 100 rows with pagination controls
-- Displays current data state (final or intermediate)
+Drop listed columns.
 
-**Transform Buttons** (ribbon toolbar)
+#### Rename
 
-- Context-sensitive buttons grouped by tab (Data, Transform, Add Column, etc.)
-- Disabled buttons shown for unimplemented transforms
+```json
+{ "rename": { "old_name": "new_name", "sales": "revenue" } }
+```
 
-### 6.3 File Handling (✅ Implemented)
+Rename one or more columns.
 
-| Action                   | Status                                                      |
-| ------------------------ | ----------------------------------------------------------- |
-| **Import CSV**           | ✅ File picker + drag-drop → Config dialog → Creates Source |
-| **Paste CSV**            | ✅ Clipboard (Ctrl+V) → Config dialog → Creates Source      |
-| **Export CSV**           | ✅ Downloads transformed data with timestamp                |
-| **Export workflow JSON** | ✅ Downloads workflow specification                         |
-| Import from URL          | Phase 2                                                     |
-| Import workflow JSON     | Phase 2                                                     |
+#### Sort
 
-**CSV Import Dialog** (✅ implemented):
+```json
+{ "sort": { "field": "sales", "order": "descending" } }
+```
 
-- Preview of first 5 rows
-- Header mode: first-row (default), auto-generate, manual
-- Delimiter selection: comma, tab, semicolon
-- Editable column names (for first-row and manual modes)
+Sort by single field. Order: `"ascending"` or `"descending"`.
 
-| Mode                           | First Row            | Column Names                | Use Case                     |
-| ------------------------------ | -------------------- | --------------------------- | ---------------------------- |
-| **First row contains headers** | Used as column names | From row 1                  | Standard CSV with header row |
-| **Auto-generate**              | Treated as data      | "Column 1", "Column 2", ... | CSV without headers          |
-| **Specify manually**           | Treated as data      | User-provided names         | Custom naming before import  |
+#### Derive
 
-**Configuration stored in Source metadata:**
+```json
+{ "derive": { "profit": "revenue - cost", "margin": "(revenue - cost) / revenue" } }
+```
 
-```typescript
+Add calculated columns using expressions.
+
+#### Types
+
+```json
+{ "types": { "sales": "integer", "price": "float", "date": "date" } }
+```
+
+Explicitly set column types (overrides auto-detection).
+
+#### Aggregate
+
+```json
 {
-  headerMode: "first-row" | "auto-generate" | "manual",
-  delimiter: "," | "\t" | ";" | string,
-  customHeaders?: string[]  // Only if headerMode === "manual"
+  "aggregate": {
+    "groupby": ["region", "category"],
+    "rollup": {
+      "total_sales": "d => op.sum(d.sales)",
+      "avg_profit": "d => op.mean(d.profit)",
+      "count": "d => op.count()"
+    }
+  }
 }
 ```
 
-This is **source configuration**, not a transformation. Once imported, column names are fixed (can be renamed via transform).
+Group by columns and compute aggregates. Arquero expression format.
+
+**Supported operations**: `count`, `sum`, `mean`, `median`, `min`, `max`, `stdev`, `variance`
+
+#### Join
+
+```json
+{
+  "join": {
+    "right": "mdl_xyz789",
+    "on": [["customer_id", "id"]],
+    "how": "left",
+    "suffixes": ["_orders", "_customers"]
+  }
+}
+```
+
+Join with another model. Types: `inner`, `left`, `right`, `full`, `cross`.
+
+### 6.2 Roadmap Transforms
+
+See [Section 8 (Roadmap)](#8-roadmap) for planned transforms.
 
 ---
 
-## 7. Persistence & Storage
+## 7. User Interface
 
-### 7.1 Auto-Save
+### 7.1 Main Layout
+
+```
+┌──────────────────────────────────────────────────────────────────┐
+│ HEADER & RIBBON TABS (48px height)                               │
+│  ☆ Chumak                 [Data] [Transform] [Add Column] ...    │
+├──────────────────────────────────────────────────────────────────┤
+│ RIBBON CONTENT (auto height, ~56px)                              │
+│  [Import CSV] [Export CSV] [Paste] [Export JSON]                 │
+├────────────────────┬─────────────────────────────────────────────┤
+│                    │                                             │
+│ LEFT PANEL         │ MAIN CONTENT AREA                           │
+│ (300px fixed)      │ (flexible)                                  │
+│                    │                                             │
+│ ┌────────────────┐ │ ┌──────────────────────────────────────────┐│
+│ │ Sources &      │ │ │                                          ││
+│ │ Models         │ │ │  DATA PREVIEW TABLE                      ││
+│ │                │ │ │  (scrollable horizontal + vertical)      ││
+│ │ 📄 sales.csv   │ │ │                                          ││
+│ │   └─ 📊 main   │ │ │                                          ││
+│ │                │ │ │                                          ││
+│ └────────────────┘ │ └──────────────────────────────────────────┘│
+│ ┌────────────────┐ │                                             │
+│ │ Steps | JSON   │ │ Showing 1-100 of 5,432        [<] [>]       │
+│ ├────────────────┤ │                                             │
+│ │ 1. Filter      │ │                                             │
+│ │ 2. Derive      │ │                                             │
+│ │ 3. Select      │ │                                             │
+│ │                │ │                                             │
+│ │ [+ Add Step]   │ │                                             │
+│ └────────────────┘ │                                             │
+└────────────────────┴─────────────────────────────────────────────┘
+```
+
+### 7.2 Design System
+
+See [UX-SPECIFICATION.md](UX-SPECIFICATION.md) for comprehensive UI details.
+
+**Key Characteristics**:
+
+- KSE-inspired visual identity (clean, rigorous, information-dense)
+- Custom CSS with normalize.css (no framework lock-in)
+- CSS custom properties for design tokens
+- BEM naming convention
+- Graphik font family (fallback to Arial)
+
+**Color Palette**:
+
+- Dark Midnight Blue (#003964) - Primary
+- Cyan (#00BBCE) - Accent, links, active states
+- Green (#A7C539) - Success
+- Yellow (#E4E541) - Warnings
+- Red (#F15B43) - Errors
+
+---
+
+## 8. Roadmap
+
+### 8.1 Near-Term (Next Features)
+
+**Priority: High** - Core data wrangling gaps
+
+| Feature    | Description                        | Arquero Verb     | Effort    |
+| ---------- | ---------------------------------- | ---------------- | --------- |
+| **Dedupe** | Remove duplicate rows              | `table.dedupe()` | ~30 lines |
+| **Impute** | Fill missing values with constants | `table.impute()` | ~50 lines |
+| **Pivot**  | Wide format (cross-tabulation)     | `table.pivot()`  | ~60 lines |
+| **Fold**   | Long format (unpivot)              | `table.fold()`   | ~40 lines |
+
+**Rationale**: These complete the core data cleaning and reshape capabilities. Pivot/fold are essential for tidy data workflows.
+
+### 8.2 Mid-Term (Expression Functions)
+
+**Priority: Medium** - Unlock advanced calculations
+
+| Feature Category | Functions                                                             | Implementation   |
+| ---------------- | --------------------------------------------------------------------- | ---------------- |
+| **String**       | `upper()`, `lower()`, `trim()`, `substring()`, `split()`, `replace()` | Whitelist `op.*` |
+| **Date**         | `year()`, `month()`, `day()`, `parse_date()`, `format_date()`         | Whitelist `op.*` |
+| **Math**         | `abs()`, `round()`, `floor()`, `ceil()`, `sqrt()`, `min()`, `max()`   | Whitelist `op.*` |
+| **Type**         | `parse_int()`, `parse_float()`, `is_nan()`                            | Whitelist `op.*` |
+
+**Effort**: ~150 lines (validator updates + function mapping)
+
+**Unlock**:
+
+- Expression-based `impute`: `{ "impute": { "sales": "mean(sales)" } }`
+- Advanced `derive`: `{ "derive": { "year": "year(date)", "upper_name": "upper(name)" } }`
+
+### 8.3 Future Enhancements
+
+**Priority: Low** - Advanced operations
+
+| Feature               | Description                      | Arquero Verb                           | Notes                     |
+| --------------------- | -------------------------------- | -------------------------------------- | ------------------------- |
+| **Concat**            | Combine tables (with duplicates) | `table.concat()`                       | UNION ALL                 |
+| **Union**             | Combine tables (deduplicated)    | `table.union()`                        | UNION                     |
+| **Slice**             | Extract row range                | `table.slice()`                        | Row filtering             |
+| **Sample**            | Random sampling                  | `table.sample()`                       | Useful for large datasets |
+| **Spread**            | Array → columns                  | `table.spread()`                       | Array manipulation        |
+| **Unroll**            | Array → rows                     | `table.unroll()`                       | Array manipulation        |
+| **Semijoin/Antijoin** | Advanced joins                   | `table.semijoin()`, `table.antijoin()` | Set operations            |
+
+### 8.4 Polish & UX
+
+| Enhancement             | Description                         | Priority |
+| ----------------------- | ----------------------------------- | -------- |
+| **Drag-reorder steps**  | Reorder transformation pipeline     | Medium   |
+| **Column resize**       | Draggable column width              | Low      |
+| **Dark mode**           | Alternative theme                   | Low      |
+| **Keyboard shortcuts**  | Power user efficiency               | Medium   |
+| **Multi-column sort**   | Sort by multiple fields             | Medium   |
+| **Advanced predicates** | GUI filter builder (no expressions) | Medium   |
+
+### 8.5 Non-Goals
+
+The following are explicitly **out of scope**:
+
+- User accounts or authentication
+- Server-side processing
+- Real-time collaboration
+- Python/R/SQL code export
+- Mobile-optimized UI
+- Excel file support (.xlsx)
+- Browser support beyond Chrome/Safari
+
+---
+
+## 9. Architecture Decisions
+
+### 9.1 Expression Parser: Hybrid Strategy
+
+**Decision**: Custom AST interpretation for user expressions, Arquero delegation for data operations.
+
+**Rationale**:
+
+- **Security**: Never use `new Function()` with user input
+- **Validation**: AST validation catches errors before execution
+- **Error Quality**: Position-aware error messages with suggestions
+- **Arquero Leverage**: Use built-in verbs for data manipulation (faster, tested)
+
+See [PARSER-DESIGN-DECISION.md](PARSER-DESIGN-DECISION.md) for full analysis.
+
+### 9.2 Schema System: Granular Types
+
+**Decision**: Distinguish `integer` vs `float`, `date` vs `datetime`.
+
+**Rationale**:
+
+- Better formatting (integers don't need decimal places)
+- Correct aggregation defaults (sum integers = integer)
+- Type hints for derived columns
+- User can override via `types` transform
+
+**Implementation**: SchemaEngine infers from sample data, propagates through transforms.
+
+### 9.3 Visualization: Vega-Lite
+
+**Decision**: Use Vega-Lite for charts (not custom D3 implementation).
+
+**Rationale**:
+
+- Declarative JSON specs (aligns with transform approach)
+- Well-documented, actively maintained
+- Interactive features (brushing, tooltips) built-in
+- Reasonable bundle size (~200KB)
+
+**Trade-off**: Adds dependency, but avoids reinventing charting library.
+
+### 9.4 No Build System
+
+**Decision**: CDN-loaded libraries, no npm/webpack/build step.
+
+**Rationale**:
+
+- **Simplicity**: Open `index.html` in browser, it works
+- **Deployment**: Static hosting, no server required
+- **Debugging**: Source code readable in dev tools
+- **Target Audience**: Non-programmers shouldn't need Node.js tooling
+
+**Trade-off**: Slightly larger initial load (can't tree-shake), but acceptable for target use case.
+
+### 9.5 On-Demand Step Computation
+
+**Decision**: Compute intermediate results when viewing steps, don't cache.
+
+**Rationale**:
+
+- **Simplicity**: No cache invalidation logic needed
+- **Memory**: Don't store N copies of data for N steps
+- **Performance**: Acceptable for preview use case (100 rows)
+
+**Future**: Could add caching for large datasets if performance becomes issue.
+
+### 9.6 Multi-Model Design
+
+**Decision**: Multiple models per source, each with independent transforms.
+
+**Rationale**:
+
+- **Workflow**: Clean in one model, aggregate in another, join results
+- **Experimentation**: Try different approaches without losing work
+- **Joins**: Can join model outputs (not just sources)
+
+**Implementation**: Models reference source by ID, have own transform pipeline.
+
+---
+
+## 10. Expression Syntax Reference
+
+> **Note**: Full parser design details in [PARSER-DESIGN-DECISION.md](PARSER-DESIGN-DECISION.md)
+
+### 10.1 Column References
+
+**Simple names** (bare identifiers):
+
+```javascript
+sales > 1000;
+revenue - cost;
+```
+
+**Spaces/special characters** (bracket notation):
+
+```javascript
+[Total Sales] > 1000
+[Q1 Revenue] - [Q1 Cost]
+[price-usd] * 1.1
+```
+
+### 10.2 Current Operators
+
+**Allowed**:
+
+- Arithmetic: `+`, `-`, `*`, `/`, `%`
+- Comparison: `>`, `<`, `>=`, `<=`, `==`, `===`, `!=`, `!==`
+- Logical: `&&`, `||`, `!`
+- Grouping: `(`, `)`
+
+**Not allowed** (current - planned for future):
+
+- Function calls (Phase 2)
+- Ternary operator `? :` (Phase 2)
+- Bitwise operators (never)
+- Assignment operators (never)
+
+### 10.3 Error Messages
+
+User-friendly errors with position highlighting:
+
+```
+Column 'Slaes' not found
+ region == "North" && Slaes > 1000
+                       ↑
+Did you mean 'Sales'?
+Available columns: Region, Sales, Revenue, Cost
+```
+
+### 10.4 Security Model
+
+- **No Function() constructor** - expressions parsed and interpreted via AST
+- **Operator whitelist** - only safe operators allowed
+- **Column validation** - unknown columns rejected at parse time
+- **No property access** - can't access window, document, localStorage, etc.
+
+---
+
+## 11. Persistence & Export
+
+### 11.1 Auto-Save
 
 - Workflow saved to IndexedDB on every change
 - Debounced (500ms after last change)
 - No explicit "Save" button needed
 
-### 7.2 IndexedDB Schema
+### 11.2 IndexedDB Schema
 
 ```
 Database: chumak-db
@@ -425,12 +817,7 @@ Object Stores:
     └── { key, value }
 ```
 
-### 7.3 Storage Limits
-
-- Warn user if IndexedDB usage exceeds 50MB
-- Offer to clear old workflows
-
-### 7.4 Export Formats
+### 11.3 Export Formats
 
 #### Workflow Export (`.chumak.json`)
 
@@ -462,193 +849,49 @@ Option: embed source data (for full reproducibility) vs. reference only (smaller
 
 ---
 
-## 8. Phased Roadmap
+## 12. Testing Strategy
 
-### Phase 0 — Walking Skeleton ✅
+### 12.1 Philosophy
 
-**Goal:** Minimal end-to-end implementation validating all architectural layers.
+- **Test-first always** — write tests before implementing new features
+- **Every transform has tests** — core logic must be reliable
+- **Browser-based runner** — consistent with no-build-system constraint
+- **High coverage** — especially for transform compiler and expression parser
 
-**Completed:** Expression parser (jsep + AST validation/interpretation), filter & select transforms, IndexedDB persistence, CSV import/export, workflow JSON export/import, step navigation.
+### 12.2 Testing Stack
 
-**Critical discoveries:**
+CDN-loaded stack (no build required):
 
-- jsep parses `&&`/`||` as `BinaryExpression` (not `LogicalExpression`)
-- Arquero's `.filter()` rejects try-catch blocks (workaround: `.objects()` → filter → `aq.from()`)
-- IndexedDB structured clone requires JSON serialization (tech debt: data embedded in sources/models)
+```html
+<script src="https://unpkg.com/mocha@10/mocha.js"></script>
+<script src="https://unpkg.com/chai@4/chai.js"></script>
+```
 
-**Implementation:** See `src/expression-parser.js`, `src/ast-validator.js`, `src/ast-interpreter.js`, `src/transforms.js`, `src/storage.js`
+**Test runner**: Open [src/tests/runner.html](../src/tests/runner.html) in browser
+
+### 12.3 Test Coverage
+
+| Area                   | Test File                 | Lines | Focus                                |
+| ---------------------- | ------------------------- | ----- | ------------------------------------ |
+| **Expression Parsing** | expression-parser.test.js | 136   | jsep integration, bracket notation   |
+| **AST Validation**     | ast-validator.test.js     | 229   | Security checks, operator whitelist  |
+| **AST Interpretation** | ast-interpreter.test.js   | 282   | Expression evaluation, null handling |
+| **Transforms**         | transforms.test.js        | 502   | All transform types, edge cases      |
+| **Joins**              | join.test.js              | 132   | Multi-model joins, key matching      |
+
+**Total**: 1,281 lines of test code
+
+**Edge cases tested**:
+
+- Empty data, nulls, single row
+- Column names with spaces/special characters
+- Division by zero, type mismatches
+- Deeply nested expressions
+- Schema propagation through transforms
 
 ---
 
-### Phase 1 — MVP (In Progress)
-
-**Goal:** Complete core transform set, add automated testing.
-
-| Component             | Status                                                                   |
-| --------------------- | ------------------------------------------------------------------------ |
-| **Data import**       | ✅ CSV from file & clipboard paste                                       |
-| **Transforms**        | ✅ filter, select, derive, sort, rename, remove, join                    |
-| **Expression parser** | ✅ Basic operators, security validation, bracket notation                |
-| **UI**                | ✅ Full layout, ribbon toolbar, step navigation, floating column toolbar |
-| **Persistence**       | ✅ IndexedDB auto-save & URL state persistence                           |
-| **Export**            | ✅ CSV, workflow JSON                                                    |
-| **Testing**           | ✅ Comprehensive test infrastructure (Mocha + Chai)                      |
-| **Visualization**     | ✅ EDA Charts (Boxplot, Histogram, Categorical Bar) - _Added_            |
-
-**Priorities:** Remaining transforms → Enhanced parser → Predicate builder (optional)
-
-### Phase 2 — Derived Datasets
-
-**Goal:** Support relational modeling, joins, expression functions.
-
-| Component            | Scope                                                                  |
-| -------------------- | ---------------------------------------------------------------------- |
-| Multiple sources     | Load several CSVs in one workflow                                      |
-| Derived models       | Create model referencing another model                                 |
-| Joins                | Left join, inner join between models                                   |
-| Expression functions | Whitelist safe functions (Math._, String._, Date.\*), ternary operator |
-| UI updates           | Tree view for sources/models, join builder                             |
-| Testing              | Join tests, multi-source workflow tests, function tests                |
-
-### Phase 3 — Polish & Advanced
-
-**Goal:** Feature completeness, UX refinement.
-
-| Component              | Scope                                                        |
-| ---------------------- | ------------------------------------------------------------ |
-| Transforms             | pivot, unpivot, split, concat, cast                          |
-| UI                     | Drag-reorder steps, column quick actions, keyboard shortcuts |
-| Progressive disclosure | Collapsible advanced options in forms                        |
-| Performance            | Web Worker for large files, smarter caching                  |
-| Testing                | Larger file sizes (50MB+)                                    |
-| Testing                | Performance benchmarks, CI integration                       |
-
----
-
-## 9. Explicit Non-Goals
-
-The following are **out of scope** for the foreseeable future:
-
-- User accounts or authentication
-- Server-side processing
-- Real-time collaboration
-- Python/R/SQL code export
-- Mobile-optimized UI
-- Support for Excel files (.xlsx)
-- Browser support beyond Chrome/Safari
-
----
-
-## 10. Appendix: Expression Syntax
-
-> **Note**: Full parser design details in [PARSER-DESIGN-DECISION.md](PARSER-DESIGN-DECISION.md)
-
-### Design Approach
-
-Chumak uses a **dual-mode input system**:
-
-1. **Structured predicates** (Primary) - GUI-driven, type-safe filter builder
-2. **Expression strings** (Advanced) - Text-based expressions for power users
-
-**Parser**: jsep library for expression strings, with AST validation and interpretation (no Function() constructor for security).
-
-### Structured Predicates (Primary API)
-
-```json
-// Field predicates
-{ "filter": { "field": "sales", "gt": 1000 } }
-{ "filter": { "field": "region", "equal": "North" } }
-
-// Logical composition
-{
-  "filter": {
-    "and": [
-      { "field": "sales", "gt": 1000 },
-      { "field": "region", "equal": "North" }
-    ]
-  }
-}
-```
-
-**Benefits**: No syntax errors, type-safe, beginner-friendly, maps to GUI forms.
-
-### Expression Strings (Advanced Mode)
-
-```javascript
-// Comparisons
-sales > 1000;
-region == 'North';
-profit != 0;
-
-// Boolean (JavaScript operators)
-sales > 1000 && region == 'North';
-status == 'active' || status == 'pending';
-!cancelled;
-
-// Arithmetic (in derive)
-revenue - cost;
-((price * quantity(revenue - cost)) / revenue) * 100;
-```
-
-**Note**: Boolean operators are `&&`, `||`, `!` (JavaScript standard), not `and`, `or`, `not`.
-
-### Column References
-
-**Simple names** (bare identifiers):
-
-```javascript
-sales > 1000;
-revenue - cost;
-```
-
-**Spaces/special characters** (bracket notation):
-
-```javascript
-[Total Sales] > 1000
-[Q1 Revenue] - [Q1 Cost]
-[price-usd] * 1.1
-```
-
-### Phase 1 Operators
-
-**Allowed**:
-
-- Arithmetic: `+`, `-`, `*`, `/`, `%`
-- Comparison: `>`, `<`, `>=`, `<=`, `==`, `===`, `!=`, `!==`
-- Logical: `&&`, `||`, `!`
-- Grouping: `(`, `)`
-
-**Not allowed** (Phase 1):
-
-- Function calls (added in Phase 2)
-- Ternary operator `? :` (added in Phase 2)
-- Bitwise operators
-- Assignment operators
-
-### Error Handling
-
-**User-friendly error messages with position highlighting**:
-
-```
-Column 'Slaes' not found
- region == "North" && Slaes > 1000
-                       ↑
-Did you mean 'Sales'?
-Available columns: Region, Sales, Revenue, Cost
-```
-
-**Errors as values**: Individual row failures don't break entire column transformation.
-
-### Security Model
-
-- **No Function() constructor** - expressions parsed and interpreted via AST
-- **Operator whitelist** - only safe operators allowed
-- **Column validation** - unknown columns rejected at parse time
-- **No property access** - can't access window, document, localStorage, etc.
-
----
-
-## 11. Appendix: Branding Notes
+## 13. Branding Notes
 
 **Name:** Chumak (Чумак)
 
@@ -663,200 +906,31 @@ Available columns: Region, Sales, Revenue, Cost
 
 **Tone:** Practical, trustworthy, quietly cultural — a tool that gets the job done, with a story behind it.
 
-## 12. Testing Strategy
+---
 
-### 12.1 Philosophy
+## 14. References
 
-- **Test-first always** — MANDATORY: write tests before implementing new features
-- **Every transform operation has tests** — the core logic must be reliable
-- **Tests run in browser** — consistent with no-build-system constraint
-- **Tests are part of the repo** — anyone can run them by opening a file
-- **90%+ coverage maintained** — especially for transform compiler and expression parser
+### 14.1 Project Documentation
 
-### 12.2 Testing Stack ✅ IMPLEMENTED
+- [PARSER-DESIGN-DECISION.md](PARSER-DESIGN-DECISION.md) - Expression parser architecture
+- [UX-SPECIFICATION.md](UX-SPECIFICATION.md) - UI/UX design system
+- [ARQUERO-LEVERAGE-ANALYSIS.md](ARQUERO-LEVERAGE-ANALYSIS.md) - Roadmap and Arquero integration
+- [CLAUDE.md](../CLAUDE.md) - Technical context for AI sessions
 
-**Current status: Comprehensive test suite with high coverage**
+### 14.2 Research
 
-CDN-loaded stack (no build required):
+- [research/analysis\_\_arquero.md](../research/analysis__arquero.md) - Arquero deep-dive
+- [research/analysis\_\_vega-lite.md](../research/analysis__vega-lite.md) - Vega-Lite patterns
+- [research/analysis\_\_openrefine.md](../research/analysis__openrefine.md) - OpenRefine/GREL
+- [research/analysis\_\_ag-grid.md](../research/analysis__ag-grid.md) - ag-Grid lessons
 
-```html
-<!-- Test runner (Mocha + Chai) -->
-<script src="https://unpkg.com/mocha@10.2.0/mocha.js"></script>
-<script src="https://unpkg.com/chai@4.3.10/chai.js"></script>
-```
+### 14.3 External Documentation
 
-**Implemented test structure:**
+- Arquero: https://uwdata.github.io/arquero/
+- Vega-Lite: https://vega.github.io/vega-lite/
+- jsep: https://github.com/EricSmekens/jsep
+- Alpine.js: https://alpinejs.dev/
 
-```
-/chumak
-├── index.html                        # Main app
-└── src/
-    ├── tests/                        # ✅ Test suite
-    │   ├── runner.html               # ✅ Test runner (open in browser)
-    │   ├── expression-parser.test.js # ✅ Expression parsing tests
-    │   ├── ast-validator.test.js     # ✅ Security validation tests
-    │   ├── ast-interpreter.test.js   # ✅ AST interpretation tests
-    │   └── transforms.test.js        # ✅ Transform engine tests
-    ├── expression-parser.js          # Parser implementation
-    ├── ast-validator.js              # Validator implementation
-    ├── ast-interpreter.js            # Interpreter implementation
-    └── transforms.js                 # Transform implementation
-```
+---
 
-**To run tests:** Open `src/tests/runner.html` in browser
-
-### 12.3 Test Categories
-
-#### Unit Tests (Priority: Critical)
-
-| Area                          | What to Test                                        | Example                                               |
-| ----------------------------- | --------------------------------------------------- | ----------------------------------------------------- |
-| **Transform compiler**        | Each transform type produces correct Arquero output | `filter` with `sales > 1000` keeps only matching rows |
-| **Expression parser**         | Expressions compile to valid Arquero syntax         | `revenue - cost` → `d => d.revenue - d.cost`          |
-| **Column reference handling** | Bracket notation, special characters                | `[Total Sales]` → `d["Total Sales"]`                  |
-| **Type inference**            | Correct types detected from CSV data                | `"123"` → number, `"2025-01-01"` → date               |
-| **Aggregation operations**    | All ops (sum, mean, etc.) work correctly            | `sum` of `[1,2,3]` → `6`                              |
-| **Edge cases**                | Empty data, missing values, single row              | Filter that removes all rows → empty table            |
-
-#### Integration Tests (Priority: High)
-
-| Area                                 | What to Test                            | Example                                                 |
-| ------------------------------------ | --------------------------------------- | ------------------------------------------------------- |
-| **CSV parsing → Transform → Export** | Full pipeline roundtrip                 | Load CSV, apply 3 transforms, export, verify output     |
-| **Step snapshots**                   | Snapshots cached correctly at each step | Add 3 steps, click step 2, see correct preview          |
-| **Workflow save/load**               | IndexedDB persistence works             | Create workflow, refresh page, workflow restored        |
-| **Workflow export/import**           | `.chumak.json` roundtrip                | Export workflow, clear storage, import, identical state |
-
-#### UI Tests (Priority: Medium)
-
-| Area                 | What to Test                   | Example                                              |
-| -------------------- | ------------------------------ | ---------------------------------------------------- |
-| **File import**      | Drag-drop and file picker work | Drop CSV, table appears                              |
-| **Transform forms**  | Forms generate correct JSON    | Fill filter form, correct transform added            |
-| **Step interaction** | Click, revert, delete work     | Click step shows snapshot; revert removes subsequent |
-| **JSON viewer**      | Displays current transforms    | Add steps, JSON panel shows them                     |
-
-### 12.4 Test Coverage Targets
-
-| Phase   | Coverage Target                      | Focus                                       |
-| ------- | ------------------------------------ | ------------------------------------------- |
-| Phase 1 | High coverage for transform compiler | Every transform type, expression edge cases |
-| Phase 1 | High coverage for persistence        | Save, load, export, import                  |
-| Phase 2 | High coverage for joins              | Join types, key matching, edge cases        |
-| Phase 3 | Maintain coverage                    | New transforms tested before merge          |
-
-### 12.5 Test Data
-
-Maintain a set of fixture files:
-
-```
-/tests/fixtures/
-├── simple.csv              # 10 rows, clean data
-├── types.csv               # Mixed types for inference testing
-├── missing.csv             # Nulls, empty strings
-├── special-chars.csv       # Column names with spaces, quotes
-├── large.csv               # 10k rows for performance tests
-└── unicode.csv             # Non-ASCII content, UTF-8
-```
-
-### 12.6 Test Patterns
-
-#### Transform Test Pattern
-
-```javascript
-describe('filter transform', () => {
-  it('keeps rows matching simple comparison', () => {
-    const input = aq.table({
-      sales: [100, 500, 1500, 2000],
-      region: ['North', 'South', 'North', 'East'],
-    });
-
-    const transform = { filter: 'sales > 1000' };
-    const result = applyTransform(input, transform);
-
-    expect(result.numRows()).to.equal(2);
-    expect(result.array('sales')).to.deep.equal([1500, 2000]);
-  });
-
-  it('handles string equality', () => {
-    const input = aq.table({
-      region: ['North', 'South', 'North'],
-    });
-
-    const transform = { filter: 'region == "North"' };
-    const result = applyTransform(input, transform);
-
-    expect(result.numRows()).to.equal(2);
-  });
-
-  it('returns empty table when no rows match', () => {
-    const input = aq.table({ sales: [1, 2, 3] });
-
-    const transform = { filter: 'sales > 1000' };
-    const result = applyTransform(input, transform);
-
-    expect(result.numRows()).to.equal(0);
-  });
-
-  it('handles column names with spaces', () => {
-    const input = aq.table({ 'Total Sales': [100, 2000] });
-
-    const transform = { filter: '[Total Sales] > 500' };
-    const result = applyTransform(input, transform);
-
-    expect(result.numRows()).to.equal(1);
-  });
-});
-```
-
-#### Workflow Roundtrip Test Pattern
-
-```javascript
-describe('workflow persistence', () => {
-  it('survives export/import roundtrip', async () => {
-    // Create workflow
-    const workflow = createWorkflow('Test');
-    await addSource(workflow, 'test.csv', testData);
-    await addTransform(workflow.models[0], { filter: 'x > 1' });
-
-    // Export
-    const exported = exportWorkflow(workflow);
-    const json = JSON.stringify(exported);
-
-    // Import
-    const imported = JSON.parse(json);
-    const restored = await importWorkflow(imported, { testData });
-
-    // Verify
-    expect(restored.models[0].transforms).to.deep.equal(workflow.models[0].transforms);
-  });
-});
-```
-
-### 12.7 Running Tests
-
-#### Development
-
-Open `/tests/runner.html` in browser. Tests run automatically, results displayed on page.
-
-#### CI (Optional, Future)
-
-If GitHub Actions added later:
-
-```yaml
-# .github/workflows/test.yml
-- uses: browser-actions/setup-chrome@latest
-- run: npx serve . &
-- run: npx mocha-headless-chrome -f http://localhost:3000/tests/runner.html
-```
-
-### 12.8 Test-Driven Development Workflow
-
-For each new transform:
-
-1. **Write test first** — define expected input/output
-2. **Run test** — confirm it fails
-3. **Implement transform** — minimal code to pass
-4. **Add edge case tests** — empty data, missing values, special characters
-5. **Refactor if needed** — tests ensure no regression
-6. **Update JSON schema** — document the transform format
+**End of Specification**

@@ -2,7 +2,7 @@
 
 > **Purpose**: Onboarding document for Claude AI sessions working on Chumak
 
-**Current Phase**: Phase 0 Complete ✅ → Phase 1 (MVP) In Progress
+**Current Status**: Production-ready data wrangling application with comprehensive transform capabilities
 
 ---
 
@@ -24,109 +24,190 @@
 
 ## Current Status
 
-**Phase 0**: Walking skeleton complete ✅ - All architectural layers validated
+### Core Features (Production-Ready)
 
-- Expression parser pipeline (jsep → validation → interpretation)
-- IndexedDB persistence with auto-save
-- Filter, Select, Derive, Sort, Rename, Remove, and Join transforms working
-- CSV/clipboard import and CSV/JSON export functional
-- URL-based state persistence
-- Automated test infrastructure in place
+**Data Import/Export**:
 
-**Phase 1 (Current)**: Building out full MVP transform set
+- ✅ CSV file upload + drag-drop
+- ✅ Clipboard paste (Ctrl+V)
+- ✅ CSV export with timestamp
+- ✅ Workflow JSON export/import
 
-- See SPECIFICATION.md Section 8 for complete roadmap
-- Priority: Remaining transforms (aggregate, fillna, dropna, replace)
+**Transformations** (9 implemented):
 
-**Key technical discoveries** documented in PARSER-DESIGN-DECISION.md:
+- ✅ Filter (expression-based, security-validated AST)
+- ✅ Select (with pattern matching: prefix/suffix/exact)
+- ✅ Remove columns
+- ✅ Rename columns
+- ✅ Sort (single field)
+- ✅ Derive (calculated columns with expressions)
+- ✅ Types (explicit type assignment)
+- ✅ Aggregate (group by + rollup)
+- ✅ Join (multi-model joins, all types)
 
-- jsep parses `&&`/`||` as BinaryExpression (not LogicalExpression)
-- Arquero `.filter()` rejects try-catch blocks (workaround: `.objects()` → filter → `aq.from()`)
-- On-demand step computation (compute intermediate results when viewing, don't cache)
+**Advanced Features**:
+
+- ✅ **SchemaEngine**: Granular type inference (integer vs float, date vs datetime)
+- ✅ **EDAEngine**: Statistical profiling (mean, median, quartiles, frequency)
+- ✅ **ChartsEngine**: Vega-Lite visualizations (boxplot, histogram, categorical bar)
+- ✅ **URL State**: Hash-based routing, shareable links
+- ✅ **Multi-Model**: Multiple transform pipelines per source
+- ✅ **Auto-Save**: IndexedDB with 500ms debounced saves
+
+**UI Features**:
+
+- ✅ Ribbon toolbar (Microsoft Office-style tabs)
+- ✅ Floating column toolbar (sort, filter, rename, remove)
+- ✅ Floating cell toolbar (keep/exclude value, copy)
+- ✅ Type indicators with visual badges
+- ✅ Column hover highlighting
+- ✅ Step navigation (view intermediate results)
+- ✅ EDA panel with chart switcher
+
+**Testing**:
+
+- ✅ Comprehensive test suite across 5 files
+- ✅ Browser-based test runner (Mocha + Chai)
+- ✅ High coverage on core transform logic
+
+### Roadmap (Near-Term)
+
+**Next 4 transforms** (~180 lines, 8-12 hours):
+
+1. **Dedupe** - Remove duplicate rows
+2. **Impute** - Fill missing values (constants only initially)
+3. **Pivot** - Wide format (cross-tabulation)
+4. **Fold** - Long format (unpivot, inverse of pivot)
+
+**Mid-Term** (~230 lines, 1-2 weeks): 5. **Expression Functions** - Whitelist `op.*` functions (string, date, math)
+
+See [ARQUERO-LEVERAGE-ANALYSIS.md](docs/ARQUERO-LEVERAGE-ANALYSIS.md) for detailed roadmap.
 
 ---
 
 ## Key Design Decisions
 
-### 1. Expression Parser: Hybrid Approach
+### 1. Expression Parser: Hybrid Architecture
 
-Use structured predicates (primary) + expression strings (advanced):
+**Approach**: Custom AST interpretation for user expressions, Arquero delegation for data operations.
 
-```json
-// Primary API - Structured predicates (80% of users)
-{ "filter": { "field": "sales", "gt": 1000 } }
+**Rationale**:
 
-// Advanced API - Expression strings (20% of users)
-{ "filter": "sales > 1000 && region == 'North'" }
-```
+- **Security**: Never use `Function()` constructor with user input
+- **Validation**: AST validation catches errors before execution
+- **Error Quality**: Position-aware error messages with suggestions
+- **Arquero Leverage**: Use built-in verbs for data manipulation (faster, tested)
 
-**Rationale**: Vega-Lite research showed predicates work well for beginners; expressions provide escape hatch for complex logic.
+**Current Support** (expressions):
 
-### 2. Parser Library: jsep
+- Operators: Arithmetic, comparison, logical
+- Column references: Bare identifiers or bracket notation
+- Security: AST validation, operator whitelist, no property access
 
-- Zero dependencies, ~10KB minified, ESTree-compatible AST
-- Parser-only (no code execution), CDN-loadable
-- **Alternatives rejected**: Acorn (too complex), handwritten parser (untested), direct eval (insecure)
+**Not Yet Supported** (planned):
 
-### 3. Security Model: AST Interpretation
+- Function calls (`upper()`, `year()`, `abs()`, etc.)
+- Ternary operator (`? :`)
+- Advanced operators (`?.`, `??`)
 
-**Never use `new Function()` with user input**
+See [PARSER-DESIGN-DECISION.md](docs/PARSER-DESIGN-DECISION.md) for comprehensive design rationale.
 
-```javascript
-// ❌ NEVER
-const fn = new Function('d', userExpression);
+### 2. Schema System: Granular Types
 
-// ✅ ALWAYS
-const ast = jsep(userExpression);
-validateAST(ast, schema);
-const result = interpretAST(ast, data);
-```
+**Decision**: Distinguish `integer` vs `float`, `date` vs `datetime`.
 
-**Why**: No code injection, better validation, position-aware errors. Trade-off: 2-5x slower (acceptable for preview use case).
+**Benefits**:
 
-### 4. Column Syntax: Bare Identifiers
+- Better formatting (integers don't need decimal places)
+- Correct aggregation defaults
+- Type hints for derived columns
+- User can override via `types` transform
 
-Accept `sales > 1000` (not `d.sales` or `datum.sales`) - simplest for non-programmers. Bracket notation for spaces: `[Total Sales] > 1000`.
+**Implementation**: SchemaEngine ([schema-engine.js](src/schema-engine.js)) infers from sample data, propagates through transforms.
 
-### 5. Operator Choices
+### 3. Visualization: Vega-Lite
 
-- Boolean: `&&`, `||`, `!` (JavaScript standard, jsep native support)
-- Can add word forms (`and`, `or`, `not`) in Phase 3 if needed
+**Decision**: Use Vega-Lite for charts
+
+**Benefits**:
+
+- Declarative JSON specs (aligns with transform approach)
+- Interactive features (brushing, tooltips) built-in
+- Well-maintained library
+
+**Trade-off**: ~200KB dependency, but avoids reinventing charting.
+
+### 4. No Build System
+
+**Decision**: CDN-loaded libraries, no npm/webpack/build step.
+
+**Benefits**:
+
+- Open `index.html` in browser, it works
+- Static hosting, no server required
+- Source code readable in dev tools
+- Non-programmers don't need Node.js tooling
+
+**Trade-off**: Slightly larger initial load, but acceptable for use case.
+
+### 5. On-Demand Step Computation
+
+**Decision**: Compute intermediate results when viewing steps, don't cache.
+
+**Rationale**:
+
+- Simplicity: No cache invalidation logic
+- Memory: Don't store N copies of data
+- Performance: Acceptable for preview (100 rows)
+
+**Future**: Could add caching for large datasets if needed.
 
 ---
 
 ## Technology Stack
 
-**Core Dependencies (CDN-loaded)**:
+**Core Dependencies** (CDN-loaded):
 
-- PapaParse (~35KB) - CSV parsing
-- Arquero (~200KB) - Data transformation runtime
-- jsep (~10KB) - Expression parser
-- Alpine.js (~40KB) - Reactive UI
+- **PapaParse** (~35KB) - CSV parsing
+- **Arquero** (~200KB) - Data transformation runtime
+- **jsep** (~10KB) - Expression parser
+- **Alpine.js** (~40KB) - Reactive UI
+- **Vega-Lite** (~200KB) - Visualization
 
-**No Build System**: All libraries from CDN, works by opening HTML file, GitHub Pages compatible
+**Testing**: Mocha + Chai (CDN-loaded), browser-based test runner
 
-**Testing**: Mocha + Chai (CDN-loaded), browser-based test runner at `src/tests/runner.html`
+**No Build System**: All libraries from CDN, GitHub Pages compatible
 
 ---
 
 ## Codebase Map
 
-**Before implementing, check if it already exists below.**
-
 ### Core Modules (Expression Pipeline)
 
 - **[expression-parser.js](src/expression-parser.js)** - jsep wrapper, entry point for parsing
-- **[ast-validator.js](src/ast-validator.js)** - Whitelist validation (security layer)
-- **[ast-interpreter.js](src/ast-interpreter.js)** - Safe AST execution (no Function() constructor)
-- **[transforms.js](src/transforms.js)** - Transform implementations (filter, select, derive, etc.)
+- **[ast-validator.js](src/ast-validator.js)** - Security validation (operator whitelist)
+- **[ast-interpreter.js](src/ast-interpreter.js)** - Safe AST execution (no `Function()` constructor)
+- **[error-formatter.js](src/error-formatter.js)** - User-friendly error messages with position highlighting
+
+### Transform Engine
+
+- **[transforms.js](src/transforms.js)** - Transform implementations
+  - Filter, Select, Remove, Rename, Sort, Derive, Types, Aggregate, Join
+  - Each transform ~10-100 lines
+  - Direct Arquero wrappers or custom AST interpretation
+
+### Advanced Features
+
+- **[schema-engine.js](src/schema-engine.js)** - Granular type inference & propagation
+- **[eda-engine.js](src/eda-engine.js)** - Statistical analysis & profiling
+- **[charts.js](src/charts.js)** - Vega-Lite chart rendering
 
 ### Infrastructure
 
 - **[storage.js](src/storage.js)** - IndexedDB persistence (sources, models, settings)
-- **[error-formatter.js](src/error-formatter.js)** - User-friendly error messages with position highlighting
-- **[performance-logger.js](src/performance-logger.js)** - Optional performance tracking (toggle-able)
-- **[ux-settings.js](src/ux-settings.js)** - localStorage preferences (pagination, theme, etc.)
+- **[url-state.js](src/url-state.js)** - Hash-based routing & shareable links
+- **[ux-settings.js](src/ux-settings.js)** - localStorage preferences
+- **[performance-logger.js](src/performance-logger.js)** - Optional transform timing
 
 ### Application
 
@@ -135,7 +216,8 @@ Accept `sales > 1000` (not `d.sales` or `datum.sales`) - simplest for non-progra
 ### Tests
 
 - **[src/tests/runner.html](src/tests/runner.html)** - Browser test runner (Mocha + Chai)
-- Test files mirror module names: `expression-parser.test.js`, `ast-validator.test.js`, etc.
+- **Test files**: `expression-parser.test.js`, `ast-validator.test.js`, `ast-interpreter.test.js`, `transforms.test.js`, `join.test.js`
+- **Coverage**: High coverage on core logic
 
 **Tip**: Each module has header comments with purpose and exports. Read headers before implementing.
 
@@ -143,10 +225,11 @@ Accept `sales > 1000` (not `d.sales` or `datum.sales`) - simplest for non-progra
 
 ## Documentation Map
 
-- **SPECIFICATION.md** - Complete product spec (data model, transforms, UI, phases)
-- **PARSER-DESIGN-DECISION.md** - Parser architecture and security design
-- **PHASE-0-TESTING-CHECKLIST.md** - Manual testing checklist
-- **research/** - 8-project analysis (Vega-Lite, Arquero, OpenRefine, ag-Grid, etc.)
+- **[SPECIFICATION.md](docs/SPECIFICATION.md)** - Complete product spec (features, data model, transforms, UI, roadmap)
+- **[PARSER-DESIGN-DECISION.md](docs/PARSER-DESIGN-DECISION.md)** - Expression parser architecture & security design
+- **[ARQUERO-LEVERAGE-ANALYSIS.md](docs/ARQUERO-LEVERAGE-ANALYSIS.md)** - Roadmap & Arquero integration strategy
+- **[UX-SPECIFICATION.md](docs/UX-SPECIFICATION.md)** - UI/UX design system (colors, typography, components)
+- **[research/](research/)** - 8-project analysis (Vega-Lite, Arquero, OpenRefine, ag-Grid, etc.)
 
 ---
 
@@ -165,7 +248,7 @@ Accept `sales > 1000` (not `d.sales` or `datum.sales`) - simplest for non-progra
 **Implication**: Everything beginner-friendly
 
 - Plain language errors (not "identifier not found")
-- Visual predicate builder (not raw expressions)
+- Visual interface (not raw expressions when avoidable)
 - Helpful typo suggestions
 
 ### Security Requirements (Critical)
@@ -174,9 +257,9 @@ Accept `sales > 1000` (not `d.sales` or `datum.sales`) - simplest for non-progra
 
 **Mitigation**:
 
-- Never use Function() constructor with user input
+- Never use `Function()` constructor with user input
 - Always validate AST before execution
-- Whitelist operators and functions (Phase 1: arithmetic, comparison, logical only)
+- Whitelist operators (current) and functions (future)
 - No window/document access from expressions
 - Error-as-value pattern (don't throw exceptions that break 10,000 cells)
 
@@ -185,12 +268,14 @@ Accept `sales > 1000` (not `d.sales` or `datum.sales`) - simplest for non-progra
 **Arquero is the runtime, not the model**:
 
 - Chumak uses Arquero for data transformation execution
-- Chumak does NOT copy Arquero's parser approach (Acorn + Function() constructor)
-- Flow: User input → Parse & validate (Chumak) → Generate Arquero function → Execute (Arquero runtime)
+- Chumak does NOT copy Arquero's parser approach (Acorn + `Function()` constructor)
+- Flow: User input → Parse & validate (Chumak) → Generate Arquero expression → Execute (Arquero runtime)
+
+**Leverage Arquero verbs**: Most planned transforms are thin wrappers around Arquero methods (see [ARQUERO-LEVERAGE-ANALYSIS.md](docs/ARQUERO-LEVERAGE-ANALYSIS.md)).
 
 ### Testing Philosophy (Important)
 
-**MANDATORY: Update tests when implementing features**
+**MANDATORY: Write tests before implementing features**
 
 1. Write tests FIRST in `src/tests/`
 2. Run `src/tests/runner.html` to verify tests fail (red)
@@ -198,13 +283,19 @@ Accept `sales > 1000` (not `d.sales` or `datum.sales`) - simplest for non-progra
 4. Run tests again to verify pass (green)
 5. All tests must pass before feature complete
 
-**Test files**: `expression-parser.test.js`, `ast-validator.test.js`, `ast-interpreter.test.js`, `transforms.test.js`
+**Test files**: `expression-parser.test.js`, `ast-validator.test.js`, `ast-interpreter.test.js`, `transforms.test.js`, `join.test.js`
 
 **Edge cases**: Empty data, nulls, column names with spaces, division by zero, type mismatches, deeply nested expressions
 
+**Coverage**: High coverage on core logic (expression parsing, transform engine)
+
 ### Performance Constraints
 
-**Targets**: Parse + validate <10ms, evaluate 100 rows <50ms, UI responsive
+**Targets**:
+
+- Parse + validate: <10ms
+- Evaluate 100 rows: <50ms
+- UI responsive
 
 **Trade-offs**: AST interpretation 2-5x slower than compiled (acceptable for preview-only evaluation)
 
@@ -218,27 +309,17 @@ See Security Requirements above - this is non-negotiable.
 
 ### 2. Don't Copy Arquero's Parser
 
-Arquero uses Acorn (~800 lines) + Function() constructor. Chumak uses jsep + validation (~700 lines, no Function()).
+Arquero uses Acorn (~800 lines) + `Function()` constructor. Chumak uses jsep + validation (~700 lines, no `Function()`).
 
 ### 3. Don't Force JavaScript Syntax on Users
 
-Bad: Require `d.sales > 1000` (Arquero style)
-Good: Accept `sales > 1000` (bare identifier)
+❌ Bad: Require `d.sales > 1000` (Arquero style)
+✅ Good: Accept `sales > 1000` (bare identifier)
 
-Bad: "identifier not found"
-Good: "Column 'Slaes' not found. Did you mean 'Sales'?"
+❌ Bad: "identifier not found"
+✅ Good: "Column 'Slaes' not found. Did you mean 'Sales'?"
 
-### 4. Don't Add Features Prematurely
-
-Phase 1 scope is deliberately limited:
-
-- No functions (Phase 2)
-- No joins (Phase 2)
-- No pivot/unpivot (Phase 3)
-
-Stick to roadmap. Simple MVP first.
-
-### 5. Don't Over-Engineer (Critical)
+### 4. Don't Over-Engineer (Critical)
 
 **Code size should reflect importance and complexity, not "might need it someday"**
 
@@ -260,7 +341,7 @@ This is a small, focused project. Every line of code is maintenance burden.
 - Add instrumentation at start/end instead of wrapping
 - Git diff should show functional changes, not formatting churn
 
-### 6. Don't Forget Error-as-Value Pattern
+### 5. Don't Forget Error-as-Value Pattern
 
 From OpenRefine research:
 
@@ -274,11 +355,21 @@ if (divisor === 0) return { type: 'error', message: 'Division by zero' };
 
 One bad cell shouldn't break 10,000 good cells.
 
-### 7. Don't Forget to Write Tests
+### 6. Don't Forget to Write Tests
 
 **CRITICAL**: Every new feature MUST have tests
 
-See Testing Philosophy above. Tests in `src/tests/runner.html`, 90%+ coverage required, all tests pass before committing.
+See Testing Philosophy above. Tests in `src/tests/runner.html`, high coverage required, all tests pass before committing.
+
+### 7. Don't Reinvent Arquero
+
+For data operations (dedupe, impute, pivot, fold, etc.):
+
+- Use Arquero verbs directly
+- Don't implement custom logic
+- Thin wrappers only (~30-60 lines)
+
+See [ARQUERO-LEVERAGE-ANALYSIS.md](docs/ARQUERO-LEVERAGE-ANALYSIS.md) for patterns.
 
 ---
 
@@ -292,20 +383,43 @@ See Testing Philosophy above. Tests in `src/tests/runner.html`, 90%+ coverage re
 
 ### Documentation Pointers
 
-- **Expressions/syntax** → PARSER-DESIGN-DECISION.md, SPECIFICATION.md Section 11
-- **Transforms** → SPECIFICATION.md Section 5
-- **UI** → SPECIFICATION.md Section 6
-- **Testing** → src/tests/runner.html, SPECIFICATION.md Section 13
-- **Research** → research/ directory
-- **Phases** → SPECIFICATION.md Section 8
-- **Security** → PARSER-DESIGN-DECISION.md Security Analysis
+- **Expressions/syntax** → [PARSER-DESIGN-DECISION.md](docs/PARSER-DESIGN-DECISION.md), [SPECIFICATION.md](docs/SPECIFICATION.md) Section 10
+- **Transforms** → [SPECIFICATION.md](docs/SPECIFICATION.md) Section 6
+- **Roadmap** → [SPECIFICATION.md](docs/SPECIFICATION.md) Section 8, [ARQUERO-LEVERAGE-ANALYSIS.md](docs/ARQUERO-LEVERAGE-ANALYSIS.md)
+- **UI** → [UX-SPECIFICATION.md](docs/UX-SPECIFICATION.md)
+- **Testing** → [src/tests/runner.html](src/tests/runner.html), [SPECIFICATION.md](docs/SPECIFICATION.md) Section 12
+- **Research** → [research/](research/) directory
+- **Security** → [PARSER-DESIGN-DECISION.md](docs/PARSER-DESIGN-DECISION.md) Security Analysis
 
 ### When Implementing
 
-1. Write tests FIRST in `src/tests/`
-2. Implement feature
-3. Run `src/tests/runner.html` to verify
-4. Refer to PARSER-DESIGN-DECISION.md for parser design, SPECIFICATION.md for transform specs
+1. **Check roadmap**: [ARQUERO-LEVERAGE-ANALYSIS.md](docs/ARQUERO-LEVERAGE-ANALYSIS.md) for implementation patterns
+2. **Write tests FIRST** in `src/tests/`
+3. **Implement feature** (prefer Arquero wrappers over custom logic)
+4. **Run tests**: `src/tests/runner.html` to verify
+5. **Refer to docs**: [PARSER-DESIGN-DECISION.md](docs/PARSER-DESIGN-DECISION.md) for parser design, [SPECIFICATION.md](docs/SPECIFICATION.md) for transform specs
+
+### Implementation Patterns
+
+**Pattern 1: Direct Arquero Wrapper** (~30 lines)
+
+- Example: Dedupe, Slice, Sample
+- Parameter mapping only
+- No expression parsing
+
+**Pattern 2: Options Wrapper** (~50 lines)
+
+- Example: Pivot, Fold, Impute (simple)
+- Parameter + options mapping
+- Optional configuration
+
+**Pattern 3: Expression Wrapper** (~80 lines)
+
+- Example: Filter, Derive (current), Impute (future)
+- Expression parsing + validation
+- AST to Arquero generation
+
+See [ARQUERO-LEVERAGE-ANALYSIS.md](docs/ARQUERO-LEVERAGE-ANALYSIS.md) for detailed examples.
 
 ---
 
@@ -373,7 +487,7 @@ See Testing Philosophy above. Tests in `src/tests/runner.html`, 90%+ coverage re
 
 ### When Unclear About Scope
 
-- "Should this be in Phase 1, or defer to Phase 2?"
+- "Should this be in the near-term roadmap, or defer to mid/long-term?"
 - "Does this need to work for all cases, or is 80% coverage acceptable for MVP?"
 
 ### When Multiple Approaches Exist
@@ -384,12 +498,12 @@ See Testing Philosophy above. Tests in `src/tests/runner.html`, 90%+ coverage re
 ### When Security Considerations Arise
 
 - "This could be a security risk if [scenario]. Add validation?"
-- "This requires executing user code. Whitelist, or defer to Phase 2?"
+- "This requires executing user code. Whitelist, or defer to function support?"
 
 ### When Performance Trade-offs Exist
 
-- "Simple approach is slower but easier. Acceptable for Phase 1?"
-- "Optimizing would add [N] lines. Worth it for Phase 1?"
+- "Simple approach is slower but easier. Acceptable?"
+- "Optimizing would add [N] lines. Worth it now?"
 
 ---
 
@@ -397,12 +511,13 @@ See Testing Philosophy above. Tests in `src/tests/runner.html`, 90%+ coverage re
 
 1. **User is project owner** - defer to their judgment
 2. **Design phase complete** - focus on implementation, not redesigning (unless user requests)
-3. **Research informed decisions** - leverage 8-project analysis in research/
+3. **Research informed decisions** - leverage 8-project analysis in [research/](research/)
 4. **Security is non-negotiable** - never compromise on sandboxing/validation
 5. **Target audience matters** - non-programmers, not JavaScript developers
-6. **Test coverage important** - 90%+ on core logic
-7. **Keep it simple** - MVP deliberately limited in scope
+6. **Test coverage important** - high coverage on core logic
+7. **Keep it simple** - YAGNI, right-sized for current needs
 8. **Document as you go** - update this file for significant decisions
+9. **Leverage Arquero** - thin wrappers, not reimplementation
 
 ---
 
