@@ -40,6 +40,10 @@ const SchemaEngine = {
       // Simple Date: 2024-01-01 or 2024/01/01
       const isDate = nonNullValues.every((v) => /^\d{4}[-\/]\d{2}[-\/]\d{2}/.test(v));
       if (isDate) return 'date';
+
+      // American Date: MM/DD/YYYY or M/D/YYYY
+      const isAmericanDate = nonNullValues.every((v) => /^\d{1,2}\/\d{1,2}\/\d{4}$/.test(v));
+      if (isAmericanDate) return 'date';
     }
 
     // Default to string
