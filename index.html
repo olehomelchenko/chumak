@@ -8,7 +8,7 @@
     <link rel="stylesheet" href="styles/chumak.css" />
     <link rel="icon" type="image/x-icon" href="/src/favicon.svg" />
 
-    <script src="https://unpkg.com/feather-icons"></script>
+    <script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
     <script src="https://unpkg.com/papaparse@5/papaparse.min.js"></script>
     <script src="https://unpkg.com/arquero@5/dist/arquero.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsep@1.4.0/dist/iife/jsep.iife.min.js"></script>
@@ -97,7 +97,11 @@
               color: var(--color-midnight-blue);
             "
           >
-            <i data-feather="terminal" style="width: 14px; height: 14px"></i>
+            <span
+              class="iconify"
+              data-icon="carbon:terminal"
+              style="width: 14px; height: 14px"
+            ></span>
             Run Tests
           </a>
           <button
@@ -130,7 +134,7 @@
             @click="$refs.fileInput.click()"
             title="Import CSV file (or Ctrl+V to paste)"
           >
-            <i data-feather="upload"></i>
+            <span class="iconify" data-icon="carbon:upload"></span>
             <span>Import CSV</span>
           </button>
           <button
@@ -138,7 +142,7 @@
             @click="promptPaste()"
             title="Paste data from clipboard (Ctrl+V)"
           >
-            <i data-feather="clipboard"></i>
+            <span class="iconify" data-icon="carbon:paste"></span>
             <span>Paste</span>
           </button>
           <button
@@ -148,7 +152,7 @@
             :class="{ 'ribbon__button--disabled': !currentData }"
             title="Export current data as CSV"
           >
-            <i data-feather="download"></i>
+            <span class="iconify" data-icon="carbon:download"></span>
             <span>Export CSV</span>
           </button>
           <button
@@ -156,7 +160,7 @@
             disabled
             title="Import from URL (Coming in Phase 2)"
           >
-            <i data-feather="link"></i>
+            <span class="iconify" data-icon="carbon:link"></span>
             <span>Import URL</span>
           </button>
           <button
@@ -166,7 +170,7 @@
             :class="{ 'ribbon__button--disabled': !currentData }"
             title="Export workflow as JSON"
           >
-            <i data-feather="file-text"></i>
+            <span class="iconify" data-icon="carbon:document"></span>
             <span>Export Workflow</span>
           </button>
         </div>
@@ -174,11 +178,11 @@
         <!-- Transform Tab -->
         <div class="ribbon__panel" x-show="ribbonTab === 'transform'">
           <button class="ribbon__button" @click="openDialog('filter')" title="Filter rows">
-            <i data-feather="filter"></i>
+            <span class="iconify" data-icon="carbon:filter"></span>
             <span>Filter</span>
           </button>
           <button class="ribbon__button" @click="openDialog('sort')" title="Sort rows">
-            <i data-feather="arrow-up-down"></i>
+            <span class="iconify" data-icon="carbon:arrows-vertical"></span>
             <span>Sort</span>
           </button>
           <button
@@ -186,7 +190,7 @@
             disabled
             title="Drop rows with missing values (Coming soon)"
           >
-            <i data-feather="trash-2"></i>
+            <span class="iconify" data-icon="carbon:trash-can"></span>
             <span>Drop NA</span>
           </button>
           <button
@@ -194,7 +198,7 @@
             disabled
             title="Fill missing values (Coming soon)"
           >
-            <i data-feather="edit-3"></i>
+            <span class="iconify" data-icon="carbon:edit"></span>
             <span>Fill NA</span>
           </button>
           <button
@@ -202,7 +206,7 @@
             disabled
             title="Find and replace values (Coming soon)"
           >
-            <i data-feather="search"></i>
+            <span class="iconify" data-icon="carbon:search"></span>
             <span>Replace</span>
           </button>
           <div class="ribbon__divider"></div>
@@ -211,7 +215,7 @@
             @click="autoDetectSchema()"
             title="Re-run type detection for all columns"
           >
-            <i data-feather="refresh-cw"></i>
+            <span class="iconify" data-icon="carbon:renew"></span>
             <span>Auto-Detect</span>
           </button>
 
@@ -220,15 +224,15 @@
             @click="openDialog('select')"
             title="Select columns to keep"
           >
-            <i data-feather="columns"></i>
+            <span class="iconify" data-icon="carbon:column"></span>
             <span>Select</span>
           </button>
           <button class="ribbon__button" @click="openDialog('remove')" title="Remove columns">
-            <i data-feather="x-square"></i>
+            <span class="iconify" data-icon="carbon:close-outline"></span>
             <span>Remove</span>
           </button>
           <button class="ribbon__button" @click="openDialog('rename')" title="Rename columns">
-            <i data-feather="type"></i>
+            <span class="iconify" data-icon="carbon:text-font"></span>
             <span>Rename</span>
           </button>
         </div>
@@ -240,7 +244,7 @@
             @click="openDialog('derive')"
             title="Create new column from expression"
           >
-            <i data-feather="plus-square"></i>
+            <span class="iconify" data-icon="carbon:add-alt"></span>
             <span>Derive</span>
           </button>
           <button
@@ -248,7 +252,7 @@
             disabled
             title="Duplicate column (Coming in Phase 2)"
           >
-            <i data-feather="copy"></i>
+            <span class="iconify" data-icon="carbon:copy"></span>
             <span>Duplicate</span>
           </button>
           <button
@@ -256,7 +260,7 @@
             disabled
             title="Split column (Coming in Phase 2)"
           >
-            <i data-feather="scissors"></i>
+            <span class="iconify" data-icon="carbon:cut"></span>
             <span>Split</span>
           </button>
         </div>
@@ -268,7 +272,7 @@
             @click="openDialog('aggregate')"
             title="Group and aggregate data"
           >
-            <i data-feather="layers"></i>
+            <span class="iconify" data-icon="carbon:layers"></span>
             <span>Aggregate</span>
           </button>
           <button
@@ -276,7 +280,7 @@
             disabled
             title="Remove duplicate rows (Coming in Phase 2)"
           >
-            <i data-feather="check-square"></i>
+            <span class="iconify" data-icon="carbon:checkbox-checked"></span>
             <span>Distinct</span>
           </button>
           <button
@@ -284,7 +288,7 @@
             disabled
             title="Pivot table (Coming in Phase 3)"
           >
-            <i data-feather="grid"></i>
+            <span class="iconify" data-icon="carbon:grid"></span>
             <span>Pivot</span>
           </button>
           <button
@@ -292,7 +296,7 @@
             @click="openDialog('fold')"
             title="Convert columns into key-value pairs (unpivot)"
           >
-            <i data-feather="minimize-2"></i>
+            <span class="iconify" data-icon="carbon:minimize"></span>
             <span>Unpivot</span>
           </button>
         </div>
@@ -304,7 +308,7 @@
             @click="openDialog('join')"
             title="Join with another model or dataset"
           >
-            <i data-feather="git-merge"></i>
+            <span class="iconify" data-icon="carbon:branch"></span>
             <span>Join</span>
           </button>
           <button
@@ -312,7 +316,7 @@
             disabled
             title="Union datasets (Coming in Phase 2)"
           >
-            <i data-feather="layers"></i>
+            <span class="iconify" data-icon="carbon:layers"></span>
             <span>Union</span>
           </button>
           <button
@@ -320,7 +324,7 @@
             disabled
             title="Append rows (Coming in Phase 2)"
           >
-            <i data-feather="arrow-down"></i>
+            <span class="iconify" data-icon="carbon:arrow-down"></span>
             <span>Append</span>
           </button>
         </div>
@@ -615,7 +619,7 @@
         @drop.prevent="handleFileDrop($event)"
       >
         <div class="empty-state__content">
-          <i data-feather="upload-cloud" class="empty-state__icon"></i>
+          <span class="iconify" data-icon="carbon:cloud-upload" class="empty-state__icon"></span>
           <h2 class="empty-state__title">Get Started with Chumak</h2>
           <p class="empty-state__text">
             Drag and drop a CSV file, paste from clipboard (Ctrl+V), or use the "Import CSV" button
@@ -632,11 +636,19 @@
           </div>
           <div class="dataset-info__actions">
             <button class="button button--secondary" @click="renameSource(activeSource)">
-              <i data-feather="edit-2" style="width: 16px; height: 16px"></i>
+              <span
+                class="iconify"
+                data-icon="carbon:edit"
+                style="width: 16px; height: 16px"
+              ></span>
               Rename
             </button>
             <button class="button button--danger" @click="deleteSource(activeSource)">
-              <i data-feather="trash-2" style="width: 16px; height: 16px"></i>
+              <span
+                class="iconify"
+                data-icon="carbon:trash-can"
+                style="width: 16px; height: 16px"
+              ></span>
               Delete
             </button>
           </div>
@@ -761,7 +773,7 @@
             @click="renameCurrentModel()"
             title="Rename model"
           >
-            <i data-feather="edit-2"></i>
+            <span class="iconify" data-icon="carbon:edit"></span>
             <span>Rename</span>
           </button>
           <button
@@ -769,7 +781,7 @@
             @click="copyCurrentModel()"
             title="Copy model"
           >
-            <i data-feather="copy"></i>
+            <span class="iconify" data-icon="carbon:copy"></span>
             <span>Copy</span>
           </button>
           <button
@@ -777,7 +789,7 @@
             @click="createNewModelFromActive()"
             title="New model from same source"
           >
-            <i data-feather="plus-circle"></i>
+            <span class="iconify" data-icon="carbon:add-filled"></span>
             <span>New</span>
           </button>
           <button
@@ -785,7 +797,7 @@
             @click="deleteCurrentModel()"
             title="Delete model"
           >
-            <i data-feather="trash-2"></i>
+            <span class="iconify" data-icon="carbon:trash-can"></span>
             <span>Delete</span>
           </button>
 
@@ -796,7 +808,7 @@
             @click="exportCSV()"
             title="Export as CSV"
           >
-            <i data-feather="download"></i>
+            <span class="iconify" data-icon="carbon:download"></span>
             <span>CSV</span>
           </button>
           <button
@@ -804,7 +816,7 @@
             @click="copyCSVToClipboard()"
             title="Copy current page to clipboard (CSV)"
           >
-            <i data-feather="copy"></i>
+            <span class="iconify" data-icon="carbon:copy"></span>
             <span>Copy CSV</span>
           </button>
           <button
@@ -812,7 +824,7 @@
             @click="exportDataJSON()"
             title="Export as JSON"
           >
-            <i data-feather="file-text"></i>
+            <span class="iconify" data-icon="carbon:document"></span>
             <span>JSON</span>
           </button>
           <button
@@ -820,7 +832,7 @@
             @click="copyJSONToClipboard()"
             title="Copy current page to clipboard (JSON)"
           >
-            <i data-feather="copy"></i>
+            <span class="iconify" data-icon="carbon:copy"></span>
             <span>Copy JSON</span>
           </button>
         </div>
@@ -1532,17 +1544,17 @@
       @click.stop
     >
       <button class="floating-toolbar__button" @click="quickSort('asc')" title="Sort Ascending">
-        <i data-feather="arrow-up"></i>
+        <span class="iconify" data-icon="carbon:arrow-up"></span>
       </button>
       <button class="floating-toolbar__button" @click="quickSort('desc')" title="Sort Descending">
-        <i data-feather="arrow-down"></i>
+        <span class="iconify" data-icon="carbon:arrow-down"></span>
       </button>
       <div style="width: 1px; background: var(--color-medium-gray); margin: 4px 2px"></div>
       <button class="floating-toolbar__button" @click="quickFilter()" title="Filter by this column">
-        <i data-feather="filter"></i>
+        <span class="iconify" data-icon="carbon:filter"></span>
       </button>
       <button class="floating-toolbar__button" @click="quickRename()" title="Rename this column">
-        <i data-feather="edit-2"></i>
+        <span class="iconify" data-icon="carbon:edit"></span>
       </button>
       <button
         class="floating-toolbar__button"
@@ -1550,7 +1562,7 @@
         title="Remove this column"
         style="color: var(--color-dark-red)"
       >
-        <i data-feather="trash-2"></i>
+        <span class="iconify" data-icon="carbon:trash-can"></span>
       </button>
     </div>
 
@@ -1569,7 +1581,7 @@
         x-show="!selectedCell?.isEda"
         :title="['number', 'integer', 'float'].includes(selectedCell?.type) ? 'Keep only this value (=)' : 'Keep only this value'"
       >
-        <i data-feather="filter"></i>
+        <span class="iconify" data-icon="carbon:filter"></span>
         <span
           x-show="['number', 'integer', 'float'].includes(selectedCell?.type)"
           style="font-size: 10px; margin-left: 2px; font-weight: bold"
@@ -1584,7 +1596,7 @@
         :title="['number', 'integer', 'float'].includes(selectedCell?.type) ? 'Exclude this value (&ne;)' : 'Exclude this value'"
         style="color: var(--color-dark-red)"
       >
-        <i data-feather="filter"></i>
+        <span class="iconify" data-icon="carbon:filter"></span>
         <span style="font-size: 10px; margin-left: 2px; font-weight: bold">&ne;</span>
       </button>
 
@@ -1634,25 +1646,6 @@
       </template>
     </div>
 
-    <script>
-      // Initialize Feather icons after page load
-      document.addEventListener('DOMContentLoaded', () => {
-        feather.replace();
-      });
-
-      // Re-render icons when Alpine updates
-      document.addEventListener('alpine:initialized', () => {
-        // Re-replace icons when dynamic content might have been added
-        // We also do it on specific Alpine events if needed
-        Alpine.effect(() => {
-          // This runs whenever any tracked Alpine state changes
-          // but we only want to trigger it when the toolbar becomes visible
-          // so we'll do it more specifically in the next step if needed
-          setTimeout(() => feather.replace(), 0);
-        });
-      });
-    </script>
-
     <!-- Floating Type Menu -->
     <div
       class="type-menu"
@@ -1686,7 +1679,12 @@
         style="width: 100%; height: 1px; background: var(--color-medium-gray); margin: 4px 0"
       ></div>
       <button class="type-menu__item" @click="changeColumnType(typeMenuCol, 'auto')">
-        <i data-feather="zap" style="width: 14px; height: 14px; margin-right: 4px"></i> Auto-Detect
+        <span
+          class="iconify"
+          data-icon="carbon:flash"
+          style="width: 14px; height: 14px; margin-right: 4px"
+        ></span>
+        Auto-Detect
       </button>
     </div>
   </body>
