@@ -391,40 +391,6 @@
           >
             No data sources imported yet. Click "Import CSV" to get started.
           </div>
-
-          <!-- PLACEHOLDER DATA - preserved for reference -->
-          <!--
-          <div class="tree-item tree-item--source">
-            <span class="tree-item__icon">📄</span>
-            <span class="tree-item__name">sales.csv</span>
-          </div>
-          <div class="tree-item tree-item--model tree-item--active">
-            <span class="tree-item__indent"></span>
-            <span class="tree-item__icon">📊</span>
-            <span class="tree-item__name">sales_cleaned</span>
-          </div>
-          <div class="tree-item tree-item--model">
-            <span class="tree-item__indent"></span>
-            <span class="tree-item__icon">📊</span>
-            <span class="tree-item__name">sales_by_region</span>
-          </div>
-
-          <div class="tree-item tree-item--source">
-            <span class="tree-item__icon">📄</span>
-            <span class="tree-item__name">students.csv</span>
-          </div>
-          <div class="tree-item tree-item--model">
-            <span class="tree-item__indent"></span>
-            <span class="tree-item__icon">📊</span>
-            <span class="tree-item__name">students_processed</span>
-          </div>
-
-          <div class="tree-item tree-item--source">
-            <span class="tree-item__icon">📄</span>
-            <span class="tree-item__name">regions.csv</span>
-          </div>
-          -->
-          <!-- END PLACEHOLDER DATA -->
         </div>
       </section>
 
@@ -524,33 +490,6 @@
           >
             No transformation steps yet. Use the toolbar above to transform your data.
           </div>
-
-          <!-- PLACEHOLDER DATA - preserved for reference -->
-          <!--
-          <div class="step-item" :class="{ 'step-item--active': activeStep === 1 }" @click="activeStep = 1">
-            <span class="step-item__number">1.</span>
-            <span class="step-item__description">Filter: sales > 1000</span>
-            <button class="step-item__delete">×</button>
-          </div>
-          <div class="step-item" :class="{ 'step-item--active': activeStep === 2 }" @click="activeStep = 2">
-            <span class="step-item__number">2.</span>
-            <span class="step-item__description">Derive: profit_margin = ...</span>
-            <button class="step-item__delete">×</button>
-          </div>
-          <div class="step-item" :class="{ 'step-item--active': activeStep === 3 }" @click="activeStep = 3">
-            <span class="step-item__number">3.</span>
-            <span class="step-item__description">Select: 5 columns</span>
-            <button class="step-item__delete">×</button>
-          </div>
-          <div class="step-item" :class="{ 'step-item--active': activeStep === 4 }" @click="activeStep = 4">
-            <span class="step-item__number">4.</span>
-            <span class="step-item__description">Sort: profit (desc)</span>
-            <button class="step-item__delete">×</button>
-          </div>
-
-          <button class="add-step-button">+ Add Step</button>
-          -->
-          <!-- END PLACEHOLDER DATA -->
         </div>
 
         <!-- JSON View -->
@@ -573,37 +512,6 @@
           >
             No transformation steps yet.
           </div>
-
-          <!-- PLACEHOLDER DATA - preserved for reference -->
-          <!--
-          <pre class="json-view__content">{
-  "transforms": [
-    { "filter": "sales > 1000" },
-    {
-      "derive": {
-        "profit_margin": "(profit / sales) * 100"
-      }
-    },
-    {
-      "select": [
-        "region",
-        "sales",
-        "profit",
-        "profit_margin",
-        "date"
-      ]
-    },
-    {
-      "sort": {
-        "field": "profit",
-        "order": "descending"
-      }
-    }
-  ]
-}</pre>
-          <button class="button button--secondary button--small json-view__copy">Copy</button>
-          -->
-          <!-- END PLACEHOLDER DATA -->
         </div>
       </section>
     </aside>
@@ -911,31 +819,6 @@
                   <span x-text="column"></span>
                 </th>
               </template>
-
-              <!-- PLACEHOLDER DATA - preserved for reference -->
-              <!--
-            <th class="data-table__header">
-              region
-              <span class="type-indicator">Aa</span>
-            </th>
-            <th class="data-table__header data-table__header--number">
-              sales
-              <span class="type-indicator">#</span>
-            </th>
-            <th class="data-table__header data-table__header--number">
-              profit
-              <span class="type-indicator">#</span>
-            </th>
-            <th class="data-table__header data-table__header--number">
-              profit_margin
-              <span class="type-indicator">#</span>
-            </th>
-            <th class="data-table__header">
-              date
-              <span class="type-indicator">📅</span>
-            </th>
-            -->
-              <!-- END PLACEHOLDER DATA -->
             </tr>
           </thead>
           <tbody>
@@ -954,81 +837,6 @@
                 </template>
               </tr>
             </template>
-
-            <!-- PLACEHOLDER DATA - preserved for reference -->
-            <!--
-          <tr class="data-table__row">
-            <td class="data-table__cell">West</td>
-            <td class="data-table__cell data-table__cell--number">2,500</td>
-            <td class="data-table__cell data-table__cell--number">580</td>
-            <td class="data-table__cell data-table__cell--number">23.2</td>
-            <td class="data-table__cell">2025-01-22</td>
-          </tr>
-          <tr class="data-table__row">
-            <td class="data-table__cell">West</td>
-              <td class="data-table__cell data-table__cell--number">2,300</td>
-              <td class="data-table__cell data-table__cell--number">480</td>
-              <td class="data-table__cell data-table__cell--number">20.9</td>
-            <td class="data-table__cell">2025-01-26</td>
-          </tr>
-          <tr class="data-table__row">
-            <td class="data-table__cell">East</td>
-              <td class="data-table__cell data-table__cell--number">2,400</td>
-              <td class="data-table__cell data-table__cell--number">530</td>
-              <td class="data-table__cell data-table__cell--number">22.1</td>
-            <td class="data-table__cell">2025-01-29</td>
-          </tr>
-          <tr class="data-table__row">
-            <td class="data-table__cell">North</td>
-              <td class="data-table__cell data-table__cell--number">2,200</td>
-              <td class="data-table__cell data-table__cell--number">520</td>
-              <td class="data-table__cell data-table__cell--number">23.6</td>
-            <td class="data-table__cell">2025-01-19</td>
-          </tr>
-          <tr class="data-table__row">
-            <td class="data-table__cell">South</td>
-              <td class="data-table__cell data-table__cell--number">2,100</td>
-              <td class="data-table__cell data-table__cell--number">450</td>
-              <td class="data-table__cell data-table__cell--number">21.4</td>
-            <td class="data-table__cell">2025-01-16</td>
-          </tr>
-          <tr class="data-table__row">
-            <td class="data-table__cell">South</td>
-              <td class="data-table__cell data-table__cell--number">2,000</td>
-              <td class="data-table__cell data-table__cell--number">440</td>
-              <td class="data-table__cell data-table__cell--number">22.0</td>
-            <td class="data-table__cell">2025-01-24</td>
-          </tr>
-          <tr class="data-table__row">
-            <td class="data-table__cell">North</td>
-              <td class="data-table__cell data-table__cell--number">1,950</td>
-              <td class="data-table__cell data-table__cell--number">390</td>
-              <td class="data-table__cell data-table__cell--number">20.0</td>
-            <td class="data-table__cell">2025-01-27</td>
-          </tr>
-          <tr class="data-table__row">
-            <td class="data-table__cell">East</td>
-              <td class="data-table__cell data-table__cell--number">1,900</td>
-              <td class="data-table__cell data-table__cell--number">410</td>
-              <td class="data-table__cell data-table__cell--number">21.6</td>
-            <td class="data-table__cell">2025-01-21</td>
-          </tr>
-          <tr class="data-table__row">
-            <td class="data-table__cell">West</td>
-              <td class="data-table__cell data-table__cell--number">1,800</td>
-              <td class="data-table__cell data-table__cell--number">380</td>
-              <td class="data-table__cell data-table__cell--number">21.1</td>
-            <td class="data-table__cell">2025-01-18</td>
-          </tr>
-          <tr class="data-table__row">
-            <td class="data-table__cell">South</td>
-              <td class="data-table__cell data-table__cell--number">1,750</td>
-              <td class="data-table__cell data-table__cell--number">360</td>
-              <td class="data-table__cell data-table__cell--number">20.6</td>
-            <td class="data-table__cell">2025-01-28</td>
-          </tr>
-          -->
-            <!-- END PLACEHOLDER DATA -->
           </tbody>
         </table>
       </div>
