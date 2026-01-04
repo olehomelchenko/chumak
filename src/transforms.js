@@ -247,6 +247,7 @@ function applyTransform(table, transform, schema, context = null) {
   // AGGREGATE: Group and Summarize
   if (transform.aggregate) {
     const { groupby, rollup } = transform.aggregate;
+    const op = aq.op;
 
     // 1. Grouping
     let groupedTable = table;
@@ -258,6 +259,7 @@ function applyTransform(table, transform, schema, context = null) {
     // We need to convert our JSON string expressions (e.g., "op.mean('sales')")
     // into actual Arquero table expressions.
     const rollupSpecs = {};
+    const floatCols = [];
 
     for (const [outCol, exprString] of Object.entries(rollup)) {
       // Simple parser for Phase 1: matches "op.func('col')" or "op.func()"
@@ -283,6 +285,11 @@ function applyTransform(table, transform, schema, context = null) {
       } else {
         rollupSpecs[outCol] = op[funcName]();
       }
+
+      // Track columns that might produce floating point artifacts
+      if (['mean', 'average', 'avg', 'sum', 'stdev', 'variance', 'median'].includes(funcName)) {
+        floatCols.push(outCol);
+      }
     }
 
     const result = groupedTable.rollup(rollupSpecs);
@@ -293,7 +300,21 @@ function applyTransform(table, transform, schema, context = null) {
     // However, rollup() output is usually flat unless it was preserved.
     // Arquero docs say: "The output table persists a groupby specification."
     // So we should ungroup to treat it as a new flat source.
-    const flatResult = result.ungroup();
+    let flatResult = result.ungroup();
+
+    // 3. Post-process floating point errors
+    // Mitigate precision issues (e.g. 19999.99999999996) by rounding to 9 decimal places
+    if (floatCols.length > 0) {
+      const cleanups = {};
+      floatCols.forEach((col) => {
+        // cleanup: round(val * 1e9) / 1e9
+        cleanups[col] = aq.escape((d) => {
+          const val = d[col];
+          return typeof val === 'number' ? Math.round(val * 1e9) / 1e9 : val;
+        });
+      });
+      flatResult = flatResult.derive(cleanups);
+    }
 
     perfLogger.log(describeTransform(transform), table, flatResult, performance.now() - start);
     return flatResult;

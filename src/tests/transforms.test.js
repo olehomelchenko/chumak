@@ -377,6 +377,70 @@ describe('Transform Engine', () => {
     });
   });
 
+  describe('applyTransform() - AGGREGATE', () => {
+    it('should aggregate with count', () => {
+      const table = createTestTable();
+      const transform = {
+        aggregate: {
+          groupby: ['region'],
+          rollup: { count: 'op.count()' },
+        },
+      };
+
+      const result = applyTransform(table, transform, ['region']);
+
+      expect(result.numRows()).to.equal(4); // North, South, East, West
+      const rows = result.orderby('region').objects();
+
+      expect(rows[0].region).to.equal('East');
+      expect(rows[0].count).to.equal(1);
+
+      expect(rows[1].region).to.equal('North');
+      expect(rows[1].count).to.equal(2);
+    });
+
+    it('should aggregate with mean', () => {
+      const table = createTestTable();
+      const transform = {
+        aggregate: {
+          groupby: ['region'],
+          rollup: { avg_sales: "op.mean('sales')" },
+        },
+      };
+
+      const result = applyTransform(table, transform, ['region', 'sales']);
+
+      const rows = result.orderby('region').objects();
+      // North: (1000 + 800) / 2 = 900
+      expect(rows.find((r) => r.region === 'North').avg_sales).to.equal(900);
+    });
+
+    it('should mitigate floating point errors in sum/mean', () => {
+      // 0.1 + 0.2 = 0.30000000000000004 in JS
+      const floatTable = aq.from([
+        { id: 1, val: 0.1 },
+        { id: 1, val: 0.2 },
+      ]);
+
+      const transform = {
+        aggregate: {
+          groupby: ['id'],
+          rollup: {
+            total: "op.sum('val')",
+            avg: "op.mean('val')",
+          },
+        },
+      };
+
+      const result = applyTransform(floatTable, transform, ['id', 'val']);
+      const row = result.object(0);
+
+      // Without mitigation, this would be 0.30000000000000004
+      expect(row.total).to.equal(0.3);
+      expect(row.avg).to.equal(0.15);
+    });
+  });
+
   describe('applyTransform() - Error Handling', () => {
     it('should throw error for unimplemented transform', () => {
       const table = createTestTable();
