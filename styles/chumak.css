@@ -235,9 +235,9 @@ body {
   background: rgba(0, 187, 206, 0.15);
 }
 
-.ribbon__button i {
-  width: 18px;
-  height: 18px;
+.ribbon__button .iconify {
+  width: 32px;
+  height: 32px;
   stroke-width: 2px;
 }
 
@@ -258,7 +258,7 @@ body {
 
 .ribbon__divider {
   width: 1px;
-  height: 32px;
+  height: 80px;
   background: var(--border-color);
   margin: 0 var(--space-xs);
   align-self: center;
@@ -752,9 +752,9 @@ body {
   color: var(--color-cyan);
 }
 
-.floating-toolbar__button i {
-  width: 16px;
-  height: 16px;
+.floating-toolbar__button .iconify {
+  width: 24px;
+  height: 24px;
 }
 
 .type-indicator {
@@ -944,9 +944,9 @@ body {
   border-color: var(--color-cyan);
 }
 
-.button--ghost i {
-  width: 14px;
-  height: 14px;
+.button--ghost .iconify {
+  width: 24px;
+  height: 24px;
 }
 
 .button--danger-text {

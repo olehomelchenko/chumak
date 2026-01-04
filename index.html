@@ -92,7 +92,7 @@
             <span
               class="iconify"
               data-icon="carbon:terminal"
-              style="width: 14px; height: 14px"
+              style="width: 20px; height: 20px"
             ></span>
             Run Tests
           </a>
@@ -114,57 +114,62 @@
       <div class="ribbon__content">
         <!-- Data Tab -->
         <div class="ribbon__panel" x-show="ribbonTab === 'data'">
-          <input
-            type="file"
-            accept=".csv"
-            style="display: none"
-            x-ref="fileInput"
-            @change="handleFileSelect($event)"
-          />
-          <button
-            class="ribbon__button"
-            @click="$refs.fileInput.click()"
-            title="Import CSV file (or Ctrl+V to paste)"
-          >
-            <span class="iconify" data-icon="carbon:upload"></span>
-            <span>Import CSV</span>
-          </button>
-          <button
-            class="ribbon__button"
-            @click="promptPaste()"
-            title="Paste data from clipboard (Ctrl+V)"
-          >
-            <span class="iconify" data-icon="carbon:paste"></span>
-            <span>Paste</span>
-          </button>
-          <button
-            class="ribbon__button"
-            @click="exportCSV()"
-            :disabled="!currentData"
-            :class="{ 'ribbon__button--disabled': !currentData }"
-            title="Export current data as CSV"
-          >
-            <span class="iconify" data-icon="carbon:download"></span>
-            <span>Export CSV</span>
-          </button>
-          <button
-            class="ribbon__button ribbon__button--disabled"
-            disabled
-            title="Import from URL (Coming in Phase 2)"
-          >
-            <span class="iconify" data-icon="carbon:link"></span>
-            <span>Import URL</span>
-          </button>
-          <button
-            class="ribbon__button"
-            @click="exportWorkflowJSON()"
-            :disabled="!currentData"
-            :class="{ 'ribbon__button--disabled': !currentData }"
-            title="Export workflow as JSON"
-          >
-            <span class="iconify" data-icon="carbon:document"></span>
-            <span>Export Workflow</span>
-          </button>
+          <div class="ribbon__group">
+            <div class="ribbon__group-label">&nbsp;</div>
+            <div style="display: flex; gap: 4px">
+              <input
+                type="file"
+                accept=".csv"
+                style="display: none"
+                x-ref="fileInput"
+                @change="handleFileSelect($event)"
+              />
+              <button
+                class="ribbon__button"
+                @click="$refs.fileInput.click()"
+                title="Import CSV file (or Ctrl+V to paste)"
+              >
+                <span class="iconify" data-icon="carbon:upload"></span>
+                <span>Import CSV</span>
+              </button>
+              <button
+                class="ribbon__button"
+                @click="promptPaste()"
+                title="Paste data from clipboard (Ctrl+V)"
+              >
+                <span class="iconify" data-icon="carbon:paste"></span>
+                <span>Paste</span>
+              </button>
+              <button
+                class="ribbon__button"
+                @click="exportCSV()"
+                :disabled="!currentData"
+                :class="{ 'ribbon__button--disabled': !currentData }"
+                title="Export current data as CSV"
+              >
+                <span class="iconify" data-icon="carbon:download"></span>
+                <span>Export CSV</span>
+              </button>
+              <button
+                class="ribbon__button ribbon__button--disabled"
+                disabled
+                title="Import from URL (Coming in Phase 2)"
+              >
+                <span class="iconify" data-icon="carbon:link"></span>
+                <span>Import URL</span>
+              </button>
+              <button
+                class="ribbon__button"
+                @click="exportWorkflowJSON()"
+                :disabled="!currentData"
+                :class="{ 'ribbon__button--disabled': !currentData }"
+                title="Export workflow as JSON"
+              >
+                <span class="iconify" data-icon="carbon:document"></span>
+                <span>Export Workflow</span>
+              </button>
+            </div>
+          </div>
         </div>
 
         <!-- Prepare Tab -->
@@ -386,30 +391,35 @@
 
         <!-- Combine Tab -->
         <div class="ribbon__panel" x-show="ribbonTab === 'combine'">
-          <button
-            class="ribbon__button"
-            @click="openDialog('join')"
-            title="Join with another model or dataset"
-          >
-            <span class="iconify" data-icon="carbon:branch"></span>
-            <span>Join</span>
-          </button>
-          <button
-            class="ribbon__button ribbon__button--disabled"
-            disabled
-            title="Append rows from another dataset (Coming soon)"
-          >
-            <span class="iconify" data-icon="carbon:arrow-down"></span>
-            <span>Append</span>
-          </button>
-          <button
-            class="ribbon__button ribbon__button--disabled"
-            disabled
-            title="Union - combine and deduplicate (Coming soon)"
-          >
-            <span class="iconify" data-icon="carbon:intersect"></span>
-            <span>Union</span>
-          </button>
+          <div class="ribbon__group">
+            <div class="ribbon__group-label">&nbsp;</div>
+            <div style="display: flex; gap: 4px">
+              <button
+                class="ribbon__button"
+                @click="openDialog('join')"
+                title="Join with another model or dataset"
+              >
+                <span class="iconify" data-icon="carbon:branch"></span>
+                <span>Join</span>
+              </button>
+              <button
+                class="ribbon__button ribbon__button--disabled"
+                disabled
+                title="Append rows from another dataset (Coming soon)"
+              >
+                <span class="iconify" data-icon="carbon:arrow-down"></span>
+                <span>Append</span>
+              </button>
+              <button
+                class="ribbon__button ribbon__button--disabled"
+                disabled
+                title="Union - combine and deduplicate (Coming soon)"
+              >
+                <span class="iconify" data-icon="carbon:intersect"></span>
+                <span>Union</span>
+              </button>
+            </div>
+          </div>
         </div>
       </div>
     </div>
@@ -631,7 +641,7 @@
               <span
                 class="iconify"
                 data-icon="carbon:edit"
-                style="width: 16px; height: 16px"
+                style="width: 24px; height: 24px"
               ></span>
               Rename
             </button>
@@ -639,7 +649,7 @@
               <span
                 class="iconify"
                 data-icon="carbon:trash-can"
-                style="width: 16px; height: 16px"
+                style="width: 24px; height: 24px"
               ></span>
               Delete
             </button>
