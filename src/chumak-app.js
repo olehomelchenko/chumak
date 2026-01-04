@@ -6,6 +6,7 @@ function chumakApp() {
     activeStep: null,
     activeStepIndex: null, // null = viewing final result, number = viewing step N
     viewingIntermediate: false, // true when viewing intermediate step
+    editingStepIndex: null, // Index of step being edited (null = not editing)
     activeDialog: null,
     isDragging: false,
     selectedColumn: null, // Interactive header selection
@@ -1091,7 +1092,13 @@ function chumakApp() {
     },
 
     async applyStepResult(transform, resultTable) {
-      // Update model steps
+      // Check if we're editing an existing step
+      if (this.editingStepIndex !== null) {
+        await this.updateStep(this.editingStepIndex, transform);
+        return;
+      }
+
+      // Update model steps (add new step)
       this.activeModel.steps.push(transform);
 
       // Update current data and schema
@@ -2376,6 +2383,116 @@ function chumakApp() {
       } catch (error) {
         console.error('Error removing step:', error);
         alert(`Error recomputing after removal: ${error.message}`);
+      }
+    },
+
+    editStep(stepIndex) {
+      const step = this.activeModel.steps[stepIndex];
+
+      // Store editing context
+      this.editingStepIndex = stepIndex;
+
+      // Open appropriate dialog based on step type
+      if (step.filter) {
+        this.filterExpression = step.filter;
+        this.filterError = null;
+        this.openDialog('filter');
+      } else if (step.select) {
+        // Set selected columns
+        this.selectedColumns = this.columns.map((col) => step.select.includes(col));
+        this.openDialog('select');
+      } else if (step.remove) {
+        this.removedColumns = this.columns.map((col) => step.remove.includes(col));
+        this.openDialog('remove');
+      } else if (step.rename) {
+        // Populate rename state with current mappings
+        const renames = {};
+        this.columns.forEach((col) => {
+          renames[col] = step.rename[col] || col;
+        });
+        this.renameDialogState = { renames };
+        this.openDialog('rename');
+      } else if (step.derive) {
+        // For derive, populate with first column (simple case)
+        const firstCol = Object.keys(step.derive)[0];
+        this.deriveDialogState = {
+          columnName: firstCol,
+          expression: step.derive[firstCol],
+          error: null,
+        };
+        this.openDialog('derive');
+      } else if (step.sort) {
+        this.sortDialogState = {
+          field: step.sort.field,
+          order: step.sort.order,
+        };
+        this.openDialog('sort');
+      } else if (step.fold) {
+        // Determine which columns are being folded
+        const foldCols = step.fold.columns || [];
+        this.foldDialogState = {
+          keyName: step.fold.as?.[0] || 'key',
+          valueName: step.fold.as?.[1] || 'value',
+          selectedColumns: this.columns.map((col) => foldCols.includes(col)),
+        };
+        this.openDialog('fold');
+      } else {
+        alert('Editing this step type is not yet supported');
+        this.editingStepIndex = null;
+      }
+    },
+
+    async updateStep(stepIndex, newTransform) {
+      // Backup current state for rollback
+      const backup = {
+        steps: JSON.parse(JSON.stringify(this.activeModel.steps)),
+        data: JSON.parse(JSON.stringify(this.activeModel.data)),
+        schema: JSON.parse(JSON.stringify(this.activeModel.schema)),
+      };
+
+      try {
+        // Update step
+        this.activeModel.steps[stepIndex] = newTransform;
+
+        // Trigger reactivity
+        this.activeModel.steps = [...this.activeModel.steps];
+
+        // Recompute from updated step to end
+        const lastStepIndex = this.activeModel.steps.length - 1;
+        const result = this.computeUpToStep(lastStepIndex);
+
+        // Update model with recomputed result
+        this.activeModel.data = JSON.parse(JSON.stringify(result.data));
+        this.activeModel.schema = result.schema;
+
+        // Update app state
+        this.currentData = this.activeModel.data;
+        this.columns = result.columns;
+
+        // Return to final view
+        this.viewFinalResult();
+
+        // Auto-save
+        await autoSave(this.sources, this.models);
+
+        // Clear editing context
+        this.editingStepIndex = null;
+
+        console.log('Step updated and data recomputed');
+      } catch (error) {
+        console.error('Error updating step:', error);
+
+        // Rollback to backup state
+        this.activeModel.steps = backup.steps;
+        this.activeModel.data = backup.data;
+        this.activeModel.schema = backup.schema;
+        this.currentData = this.activeModel.data;
+        this.columns = this.activeModel.schema.map((c) => c.name);
+
+        // Clear editing context
+        this.editingStepIndex = null;
+
+        alert(`Error updating step: ${error.message}\n\nChanges have been reverted.`);
       }
     },
 

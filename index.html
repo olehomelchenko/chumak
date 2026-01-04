@@ -461,6 +461,14 @@
                   <span class="step-item__number" x-text="`${index + 1}.`"></span>
                   <span class="step-item__description" x-text="describeTransform(step)"></span>
                   <button
+                    class="step-item__edit"
+                    @click.stop="editStep(index)"
+                    x-show="!step.import && !step.types && index === activeModel.steps.length - 1"
+                    title="Edit this step"
+                  >
+                    ✎
+                  </button>
+                  <button
                     class="step-item__delete"
                     @click.stop="removeStep(index)"
                     x-show="!step.import"

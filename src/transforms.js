@@ -89,7 +89,17 @@ function applyTransform(table, transform, schema, context = null) {
       }
     });
 
-    const result = aq.from(filteredRows);
+    // Preserve column structure even if result is empty
+    // Create an empty row with all columns set to undefined if no rows match
+    let result;
+    if (filteredRows.length === 0 && rows.length > 0) {
+      const emptyRow = {};
+      table.columnNames().forEach((col) => (emptyRow[col] = undefined));
+      result = aq.from([emptyRow]).filter((d) => false); // Empty table with columns preserved
+    } else {
+      result = aq.from(filteredRows);
+    }
+
     perfLogger.log(describeTransform(transform), table, result, performance.now() - start);
     return result;
   }
@@ -229,7 +239,7 @@ function applyTransform(table, transform, schema, context = null) {
 
   // REMOVE: Drop columns
   if (transform.remove) {
-    const result = table.not(...transform.remove);
+    const result = table.select(aq.not(...transform.remove));
     perfLogger.log(describeTransform(transform), table, result, performance.now() - start);
     return result;
   }
@@ -352,50 +362,50 @@ function describeTransform(transform, rightName = null) {
 
   if (transform.types) {
     const count = Object.keys(transform.types).length;
-    return `Detect types: ${count} column${count !== 1 ? 's' : ''} `;
+    return `Detect types: ${count} column${count !== 1 ? 's' : ''}`;
   }
 
   if (transform.select) {
     const count = transform.select.length;
-    return `Select: ${count} column${count !== 1 ? 's' : ''} `;
+    return `Select: ${count} column${count !== 1 ? 's' : ''}`;
   }
 
   if (transform.filter) {
     const expr = transform.filter;
     // Simple truncation for long expressions
     const displayExpr = expr.length > 30 ? expr.substring(0, 27) + '...' : expr;
-    return `Filter: ${displayExpr} `;
+    return `Filter: ${displayExpr}`;
   }
 
   if (transform.join) {
     const how = transform.join.how || 'inner';
     const name = rightName || (transform.join.right.startsWith('mdl_') ? 'model' : 'source');
-    return `Join(${how}): ${name} `;
+    return `Join (${how}): ${name}`;
   }
 
   if (transform.derive) {
     const names = Object.keys(transform.derive);
-    return `Derive: ${names.join(', ')} `;
+    return `Derive: ${names.join(', ')}`;
   }
 
   if (transform.sort) {
-    return `Sort: ${transform.sort.field} `;
+    return `Sort: ${transform.sort.field}`;
   }
 
   if (transform.rename) {
     const count = Object.keys(transform.rename).length;
-    return `Rename: ${count} column${count !== 1 ? 's' : ''} `;
+    return `Rename: ${count} column${count !== 1 ? 's' : ''}`;
   }
 
   if (transform.aggregate) {
     const { groupby, rollup } = transform.aggregate;
     const groups = groupby && groupby.length > 0 ? groupby.join(', ') : 'All rows';
     const aggs = Object.keys(rollup).length;
-    return `Aggregate: by[${groups}], ${aggs} summar${aggs !== 1 ? 'y' : 'ies'} `;
+    return `Aggregate: by[${groups}], ${aggs} summar${aggs !== 1 ? 'y' : 'ies'}`;
   }
 
   if (transform.remove) {
-    return `Remove: ${transform.remove.length} column${transform.remove.length !== 1 ? 's' : ''} `;
+    return `Remove: ${transform.remove.length} column${transform.remove.length !== 1 ? 's' : ''}`;
   }
 
   return 'Unknown transform';

@@ -63,23 +63,44 @@
 - ✅ Type indicators with visual badges
 - ✅ Column hover highlighting
 - ✅ Step navigation (view intermediate results)
+- ✅ **Step editing** (edit last step, Phase 1 MVP)
 - ✅ EDA panel with chart switcher
 
 **Testing**:
 
-- ✅ Comprehensive test suite across 5 files
+- ✅ Comprehensive test suite across 6 files
 - ✅ Browser-based test runner (Mocha + Chai)
 - ✅ High coverage on core transform logic
+- ✅ Step editing test coverage (25 tests)
 
 ### Roadmap (Near-Term)
 
-**Next 4 transforms** (~180 lines, 8-12 hours):
+**Step Editing Enhancements**:
+
+- ✅ **Phase 1** (Complete): Edit last step only (~250 LOC)
+  - Edit button on last non-import, non-types step
+  - Pre-filled modals with existing parameters
+  - Full recomputation with rollback on error
+  - Supports: Filter, Select, Remove, Rename, Derive, Sort, Fold
+
+- 🔲 **Phase 2** (Future): Edit arbitrary step (~150 LOC additional)
+  - Edit button on all steps (not just last)
+  - Better error messages showing which downstream step failed
+  - Graceful handling of downstream pipeline breaks
+
+- 🔲 **Phase 3** (Future): Smart invalidation (~800 LOC additional)
+  - Dependency analysis (detect column references)
+  - Impact preview before committing edits
+  - Auto-fix suggestions for renames
+  - Warning when edits will break downstream steps
+
+**Next Transforms** (~180 lines, 8-12 hours):
 
 1. **Dedupe** - Remove duplicate rows
 2. **Impute** - Fill missing values (constants only initially)
 3. **Pivot** - Wide format (cross-tabulation)
 
-**Mid-Term** (~230 lines, 1-2 weeks): 5. **Expression Functions** - Whitelist `op.*` functions (string, date, math)
+**Mid-Term** (~230 lines, 1-2 weeks): 4. **Expression Functions** - Whitelist `op.*` functions (string, date, math)
 
 See [ARQUERO-LEVERAGE-ANALYSIS.md](docs/ARQUERO-LEVERAGE-ANALYSIS.md) for detailed roadmap.
 
@@ -212,12 +233,15 @@ See [PARSER-DESIGN-DECISION.md](docs/PARSER-DESIGN-DECISION.md) for comprehensiv
 ### Application
 
 - **[chumak-app.js](src/chumak-app.js)** - Main Alpine.js component (UI state & logic)
+  - Step management: `viewStep()`, `removeStep()`, `editStep()`, `updateStep()`
+  - Transform application: `applyStepResult()` with edit mode support
+  - Dialog state management and pre-filling for edits
 
 ### Tests
 
 - **[src/tests/runner.html](src/tests/runner.html)** - Browser test runner (Mocha + Chai)
-- **Test files**: `expression-parser.test.js`, `ast-validator.test.js`, `ast-interpreter.test.js`, `transforms.test.js`, `join.test.js`
-- **Coverage**: High coverage on core logic
+- **Test files**: `expression-parser.test.js`, `ast-validator.test.js`, `ast-interpreter.test.js`, `transforms.test.js`, `join.test.js`, `step-editing.test.js`
+- **Coverage**: High coverage on core logic (expression parsing, transforms, step editing)
 
 **Tip**: Each module has header comments with purpose and exports. Read headers before implementing.
 
@@ -228,6 +252,7 @@ See [PARSER-DESIGN-DECISION.md](docs/PARSER-DESIGN-DECISION.md) for comprehensiv
 - **[SPECIFICATION.md](docs/SPECIFICATION.md)** - Complete product spec (features, data model, transforms, UI, roadmap)
 - **[PARSER-DESIGN-DECISION.md](docs/PARSER-DESIGN-DECISION.md)** - Expression parser architecture & security design
 - **[ARQUERO-LEVERAGE-ANALYSIS.md](docs/ARQUERO-LEVERAGE-ANALYSIS.md)** - Roadmap & Arquero integration strategy
+- **[STEP-EDITING-IMPLEMENTATION.md](docs/STEP-EDITING-IMPLEMENTATION.md)** - Step editing feature (Phase 1-3 design, patterns, testing)
 - **[UX-SPECIFICATION.md](docs/UX-SPECIFICATION.md)** - UI/UX design system (colors, typography, components)
 - **[research/](research/)** - 8-project analysis (Vega-Lite, Arquero, OpenRefine, ag-Grid, etc.)
 
@@ -382,6 +407,41 @@ When implementing a new transform:
 Missing step 2 leads to "ghost columns" (UI thinks column exists, data doesn't).
 Missing step 3 leads to state desynchronization when deleting steps.
 
+### 9. Step Editing Implementation Notes
+
+**Current Implementation (Phase 1)**:
+
+- Edit button appears only on last non-import, non-types step
+- `editStep(stepIndex)` - Opens modal with pre-filled parameters
+- `updateStep(stepIndex, transform)` - Replaces step + recomputes from that point
+- `applyStepResult()` - Routes to `updateStep()` if `editingStepIndex` is set
+- Rollback on error with clear user messaging
+
+**Modal Pre-filling Pattern**:
+
+```javascript
+// In editStep(), populate dialog state based on transform type
+if (step.filter) {
+  this.filterExpression = step.filter;
+  this.openDialog('filter');
+}
+// Repeat for each transform type
+```
+
+**Recomputation Pattern**:
+
+```javascript
+// Full pipeline recomputation from edited step to end
+const result = this.computeUpToStep(lastStepIndex);
+this.activeModel.data = result.data;
+this.activeModel.schema = result.schema;
+```
+
+**Future Phases**:
+
+- Phase 2: Edit any step (not just last)
+- Phase 3: Dependency analysis + impact preview
+
 ---
 
 ## Quick Reference
@@ -396,6 +456,7 @@ Missing step 3 leads to state desynchronization when deleting steps.
 
 - **Expressions/syntax** → [PARSER-DESIGN-DECISION.md](docs/PARSER-DESIGN-DECISION.md), [SPECIFICATION.md](docs/SPECIFICATION.md) Section 10
 - **Transforms** → [SPECIFICATION.md](docs/SPECIFICATION.md) Section 6
+- **Step editing** → [STEP-EDITING-IMPLEMENTATION.md](docs/STEP-EDITING-IMPLEMENTATION.md)
 - **Roadmap** → [SPECIFICATION.md](docs/SPECIFICATION.md) Section 8, [ARQUERO-LEVERAGE-ANALYSIS.md](docs/ARQUERO-LEVERAGE-ANALYSIS.md)
 - **UI** → [UX-SPECIFICATION.md](docs/UX-SPECIFICATION.md)
 - **Testing** → [src/tests/runner.html](src/tests/runner.html), [SPECIFICATION.md](docs/SPECIFICATION.md) Section 12

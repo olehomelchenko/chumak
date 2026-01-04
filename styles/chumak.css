@@ -420,7 +420,8 @@ body {
   background: rgba(0, 187, 206, 0.05);
 }
 
-.step-item:hover .step-item__delete {
+.step-item:hover .step-item__delete,
+.step-item:hover .step-item__edit {
   display: block;
 }
 
@@ -441,6 +442,28 @@ body {
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.step-item__edit {
+  display: none;
+  position: absolute;
+  right: 28px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  background: transparent;
+  border: none;
+  color: var(--color-cyan);
+  font-size: var(--font-size-base);
+  line-height: 1;
+  cursor: pointer;
+  padding: 0;
+  border-radius: var(--border-radius);
+}
+
+.step-item__edit:hover {
+  background: rgba(0, 187, 206, 0.1);
 }
 
 .step-item__delete {
