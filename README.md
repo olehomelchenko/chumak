@@ -2,7 +2,7 @@
 
 > Named after Ukrainian star-navigating traders, Chumak transforms raw data into insights—guided by clarity and precision.
 
-**Status**: ✅ Phase 0 Complete (Walking Skeleton) → 🚧 Phase 1 (MVP) In Progress
+**Status**: ✅ Production-Ready Data Wrangling Application
 
 ## Documentation
 
@@ -15,31 +15,22 @@
   - Common pitfalls and best practices
   - Quick reference for all docs
 
-### Testing
-
-- **[PHASE-0-TESTING-CHECKLIST.md](PHASE-0-TESTING-CHECKLIST.md)** - Manual testing checklist for Phase 0
-  - Comprehensive test scenarios for all implemented features
-  - CSV import, transforms, persistence, export
-  - Error handling and edge cases
-  - Browser compatibility checks
-
 ### Core Specification
 
-- **[SPECIFICATION.md](SPECIFICATION.md)** - Complete product specification
+- **[SPECIFICATION.md](docs/SPECIFICATION.md)** - Complete product specification
   - What Chumak is and who it's for
   - Technical architecture and constraints
   - Data model and transform operations
   - UI design and user workflows
-  - Phased roadmap (3 phases)
+  - Implementation roadmap
   - Testing strategy
 
 ### Design Decisions
 
-- **[PARSER-DESIGN-DECISION.md](PARSER-DESIGN-DECISION.md)** - Expression parser design
+- **[PARSER-DESIGN-DECISION.md](docs/PARSER-DESIGN-DECISION.md)** - Expression parser design
   - Comprehensive analysis of parser options
-  - Recommended architecture (jsep + predicates)
+  - Architecture (jsep + AST validation + interpretation)
   - Security model and validation strategy
-  - Implementation phases and code estimates
   - Based on research of 8 production systems
 
 ### Research
@@ -54,9 +45,9 @@
 
 **For Contributors:**
 
-1. Read [SPECIFICATION.md](SPECIFICATION.md) for product vision and architecture
-2. Read [PARSER-DESIGN-DECISION.md](PARSER-DESIGN-DECISION.md) for parser implementation approach
-3. Check the phased roadmap in SPECIFICATION.md Section 8
+1. Read [SPECIFICATION.md](docs/SPECIFICATION.md) for product vision and architecture
+2. Read [PARSER-DESIGN-DECISION.md](docs/PARSER-DESIGN-DECISION.md) for parser implementation approach
+3. Read [CLAUDE.md](CLAUDE.md) for development context and current status
 
 **For Researchers:**
 
@@ -80,27 +71,45 @@
 - **Alpine.js** - Reactive UI
 - **No build system** - CDN-loaded libraries, runs in any browser
 
-## Current Phase: Phase 0 Complete ✅
+## Features
 
-**Walking Skeleton (Phase 0)** - COMPLETE
+**Data Import/Export**:
 
-- ✅ Product specification complete
-- ✅ Expression parser design complete
-- ✅ Research and analysis complete
-- ✅ Expression parser implemented (jsep → validation → interpretation)
-- ✅ IndexedDB persistence with auto-save
-- ✅ Filter and Select transforms working
-- ✅ CSV and JSON export functional
-- ✅ Comprehensive automated test suite
-- ✅ All architectural layers validated end-to-end
+- ✅ CSV file upload with drag-drop
+- ✅ Clipboard paste (Ctrl+V)
+- ✅ CSV/JSON export with clipboard copy
+- ✅ Workflow JSON export/import
 
-**Key achievements:**
+**Transformations** (10 implemented):
 
-- Successfully validated security model (no Function() constructor)
-- Proven data flow: CSV import → transform → persist → export
-- Identified and documented implementation discoveries (jsep behavior, Arquero limitations)
+- ✅ Filter, Select, Remove, Rename, Sort
+- ✅ Derive (calculated columns)
+- ✅ Types (explicit type assignment)
+- ✅ Aggregate (group by + rollup)
+- ✅ Join (multi-table operations)
+- ✅ Fold (unpivot/wide to long)
 
-**Next:** Phase 1 (MVP) - Remaining transforms, enhanced parser, predicate builder
+**Advanced Features**:
+
+- ✅ Schema engine with granular type inference
+- ✅ Statistical profiling (EDA)
+- ✅ Vega-Lite visualizations
+- ✅ URL-based state & shareable links
+- ✅ Multi-model pipelines
+- ✅ IndexedDB auto-save
+- ✅ Step editing
+
+**Security**:
+
+- ✅ Expression sandboxing (no `Function()` constructor)
+- ✅ AST validation for user expressions
+- ✅ Operator whitelisting
+
+**Testing**:
+
+- ✅ Comprehensive automated test suite (6 test files)
+- ✅ Browser-based test runner
+- ✅ High coverage on core transform logic
 
 ## Target Audience
 
@@ -108,11 +117,11 @@
 - Analysts needing quick CSV cleaning
 - Users on restricted machines (no Python/R/Excel installation)
 
-## Contact & Contribution
+## Development
 
-This project is in active development. Phase 0 (Walking Skeleton) is complete, validating all architectural layers. Phase 1 (MVP) implementation is next.
+This project is production-ready with comprehensive features for data wrangling. Future development focuses on additional transforms (dedupe, impute, pivot) and expression functions (string, date, math operations).
 
-See [SPECIFICATION.md](SPECIFICATION.md) Section 8 for the phased roadmap and [CLAUDE.md](CLAUDE.md) for current status and next steps.
+See [docs/SPECIFICATION.md](docs/SPECIFICATION.md) for complete specification and [CLAUDE.md](CLAUDE.md) for development context.
 
 ---
 
