@@ -31,6 +31,7 @@
 - ✅ CSV file upload + drag-drop
 - ✅ Clipboard paste (Ctrl+V)
 - ✅ CSV export with timestamp
+- ✅ Clipboard copy (CSV/JSON)
 - ✅ Workflow JSON export/import
 
 **Transformations** (10 implemented):

@@ -801,11 +801,27 @@
           </button>
           <button
             class="button button--ghost button--small"
+            @click="copyCSVToClipboard()"
+            title="Copy current page to clipboard (CSV)"
+          >
+            <i data-feather="copy"></i>
+            <span>Copy CSV</span>
+          </button>
+          <button
+            class="button button--ghost button--small"
             @click="exportDataJSON()"
             title="Export as JSON"
           >
             <i data-feather="file-text"></i>
             <span>JSON</span>
+          </button>
+          <button
+            class="button button--ghost button--small"
+            @click="copyJSONToClipboard()"
+            title="Copy current page to clipboard (JSON)"
+          >
+            <i data-feather="copy"></i>
+            <span>Copy JSON</span>
           </button>
         </div>
 

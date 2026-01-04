@@ -1826,6 +1826,43 @@ function chumakApp() {
       }
     },
 
+    // Copy current data as CSV to clipboard
+    // Copy current page data as CSV to clipboard
+    async copyCSVToClipboard() {
+      const pageData = this.getPaginatedData();
+      if (!pageData || pageData.length === 0) {
+        alert('No data to copy on this page');
+        return;
+      }
+
+      try {
+        const csv = Papa.unparse(pageData);
+        await navigator.clipboard.writeText(csv);
+        alert('Current page data copied to clipboard (CSV)!');
+      } catch (error) {
+        console.error('Copy to clipboard error:', error);
+        alert('Failed to copy to clipboard: ' + error.message);
+      }
+    },
+
+    // Copy current page data as JSON to clipboard
+    async copyJSONToClipboard() {
+      const pageData = this.getPaginatedData();
+      if (!pageData || pageData.length === 0) {
+        alert('No data to copy on this page');
+        return;
+      }
+
+      try {
+        const json = JSON.stringify(pageData, null, 2);
+        await navigator.clipboard.writeText(json);
+        alert('Current page data copied to clipboard (JSON)!');
+      } catch (error) {
+        console.error('Copy to clipboard error:', error);
+        alert('Failed to copy to clipboard: ' + error.message);
+      }
+    },
+
     // Switch to a source (shows dataset info view)
     switchToSource(source) {
       this.activeSource = source;
