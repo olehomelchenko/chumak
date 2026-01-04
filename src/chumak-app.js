@@ -189,6 +189,38 @@ function chumakApp() {
       });
 
       console.log('Initialization complete:', sources.length, 'sources,', models.length, 'models');
+
+      // Load templates
+      await this.loadTemplates();
+    },
+
+    /**
+     * Load HTML templates from separate files
+     */
+    async loadTemplates() {
+      const templates = [
+        { id: 'join-modal-container', url: 'templates/join-modal.html' },
+        { id: 'aggregate-modal-container', url: 'templates/aggregate-modal.html' },
+        { id: 'import-csv-modal-container', url: 'templates/import-csv-modal.html' },
+        { id: 'select-columns-modal-container', url: 'templates/select-columns-modal.html' },
+      ];
+
+      for (const template of templates) {
+        try {
+          const response = await fetch(template.url);
+          if (!response.ok) {
+            console.error(`Failed to load template: ${template.url}`);
+            continue;
+          }
+          const html = await response.text();
+          const container = document.getElementById(template.id);
+          if (container) {
+            container.innerHTML = html;
+          }
+        } catch (error) {
+          console.error(`Error loading template ${template.url}:`, error);
+        }
+      }
     },
 
     // Dialog methods

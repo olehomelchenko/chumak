@@ -1,0 +1,221 @@
+<!-- Join Dialog (Slide-in Panel) -->
+<div x-show="activeDialog === 'join'" x-cloak>
+  <!-- Backdrop -->
+  <div class="slide-panel-backdrop" @click="closeDialog()"></div>
+
+  <!-- Slide-in Panel -->
+  <div class="slide-panel" @click.stop>
+    <div class="slide-panel__header">
+      <h2 class="slide-panel__title">Join Data</h2>
+      <button class="slide-panel__close" @click="closeDialog()" title="Close">×</button>
+    </div>
+
+    <div class="slide-panel__content">
+      <!-- Join Configuration -->
+      <div class="form-group">
+        <label class="form-label">Join With</label>
+        <select
+          class="form-input"
+          x-model="joinDialogState.rightModel"
+          @change="onJoinTargetChange()"
+        >
+          <template x-for="target in joinDialogState.availableTargets" :key="target.id">
+            <option
+              :value="target.id"
+              x-text="`${target.name} (${target.type === 'model' ? 'model' : 'source'} - ${target.sourceName})`"
+            ></option>
+          </template>
+        </select>
+        <div
+          x-show="joinDialogState.availableTargets.length === 0"
+          class="form-help"
+          style="color: var(--color-error)"
+        >
+          No other models or sources available. Create another model or import another dataset
+          first.
+        </div>
+      </div>
+
+      <!-- Join Type -->
+      <div class="form-group">
+        <label class="form-label">Join Type</label>
+        <div style="display: flex; gap: 0.5rem; flex-wrap: wrap">
+          <label class="radio-label">
+            <input type="radio" x-model="joinDialogState.joinType" value="inner" />
+            <span>Inner</span>
+          </label>
+          <label class="radio-label">
+            <input type="radio" x-model="joinDialogState.joinType" value="left" />
+            <span>Left</span>
+          </label>
+          <label class="radio-label">
+            <input type="radio" x-model="joinDialogState.joinType" value="right" />
+            <span>Right</span>
+          </label>
+          <label class="radio-label">
+            <input type="radio" x-model="joinDialogState.joinType" value="full" />
+            <span>Full</span>
+          </label>
+          <label class="radio-label">
+            <input type="radio" x-model="joinDialogState.joinType" value="cross" />
+            <span>Cross</span>
+          </label>
+        </div>
+        <div class="form-help">
+          <span x-show="joinDialogState.joinType === 'inner'"
+            >Keep only rows that match in both tables</span
+          >
+          <span x-show="joinDialogState.joinType === 'left'"
+            >Keep all rows from left table, matching rows from right</span
+          >
+          <span x-show="joinDialogState.joinType === 'right'"
+            >Keep all rows from right table, matching rows from left</span
+          >
+          <span x-show="joinDialogState.joinType === 'full'">Keep all rows from both tables</span>
+          <span x-show="joinDialogState.joinType === 'cross'"
+            >Cartesian product (all combinations)</span
+          >
+        </div>
+      </div>
+
+      <!-- Join Keys (not shown for cross join) -->
+      <div class="form-group" x-show="joinDialogState.joinType !== 'cross'">
+        <label class="form-label">Join Keys</label>
+        <template x-for="(pair, index) in joinDialogState.keyPairs" :key="index">
+          <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem; align-items: center">
+            <select class="form-input" style="flex: 1" x-model="pair[0]">
+              <option :value="null">Select left column...</option>
+              <template x-for="col in joinDialogState.leftColumns" :key="col">
+                <option :value="col" x-text="col"></option>
+              </template>
+            </select>
+            <span>=</span>
+            <select class="form-input" style="flex: 1" x-model="pair[1]">
+              <option :value="null">Select right column...</option>
+              <template x-for="col in joinDialogState.rightColumns" :key="col">
+                <option :value="col" x-text="col"></option>
+              </template>
+            </select>
+            <button
+              class="button button--secondary button--small"
+              @click="removeJoinKeyPair(index)"
+              :disabled="joinDialogState.keyPairs.length === 1"
+              title="Remove key pair"
+            >
+              ×
+            </button>
+          </div>
+        </template>
+        <button
+          class="button button--secondary button--small"
+          @click="addJoinKeyPair()"
+          style="margin-top: 0.5rem"
+        >
+          + Add Key Pair
+        </button>
+        <div class="form-help">Match rows where these columns have equal values</div>
+      </div>
+
+      <!-- Column Suffixes -->
+      <div class="form-group">
+        <label class="form-label">Column Name Suffixes (for conflicts)</label>
+        <div style="display: flex; gap: 0.5rem; align-items: center">
+          <input
+            type="text"
+            class="form-input"
+            style="flex: 1"
+            x-model="joinDialogState.suffixes[0]"
+            placeholder="_x"
+          />
+          <span>/</span>
+          <input
+            type="text"
+            class="form-input"
+            style="flex: 1"
+            x-model="joinDialogState.suffixes[1]"
+            placeholder="_y"
+          />
+        </div>
+        <div class="form-help">Applied to left/right columns when names conflict</div>
+      </div>
+
+      <!-- Preview Button and Results -->
+      <div class="form-group">
+        <button
+          class="button button--secondary"
+          @click="previewJoin()"
+          :disabled="joinDialogState.isPreviewing || !joinDialogState.rightModel"
+        >
+          <span x-show="!joinDialogState.isPreviewing">Preview Join</span>
+          <span x-show="joinDialogState.isPreviewing">Previewing...</span>
+        </button>
+      </div>
+
+      <!-- Preview Error -->
+      <div x-show="joinDialogState.previewError" class="error-message" style="margin-bottom: 1rem">
+        <strong>Preview Error:</strong>
+        <div x-text="joinDialogState.previewError"></div>
+      </div>
+
+      <!-- Preview Results -->
+      <div x-show="joinDialogState.previewData" class="form-group">
+        <div
+          style="
+            padding: 1rem;
+            background: var(--color-light-gray);
+            border-radius: 4px;
+            margin-bottom: 1rem;
+          "
+        >
+          <strong>Preview Result:</strong>
+          <div
+            x-text="`${joinDialogState.previewData?.totalRows || 0} rows, ${joinDialogState.previewData?.columns?.length || 0} columns`"
+          ></div>
+          <div style="font-size: 0.875rem; color: var(--color-dark-gray); margin-top: 0.5rem">
+            Showing first 100 rows
+          </div>
+        </div>
+
+        <!-- Preview Table (scrollable) -->
+        <div
+          style="
+            max-height: 300px;
+            overflow: auto;
+            border: 1px solid var(--color-medium-gray);
+            border-radius: 4px;
+          "
+        >
+          <table class="data-table" style="font-size: 0.75rem">
+            <thead>
+              <tr>
+                <template x-for="col in joinDialogState.previewData?.columns" :key="col">
+                  <th class="data-table__header" x-text="col"></th>
+                </template>
+              </tr>
+            </thead>
+            <tbody>
+              <template x-for="(row, idx) in joinDialogState.previewData?.rows" :key="idx">
+                <tr>
+                  <template x-for="col in joinDialogState.previewData?.columns" :key="col">
+                    <td class="data-table__cell" x-text="row[col]"></td>
+                  </template>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide-panel__footer">
+      <button class="button button--secondary" @click="closeDialog()">Cancel</button>
+      <button
+        class="button button--primary"
+        @click="applyJoinTransform()"
+        :disabled="!joinDialogState.rightModel"
+      >
+        Apply Join
+      </button>
+    </div>
+  </div>
+</div>
