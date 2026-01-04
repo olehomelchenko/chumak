@@ -357,6 +357,13 @@ body {
   color: var(--color-midnight-blue);
 }
 
+.tree-item__meta {
+  font-size: var(--font-size-xs);
+  color: var(--color-dark-gray);
+  margin-left: auto;
+  opacity: 0.7;
+}
+
 /* ============================================
    Tabs (Steps / JSON)
    ============================================ */

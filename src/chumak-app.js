@@ -1026,6 +1026,20 @@ function chumakApp() {
     },
 
     // Transform methods
+    getModelMeta(model) {
+      if (!model) return '';
+      const rowCount = model.data ? model.data.length : 0;
+      const colCount = model.schema
+        ? model.schema.length
+        : model.data && model.data.length > 0
+          ? Object.keys(model.data[0]).length
+          : 0;
+      const stepsCount = Math.max(0, (model.steps ? model.steps.length : 0) - 1);
+      const stepsText = stepsCount === 1 ? '1 step' : `${stepsCount} steps`;
+
+      return `${rowCount.toLocaleString()} x ${colCount} • ${stepsText}`;
+    },
+
     describeTransform(transform) {
       return describeTransform(transform);
     },
