@@ -2244,26 +2244,26 @@
     <!-- Column Toolbar -->
     <div
       x-show="selectedColumn"
-      class="column-toolbar"
+      class="floating-toolbar"
       :style="`left: ${columnToolbarPos.x}px; top: ${columnToolbarPos.y}px; --arrow-offset: ${columnToolbarPos.arrowOffset}px;`"
       @click.away="selectedColumn = null"
       @click.stop
     >
-      <button class="column-toolbar__button" @click="quickSort('asc')" title="Sort Ascending">
+      <button class="floating-toolbar__button" @click="quickSort('asc')" title="Sort Ascending">
         <i data-feather="arrow-up"></i>
       </button>
-      <button class="column-toolbar__button" @click="quickSort('desc')" title="Sort Descending">
+      <button class="floating-toolbar__button" @click="quickSort('desc')" title="Sort Descending">
         <i data-feather="arrow-down"></i>
       </button>
       <div style="width: 1px; background: var(--color-medium-gray); margin: 4px 2px"></div>
-      <button class="column-toolbar__button" @click="quickFilter()" title="Filter by this column">
+      <button class="floating-toolbar__button" @click="quickFilter()" title="Filter by this column">
         <i data-feather="filter"></i>
       </button>
-      <button class="column-toolbar__button" @click="quickRename()" title="Rename this column">
+      <button class="floating-toolbar__button" @click="quickRename()" title="Rename this column">
         <i data-feather="edit-2"></i>
       </button>
       <button
-        class="column-toolbar__button"
+        class="floating-toolbar__button"
         @click="quickRemove()"
         title="Remove this column"
         style="color: var(--color-dark-red)"
@@ -2275,14 +2275,14 @@
     <!-- Cell Toolbar -->
     <div
       x-show="selectedCell"
-      class="cell-toolbar"
+      class="floating-toolbar"
       :style="`left: ${cellToolbarPos.x}px; top: ${cellToolbarPos.y}px; --arrow-offset: ${cellToolbarPos.arrowOffset}px;`"
       @click.away="selectedCell = null"
       @click.stop
       x-cloak
     >
       <button
-        class="cell-toolbar__button"
+        class="floating-toolbar__button"
         @click="applyQuickCellFilter('exact')"
         x-show="!selectedCell?.isEda"
         :title="['number', 'integer', 'float'].includes(selectedCell?.type) ? 'Keep only this value (=)' : 'Keep only this value'"
@@ -2296,7 +2296,7 @@
       </button>
 
       <button
-        class="cell-toolbar__button"
+        class="floating-toolbar__button"
         @click="applyQuickCellFilter('not')"
         x-show="!selectedCell?.isEda"
         :title="['number', 'integer', 'float'].includes(selectedCell?.type) ? 'Exclude this value (&ne;)' : 'Exclude this value'"
@@ -2313,7 +2313,7 @@
             style="width: 1px; background: var(--color-medium-gray); margin: 4px 2px"
           ></div>
           <button
-            class="cell-toolbar__button"
+            class="floating-toolbar__button"
             @click="applyQuickCellFilter('gt')"
             title="Keep values greater than (>)"
           >
@@ -2322,7 +2322,7 @@
             >
           </button>
           <button
-            class="cell-toolbar__button"
+            class="floating-toolbar__button"
             @click="applyQuickCellFilter('gte')"
             title="Keep values greater than or equal (&ge;)"
           >
@@ -2331,7 +2331,7 @@
             >
           </button>
           <button
-            class="cell-toolbar__button"
+            class="floating-toolbar__button"
             @click="applyQuickCellFilter('lt')"
             title="Keep values less than (<)"
           >
@@ -2340,7 +2340,7 @@
             >
           </button>
           <button
-            class="cell-toolbar__button"
+            class="floating-toolbar__button"
             @click="applyQuickCellFilter('lte')"
             title="Keep values less than or equal (&le;)"
           >

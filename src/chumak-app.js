@@ -338,11 +338,10 @@ function chumakApp() {
     },
     // Interaction handling
     handleBodyClick(event) {
-      // Close column toolbar if clicking outside
       if (
         this.selectedColumn &&
         !event.target.closest('.data-table__header') &&
-        !event.target.closest('.column-toolbar') &&
+        !event.target.closest('.floating-toolbar') &&
         !event.target.closest('.modal')
       ) {
         this.selectedColumn = null;

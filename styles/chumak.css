@@ -661,8 +661,8 @@ body {
   /* Above sticky headers */
 }
 
-/* Floating Toolbar for Columns */
-.column-toolbar {
+/* Floating Toolbar (Shared for Columns and Cells) */
+.floating-toolbar {
   position: fixed;
   display: flex;
   background: var(--color-white);
@@ -676,7 +676,7 @@ body {
   pointer-events: auto;
 }
 
-.column-toolbar::after {
+.floating-toolbar::after {
   content: '';
   position: absolute;
   top: 100%;
@@ -686,61 +686,13 @@ body {
   border-top-color: var(--color-midnight-blue);
 }
 
-.column-toolbar__button {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 32px;
-  height: 32px;
-  background: transparent;
-  border: none;
-  border-radius: var(--border-radius);
-  color: var(--color-midnight-blue);
-  cursor: pointer;
-  transition: background var(--transition-fast);
-}
-
-.column-toolbar__button:hover {
-  background: rgba(0, 187, 206, 0.1);
-  color: var(--color-cyan);
-}
-
-.column-toolbar__button i {
-  width: 16px;
-  height: 16px;
-}
-
-/* Floating Toolbar for Cells */
-.cell-toolbar {
-  position: fixed;
-  display: flex;
-  background: var(--color-white);
-  border: 1px solid var(--color-midnight-blue);
-  border-radius: var(--border-radius-lg);
-  padding: 4px;
-  gap: 2px;
-  box-shadow: 0 4px 12px rgba(0, 57, 100, 0.15);
-  z-index: 1000;
-  transform: translate(-50%, -100%);
-  pointer-events: auto;
-}
-
-.cell-toolbar::after {
-  content: '';
-  position: absolute;
-  top: 100%;
-  left: calc(50% + var(--arrow-offset, 0px));
-  transform: translateX(-50%);
-  border: 6px solid transparent;
-  border-top-color: var(--color-midnight-blue);
-}
-
-.cell-toolbar__button {
+.floating-toolbar__button {
   display: flex;
   align-items: center;
   justify-content: center;
   height: 32px;
-  padding: 0 8px;
+  min-width: 32px;
+  padding: 0 6px;
   background: transparent;
   border: none;
   border-radius: var(--border-radius);
@@ -749,14 +701,14 @@ body {
   transition: all var(--transition-fast);
 }
 
-.cell-toolbar__button:hover {
+.floating-toolbar__button:hover {
   background: rgba(0, 187, 206, 0.1);
   color: var(--color-cyan);
 }
 
-.cell-toolbar__button i {
-  width: 14px;
-  height: 14px;
+.floating-toolbar__button i {
+  width: 16px;
+  height: 16px;
 }
 
 .type-indicator {
