@@ -1,7 +1,7 @@
 function chumakApp() {
   return {
     // UI state
-    ribbonTab: 'data',
+    ribbonTab: 'prepare',
     activeTab: 'steps',
     activeStep: null,
     activeStepIndex: null, // null = viewing final result, number = viewing step N

@@ -366,13 +366,18 @@ See [PARSER-DESIGN-DECISION.md](PARSER-DESIGN-DECISION.md) for comprehensive des
 
 ### 5.8 UI Features
 
-**Layout**: Microsoft Office-style ribbon toolbar with tabs:
+**Layout**: Workflow-based ribbon toolbar with tabs:
 
-- **Data**: Import, Export, Paste
-- **Transform**: Filter, Sort, Drop NA, Fill NA, Replace, Select, Remove, Rename
-- **Add Column**: Derive, Duplicate, Split
-- **Reduce**: Aggregate, Distinct, Pivot
-- **Combine**: Join, Union, Append
+| Tab           | Purpose                | Key Operations                                     |
+| ------------- | ---------------------- | -------------------------------------------------- |
+| **Data**      | Import/Export          | Import CSV, Paste, Export CSV, Export Workflow     |
+| **Prepare**   | Clean & organize data  | Filter, Sort, Dedupe, Select/Remove/Rename columns |
+| **Calculate** | Derive & summarize     | Derive, Group By (Aggregate), Pivot/Unpivot        |
+| **Combine**   | Multi-table operations | Join, Append, Union                                |
+
+**Visual Groups within tabs**: Clean Rows, Manage Columns, Types & Format, New Columns, Summarize, Reshape, Transform Values
+
+**Workflow**: Prepare (clean) → Calculate (derive/aggregate) → Combine (multi-table)
 
 **Interactive Features**:
 

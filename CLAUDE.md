@@ -58,7 +58,8 @@
 
 **UI Features**:
 
-- ✅ Ribbon toolbar (Microsoft Office-style tabs)
+- ✅ Ribbon toolbar (workflow-based: Data | Prepare | Calculate | Combine)
+- ✅ Visual groups within tabs (Clean Rows, Manage Columns, etc.)
 - ✅ Floating column toolbar (sort, filter, rename, remove)
 - ✅ Floating cell toolbar (keep/exclude value, copy)
 - ✅ Type indicators with visual badges
@@ -184,6 +185,26 @@ See [PARSER-DESIGN-DECISION.md](docs/PARSER-DESIGN-DECISION.md) for comprehensiv
 
 **Future**: Could add caching for large datasets if needed.
 
+### 6. Workflow-Based Ribbon Organization
+
+**Decision**: Organize ribbon tabs by workflow stage: Prepare | Calculate | Combine.
+
+**Structure**:
+
+- **Data**: Import/Export operations
+- **Prepare**: Clean rows, manage columns, types/format (most frequent operations)
+- **Calculate**: New columns, aggregations, reshaping, value transformations
+- **Combine**: Multi-table operations (join, append, union)
+
+**Benefits**:
+
+- Mirrors actual data wrangling workflow (clean → shape → calculate → combine)
+- Visual groups within tabs show operation scope (rows vs columns vs table)
+- Intuitive for beginners learning data wrangling progression
+- Reduces tabs from 5 to 3 (cleaner interface)
+
+**Key Rename**: "Aggregate" → "Group By" (matches SQL/Power Query terminology)
+
 ---
 
 ## Technology Stack
@@ -237,6 +258,7 @@ See [PARSER-DESIGN-DECISION.md](docs/PARSER-DESIGN-DECISION.md) for comprehensiv
   - Step management: `viewStep()`, `removeStep()`, `editStep()`, `updateStep()`
   - Transform application: `applyStepResult()` with edit mode support
   - Dialog state management and pre-filling for edits
+  - Ribbon state: `ribbonTab` (data | prepare | calculate | combine)
 
 ### Tests
 

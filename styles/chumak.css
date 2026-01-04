@@ -264,6 +264,22 @@ body {
   align-self: center;
 }
 
+.ribbon__group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.ribbon__group-label {
+  font-size: 10px;
+  color: var(--color-neutral-500);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 0 8px;
+  margin-bottom: 2px;
+  font-weight: 500;
+}
+
 /* ============================================
    Left Panel
    ============================================ */

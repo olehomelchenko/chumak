@@ -51,27 +51,19 @@
           </button>
           <button
             class="ribbon__tab"
-            :class="{ 'ribbon__tab--active': ribbonTab === 'transform', 'ribbon__tab--disabled': !currentData }"
+            :class="{ 'ribbon__tab--active': ribbonTab === 'prepare', 'ribbon__tab--disabled': !currentData }"
             :disabled="!currentData"
-            @click="currentData && (ribbonTab = 'transform')"
+            @click="currentData && (ribbonTab = 'prepare')"
           >
-            Transform
+            Prepare
           </button>
           <button
             class="ribbon__tab"
-            :class="{ 'ribbon__tab--active': ribbonTab === 'add-column', 'ribbon__tab--disabled': !currentData }"
+            :class="{ 'ribbon__tab--active': ribbonTab === 'calculate', 'ribbon__tab--disabled': !currentData }"
             :disabled="!currentData"
-            @click="currentData && (ribbonTab = 'add-column')"
+            @click="currentData && (ribbonTab = 'calculate')"
           >
-            Add Column
-          </button>
-          <button
-            class="ribbon__tab"
-            :class="{ 'ribbon__tab--active': ribbonTab === 'reduce', 'ribbon__tab--disabled': !currentData }"
-            :disabled="!currentData"
-            @click="currentData && (ribbonTab = 'reduce')"
-          >
-            Reduce
+            Calculate
           </button>
           <button
             class="ribbon__tab"
@@ -175,130 +167,221 @@
           </button>
         </div>
 
-        <!-- Transform Tab -->
-        <div class="ribbon__panel" x-show="ribbonTab === 'transform'">
-          <button class="ribbon__button" @click="openDialog('filter')" title="Filter rows">
-            <span class="iconify" data-icon="carbon:filter"></span>
-            <span>Filter</span>
-          </button>
-          <button class="ribbon__button" @click="openDialog('sort')" title="Sort rows">
-            <span class="iconify" data-icon="carbon:arrows-vertical"></span>
-            <span>Sort</span>
-          </button>
-          <button
-            class="ribbon__button ribbon__button--disabled"
-            disabled
-            title="Drop rows with missing values (Coming soon)"
-          >
-            <span class="iconify" data-icon="carbon:trash-can"></span>
-            <span>Drop NA</span>
-          </button>
-          <button
-            class="ribbon__button ribbon__button--disabled"
-            disabled
-            title="Fill missing values (Coming soon)"
-          >
-            <span class="iconify" data-icon="carbon:edit"></span>
-            <span>Fill NA</span>
-          </button>
-          <button
-            class="ribbon__button ribbon__button--disabled"
-            disabled
-            title="Find and replace values (Coming soon)"
-          >
-            <span class="iconify" data-icon="carbon:search"></span>
-            <span>Replace</span>
-          </button>
+        <!-- Prepare Tab -->
+        <div class="ribbon__panel" x-show="ribbonTab === 'prepare'">
+          <!-- Clean Rows Group -->
+          <div class="ribbon__group">
+            <div class="ribbon__group-label">Clean Rows</div>
+            <div style="display: flex; gap: 4px">
+              <button class="ribbon__button" @click="openDialog('filter')" title="Filter rows">
+                <span class="iconify" data-icon="carbon:filter"></span>
+                <span>Filter</span>
+              </button>
+              <button class="ribbon__button" @click="openDialog('sort')" title="Sort rows">
+                <span class="iconify" data-icon="carbon:arrows-vertical"></span>
+                <span>Sort</span>
+              </button>
+              <button
+                class="ribbon__button ribbon__button--disabled"
+                disabled
+                title="Remove duplicate rows (Coming soon)"
+              >
+                <span class="iconify" data-icon="carbon:checkbox-checked"></span>
+                <span>Dedupe</span>
+              </button>
+              <button
+                class="ribbon__button ribbon__button--disabled"
+                disabled
+                title="Keep top/bottom N rows (Coming soon)"
+              >
+                <span class="iconify" data-icon="carbon:result"></span>
+                <span>Keep Rows</span>
+              </button>
+            </div>
+          </div>
+
           <div class="ribbon__divider"></div>
-          <button
-            class="ribbon__button"
-            @click="autoDetectSchema()"
-            title="Re-run type detection for all columns"
-          >
-            <span class="iconify" data-icon="carbon:renew"></span>
-            <span>Auto-Detect</span>
-          </button>
 
-          <button
-            class="ribbon__button"
-            @click="openDialog('select')"
-            title="Select columns to keep"
-          >
-            <span class="iconify" data-icon="carbon:column"></span>
-            <span>Select</span>
-          </button>
-          <button class="ribbon__button" @click="openDialog('remove')" title="Remove columns">
-            <span class="iconify" data-icon="carbon:close-outline"></span>
-            <span>Remove</span>
-          </button>
-          <button class="ribbon__button" @click="openDialog('rename')" title="Rename columns">
-            <span class="iconify" data-icon="carbon:text-font"></span>
-            <span>Rename</span>
-          </button>
+          <!-- Manage Columns Group -->
+          <div class="ribbon__group">
+            <div class="ribbon__group-label">Manage Columns</div>
+            <div style="display: flex; gap: 4px">
+              <button
+                class="ribbon__button"
+                @click="openDialog('select')"
+                title="Select columns to keep"
+              >
+                <span class="iconify" data-icon="carbon:column"></span>
+                <span>Select</span>
+              </button>
+              <button class="ribbon__button" @click="openDialog('remove')" title="Remove columns">
+                <span class="iconify" data-icon="carbon:close-outline"></span>
+                <span>Remove</span>
+              </button>
+              <button class="ribbon__button" @click="openDialog('rename')" title="Rename columns">
+                <span class="iconify" data-icon="carbon:text-font"></span>
+                <span>Rename</span>
+              </button>
+              <button
+                class="ribbon__button ribbon__button--disabled"
+                disabled
+                title="Reorder columns (Coming soon)"
+              >
+                <span class="iconify" data-icon="carbon:move"></span>
+                <span>Reorder</span>
+              </button>
+              <button
+                class="ribbon__button ribbon__button--disabled"
+                disabled
+                title="Split column by delimiter (Coming soon)"
+              >
+                <span class="iconify" data-icon="carbon:cut"></span>
+                <span>Split</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="ribbon__divider"></div>
+
+          <!-- Types & Format Group -->
+          <div class="ribbon__group">
+            <div class="ribbon__group-label">Types & Format</div>
+            <div style="display: flex; gap: 4px">
+              <button
+                class="ribbon__button"
+                @click="autoDetectSchema()"
+                title="Re-run type detection for all columns"
+              >
+                <span class="iconify" data-icon="carbon:renew"></span>
+                <span>Auto-Detect</span>
+              </button>
+              <button
+                class="ribbon__button ribbon__button--disabled"
+                disabled
+                title="Format numbers, dates, text (Coming soon)"
+              >
+                <span class="iconify" data-icon="carbon:text-align-left"></span>
+                <span>Format</span>
+              </button>
+            </div>
+          </div>
         </div>
 
-        <!-- Add Column Tab -->
-        <div class="ribbon__panel" x-show="ribbonTab === 'add-column'">
-          <button
-            class="ribbon__button"
-            @click="openDialog('derive')"
-            title="Create new column from expression"
-          >
-            <span class="iconify" data-icon="carbon:add-alt"></span>
-            <span>Derive</span>
-          </button>
-          <button
-            class="ribbon__button ribbon__button--disabled"
-            disabled
-            title="Duplicate column (Coming in Phase 2)"
-          >
-            <span class="iconify" data-icon="carbon:copy"></span>
-            <span>Duplicate</span>
-          </button>
-          <button
-            class="ribbon__button ribbon__button--disabled"
-            disabled
-            title="Split column (Coming in Phase 2)"
-          >
-            <span class="iconify" data-icon="carbon:cut"></span>
-            <span>Split</span>
-          </button>
-        </div>
+        <!-- Calculate Tab -->
+        <div class="ribbon__panel" x-show="ribbonTab === 'calculate'">
+          <!-- New Columns Group -->
+          <div class="ribbon__group">
+            <div class="ribbon__group-label">New Columns</div>
+            <div style="display: flex; gap: 4px">
+              <button
+                class="ribbon__button"
+                @click="openDialog('derive')"
+                title="Create new column from expression"
+              >
+                <span class="iconify" data-icon="carbon:add-alt"></span>
+                <span>Derive</span>
+              </button>
+              <button
+                class="ribbon__button ribbon__button--disabled"
+                disabled
+                title="Add index/row number column (Coming soon)"
+              >
+                <span class="iconify" data-icon="carbon:row-insert"></span>
+                <span>Index</span>
+              </button>
+              <button
+                class="ribbon__button ribbon__button--disabled"
+                disabled
+                title="Conditional column (IF/THEN) (Coming soon)"
+              >
+                <span class="iconify" data-icon="carbon:decision-tree"></span>
+                <span>Conditional</span>
+              </button>
+            </div>
+          </div>
 
-        <!-- Reduce Tab -->
-        <div class="ribbon__panel" x-show="ribbonTab === 'reduce'">
-          <button
-            class="ribbon__button"
-            @click="openDialog('aggregate')"
-            title="Group and aggregate data"
-          >
-            <span class="iconify" data-icon="carbon:layers"></span>
-            <span>Aggregate</span>
-          </button>
-          <button
-            class="ribbon__button ribbon__button--disabled"
-            disabled
-            title="Remove duplicate rows (Coming in Phase 2)"
-          >
-            <span class="iconify" data-icon="carbon:checkbox-checked"></span>
-            <span>Distinct</span>
-          </button>
-          <button
-            class="ribbon__button ribbon__button--disabled"
-            disabled
-            title="Pivot table (Coming in Phase 3)"
-          >
-            <span class="iconify" data-icon="carbon:grid"></span>
-            <span>Pivot</span>
-          </button>
-          <button
-            class="ribbon__button"
-            @click="openDialog('fold')"
-            title="Convert columns into key-value pairs (unpivot)"
-          >
-            <span class="iconify" data-icon="carbon:minimize"></span>
-            <span>Unpivot</span>
-          </button>
+          <div class="ribbon__divider"></div>
+
+          <!-- Summarize Group -->
+          <div class="ribbon__group">
+            <div class="ribbon__group-label">Summarize</div>
+            <div style="display: flex; gap: 4px">
+              <button
+                class="ribbon__button"
+                @click="openDialog('aggregate')"
+                title="Group rows and calculate aggregates"
+              >
+                <span class="iconify" data-icon="carbon:layers"></span>
+                <span>Group By</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="ribbon__divider"></div>
+
+          <!-- Reshape Group -->
+          <div class="ribbon__group">
+            <div class="ribbon__group-label">Reshape</div>
+            <div style="display: flex; gap: 4px">
+              <button
+                class="ribbon__button ribbon__button--disabled"
+                disabled
+                title="Pivot table - create columns from values (Coming soon)"
+              >
+                <span class="iconify" data-icon="carbon:grid"></span>
+                <span>Pivot</span>
+              </button>
+              <button
+                class="ribbon__button"
+                @click="openDialog('fold')"
+                title="Unpivot - convert columns to key-value pairs"
+              >
+                <span class="iconify" data-icon="carbon:minimize"></span>
+                <span>Unpivot</span>
+              </button>
+              <button
+                class="ribbon__button ribbon__button--disabled"
+                disabled
+                title="Transpose rows and columns (Coming soon)"
+              >
+                <span class="iconify" data-icon="carbon:rotate-clockwise"></span>
+                <span>Transpose</span>
+              </button>
+            </div>
+          </div>
+
+          <div class="ribbon__divider"></div>
+
+          <!-- Transform Values Group -->
+          <div class="ribbon__group">
+            <div class="ribbon__group-label">Transform Values</div>
+            <div style="display: flex; gap: 4px">
+              <button
+                class="ribbon__button ribbon__button--disabled"
+                disabled
+                title="Text operations: uppercase, lowercase, trim (Coming soon)"
+              >
+                <span class="iconify" data-icon="carbon:text-bold"></span>
+                <span>Text</span>
+              </button>
+              <button
+                class="ribbon__button ribbon__button--disabled"
+                disabled
+                title="Number operations: round, absolute, math (Coming soon)"
+              >
+                <span class="iconify" data-icon="carbon:calculator"></span>
+                <span>Number</span>
+              </button>
+              <button
+                class="ribbon__button ribbon__button--disabled"
+                disabled
+                title="Date operations: extract year/month/day, date math (Coming soon)"
+              >
+                <span class="iconify" data-icon="carbon:calendar"></span>
+                <span>Date</span>
+              </button>
+            </div>
+          </div>
         </div>
 
         <!-- Combine Tab -->
@@ -314,18 +397,18 @@
           <button
             class="ribbon__button ribbon__button--disabled"
             disabled
-            title="Union datasets (Coming in Phase 2)"
+            title="Append rows from another dataset (Coming soon)"
           >
-            <span class="iconify" data-icon="carbon:layers"></span>
-            <span>Union</span>
+            <span class="iconify" data-icon="carbon:arrow-down"></span>
+            <span>Append</span>
           </button>
           <button
             class="ribbon__button ribbon__button--disabled"
             disabled
-            title="Append rows (Coming in Phase 2)"
+            title="Union - combine and deduplicate (Coming soon)"
           >
-            <span class="iconify" data-icon="carbon:arrow-down"></span>
-            <span>Append</span>
+            <span class="iconify" data-icon="carbon:intersect"></span>
+            <span>Union</span>
           </button>
         </div>
       </div>
