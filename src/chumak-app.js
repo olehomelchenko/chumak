@@ -8,6 +8,7 @@ function chumakApp() {
     viewingIntermediate: false, // true when viewing intermediate step
     editingStepIndex: null, // Index of step being edited (null = not editing)
     activeDialog: null,
+    dialogSnapshot: null,
     isDragging: false,
     selectedColumn: null, // Interactive header selection
     columnToolbarPos: { x: 0, y: 0 },
@@ -189,6 +190,24 @@ function chumakApp() {
         this.syncUrlState();
       });
 
+      // Global keyboard shortcuts
+      window.addEventListener('keydown', (e) => {
+        if (e.key === 'Escape') {
+          if (this.activeDialog) {
+            this.closeDialog();
+            return;
+          }
+          if (this.typeMenuOpen) {
+            this.typeMenuOpen = false;
+            return;
+          }
+          if (this.selectedColumn || this.selectedCell) {
+            this.clearColumnSelection();
+            return;
+          }
+        }
+      });
+
       console.log('Initialization complete:', sources.length, 'sources,', models.length, 'models');
 
       // Load templates
@@ -225,6 +244,42 @@ function chumakApp() {
     },
 
     // Dialog methods
+    // Helper to get serializable state for a dialog
+    getDialogState(dialog) {
+      switch (dialog) {
+        case 'filter':
+          return this.filterExpression;
+        case 'derive':
+          return this.deriveDialogState;
+        case 'rename':
+          return this.renameDialogState;
+        case 'aggregate':
+          return this.aggregateDialogState;
+        case 'join':
+          // Avoid circular ref/large object serialization for models
+          return {
+            ...this.joinDialogState,
+            rightModel: this.joinDialogState.rightModel?.id,
+            availableTargets: null, // Don't track this, it's static for the session
+          };
+        case 'fold':
+          return this.foldDialogState;
+        case 'sort':
+          return this.sortDialogState;
+        case 'remove':
+          return this.removedColumns;
+        case 'select':
+          return {
+            cols: this.selectedColumns,
+            pattern: this.selectPatternText,
+            mode: this.selectPatternMode,
+            type: this.selectPatternMatchType,
+          };
+        default:
+          return null;
+      }
+    },
+
     openDialog(dialogName) {
       this.activeDialog = dialogName;
 
@@ -272,19 +327,49 @@ function chumakApp() {
       }
 
       this.clearColumnSelection();
+
+      // Capture snapshot for dirty checking
+      this.dialogSnapshot = JSON.stringify(this.getDialogState(dialogName));
     },
 
-    closeDialog() {
+    hasUnsavedChanges() {
+      if (!this.activeDialog) return false;
+      const currentState = JSON.stringify(this.getDialogState(this.activeDialog));
+      return currentState !== this.dialogSnapshot;
+    },
+
+    closeDialog(force = false) {
+      if (!force && this.hasUnsavedChanges()) {
+        if (!confirm('You have unsaved changes. Are you sure you want to discard them?')) {
+          return;
+        }
+      }
+
       this.activeDialog = null;
-      // Reset aggregate state
+      this.dialogSnapshot = null;
+
+      // Reset shared/complex states
       this.aggregateDialogState = {
-        groupBy: [],
+        /* ... resets in next openDialog anyway but keeping for safety ... */ groupBy: [],
         aggregations: [],
         previewData: null,
         previewError: null,
         isPreviewing: false,
       };
-      // Reset import dialog state to defaults
+
+      this.joinDialogState = {
+        rightModel: null,
+        joinType: 'left',
+        keyPairs: [[null, null]],
+        suffixes: ['_x', '_y'],
+        availableTargets: [],
+        leftColumns: [],
+        rightColumns: [],
+        previewData: null,
+        previewError: null,
+        isPreviewing: false,
+      };
+
       this.importDialogState = {
         fileName: '',
         sourceName: '',
@@ -299,18 +384,11 @@ function chumakApp() {
       };
       this.importFileData = null;
 
-      // Reset join dialog state
-      this.joinDialogState = {
-        rightModel: null,
-        joinType: 'left',
-        keyPairs: [[null, null]],
-        suffixes: ['_x', '_y'],
-        availableTargets: [],
-        leftColumns: [],
-        rightColumns: [],
-        previewData: null,
-        previewError: null,
-        isPreviewing: false,
+      // Reset fold dialog state
+      this.foldDialogState = {
+        keyName: 'key',
+        valueName: 'value',
+        selectedColumns: this.columns ? this.columns.map(() => false) : [],
       };
     },
 
