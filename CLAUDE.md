@@ -33,7 +33,7 @@
 - ✅ CSV export with timestamp
 - ✅ Workflow JSON export/import
 
-**Transformations** (9 implemented):
+**Transformations** (10 implemented):
 
 - ✅ Filter (expression-based, security-validated AST)
 - ✅ Select (with pattern matching: prefix/suffix/exact)
@@ -44,6 +44,7 @@
 - ✅ Types (explicit type assignment)
 - ✅ Aggregate (group by + rollup)
 - ✅ Join (multi-model joins, all types)
+- ✅ **Fold** (unpivot/melt, wide to long format)
 
 **Advanced Features**:
 
@@ -77,7 +78,6 @@
 1. **Dedupe** - Remove duplicate rows
 2. **Impute** - Fill missing values (constants only initially)
 3. **Pivot** - Wide format (cross-tabulation)
-4. **Fold** - Long format (unpivot, inverse of pivot)
 
 **Mid-Term** (~230 lines, 1-2 weeks): 5. **Expression Functions** - Whitelist `op.*` functions (string, date, math)
 
@@ -370,6 +370,17 @@ For data operations (dedupe, impute, pivot, fold, etc.):
 - Thin wrappers only (~30-60 lines)
 
 See [ARQUERO-LEVERAGE-ANALYSIS.md](docs/ARQUERO-LEVERAGE-ANALYSIS.md) for patterns.
+
+### 8. Don't Forget Schema Propagation
+
+When implementing a new transform:
+
+1.  **Implement logic**: In `src/transforms.js` (applyTransform)
+2.  **Implement schema update**: In `src/schema-engine.js` (deriveNextSchema)
+3.  **UI Updates**: In `src/chumak-app.js`, ensure `removeStep` and `undo` logic properly re-derives the schema from the modified step chain, not just the data.
+
+Missing step 2 leads to "ghost columns" (UI thinks column exists, data doesn't).
+Missing step 3 leads to state desynchronization when deleting steps.
 
 ---
 

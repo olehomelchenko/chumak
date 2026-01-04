@@ -287,6 +287,14 @@
             <i data-feather="grid"></i>
             <span>Pivot</span>
           </button>
+          <button
+            class="ribbon__button"
+            @click="openDialog('fold')"
+            title="Convert columns into key-value pairs (unpivot)"
+          >
+            <i data-feather="minimize-2"></i>
+            <span>Unpivot</span>
+          </button>
         </div>
 
         <!-- Combine Tab -->
@@ -1401,6 +1409,76 @@
         <div class="modal__footer">
           <button class="button button--secondary" @click="closeDialog()">Cancel</button>
           <button class="button button--primary" @click="applyRemoveTransform()">Apply</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Unpivot (Fold) Dialog -->
+    <div class="modal-backdrop" x-show="activeDialog === 'fold'" @click="closeDialog()" x-cloak>
+      <div class="modal" @click.stop>
+        <div class="modal__header">
+          <h3 class="modal__title">Unpivot (Fold) Columns</h3>
+          <button class="modal__close" @click="closeDialog()">×</button>
+        </div>
+
+        <div class="modal__content">
+          <p class="form-help" style="margin-bottom: 1rem">
+            Select columns to collapse into key-value pairs (wide to long format):
+          </p>
+
+          <div
+            style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem"
+          >
+            <div class="form-group">
+              <label class="form-label">Key Column Name</label>
+              <input
+                type="text"
+                class="form-input"
+                x-model="foldDialogState.keyName"
+                placeholder="e.g. Year"
+              />
+              <p class="form-help" style="font-size: 0.75rem; margin-top: 0.25rem">
+                Contains original headers
+              </p>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Value Column Name</label>
+              <input
+                type="text"
+                class="form-input"
+                x-model="foldDialogState.valueName"
+                placeholder="e.g. Sales"
+              />
+              <p class="form-help" style="font-size: 0.75rem; margin-top: 0.25rem">
+                Contains values
+              </p>
+            </div>
+          </div>
+
+          <label class="form-label">Select Columns to Fold:</label>
+          <div
+            class="checkbox-list"
+            style="
+              max-height: 250px;
+              overflow-y: auto;
+              border: 1px solid var(--color-border);
+              padding: 0.5rem;
+              border-radius: 4px;
+            "
+          >
+            <template x-for="(col, index) in columns" :key="index">
+              <label class="checkbox-item">
+                <input type="checkbox" x-model="foldDialogState.selectedColumns[index]" />
+                <span x-text="col"></span>
+              </label>
+            </template>
+          </div>
+        </div>
+
+        <div class="modal__footer">
+          <button class="button button--secondary" @click="closeDialog()">Cancel</button>
+          <button class="button button--primary" @click="applyFoldTransform()">Apply</button>
         </div>
       </div>
     </div>

@@ -103,6 +103,13 @@ function chumakApp() {
     // Remove state
     removedColumns: [], // For remove dialog checkboxes
 
+    // Fold dialog state
+    foldDialogState: {
+      keyName: 'key',
+      valueName: 'value',
+      selectedColumns: [], // Boolean array matching this.columns
+    },
+
     // Initialization
     async init() {
       console.log('Initializing Chumak...');
@@ -222,6 +229,12 @@ function chumakApp() {
           previewData: null,
           previewError: null,
           isPreviewing: false,
+        };
+      } else if (dialogName === 'fold') {
+        this.foldDialogState = {
+          keyName: 'key',
+          valueName: 'value',
+          selectedColumns: this.columns.map(() => false),
         };
       }
 
@@ -1323,6 +1336,35 @@ function chumakApp() {
       }
     },
 
+    // Apply fold (unpivot) transform
+    async applyFoldTransform() {
+      const { keyName, valueName, selectedColumns } = this.foldDialogState;
+      const colsToFold = this.columns.filter((_, idx) => selectedColumns[idx]);
+
+      if (colsToFold.length === 0) {
+        alert('Please select at least one column to unpivot');
+        return;
+      }
+
+      try {
+        const transform = {
+          fold: {
+            columns: colsToFold,
+            as: [keyName || 'key', valueName || 'value'],
+          },
+        };
+
+        const table = aq.from(this.currentData);
+        // Fold doesn't need context
+        const result = applyTransform(table, transform, this.columns);
+
+        await this.applyStepResult(transform, result);
+      } catch (error) {
+        console.error('Fold transform error:', error);
+        alert('Error applying unpivot: ' + error.message);
+      }
+    },
+
     // Aggregate Dialog Methods
     addAggregation() {
       this.aggregateDialogState.aggregations.push({ output: '', func: 'mean', col: '' });
@@ -2276,24 +2318,25 @@ function chumakApp() {
         // Remove step from array
         this.activeModel.steps.splice(stepIndex, 1);
 
-        // Recompute final result from source
-        // Find last non-import step
-        let lastStepIndex = this.activeModel.steps.length - 1;
+        // Trigger reactivity
+        this.activeModel.steps = [...this.activeModel.steps];
 
-        if (lastStepIndex >= 0) {
-          const result = this.computeUpToStep(lastStepIndex);
+        // Recompute final result
+        // We always have at least one step (Import), so length >= 1.
+        // We compute up to the last step in the chain.
+        const lastStepIndex = this.activeModel.steps.length - 1;
+        const result = this.computeUpToStep(lastStepIndex);
 
-          // Update model with new final result
-          this.activeModel.data = JSON.parse(JSON.stringify(result.data));
+        // Update model with new final result
+        this.activeModel.data = JSON.parse(JSON.stringify(result.data));
+        this.activeModel.schema = result.schema;
 
-          // Return to final view
-          this.viewFinalResult();
-        } else {
-          // No transforms left, just show source data
-          const source = this.sources.find((s) => s.id === this.activeModel.sourceId);
-          this.activeModel.data = source.data;
-          this.viewFinalResult();
-        }
+        // Update app state
+        this.currentData = this.activeModel.data;
+        this.columns = result.columns;
+
+        // Return to final view
+        this.viewFinalResult();
 
         // Auto-save
         await autoSave(this.sources, this.models);

@@ -208,6 +208,58 @@ const SchemaEngine = {
       return newSchema;
     }
 
+    // 8. FOLD (Unpivot)
+    if (transform.fold) {
+      const { columns, as } = transform.fold;
+      const keyName = as && as[0] ? as[0] : 'key';
+      const valueName = as && as[1] ? as[1] : 'value';
+
+      // 1. Keep columns NOT in the fold list
+      const newSchema = currentSchema.filter((c) => !columns.includes(c.name));
+      let pos = newSchema.length;
+
+      // 2. Add Key column
+      // Keys come from headers, so usually string
+      newSchema.push({
+        name: keyName,
+        type: 'string', // keys are column names
+        format: {},
+        originalPosition: pos++,
+      });
+
+      // 3. Add Value column
+      // Infer from sample data if available
+      let valType = 'string';
+      if (sampleData && sampleData.length > 0) {
+        const sampleValues = sampleData.map((row) => row[valueName]);
+        valType = this.inferType(sampleValues);
+      } else {
+        // Fallback: try to guess from the folded columns in currentSchema
+        // If all folded columns are integer, value is integer, etc.
+        const foldedTypes = currentSchema
+          .filter((c) => columns.includes(c.name))
+          .map((c) => c.type);
+
+        const uniqueTypes = [...new Set(foldedTypes)];
+        if (uniqueTypes.length === 1) {
+          valType = uniqueTypes[0];
+        } else if (foldedTypes.every((t) => t === 'integer' || t === 'float')) {
+          valType = 'float';
+        } else {
+          valType = 'string';
+        }
+      }
+
+      newSchema.push({
+        name: valueName,
+        type: valType,
+        format: {},
+        originalPosition: pos++,
+      });
+
+      return newSchema;
+    }
+
     // Filters, Sorts, etc. don't change the schema
     return currentSchema.map((c) => ({ ...c }));
   },

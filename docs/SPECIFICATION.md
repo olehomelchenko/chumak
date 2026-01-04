@@ -250,6 +250,7 @@ Inspired by Vega-Lite. Each transform is one object in an array.
 | **Derive**    | `{ "derive": { "newCol": "expression" } }`               | ✅             | Custom AST                 |
 | **Types**     | `{ "types": { "col": "integer" } }`                      | ✅             | Schema override            |
 | **Aggregate** | `{ "aggregate": { "groupby": [...], "rollup": {...} } }` | ✅             | `table.groupby().rollup()` |
+| **Fold**      | `{ "fold": { "columns": [...], "as": ["k", "v"] } }`     | ✅             | `table.fold()`             |
 
 **Pattern Matching in Select**: UI supports prefix/suffix/exact matching for column selection.
 
@@ -519,6 +520,19 @@ Group by columns and compute aggregates. Arquero expression format.
 
 Join with another model. Types: `inner`, `left`, `right`, `full`, `cross`.
 
+#### Fold (Unpivot)
+
+```json
+{
+  "fold": {
+    "columns": ["2018", "2019", "2020"],
+    "as": ["Year", "Sales"]
+  }
+}
+```
+
+Collapse multiple columns into key-value pairs (wide to long format).
+
 ### 6.2 Roadmap Transforms
 
 See [Section 8 (Roadmap)](#8-roadmap) for planned transforms.
@@ -594,7 +608,6 @@ See [UX-SPECIFICATION.md](UX-SPECIFICATION.md) for comprehensive UI details.
 | **Dedupe** | Remove duplicate rows              | `table.dedupe()` | ~30 lines |
 | **Impute** | Fill missing values with constants | `table.impute()` | ~50 lines |
 | **Pivot**  | Wide format (cross-tabulation)     | `table.pivot()`  | ~60 lines |
-| **Fold**   | Long format (unpivot)              | `table.fold()`   | ~40 lines |
 
 **Rationale**: These complete the core data cleaning and reshape capabilities. Pivot/fold are essential for tidy data workflows.
 
