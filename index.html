@@ -1193,14 +1193,15 @@
     </main>
 
     <!-- Filter Dialog -->
-    <div class="modal-backdrop" x-show="activeDialog === 'filter'" @click="closeDialog()" x-cloak>
-      <div class="modal" @click.stop>
-        <div class="modal__header">
-          <h3 class="modal__title">Filter</h3>
-          <button class="modal__close" @click="closeDialog()">×</button>
+    <div x-show="activeDialog === 'filter'" x-cloak>
+      <div class="slide-panel-backdrop" @click="closeDialog()"></div>
+      <div class="slide-panel" @click.stop>
+        <div class="slide-panel__header">
+          <h2 class="slide-panel__title">Filter</h2>
+          <button class="slide-panel__close" @click="closeDialog()" title="Close">×</button>
         </div>
 
-        <div class="modal__content">
+        <div class="slide-panel__content">
           <label class="form-label">Keep rows where:</label>
           <input
             type="text"
@@ -1227,7 +1228,7 @@
           ></div>
         </div>
 
-        <div class="modal__footer">
+        <div class="slide-panel__footer">
           <button class="button button--secondary" @click="closeDialog()">Cancel</button>
           <button
             class="button button--primary"
@@ -1241,14 +1242,15 @@
     </div>
 
     <!-- Derive Dialog -->
-    <div class="modal-backdrop" x-show="activeDialog === 'derive'" @click="closeDialog()" x-cloak>
-      <div class="modal" @click.stop>
-        <div class="modal__header">
-          <h3 class="modal__title">Derive Column</h3>
-          <button class="modal__close" @click="closeDialog()">×</button>
+    <div x-show="activeDialog === 'derive'" x-cloak>
+      <div class="slide-panel-backdrop" @click="closeDialog()"></div>
+      <div class="slide-panel" @click.stop>
+        <div class="slide-panel__header">
+          <h2 class="slide-panel__title">Derive Column</h2>
+          <button class="slide-panel__close" @click="closeDialog()" title="Close">×</button>
         </div>
 
-        <div class="modal__content">
+        <div class="slide-panel__content">
           <div class="form-group">
             <label class="form-label">New column name:</label>
             <input
@@ -1287,7 +1289,7 @@
           ></div>
         </div>
 
-        <div class="modal__footer">
+        <div class="slide-panel__footer">
           <button class="button button--secondary" @click="closeDialog()">Cancel</button>
           <button
             class="button button--primary"
@@ -1301,14 +1303,15 @@
     </div>
 
     <!-- Sort Dialog -->
-    <div class="modal-backdrop" x-show="activeDialog === 'sort'" @click="closeDialog()" x-cloak>
-      <div class="modal" @click.stop>
-        <div class="modal__header">
-          <h3 class="modal__title">Sort</h3>
-          <button class="modal__close" @click="closeDialog()">×</button>
+    <div x-show="activeDialog === 'sort'" x-cloak>
+      <div class="slide-panel-backdrop" @click="closeDialog()"></div>
+      <div class="slide-panel" @click.stop>
+        <div class="slide-panel__header">
+          <h2 class="slide-panel__title">Sort</h2>
+          <button class="slide-panel__close" @click="closeDialog()" title="Close">×</button>
         </div>
 
-        <div class="modal__content">
+        <div class="slide-panel__content">
           <div class="form-group">
             <label class="form-label">Sort by:</label>
             <select class="form-input" x-model="sortDialogState.field">
@@ -1333,7 +1336,7 @@
           </div>
         </div>
 
-        <div class="modal__footer">
+        <div class="slide-panel__footer">
           <button class="button button--secondary" @click="closeDialog()">Cancel</button>
           <button class="button button--primary" @click="applySortTransform()">Apply</button>
         </div>
@@ -1341,14 +1344,15 @@
     </div>
 
     <!-- Rename Dialog -->
-    <div class="modal-backdrop" x-show="activeDialog === 'rename'" @click="closeDialog()" x-cloak>
-      <div class="modal" @click.stop style="max-width: 500px">
-        <div class="modal__header">
-          <h3 class="modal__title">Rename Columns</h3>
-          <button class="modal__close" @click="closeDialog()">×</button>
+    <div x-show="activeDialog === 'rename'" x-cloak>
+      <div class="slide-panel-backdrop" @click="closeDialog()"></div>
+      <div class="slide-panel" @click.stop>
+        <div class="slide-panel__header">
+          <h2 class="slide-panel__title">Rename Columns</h2>
+          <button class="slide-panel__close" @click="closeDialog()" title="Close">×</button>
         </div>
 
-        <div class="modal__content" style="max-height: 400px; overflow-y: auto">
+        <div class="slide-panel__content">
           <p class="form-help" style="margin-bottom: 1rem">Edit column names below:</p>
           <div
             style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; align-items: center"
@@ -1377,7 +1381,7 @@
           </div>
         </div>
 
-        <div class="modal__footer">
+        <div class="slide-panel__footer">
           <button class="button button--secondary" @click="closeDialog()">Cancel</button>
           <button class="button button--primary" @click="applyRenameTransform()">Apply</button>
         </div>
@@ -1385,14 +1389,15 @@
     </div>
 
     <!-- Remove Dialog -->
-    <div class="modal-backdrop" x-show="activeDialog === 'remove'" @click="closeDialog()" x-cloak>
-      <div class="modal" @click.stop>
-        <div class="modal__header">
-          <h3 class="modal__title">Remove Columns</h3>
-          <button class="modal__close" @click="closeDialog()">×</button>
+    <div x-show="activeDialog === 'remove'" x-cloak>
+      <div class="slide-panel-backdrop" @click="closeDialog()"></div>
+      <div class="slide-panel" @click.stop>
+        <div class="slide-panel__header">
+          <h2 class="slide-panel__title">Remove Columns</h2>
+          <button class="slide-panel__close" @click="closeDialog()" title="Close">×</button>
         </div>
 
-        <div class="modal__content">
+        <div class="slide-panel__content">
           <p class="form-help" style="margin-bottom: 1rem">
             Select columns to remove from the dataset:
           </p>
@@ -1406,7 +1411,7 @@
           </div>
         </div>
 
-        <div class="modal__footer">
+        <div class="slide-panel__footer">
           <button class="button button--secondary" @click="closeDialog()">Cancel</button>
           <button class="button button--primary" @click="applyRemoveTransform()">Apply</button>
         </div>
@@ -1414,14 +1419,15 @@
     </div>
 
     <!-- Unpivot (Fold) Dialog -->
-    <div class="modal-backdrop" x-show="activeDialog === 'fold'" @click="closeDialog()" x-cloak>
-      <div class="modal" @click.stop>
-        <div class="modal__header">
-          <h3 class="modal__title">Unpivot (Fold) Columns</h3>
-          <button class="modal__close" @click="closeDialog()">×</button>
+    <div x-show="activeDialog === 'fold'" x-cloak>
+      <div class="slide-panel-backdrop" @click="closeDialog()"></div>
+      <div class="slide-panel" @click.stop>
+        <div class="slide-panel__header">
+          <h2 class="slide-panel__title">Unpivot (Fold) Columns</h2>
+          <button class="slide-panel__close" @click="closeDialog()" title="Close">×</button>
         </div>
 
-        <div class="modal__content">
+        <div class="slide-panel__content">
           <p class="form-help" style="margin-bottom: 1rem">
             Select columns to collapse into key-value pairs (wide to long format):
           </p>
@@ -1476,7 +1482,7 @@
           </div>
         </div>
 
-        <div class="modal__footer">
+        <div class="slide-panel__footer">
           <button class="button button--secondary" @click="closeDialog()">Cancel</button>
           <button class="button button--primary" @click="applyFoldTransform()">Apply</button>
         </div>
@@ -1484,14 +1490,15 @@
     </div>
 
     <!-- Select Columns Dialog -->
-    <div class="modal-backdrop" x-show="activeDialog === 'select'" @click="closeDialog()" x-cloak>
-      <div class="modal" @click.stop>
-        <div class="modal__header">
-          <h3 class="modal__title">Select Columns</h3>
-          <button class="modal__close" @click="closeDialog()">×</button>
+    <div x-show="activeDialog === 'select'" x-cloak>
+      <div class="slide-panel-backdrop" @click="closeDialog()"></div>
+      <div class="slide-panel" @click.stop>
+        <div class="slide-panel__header">
+          <h2 class="slide-panel__title">Select Columns</h2>
+          <button class="slide-panel__close" @click="closeDialog()" title="Close">×</button>
         </div>
 
-        <div class="modal__content">
+        <div class="slide-panel__content">
           <!-- Pattern Matching Section -->
           <div
             class="form-group"
@@ -1595,7 +1602,7 @@
           </div>
         </div>
 
-        <div class="modal__footer">
+        <div class="slide-panel__footer">
           <button class="button button--secondary" @click="closeDialog()">Cancel</button>
           <button class="button button--primary" @click="applySelectTransform()">Apply</button>
         </div>
