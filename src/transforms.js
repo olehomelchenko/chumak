@@ -359,7 +359,11 @@ function applyTransform(table, transform, schema, context = null) {
 
     let maxSegments = 0;
     const arrays = resultTable.array(arrayCol);
-    maxSegments = Math.max(...arrays.map((arr) => (arr ? arr.length : 0)), 0);
+    // Use reduce instead of Math.max(...spread) to avoid stack overflow on large datasets
+    maxSegments = arrays.reduce((max, arr) => {
+      const len = arr ? arr.length : 0;
+      return len > max ? len : max;
+    }, 0);
 
     // Apply maxColumns limit if in firstN or lastN mode
     if ((normalizedMode === 'firstN' || normalizedMode === 'lastN') && effectiveMaxColumns) {
