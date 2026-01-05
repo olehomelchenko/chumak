@@ -22,13 +22,34 @@ const SchemaEngine = {
       return 'boolean';
     }
 
-    // 2. Check for Numeric
+    // 2. Check for Numeric (actual numbers)
     if (nonNullValues.every((v) => typeof v === 'number')) {
       const allIntegers = nonNullValues.every((v) => Number.isInteger(v));
       return allIntegers ? 'integer' : 'float';
     }
 
-    // 3. Check for Date/DateTime (strings matching patterns)
+    // 3. Check for Numeric Strings (strings that parse cleanly as numbers)
+    // Common after splitting date strings like "2024-01-15" -> ["2024", "01", "15"]
+    if (nonNullValues.every((v) => typeof v === 'string')) {
+      // Check if all strings are valid numbers (not NaN, not empty after trim)
+      const allNumericStrings = nonNullValues.every((v) => {
+        const trimmed = v.trim();
+        if (trimmed === '') return false;
+        const num = Number(trimmed);
+        return !isNaN(num) && isFinite(num);
+      });
+
+      if (allNumericStrings) {
+        // Determine if integers or floats
+        const allIntegers = nonNullValues.every((v) => {
+          const num = Number(v.trim());
+          return Number.isInteger(num);
+        });
+        return allIntegers ? 'integer' : 'float';
+      }
+    }
+
+    // 4. Check for Date/DateTime (strings matching patterns)
     if (nonNullValues.every((v) => typeof v === 'string')) {
       // ISO DateTime: 2024-01-01T12:00:00...
       // ISO DateTime: 2024-01-01T12:00:00... OR SQL: 2024-01-01 12:00:00...
