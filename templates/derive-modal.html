@@ -1,0 +1,216 @@
+<div x-show="activeDialog === 'derive'" x-cloak>
+  <div class="slide-panel-backdrop" @click="closeDialog()"></div>
+  <div class="slide-panel" @click.stop>
+    <div class="slide-panel__header">
+      <h2 class="slide-panel__title">Derive Column</h2>
+      <button class="slide-panel__close" @click="closeDialog()" title="Close">×</button>
+    </div>
+
+    <div class="slide-panel__content">
+      <div class="form-group">
+        <label class="form-label">New column name:</label>
+        <input
+          type="text"
+          class="form-input"
+          x-model="deriveDialogState.columnName"
+          placeholder="e.g., profit_margin"
+        />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Expression:</label>
+        <input
+          type="text"
+          class="form-input"
+          x-model="deriveDialogState.expression"
+          placeholder="e.g., (profit / sales) * 100"
+          @input="validateDeriveExpression()"
+        />
+      </div>
+
+      <!-- Error message -->
+      <div
+        x-show="deriveDialogState.error"
+        x-text="deriveDialogState.error"
+        style="
+          color: var(--color-red);
+          font-size: 13px;
+          margin-top: 8px;
+          white-space: pre-wrap;
+          font-family: var(--font-family-mono);
+        "
+      ></div>
+
+      <!-- Expression Help Section -->
+      <div
+        class="derive-help"
+        style="
+          margin-top: 1rem;
+          padding: 0.75rem;
+          background: var(--color-soft-bg);
+          border-radius: 6px;
+          border: 1px solid var(--border-color);
+        "
+      >
+        <div
+          class="derive-help__title"
+          style="
+            font-weight: 600;
+            font-size: 0.8rem;
+            color: var(--color-dark-gray);
+            margin-bottom: 0.5rem;
+          "
+        >
+          ✦ Expression Syntax Guide
+        </div>
+
+        <!-- Supported Examples -->
+        <div style="margin-bottom: 0.75rem">
+          <div
+            style="
+              font-size: 0.75rem;
+              font-weight: 500;
+              color: var(--color-dark-gray);
+              margin-bottom: 0.25rem;
+            "
+          >
+            Examples:
+          </div>
+          <div
+            style="
+              font-size: 0.75rem;
+              font-family: var(--font-family-mono);
+              color: var(--color-text);
+              line-height: 1.6;
+            "
+          >
+            <div>
+              <code style="background: var(--color-white); padding: 2px 4px; border-radius: 3px"
+                >revenue - cost</code
+              >
+              — subtraction
+            </div>
+            <div>
+              <code style="background: var(--color-white); padding: 2px 4px; border-radius: 3px"
+                >price * quantity</code
+              >
+              — multiplication
+            </div>
+            <div>
+              <code style="background: var(--color-white); padding: 2px 4px; border-radius: 3px"
+                >(profit / sales) * 100</code
+              >
+              — percentage
+            </div>
+            <div>
+              <code style="background: var(--color-white); padding: 2px 4px; border-radius: 3px"
+                >profit > 0 ? "Gain" : "Loss"</code
+              >
+              — conditional
+            </div>
+            <div>
+              <code style="background: var(--color-white); padding: 2px 4px; border-radius: 3px"
+                >discount ?? 0</code
+              >
+              — default for null
+            </div>
+            <div>
+              <code style="background: var(--color-white); padding: 2px 4px; border-radius: 3px"
+                >[Total Sales] + [Tax]</code
+              >
+              — columns with spaces
+            </div>
+          </div>
+        </div>
+
+        <!-- Supported Operators -->
+        <div style="margin-bottom: 0.75rem">
+          <div
+            style="
+              font-size: 0.75rem;
+              font-weight: 500;
+              color: var(--color-dark-gray);
+              margin-bottom: 0.25rem;
+            "
+          >
+            Supported Operators:
+          </div>
+          <div
+            style="
+              font-size: 0.7rem;
+              color: var(--color-medium-gray);
+              display: flex;
+              flex-wrap: wrap;
+              gap: 0.5rem;
+            "
+          >
+            <span
+              style="
+                background: var(--color-white);
+                padding: 2px 6px;
+                border-radius: 3px;
+                border: 1px solid var(--border-color);
+              "
+              >+ − * / %</span
+            >
+            <span
+              style="
+                background: var(--color-white);
+                padding: 2px 6px;
+                border-radius: 3px;
+                border: 1px solid var(--border-color);
+              "
+              >> <>= <===!=</span
+            >
+            <span
+              style="
+                background: var(--color-white);
+                padding: 2px 6px;
+                border-radius: 3px;
+                border: 1px solid var(--border-color);
+              "
+              >&& || ! ??</span
+            >
+            <span
+              style="
+                background: var(--color-white);
+                padding: 2px 6px;
+                border-radius: 3px;
+                border: 1px solid var(--border-color);
+              "
+              >? : ( )</span
+            >
+          </div>
+        </div>
+
+        <!-- Limitations -->
+        <div
+          style="
+            font-size: 0.7rem;
+            color: var(--color-medium-gray);
+            border-top: 1px dashed var(--border-color);
+            padding-top: 0.5rem;
+          "
+        >
+          <strong style="color: var(--color-dark-gray)">Coming soon:</strong> Functions (<code
+            style="font-size: 0.7rem"
+            >upper()</code
+          >, <code style="font-size: 0.7rem">round()</code>,
+          <code style="font-size: 0.7rem">year()</code>,
+          <code style="font-size: 0.7rem">length()</code>)
+        </div>
+      </div>
+    </div>
+
+    <div class="slide-panel__footer">
+      <button class="button button--secondary" @click="closeDialog()">Cancel</button>
+      <button
+        class="button button--primary"
+        @click="applyDeriveTransform()"
+        :disabled="deriveDialogState.error"
+      >
+        Apply
+      </button>
+    </div>
+  </div>
+</div>

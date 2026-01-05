@@ -1,0 +1,47 @@
+<div x-show="activeDialog === 'replace'" x-cloak>
+  <div class="slide-panel-backdrop" @click="closeDialog()"></div>
+  <div class="slide-panel" @click.stop>
+    <div class="slide-panel__header">
+      <h2 class="slide-panel__title">Replace Values</h2>
+      <button class="slide-panel__close" @click="closeDialog()" title="Close">×</button>
+    </div>
+
+    <div class="slide-panel__content">
+      <div class="form-group">
+        <label class="form-label">Column:</label>
+        <select class="form-input" x-model="replaceDialogState.column">
+          <template x-for="col in columns" :key="col">
+            <option :value="col" x-text="col"></option>
+          </template>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Find value:</label>
+        <input
+          type="text"
+          class="form-input"
+          x-model="replaceDialogState.findValue"
+          placeholder="Value to replace"
+        />
+        <p class="form-help">The exact value to find and replace</p>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Replace with:</label>
+        <input
+          type="text"
+          class="form-input"
+          x-model="replaceDialogState.replaceValue"
+          placeholder="New value (leave empty for null)"
+        />
+        <p class="form-help">New value to use (leave empty to replace with null)</p>
+      </div>
+    </div>
+
+    <div class="slide-panel__footer">
+      <button class="button button--secondary" @click="closeDialog()">Cancel</button>
+      <button class="button button--primary" @click="applyReplaceTransform()">Apply</button>
+    </div>
+  </div>
+</div>

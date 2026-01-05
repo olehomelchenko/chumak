@@ -23,6 +23,14 @@ export function createModelManager() {
         { id: 'aggregate-modal-container', url: 'templates/aggregate-modal.html' },
         { id: 'import-csv-modal-container', url: 'templates/import-csv-modal.html' },
         { id: 'select-columns-modal-container', url: 'templates/select-columns-modal.html' },
+        { id: 'split-modal-container', url: 'templates/split-column-modal.html' },
+        { id: 'unpivot-modal-container', url: 'templates/unpivot-modal.html' },
+        { id: 'replace-modal-container', url: 'templates/replace-modal.html' },
+        { id: 'remove-modal-container', url: 'templates/remove-modal.html' },
+        { id: 'rename-modal-container', url: 'templates/rename-modal.html' },
+        { id: 'sort-modal-container', url: 'templates/sort-modal.html' },
+        { id: 'derive-modal-container', url: 'templates/derive-modal.html' },
+        { id: 'filter-modal-container', url: 'templates/filter-modal.html' },
       ];
 
       for (const template of templates) {

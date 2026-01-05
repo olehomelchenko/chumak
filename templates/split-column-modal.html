@@ -1,0 +1,302 @@
+<div x-show="activeDialog === 'split'" x-cloak>
+  <div class="slide-panel-backdrop" @click="closeDialog()"></div>
+  <div class="slide-panel" @click.stop>
+    <div class="slide-panel__header">
+      <h2 class="slide-panel__title">Split Column</h2>
+      <button class="slide-panel__close" @click="closeDialog()" title="Close">×</button>
+    </div>
+
+    <div class="slide-panel__content">
+      <div class="form-group">
+        <label class="form-label">Column to split:</label>
+        <select
+          class="form-input"
+          x-model="splitDialogState.column"
+          @change="() => { const detected = detectDelimiter(splitDialogState.column); if (detected) { splitDialogState.delimiter = detected.char; splitDialogState.isRegex = detected.isRegex; splitDialogState.autoDetectedDelimiter = detected.name; } else { splitDialogState.autoDetectedDelimiter = null; } updateSplitPreview(); }"
+        >
+          <template x-for="col in columns" :key="col">
+            <option :value="col" x-text="col"></option>
+          </template>
+        </select>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Delimiter:</label>
+        <div
+          x-show="splitDialogState.autoDetectedDelimiter"
+          style="font-size: 12px; color: var(--color-green); margin-bottom: 4px"
+        >
+          ✓ Auto-detected: <span x-text="splitDialogState.autoDetectedDelimiter"></span>
+        </div>
+        <div style="display: flex; gap: 4px; margin-bottom: 8px; flex-wrap: wrap">
+          <button
+            type="button"
+            class="button button--secondary"
+            style="padding: 4px 8px; font-size: 12px"
+            @click="splitDialogState.delimiter = ','; splitDialogState.isRegex = false; updateSplitPreview()"
+          >
+            ,
+          </button>
+          <button
+            type="button"
+            class="button button--secondary"
+            style="padding: 4px 8px; font-size: 12px"
+            @click="splitDialogState.delimiter = ';'; splitDialogState.isRegex = false; updateSplitPreview()"
+          >
+            ;
+          </button>
+          <button
+            type="button"
+            class="button button--secondary"
+            style="padding: 4px 8px; font-size: 12px"
+            @click="splitDialogState.delimiter = '|'; splitDialogState.isRegex = false; updateSplitPreview()"
+          >
+            |
+          </button>
+          <button
+            type="button"
+            class="button button--secondary"
+            style="padding: 4px 8px; font-size: 12px"
+            @click="splitDialogState.delimiter = '-'; splitDialogState.isRegex = false; updateSplitPreview()"
+          >
+            -
+          </button>
+          <button
+            type="button"
+            class="button button--secondary"
+            style="padding: 4px 8px; font-size: 12px"
+            @click="splitDialogState.delimiter = '/'; splitDialogState.isRegex = false; updateSplitPreview()"
+          >
+            /
+          </button>
+          <button
+            type="button"
+            class="button button--secondary"
+            style="padding: 4px 8px; font-size: 12px"
+            @click="splitDialogState.delimiter = '\\'; splitDialogState.isRegex = false; updateSplitPreview()"
+          >
+            \
+          </button>
+          <button
+            type="button"
+            class="button button--secondary"
+            style="padding: 4px 8px; font-size: 12px"
+            @click="splitDialogState.delimiter = '@'; splitDialogState.isRegex = false; updateSplitPreview()"
+          >
+            @
+          </button>
+          <button
+            type="button"
+            class="button button--secondary"
+            style="padding: 4px 12px; font-size: 12px"
+            @click="splitDialogState.delimiter = '\\s+'; splitDialogState.isRegex = true; updateSplitPreview()"
+          >
+            <span class="iconify" data-icon="material-symbols-light:space-bar-rounded"></span>
+          </button>
+          <button
+            type="button"
+            class="button button--secondary"
+            style="padding: 4px 12px; font-size: 12px"
+            @click="splitDialogState.delimiter = '\\t'; splitDialogState.isRegex = true; updateSplitPreview()"
+          >
+            <span class="iconify" data-icon="material-symbols-light:keyboard-tab-rounded"></span>
+          </button>
+        </div>
+        <input
+          type="text"
+          class="form-input"
+          x-model="splitDialogState.delimiter"
+          placeholder="Enter delimiter"
+          @input="debouncedUpdateSplitPreview()"
+        />
+        <div style="margin-top: 8px">
+          <label style="display: flex; align-items: center; gap: 8px">
+            <input
+              type="checkbox"
+              x-model="splitDialogState.isRegex"
+              @change="updateSplitPreview()"
+            />
+            <span style="font-size: 13px"
+              >Use as regex pattern (e.g., <code>\s+</code> for whitespace, <code>[-_]</code> for
+              dash or underscore)</span
+            >
+          </label>
+        </div>
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Split mode:</label>
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <label style="display: flex; align-items: center; gap: 8px">
+            <input
+              type="radio"
+              name="splitMode"
+              value="spread"
+              x-model="splitDialogState.mode"
+              @change="updateSplitPreview()"
+            />
+            <span>Spread All - create column for each segment</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 8px">
+            <input
+              type="radio"
+              name="splitMode"
+              value="left"
+              x-model="splitDialogState.mode"
+              @change="updateSplitPreview()"
+            />
+            <span>Keep Left - keep only first segment</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 8px">
+            <input
+              type="radio"
+              name="splitMode"
+              value="right"
+              x-model="splitDialogState.mode"
+              @change="updateSplitPreview()"
+            />
+            <span>Keep Right - keep only last segment</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 8px">
+            <input
+              type="radio"
+              name="splitMode"
+              value="firstN"
+              x-model="splitDialogState.mode"
+              @change="updateSplitPreview()"
+            />
+            <span>Keep First N - limit number of columns</span>
+          </label>
+          <label style="display: flex; align-items: center; gap: 8px">
+            <input
+              type="radio"
+              name="splitMode"
+              value="lastN"
+              x-model="splitDialogState.mode"
+              @change="updateSplitPreview()"
+            />
+            <span>Keep Last N - keep last N segments</span>
+          </label>
+        </div>
+      </div>
+
+      <div
+        class="form-group"
+        x-show="splitDialogState.mode === 'firstN' || splitDialogState.mode === 'lastN'"
+      >
+        <label class="form-label">Max columns:</label>
+        <input
+          type="number"
+          class="form-input"
+          x-model.number="splitDialogState.maxColumns"
+          min="1"
+          max="50"
+          placeholder="e.g., 3"
+          @input="debouncedUpdateSplitPreview()"
+        />
+      </div>
+
+      <div class="form-group">
+        <label style="display: flex; align-items: center; gap: 8px">
+          <input
+            type="checkbox"
+            x-model="splitDialogState.keepOriginal"
+            @change="updateSplitPreview()"
+          />
+          <span>Keep original column</span>
+        </label>
+      </div>
+
+      <!-- Error message -->
+      <div
+        x-show="splitDialogState.error"
+        x-text="splitDialogState.error"
+        style="
+          color: var(--color-red);
+          font-size: 13px;
+          margin-top: 8px;
+          white-space: pre-wrap;
+          font-family: var(--font-family-mono);
+        "
+      ></div>
+
+      <!-- Preview Panel -->
+      <div
+        x-show="splitDialogState.previewData && splitDialogState.previewData.length > 0"
+        style="margin-top: 20px"
+      >
+        <label class="form-label">Preview (first 50 rows):</label>
+        <div
+          style="
+            max-height: 300px;
+            overflow: auto;
+            border: 1px solid var(--color-medium-gray);
+            border-radius: 4px;
+          "
+        >
+          <table style="width: 100%; border-collapse: collapse; font-size: 13px">
+            <thead
+              style="position: sticky; top: 0; background: var(--color-light-gray); z-index: 1"
+            >
+              <tr>
+                <template x-for="col in splitDialogState.previewColumns" :key="col.name">
+                  <th
+                    :style="`padding: 8px; text-align: left; border-bottom: 1px solid var(--color-medium-gray);
+                                 ${col.status === 'removed' ? 'color: #8B0000; text-decoration: line-through;' : ''}
+                                 ${col.status === 'new' ? 'color: #006400; font-weight: 600;' : ''}`"
+                  >
+                    <template x-if="col.status === 'new'">
+                      <input
+                        type="text"
+                        class="form-input"
+                        x-model="splitDialogState.columnRenames[col.name]"
+                        :placeholder="col.name"
+                        style="
+                          padding: 4px 6px;
+                          font-size: 13px;
+                          font-weight: 600;
+                          color: #006400;
+                          border: 1px solid #90ee90;
+                          background: white;
+                        "
+                        @click.stop
+                      />
+                    </template>
+                    <template x-if="col.status !== 'new'">
+                      <span x-text="col.name"></span>
+                    </template>
+                  </th>
+                </template>
+              </tr>
+            </thead>
+            <tbody>
+              <template x-for="(row, idx) in splitDialogState.previewData" :key="idx">
+                <tr>
+                  <template x-for="col in splitDialogState.previewColumns" :key="col.name">
+                    <td
+                      :style="`padding: 8px; border-bottom: 1px solid var(--color-light-gray);
+                                   ${col.status === 'removed' ? 'color: #8B0000; opacity: 0.6;' : ''}
+                                   ${col.status === 'new' ? 'color: #006400;' : ''}`"
+                      x-text="row[col.name] ?? ''"
+                    ></td>
+                  </template>
+                </tr>
+              </template>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <div class="slide-panel__footer">
+      <button class="button button--secondary" @click="closeDialog()">Cancel</button>
+      <button
+        class="button button--primary"
+        @click="applySplitTransform()"
+        :disabled="splitDialogState.error"
+      >
+        Apply
+      </button>
+    </div>
+  </div>
+</div>
