@@ -699,7 +699,7 @@ See [PARSER-DESIGN-DECISION.md](PARSER-DESIGN-DECISION.md) for full analysis.
 - Type hints for derived columns
 - User can override via `types` transform
 
-**Implementation**: SchemaEngine infers from sample data, propagates through transforms.
+**Implementation**: SchemaEngine infers from sample data, propagates through transforms. The `TransformResult` contract ensures schema derivation always receives sample data, preventing type inference failures for new columns.
 
 ### 9.3 Visualization: Vega-Lite
 
@@ -750,6 +750,31 @@ See [PARSER-DESIGN-DECISION.md](PARSER-DESIGN-DECISION.md) for full analysis.
 - **Joins**: Can join model outputs (not just sources)
 
 **Implementation**: Models reference source by ID, have own transform pipeline.
+
+### 9.7 TransformResult Contract
+
+**Decision**: Use a lightweight contract object to bundle transform outputs (`data`, `schema`, `columns`).
+
+**Problem Solved**: Schema derivation was inconsistent - some code paths provided sample data for type inference, others didn't. This caused "schema not updating" bugs for transforms that create new columns (split, derive, join).
+
+**Rationale**:
+
+- **Single source of truth**: `TransformResult.create()` always derives schema with sample data
+- **Self-healing**: Detects and corrects schema/columns mismatches
+- **Minimal footprint**: Not a wrapper around every transform - only used at two integration points
+
+**Where it's used** (and only these places):
+
+1. `computeModelUpToStep()` - When replaying the pipeline
+2. `applyStepResult()` - When applying a new transform from UI
+
+**What it's NOT**:
+
+- Not a replacement for `applyTransform()` - that still returns Arquero tables
+- Not called by transform implementations themselves
+- Not a generic data structure used throughout the codebase
+
+**Implementation**: ~100 lines in `transform-result.js`. See `integration.test.js` for usage examples.
 
 ---
 

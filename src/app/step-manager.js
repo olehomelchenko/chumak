@@ -18,7 +18,27 @@
 export function createStepManager() {
   return {
     /**
+     * Schema for the intermediate step being viewed (not the final model schema)
+     * This prevents corrupting activeModel.schema when viewing intermediate steps
+     * @type {Array|null}
+     */
+    viewingSchema: null,
+
+    /**
+     * Get the currently active schema (intermediate or final)
+     * Use this instead of directly accessing activeModel.schema
+     * @returns {Array} Current schema array
+     */
+    getActiveSchema() {
+      if (this.viewingIntermediate && this.viewingSchema) {
+        return this.viewingSchema;
+      }
+      return this.activeModel?.schema || [];
+    },
+    /**
      * Compute data state for a model up to a specific step index
+     * Uses TransformResult contract to ensure schema/columns/data stay in sync
+     *
      * @param {Object} model - Model to compute
      * @param {number} stepIndex - Step to compute up to (inclusive)
      * @returns {Object} { data: Array, schema: Array, columns: Array }
@@ -50,15 +70,14 @@ export function createStepManager() {
           const context = { sources: this.sources, models: this.models };
           table = applyTransform(table, step, columns, context);
 
-          // Update column schema after each step
-          // We only get objects if we need to infer types (like in derive)
-          let sampleData = [];
-          if (step.derive || step.join) {
-            sampleData = table.slice(0, 20).objects();
-          }
+          // Use TransformResult contract to derive schema with sample data
+          // This centralizes schema derivation and ensures sample data is always provided
+          const stepResult = TransformResult.create(table, schema, step);
+          schema = stepResult.schema;
+          columns = stepResult.columns;
 
-          schema = SchemaEngine.deriveNextSchema(schema, step, sampleData);
-          columns = schema.map((c) => c.name);
+          // Note: We keep `table` as an Arquero table for efficient chaining
+          // and only extract objects at the end
         } catch (error) {
           console.error(`Error applying step ${i}:`, error);
           throw error;
@@ -70,6 +89,12 @@ export function createStepManager() {
         schema: schema,
         columns: columns,
       };
+
+      // Validate result using contract
+      const validation = TransformResult.validate(result);
+      if (!validation.valid) {
+        console.warn('computeModelUpToStep: Result validation warnings', validation.errors);
+      }
 
       perfLogger.log(
         `Compute model '${model.name}' to step ${stepIndex + 1}`,
@@ -131,7 +156,9 @@ export function createStepManager() {
 
         this.currentData = result.data;
         this.columns = result.columns;
-        this.activeModel.schema = result.schema; // Keep track of schema at this step
+        // Store intermediate schema separately - DO NOT overwrite activeModel.schema
+        // This prevents schema corruption when dialogs use the schema during intermediate view
+        this.viewingSchema = result.schema;
         this.activeStepIndex = stepIndex;
         this.viewingIntermediate = true;
 
@@ -153,8 +180,10 @@ export function createStepManager() {
 
       this.currentData = this.activeModel.data;
 
-      // Get columns from model data
-      if (this.currentData && this.currentData.length > 0) {
+      // Get columns from model schema (source of truth)
+      if (this.activeModel.schema && this.activeModel.schema.length > 0) {
+        this.columns = this.activeModel.schema.map((c) => c.name);
+      } else if (this.currentData && this.currentData.length > 0) {
         this.columns = Object.keys(this.currentData[0]);
       } else {
         this.columns = [];
@@ -162,6 +191,7 @@ export function createStepManager() {
 
       this.activeStepIndex = null;
       this.viewingIntermediate = false;
+      this.viewingSchema = null; // Clear intermediate schema
 
       // Update pagination
       this.updatePagination();

@@ -114,6 +114,8 @@ export function createTransformDialogs() {
     /**
      * Apply transform step result to model
      * Handles both new steps and editing existing steps
+     * Uses TransformResult contract to ensure schema/columns/data stay in sync
+     *
      * @param {Object} transform - Transform specification
      * @param {Object|Array} resultTable - Arquero table or plain array with result data
      * @param {boolean} closeDialogAfter - Whether to close the dialog after applying (default: true)
@@ -129,25 +131,30 @@ export function createTransformDialogs() {
       // Update model steps (add new step)
       this.activeModel.steps.push(transform);
 
-      // Update current data and schema
-      // Check if resultTable is an Arquero table or a plain array (for pass-through types transform)
-      const transformedData = Array.isArray(resultTable) ? resultTable : resultTable.objects();
-      this.currentData = transformedData;
+      // Use TransformResult contract for consistent schema derivation
+      // This ensures sample data is always provided for type inference
+      let result;
+      if (Array.isArray(resultTable)) {
+        // Plain array (e.g., pass-through types transform)
+        result = TransformResult.createFromData(resultTable, this.activeModel.schema, transform);
+      } else {
+        // Arquero table
+        result = TransformResult.create(resultTable, this.activeModel.schema, transform);
+      }
 
-      // Propagation: Calculate next schema
-      const sampleData = Array.isArray(resultTable)
-        ? resultTable.slice(0, 20)
-        : resultTable.slice(0, 20).objects();
-
-      this.activeModel.schema = SchemaEngine.deriveNextSchema(
-        this.activeModel.schema,
-        transform,
-        sampleData
-      );
-      this.columns = this.activeModel.schema.map((c) => c.name);
+      // Update state from contract result
+      this.currentData = result.data;
+      this.activeModel.schema = result.schema;
+      this.columns = result.columns;
 
       // Update the model's data
-      this.activeModel.data = JSON.parse(JSON.stringify(transformedData));
+      this.activeModel.data = JSON.parse(JSON.stringify(result.data));
+
+      // Validate result
+      const validation = TransformResult.validate(result);
+      if (!validation.valid) {
+        console.warn('applyStepResult: Result validation warnings', validation.errors);
+      }
 
       // Update pagination
       this.updatePagination();
@@ -163,10 +170,13 @@ export function createTransformDialogs() {
 
     /**
      * Get column type from schema
+     * Uses getActiveSchema() to handle intermediate view state correctly
      */
     getColumnType(colName) {
-      if (this.activeModel?.schema) {
-        const col = this.activeModel.schema.find((c) => c.name === colName);
+      // Use getActiveSchema() to get correct schema (intermediate or final)
+      const schema = this.getActiveSchema ? this.getActiveSchema() : this.activeModel?.schema;
+      if (schema) {
+        const col = schema.find((c) => c.name === colName);
         if (col) return col.type;
       }
       if (this.activeSource?.columns) {

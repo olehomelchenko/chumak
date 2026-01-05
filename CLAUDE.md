@@ -239,6 +239,11 @@ See [PARSER-DESIGN-DECISION.md](docs/PARSER-DESIGN-DECISION.md) for comprehensiv
   - Each transform ~10-100 lines
   - Direct Arquero wrappers or custom AST interpretation
 
+- **[transform-result.js](src/transform-result.js)** - Schema-data synchronization contract
+  - Ensures `{ data, schema, columns }` stay in sync after transforms
+  - Used by `computeModelUpToStep()` and `applyStepResult()` only
+  - Guarantees sample data is always provided for type inference
+
 ### Advanced Features
 
 - **[schema-engine.js](src/schema-engine.js)** - Granular type inference & propagation
@@ -263,8 +268,8 @@ See [PARSER-DESIGN-DECISION.md](docs/PARSER-DESIGN-DECISION.md) for comprehensiv
 ### Tests
 
 - **[src/tests/runner.html](src/tests/runner.html)** - Browser test runner (Mocha + Chai)
-- **Test files**: `expression-parser.test.js`, `ast-validator.test.js`, `ast-interpreter.test.js`, `transforms.test.js`, `join.test.js`, `step-editing.test.js`
-- **Coverage**: High coverage on core logic (expression parsing, transforms, step editing)
+- **Test files**: `expression-parser.test.js`, `ast-validator.test.js`, `ast-interpreter.test.js`, `transforms.test.js`, `join.test.js`, `step-editing.test.js`, `schema-engine.test.js`, `integration.test.js`
+- **Coverage**: High coverage on core logic (expression parsing, transforms, step editing, schema propagation)
 
 **Tip**: Each module has header comments with purpose and exports. Read headers before implementing.
 
@@ -331,11 +336,11 @@ See [PARSER-DESIGN-DECISION.md](docs/PARSER-DESIGN-DECISION.md) for comprehensiv
 4. Run tests again to verify pass (green)
 5. All tests must pass before feature complete
 
-**Test files**: `expression-parser.test.js`, `ast-validator.test.js`, `ast-interpreter.test.js`, `transforms.test.js`, `join.test.js`
+**Test files**: `expression-parser.test.js`, `ast-validator.test.js`, `ast-interpreter.test.js`, `transforms.test.js`, `join.test.js`, `integration.test.js`
 
 **Edge cases**: Empty data, nulls, column names with spaces, division by zero, type mismatches, deeply nested expressions
 
-**Coverage**: High coverage on core logic (expression parsing, transform engine)
+**Coverage**: High coverage on core logic (expression parsing, transform engine, schema propagation)
 
 ### Performance Constraints
 
@@ -425,10 +430,10 @@ When implementing a new transform:
 
 1.  **Implement logic**: In `src/transforms.js` (applyTransform)
 2.  **Implement schema update**: In `src/schema-engine.js` (deriveNextSchema)
-3.  **UI Updates**: In `src/chumak-app.js`, ensure `removeStep` and `undo` logic properly re-derives the schema from the modified step chain, not just the data.
+
+The `TransformResult` contract in `transform-result.js` handles the integration - it wraps schema derivation and ensures sample data is always provided. You don't need to call `TransformResult` directly; `computeModelUpToStep()` and `applyStepResult()` use it internally.
 
 Missing step 2 leads to "ghost columns" (UI thinks column exists, data doesn't).
-Missing step 3 leads to state desynchronization when deleting steps.
 
 ### 9. Step Editing Implementation Notes
 

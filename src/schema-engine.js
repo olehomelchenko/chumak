@@ -72,12 +72,26 @@ const SchemaEngine = {
 
   /**
    * Calculate resulting schema after applying a transform to a model
+   *
+   * IMPORTANT: For transforms that create new columns (derive, split, join, fold),
+   * sample data MUST be provided for accurate type inference. The TransformResult
+   * contract ensures this is always provided, but we warn if it's missing.
+   *
    * @param {Array<Object>} currentSchema - Current ColumnSchema array
    * @param {Object} transform - Transform step specification
    * @param {Array<Object>} sampleData - Sample of the data AFTER transform (for type inference of new columns)
    * @returns {Array<Object>} New ColumnSchema array
    */
   deriveNextSchema(currentSchema, transform, sampleData = []) {
+    // Warn if sample data is missing for transforms that need it
+    const needsSampleData = transform.derive || transform.split || transform.join || transform.fold;
+    if (needsSampleData && (!sampleData || sampleData.length === 0)) {
+      console.warn(
+        'SchemaEngine.deriveNextSchema: Sample data missing for transform that creates new columns.',
+        'Type inference may be inaccurate. Transform:',
+        Object.keys(transform)[0]
+      );
+    }
     // 1. SELECT: Keep only specified columns
     if (transform.select) {
       return transform.select.map((name) => {
