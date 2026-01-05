@@ -8,10 +8,16 @@
     <link rel="stylesheet" href="styles/chumak.css" />
     <link rel="icon" type="image/x-icon" href="/src/favicon.svg" />
 
+    <!-- External Dependencies -->
     <script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
     <script src="https://unpkg.com/papaparse@5/papaparse.min.js"></script>
     <script src="https://unpkg.com/arquero@5/dist/arquero.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/jsep@1.4.0/dist/iife/jsep.iife.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega@5"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega-lite@5"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
+
+    <!-- Core Infrastructure (non-module scripts) -->
     <script src="src/storage.js"></script>
     <script src="src/ux-settings.js"></script>
     <script src="src/url-state.js"></script>
@@ -23,11 +29,12 @@
     <script src="src/error-formatter.js"></script>
     <script src="src/transforms.js"></script>
     <script src="src/eda-engine.js"></script>
-    <script src="https://cdn.jsdelivr.net/npm/vega@5"></script>
-    <script src="https://cdn.jsdelivr.net/npm/vega-lite@5"></script>
-    <script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
     <script src="src/charts.js"></script>
-    <script src="src/chumak-app.js"></script>
+
+    <!-- Main Application (ES6 module) -->
+    <script type="module" src="src/chumak-app.js"></script>
+
+    <!-- Alpine.js -->
     <script src="https://unpkg.com/alpinejs@3/dist/cdn.min.js" defer></script>
   </head>
 
