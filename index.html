@@ -613,19 +613,74 @@
             Import a CSV file to begin transforming data.
           </div>
 
-          <!-- Show JSON if steps exist -->
-          <pre
-            x-show="currentData && activeModel?.steps?.length > 0"
-            class="json-view__content"
-            x-text="JSON.stringify({ transforms: activeModel?.steps || [] }, null, 2)"
-          ></pre>
-
           <!-- Show "no steps" message -->
           <div
             x-show="currentData && (!activeModel?.steps || activeModel?.steps?.length === 0)"
             style="padding: 1rem; color: #888; font-size: 0.875rem"
           >
             No transformation steps yet.
+          </div>
+
+          <!-- JSON View/Edit Area -->
+          <div x-show="currentData && activeModel?.steps?.length > 0" class="json-editor">
+            <!-- Read-only mode -->
+            <template x-if="!jsonEditMode">
+              <div>
+                <pre class="json-view__content" x-text="getStepsJson()"></pre>
+                <button
+                  class="json-edit-toggle"
+                  @click="enterJsonEditMode()"
+                  title="Edit raw JSON (advanced - use with caution)"
+                >
+                  <span
+                    class="iconify"
+                    data-icon="carbon:edit"
+                    style="width: 14px; height: 14px"
+                  ></span>
+                  Edit JSON
+                </button>
+              </div>
+            </template>
+
+            <!-- Edit mode (danger zone) -->
+            <template x-if="jsonEditMode">
+              <div class="json-edit-danger-zone">
+                <!-- Warning banner -->
+                <div class="json-edit-warning">
+                  <span class="json-edit-warning__icon">⚠️</span>
+                  <div class="json-edit-warning__text">
+                    <strong>Danger Zone</strong> — Direct JSON editing bypasses validation. Invalid
+                    changes may break your workflow.
+                  </div>
+                </div>
+
+                <!-- Textarea for editing -->
+                <textarea
+                  class="json-edit-textarea"
+                  :class="{ 'json-edit-textarea--error': jsonEditError }"
+                  x-model="jsonEditContent"
+                  @input="validateJsonEdit()"
+                  spellcheck="false"
+                ></textarea>
+
+                <!-- Error message -->
+                <div x-show="jsonEditError" class="json-edit-error" x-text="jsonEditError"></div>
+
+                <!-- Action buttons -->
+                <div class="json-edit-actions">
+                  <button class="button button--secondary button--small" @click="cancelJsonEdit()">
+                    Cancel
+                  </button>
+                  <button
+                    class="button button--danger button--small"
+                    @click="applyJsonEdit()"
+                    :disabled="!!jsonEditError"
+                  >
+                    Apply Changes
+                  </button>
+                </div>
+              </div>
+            </template>
           </div>
         </div>
       </section>
@@ -2139,6 +2194,39 @@
         ></span>
         Auto-Detect
       </button>
+    </div>
+
+    <!-- Toast Notifications Container -->
+    <div class="toast-container">
+      <template x-for="notification in notifications" :key="notification.id">
+        <div
+          class="toast"
+          :class="{
+            'toast--visible': notification.visible,
+            'toast--error': notification.type === 'error',
+            'toast--warning': notification.type === 'warning',
+            'toast--success': notification.type === 'success'
+          }"
+        >
+          <div class="toast__icon" x-text="getNotificationIcon(notification.type)"></div>
+          <div class="toast__content">
+            <div class="toast__title" x-text="notification.title"></div>
+            <div class="toast__message" x-text="notification.message"></div>
+            <div
+              class="toast__step-info"
+              x-show="notification.stepInfo"
+              x-text="notification.stepInfo"
+            ></div>
+          </div>
+          <button
+            class="toast__close"
+            @click="dismissNotification(notification.id)"
+            title="Dismiss"
+          >
+            ×
+          </button>
+        </div>
+      </template>
     </div>
   </body>
 </html>

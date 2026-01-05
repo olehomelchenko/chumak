@@ -80,7 +80,14 @@ export function createStepManager() {
           // and only extract objects at the end
         } catch (error) {
           console.error(`Error applying step ${i}:`, error);
-          throw error;
+          // Enhance error with step information
+          const stepDescription = describeTransform(step);
+          const enhancedError = new Error(
+            `Step ${i + 1} failed: ${stepDescription}\n\n${error.message}`
+          );
+          enhancedError.stepIndex = i;
+          enhancedError.stepDescription = stepDescription;
+          throw enhancedError;
         }
       }
 
@@ -168,7 +175,10 @@ export function createStepManager() {
         console.log(`Viewing step ${stepIndex + 1}:`, result.data.length, 'rows');
       } catch (error) {
         console.error('Error computing step:', error);
-        alert(`Error viewing step ${stepIndex + 1}: ${error.message}`);
+        this.showError('Error viewing step', `Step ${stepIndex + 1}: ${error.message}`, {
+          stepIndex: error.stepIndex ?? stepIndex,
+          stepDescription: error.stepDescription,
+        });
       }
     },
 
@@ -206,7 +216,10 @@ export function createStepManager() {
     async removeStep(stepIndex) {
       // Can't remove import step (first step)
       if (this.activeModel.steps[stepIndex].import) {
-        alert('Cannot remove the import step');
+        this.showWarning(
+          'Cannot remove import step',
+          'The import step is required and cannot be removed.'
+        );
         return;
       }
 
@@ -248,7 +261,10 @@ export function createStepManager() {
         console.log('Step removed and data recomputed');
       } catch (error) {
         console.error('Error removing step:', error);
-        alert(`Error recomputing after removal: ${error.message}`);
+        this.showError('Error recomputing after removal', error.message, {
+          stepIndex: error.stepIndex,
+          stepDescription: error.stepDescription,
+        });
       }
     },
 
@@ -317,7 +333,7 @@ export function createStepManager() {
           replaceValue: step.replace.replace === null ? '' : step.replace.replace,
         };
       } else {
-        alert('Editing this step type is not yet supported');
+        this.showWarning('Cannot edit step', 'Editing this step type is not yet supported.');
         this.editingStepIndex = null;
       }
     },
@@ -377,7 +393,10 @@ export function createStepManager() {
         // Clear editing context
         this.editingStepIndex = null;
 
-        alert(`Error updating step: ${error.message}\n\nChanges have been reverted.`);
+        this.showError('Error updating step', `${error.message}\n\nChanges have been reverted.`, {
+          stepIndex: error.stepIndex ?? stepIndex,
+          stepDescription: error.stepDescription,
+        });
       }
     },
   };

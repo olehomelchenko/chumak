@@ -15,6 +15,8 @@ import { createTransformDialogs } from './app/transform-dialogs.js';
 import { createModelManager } from './app/model-manager.js';
 import { createStepManager } from './app/step-manager.js';
 import { createPagination } from './app/pagination.js';
+import { createNotificationManager } from './app/notification-manager.js';
+import { createJsonEditor } from './app/json-editor.js';
 
 function chumakApp() {
   return {
@@ -281,6 +283,8 @@ function chumakApp() {
     ...createModelManager(),
     ...createStepManager(),
     ...createPagination(),
+    ...createNotificationManager(),
+    ...createJsonEditor(),
   };
 }
 
