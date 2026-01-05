@@ -613,6 +613,7 @@ See [ARQUERO-LEVERAGE-ANALYSIS.md](docs/ARQUERO-LEVERAGE-ANALYSIS.md) for detail
 7. **Keep it simple** - YAGNI, right-sized for current needs
 8. **Document as you go** - update this file for significant decisions
 9. **Leverage Arquero** - thin wrappers, not reimplementation
+10. **Never start local servers or open web pages** - user handles all manual testing and verification
 
 ---
 

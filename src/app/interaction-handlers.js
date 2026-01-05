@@ -277,6 +277,32 @@ export function createInteractionHandlers() {
     },
 
     /**
+     * Quick split from column toolbar (opens split dialog pre-filled with column)
+     */
+    quickSplit() {
+      if (!this.selectedColumn) return;
+
+      const col = this.selectedColumn;
+      this.openDialog('split');
+      this.splitDialogState.column = col;
+
+      // Auto-detect delimiter
+      const detected = this.detectDelimiter(col);
+      if (detected) {
+        this.splitDialogState.delimiter = detected.char;
+        this.splitDialogState.isRegex = detected.isRegex;
+        this.splitDialogState.autoDetectedDelimiter = detected.name;
+      } else {
+        this.splitDialogState.autoDetectedDelimiter = null;
+      }
+
+      // Trigger preview update after a short delay
+      setTimeout(() => {
+        this.updateSplitPreview();
+      }, 50);
+    },
+
+    /**
      * Quick replace from cell toolbar (opens replace dialog focused on cell value)
      */
     quickReplace() {

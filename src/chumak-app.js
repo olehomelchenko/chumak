@@ -138,6 +138,21 @@ function chumakApp() {
       replaceValue: '',
     },
 
+    // Split dialog state
+    splitDialogState: {
+      column: '',
+      delimiter: ',',
+      isRegex: false,
+      mode: 'spread', // spread | left | right | firstN | lastN
+      maxColumns: 10,
+      keepOriginal: false,
+      error: null,
+      previewData: [],
+      previewColumns: [],
+      autoDetectedDelimiter: null, // Info about auto-detected delimiter
+      columnRenames: {}, // Map of generated column name -> custom name
+    },
+
     // ============================================================
     // Initialization
     // ============================================================

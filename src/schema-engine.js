@@ -264,6 +264,62 @@ const SchemaEngine = {
       return newSchema;
     }
 
+    // 9. SPLIT: Split column into multiple columns
+    if (transform.split) {
+      const { column, mode, keepOriginal, maxColumns } = transform.split;
+
+      // Start with current schema
+      let newSchema = [...currentSchema];
+
+      // Remove original column if not keeping it
+      if (!keepOriginal) {
+        newSchema = newSchema.filter((c) => c.name !== column);
+      }
+
+      // Determine how many new columns are created
+      let newColumnNames = [];
+      if (sampleData && sampleData.length > 0) {
+        // Infer from sample data
+        const sampleColumns = Object.keys(sampleData[0]);
+        // Find columns matching pattern: {column}_1, {column}_2, etc.
+        newColumnNames = sampleColumns.filter((name) => name.startsWith(`${column}_`));
+      } else {
+        // Fallback: estimate based on mode
+        // left/right are both normalized to produce a single column with _1 suffix
+        if (mode === 'left' || mode === 'right') {
+          newColumnNames = [`${column}_1`];
+        } else if ((mode === 'firstN' || mode === 'lastN') && maxColumns) {
+          for (let i = 1; i <= maxColumns; i++) {
+            newColumnNames.push(`${column}_${i}`);
+          }
+        } else {
+          // For spread mode without sample data, can't determine count
+          // This will be corrected when schema is recalculated with data
+          newColumnNames = [`${column}_1`];
+        }
+      }
+
+      // Add new columns to schema
+      let pos = newSchema.length;
+      for (const newColName of newColumnNames) {
+        // Infer type from sample data if available
+        let type = 'string'; // Default for split columns
+        if (sampleData && sampleData.length > 0) {
+          const sampleValues = sampleData.map((row) => row[newColName]);
+          type = this.inferType(sampleValues);
+        }
+
+        newSchema.push({
+          name: newColName,
+          type: type,
+          format: {},
+          originalPosition: pos++,
+        });
+      }
+
+      return newSchema;
+    }
+
     // Filters, Sorts, etc. don't change the schema
     return currentSchema.map((c) => ({ ...c }));
   },

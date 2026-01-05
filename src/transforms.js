@@ -320,6 +320,88 @@ function applyTransform(table, transform, schema, context = null) {
     return flatResult;
   }
 
+  // SPLIT: Split column into multiple columns by delimiter
+  if (transform.split) {
+    const { column, delimiter, mode, keepOriginal, maxColumns, isRegex } = transform.split;
+
+    if (!schema.includes(column)) {
+      throw new Error(`Column '${column}' not found in schema`);
+    }
+
+    // Parse delimiter (could be string or regex pattern)
+    let delimiterPattern;
+    if (isRegex) {
+      // Regex mode: delimiter is the pattern itself (no / / wrapper needed)
+      try {
+        delimiterPattern = new RegExp(delimiter);
+      } catch (error) {
+        throw new Error(`Invalid regex pattern: ${delimiter}. Error: ${error.message}`);
+      }
+    } else {
+      // String mode
+      delimiterPattern = delimiter;
+    }
+
+    // Step 1: Derive array column by splitting
+    const arrayCol = `__split_temp_${column}`;
+    let resultTable = table.derive({
+      [arrayCol]: aq.escape((d) => {
+        const value = d[column];
+        if (value == null) return [];
+        return String(value).split(delimiterPattern);
+      }),
+    });
+
+    // Step 2: Determine max number of columns needed
+    // Normalize left/right to firstN/lastN with maxColumns=1
+    const normalizedMode = mode === 'left' ? 'firstN' : mode === 'right' ? 'lastN' : mode;
+    const effectiveMaxColumns = mode === 'left' || mode === 'right' ? 1 : maxColumns;
+
+    let maxSegments = 0;
+    const arrays = resultTable.array(arrayCol);
+    maxSegments = Math.max(...arrays.map((arr) => (arr ? arr.length : 0)), 0);
+
+    // Apply maxColumns limit if in firstN or lastN mode
+    if ((normalizedMode === 'firstN' || normalizedMode === 'lastN') && effectiveMaxColumns) {
+      maxSegments = Math.min(maxSegments, effectiveMaxColumns);
+    }
+
+    // Step 3: Spread array into individual columns
+    const newColumns = {};
+    if (normalizedMode === 'lastN') {
+      // Keep last N segments
+      for (let i = 0; i < maxSegments; i++) {
+        const colName = `${column}_${i + 1}`;
+        newColumns[colName] = aq.escape((d) => {
+          const arr = d[arrayCol];
+          if (!arr || arr.length === 0) return undefined;
+          // Get from the end: arr[arr.length - maxSegments + i]
+          const index = arr.length - maxSegments + i;
+          return index >= 0 ? arr[index] : undefined;
+        });
+      }
+    } else {
+      // For spread and firstN modes (including normalized 'left')
+      for (let i = 0; i < maxSegments; i++) {
+        const colName = `${column}_${i + 1}`;
+        newColumns[colName] = aq.escape((d) => {
+          const arr = d[arrayCol];
+          return arr && arr.length > i ? arr[i] : undefined;
+        });
+      }
+    }
+    resultTable = resultTable.derive(newColumns);
+    resultTable = resultTable.select(aq.not(arrayCol));
+
+    // Step 4: Remove original column if requested
+    if (!keepOriginal) {
+      resultTable = resultTable.select(aq.not(column));
+    }
+
+    perfLogger.log(describeTransform(transform), table, resultTable, performance.now() - start);
+    return resultTable;
+  }
+
   // TYPES: Metadata-only step for Phase 1 (pass-through)
   if (transform.types) {
     // In Phase 1, data types are inferred at import time.
@@ -459,6 +541,10 @@ function describeTransform(transform, rightName = null) {
     const { column, find } = transform.replace;
     const findDisplay = find === null ? '(null)' : String(find).substring(0, 20);
     return `Replace: ${column} = ${findDisplay}`;
+  }
+
+  if (transform.split) {
+    return `Split: ${transform.split.column}`;
   }
 
   return 'Unknown transform';

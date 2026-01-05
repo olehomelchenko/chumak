@@ -47,6 +47,8 @@ export function createDialogManager() {
           };
         case 'replace':
           return this.replaceDialogState;
+        case 'split':
+          return this.splitDialogState;
         default:
           return null;
       }
@@ -105,6 +107,32 @@ export function createDialogManager() {
           findValue: '',
           replaceValue: '',
         };
+      } else if (dialogName === 'split') {
+        this.splitDialogState = {
+          column: this.columns[0] || '',
+          delimiter: ',',
+          isRegex: false,
+          mode: 'spread',
+          maxColumns: 10,
+          keepOriginal: false,
+          error: null,
+          previewData: [],
+          previewColumns: [],
+          autoDetectedDelimiter: null,
+          columnRenames: {},
+        };
+        // Trigger delimiter detection and preview
+        if (this.columns.length > 0) {
+          this.$nextTick(() => {
+            const detected = this.detectDelimiter(this.splitDialogState.column);
+            if (detected) {
+              this.splitDialogState.delimiter = detected.char;
+              this.splitDialogState.isRegex = detected.isRegex;
+              this.splitDialogState.autoDetectedDelimiter = detected.name;
+            }
+            this.updateSplitPreview();
+          });
+        }
       }
 
       this.clearColumnSelection();
@@ -176,6 +204,21 @@ export function createDialogManager() {
         keyName: 'key',
         valueName: 'value',
         selectedColumns: this.columns ? this.columns.map(() => false) : [],
+      };
+
+      // Reset split dialog state
+      this.splitDialogState = {
+        column: '',
+        delimiter: ',',
+        isRegex: false,
+        mode: 'spread',
+        maxColumns: 10,
+        keepOriginal: false,
+        error: null,
+        previewData: [],
+        previewColumns: [],
+        autoDetectedDelimiter: null,
+        columnRenames: {},
       };
     },
   };

@@ -452,6 +452,296 @@ describe('Transform Engine', () => {
     });
   });
 
+  describe('applyTransform() - SPLIT', () => {
+    it('should split column with comma delimiter (spread all)', () => {
+      const table = aq.from([
+        { name: 'John,Doe,25', id: 1 },
+        { name: 'Jane,Smith,30', id: 2 },
+        { name: 'Bob,Jones,35', id: 3 },
+      ]);
+      const transform = {
+        split: {
+          column: 'name',
+          delimiter: ',',
+          mode: 'spread',
+          keepOriginal: false,
+        },
+      };
+      const result = applyTransform(table, transform, ['name', 'id']);
+
+      expect(result.columnNames()).to.deep.equal(['id', 'name_1', 'name_2', 'name_3']);
+      expect(result.numRows()).to.equal(3);
+      const rows = result.objects();
+      expect(rows[0]).to.deep.equal({ id: 1, name_1: 'John', name_2: 'Doe', name_3: '25' });
+    });
+
+    it('should split column and keep original', () => {
+      const table = aq.from([{ email: 'user@domain.com', id: 1 }]);
+      const transform = {
+        split: {
+          column: 'email',
+          delimiter: '@',
+          mode: 'spread',
+          keepOriginal: true,
+        },
+      };
+      const result = applyTransform(table, transform, ['email', 'id']);
+
+      expect(result.columnNames()).to.deep.equal(['email', 'id', 'email_1', 'email_2']);
+      const row = result.object(0);
+      expect(row.email).to.equal('user@domain.com');
+      expect(row.email_1).to.equal('user');
+      expect(row.email_2).to.equal('domain.com');
+    });
+
+    it('should split with keep left mode', () => {
+      const table = aq.from([
+        { fullname: 'John Doe', id: 1 },
+        { fullname: 'Jane Smith', id: 2 },
+      ]);
+      const transform = {
+        split: {
+          column: 'fullname',
+          delimiter: ' ',
+          mode: 'left',
+          keepOriginal: false,
+        },
+      };
+      const result = applyTransform(table, transform, ['fullname', 'id']);
+
+      expect(result.columnNames()).to.deep.equal(['id', 'fullname_1']);
+      const rows = result.objects();
+      expect(rows[0].fullname_1).to.equal('John');
+      expect(rows[1].fullname_1).to.equal('Jane');
+    });
+
+    it('should split with keep right mode', () => {
+      const table = aq.from([
+        { email: 'user@example.com', id: 1 },
+        { email: 'admin@test.org', id: 2 },
+      ]);
+      const transform = {
+        split: {
+          column: 'email',
+          delimiter: '@',
+          mode: 'right',
+          keepOriginal: false,
+        },
+      };
+      const result = applyTransform(table, transform, ['email', 'id']);
+
+      // right mode is now equivalent to lastN with maxColumns=1, so produces _1
+      expect(result.columnNames()).to.deep.equal(['id', 'email_1']);
+      const rows = result.objects();
+      expect(rows[0].email_1).to.equal('example.com');
+      expect(rows[1].email_1).to.equal('test.org');
+    });
+
+    it('should split with first N mode', () => {
+      const table = aq.from([{ data: 'a,b,c,d,e,f', id: 1 }]);
+      const transform = {
+        split: {
+          column: 'data',
+          delimiter: ',',
+          mode: 'firstN',
+          maxColumns: 3,
+          keepOriginal: false,
+        },
+      };
+      const result = applyTransform(table, transform, ['data', 'id']);
+
+      expect(result.columnNames()).to.deep.equal(['id', 'data_1', 'data_2', 'data_3']);
+      const row = result.object(0);
+      expect(row.data_1).to.equal('a');
+      expect(row.data_2).to.equal('b');
+      expect(row.data_3).to.equal('c');
+    });
+
+    it('should split with last N mode', () => {
+      const table = aq.from([{ data: 'a,b,c,d,e,f', id: 1 }]);
+      const transform = {
+        split: {
+          column: 'data',
+          delimiter: ',',
+          mode: 'lastN',
+          maxColumns: 3,
+          keepOriginal: false,
+        },
+      };
+      const result = applyTransform(table, transform, ['data', 'id']);
+
+      expect(result.columnNames()).to.deep.equal(['id', 'data_1', 'data_2', 'data_3']);
+      const row = result.object(0);
+      expect(row.data_1).to.equal('d');
+      expect(row.data_2).to.equal('e');
+      expect(row.data_3).to.equal('f');
+    });
+
+    it('should handle empty segments (keep empty strings)', () => {
+      const table = aq.from([{ data: 'a,,c', id: 1 }]);
+      const transform = {
+        split: {
+          column: 'data',
+          delimiter: ',',
+          mode: 'spread',
+          keepOriginal: false,
+        },
+      };
+      const result = applyTransform(table, transform, ['data', 'id']);
+
+      const row = result.object(0);
+      expect(row.data_1).to.equal('a');
+      expect(row.data_2).to.equal('');
+      expect(row.data_3).to.equal('c');
+    });
+
+    it('should handle rows with fewer segments than max', () => {
+      const table = aq.from([
+        { data: 'a,b,c', id: 1 },
+        { data: 'x', id: 2 },
+      ]);
+      const transform = {
+        split: {
+          column: 'data',
+          delimiter: ',',
+          mode: 'spread',
+          keepOriginal: false,
+        },
+      };
+      const result = applyTransform(table, transform, ['data', 'id']);
+
+      expect(result.columnNames()).to.deep.equal(['id', 'data_1', 'data_2', 'data_3']);
+      const rows = result.objects();
+      expect(rows[0]).to.deep.equal({ id: 1, data_1: 'a', data_2: 'b', data_3: 'c' });
+      expect(rows[1]).to.deep.equal({ id: 2, data_1: 'x', data_2: undefined, data_3: undefined });
+    });
+
+    it('should split with regex delimiter (whitespace)', () => {
+      const table = aq.from([{ data: 'one   two\tthree', id: 1 }]);
+      const transform = {
+        split: {
+          column: 'data',
+          delimiter: '\\s+',
+          isRegex: true,
+          mode: 'spread',
+          keepOriginal: false,
+        },
+      };
+      const result = applyTransform(table, transform, ['data', 'id']);
+
+      const row = result.object(0);
+      expect(row.data_1).to.equal('one');
+      expect(row.data_2).to.equal('two');
+      expect(row.data_3).to.equal('three');
+    });
+
+    it('should split with regex delimiter (multiple chars)', () => {
+      const table = aq.from([{ data: 'a-b_c-d', id: 1 }]);
+      const transform = {
+        split: {
+          column: 'data',
+          delimiter: '[-_]',
+          isRegex: true,
+          mode: 'spread',
+          keepOriginal: false,
+        },
+      };
+      const result = applyTransform(table, transform, ['data', 'id']);
+
+      const row = result.object(0);
+      expect(row.data_1).to.equal('a');
+      expect(row.data_2).to.equal('b');
+      expect(row.data_3).to.equal('c');
+      expect(row.data_4).to.equal('d');
+    });
+
+    it('should throw error for invalid regex', () => {
+      const table = aq.from([{ data: 'a,b', id: 1 }]);
+      const transform = {
+        split: {
+          column: 'data',
+          delimiter: '[',
+          isRegex: true,
+          mode: 'spread',
+          keepOriginal: false,
+        },
+      };
+
+      expect(() => {
+        applyTransform(table, transform, ['data', 'id']);
+      }).to.throw();
+    });
+
+    it('should handle delimiter not found in data', () => {
+      const table = aq.from([{ data: 'no-delimiter-here', id: 1 }]);
+      const transform = {
+        split: {
+          column: 'data',
+          delimiter: ',',
+          mode: 'spread',
+          keepOriginal: false,
+        },
+      };
+      const result = applyTransform(table, transform, ['data', 'id']);
+
+      expect(result.columnNames()).to.deep.equal(['id', 'data_1']);
+      const row = result.object(0);
+      expect(row.data_1).to.equal('no-delimiter-here');
+    });
+
+    it('should handle null/undefined values', () => {
+      const table = aq.from([
+        { data: 'a,b', id: 1 },
+        { data: null, id: 2 },
+        { data: undefined, id: 3 },
+      ]);
+      const transform = {
+        split: {
+          column: 'data',
+          delimiter: ',',
+          mode: 'spread',
+          keepOriginal: false,
+        },
+      };
+      const result = applyTransform(table, transform, ['data', 'id']);
+
+      const rows = result.objects();
+      expect(rows[0]).to.deep.equal({ id: 1, data_1: 'a', data_2: 'b' });
+      expect(rows[1]).to.deep.equal({ id: 2, data_1: undefined, data_2: undefined });
+      expect(rows[2]).to.deep.equal({ id: 3, data_1: undefined, data_2: undefined });
+    });
+
+    it('should preserve column order when dropping original', () => {
+      const table = aq.from([{ id: 1, name: 'John,Doe', age: 25 }]);
+      const transform = {
+        split: {
+          column: 'name',
+          delimiter: ',',
+          mode: 'spread',
+          keepOriginal: false,
+        },
+      };
+      const result = applyTransform(table, transform, ['id', 'name', 'age']);
+
+      expect(result.columnNames()).to.deep.equal(['id', 'age', 'name_1', 'name_2']);
+    });
+
+    it('should handle empty table', () => {
+      const table = aq.from([]);
+      const transform = {
+        split: {
+          column: 'data',
+          delimiter: ',',
+          mode: 'spread',
+          keepOriginal: false,
+        },
+      };
+      const result = applyTransform(table, transform, ['data']);
+
+      expect(result.numRows()).to.equal(0);
+    });
+  });
+
   describe('describeTransform()', () => {
     it('should describe import transform', () => {
       const transform = {
@@ -561,6 +851,103 @@ describe('Transform Engine', () => {
       const transform = { types: { col1: 'integer', col2: 'string' } };
       const desc = describeTransform(transform);
       expect(desc).to.equal('Detect types: 2 columns');
+    });
+
+    it('should describe split transform', () => {
+      const transform = { split: { column: 'name', delimiter: ',', mode: 'spread' } };
+      const desc = describeTransform(transform);
+      expect(desc).to.equal('Split: name');
+    });
+  });
+
+  describe('SchemaEngine - Split Type Inference', () => {
+    it('should infer integer types after splitting date column', () => {
+      const table = aq.from([
+        { date: '01/15/2023', id: 1 },
+        { date: '12/25/2023', id: 2 },
+        { date: '06/30/2024', id: 3 },
+      ]);
+
+      // Step 1: Apply split
+      const splitTransform = {
+        split: {
+          column: 'date',
+          delimiter: '/',
+          mode: 'spread',
+          keepOriginal: false,
+        },
+      };
+      const splitResult = applyTransform(table, splitTransform, ['date', 'id']);
+
+      // Get sample data for type inference
+      const sampleData = splitResult.objects();
+
+      // Verify SchemaEngine infers integer types for the split columns
+      // (since mm/dd/yyyy splits into numeric strings)
+      const inferredMonth = SchemaEngine.inferType(sampleData.map((row) => Number(row.date_1)));
+      const inferredDay = SchemaEngine.inferType(sampleData.map((row) => Number(row.date_2)));
+      const inferredYear = SchemaEngine.inferType(sampleData.map((row) => Number(row.date_3)));
+
+      expect(inferredMonth).to.equal('integer');
+      expect(inferredDay).to.equal('integer');
+      expect(inferredYear).to.equal('integer');
+    });
+
+    it('should infer string types for non-numeric split results', () => {
+      const table = aq.from([
+        { fullname: 'John Doe', id: 1 },
+        { fullname: 'Jane Smith', id: 2 },
+      ]);
+
+      const splitTransform = {
+        split: {
+          column: 'fullname',
+          delimiter: ' ',
+          mode: 'spread',
+          keepOriginal: false,
+        },
+      };
+      const splitResult = applyTransform(table, splitTransform, ['fullname', 'id']);
+      const sampleData = splitResult.objects();
+
+      // Names should be inferred as strings
+      const inferredFirst = SchemaEngine.inferType(sampleData.map((row) => row.fullname_1));
+      const inferredLast = SchemaEngine.inferType(sampleData.map((row) => row.fullname_2));
+
+      expect(inferredFirst).to.equal('string');
+      expect(inferredLast).to.equal('string');
+    });
+
+    it('should correctly derive schema after split', () => {
+      const initialSchema = [
+        { name: 'date', type: 'string', format: {}, originalPosition: 0 },
+        { name: 'id', type: 'integer', format: {}, originalPosition: 1 },
+      ];
+
+      const splitTransform = {
+        split: {
+          column: 'date',
+          delimiter: '/',
+          mode: 'spread',
+          keepOriginal: false,
+        },
+      };
+
+      // Mock sample data of what we'd have after split
+      const sampleData = [
+        { id: 1, date_1: '01', date_2: '15', date_3: '2023' },
+        { id: 2, date_1: '12', date_2: '25', date_3: '2023' },
+      ];
+
+      const newSchema = SchemaEngine.deriveNextSchema(initialSchema, splitTransform, sampleData);
+
+      // date column should be removed, id kept, and 3 new columns added
+      expect(newSchema.length).to.equal(4);
+      expect(newSchema[0].name).to.equal('id');
+      expect(newSchema[0].type).to.equal('integer');
+      expect(newSchema[1].name).to.equal('date_1');
+      expect(newSchema[2].name).to.equal('date_2');
+      expect(newSchema[3].name).to.equal('date_3');
     });
   });
 });

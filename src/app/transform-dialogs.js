@@ -114,8 +114,11 @@ export function createTransformDialogs() {
     /**
      * Apply transform step result to model
      * Handles both new steps and editing existing steps
+     * @param {Object} transform - Transform specification
+     * @param {Object|Array} resultTable - Arquero table or plain array with result data
+     * @param {boolean} closeDialogAfter - Whether to close the dialog after applying (default: true)
      */
-    async applyStepResult(transform, resultTable) {
+    async applyStepResult(transform, resultTable, closeDialogAfter = true) {
       // Check if we're editing an existing step
       if (this.editingStepIndex !== null) {
         await this.updateStep(this.editingStepIndex, transform);
@@ -152,8 +155,10 @@ export function createTransformDialogs() {
       // Auto-save to IndexedDB
       await autoSave(this.sources, this.models);
 
-      // Close dialog
-      this.closeDialog(true);
+      // Close dialog (optionally)
+      if (closeDialogAfter) {
+        this.closeDialog(true);
+      }
     },
 
     /**
@@ -830,6 +835,266 @@ export function createTransformDialogs() {
       } catch (error) {
         console.error('Replace transform error:', error);
         alert('Error applying replace: ' + error.message);
+      }
+    },
+
+    /**
+     * Detect common delimiter in column based on frequency and consistency analysis
+     */
+    detectDelimiter(column) {
+      if (!column || !this.currentData || this.currentData.length === 0) {
+        return null;
+      }
+
+      // Common delimiters to check (ordered by typical priority)
+      const delimiters = [
+        { char: ',', name: 'Comma', isRegex: false },
+        { char: ';', name: 'Semicolon', isRegex: false },
+        { char: '|', name: 'Pipe', isRegex: false },
+        { char: '/', name: 'Forward Slash', isRegex: false },
+        { char: '-', name: 'Hyphen', isRegex: false },
+        { char: '@', name: '@ Sign', isRegex: false },
+        { char: '\t', name: 'Tab', isRegex: false },
+        { char: '\\s+', name: 'Whitespace', isRegex: true },
+        { char: '\\', name: 'Backslash', isRegex: false },
+      ];
+
+      // Sample first 100 rows (sufficient for detection, faster than 1000)
+      const sampleSize = Math.min(100, this.currentData.length);
+      const sample = this.currentData.slice(0, sampleSize);
+
+      // Count occurrences and consistency (how many rows contain the delimiter)
+      const counts = delimiters.map((delim) => {
+        let totalOccurrences = 0;
+        let rowsWithDelimiter = 0;
+
+        sample.forEach((row) => {
+          const value = row[column];
+          if (value != null) {
+            const str = String(value);
+            let matches;
+            if (delim.isRegex) {
+              matches = str.match(new RegExp(delim.char, 'g'));
+            } else {
+              matches = str.match(
+                new RegExp(delim.char.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g')
+              );
+            }
+            if (matches && matches.length > 0) {
+              totalOccurrences += matches.length;
+              rowsWithDelimiter++;
+            }
+          }
+        });
+
+        // Calculate consistency: percentage of rows that contain this delimiter
+        const consistency = sampleSize > 0 ? rowsWithDelimiter / sampleSize : 0;
+
+        // Score: balance between frequency and consistency
+        // High consistency is more important than raw count
+        const score = consistency * (totalOccurrences / Math.max(sampleSize, 1));
+
+        return { ...delim, count: totalOccurrences, rowsWithDelimiter, consistency, score };
+      });
+
+      // Filter to delimiters that appear in at least 5% of rows (more lenient for small datasets)
+      // Also require at least 2 rows to have the delimiter (avoids single-row anomalies)
+      const threshold = Math.max(2, sampleSize * 0.05);
+      const validDelimiters = counts
+        .filter((d) => d.rowsWithDelimiter >= threshold)
+        .sort((a, b) => {
+          // Sort by consistency first, then by count as tiebreaker
+          if (Math.abs(a.consistency - b.consistency) > 0.1) {
+            return b.consistency - a.consistency;
+          }
+          return b.count - a.count;
+        });
+
+      return validDelimiters.length > 0 ? validDelimiters[0] : null;
+    },
+
+    /**
+     * Debounced split preview update (150ms delay)
+     * Avoids expensive preview recalculation when rapidly changing settings
+     */
+    debouncedUpdateSplitPreview() {
+      // Clear any pending update
+      if (this.splitDialogState._previewDebounceTimer) {
+        clearTimeout(this.splitDialogState._previewDebounceTimer);
+      }
+
+      // Schedule update after 150ms
+      this.splitDialogState._previewDebounceTimer = setTimeout(() => {
+        this.updateSplitPreview();
+        this.splitDialogState._previewDebounceTimer = null;
+      }, 150);
+    },
+
+    /**
+     * Update split preview when settings change
+     */
+    updateSplitPreview() {
+      const { column, delimiter, mode, maxColumns, keepOriginal, isRegex } = this.splitDialogState;
+
+      // Clear previous state
+      this.splitDialogState.error = null;
+      this.splitDialogState.previewData = [];
+      this.splitDialogState.previewColumns = [];
+      // Keep columnRenames but they'll be initialized for new columns below
+
+      if (!column || !delimiter) {
+        return;
+      }
+
+      try {
+        // Validate regex if in regex mode
+        if (isRegex) {
+          new RegExp(delimiter); // Test regex validity
+        }
+
+        // Build transform
+        const transform = {
+          split: {
+            column,
+            delimiter,
+            isRegex,
+            mode,
+            maxColumns: mode === 'firstN' || mode === 'lastN' ? maxColumns : undefined,
+            keepOriginal,
+          },
+        };
+
+        // Apply to first 50 rows
+        const previewRows = this.currentData.slice(0, 50);
+        const table = aq.from(previewRows);
+        const context = { sources: this.sources, models: this.models };
+        const result = applyTransform(table, transform, this.columns, context);
+
+        // Get result data
+        const resultData = result.objects();
+        const resultColumns = result.columnNames();
+
+        // Filter to show only relevant columns: input + output
+        const previewColumns = [];
+
+        // Always show the input column first (with removed status if not keeping)
+        if (keepOriginal || !resultColumns.includes(column)) {
+          // Column is either kept or removed (show it either way)
+          previewColumns.push({
+            name: column,
+            status: keepOriginal ? 'unchanged' : 'removed',
+          });
+
+          // If removed, add the original data back to preview rows
+          if (!keepOriginal) {
+            resultData.forEach((row, idx) => {
+              row[column] = previewRows[idx][column];
+            });
+          }
+        }
+
+        // Add all new split columns
+        resultColumns.forEach((name) => {
+          if (name.startsWith(`${column}_`)) {
+            previewColumns.push({ name, status: 'new' });
+            // Initialize rename mapping if not already set
+            if (!this.splitDialogState.columnRenames[name]) {
+              this.splitDialogState.columnRenames[name] = name;
+            }
+          }
+        });
+
+        this.splitDialogState.previewData = resultData;
+        this.splitDialogState.previewColumns = previewColumns;
+      } catch (error) {
+        this.splitDialogState.error = error.message;
+      }
+    },
+
+    /**
+     * Apply split transform
+     * Generates up to 3 separate steps:
+     * 1. Split - the actual column split
+     * 2. Rename (optional) - if user provided custom column names
+     * 3. Types - auto-detect types for newly created columns
+     */
+    async applySplitTransform() {
+      const { column, delimiter, mode, maxColumns, keepOriginal, isRegex, columnRenames } =
+        this.splitDialogState;
+
+      if (!column) {
+        alert('Please select a column');
+        return;
+      }
+
+      if (!delimiter) {
+        alert('Please enter a delimiter');
+        return;
+      }
+
+      try {
+        // Step 1: Apply split transform (without inline renames)
+        const splitTransform = {
+          split: {
+            column,
+            delimiter,
+            isRegex,
+            mode,
+            maxColumns: mode === 'firstN' || mode === 'lastN' ? maxColumns : undefined,
+            keepOriginal,
+            // Do not include renames - will be a separate step
+          },
+        };
+
+        let table = aq.from(this.currentData);
+        const context = { sources: this.sources, models: this.models };
+        let result = applyTransform(table, splitTransform, this.columns, context);
+
+        // Determine if we have more steps coming (rename and/or types)
+        const actualRenames = {};
+        for (const [oldName, newName] of Object.entries(columnRenames)) {
+          if (oldName !== newName && newName && newName.trim() !== '') {
+            actualRenames[oldName] = newName.trim();
+          }
+        }
+        const hasRenameStep = Object.keys(actualRenames).length > 0;
+
+        // Get the new column names created by split
+        const newColumns = result.columnNames().filter((name) => name.startsWith(`${column}_`));
+        const hasTypesStep = newColumns.length > 0;
+
+        // Apply split step (don't close dialog if more steps coming)
+        await this.applyStepResult(splitTransform, result, !hasRenameStep && !hasTypesStep);
+
+        // Step 2: Apply rename transform (if user provided custom names)
+        if (hasRenameStep) {
+          const renameTransform = { rename: actualRenames };
+          table = aq.from(this.currentData); // Get fresh data after split
+          result = applyTransform(table, renameTransform, this.columns, context);
+          await this.applyStepResult(renameTransform, result, !hasTypesStep);
+        }
+
+        // Step 3: Apply types transform for auto-detection on new columns
+        // Determine final column names (after potential rename)
+        const finalNewColumns = newColumns.map((name) => actualRenames[name] || name);
+
+        if (finalNewColumns.length > 0) {
+          // Infer types for new columns from current data
+          const typeSpecs = {};
+          for (const colName of finalNewColumns) {
+            const sampleValues = this.currentData.slice(0, 100).map((row) => row[colName]);
+            const inferredType = SchemaEngine.inferType(sampleValues);
+            typeSpecs[colName] = inferredType;
+          }
+
+          const typesTransform = { types: typeSpecs };
+          // Types is a pass-through transform, current data unchanged
+          // This is the last step, so close the dialog
+          await this.applyStepResult(typesTransform, this.currentData, true);
+        }
+      } catch (error) {
+        console.error('Split transform error:', error);
+        alert('Error applying split: ' + error.message);
       }
     },
   };
