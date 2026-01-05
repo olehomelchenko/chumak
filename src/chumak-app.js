@@ -1220,7 +1220,7 @@ function chumakApp() {
       await autoSave(this.sources, this.models);
 
       // Close dialog
-      this.closeDialog();
+      this.closeDialog(true);
     },
 
     getColumnType(colName) {
