@@ -1,44 +1,45 @@
 /**
  * Chumak AST Validator - Security and schema validation
  *
- * Phase 0: Minimal implementation
- * - Whitelist allowed node types
- * - Whitelist allowed operators
- * - Validate column names exist in schema
- * - No suggestions yet (Phase 1)
- * - Bracket notation supported via parser-level preprocessing
+ * Validates parsed AST nodes against:
+ * - Whitelist of allowed node types (security)
+ * - Whitelist of allowed operators (security)
+ * - Schema validation (column names exist)
  */
 
-// Allowed AST node types (from ESTree spec)
-const ALLOWED_NODE_TYPES = [
+// Allowed AST node types (security whitelist)
+const ALLOWED_NODE_TYPES = new Set([
   'Literal', // Numbers, strings, booleans, null
   'Identifier', // Column references
-  'BinaryExpression', // +, -, *, /, %, >, <, >=, <=, ==, ===, !=, !==
-  'LogicalExpression', // &&, ||
+  'BinaryExpression', // Arithmetic, comparison, logical ops
+  'LogicalExpression', // && and || (jsep may use either type)
   'UnaryExpression', // !, -, +
-];
+  'ConditionalExpression', // Ternary: a ? b : c
+]);
 
-// Allowed operators for each expression type
-// Note: jsep treats && and || as BinaryExpression by default, not LogicalExpression
-const ALLOWED_BINARY_OPS = [
-  '+',
-  '-',
-  '*',
-  '/',
-  '%',
-  '>',
-  '<',
-  '>=',
-  '<=',
-  '==',
-  '===',
-  '!=',
-  '!==',
-  '&&',
-  '||',
-];
-const ALLOWED_LOGICAL_OPS = ['&&', '||'];
-const ALLOWED_UNARY_OPS = ['!', '-', '+'];
+// Allowed operators by expression type
+const ALLOWED_OPS = {
+  binary: new Set([
+    '+',
+    '-',
+    '*',
+    '/',
+    '%',
+    '>',
+    '<',
+    '>=',
+    '<=',
+    '==',
+    '===',
+    '!=',
+    '!==',
+    '&&',
+    '||',
+    '??',
+  ]),
+  logical: new Set(['&&', '||', '??']),
+  unary: new Set(['!', '-', '+']),
+};
 
 /**
  * Validate an AST against security rules and schema
@@ -57,7 +58,6 @@ function validateAST(ast, schema) {
         message: error.message,
         position: error.position || 0,
         type: error.type || 'validation-error',
-        // Preserve additional properties (columnName, availableColumns, etc.)
         ...error,
       },
     };
@@ -66,20 +66,13 @@ function validateAST(ast, schema) {
 
 /**
  * Recursively validate a single AST node
- * @param {Object} node - AST node
- * @param {Array<string>} schema - Valid column names
- * @throws {Error} If validation fails
  */
 function validateNode(node, schema) {
   if (!node || typeof node !== 'object') {
-    throw {
-      message: 'Invalid AST node',
-      position: 0,
-    };
+    throw { message: 'Invalid AST node', position: 0 };
   }
 
-  // Check if node type is allowed
-  if (!ALLOWED_NODE_TYPES.includes(node.type)) {
+  if (!ALLOWED_NODE_TYPES.has(node.type)) {
     throw {
       message: `Expression type '${node.type}' is not allowed`,
       position: node.start || 0,
@@ -87,14 +80,11 @@ function validateNode(node, schema) {
     };
   }
 
-  // Validate based on node type
   switch (node.type) {
     case 'Literal':
-      // Literals are always safe
-      break;
+      break; // Always safe
 
     case 'Identifier':
-      // Check if column exists in schema
       if (!schema.includes(node.name)) {
         throw {
           message: `Column '${node.name}' not found`,
@@ -107,51 +97,34 @@ function validateNode(node, schema) {
       break;
 
     case 'BinaryExpression':
-      // Check if operator is allowed
-      if (!ALLOWED_BINARY_OPS.includes(node.operator)) {
+    case 'LogicalExpression':
+      const opSet = node.type === 'LogicalExpression' ? ALLOWED_OPS.logical : ALLOWED_OPS.binary;
+      if (!opSet.has(node.operator)) {
         throw {
           message: `Operator '${node.operator}' is not allowed`,
           position: node.start || 0,
           type: 'disallowed-operator',
         };
       }
-      // Recursively validate left and right
-      validateNode(node.left, schema);
-      validateNode(node.right, schema);
-      break;
-
-    case 'LogicalExpression':
-      // Check if operator is allowed
-      if (!ALLOWED_LOGICAL_OPS.includes(node.operator)) {
-        throw {
-          message: `Logical operator '${node.operator}' is not allowed`,
-          position: node.start || 0,
-          type: 'disallowed-operator',
-        };
-      }
-      // Recursively validate left and right
       validateNode(node.left, schema);
       validateNode(node.right, schema);
       break;
 
     case 'UnaryExpression':
-      // Check if operator is allowed
-      if (!ALLOWED_UNARY_OPS.includes(node.operator)) {
+      if (!ALLOWED_OPS.unary.has(node.operator)) {
         throw {
           message: `Unary operator '${node.operator}' is not allowed`,
           position: node.start || 0,
           type: 'disallowed-operator',
         };
       }
-      // Recursively validate argument
       validateNode(node.argument, schema);
       break;
 
-    default:
-      // This shouldn't happen if ALLOWED_NODE_TYPES is correct
-      throw {
-        message: `Unexpected node type: ${node.type}`,
-        position: node.start || 0,
-      };
+    case 'ConditionalExpression':
+      validateNode(node.test, schema);
+      validateNode(node.consequent, schema);
+      validateNode(node.alternate, schema);
+      break;
   }
 }

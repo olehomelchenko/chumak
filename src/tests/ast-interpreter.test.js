@@ -278,5 +278,77 @@ describe('AST Interpreter', () => {
       const result = interpretAST(ast, row);
       expect(result).to.be.true;
     });
+
+    // Phase 2: Ternary operator tests
+    it('should evaluate ternary operator (true case)', () => {
+      const row = { profit: 100 };
+      const ast = parseExpression('profit > 0 ? "Profit" : "Loss"');
+      const result = interpretAST(ast, row);
+      expect(result).to.equal('Profit');
+    });
+
+    it('should evaluate ternary operator (false case)', () => {
+      const row = { profit: -50 };
+      const ast = parseExpression('profit > 0 ? "Profit" : "Loss"');
+      const result = interpretAST(ast, row);
+      expect(result).to.equal('Loss');
+    });
+
+    it('should evaluate nested ternary', () => {
+      const row = { value: 50 };
+      const ast = parseExpression('value > 100 ? "high" : value > 25 ? "medium" : "low"');
+      const result = interpretAST(ast, row);
+      expect(result).to.equal('medium');
+    });
+
+    it('should evaluate ternary with column values', () => {
+      const row = { sales: 1000, bonus: 100, penalty: 50 };
+      const ast = parseExpression('sales > 500 ? bonus : penalty');
+      const result = interpretAST(ast, row);
+      expect(result).to.equal(100);
+    });
+
+    // Phase 2: Nullish coalescing tests
+    it('should evaluate ?? with non-null left side', () => {
+      const row = { discount: 10 };
+      const ast = parseExpression('discount ?? 0');
+      const result = interpretAST(ast, row);
+      expect(result).to.equal(10);
+    });
+
+    it('should evaluate ?? with null left side', () => {
+      const row = { discount: null };
+      const ast = parseExpression('discount ?? 0');
+      const result = interpretAST(ast, row);
+      expect(result).to.equal(0);
+    });
+
+    it('should evaluate ?? with undefined left side', () => {
+      const row = { discount: undefined };
+      const ast = parseExpression('discount ?? 0');
+      const result = interpretAST(ast, row);
+      expect(result).to.equal(0);
+    });
+
+    it('should evaluate ?? with falsy but non-null left side', () => {
+      const row = { value: 0 };
+      const ast = parseExpression('value ?? 99');
+      const result = interpretAST(ast, row);
+      expect(result).to.equal(0); // 0 is not null/undefined, so should return 0
+    });
+
+    it('should evaluate ?? with empty string (falsy but not nullish)', () => {
+      const row = { name: '' };
+      const ast = parseExpression('name ?? "default"');
+      const result = interpretAST(ast, row);
+      expect(result).to.equal(''); // empty string is not null/undefined
+    });
+
+    it('should chain ?? operators', () => {
+      const row = { a: null, b: null, c: 'found' };
+      const ast = parseExpression('a ?? b ?? c');
+      const result = interpretAST(ast, row);
+      expect(result).to.equal('found');
+    });
   });
 });

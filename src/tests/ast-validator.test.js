@@ -225,5 +225,59 @@ describe('AST Validator', () => {
       const result = validateAST(ast, testSchema);
       expect(result.valid).to.be.true;
     });
+
+    // Phase 2: Ternary operator validation
+    it('should validate ternary expression', () => {
+      const ast = parseExpression('sales > 1000 ? "high" : "low"');
+      const result = validateAST(ast, testSchema);
+      expect(result.valid).to.be.true;
+    });
+
+    it('should validate nested ternary expression', () => {
+      const ast = parseExpression('sales > 1000 ? revenue : cost');
+      const result = validateAST(ast, testSchema);
+      expect(result.valid).to.be.true;
+    });
+
+    it('should reject unknown column in ternary test', () => {
+      const ast = parseExpression('unknownCol > 1000 ? "high" : "low"');
+      const result = validateAST(ast, testSchema);
+      expect(result.valid).to.be.false;
+      expect(result.error.type).to.equal('unknown-column');
+    });
+
+    it('should reject unknown column in ternary consequent', () => {
+      const ast = parseExpression('sales > 1000 ? unknownCol : "low"');
+      const result = validateAST(ast, testSchema);
+      expect(result.valid).to.be.false;
+      expect(result.error.type).to.equal('unknown-column');
+    });
+
+    it('should reject unknown column in ternary alternate', () => {
+      const ast = parseExpression('sales > 1000 ? "high" : unknownCol');
+      const result = validateAST(ast, testSchema);
+      expect(result.valid).to.be.false;
+      expect(result.error.type).to.equal('unknown-column');
+    });
+
+    // Phase 2: Nullish coalescing validation
+    it('should validate nullish coalescing expression', () => {
+      const ast = parseExpression('sales ?? 0');
+      const result = validateAST(ast, testSchema);
+      expect(result.valid).to.be.true;
+    });
+
+    it('should validate chained nullish coalescing', () => {
+      const ast = parseExpression('sales ?? revenue ?? cost');
+      const result = validateAST(ast, testSchema);
+      expect(result.valid).to.be.true;
+    });
+
+    it('should reject unknown column in nullish coalescing', () => {
+      const ast = parseExpression('unknownCol ?? 0');
+      const result = validateAST(ast, testSchema);
+      expect(result.valid).to.be.false;
+      expect(result.error.type).to.equal('unknown-column');
+    });
   });
 });

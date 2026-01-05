@@ -1,12 +1,18 @@
 /**
  * Chumak Expression Parser - jsep wrapper
  *
- * Phase 0: Minimal implementation
- * - Parse expression strings to AST using jsep
- * - Basic error handling
- * - Bracket notation support [Column Name] (Phase 1)
- * - No custom plugins yet (Phase 1+)
+ * Parses expression strings to AST using jsep.
+ * Features:
+ * - Bracket notation [Column Name] for columns with spaces
+ * - Ternary operator (? :) support (built-in)
+ * - Nullish coalescing (??) support (configured)
  */
+
+// Configure jsep for nullish coalescing operator
+// Precedence 1 (lowest, so it binds last - after || which is 2 in jsep)
+if (typeof jsep !== 'undefined') {
+  jsep.addBinaryOp('??', 1);
+}
 
 /**
  * Parse an expression string into an Abstract Syntax Tree
@@ -19,22 +25,15 @@ function parseExpression(expression) {
     throw new Error('Expression must be a non-empty string');
   }
 
-  // Pre-process for bracket notation [Column Name]
-  // We replace [Col Name] with placeholders of the PRECISE same length
-  // to maintain accurate error positions (pointers).
+  // Pre-process bracket notation [Column Name] into same-length placeholders
+  // to maintain accurate error positions
   const colMatches = [];
   const processedExpr = expression.replace(/\[([^\]]+)\]/g, (match, colName) => {
     const index = colMatches.length;
-    // Create a placeholder like _0_______ that matches the total length of [colName]
-    // Identifiers in jsep can start with _ and contain digits
-    let placeholder = `_${index}_`;
-    if (placeholder.length < match.length) {
-      placeholder = placeholder.padEnd(match.length, '_');
-    } else if (placeholder.length > match.length) {
-      // Fallback if match is extremely short (e.g. [])
+    let placeholder = `_${index}_`.padEnd(match.length, '_');
+    if (placeholder.length > match.length) {
       placeholder = placeholder.substring(0, match.length);
     }
-
     colMatches.push({ placeholder, colName });
     return placeholder;
   });
@@ -42,38 +41,29 @@ function parseExpression(expression) {
   try {
     const ast = jsep(processedExpr.trim());
 
-    // Post-process AST to restore original column names
+    // Restore original column names from placeholders
     if (colMatches.length > 0) {
       restoreColumnNames(ast, colMatches);
     }
 
     return ast;
   } catch (error) {
-    // jsep throws errors with index property for position
-    throw {
-      message: error.message,
-      position: error.index || 0,
-      expression: expression,
-    };
+    throw { message: error.message, position: error.index || 0, expression };
   }
 }
 
 /**
  * Recursively walk AST and restore column names from placeholders
- * @param {Object} node
- * @param {Array} colMatches
  */
 function restoreColumnNames(node, colMatches) {
   if (!node || typeof node !== 'object') return;
 
   if (node.type === 'Identifier') {
     const match = colMatches.find((m) => m.placeholder === node.name);
-    if (match) {
-      node.name = match.colName;
-    }
+    if (match) node.name = match.colName;
   }
 
-  // Handle all possible child nodes
+  // Recurse through all child properties
   for (const key in node) {
     const child = node[key];
     if (child && typeof child === 'object') {
