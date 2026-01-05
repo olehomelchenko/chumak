@@ -131,6 +131,13 @@ function chumakApp() {
       selectedColumns: [], // Boolean array matching this.columns
     },
 
+    // Replace dialog state
+    replaceDialogState: {
+      column: '',
+      findValue: '',
+      replaceValue: '',
+    },
+
     // ============================================================
     // Initialization
     // ============================================================

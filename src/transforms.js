@@ -342,6 +342,32 @@ function applyTransform(table, transform, schema, context = null) {
     return result;
   }
 
+  // REPLACE: Replace values in a column
+  if (transform.replace) {
+    const { column, find, replace } = transform.replace;
+
+    if (!schema.includes(column)) {
+      throw new Error(`Column '${column}' not found in schema`);
+    }
+
+    // Convert to array, replace values, convert back
+    const rows = table.objects();
+    const resultRows = rows.map((row) => {
+      const currentValue = row[column];
+
+      // Check for match (handle null/undefined explicitly)
+      if (currentValue === find || (find === null && currentValue === null)) {
+        return { ...row, [column]: replace };
+      }
+
+      return row;
+    });
+
+    const result = aq.from(resultRows);
+    perfLogger.log(describeTransform(transform), table, result, performance.now() - start);
+    return result;
+  }
+
   const transformType = Object.keys(transform)[0];
   throw new Error(`Transform type '${transformType}' not implemented yet`);
 }
@@ -427,6 +453,12 @@ function describeTransform(transform, rightName = null) {
 
   if (transform.remove) {
     return `Remove: ${transform.remove.length} column${transform.remove.length !== 1 ? 's' : ''}`;
+  }
+
+  if (transform.replace) {
+    const { column, find } = transform.replace;
+    const findDisplay = find === null ? '(null)' : String(find).substring(0, 20);
+    return `Replace: ${column} = ${findDisplay}`;
   }
 
   return 'Unknown transform';

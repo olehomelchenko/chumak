@@ -276,6 +276,16 @@ export function createStepManager() {
           selectedColumns: this.columns.map((col) => foldCols.includes(col)),
         };
         this.openDialog('fold');
+      } else if (step.replace) {
+        // Open dialog first (this initializes the state)
+        this.openDialog('replace');
+
+        // Then override with the step's values
+        this.replaceDialogState = {
+          column: step.replace.column,
+          findValue: step.replace.find,
+          replaceValue: step.replace.replace === null ? '' : step.replace.replace,
+        };
       } else {
         alert('Editing this step type is not yet supported');
         this.editingStepIndex = null;

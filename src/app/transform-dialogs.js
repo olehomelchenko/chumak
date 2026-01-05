@@ -119,6 +119,7 @@ export function createTransformDialogs() {
       // Check if we're editing an existing step
       if (this.editingStepIndex !== null) {
         await this.updateStep(this.editingStepIndex, transform);
+        this.closeDialog(true);
         return;
       }
 
@@ -792,6 +793,43 @@ export function createTransformDialogs() {
       } catch (error) {
         console.error('Join transform error:', error);
         alert('Error applying join: ' + error.message);
+      }
+    },
+
+    /**
+     * Apply replace transform
+     */
+    async applyReplaceTransform() {
+      const { column, findValue, replaceValue } = this.replaceDialogState;
+
+      if (!column) {
+        alert('Please select a column');
+        return;
+      }
+
+      if (findValue === undefined || findValue === null) {
+        if (!confirm('Replace null/empty values?')) {
+          return;
+        }
+      }
+
+      try {
+        const transform = {
+          replace: {
+            column: column,
+            find: findValue,
+            replace: replaceValue === '' ? null : replaceValue,
+          },
+        };
+
+        const table = aq.from(this.currentData);
+        const context = { sources: this.sources, models: this.models };
+        const result = applyTransform(table, transform, this.columns, context);
+
+        await this.applyStepResult(transform, result);
+      } catch (error) {
+        console.error('Replace transform error:', error);
+        alert('Error applying replace: ' + error.message);
       }
     },
   };

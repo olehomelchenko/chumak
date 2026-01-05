@@ -45,6 +45,8 @@ export function createDialogManager() {
             mode: this.selectPatternMode,
             type: this.selectPatternMatchType,
           };
+        case 'replace':
+          return this.replaceDialogState;
         default:
           return null;
       }
@@ -96,6 +98,12 @@ export function createDialogManager() {
           keyName: 'key',
           valueName: 'value',
           selectedColumns: this.columns.map(() => false),
+        };
+      } else if (dialogName === 'replace') {
+        this.replaceDialogState = {
+          column: this.columns[0] || '',
+          findValue: '',
+          replaceValue: '',
         };
       }
 

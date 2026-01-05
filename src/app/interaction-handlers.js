@@ -275,5 +275,34 @@ export function createInteractionHandlers() {
         this.selectedColumn = null;
       }
     },
+
+    /**
+     * Quick replace from cell toolbar (opens replace dialog focused on cell value)
+     */
+    quickReplace() {
+      if (!this.selectedCell) return;
+
+      const { col, value } = this.selectedCell;
+
+      // Open dialog first (this initializes the state)
+      this.openDialog('replace');
+
+      // Then override with the selected cell's values
+      this.replaceDialogState = {
+        column: col,
+        findValue: value,
+        replaceValue: '',
+      };
+
+      // Focus on replace value input
+      setTimeout(() => {
+        const input = document.querySelector(
+          '.slide-panel input[x-model="replaceDialogState.replaceValue"]'
+        );
+        if (input) {
+          input.focus();
+        }
+      }, 50);
+    },
   };
 }
