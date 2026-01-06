@@ -1416,11 +1416,11 @@
         <div
           class="toast"
           :class="{
-            'toast--visible': notification.visible,
-            'toast--error': notification.type === 'error',
-            'toast--warning': notification.type === 'warning',
-            'toast--success': notification.type === 'success'
-          }"
+              'toast--visible': notification.visible,
+              'toast--error': notification.type === 'error',
+              'toast--warning': notification.type === 'warning',
+              'toast--success': notification.type === 'success'
+            }"
         >
           <div class="toast__icon" x-text="getNotificationIcon(notification.type)"></div>
           <div class="toast__content">
@@ -1442,5 +1442,15 @@
         </div>
       </template>
     </div>
+
+    <!-- Status Bar -->
+    <footer class="status-bar" x-cloak x-show="isTransforming">
+      <div class="status-bar__content">
+        <span class="status-bar__message" x-text="transformMessage">Processing...</span>
+        <div class="status-bar__loader">
+          <div class="status-bar__loader-bar"></div>
+        </div>
+      </div>
+    </footer>
   </body>
 </html>

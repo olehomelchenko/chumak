@@ -220,6 +220,8 @@ export function createTransformDialogs() {
         return;
       }
 
+      await this.startTransformation('Applying Select...');
+
       try {
         // Create transform specification
         const transform = { select: selectedCols };
@@ -233,6 +235,8 @@ export function createTransformDialogs() {
       } catch (error) {
         console.error('Transform error:', error);
         alert('Error applying transform: ' + error.message);
+      } finally {
+        this.endTransformation();
       }
     },
 
@@ -282,6 +286,8 @@ export function createTransformDialogs() {
         return;
       }
 
+      await this.startTransformation('Applying Filter...');
+
       try {
         // Create transform specification
         const transform = { filter: expr };
@@ -295,6 +301,8 @@ export function createTransformDialogs() {
       } catch (error) {
         console.error('Filter transform error:', error);
         alert('Error applying filter: ' + error.message);
+      } finally {
+        this.endTransformation();
       }
     },
 
@@ -343,6 +351,8 @@ export function createTransformDialogs() {
           return;
       }
 
+      await this.startTransformation('Applying Derive...');
+
       try {
         const transform = { derive: { [columnName]: expression } };
         const table = aq.from(this.currentData);
@@ -353,6 +363,8 @@ export function createTransformDialogs() {
       } catch (error) {
         console.error('Derive transform error:', error);
         alert('Error applying derive: ' + error.message);
+      } finally {
+        this.endTransformation();
       }
     },
 
@@ -366,6 +378,8 @@ export function createTransformDialogs() {
         return;
       }
 
+      await this.startTransformation('Sorting data...');
+
       try {
         const transform = { sort: { field, order } };
         const table = aq.from(this.currentData);
@@ -376,6 +390,8 @@ export function createTransformDialogs() {
       } catch (error) {
         console.error('Sort transform error:', error);
         alert('Error applying sort: ' + error.message);
+      } finally {
+        this.endTransformation();
       }
     },
 
@@ -396,6 +412,8 @@ export function createTransformDialogs() {
         return;
       }
 
+      await this.startTransformation('Applying Rename...');
+
       try {
         const transform = { rename: actualRenames };
         const table = aq.from(this.currentData);
@@ -406,6 +424,8 @@ export function createTransformDialogs() {
       } catch (error) {
         console.error('Rename transform error:', error);
         alert('Error applying rename: ' + error.message);
+      } finally {
+        this.endTransformation();
       }
     },
 
@@ -424,6 +444,8 @@ export function createTransformDialogs() {
         return;
       }
 
+      await this.startTransformation('Removing columns...');
+
       try {
         const transform = { remove: colsToRemove };
         const table = aq.from(this.currentData);
@@ -434,6 +456,8 @@ export function createTransformDialogs() {
       } catch (error) {
         console.error('Remove transform error:', error);
         alert('Error applying remove: ' + error.message);
+      } finally {
+        this.endTransformation();
       }
     },
 
@@ -448,6 +472,8 @@ export function createTransformDialogs() {
         alert('Please select at least one column to unpivot');
         return;
       }
+
+      await this.startTransformation('Unpivoting data...');
 
       try {
         const transform = {
@@ -465,6 +491,8 @@ export function createTransformDialogs() {
       } catch (error) {
         console.error('Fold transform error:', error);
         alert('Error applying unpivot: ' + error.message);
+      } finally {
+        this.endTransformation();
       }
     },
 
@@ -570,6 +598,8 @@ export function createTransformDialogs() {
      * Apply aggregate transform
      */
     async applyAggregateTransform() {
+      await this.startTransformation('Aggregating data...');
+
       try {
         const step = this.constructAggregateStep();
 
@@ -579,6 +609,8 @@ export function createTransformDialogs() {
         await this.applyStepResult(step, result);
       } catch (error) {
         alert(error.message);
+      } finally {
+        this.endTransformation();
       }
     },
 
@@ -780,6 +812,8 @@ export function createTransformDialogs() {
         }
       }
 
+      await this.startTransformation('Joining data...');
+
       try {
         // Refresh target model data to ensure transformations are respected
         const targetModel = this.models.find((m) => m.id === state.rightModel);
@@ -799,7 +833,6 @@ export function createTransformDialogs() {
           },
         };
 
-        // Apply transform
         const table = aq.from(this.currentData);
         const context = { sources: this.sources, models: this.models };
         const result = applyTransform(table, transform, this.columns, context);
@@ -808,6 +841,8 @@ export function createTransformDialogs() {
       } catch (error) {
         console.error('Join transform error:', error);
         alert('Error applying join: ' + error.message);
+      } finally {
+        this.endTransformation();
       }
     },
 
@@ -828,6 +863,8 @@ export function createTransformDialogs() {
         }
       }
 
+      await this.startTransformation('Replacing values...');
+
       try {
         const transform = {
           replace: {
@@ -845,6 +882,8 @@ export function createTransformDialogs() {
       } catch (error) {
         console.error('Replace transform error:', error);
         alert('Error applying replace: ' + error.message);
+      } finally {
+        this.endTransformation();
       }
     },
 
@@ -1042,6 +1081,8 @@ export function createTransformDialogs() {
         return;
       }
 
+      await this.startTransformation('Splitting column...');
+
       try {
         // Step 1: Apply split transform (without inline renames)
         const splitTransform = {
@@ -1105,6 +1146,8 @@ export function createTransformDialogs() {
       } catch (error) {
         console.error('Split transform error:', error);
         alert('Error applying split: ' + error.message);
+      } finally {
+        this.endTransformation();
       }
     },
   };

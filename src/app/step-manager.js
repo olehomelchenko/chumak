@@ -231,6 +231,8 @@ export function createStepManager() {
         return;
       }
 
+      await this.startTransformation('Removing step...');
+
       try {
         // Remove step from array
         this.activeModel.steps.splice(stepIndex, 1);
@@ -265,6 +267,8 @@ export function createStepManager() {
           stepIndex: error.stepIndex,
           stepDescription: error.stepDescription,
         });
+      } finally {
+        this.endTransformation();
       }
     },
 
@@ -351,6 +355,8 @@ export function createStepManager() {
         schema: JSON.parse(JSON.stringify(this.activeModel.schema)),
       };
 
+      await this.startTransformation('Updating step...');
+
       try {
         // Update step
         this.activeModel.steps[stepIndex] = newTransform;
@@ -397,6 +403,8 @@ export function createStepManager() {
           stepIndex: error.stepIndex ?? stepIndex,
           stepDescription: error.stepDescription,
         });
+      } finally {
+        this.endTransformation();
       }
     },
   };

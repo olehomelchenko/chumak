@@ -87,12 +87,13 @@ body {
 body {
   display: grid;
   grid-template-columns: var(--left-panel-width) 1fr;
-  grid-template-rows: var(--header-height) auto 1fr;
+  grid-template-rows: var(--header-height) auto 1fr auto;
   height: 100vh;
   grid-template-areas:
     'header  header'
     'ribbon  ribbon'
-    'left    main';
+    'left    main'
+    'footer  footer';
 }
 
 /* ============================================
@@ -2060,4 +2061,65 @@ body {
   justify-content: flex-end;
   gap: var(--space-sm);
   padding-top: var(--space-xs);
+}
+
+/* ============================================
+   Status Bar
+   ============================================ */
+
+.status-bar {
+  grid-area: footer;
+  background: var(--color-light-gray);
+  color: var(--color-midnight-blue);
+  height: 24px;
+  display: flex;
+  align-items: center;
+  padding: 0 var(--space-md);
+  font-size: var(--font-size-xs);
+  z-index: 9999;
+  position: relative;
+  border-top: 1px solid var(--border-color);
+}
+
+.status-bar__content {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  width: 100%;
+}
+
+.status-bar__message {
+  white-space: nowrap;
+  font-weight: var(--font-weight-medium);
+}
+
+.status-bar__loader {
+  flex: 1;
+  height: 4px;
+  background: var(--color-medium-gray);
+  border-radius: 2px;
+  overflow: hidden;
+  /* Removed max-width constraint */
+}
+
+.status-bar__loader-bar {
+  height: 100%;
+  width: 30%;
+  background: var(--color-cyan);
+  border-radius: 2px;
+  animation: loading-bar 1s infinite linear;
+}
+
+@keyframes loading-bar {
+  0% {
+    transform: translateX(-100%);
+    width: 0%;
+  }
+  50% {
+    width: 30%;
+  }
+  100% {
+    transform: translateX(400%);
+    width: 0%;
+  }
 }

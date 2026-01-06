@@ -42,6 +42,10 @@ function chumakApp() {
     edaChartView: 'boxplot', // 'boxplot' or 'histogram'
     edaBrushSelection: null, // { min, max } for histogram brush selection
 
+    // Transformation status
+    isTransforming: false,
+    transformMessage: '',
+
     // Type Menu State
     typeMenuOpen: false,
     typeMenuPos: { x: 0, y: 0 },
@@ -153,6 +157,30 @@ function chumakApp() {
       previewColumns: [],
       autoDetectedDelimiter: null, // Info about auto-detected delimiter
       columnRenames: {}, // Map of generated column name -> custom name
+    },
+
+    // ============================================================
+    // Utilities
+    // ============================================================
+
+    /**
+     * Start transformation status
+     * @param {string} message - Status message
+     */
+    async startTransformation(message) {
+      this.isTransforming = true;
+      this.transformMessage = message;
+      // Allow UI to update (force a small delay to let browser render)
+      await this.$nextTick();
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    },
+
+    /**
+     * End transformation status
+     */
+    endTransformation() {
+      this.isTransforming = false;
+      this.transformMessage = '';
     },
 
     // ============================================================
