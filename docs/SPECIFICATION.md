@@ -24,11 +24,11 @@ Chumak is a browser-based data wrangling tool for cleaning and transforming tabu
 
 ### 1.4 Project Status
 
-**Core Features**: Fully functional data wrangling application with comprehensive transform capabilities, schema management, exploratory analysis, and visualization.
+**Core Features**: Fully functional data wrangling application with 13+ transformation types, granular schema management, exploratory analysis, and interactive visualizations.
 
-**Production Ready**: Automated testing, browser state persistence, CSV import/export, workflow JSON export/import.
+**Production Readiness**: Verified by automated test suites, supporting browser state persistence (IndexedDB), CSV and Clipboard I/O, and workflow spec portability.
 
-**Next Development Focus**: Reshape operations (pivot/fold), data cleaning (dedupe/impute), expression functions (string/date/math).
+**Focus**: Infrastructure modernization (Vite/TS), reshaping operations (Pivot), and expanded expression-based calculation functions.
 
 See [ROADMAP](#8-roadmap) for planned enhancements and [CLAUDE.md](../CLAUDE.md) for technical context.
 
@@ -62,25 +62,14 @@ See [ROADMAP](#8-roadmap) for planned enhancements and [CLAUDE.md](../CLAUDE.md)
 | Browser support | Chrome and Safari (latest 2 versions)                         |
 | Offline         | Core functionality works offline; URL imports require network |
 
-### 3.2 Core Dependencies
-
-```html
-<script src="https://unpkg.com/papaparse@5/papaparse.min.js"></script>
-<script src="https://unpkg.com/arquero@5/dist/arquero.min.js"></script>
-<script src="https://unpkg.com/jsep@1/dist/jsep.min.js"></script>
-<script src="https://unpkg.com/alpinejs@3/dist/cdn.min.js" defer></script>
-<script src="https://cdn.jsdelivr.net/npm/vega@5"></script>
-<script src="https://cdn.jsdelivr.net/npm/vega-lite@5"></script>
-<script src="https://cdn.jsdelivr.net/npm/vega-embed@6"></script>
-```
-
-| Library       | Purpose                    | Size   |
-| ------------- | -------------------------- | ------ |
-| **PapaParse** | CSV parsing and export     | ~35KB  |
-| **Arquero**   | Data transformation engine | ~200KB |
-| **jsep**      | Expression parser          | ~10KB  |
-| **Alpine.js** | Reactive UI framework      | ~40KB  |
-| **Vega-Lite** | Chart visualization        | ~200KB |
+| Library       | Purpose                                            |
+| :------------ | :------------------------------------------------- |
+| **Iconify**   | Unified vector icon framework                      |
+| **PapaParse** | High-performance CSV parsing and export            |
+| **Arquero**   | Data transformation engine (inspired by dplyr)     |
+| **jsep**      | Lightweight Javascript Expression Parser           |
+| **Alpine.js** | Declarative, reactive UI framework                 |
+| **Vega-Lite** | Grammar of Graphics for interactive visualizations |
 
 ### 3.3 Storage
 
@@ -90,13 +79,11 @@ See [ROADMAP](#8-roadmap) for planned enhancements and [CLAUDE.md](../CLAUDE.md)
 | **IndexedDB**    | Datasets (raw + cached previews), workflows, step snapshots              |
 | **URL Hash**     | Active Source and Model state (for shareability and refresh persistence) |
 
-### 3.4 Performance Targets
-
-| Metric                    | Target                                           |
-| ------------------------- | ------------------------------------------------ |
-| Initial file size support | Up to 10 MB                                      |
-| Preview rendering         | First 100 rows, paginated                        |
-| Step navigation           | On-demand recomputation (acceptable for Phase 1) |
+| Metric            | Target                             |
+| :---------------- | :--------------------------------- |
+| File size support | Up to 10-20 MB (browser-dependent) |
+| Preview rendering | First 100 rows, paginated          |
+| Recomputation     | On-demand pipeline execution       |
 
 ---
 
@@ -240,17 +227,21 @@ Inspired by Vega-Lite. Each transform is one object in an array.
 
 ### 5.2 Core Transformations
 
-| Transform     | JSON Syntax                                              | Implementation | Arquero Verb               |
-| ------------- | -------------------------------------------------------- | -------------- | -------------------------- |
-| **Filter**    | `{ "filter": "expression" }`                             | ✅             | Custom AST                 |
-| **Select**    | `{ "select": ["col1", "col2"] }`                         | ✅             | `table.select()`           |
-| **Remove**    | `{ "remove": ["col1"] }`                                 | ✅             | `table.not()`              |
-| **Rename**    | `{ "rename": { "old": "new" } }`                         | ✅             | `table.rename()`           |
-| **Sort**      | `{ "sort": { "field": "col", "order": "asc" } }`         | ✅             | `table.orderby()`          |
-| **Derive**    | `{ "derive": { "newCol": "expression" } }`               | ✅             | Custom AST                 |
-| **Types**     | `{ "types": { "col": "integer" } }`                      | ✅             | Schema override            |
-| **Aggregate** | `{ "aggregate": { "groupby": [...], "rollup": {...} } }` | ✅             | `table.groupby().rollup()` |
-| **Fold**      | `{ "fold": { "columns": [...], "as": ["k", "v"] } }`     | ✅             | `table.fold()`             |
+| Transform         | JSON Syntax                                                       | Implementation |
+| :---------------- | :---------------------------------------------------------------- | :------------- |
+| **Filter**        | `{ "filter": "expression" }`                                      | ✅             |
+| **Select**        | `{ "select": ["col1", "col2"] }`                                  | ✅             |
+| **Remove**        | `{ "remove": ["col1"] }`                                          | ✅             |
+| **Rename**        | `{ "rename": { "old": "new" } }`                                  | ✅             |
+| **Sort**          | `{ "sort": { "field": "col", "order": "asc" } }`                  | ✅             |
+| **Derive**        | `{ "derive": { "new": "expression" } }`                           | ✅             |
+| **Types**         | `{ "types": { "col": "integer" } }`                               | ✅             |
+| **Aggregate**     | `{ "aggregate": { "groupby": [...], "rollup": {...} } }`          | ✅             |
+| **Fold**          | `{ "fold": { "columns": [...], "as": ["k", "v"] } }`              | ✅             |
+| **Split**         | `{ "split": { "column": "col", "delimiter": "," } }`              | ✅             |
+| **Replace**       | `{ "replace": { "column": "col", "find": "a", "replace": "b" } }` | ✅             |
+| **Regex Match**   | `{ "derive": { "is_match": "regexp_match(col, 'pat')" } }`        | ✅             |
+| **Regex Extract** | `{ "derive": { "ext": "regexp_extract(col, 'pat', 1)" } }`        | ✅             |
 
 **Pattern Matching in Select**: UI supports prefix/suffix/exact matching for column selection.
 
@@ -602,19 +593,12 @@ See [UX-SPECIFICATION.md](UX-SPECIFICATION.md) for comprehensive UI details.
 
 ---
 
-## 8. Roadmap
+**Infrastructure & Quality**
 
-### 8.1 Near-Term (Next Features)
-
-**Priority: High** - Core data wrangling gaps
-
-| Feature    | Description                        | Arquero Verb     | Effort    |
-| ---------- | ---------------------------------- | ---------------- | --------- |
-| **Dedupe** | Remove duplicate rows              | `table.dedupe()` | ~30 lines |
-| **Impute** | Fill missing values with constants | `table.impute()` | ~50 lines |
-| **Pivot**  | Wide format (cross-tabulation)     | `table.pivot()`  | ~60 lines |
-
-**Rationale**: These complete the core data cleaning and reshape capabilities. Pivot/fold are essential for tidy data workflows.
+- **Modern Build System**: Migration to Vite and TypeScript for better developer experience and type safety.
+- **Headless Testing**: Porting browser-based tests to Vitest for CLI-first execution.
+- **Improved Pivot**: Implementation of full Long-to-Wide (Pivot) operations.
+- **Missing Values**: Dedicated `impute` and `dedupe` transforms.
 
 ### 8.2 Mid-Term (Expression Functions)
 

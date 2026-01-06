@@ -364,7 +364,7 @@ body {
 - Min-width: 60px, Height: 40px
 - Gap: 4px between buttons
 - Transparent background, 1px transparent border
-- Icons: Feather Icons (loaded from CDN)
+- Icons: Iconify (loaded via script)
 - Font: 12px for text
 
 **Button states:**
@@ -392,30 +392,25 @@ body {
 }
 ```
 
-**Tab organization:**
-
-| Tab            | Operations                                                      | Enabled When          |
-| -------------- | --------------------------------------------------------------- | --------------------- |
-| **Data**       | Import CSV, Paste, Export CSV, Export JSON                      | Always                |
-| **Transform**  | Filter, Sort, Drop NA, Fill NA, Replace, Select, Remove, Rename | Data loaded           |
-| **Add Column** | Derive, Duplicate, Split                                        | Data loaded           |
-| **Reduce**     | Aggregate, Distinct, Pivot                                      | Data loaded           |
-| **Combine**    | Join, Union, Append                                             | Data loaded (Phase 2) |
-| **Model**      | New Model, Rename, Delete                                       | Data loaded (Phase 2) |
+| Tab           | Purpose                | Operations                                               |
+| :------------ | :--------------------- | :------------------------------------------------------- |
+| **Data**      | I/O & Workflow         | Import CSV, Paste, Export CSV, Export Workflow           |
+| **Prepare**   | Cleaning & Schema      | Filter, Sort, Select, Remove, Rename, Split, Auto-Detect |
+| **Calculate** | Derivation & Reshaping | Derive, Match, Extract, Group By, Unpivot, Replace       |
+| **Combine**   | Multi-table            | Join, Append (future), Union (future)                    |
 
 **Disabled tab behavior:**
 
-- Transform, Add Column, Reduce, Combine, Model tabs disabled until data loaded
+- Prepare, Calculate, Combine tabs are disabled until data is loaded
 - Visual: 40% opacity, cursor: not-allowed
 - Clicking disabled tab does nothing
 - Tooltip: "Import data first" (optional enhancement)
 
 **Icons:**
 
-- Library: Feather Icons (https://feathericons.com/)
-- Loading: `<script src="https://unpkg.com/feather-icons"></script>`
-- Initialization: `feather.replace()` after DOM ready
-- Size: 18px × 18px, stroke-width: 2px
+- Library: Iconify (https://iconify.design/)
+- Logic: SVG injection via `<span class="iconify" data-icon="..."></span>`
+- Provider: carbon, codicon, material-symbols
 
 **Implementation note:**
 

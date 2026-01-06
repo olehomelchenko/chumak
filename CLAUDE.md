@@ -34,18 +34,21 @@
 - ✅ Clipboard copy (CSV/JSON)
 - ✅ Workflow JSON export/import
 
-**Transformations** (10 implemented):
+**Transformations** (13 implemented):
 
-- ✅ Filter (expression-based, security-validated AST)
-- ✅ Select (with pattern matching: prefix/suffix/exact)
-- ✅ Remove columns
-- ✅ Rename columns
-- ✅ Sort (single field)
-- ✅ Derive (calculated columns with expressions)
-- ✅ Types (explicit type assignment)
-- ✅ Aggregate (group by + rollup)
-- ✅ Join (multi-model joins, all types)
-- ✅ **Fold** (unpivot/melt, wide to long format)
+- ✅ **Filter**: Expression-based row filtering (security-validated AST)
+- ✅ **Select**: Column selection with pattern matching (prefix/suffix/exact)
+- ✅ **Remove**: Drop specific columns
+- ✅ **Rename**: Change column names
+- ✅ **Sort**: Single field ordering
+- ✅ **Derive**: Calculated columns with expressions
+- ✅ **Types**: Explicit type assignment and detection
+- ✅ **Aggregate**: Group by + rollup (sum, mean, count, etc.)
+- ✅ **Join**: Multi-model joins (inner, left, right, full, cross)
+- ✅ **Fold**: Unpivot/Melt (wide to long format)
+- ✅ **Split**: Delimiter-based column splitting (supports regex)
+- ✅ **Replace**: Value replacement within columns
+- ✅ **Regex**: Dedicated Match (boolean) and Extract (string) transforms
 
 **Advanced Features**:
 
@@ -54,57 +57,37 @@
 - ✅ **ChartsEngine**: Vega-Lite visualizations (boxplot, histogram, categorical bar)
 - ✅ **URL State**: Hash-based routing, shareable links
 - ✅ **Multi-Model**: Multiple transform pipelines per source
-- ✅ **Auto-Save**: IndexedDB with 500ms debounced saves
+- ✅ **Auto-Save**: IndexedDB with debounced saves
+- ✅ **JSON Editor**: Editable raw JSON workflow with "Danger Zone" validation
 
 **UI Features**:
 
-- ✅ Ribbon toolbar (workflow-based: Data | Prepare | Calculate | Combine)
-- ✅ Visual groups within tabs (Clean Rows, Manage Columns, etc.)
-- ✅ Floating column toolbar (sort, filter, rename, remove)
-- ✅ Floating cell toolbar (keep/exclude value, copy)
-- ✅ Type indicators with visual badges
-- ✅ Column hover highlighting
-- ✅ Step navigation (view intermediate results)
-- ✅ **Step editing** (edit last step, Phase 1 MVP)
-- ✅ EDA panel with chart switcher
+- ✅ **Ribbon Toolbar**: Workflow-based (Data | Prepare | Calculate | Combine)
+- ✅ **Visual Groups**: Logical grouping within tabs (Clean Rows, Manage Columns, etc.)
+- ✅ **Context Toolbars**: Floating column and cell toolbars for rapid actions
+- ✅ **Visual Feedback**: Type badges, hover highlighting, and truncation tooltips
+- ✅ **Pipeline Navigation**: View intermediate results at any step
+- ✅ **Step Editing**: Edit existing steps with full recomputation and rollback
 
 **Testing**:
 
-- ✅ Comprehensive test suite across 6 files
+- ✅ Comprehensive test suite covering core engines and UI handlers
 - ✅ Browser-based test runner (Mocha + Chai)
-- ✅ High coverage on core transform logic
-- ✅ Step editing test coverage (25 tests)
+- ✅ High coverage on transform logic, expression parsing, and schema propagation
 
-### Roadmap (Near-Term)
+---
 
-**Step Editing Enhancements**:
+## Project Status
 
-- ✅ **Phase 1** (Complete): Edit last step only (~250 LOC)
-  - Edit button on last non-import, non-types step
-  - Pre-filled modals with existing parameters
-  - Full recomputation with rollback on error
-  - Supports: Filter, Select, Remove, Rename, Derive, Sort, Fold
+### Core Capabilities
 
-- 🔲 **Phase 2** (Future): Edit arbitrary step (~150 LOC additional)
-  - Edit button on all steps (not just last)
-  - Better error messages showing which downstream step failed
-  - Graceful handling of downstream pipeline breaks
+The application is a production-ready data wrangling tool. All core data transformation verbs (Select, Filter, Join, Reshape) are implemented and verified.
 
-- 🔲 **Phase 3** (Future): Smart invalidation (~800 LOC additional)
-  - Dependency analysis (detect column references)
-  - Impact preview before committing edits
-  - Auto-fix suggestions for renames
-  - Warning when edits will break downstream steps
+### Current Priorities
 
-**Next Transforms** (~180 lines, 8-12 hours):
-
-1. **Dedupe** - Remove duplicate rows
-2. **Impute** - Fill missing values (constants only initially)
-3. **Pivot** - Wide format (cross-tabulation)
-
-**Mid-Term** (~230 lines, 1-2 weeks): 4. **Expression Functions** - Whitelist `op.*` functions (string, date, math)
-
-See [ARQUERO-LEVERAGE-ANALYSIS.md](docs/ARQUERO-LEVERAGE-ANALYSIS.md) for detailed roadmap.
+- **Infrastructure**: Migrating to a modern build system (Vite + TypeScript) to enhance maintainability and "agent-friendliness."
+- **Next Transforms**: Dedupe (duplicates), Impute (missing values), and Pivot (long to wide).
+- **Expression Support**: Expanding the function whitelist (string, date, and math operations).
 
 ---
 
@@ -209,15 +192,16 @@ See [PARSER-DESIGN-DECISION.md](docs/PARSER-DESIGN-DECISION.md) for comprehensiv
 
 ## Technology Stack
 
-**Core Dependencies** (CDN-loaded):
+**Core Dependencies**:
 
-- **PapaParse** (~35KB) - CSV parsing
-- **Arquero** (~200KB) - Data transformation runtime
-- **jsep** (~10KB) - Expression parser
-- **Alpine.js** (~40KB) - Reactive UI
-- **Vega-Lite** (~200KB) - Visualization
+- **Iconify**: Unified icon framework (Iconify.design)
+- **PapaParse**: CSV parsing and export
+- **Arquero**: Data transformation runtime
+- **jsep**: Expression parser
+- **Alpine.js**: Reactive UI
+- **Vega-Lite**: Visualization
 
-**Testing**: Mocha + Chai (CDN-loaded), browser-based test runner
+**Testing**: Mocha + Chai (browser-based), Vitest (planned)
 
 **No Build System**: All libraries from CDN, GitHub Pages compatible
 
