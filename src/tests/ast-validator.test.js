@@ -116,9 +116,9 @@ describe('AST Validator', () => {
       // Try to create a disallowed node type manually
       // (jsep won't create these, but we test the validator)
       const invalidAst = {
-        type: 'CallExpression',
-        callee: { type: 'Identifier', name: 'alert' },
-        arguments: [],
+        type: 'MemberExpression',
+        object: { type: 'Identifier', name: 'window' },
+        property: { type: 'Identifier', name: 'location' },
       };
       const result = validateAST(invalidAst, testSchema);
       expect(result.valid).to.be.false;
@@ -278,6 +278,98 @@ describe('AST Validator', () => {
       const result = validateAST(ast, testSchema);
       expect(result.valid).to.be.false;
       expect(result.error.type).to.equal('unknown-column');
+    });
+
+    // Function call validation (CallExpression)
+    describe('function calls', () => {
+      it('should allow regexp_match with 2 arguments', () => {
+        const ast = parseExpression('regexp_match(region, "^N")');
+        const result = validateAST(ast, testSchema);
+        expect(result.valid).to.be.true;
+      });
+
+      it('should allow regexp_extract with 2 arguments', () => {
+        const ast = parseExpression('regexp_extract(region, "([A-Z]+)")');
+        const result = validateAST(ast, testSchema);
+        expect(result.valid).to.be.true;
+      });
+
+      it('should allow regexp_extract with 3 arguments (group)', () => {
+        const ast = parseExpression('regexp_extract(region, "([A-Z]+)", 1)');
+        const result = validateAST(ast, testSchema);
+        expect(result.valid).to.be.true;
+      });
+
+      it('should reject unknown function', () => {
+        const ast = parseExpression('alert("xss")');
+        const result = validateAST(ast, testSchema);
+        expect(result.valid).to.be.false;
+        expect(result.error.type).to.equal('unknown-function');
+        expect(result.error.message).to.include('alert');
+      });
+
+      it('should reject regexp_match with too few arguments', () => {
+        const ast = parseExpression('regexp_match(region)');
+        const result = validateAST(ast, testSchema);
+        expect(result.valid).to.be.false;
+        expect(result.error.type).to.equal('wrong-arity');
+        expect(result.error.message).to.include('2');
+      });
+
+      it('should reject regexp_match with too many arguments', () => {
+        const ast = parseExpression('regexp_match(region, "^N", 1)');
+        const result = validateAST(ast, testSchema);
+        expect(result.valid).to.be.false;
+        expect(result.error.type).to.equal('wrong-arity');
+      });
+
+      it('should reject regexp_extract with too few arguments', () => {
+        const ast = parseExpression('regexp_extract(region)');
+        const result = validateAST(ast, testSchema);
+        expect(result.valid).to.be.false;
+        expect(result.error.type).to.equal('wrong-arity');
+      });
+
+      it('should reject regexp_extract with too many arguments', () => {
+        const ast = parseExpression('regexp_extract(region, "^N", 1, "extra")');
+        const result = validateAST(ast, testSchema);
+        expect(result.valid).to.be.false;
+        expect(result.error.type).to.equal('wrong-arity');
+      });
+
+      it('should reject invalid regex pattern', () => {
+        const ast = parseExpression('regexp_match(region, "[unclosed")');
+        const result = validateAST(ast, testSchema);
+        expect(result.valid).to.be.false;
+        expect(result.error.type).to.equal('invalid-regex');
+        expect(result.error.message).to.include('Invalid');
+      });
+
+      it('should validate column references in function arguments', () => {
+        const ast = parseExpression('regexp_match(unknownCol, "test")');
+        const result = validateAST(ast, testSchema);
+        expect(result.valid).to.be.false;
+        expect(result.error.type).to.equal('unknown-column');
+      });
+
+      it('should allow function in complex expression', () => {
+        const ast = parseExpression('regexp_match(region, "^N") && sales > 1000');
+        const result = validateAST(ast, testSchema);
+        expect(result.valid).to.be.true;
+      });
+
+      it('should allow function in ternary expression', () => {
+        const ast = parseExpression('regexp_match(region, "^N") ? "North" : "Other"');
+        const result = validateAST(ast, testSchema);
+        expect(result.valid).to.be.true;
+      });
+
+      it('should reject nested disallowed function', () => {
+        const ast = parseExpression('regexp_match(region, "^N") && eval("bad")');
+        const result = validateAST(ast, testSchema);
+        expect(result.valid).to.be.false;
+        expect(result.error.type).to.equal('unknown-function');
+      });
     });
   });
 });

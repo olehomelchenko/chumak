@@ -15,6 +15,60 @@ if (typeof jsep !== 'undefined') {
 }
 
 /**
+ * Replace bracket notation [ColumnName] only when outside string literals.
+ * This prevents corruption of regex patterns inside strings like "^[A-Z]+"
+ * @param {string} expression - The expression string
+ * @param {Function} replacer - Function(fullMatch, innerContent) => replacement
+ * @returns {string} Expression with brackets replaced outside strings
+ */
+function replaceBracketsOutsideStrings(expression, replacer) {
+  let result = '';
+  let i = 0;
+
+  while (i < expression.length) {
+    const char = expression[i];
+
+    // Handle string literals - copy them verbatim
+    if (char === '"' || char === "'") {
+      const quote = char;
+      let j = i + 1;
+      // Find closing quote, respecting escapes
+      while (j < expression.length) {
+        if (expression[j] === '\\' && j + 1 < expression.length) {
+          j += 2; // Skip escaped character
+        } else if (expression[j] === quote) {
+          j++; // Include closing quote
+          break;
+        } else {
+          j++;
+        }
+      }
+      result += expression.slice(i, j);
+      i = j;
+      continue;
+    }
+
+    // Handle bracket notation outside strings
+    if (char === '[') {
+      const closeBracket = expression.indexOf(']', i);
+      if (closeBracket !== -1) {
+        const fullMatch = expression.slice(i, closeBracket + 1);
+        const innerContent = expression.slice(i + 1, closeBracket);
+        result += replacer(fullMatch, innerContent);
+        i = closeBracket + 1;
+        continue;
+      }
+    }
+
+    // Regular character
+    result += char;
+    i++;
+  }
+
+  return result;
+}
+
+/**
  * Parse an expression string into an Abstract Syntax Tree
  * @param {string} expression - Expression string (e.g., "sales > 1000")
  * @returns {Object} AST node from jsep
@@ -26,9 +80,9 @@ function parseExpression(expression) {
   }
 
   // Pre-process bracket notation [Column Name] into same-length placeholders
-  // to maintain accurate error positions
+  // ONLY outside of string literals (don't corrupt regex patterns like "^[A-Z]+")
   const colMatches = [];
-  const processedExpr = expression.replace(/\[([^\]]+)\]/g, (match, colName) => {
+  const processedExpr = replaceBracketsOutsideStrings(expression, (match, colName) => {
     const index = colMatches.length;
     let placeholder = `_${index}_`.padEnd(match.length, '_');
     if (placeholder.length > match.length) {

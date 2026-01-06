@@ -357,6 +357,83 @@ describe('Transform Engine', () => {
 
       expect(result.numRows()).to.equal(0);
     });
+
+    // Regexp function tests
+    it('should filter with regexp_match', () => {
+      const table = aq.from([
+        { code: 'AB123', name: 'Alpha' },
+        { code: 'ab456', name: 'Beta' },
+        { code: 'XY789', name: 'Gamma' },
+        { code: '12345', name: 'Delta' },
+      ]);
+      const transform = { filter: 'regexp_match(code, "^[A-Z]{2}")' };
+      const result = applyTransform(table, transform, ['code', 'name']);
+
+      expect(result.numRows()).to.equal(2);
+      const rows = result.objects();
+      expect(rows[0].code).to.equal('AB123');
+      expect(rows[1].code).to.equal('XY789');
+    });
+
+    it('should filter with regexp_match case-insensitive', () => {
+      const table = aq.from([
+        { code: 'AB123', name: 'Alpha' },
+        { code: 'ab456', name: 'Beta' },
+        { code: 'XY789', name: 'Gamma' },
+      ]);
+      const transform = { filter: 'regexp_match(code, "(?i)^ab")' };
+      const result = applyTransform(table, transform, ['code', 'name']);
+
+      expect(result.numRows()).to.equal(2);
+    });
+  });
+
+  describe('applyTransform() - DERIVE with regexp', () => {
+    it('should derive boolean column with regexp_match', () => {
+      const table = aq.from([{ code: 'AB123' }, { code: 'abc' }, { code: 'XY999' }]);
+      // Use [0-9] instead of \d to avoid escaping issues in tests
+      const transform = { derive: { valid: 'regexp_match(code, "^[A-Z]{2}[0-9]+")' } };
+      const result = applyTransform(table, transform, ['code']);
+      const data = result.objects();
+
+      expect(data[0].valid).to.be.true;
+      expect(data[1].valid).to.be.false;
+      expect(data[2].valid).to.be.true;
+    });
+
+    it('should derive string column with regexp_extract', () => {
+      const table = aq.from([{ email: 'alice@gmail.com' }, { email: 'bob@company.org' }]);
+      const transform = { derive: { domain: 'regexp_extract(email, "@(.+)$", 1)' } };
+      const result = applyTransform(table, transform, ['email']);
+      const data = result.objects();
+
+      expect(data[0].domain).to.equal('gmail.com');
+      expect(data[1].domain).to.equal('company.org');
+    });
+
+    it('should handle null values in regexp functions', () => {
+      const table = aq.from([{ code: 'AB123' }, { code: null }, { code: 'XY789' }]);
+      const transform = { derive: { hasPrefix: 'regexp_match(code, "^[A-Z]")' } };
+      const result = applyTransform(table, transform, ['code']);
+      const data = result.objects();
+
+      expect(data[0].hasPrefix).to.be.true;
+      expect(data[1].hasPrefix).to.be.null;
+      expect(data[2].hasPrefix).to.be.true;
+    });
+
+    it('should extract date parts with regexp_extract', () => {
+      const table = aq.from([{ date: '2024-01-15' }, { date: '2023-12-25' }]);
+      // Use [0-9] instead of \d to avoid escaping issues in tests
+      const transform = {
+        derive: { year: 'regexp_extract(date, "([0-9]{4})-[0-9]{2}-[0-9]{2}", 1)' },
+      };
+      const result = applyTransform(table, transform, ['date']);
+      const data = result.objects();
+
+      expect(data[0].year).to.equal('2024');
+      expect(data[1].year).to.equal('2023');
+    });
   });
 
   describe('applyTransform() - TYPES', () => {

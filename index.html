@@ -295,6 +295,22 @@
                 <span>Derive</span>
               </button>
               <button
+                class="ribbon__button"
+                @click="openDialog('regexpMatch')"
+                title="Create boolean column from regex match"
+              >
+                <span class="iconify" data-icon="carbon:text-link-analysis"></span>
+                <span>Match</span>
+              </button>
+              <button
+                class="ribbon__button"
+                @click="openDialog('regexpExtract')"
+                title="Extract text using regex pattern"
+              >
+                <span class="iconify" data-icon="carbon:string-text"></span>
+                <span>Extract</span>
+              </button>
+              <button
                 class="ribbon__button ribbon__button--disabled"
                 disabled
                 title="Add index/row number column (Coming soon)"
@@ -1212,6 +1228,12 @@
 
     <!-- Derive Dialog -->
     <div id="derive-modal-container"></div>
+
+    <!-- Regexp Match Dialog -->
+    <div id="regexp-match-modal-container"></div>
+
+    <!-- Regexp Extract Dialog -->
+    <div id="regexp-extract-modal-container"></div>
 
     <!-- Sort Dialog -->
     <div id="sort-modal-container"></div>

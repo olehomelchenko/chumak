@@ -159,6 +159,23 @@ function chumakApp() {
       columnRenames: {}, // Map of generated column name -> custom name
     },
 
+    // Regexp Match dialog state
+    regexpMatchDialogState: {
+      columnName: '', // Output column name
+      sourceColumn: '', // Column to match against
+      pattern: '', // Regex pattern
+      error: null,
+    },
+
+    // Regexp Extract dialog state
+    regexpExtractDialogState: {
+      columnName: '', // Output column name
+      sourceColumn: '', // Column to extract from
+      pattern: '', // Regex pattern
+      group: 0, // Capture group number (0 = entire match)
+      error: null,
+    },
+
     // ============================================================
     // Utilities
     // ============================================================

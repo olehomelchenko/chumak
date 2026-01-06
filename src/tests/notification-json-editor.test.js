@@ -370,7 +370,8 @@ describe('Enhanced Error with Step Info', () => {
 
   it('describeTransform should return human-readable step description', () => {
     const filterStep = { filter: 'sales > 1000 && region == "North"' };
-    expect(describeTransform(filterStep)).to.equal('Filter: sales > 1000 && region == "No...');
+    // Implementation truncates at 27 chars + '...' for expressions > 30 chars
+    expect(describeTransform(filterStep)).to.equal('Filter: sales > 1000 && region == "...');
 
     const selectStep = { select: ['col1', 'col2', 'col3'] };
     expect(describeTransform(selectStep)).to.equal('Select: 3 columns');

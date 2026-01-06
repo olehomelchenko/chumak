@@ -49,6 +49,10 @@ export function createDialogManager() {
           return this.replaceDialogState;
         case 'split':
           return this.splitDialogState;
+        case 'regexpMatch':
+          return this.regexpMatchDialogState;
+        case 'regexpExtract':
+          return this.regexpExtractDialogState;
         default:
           return null;
       }
@@ -133,6 +137,21 @@ export function createDialogManager() {
             this.updateSplitPreview();
           });
         }
+      } else if (dialogName === 'regexpMatch') {
+        this.regexpMatchDialogState = {
+          columnName: '',
+          sourceColumn: this.columns[0] || '',
+          pattern: '',
+          error: null,
+        };
+      } else if (dialogName === 'regexpExtract') {
+        this.regexpExtractDialogState = {
+          columnName: '',
+          sourceColumn: this.columns[0] || '',
+          pattern: '',
+          group: 0,
+          error: null,
+        };
       }
 
       this.clearColumnSelection();
@@ -219,6 +238,21 @@ export function createDialogManager() {
         previewColumns: [],
         autoDetectedDelimiter: null,
         columnRenames: {},
+      };
+
+      // Reset regexp dialog states
+      this.regexpMatchDialogState = {
+        columnName: '',
+        sourceColumn: '',
+        pattern: '',
+        error: null,
+      };
+      this.regexpExtractDialogState = {
+        columnName: '',
+        sourceColumn: '',
+        pattern: '',
+        group: 0,
+        error: null,
       };
     },
   };

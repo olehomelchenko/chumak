@@ -31,6 +31,8 @@ export function createModelManager() {
         { id: 'sort-modal-container', url: 'templates/sort-modal.html' },
         { id: 'derive-modal-container', url: 'templates/derive-modal.html' },
         { id: 'filter-modal-container', url: 'templates/filter-modal.html' },
+        { id: 'regexp-match-modal-container', url: 'templates/regexp-match-modal.html' },
+        { id: 'regexp-extract-modal-container', url: 'templates/regexp-extract-modal.html' },
       ];
 
       for (const template of templates) {

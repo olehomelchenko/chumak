@@ -350,5 +350,122 @@ describe('AST Interpreter', () => {
       const result = interpretAST(ast, row);
       expect(result).to.equal('found');
     });
+
+    // Function calls: regexp_match and regexp_extract
+    describe('regexp_match()', () => {
+      it('should return true for matching pattern', () => {
+        const row = { code: 'AB123' };
+        const ast = parseExpression('regexp_match(code, "^[A-Z]{2}")');
+        const result = interpretAST(ast, row);
+        expect(result).to.be.true;
+      });
+
+      it('should return false for non-matching pattern', () => {
+        const row = { code: 'ab123' };
+        const ast = parseExpression('regexp_match(code, "^[A-Z]{2}")');
+        const result = interpretAST(ast, row);
+        expect(result).to.be.false;
+      });
+
+      it('should return null for null input', () => {
+        const row = { code: null };
+        const ast = parseExpression('regexp_match(code, "^[A-Z]{2}")');
+        const result = interpretAST(ast, row);
+        expect(result).to.be.null;
+      });
+
+      it('should handle case-insensitive flag (?i)', () => {
+        const row = { code: 'AB123' };
+        const ast = parseExpression('regexp_match(code, "(?i)^ab")');
+        const result = interpretAST(ast, row);
+        expect(result).to.be.true;
+      });
+
+      it('should match partial string', () => {
+        const row = { text: 'hello world' };
+        const ast = parseExpression('regexp_match(text, "world")');
+        const result = interpretAST(ast, row);
+        expect(result).to.be.true;
+      });
+
+      it('should work with numeric values (coerced to string)', () => {
+        const row = { code: 12345 };
+        // Use [0-9] instead of \d to avoid escaping issues
+        const ast = parseExpression('regexp_match(code, "^[0-9]+$")');
+        const result = interpretAST(ast, row);
+        expect(result).to.be.true;
+      });
+
+      it('should work in complex expression', () => {
+        const row = { code: 'AB123', active: true };
+        const ast = parseExpression('regexp_match(code, "^[A-Z]") && active');
+        const result = interpretAST(ast, row);
+        expect(result).to.be.true;
+      });
+    });
+
+    describe('regexp_extract()', () => {
+      it('should extract entire match by default', () => {
+        const row = { email: 'user@example.com' };
+        const ast = parseExpression('regexp_extract(email, "@.+$")');
+        const result = interpretAST(ast, row);
+        expect(result).to.equal('@example.com');
+      });
+
+      it('should extract capture group', () => {
+        const row = { email: 'user@example.com' };
+        const ast = parseExpression('regexp_extract(email, "@(.+)$", 1)');
+        const result = interpretAST(ast, row);
+        expect(result).to.equal('example.com');
+      });
+
+      it('should return null for no match', () => {
+        const row = { text: 'no numbers here' };
+        // Use [0-9] instead of \d
+        const ast = parseExpression('regexp_extract(text, "[0-9]+")');
+        const result = interpretAST(ast, row);
+        expect(result).to.be.null;
+      });
+
+      it('should return null for null input', () => {
+        const row = { email: null };
+        const ast = parseExpression('regexp_extract(email, "@.+$")');
+        const result = interpretAST(ast, row);
+        expect(result).to.be.null;
+      });
+
+      it('should return null for invalid group index', () => {
+        const row = { email: 'user@example.com' };
+        const ast = parseExpression('regexp_extract(email, "@(.+)$", 5)');
+        const result = interpretAST(ast, row);
+        expect(result).to.be.null;
+      });
+
+      it('should extract multiple capture groups', () => {
+        const row = { date: '2024-01-15' };
+        // Use [0-9] instead of \d
+        const ast1 = parseExpression('regexp_extract(date, "([0-9]{4})-([0-9]{2})-([0-9]{2})", 1)');
+        const ast2 = parseExpression('regexp_extract(date, "([0-9]{4})-([0-9]{2})-([0-9]{2})", 2)');
+        const ast3 = parseExpression('regexp_extract(date, "([0-9]{4})-([0-9]{2})-([0-9]{2})", 3)');
+        expect(interpretAST(ast1, row)).to.equal('2024');
+        expect(interpretAST(ast2, row)).to.equal('01');
+        expect(interpretAST(ast3, row)).to.equal('15');
+      });
+
+      it('should handle case-insensitive extraction', () => {
+        const row = { text: 'Error: something went wrong' };
+        const ast = parseExpression('regexp_extract(text, "(?i)(error|warning)")');
+        const result = interpretAST(ast, row);
+        expect(result).to.equal('Error');
+      });
+
+      it('should work with numeric values (coerced to string)', () => {
+        const row = { value: 12345 };
+        // Use [0-9] instead of \d
+        const ast = parseExpression('regexp_extract(value, "([0-9]{2})([0-9]{3})", 1)');
+        const result = interpretAST(ast, row);
+        expect(result).to.equal('12');
+      });
+    });
   });
 });

@@ -32,6 +32,45 @@ const UNARY_OPS = {
 const NULL_COMPARISON_OPS = new Set(['==', '===', '!=', '!==']);
 
 /**
+ * Parse inline flags from regex pattern (e.g., (?i) for case-insensitive)
+ * Returns { pattern, flags } where flags is extracted from (?...) prefix
+ */
+function parseRegexFlags(pattern) {
+  const flagMatch = pattern.match(/^\(\?([gimsuy]+)\)/);
+  if (flagMatch) {
+    return {
+      pattern: pattern.slice(flagMatch[0].length),
+      flags: flagMatch[1],
+    };
+  }
+  return { pattern, flags: '' };
+}
+
+// Function implementations (whitelisted)
+const FUNCTION_IMPLS = {
+  regexp_match: (value, pattern) => {
+    if (value == null) return null;
+    try {
+      const { pattern: p, flags } = parseRegexFlags(pattern);
+      return new RegExp(p, flags).test(String(value));
+    } catch (e) {
+      return { type: 'error', message: e.message };
+    }
+  },
+  regexp_extract: (value, pattern, group = 0) => {
+    if (value == null) return null;
+    try {
+      const { pattern: p, flags } = parseRegexFlags(pattern);
+      const match = String(value).match(new RegExp(p, flags));
+      if (!match) return null;
+      return match[group] ?? null;
+    } catch (e) {
+      return { type: 'error', message: e.message };
+    }
+  },
+};
+
+/**
  * Interpret (execute) an AST node with given row data
  * @param {Object} ast - Validated AST node
  * @param {Object} rowData - Row object with column values
@@ -93,6 +132,16 @@ function evaluateNode(node, rowData) {
       // Ternary: test ? consequent : alternate
       const test = evaluateNode(node.test, rowData);
       return test ? evaluateNode(node.consequent, rowData) : evaluateNode(node.alternate, rowData);
+    }
+
+    case 'CallExpression': {
+      const fnName = node.callee.name;
+      const fn = FUNCTION_IMPLS[fnName];
+      if (!fn) {
+        throw new Error(`Unknown function: ${fnName}`);
+      }
+      const args = (node.arguments || []).map((arg) => evaluateNode(arg, rowData));
+      return fn(...args);
     }
 
     default:

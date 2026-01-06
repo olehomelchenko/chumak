@@ -369,6 +369,145 @@ export function createTransformDialogs() {
     },
 
     /**
+     * Format column reference for expression (handles spaces)
+     */
+    quoteColumnRef(colName) {
+      // If column name contains spaces or special chars, use bracket notation
+      if (/[\s\-+*/()[\]{}]/.test(colName)) {
+        return `[${colName}]`;
+      }
+      return colName;
+    },
+
+    /**
+     * Escape string for use in expression
+     */
+    escapePattern(pattern) {
+      // Escape backslashes and quotes for embedding in expression string
+      return pattern.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+    },
+
+    /**
+     * Validate regexp pattern
+     */
+    validateRegexpPattern(pattern) {
+      if (!pattern) return null;
+      try {
+        new RegExp(pattern);
+        return null;
+      } catch (e) {
+        return `Invalid pattern: ${e.message}`;
+      }
+    },
+
+    /**
+     * Validate regexp match expression as user types
+     */
+    validateRegexpMatchExpression() {
+      const { pattern } = this.regexpMatchDialogState;
+      this.regexpMatchDialogState.error = this.validateRegexpPattern(pattern);
+    },
+
+    /**
+     * Validate regexp extract expression as user types
+     */
+    validateRegexpExtractExpression() {
+      const { pattern } = this.regexpExtractDialogState;
+      this.regexpExtractDialogState.error = this.validateRegexpPattern(pattern);
+    },
+
+    /**
+     * Apply regexp match transform (generates derive step)
+     */
+    async applyRegexpMatchTransform() {
+      const { columnName, sourceColumn, pattern } = this.regexpMatchDialogState;
+
+      if (!columnName || !pattern) {
+        alert('Please provide column name and pattern');
+        return;
+      }
+      if (this.regexpMatchDialogState.error) {
+        alert('Please fix pattern errors before applying');
+        return;
+      }
+      if (!sourceColumn) {
+        alert('Please select a source column');
+        return;
+      }
+
+      if (this.columns.includes(columnName)) {
+        if (!confirm(`Column "${columnName}" already exists. It will be overwritten. Continue?`))
+          return;
+      }
+
+      await this.startTransformation('Applying Regexp Match...');
+
+      try {
+        const colRef = this.quoteColumnRef(sourceColumn);
+        const escapedPattern = this.escapePattern(pattern);
+        const expression = `regexp_match(${colRef}, "${escapedPattern}")`;
+        const transform = { derive: { [columnName]: expression } };
+
+        const table = aq.from(this.currentData);
+        const context = { sources: this.sources, models: this.models };
+        const result = applyTransform(table, transform, this.columns, context);
+
+        await this.applyStepResult(transform, result);
+      } catch (error) {
+        console.error('Regexp match error:', error);
+        alert('Error applying regexp match: ' + error.message);
+      } finally {
+        this.endTransformation();
+      }
+    },
+
+    /**
+     * Apply regexp extract transform (generates derive step)
+     */
+    async applyRegexpExtractTransform() {
+      const { columnName, sourceColumn, pattern, group } = this.regexpExtractDialogState;
+
+      if (!columnName || !pattern) {
+        alert('Please provide column name and pattern');
+        return;
+      }
+      if (this.regexpExtractDialogState.error) {
+        alert('Please fix pattern errors before applying');
+        return;
+      }
+      if (!sourceColumn) {
+        alert('Please select a source column');
+        return;
+      }
+
+      if (this.columns.includes(columnName)) {
+        if (!confirm(`Column "${columnName}" already exists. It will be overwritten. Continue?`))
+          return;
+      }
+
+      await this.startTransformation('Applying Regexp Extract...');
+
+      try {
+        const colRef = this.quoteColumnRef(sourceColumn);
+        const escapedPattern = this.escapePattern(pattern);
+        const groupNum = parseInt(group, 10) || 0;
+        const expression = `regexp_extract(${colRef}, "${escapedPattern}", ${groupNum})`;
+        const transform = { derive: { [columnName]: expression } };
+
+        const table = aq.from(this.currentData);
+        const context = { sources: this.sources, models: this.models };
+        const result = applyTransform(table, transform, this.columns, context);
+
+        await this.applyStepResult(transform, result);
+      } catch (error) {
+        console.error('Regexp extract error:', error);
+        alert('Error applying regexp extract: ' + error.message);
+      } finally {
+        this.endTransformation();
+      }
+    },
+
+    /**
      * Apply sort transform
      */
     async applySortTransform() {
