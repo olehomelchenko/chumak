@@ -15,7 +15,7 @@ export default defineConfig({
   test: {
     globals: true,
     environment: 'happy-dom', // Better for browser-like testing
-    include: ['src/tests/**/*.test.{js,ts}'],
+    include: ['src/**/*.test.{js,ts}'],
   },
   build: {
     target: 'esnext',
