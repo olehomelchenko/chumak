@@ -3,16 +3,38 @@
   "version": "0.1.0",
   "private": true,
   "description": "Browser-based data wrangling tool",
+  "type": "module",
   "scripts": {
+    "dev": "vite",
+    "build": "tsc && vite build",
+    "preview": "vite preview",
+    "test": "vitest",
     "format": "prettier --write .",
     "prepare": "husky"
   },
   "lint-staged": {
     "**/*.{js,css,html,md}": "prettier --write"
   },
+  "dependencies": {
+    "alpinejs": "^3.14.8",
+    "arquero": "^6.0.1",
+    "jsep": "^1.4.0",
+    "papaparse": "^5.5.1",
+    "vega": "^5.31.0",
+    "vega-embed": "^6.29.0",
+    "vega-lite": "^5.23.0"
+  },
   "devDependencies": {
+    "@types/papaparse": "^5.3.15",
+    "autoprefixer": "^10.4.20",
+    "happy-dom": "^15.11.7",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
-    "prettier": "^3.7.4"
+    "postcss": "^8.4.49",
+    "postcss-nested": "^7.0.2",
+    "prettier": "^3.7.4",
+    "typescript": "^5.7.2",
+    "vite": "^6.0.7",
+    "vitest": "^2.1.8"
   }
 }
