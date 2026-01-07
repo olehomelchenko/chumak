@@ -22,7 +22,7 @@ import { TransformResult } from './core/transform-result';
 import { formatError } from './core/error-formatter';
 
 // CSS
-import '../styles/chumak.css';
+import '../styles/index.css';
 
 // Attach all to window for legacy compatibility
 (window as any).aq = aq;

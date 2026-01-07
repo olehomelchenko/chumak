@@ -1,0 +1,110 @@
+.form-label {
+  display: block;
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-midnight-blue);
+  margin-bottom: var(--space-xs);
+}
+
+.form-input {
+  width: 100%;
+  padding: var(--space-sm) var(--space-md);
+  font-family: var(--font-family);
+  font-size: var(--font-size-base);
+  color: var(--color-midnight-blue);
+  background: var(--color-white);
+  border: var(--border-width) solid var(--border-color);
+  border-radius: var(--border-radius);
+  transition: border-color var(--transition-fast);
+
+  &:focus {
+    outline: none;
+    border: 2px solid var(--color-cyan);
+    padding: calc(var(--space-sm) - 1px) calc(var(--space-md) - 1px);
+  }
+}
+
+.form-help {
+  font-size: var(--font-size-sm);
+  color: var(--color-dark-gray);
+  margin: var(--space-xs) 0 0 0;
+}
+
+.form-group {
+  margin-bottom: var(--space-md);
+
+  &:last-child {
+    margin-bottom: 0;
+  }
+}
+
+.form-actions {
+  display: flex;
+  gap: var(--space-md);
+  margin: var(--space-md) 0;
+}
+
+.checkbox-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  margin: var(--space-md) 0;
+}
+
+.checkbox-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  cursor: pointer;
+  padding: var(--space-xs);
+  border-radius: var(--border-radius);
+  transition: background var(--transition-fast);
+
+  &:hover {
+    background: rgba(0, 187, 206, 0.05);
+  }
+
+  input[type='checkbox'] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+  }
+
+  span {
+    font-size: var(--font-size-base);
+    color: var(--color-midnight-blue);
+  }
+}
+
+.radio-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 1rem;
+  border: 1px solid var(--color-medium-gray);
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.2s;
+  user-select: none;
+
+  &:hover {
+    background: var(--color-light-gray);
+    border-color: var(--color-cyan);
+  }
+
+  input[type='radio'] {
+    margin: 0;
+    cursor: pointer;
+
+    &:checked + span {
+      font-weight: var(--font-weight-medium);
+      color: var(--color-midnight-blue);
+    }
+  }
+
+  &:has(input:checked) {
+    background: var(--color-light-gray);
+    border-color: var(--color-cyan);
+    box-shadow: 0 0 0 1px var(--color-cyan);
+  }
+}

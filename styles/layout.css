@@ -1,0 +1,25 @@
+body {
+  display: grid;
+  grid-template-columns: var(--left-panel-width) 1fr;
+  grid-template-rows: var(--header-height) auto 1fr auto;
+  height: 100vh;
+  grid-template-areas:
+    'header  header'
+    'ribbon  ribbon'
+    'left    main'
+    'footer  footer';
+}
+
+.main-content {
+  grid-area: main;
+  background: var(--color-white);
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.table-container {
+  flex: 1;
+  overflow: auto;
+  min-height: 0;
+}

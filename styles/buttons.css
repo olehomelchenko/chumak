@@ -1,0 +1,107 @@
+.button {
+  padding: var(--space-sm) var(--space-md);
+  font-family: var(--font-family);
+  font-size: var(--font-size-base);
+  font-weight: var(--font-weight-regular);
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  border: none;
+
+  &--primary {
+    background: var(--color-midnight-blue);
+    color: var(--color-white);
+
+    &:hover {
+      background: #004578;
+    }
+
+    &:active {
+      background: #002a4a;
+    }
+
+    &:disabled,
+    &.button--disabled {
+      background: var(--color-medium-gray);
+      color: var(--color-light-gray);
+      cursor: not-allowed;
+      opacity: 0.6;
+    }
+  }
+
+  &--secondary {
+    background: var(--color-light-gray);
+    color: var(--color-midnight-blue);
+    border: var(--border-width) solid var(--border-color);
+
+    &:hover {
+      background: rgba(0, 187, 206, 0.05);
+    }
+
+    &:active {
+      background: rgba(0, 187, 206, 0.1);
+    }
+
+    &:disabled {
+      background: var(--color-light-gray);
+      color: var(--color-medium-gray);
+      border-color: var(--color-medium-gray);
+      cursor: not-allowed;
+    }
+  }
+
+  &--ghost {
+    background: transparent;
+    color: var(--color-midnight-blue);
+    border: 1px solid transparent;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    &:hover:not(:disabled) {
+      background: rgba(0, 187, 206, 0.08);
+      border-color: var(--color-cyan);
+    }
+
+    .iconify {
+      width: 24px;
+      height: 24px;
+    }
+  }
+
+  &--danger-text {
+    color: var(--color-red);
+
+    &:hover:not(:disabled) {
+      background: rgba(241, 91, 67, 0.1);
+      border-color: var(--color-red);
+    }
+  }
+
+  &--danger {
+    background: var(--color-white);
+    color: var(--color-red);
+    border: 1px solid var(--color-red);
+
+    &:hover {
+      background: var(--color-red);
+      color: var(--color-white);
+    }
+  }
+
+  &--text {
+    background: transparent;
+    color: var(--color-cyan);
+    padding: var(--space-xs) var(--space-sm);
+
+    &:hover {
+      text-decoration: underline;
+      background: rgba(0, 187, 206, 0.05);
+    }
+  }
+
+  &--small {
+    padding: 6px var(--space-sm);
+    font-size: var(--font-size-sm);
+  }
+}

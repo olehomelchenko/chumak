@@ -1,0 +1,228 @@
+.eda-panel {
+  background: var(--color-white);
+  border-top: var(--border-width) solid var(--color-midnight-blue);
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  max-height: 200px;
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.05);
+  z-index: 1000;
+
+  &__header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--space-xs) var(--space-md);
+    background: var(--color-light-gray);
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  &__title {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+
+  &__column-name {
+    font-weight: var(--font-weight-medium);
+    font-family: var(--font-family-mono);
+    font-size: var(--font-size-sm);
+  }
+
+  &__close {
+    background: transparent;
+    border: none;
+    font-size: 20px;
+    line-height: 1;
+    color: var(--color-dark-gray);
+    cursor: pointer;
+    padding: 4px;
+    border-radius: var(--border-radius);
+
+    &:hover {
+      background: rgba(0, 0, 0, 0.05);
+      color: var(--color-red);
+    }
+  }
+
+  &__content {
+    display: flex;
+    padding: var(--space-md);
+    gap: var(--space-xl);
+    overflow-x: auto;
+  }
+}
+
+.eda-section {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  min-width: 200px;
+
+  &__title {
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-dark-gray);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+  }
+
+  &--wide {
+    flex: 1;
+    min-width: 400px;
+  }
+}
+
+.chart-switcher {
+  display: flex;
+  background: var(--color-white);
+  border: 1px solid var(--color-medium-gray);
+  border-radius: 4px;
+  overflow: hidden;
+  padding: 1px;
+
+  &__btn {
+    padding: 2px 8px;
+    font-size: 10px;
+    font-weight: var(--font-weight-medium);
+    border: none;
+    background: transparent;
+    color: var(--color-dark-gray);
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all var(--transition-fast);
+
+    &:hover {
+      background: var(--color-light-gray);
+      color: var(--color-midnight-blue);
+    }
+
+    &--active {
+      background: var(--color-cyan) !important;
+      color: var(--color-white) !important;
+    }
+  }
+}
+
+.eda-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--space-md);
+
+  &--cols-4 {
+    grid-template-columns: repeat(4, 1fr);
+  }
+}
+
+.eda-stat {
+  display: flex;
+  flex-direction: column;
+
+  &__label {
+    font-size: 11px;
+    color: var(--color-dark-gray);
+    white-space: nowrap;
+  }
+
+  &__value {
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    font-family: var(--font-family-mono);
+  }
+
+  &__sub {
+    font-size: 10px;
+    color: var(--color-dark-gray);
+  }
+}
+
+.eda-frequencies {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.eda-freq-item {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  font-size: 11px;
+
+  &__label {
+    width: 80px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    font-family: var(--font-family-mono);
+  }
+
+  &__bar-container {
+    flex: 1;
+    height: 8px;
+    background: var(--color-light-gray);
+    border-radius: 4px;
+    overflow: hidden;
+    min-width: 100px;
+  }
+
+  &__bar {
+    height: 100%;
+    background: var(--color-cyan);
+    border-radius: 4px;
+  }
+
+  &__value {
+    width: 90px;
+    text-align: right;
+    color: var(--color-dark-gray);
+  }
+}
+
+.eda-stats-flow {
+  display: flex;
+  align-items: center;
+  background: var(--color-light-gray);
+  padding: 4px 8px;
+  border-radius: var(--border-radius-lg);
+  border: 1px solid var(--border-color);
+  gap: 0;
+}
+
+.eda-flow-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 2px 8px;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+  min-width: 65px;
+
+  &:hover {
+    background: var(--color-white);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    transform: translateY(-2px);
+  }
+
+  &__label {
+    font-size: 10px;
+    color: var(--color-dark-gray);
+    text-transform: uppercase;
+    margin-bottom: 2px;
+  }
+
+  &__value {
+    font-family: var(--font-family-mono);
+    font-size: var(--font-size-sm);
+    color: var(--color-midnight-blue);
+  }
+}
+
+.eda-flow-connector {
+  flex: 1;
+  height: 1px;
+  background: var(--border-color);
+  min-width: 10px;
+  max-width: 30px;
+  opacity: 0.3;
+}

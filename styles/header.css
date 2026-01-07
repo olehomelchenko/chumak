@@ -1,0 +1,39 @@
+.header {
+  grid-area: header;
+  background: var(--color-white);
+  border-bottom: var(--border-width) solid var(--color-midnight-blue);
+  display: flex;
+  align-items: center;
+  padding: 0 var(--space-lg);
+  position: relative;
+  z-index: 1100;
+
+  &__content {
+    width: 100%;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+  }
+
+  &__logo {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+
+    &-icon {
+      font-size: var(--font-size-xl);
+      color: var(--color-midnight-blue);
+    }
+
+    &-text {
+      font-size: var(--font-size-xl);
+      font-weight: var(--font-weight-medium);
+      color: var(--color-midnight-blue);
+    }
+  }
+
+  &__actions {
+    display: flex;
+    gap: var(--space-sm);
+  }
+}

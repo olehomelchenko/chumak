@@ -1,0 +1,31 @@
+.pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-md) var(--space-lg);
+  border-bottom: var(--border-width) solid var(--border-color);
+  background: var(--color-white);
+
+  &__info {
+    font-size: var(--font-size-base);
+    color: var(--color-dark-gray);
+  }
+
+  &__controls {
+    display: flex;
+    gap: var(--space-sm);
+  }
+
+  &__divider {
+    width: 1px;
+    height: 20px;
+    background: var(--border-color);
+    margin: 0 var(--space-xs);
+  }
+}
+
+.model-actions {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
