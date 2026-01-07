@@ -1,6 +1,6 @@
-/**
- * Tests for Join functionality
- */
+import { describe, it, expect } from 'vitest';
+import * as aq from 'arquero';
+import { applyTransform } from './transforms';
 
 describe('Join Transforms', () => {
   const sourceData = [
@@ -8,16 +8,10 @@ describe('Join Transforms', () => {
     { id: 2, val: 'b' },
   ];
 
-  const modelAData = [
-    { id: 1, score: 100 },
-    { id: 2, score: 200 },
-  ];
-
-  // Model A has a filter that keeps only id 1
   const filteredModelAData = [{ id: 1, score: 100 }];
 
   it('should join with model using its current (transformed) data', () => {
-    const mainTable = aq.from(sourceData);
+    const mainTable = (aq as any).from(sourceData);
 
     // Model A with transformations applied (cached in .data)
     const models = [
@@ -45,22 +39,20 @@ describe('Join Transforms', () => {
     const result = applyTransform(mainTable, transform, ['id', 'val'], context);
     const objects = result.objects();
 
-    // If it uses filtered data, only 1 row remains
-    // If it uses source data (id 1 and 2), 2 rows remain
-    expect(objects.length).to.equal(1);
-    expect(objects[0].id).to.equal(1);
-    expect(objects[0].score).to.equal(100);
+    expect(objects.length).toBe(1);
+    expect(objects[0].id).toBe(1);
+    expect(objects[0].score).toBe(100);
   });
 
   it('should join when left table also has transformations', () => {
-    const leftTable = aq.from([
+    const leftTable = (aq as any).from([
       { id: 1, name: 'Alice' },
       { id: 2, name: 'Bob' },
       { id: 3, name: 'Charlie' },
     ]);
 
     // Transform left table manually first (simulating previous steps)
-    const filteredLeft = leftTable.filter((d) => d.id > 1);
+    const filteredLeft = leftTable.filter((d: any) => d.id > 1);
 
     const models = [
       {
@@ -90,14 +82,14 @@ describe('Join Transforms', () => {
     const result = applyTransform(filteredLeft, transform, ['id', 'name'], context);
     const objects = result.objects();
 
-    expect(objects.length).to.equal(2);
-    expect(objects.map((o) => o.id)).to.include(2);
-    expect(objects.map((o) => o.id)).to.include(3);
-    expect(objects.find((o) => o.id === 2).age).to.equal(25);
+    expect(objects.length).toBe(2);
+    expect(objects.map((o) => o.id)).toContain(2);
+    expect(objects.map((o) => o.id)).toContain(3);
+    expect(objects.find((o) => o.id === 2).age).toBe(25);
   });
 
   it('should use source data when joining with a source ID', () => {
-    const leftTable = aq.from([{ id: 1, val: 'aa' }]);
+    const leftTable = (aq as any).from([{ id: 1, val: 'aa' }]);
 
     const sources = [
       {
@@ -126,7 +118,7 @@ describe('Join Transforms', () => {
     const result = applyTransform(leftTable, transform, ['id', 'val'], context);
     const objects = result.objects();
 
-    expect(objects.length).to.equal(1);
-    expect(objects[0].extra).to.equal('info');
+    expect(objects.length).toBe(1);
+    expect(objects[0].extra).toBe('info');
   });
 });

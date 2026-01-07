@@ -165,6 +165,9 @@ export const SchemaEngine = {
 
     // 4. DERIVE: Add new columns
     if (transform.derive) {
+      if (!sampleData || sampleData.length === 0) {
+        console.warn('SchemaEngine: Sample data missing for derive transform, cannot infer new column types');
+      }
       const nextSchema = [...currentSchema];
       for (const newColName of Object.keys(transform.derive)) {
         // If column exists, we overwrite it, otherwise append

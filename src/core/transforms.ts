@@ -2,7 +2,7 @@ import * as aq from 'arquero';
 import { parseExpression } from './expression-parser';
 import { validateAST } from './ast-validator';
 import { interpretAST } from './ast-interpreter';
-import { SchemaEngine } from './schema-engine';
+
 
 /**
  * Chumak Transform Engine
@@ -81,17 +81,15 @@ export function applyTransform(table: any, transform: any, schema: string[], con
   if (transform.join) {
     const { right, on, how, suffixes } = transform.join;
     let rightTable = null;
-    let rightName = 'unknown';
+
 
     const rightModel = context?.models.find((m: any) => m.id === right || m.name === right);
     if (rightModel) {
       rightTable = (aq as any).from(rightModel.data);
-      rightName = rightModel.name;
     } else {
       const rightSource = context?.sources.find((s: any) => s.id === right || s.name === right);
       if (rightSource) {
         rightTable = (aq as any).from(rightSource.data);
-        rightName = rightSource.name;
       }
     }
 
@@ -267,47 +265,91 @@ export function applyTransform(table: any, transform: any, schema: string[], con
  */
 export function describeTransform(transform: any, rightName: string | null = null): string {
   if (transform.import) {
-    return `Import: ${transform.import.source}`;
+    const config = transform.import;
+    let desc = `Import: ${config.source}`;
+
+    // Add header mode description
+    if (config.headerMode === 'first-row') {
+      desc += ' (headers from first row)';
+    } else if (config.headerMode === 'auto-generate') {
+      desc += ' (auto-generated headers)';
+    } else if (config.headerMode === 'manual') {
+      desc += ' (custom headers)';
+    }
+
+    return desc;
   }
+
   if (transform.fold) {
-    return `Unpivot: ${transform.fold.columns.length} columns`;
+    const { columns, as } = transform.fold;
+    const count = columns.length;
+    let desc = `Unpivot: ${count} column${count !== 1 ? 's' : ''}`;
+
+    if (as && as.length === 2) {
+      desc += ` -> ${as[0]}, ${as[1]}`;
+    }
+
+    return desc;
   }
+
   if (transform.types) {
-    return `Detect types: ${Object.keys(transform.types).length} columns`;
+    const count = Object.keys(transform.types).length;
+    return `Detect types: ${count} column${count !== 1 ? 's' : ''}`;
   }
+
   if (transform.select) {
-    return `Select: ${transform.select.length} columns`;
+    const count = transform.select.length;
+    return `Select: ${count} column${count !== 1 ? 's' : ''}`;
   }
+
   if (transform.filter) {
     const expr = transform.filter;
-    return `Filter: ${expr.length > 30 ? expr.substring(0, 27) + '...' : expr}`;
+    // Simple truncation for long expressions
+    const displayExpr = expr.length > 30 ? expr.substring(0, 27) + '...' : expr;
+    return `Filter: ${displayExpr}`;
   }
+
   if (transform.join) {
     const how = transform.join.how || 'inner';
     const name = rightName || (transform.join.right.startsWith('mdl_') ? 'model' : 'source');
     return `Join (${how}): ${name}`;
   }
+
   if (transform.derive) {
-    return `Derive: ${Object.keys(transform.derive).join(', ')}`;
+    const names = Object.keys(transform.derive);
+    return `Derive: ${names.join(', ')}`;
   }
+
   if (transform.sort) {
     return `Sort: ${transform.sort.field}`;
   }
+
   if (transform.rename) {
-    return `Rename: ${Object.keys(transform.rename).length} columns`;
+    const count = Object.keys(transform.rename).length;
+    return `Rename: ${count} column${count !== 1 ? 's' : ''}`;
   }
+
   if (transform.aggregate) {
-    const aggs = Object.keys(transform.aggregate.rollup).length;
-    return `Aggregate: ${aggs} summaries`;
+    const { groupby, rollup } = transform.aggregate;
+    const groups = groupby && groupby.length > 0 ? groupby.join(', ') : 'All rows';
+    const aggs = Object.keys(rollup).length;
+    return `Aggregate: by[${groups}], ${aggs} summar${aggs !== 1 ? 'ies' : 'y'}`;
   }
+
   if (transform.remove) {
-    return `Remove: ${transform.remove.length} columns`;
+    const count = transform.remove.length;
+    return `Remove: ${count} column${count !== 1 ? 's' : ''}`;
   }
+
   if (transform.replace) {
-    return `Replace: ${transform.replace.column}`;
+    const { column, find } = transform.replace;
+    const findDisplay = find === null ? '(null)' : String(find).substring(0, 20);
+    return `Replace: ${column} = ${findDisplay}`;
   }
+
   if (transform.split) {
     return `Split: ${transform.split.column}`;
   }
+
   return 'Unknown transform';
 }

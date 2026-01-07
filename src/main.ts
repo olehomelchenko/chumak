@@ -61,9 +61,10 @@ import '../styles/chumak.css';
 (window as any).formatError = formatError;
 
 // Core bundled
+import { ChumakApp } from './chumak-app';
 
-// Import the main app component
-import './chumak-app.js';
+// Register Alpine component
+Alpine.data('chumakApp', () => new ChumakApp());
 
 // Start Alpine
 Alpine.start();
