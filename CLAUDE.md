@@ -13,10 +13,11 @@
 **Key characteristics:**
 
 - Runs entirely in browser (no backend)
+- **Vite/TypeScript/Vitest** modern stack
 - Visual pipeline builder (like Power Query)
 - Declarative JSON specification for transforms
 - Target users: students, analysts, non-programmers
-- No installation required, works on restricted machines
+- No installation required, works on static hosting
 
 **Name origin**: Ukrainian star-navigating traders who transformed raw goods into traded wealth, guided by the Milky Way (Chumatskyi Shliakh).
 
@@ -72,7 +73,7 @@
 **Testing**:
 
 - ✅ Comprehensive test suite covering core engines and UI handlers
-- ✅ Browser-based test runner (Mocha + Chai)
+- ✅ **Vitest** test runner (CLI and Browser modes)
 - ✅ High coverage on transform logic, expression parsing, and schema propagation
 
 ---
@@ -85,9 +86,9 @@ The application is a production-ready data wrangling tool. All core data transfo
 
 ### Current Priorities
 
-- **Infrastructure**: Migrating to a modern build system (Vite + TypeScript) to enhance maintainability and "agent-friendliness."
 - **Next Transforms**: Dedupe (duplicates), Impute (missing values), and Pivot (long to wide).
 - **Expression Support**: Expanding the function whitelist (string, date, and math operations).
+- **CLI Utility**: Building out the headless runner for automated workflows.
 
 ---
 
@@ -129,7 +130,7 @@ See [PARSER-DESIGN-DECISION.md](docs/PARSER-DESIGN-DECISION.md) for comprehensiv
 - Type hints for derived columns
 - User can override via `types` transform
 
-**Implementation**: SchemaEngine ([schema-engine.js](src/schema-engine.js)) infers from sample data, propagates through transforms.
+**Implementation**: SchemaEngine (`src/core/schema-engine.ts`) infers from sample data, propagates through transforms.
 
 ### 3. Visualization: Vega-Lite
 
@@ -143,18 +144,17 @@ See [PARSER-DESIGN-DECISION.md](docs/PARSER-DESIGN-DECISION.md) for comprehensiv
 
 **Trade-off**: ~200KB dependency, but avoids reinventing charting.
 
-### 4. No Build System
+### 4. Modern Build System (Vite + TypeScript)
 
-**Decision**: CDN-loaded libraries, no npm/webpack/build step.
+**Decision**: Use Vite for development and bundling, TypeScript for type safety.
 
 **Benefits**:
 
-- Open `index.html` in browser, it works
-- Static hosting, no server required
-- Source code readable in dev tools
-- Non-programmers don't need Node.js tooling
-
-**Trade-off**: Slightly larger initial load, but acceptable for use case.
+- **Fast HMR**: Instant updates during development
+- **Type Safety**: Catches bugs at compile time
+- **Modular CSS**: CSS nesting and variables in separate files
+- **Vitest**: Integrated unit and integration testing
+- **Agent-Friendly**: Easier for AI agents to navigate structured modular code
 
 ### 5. On-Demand Step Computation
 
@@ -201,59 +201,45 @@ See [PARSER-DESIGN-DECISION.md](docs/PARSER-DESIGN-DECISION.md) for comprehensiv
 - **Alpine.js**: Reactive UI
 - **Vega-Lite**: Visualization
 
-**Testing**: Mocha + Chai (browser-based), Vitest (planned)
+**Infrastructure**:
 
-**No Build System**: All libraries from CDN, GitHub Pages compatible
+- **Vite**: Build tool and dev server
+- **TypeScript**: Typed programming language
+- **Vitest**: Testing framework (Unit & Integration)
+- **PostCSS**: CSS processing with nesting support
 
 ---
 
 ## Codebase Map
 
-### Core Modules (Expression Pipeline)
+### Core Modules (`src/core/`) - Headless Engines
 
-- **[expression-parser.js](src/expression-parser.js)** - jsep wrapper, entry point for parsing
-- **[ast-validator.js](src/ast-validator.js)** - Security validation (operator whitelist)
-- **[ast-interpreter.js](src/ast-interpreter.js)** - Safe AST execution (no `Function()` constructor)
-- **[error-formatter.js](src/error-formatter.js)** - User-friendly error messages with position highlighting
+- **[expression-parser.ts](src/core/expression-parser.ts)** - jsep wrapper, entry point for parsing
+- **[ast-validator.ts](src/core/ast-validator.ts)** - Security validation (operator whitelist)
+- **[ast-interpreter.ts](src/core/ast-interpreter.ts)** - Safe AST execution
+- **[schema-engine.ts](src/core/schema-engine.ts)** - Granular type inference & propagation
+- **[transforms.ts](src/core/transforms.ts)** - Transform implementations
+- **[transform-result.ts](src/core/transform-result.ts)** - Schema-data synchronization contract
+- **[eda-engine.ts](src/core/eda-engine.ts)** - Statistical analysis & profiling
+- **[charts.ts](src/core/charts.ts)** - Vega-Lite chart rendering
+- **[error-formatter.ts](src/core/error-formatter.ts)** - User-friendly error messages
 
-### Transform Engine
+### UI & Application (`src/`)
 
-- **[transforms.js](src/transforms.js)** - Transform implementations
-  - Filter, Select, Remove, Rename, Sort, Derive, Types, Aggregate, Join
-  - Each transform ~10-100 lines
-  - Direct Arquero wrappers or custom AST interpretation
+- **[chumak-app.ts](src/chumak-app.ts)** - Main application class (UI state & logic)
+- **[main.ts](src/main.ts)** - Entry point, Alpine initialization & legacy bridge
+- **[app/types.ts](src/app/types.ts)** - Global type definitions
 
-- **[transform-result.js](src/transform-result.js)** - Schema-data synchronization contract
-  - Ensures `{ data, schema, columns }` stay in sync after transforms
-  - Used by `computeModelUpToStep()` and `applyStepResult()` only
-  - Guarantees sample data is always provided for type inference
+### Styling (`styles/`)
 
-### Advanced Features
+- **[index.css](styles/index.css)** - Main entry point importing all modules
+- **[variables.css](styles/variables.css)** - Design tokens
+- **[layout.css](styles/layout.css)**, **[ribbon.css](styles/ribbon.css)**, **[table.css](styles/table.css)**, etc. - Modular styles
 
-- **[schema-engine.js](src/schema-engine.js)** - Granular type inference & propagation
-- **[eda-engine.js](src/eda-engine.js)** - Statistical analysis & profiling
-- **[charts.js](src/charts.js)** - Vega-Lite chart rendering
+### Tests (`src/core/*.test.ts`)
 
-### Infrastructure
-
-- **[storage.js](src/storage.js)** - IndexedDB persistence (sources, models, settings)
-- **[url-state.js](src/url-state.js)** - Hash-based routing & shareable links
-- **[ux-settings.js](src/ux-settings.js)** - localStorage preferences
-- **[performance-logger.js](src/performance-logger.js)** - Optional transform timing
-
-### Application
-
-- **[chumak-app.js](src/chumak-app.js)** - Main Alpine.js component (UI state & logic)
-  - Step management: `viewStep()`, `removeStep()`, `editStep()`, `updateStep()`
-  - Transform application: `applyStepResult()` with edit mode support
-  - Dialog state management and pre-filling for edits
-  - Ribbon state: `ribbonTab` (data | prepare | calculate | combine)
-
-### Tests
-
-- **[src/tests/runner.html](src/tests/runner.html)** - Browser test runner (Mocha + Chai)
-- **Test files**: `expression-parser.test.js`, `ast-validator.test.js`, `ast-interpreter.test.js`, `transforms.test.js`, `join.test.js`, `step-editing.test.js`, `schema-engine.test.js`, `integration.test.js`
-- **Coverage**: High coverage on core logic (expression parsing, transforms, step editing, schema propagation)
+- **Vitest** unit tests for all core modules.
+- Run with `npm test` or `npm run test:ui`.
 
 **Tip**: Each module has header comments with purpose and exports. Read headers before implementing.
 
@@ -314,13 +300,13 @@ See [PARSER-DESIGN-DECISION.md](docs/PARSER-DESIGN-DECISION.md) for comprehensiv
 
 **MANDATORY: Write tests before implementing features**
 
-1. Write tests FIRST in `src/tests/`
-2. Run `src/tests/runner.html` to verify tests fail (red)
+1. Write tests FIRST in `src/core/*.test.ts`
+2. Run `npm test` to verify tests fail (red)
 3. Implement the feature
 4. Run tests again to verify pass (green)
 5. All tests must pass before feature complete
 
-**Test files**: `expression-parser.test.js`, `ast-validator.test.js`, `ast-interpreter.test.js`, `transforms.test.js`, `join.test.js`, `integration.test.js`
+**Test files**: `expression-parser.test.ts`, `ast-validator.test.ts`, `ast-interpreter.test.ts`, `transforms.test.ts`, `join.test.ts`, `integration.test.ts`
 
 **Edge cases**: Empty data, nulls, column names with spaces, division by zero, type mismatches, deeply nested expressions
 
@@ -462,25 +448,25 @@ this.activeModel.schema = result.schema;
 
 1. Read this file (CLAUDE.md) first
 2. Check git status
-3. Ask user what they want to work on
+3. Use `npm test` to verify state
+4. Ask user what they want to work on
 
 ### Documentation Pointers
 
 - **Expressions/syntax** → [PARSER-DESIGN-DECISION.md](docs/PARSER-DESIGN-DECISION.md), [SPECIFICATION.md](docs/SPECIFICATION.md) Section 10
 - **Transforms** → [SPECIFICATION.md](docs/SPECIFICATION.md) Section 6
-- **Step editing** → [STEP-EDITING-IMPLEMENTATION.md](docs/STEP-EDITING-IMPLEMENTATION.md)
 - **Roadmap** → [SPECIFICATION.md](docs/SPECIFICATION.md) Section 8, [ARQUERO-LEVERAGE-ANALYSIS.md](docs/ARQUERO-LEVERAGE-ANALYSIS.md)
 - **UI** → [UX-SPECIFICATION.md](docs/UX-SPECIFICATION.md)
-- **Testing** → [src/tests/runner.html](src/tests/runner.html), [SPECIFICATION.md](docs/SPECIFICATION.md) Section 12
+- **Testing** → `src/core/*.test.ts`, `npm test`
 - **Research** → [research/](research/) directory
 - **Security** → [PARSER-DESIGN-DECISION.md](docs/PARSER-DESIGN-DECISION.md) Security Analysis
 
 ### When Implementing
 
 1. **Check roadmap**: [ARQUERO-LEVERAGE-ANALYSIS.md](docs/ARQUERO-LEVERAGE-ANALYSIS.md) for implementation patterns
-2. **Write tests FIRST** in `src/tests/`
+2. **Write tests FIRST** in `src/core/*.test.ts`
 3. **Implement feature** (prefer Arquero wrappers over custom logic)
-4. **Run tests**: `src/tests/runner.html` to verify
+4. **Run tests**: `npm test` to verify
 5. **Refer to docs**: [PARSER-DESIGN-DECISION.md](docs/PARSER-DESIGN-DECISION.md) for parser design, [SPECIFICATION.md](docs/SPECIFICATION.md) for transform specs
 
 ### Implementation Patterns
@@ -532,11 +518,10 @@ See [ARQUERO-LEVERAGE-ANALYSIS.md](docs/ARQUERO-LEVERAGE-ANALYSIS.md) for detail
 
 ### Code Style
 
-- ES6+ JavaScript (browser-native, no transpilation)
+- **TypeScript** (modern ESNext features)
 - Functional style preferred
 - Clear variable names
 - JSDoc comments for public APIs
-- No TypeScript (avoid build system)
 - 2-space indent
 
 ### Documentation Style
@@ -602,7 +587,7 @@ See [ARQUERO-LEVERAGE-ANALYSIS.md](docs/ARQUERO-LEVERAGE-ANALYSIS.md) for detail
 7. **Keep it simple** - YAGNI, right-sized for current needs
 8. **Document as you go** - update this file for significant decisions
 9. **Leverage Arquero** - thin wrappers, not reimplementation
-10. **Never start local servers or open web pages** - user handles all manual testing and verification
+10. **Use `npm run dev`** to start the Vite development server.
 
 ---
 

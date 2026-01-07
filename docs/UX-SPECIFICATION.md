@@ -32,8 +32,8 @@
 <!-- OR -->
 <link rel="stylesheet" href="https://unpkg.com/modern-normalize@2/modern-normalize.css" />
 
-<!-- Custom Chumak styles -->
-<link rel="stylesheet" href="styles/chumak.css" />
+<!-- Custom Chumak styles (Modularized) -->
+<link rel="stylesheet" href="styles/index.css" />
 ```
 
 **Why normalize.css/modern-normalize:**

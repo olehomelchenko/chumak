@@ -26,9 +26,9 @@ Chumak is a browser-based data wrangling tool for cleaning and transforming tabu
 
 **Core Features**: Fully functional data wrangling application with 13+ transformation types, granular schema management, exploratory analysis, and interactive visualizations.
 
-**Production Readiness**: Verified by automated test suites, supporting browser state persistence (IndexedDB), CSV and Clipboard I/O, and workflow spec portability.
+**Production Readiness**: Verified by automated test suites (Vitest), supporting browser state persistence (IndexedDB), CSV and Clipboard I/O, and workflow spec portability.
 
-**Focus**: Infrastructure modernization (Vite/TS), reshaping operations (Pivot), and expanded expression-based calculation functions.
+**Focus**: Reshaping operations (Pivot), expanded expression-based calculation functions, and CLI runner suite.
 
 See [ROADMAP](#8-roadmap) for planned enhancements and [CLAUDE.md](../CLAUDE.md) for technical context.
 
@@ -57,7 +57,8 @@ See [ROADMAP](#8-roadmap) for planned enhancements and [CLAUDE.md](../CLAUDE.md)
 | Constraint      | Decision                                                      |
 | --------------- | ------------------------------------------------------------- |
 | Execution       | Browser only, no backend                                      |
-| Libraries       | CDN-loaded, no build system required                          |
+| Build Tool      | **Vite**                                                      |
+| Language        | **TypeScript (TS)**                                           |
 | Deployment      | Static hosting (GitHub Pages compatible)                      |
 | Browser support | Chrome and Safari (latest 2 versions)                         |
 | Offline         | Core functionality works offline; URL imports require network |
@@ -268,7 +269,7 @@ Implementation: Direct wrapper around Arquero's `table.join()` family.
 
 ### 5.4 Schema Management
 
-**SchemaEngine** ([schema-engine.js](../src/schema-engine.js)):
+**SchemaEngine** (`src/core/schema-engine.ts`):
 
 - Granular type inference: `integer` vs `float`, `date` vs `datetime`
 - Schema propagation through transformation pipeline
@@ -293,7 +294,7 @@ Implementation: Direct wrapper around Arquero's `table.join()` family.
 
 ### 5.5 Exploratory Data Analysis (EDA)
 
-**EDAEngine** ([eda-engine.js](../src/eda-engine.js)):
+**EDAEngine** (`src/core/eda-engine.ts`):
 
 **Statistics Calculated**:
 
@@ -309,7 +310,7 @@ Implementation: Direct wrapper around Arquero's `table.join()` family.
 
 ### 5.6 Visualization
 
-**ChartsEngine** ([charts.js](../src/charts.js)) - Vega-Lite integration:
+**ChartsEngine** (`src/core/charts.ts`) - Vega-Lite integration:
 
 **Chart Types**:
 
@@ -345,9 +346,9 @@ See [PARSER-DESIGN-DECISION.md](PARSER-DESIGN-DECISION.md) for comprehensive des
 **Implementation**:
 
 - Parser: jsep library
-- Validator: [ast-validator.js](../src/ast-validator.js)
-- Interpreter: [ast-interpreter.js](../src/ast-interpreter.js)
-- Error Formatter: [error-formatter.js](../src/error-formatter.js) with position highlighting
+- Validator: `src/core/ast-validator.ts`
+- Interpreter: `src/core/ast-interpreter.ts`
+- Error Formatter: `src/core/error-formatter.ts` with position highlighting
 
 **Not Yet Supported** (planned):
 
@@ -394,30 +395,30 @@ See [PARSER-DESIGN-DECISION.md](PARSER-DESIGN-DECISION.md) for comprehensive des
 - Workflow saved on every change
 - No explicit "Save" button needed
 
-**URL State** ([url-state.js](../src/url-state.js)):
+**URL State** (`src/core/url-state.ts`):
 
 - Hash-based routing: `#/sourceId/modelId`
 - Preserves active view on page refresh
 - Shareable links to specific models
 
-**UX Settings** ([ux-settings.js](../src/ux-settings.js)):
+**UX Settings** (`src/core/ux-settings.ts`):
 
 - localStorage for user preferences
 - Pagination settings
 - Panel visibility states
 
-**Performance Logging** ([performance-logger.js](../src/performance-logger.js)):
+**Performance Logging** (`src/core/performance-logger.ts`):
 
 - Optional transform timing
 - Toggle-able for debugging
 
 ### 5.10 Testing Infrastructure
 
-**Comprehensive test suite** (1,281 lines across 5 files):
+**Comprehensive test suite**:
 
-- Browser-based test runner (Mocha + Chai)
-- Test files: `expression-parser.test.js`, `ast-validator.test.js`, `ast-interpreter.test.js`, `transforms.test.js`, `join.test.js`
-- Run at [src/tests/runner.html](../src/tests/runner.html)
+- **Vitest** runner (Unit & Integration)
+- Test files: `expression-parser.test.ts`, `ast-validator.test.ts`, `ast-interpreter.test.ts`, `transforms.test.ts`, `join.test.ts`, etc.
+- Run with `npm test`
 - High coverage on core transform logic and expression parsing
 
 ---
@@ -595,8 +596,7 @@ See [UX-SPECIFICATION.md](UX-SPECIFICATION.md) for comprehensive UI details.
 
 **Infrastructure & Quality**
 
-- **Modern Build System**: Migration to Vite and TypeScript for better developer experience and type safety.
-- **Headless Testing**: Porting browser-based tests to Vitest for CLI-first execution.
+- **CLI / Headless Runner**: Create a terminal utility (`npm run chumak-cli`) that can apply workflows to local CSVs without a browser.
 - **Improved Pivot**: Implementation of full Long-to-Wide (Pivot) operations.
 - **Missing Values**: Dedicated `impute` and `dedupe` transforms.
 
@@ -698,16 +698,16 @@ See [PARSER-DESIGN-DECISION.md](PARSER-DESIGN-DECISION.md) for full analysis.
 
 **Trade-off**: Adds dependency, but avoids reinventing charting library.
 
-### 9.4 No Build System
+### 9.4 Modern Build System
 
-**Decision**: CDN-loaded libraries, no npm/webpack/build step.
+**Decision**: Use **Vite** for development and building.
 
 **Rationale**:
 
-- **Simplicity**: Open `index.html` in browser, it works
-- **Deployment**: Static hosting, no server required
-- **Debugging**: Source code readable in dev tools
-- **Target Audience**: Non-programmers shouldn't need Node.js tooling
+- **Dev Experience**: Fast HMR and instant startup
+- **Safety**: TypeScript integration catches bugs at compile time
+- **Efficiency**: Modular code structure improves maintainability
+- **Tooling**: Comprehensive testing via Vitest
 
 **Trade-off**: Slightly larger initial load (can't tree-shake), but acceptable for target use case.
 
