@@ -10,7 +10,9 @@
     "preview": "vite preview",
     "test": "vitest",
     "format": "prettier --write .",
-    "prepare": "husky"
+    "prepare": "husky",
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d dist"
   },
   "lint-staged": {
     "**/*.{js,css,html,md}": "prettier --write"

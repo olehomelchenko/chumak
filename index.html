@@ -5,8 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Chumak — Data Wrangling in the Browser</title>
     <link rel="stylesheet" href="https://unpkg.com/normalize.css@8/normalize.css" />
-    <link rel="stylesheet" href="styles/chumak.css" />
-    <link rel="icon" type="image/x-icon" href="/src/favicon.svg" />
+    <link rel="stylesheet" href="styles/index.css" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 
     <!-- Core Infrastructure -->
     <script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
@@ -58,26 +58,6 @@
         </div>
 
         <div style="margin-left: auto; display: flex; gap: 0.5rem; align-items: center">
-          <a
-            href="src/tests/runner.html"
-            target="_blank"
-            class="button button--secondary button--small"
-            title="Run automated tests (Mocha/Chai)"
-            style="
-              text-decoration: none;
-              display: flex;
-              align-items: center;
-              gap: 4px;
-              color: var(--color-midnight-blue);
-            "
-          >
-            <span
-              class="iconify"
-              data-icon="carbon:terminal"
-              style="width: 20px; height: 20px"
-            ></span>
-            Run Tests
-          </a>
           <button
             class="button button--secondary button--small"
             @click="clearAllData()"

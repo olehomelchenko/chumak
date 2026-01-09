@@ -3,6 +3,9 @@ import nested from 'postcss-nested';
 import autoprefixer from 'autoprefixer';
 
 export default defineConfig({
+  // For GitHub Pages: set base to repo name
+  // Change '/chumak/' to '/' for custom domain or local dev
+  base: '/chumak/',
   plugins: [],
   css: {
     postcss: {
