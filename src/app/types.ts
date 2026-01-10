@@ -46,8 +46,15 @@ export interface AppState {
     originalHeaders: string[];
     customHeaders: string[];
     duplicateWarning: string;
+    isJson?: boolean;
+    jsonData?: any[];
   };
   importFileData: any;
+  importUrlDialogState: {
+    url: string;
+    isFetching: boolean;
+    error: string | null;
+  };
 
   // Data state
   sources: any[];

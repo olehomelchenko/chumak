@@ -92,3 +92,20 @@
   white-space: nowrap;
   border-width: 0;
 }
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.spinning {
+  animation: spin 1s linear infinite;
+}
+
+.iconify {
+  flex-shrink: 0;
+}

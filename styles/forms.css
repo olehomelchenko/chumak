@@ -108,3 +108,19 @@
     box-shadow: 0 0 0 1px var(--color-cyan);
   }
 }
+
+.form-error {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xs);
+  padding: var(--space-sm);
+  background: rgba(211, 62, 44, 0.05); /* --color-dark-red approx */
+  border: 1px solid #d33e2c;
+  color: #d33e2c;
+  border-radius: var(--border-radius);
+  font-size: var(--font-size-sm);
+
+  .iconify {
+    flex-shrink: 0;
+  }
+}

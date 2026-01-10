@@ -64,8 +64,15 @@ export class ChumakApp implements AppState {
     originalHeaders: [],
     customHeaders: [],
     duplicateWarning: '',
+    isJson: false,
+    jsonData: null,
   };
   importFileData: { file: File } | null = null;
+  importUrlDialogState: any = {
+    url: '',
+    isFetching: false,
+    error: null,
+  };
 
   // Data state
   sources: any[] = [];
@@ -283,6 +290,7 @@ export class ChumakApp implements AppState {
       { id: 'regexp-match-modal-container', url: 'templates/regexp-match-modal.html' },
       { id: 'regexp-extract-modal-container', url: 'templates/regexp-extract-modal.html' },
       { id: 'download-modal-container', url: 'templates/download-modal.html' },
+      { id: 'import-url-modal-container', url: 'templates/import-url-modal.html' },
       { id: 'settings-modal-container', url: 'templates/settings-modal.html' },
     ];
 
@@ -490,8 +498,9 @@ export class ChumakApp implements AppState {
     const files = event.dataTransfer.files;
     if (files.length === 0) return;
     const file = files[0];
-    if (!file.name.toLowerCase().endsWith('.csv')) {
-      alert('Please drop a CSV file');
+    const fileName = file.name.toLowerCase();
+    if (!fileName.endsWith('.csv') && !fileName.endsWith('.json')) {
+      alert('Please drop a CSV or JSON file');
       return;
     }
     this.showImportDialog(file);
@@ -503,14 +512,27 @@ export class ChumakApp implements AppState {
     if (!clipboardData) return;
     if (clipboardData.files && clipboardData.files.length > 0) {
       const file = clipboardData.files[0];
-      if (file.name.toLowerCase().endsWith('.csv') || file.type === 'text/csv' || file.type === 'text/plain') {
+      const fn = file.name.toLowerCase();
+      if (
+        fn.endsWith('.csv') ||
+        fn.endsWith('.json') ||
+        file.type === 'text/csv' ||
+        file.type === 'application/json' ||
+        file.type === 'text/plain'
+      ) {
         this.showImportDialog(file);
         return;
       }
     }
     const pastedText = clipboardData.getData('text');
     if (pastedText && pastedText.trim().length > 0) {
-      const file = new File([pastedText], 'Pasted Data.csv', { type: 'text/csv' });
+      const trimmed = pastedText.trim();
+      const isLikelyJson =
+        (trimmed.startsWith('[') && trimmed.endsWith(']')) ||
+        (trimmed.startsWith('{') && trimmed.endsWith('}'));
+      const file = new File([pastedText], isLikelyJson ? 'Pasted Data.json' : 'Pasted Data.csv', {
+        type: isLikelyJson ? 'application/json' : 'text/csv',
+      });
       this.showImportDialog(file);
     }
   }
@@ -520,10 +542,16 @@ export class ChumakApp implements AppState {
       if (navigator.clipboard && navigator.clipboard.readText) {
         const text = await navigator.clipboard.readText();
         if (text && text.trim().length > 0) {
-          const file = new File([text], 'Pasted Data.csv', { type: 'text/csv' });
+          const trimmed = text.trim();
+          const isLikelyJson =
+            (trimmed.startsWith('[') && trimmed.endsWith(']')) ||
+            (trimmed.startsWith('{') && trimmed.endsWith('}'));
+          const file = new File([text], isLikelyJson ? 'Pasted Data.json' : 'Pasted Data.csv', {
+            type: isLikelyJson ? 'application/json' : 'text/csv',
+          });
           this.showImportDialog(file);
         } else {
-          alert('Clipboard is empty or does not contain text. Try copying some CSV data first.');
+          alert('Clipboard is empty or does not contain text. Try copying some CSV or JSON data first.');
         }
       } else {
         alert('Your browser does not support direct clipboard access. Please use Ctrl+V to paste data.');
@@ -536,6 +564,52 @@ export class ChumakApp implements AppState {
 
   showImportDialog(file: File) {
     this.importFileData = { file };
+    const fileName = file.name.toLowerCase();
+
+    if (fileName.endsWith('.json')) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const content = e.target?.result as string;
+          const data = JSON.parse(content);
+          if (Array.isArray(data) && data.length > 0 && typeof data[0] === 'object') {
+            this.handleJsonPreview(file, data);
+          } else {
+            // Fallback to CSV preview if JSON is not an array of objects
+            this.handleCsvPreview(file);
+          }
+        } catch (err) {
+          this.handleCsvPreview(file);
+        }
+      };
+      reader.readAsText(file);
+    } else {
+      this.handleCsvPreview(file);
+    }
+  }
+
+  handleJsonPreview(file: File, data: any[]) {
+    const defaultName = file.name.replace(/\.json$/i, '');
+    const previewData = data.slice(0, 5);
+    const headers = Object.keys(previewData[0] || {});
+
+    this.importDialogState = {
+      fileName: file.name,
+      sourceName: defaultName,
+      rawPreviewData: [],
+      previewHeaders: headers,
+      previewDataRows: previewData.map((row) => headers.map((h) => row[h])),
+      headerMode: 'first-row',
+      delimiter: ',',
+      originalHeaders: headers,
+      customHeaders: [...headers],
+      isJson: true,
+      jsonData: data,
+    };
+    this.activeDialog = 'import-csv';
+  }
+
+  handleCsvPreview(file: File) {
     Papa.parse(file, {
       preview: 5,
       header: false,
@@ -554,6 +628,8 @@ export class ChumakApp implements AppState {
           delimiter: previewResult.meta.delimiter || ',',
           originalHeaders: initialHeaders,
           customHeaders: initialHeaders,
+          isJson: false,
+          jsonData: null,
         };
         this.updateHeadersForPreview();
         this.activeDialog = 'import-csv';
@@ -565,11 +641,93 @@ export class ChumakApp implements AppState {
     });
   }
 
+  showImportUrlDialog() {
+    this.importUrlDialogState = {
+      url: '',
+      isFetching: false,
+      error: null,
+    };
+    this.activeDialog = 'import-url';
+  }
+
+  async fetchAndImportFromUrl() {
+    const { url } = this.importUrlDialogState;
+    if (!url || url.trim() === '') {
+      this.importUrlDialogState.error = 'Please enter a valid URL';
+      return;
+    }
+
+    this.importUrlDialogState.isFetching = true;
+    this.importUrlDialogState.error = null;
+
+    try {
+      const response = await fetch(url);
+      if (!response.ok) {
+        throw new Error(`Failed to fetch data: ${response.status} ${response.statusText}`);
+      }
+
+      const text = await response.text();
+      if (!text || text.trim() === '') {
+        throw new Error('The URL returned an empty response');
+      }
+
+      // Extract filename from URL or use a default
+      let fileName = 'Imported Data.csv';
+      try {
+        const urlObj = new URL(url);
+        const pathParts = urlObj.pathname.split('/');
+        const lastPart = pathParts[pathParts.length - 1];
+        if (lastPart) {
+          if (lastPart.toLowerCase().endsWith('.json')) {
+            fileName = lastPart;
+          } else if (
+            lastPart.toLowerCase().endsWith('.csv') ||
+            lastPart.toLowerCase().endsWith('.tsv') ||
+            lastPart.toLowerCase().endsWith('.txt')
+          ) {
+            fileName = lastPart;
+          }
+        }
+      } catch (e) {
+        // Fallback to default filename
+      }
+
+      const file = new File([text], fileName, { type: 'text/csv' });
+
+      // Close URL dialog and show the standard import dialog with the fetched data
+      this.closeDialog();
+      this.showImportDialog(file);
+    } catch (error: any) {
+      console.error('URL import error:', error);
+      this.importUrlDialogState.error = error.message || 'An error occurred while fetching data';
+    } finally {
+      this.importUrlDialogState.isFetching = false;
+    }
+  }
+
   confirmImport() {
-    const { headerMode, delimiter, customHeaders, sourceName } = this.importDialogState;
+    const { headerMode, delimiter, customHeaders, sourceName, isJson, jsonData } = this.importDialogState;
     if (!this.importFileData) return;
     const file = this.importFileData.file;
-    if (!sourceName || sourceName.trim() === '') { alert('Please enter a source name'); return; }
+    if (!sourceName || sourceName.trim() === '') {
+      alert('Please enter a source name');
+      return;
+    }
+
+    if (isJson && jsonData) {
+      this.createSource(
+        file,
+        sourceName.trim(),
+        customHeaders,
+        jsonData,
+        'first-row',
+        ',',
+        customHeaders,
+        'json'
+      );
+      return;
+    }
+
     Papa.parse(file, {
       header: false,
       delimiter: delimiter === '\t' ? '\t' : delimiter,
@@ -613,15 +771,27 @@ export class ChumakApp implements AppState {
     });
   }
 
-  async createSource(file: File, sourceName: string, columns: string[], data: any[], headerMode: string, delimiter: string, customHeaders: string[] | null = null) {
+  async createSource(
+    file: File,
+    sourceName: string,
+    columns: string[],
+    data: any[],
+    headerMode: string,
+    delimiter: string,
+    customHeaders: string[] | null = null,
+    origin = 'file'
+  ) {
     const start = performance.now();
-    if (columns.some((c) => !c || c.trim() === '')) { alert('Error: Column names cannot be empty.'); return; }
+    if (columns.some((c) => !c || c.trim() === '')) {
+      alert('Error: Column names cannot be empty.');
+      return;
+    }
     const cleanData = JSON.parse(JSON.stringify(data));
     const source = {
       id: `src_${Date.now()}`,
       name: sourceName,
       fileName: file.name,
-      origin: 'file',
+      origin: origin,
       delimiter: delimiter,
       headerMode: headerMode,
       customHeaders: customHeaders || null,
@@ -653,7 +823,11 @@ export class ChumakApp implements AppState {
     this.viewMode = 'model';
     this.updatePagination();
     await autoSave(this.sources, this.models);
-    console.log(`⚡ Import CSV — ${(performance.now() - start).toFixed(1)}ms — ${file.name} (${(file.size / 1024).toFixed(1)} KB)`);
+    console.log(
+      `⚡ Import ${origin.toUpperCase()} — ${(performance.now() - start).toFixed(1)}ms — ${
+        file.name
+      } (${(file.size / 1024).toFixed(1)} KB)`
+    );
     this.closeDialog();
   }
 
@@ -823,7 +997,22 @@ export class ChumakApp implements AppState {
   }
 
   updateHeadersForPreview() {
-    const { rawPreviewData, headerMode, originalHeaders, customHeaders } = this.importDialogState;
+    const { rawPreviewData, headerMode, originalHeaders, customHeaders, isJson, jsonData } =
+      this.importDialogState;
+
+    if (isJson && jsonData) {
+      const { resolvedHeaders, warning } = this.resolveDuplicateHeaders(customHeaders);
+      this.importDialogState.previewHeaders = resolvedHeaders;
+      const previewData = jsonData.slice(0, 5);
+      // Map JSON data using original keys to raw preview rows
+      const originalKeys = Object.keys(jsonData[0] || {});
+      this.importDialogState.previewDataRows = previewData.map((row: any) =>
+        originalKeys.map((key) => row[key])
+      );
+      this.importDialogState.duplicateWarning = warning;
+      return;
+    }
+
     if (rawPreviewData.length === 0) {
       this.importDialogState.previewHeaders = [];
       this.importDialogState.previewDataRows = [];

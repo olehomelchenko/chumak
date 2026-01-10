@@ -24,7 +24,7 @@
   <body x-data="chumakApp()" @paste.window="handlePaste($event)" @click="handleBodyClick($event)">
     <input
       type="file"
-      accept=".csv"
+      accept=".csv,.json"
       style="display: none"
       x-ref="fileInput"
       @change="handleFileSelect($event)"
@@ -389,7 +389,7 @@
             <button class="icon-button" @click="promptPaste()" title="Paste data from clipboard">
               <span class="iconify" data-icon="carbon:paste"></span>
             </button>
-            <button class="icon-button icon-button--disabled" disabled title="Import from URL">
+            <button class="icon-button" @click="showImportUrlDialog()" title="Import from URL">
               <span class="iconify" data-icon="carbon:link"></span>
             </button>
           </div>
@@ -644,7 +644,8 @@
           <span class="iconify" data-icon="carbon:cloud-upload" class="empty-state__icon"></span>
           <h2 class="empty-state__title">Get Started with Chumak</h2>
           <p class="empty-state__text">
-            Drag and drop a CSV file, paste from clipboard (Ctrl+V), or use the "Import CSV" button
+            Drag and drop a CSV file, paste from clipboard (Ctrl+V), use the "Import CSV" button or
+            "Import from URL"
           </p>
         </div>
       </div>
@@ -1401,6 +1402,7 @@
       </div>
     </footer>
     <div id="download-modal-container"></div>
+    <div id="import-url-modal-container"></div>
     <div id="settings-modal-container"></div>
   </body>
 </html>

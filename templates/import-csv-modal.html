@@ -2,7 +2,10 @@
 <div class="modal-backdrop" x-show="activeDialog === 'import-csv'" @click="closeDialog()" x-cloak>
   <div class="modal" @click.stop style="max-width: 70vw; max-height: 70vh; overflow-y: auto">
     <div class="modal__header">
-      <h3 class="modal__title" x-text="`Import CSV: ${importDialogState.fileName || ''}`"></h3>
+      <h3
+        class="modal__title"
+        x-text="`${importDialogState.isJson ? 'Import JSON' : 'Import CSV'}: ${importDialogState.fileName || ''}`"
+      ></h3>
       <button class="modal__close" @click="closeDialog()">×</button>
     </div>
 
@@ -20,7 +23,7 @@
       </div>
 
       <!-- Delimiter Options -->
-      <div class="form-group">
+      <div class="form-group" x-show="!importDialogState.isJson">
         <label class="form-label">Delimiter:</label>
         <div style="display: flex; gap: 16px; align-items: center">
           <label class="checkbox-item" style="margin: 0">
@@ -58,7 +61,7 @@
       </div>
 
       <!-- Header Mode Options -->
-      <div class="form-group">
+      <div class="form-group" x-show="!importDialogState.isJson">
         <label class="form-label">Column Headers:</label>
 
         <label class="checkbox-item">
@@ -99,7 +102,7 @@
       <!-- Column Name Inputs (shown only for manual mode) -->
       <div
         class="form-group"
-        x-show="importDialogState.headerMode === 'manual'"
+        x-show="importDialogState.headerMode === 'manual' || importDialogState.isJson"
         style="max-height: 150px; overflow-y: auto"
       >
         <label class="form-label" style="font-size: 13px; margin-bottom: 8px"
