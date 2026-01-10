@@ -28,12 +28,53 @@
     border-top: var(--border-width) solid var(--border-color);
   }
 
+  &__header-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: var(--space-sm);
+  }
+
   &__header {
     font-size: var(--font-size-lg);
     font-weight: var(--font-weight-medium);
     color: var(--color-midnight-blue);
-    margin: 0 0 var(--space-sm) 0;
+    margin: 0;
     line-height: var(--line-height-tight);
+  }
+
+  &__actions {
+    display: flex;
+    gap: 4px;
+    align-items: center;
+  }
+}
+
+.icon-button {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: var(--border-radius);
+  color: var(--color-dark-gray);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all var(--transition-fast);
+
+  &:hover:not(:disabled) {
+    background: rgba(var(--color-cyan-rgb), 0.1);
+    color: var(--color-cyan);
+  }
+
+  .iconify {
+    width: 18px;
+    height: 18px;
+  }
+
+  &--disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
   }
 }
 

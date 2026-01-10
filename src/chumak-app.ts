@@ -282,6 +282,7 @@ export class ChumakApp implements AppState {
       { id: 'filter-modal-container', url: 'templates/filter-modal.html' },
       { id: 'regexp-match-modal-container', url: 'templates/regexp-match-modal.html' },
       { id: 'regexp-extract-modal-container', url: 'templates/regexp-extract-modal.html' },
+      { id: 'download-modal-container', url: 'templates/download-modal.html' },
       { id: 'settings-modal-container', url: 'templates/settings-modal.html' },
     ];
 
@@ -310,7 +311,6 @@ export class ChumakApp implements AppState {
     this.activeStepIndex = null;
     this.viewingIntermediate = false;
     this.clearColumnSelection();
-    this.ribbonTab = 'data';
   }
 
   switchToModel(model: any) {
@@ -324,8 +324,8 @@ export class ChumakApp implements AppState {
     this.activeStepIndex = null;
     this.viewingIntermediate = false;
     this.clearColumnSelection();
-    if (this.ribbonTab === 'model' || !this.ribbonTab) {
-      this.ribbonTab = 'transform';
+    if (this.ribbonTab === 'data' || !this.ribbonTab) {
+      this.ribbonTab = 'prepare';
     }
     if (this.currentData && this.currentData.length > 0) {
       this.columns = model.schema ? model.schema.map((c: any) => c.name) : Object.keys(this.currentData[0]);
