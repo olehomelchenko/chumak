@@ -224,6 +224,11 @@ export class ChumakApp implements AppState {
       this.viewMode = 'model';
     }
 
+    if (this.activeModel) {
+      this.activeStepIndex = this.activeModel.steps?.length > 0 ? this.activeModel.steps.length - 1 : null;
+      this.viewingIntermediate = false;
+    }
+
     if (this.currentData && this.currentData.length > 0) {
       if (this.activeModel && (!this.activeModel.schema || this.activeModel.schema.length === 0)) {
         this.activeModel.schema = SchemaEngine.createInitialSchema(this.activeModel.data);
@@ -355,7 +360,7 @@ export class ChumakApp implements AppState {
     }
     this.currentData = model.data;
     this.viewMode = 'model';
-    this.activeStepIndex = null;
+    this.activeStepIndex = model.steps?.length > 0 ? model.steps.length - 1 : null;
     this.viewingIntermediate = false;
     this.clearColumnSelection();
     if (this.ribbonTab === 'data' || !this.ribbonTab) {
@@ -970,6 +975,8 @@ export class ChumakApp implements AppState {
     this.currentData = cleanData;
     this.columns = columns;
     this.viewMode = 'model';
+    this.activeStepIndex = mainModel.steps.length - 1;
+    this.viewingIntermediate = false;
     this.updatePagination();
     await autoSave(this.sources, this.models);
     console.log(
@@ -1402,6 +1409,10 @@ export class ChumakApp implements AppState {
     if (!validation.valid) {
       console.warn('applyStepResult: Result validation warnings', validation.errors);
     }
+
+    this.activeStepIndex = this.activeModel.steps.length - 1;
+    this.viewingIntermediate = false;
+    this.viewingSchema = null;
 
     this.updatePagination();
     await autoSave(this.sources, this.models);
@@ -2774,7 +2785,7 @@ export class ChumakApp implements AppState {
       this.columns = result.columns;
       this.viewingSchema = result.schema;
       this.activeStepIndex = stepIndex;
-      this.viewingIntermediate = true;
+      this.viewingIntermediate = stepIndex < this.activeModel.steps.length - 1;
       this.updatePagination();
     } catch (error: any) {
       console.error('Error computing step:', error);
@@ -2795,7 +2806,7 @@ export class ChumakApp implements AppState {
     } else {
       this.columns = [];
     }
-    this.activeStepIndex = null;
+    this.activeStepIndex = this.activeModel.steps?.length > 0 ? this.activeModel.steps.length - 1 : null;
     this.viewingIntermediate = false;
     this.viewingSchema = null;
     this.updatePagination();
