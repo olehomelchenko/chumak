@@ -217,7 +217,13 @@ describe('Transform Engine', () => {
     it('should keep first N rows', () => {
       const table = createTestTable();
       const transform = { sliceRows: { count: 2, mode: 'first' } };
-      const result = applyTransform(table, transform, ['sales', 'revenue', 'cost', 'region', 'status']);
+      const result = applyTransform(table, transform, [
+        'sales',
+        'revenue',
+        'cost',
+        'region',
+        'status',
+      ]);
 
       expect(result.numRows()).toBe(2);
       const rows = result.objects();
@@ -228,7 +234,13 @@ describe('Transform Engine', () => {
     it('should keep last N rows', () => {
       const table = createTestTable();
       const transform = { sliceRows: { count: 2, mode: 'last' } };
-      const result = applyTransform(table, transform, ['sales', 'revenue', 'cost', 'region', 'status']);
+      const result = applyTransform(table, transform, [
+        'sales',
+        'revenue',
+        'cost',
+        'region',
+        'status',
+      ]);
 
       expect(result.numRows()).toBe(2);
       const rows = result.objects();
@@ -239,7 +251,13 @@ describe('Transform Engine', () => {
     it('should remove first N rows', () => {
       const table = createTestTable();
       const transform = { sliceRows: { count: 2, mode: 'removeFirst' } };
-      const result = applyTransform(table, transform, ['sales', 'revenue', 'cost', 'region', 'status']);
+      const result = applyTransform(table, transform, [
+        'sales',
+        'revenue',
+        'cost',
+        'region',
+        'status',
+      ]);
 
       expect(result.numRows()).toBe(3);
       const rows = result.objects();
@@ -251,7 +269,13 @@ describe('Transform Engine', () => {
     it('should remove last N rows', () => {
       const table = createTestTable();
       const transform = { sliceRows: { count: 2, mode: 'removeLast' } };
-      const result = applyTransform(table, transform, ['sales', 'revenue', 'cost', 'region', 'status']);
+      const result = applyTransform(table, transform, [
+        'sales',
+        'revenue',
+        'cost',
+        'region',
+        'status',
+      ]);
 
       expect(result.numRows()).toBe(3);
       const rows = result.objects();
@@ -263,7 +287,13 @@ describe('Transform Engine', () => {
     it('should handle count greater than total rows', () => {
       const table = createTestTable();
       const transform = { sliceRows: { count: 100, mode: 'first' } };
-      const result = applyTransform(table, transform, ['sales', 'revenue', 'cost', 'region', 'status']);
+      const result = applyTransform(table, transform, [
+        'sales',
+        'revenue',
+        'cost',
+        'region',
+        'status',
+      ]);
 
       expect(result.numRows()).toBe(5);
     });
@@ -271,7 +301,13 @@ describe('Transform Engine', () => {
     it('should return empty table when removing all rows', () => {
       const table = createTestTable();
       const transform = { sliceRows: { count: 100, mode: 'removeFirst' } };
-      const result = applyTransform(table, transform, ['sales', 'revenue', 'cost', 'region', 'status']);
+      const result = applyTransform(table, transform, [
+        'sales',
+        'revenue',
+        'cost',
+        'region',
+        'status',
+      ]);
 
       expect(result.numRows()).toBe(0);
     });
@@ -281,7 +317,13 @@ describe('Transform Engine', () => {
     it('should add index column starting from 1', () => {
       const table = createTestTable();
       const transform = { addIndex: { columnName: 'row_num', startFrom: 1 } };
-      const result = applyTransform(table, transform, ['sales', 'revenue', 'cost', 'region', 'status']);
+      const result = applyTransform(table, transform, [
+        'sales',
+        'revenue',
+        'cost',
+        'region',
+        'status',
+      ]);
 
       expect(result.columnNames()).toContain('row_num');
       const rows = result.objects();
@@ -293,7 +335,13 @@ describe('Transform Engine', () => {
     it('should add index column starting from 0', () => {
       const table = createTestTable();
       const transform = { addIndex: { columnName: 'idx', startFrom: 0 } };
-      const result = applyTransform(table, transform, ['sales', 'revenue', 'cost', 'region', 'status']);
+      const result = applyTransform(table, transform, [
+        'sales',
+        'revenue',
+        'cost',
+        'region',
+        'status',
+      ]);
 
       const rows = result.objects();
       expect(rows[0].idx).toBe(0);
@@ -304,7 +352,13 @@ describe('Transform Engine', () => {
     it('should add index column with custom start value', () => {
       const table = createTestTable();
       const transform = { addIndex: { columnName: 'id', startFrom: 100 } };
-      const result = applyTransform(table, transform, ['sales', 'revenue', 'cost', 'region', 'status']);
+      const result = applyTransform(table, transform, [
+        'sales',
+        'revenue',
+        'cost',
+        'region',
+        'status',
+      ]);
 
       const rows = result.objects();
       expect(rows[0].id).toBe(100);
@@ -315,9 +369,22 @@ describe('Transform Engine', () => {
     it('should preserve existing columns when adding index', () => {
       const table = createTestTable();
       const transform = { addIndex: { columnName: 'row_index', startFrom: 1 } };
-      const result = applyTransform(table, transform, ['sales', 'revenue', 'cost', 'region', 'status']);
+      const result = applyTransform(table, transform, [
+        'sales',
+        'revenue',
+        'cost',
+        'region',
+        'status',
+      ]);
 
-      expect(result.columnNames()).toEqual(['sales', 'revenue', 'cost', 'region', 'status', 'row_index']);
+      expect(result.columnNames()).toEqual([
+        'sales',
+        'revenue',
+        'cost',
+        'region',
+        'status',
+        'row_index',
+      ]);
       expect(result.numRows()).toBe(5);
     });
   });
@@ -360,15 +427,25 @@ describe('Transform Engine', () => {
     });
 
     it('should describe sliceRows transform', () => {
-      expect(describeTransform({ sliceRows: { count: 10, mode: 'first' } })).toBe('Keep first 10 rows');
+      expect(describeTransform({ sliceRows: { count: 10, mode: 'first' } })).toBe(
+        'Keep first 10 rows'
+      );
       expect(describeTransform({ sliceRows: { count: 5, mode: 'last' } })).toBe('Keep last 5 rows');
-      expect(describeTransform({ sliceRows: { count: 3, mode: 'removeFirst' } })).toBe('Remove first 3 rows');
-      expect(describeTransform({ sliceRows: { count: 1, mode: 'removeLast' } })).toBe('Remove last 1 row');
+      expect(describeTransform({ sliceRows: { count: 3, mode: 'removeFirst' } })).toBe(
+        'Remove first 3 rows'
+      );
+      expect(describeTransform({ sliceRows: { count: 1, mode: 'removeLast' } })).toBe(
+        'Remove last 1 row'
+      );
     });
 
     it('should describe addIndex transform', () => {
-      expect(describeTransform({ addIndex: { columnName: 'row_num', startFrom: 1 } })).toBe('Add Index: row_num');
-      expect(describeTransform({ addIndex: { columnName: 'idx', startFrom: 0 } })).toBe('Add Index: idx');
+      expect(describeTransform({ addIndex: { columnName: 'row_num', startFrom: 1 } })).toBe(
+        'Add Index: row_num'
+      );
+      expect(describeTransform({ addIndex: { columnName: 'idx', startFrom: 0 } })).toBe(
+        'Add Index: idx'
+      );
     });
   });
 

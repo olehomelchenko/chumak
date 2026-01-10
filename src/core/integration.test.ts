@@ -158,7 +158,7 @@ describe('Transform-Schema-UI Integration', () => {
       const transform = { derive: { profit: 'revenue - cost' } };
 
       const spy = vi.spyOn(console, 'warn').mockImplementation(() => {});
-      
+
       SchemaEngine.deriveNextSchema(schema, transform, []);
 
       expect(spy).toHaveBeenCalledWith(expect.stringContaining('Sample data missing'));

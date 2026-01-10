@@ -10,7 +10,7 @@ describe('AST Interpreter', () => {
     revenue: 5000,
     cost: 3000,
     nullVal: null,
-    emptyStr: ''
+    emptyStr: '',
   };
 
   it('should evaluate literals', () => {

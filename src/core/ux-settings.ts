@@ -68,7 +68,7 @@ export function updateUXSetting(category: keyof UXSettings, key: string, value: 
     }
     (settings as any)[category][key] = value;
   }
-  
+
   saveUXSettings(settings);
 
   return settings;

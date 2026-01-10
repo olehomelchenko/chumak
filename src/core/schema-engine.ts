@@ -107,7 +107,9 @@ export const SchemaEngine = {
       if (isDate) return 'date';
 
       // American Date: MM/DD/YYYY or M/D/YYYY
-      const isAmericanDate = nonNullValues.every((v) => /^\d{1,2}\/\d{1,2}\/\d{4}$/.test(v as string));
+      const isAmericanDate = nonNullValues.every((v) =>
+        /^\d{1,2}\/\d{1,2}\/\d{4}$/.test(v as string)
+      );
       if (isAmericanDate) return 'date';
     }
 
@@ -176,7 +178,9 @@ export const SchemaEngine = {
     // 4. DERIVE: Add new columns
     if (transform.derive) {
       if (!sampleData || sampleData.length === 0) {
-        console.warn('SchemaEngine: Sample data missing for derive transform, cannot infer new column types');
+        console.warn(
+          'SchemaEngine: Sample data missing for derive transform, cannot infer new column types'
+        );
       }
       const nextSchema = [...currentSchema];
       for (const newColName of Object.keys(transform.derive)) {
@@ -309,7 +313,9 @@ export const SchemaEngine = {
 
         if (inferred === 'string' && sampleValues.every((v) => v === null || v === undefined)) {
           // Sparse column or no values in sample - try to inherit from source columns
-          const foldedTypes = currentSchema.filter((c) => columns.includes(c.name)).map((c) => c.type);
+          const foldedTypes = currentSchema
+            .filter((c) => columns.includes(c.name))
+            .map((c) => c.type);
           const uniqueTypes = [...new Set(foldedTypes)];
           if (uniqueTypes.length === 1) {
             valType = uniqueTypes[0];
@@ -322,7 +328,9 @@ export const SchemaEngine = {
           valType = inferred;
         }
       } else {
-        const foldedTypes = currentSchema.filter((c) => columns.includes(c.name)).map((c) => c.type);
+        const foldedTypes = currentSchema
+          .filter((c) => columns.includes(c.name))
+          .map((c) => c.type);
         const uniqueTypes = [...new Set(foldedTypes)];
         if (uniqueTypes.length === 1) {
           valType = uniqueTypes[0];
@@ -365,11 +373,16 @@ export const SchemaEngine = {
             const sampleValues = sampleData.map((row) => row[colName]);
             if (['count'].includes(aggregation)) {
               type = 'integer';
-            } else if (['sum', 'mean', 'avg', 'median', 'stdev', 'variance'].includes(aggregation)) {
+            } else if (
+              ['sum', 'mean', 'avg', 'median', 'stdev', 'variance'].includes(aggregation)
+            ) {
               type = 'float';
             } else {
               const inferred = this.inferType(sampleValues);
-              if (inferred === 'string' && sampleValues.every((v) => v === null || v === undefined)) {
+              if (
+                inferred === 'string' &&
+                sampleValues.every((v) => v === null || v === undefined)
+              ) {
                 // Sparse column - fallback to values column type
                 const valCol = currentSchema.find((c) => c.name === values);
                 type = valCol ? valCol.type : 'string';

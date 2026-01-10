@@ -19,7 +19,7 @@ describe('Schema Engine', () => {
     });
 
     it('should infer string when mixed', () => {
-        // @ts-ignore - testing mixed values
+      // @ts-ignore - testing mixed values
       const values = [1, 'two', 3];
       expect(SchemaEngine.inferType(values)).toBe('string');
     });

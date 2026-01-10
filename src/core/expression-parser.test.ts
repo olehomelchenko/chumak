@@ -94,17 +94,17 @@ describe('Expression Parser', () => {
     });
 
     it('should throw error for null', () => {
-        // @ts-ignore
+      // @ts-ignore
       expect(() => parseExpression(null)).toThrow('Expression must be a non-empty string');
     });
 
     it('should throw error for undefined', () => {
-        // @ts-ignore
+      // @ts-ignore
       expect(() => parseExpression(undefined)).toThrow('Expression must be a non-empty string');
     });
 
     it('should throw error for non-string', () => {
-        // @ts-ignore
+      // @ts-ignore
       expect(() => parseExpression(123)).toThrow('Expression must be a non-empty string');
     });
 

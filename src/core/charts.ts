@@ -77,7 +77,7 @@ export const ChartsEngine = {
     };
 
     const vegaTheme = theme === 'chumak' ? chumakTheme : bluesTheme;
-    
+
     try {
       await vegaEmbed(containerSelector, spec, {
         actions: false,
@@ -143,7 +143,7 @@ export const ChartsEngine = {
     };
 
     const vegaTheme = theme === 'chumak' ? chumakTheme : bluesTheme;
-    
+
     try {
       await vegaEmbed(containerSelector, spec, {
         actions: false,

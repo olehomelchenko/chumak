@@ -46,10 +46,7 @@ describe('SchemaEngine - Numeric String Detection', () => {
 
   describe('Full split workflow type detection', () => {
     it('should correctly infer types after splitting YYYY-MM-DD dates', () => {
-      const data = [
-        { date: '2024-01-15' },
-        { date: '2023-12-31' },
-      ];
+      const data = [{ date: '2024-01-15' }, { date: '2023-12-31' }];
 
       const table = (aq as any).from(data);
       const splitTransform = {

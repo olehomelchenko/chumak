@@ -3,7 +3,6 @@ import { parseExpression } from './expression-parser';
 import { validateAST } from './ast-validator';
 import { interpretAST } from './ast-interpreter';
 
-
 /**
  * Chumak Transform Engine
  */
@@ -44,7 +43,12 @@ export function matchColumnPattern(columns: string[], options: MatchOptions): st
 /**
  * Apply a single transform to an Arquero table
  */
-export function applyTransform(table: any, transform: any, schema: string[], context: any = null): any {
+export function applyTransform(
+  table: any,
+  transform: any,
+  schema: string[],
+  context: any = null
+): any {
   // Since we're in the process of migrating, we'll keep the logic mostly the same
   // but use the imported engines.
 
@@ -82,7 +86,6 @@ export function applyTransform(table: any, transform: any, schema: string[], con
     const { right, on, how, suffixes } = transform.join;
     let rightTable = null;
 
-
     const rightModel = context?.models.find((m: any) => m.id === right || m.name === right);
     if (rightModel) {
       rightTable = (aq as any).from(rightModel.data);
@@ -94,7 +97,7 @@ export function applyTransform(table: any, transform: any, schema: string[], con
     }
 
     if (!rightTable) {
-        throw new Error(`Join target '${right}' not found`);
+      throw new Error(`Join target '${right}' not found`);
     }
 
     const leftKeys = on.map((pair: any) => pair[0]);
@@ -109,7 +112,7 @@ export function applyTransform(table: any, transform: any, schema: string[], con
     if (how === 'right') return table.join_right(rightTable, keys, null, joinOptions);
     if (how === 'full') return table.join_full(rightTable, keys, null, joinOptions);
     if (how === 'cross') return table.cross(rightTable, null, joinOptions);
-    
+
     throw new Error(`Unknown join type: ${how}`);
   }
 
@@ -211,7 +214,10 @@ export function applyTransform(table: any, transform: any, schema: string[], con
     const effectiveMaxColumns = mode === 'left' || mode === 'right' ? 1 : maxColumns;
 
     const arrays = resultTable.array(arrayCol);
-    let maxSegments = arrays.reduce((max: number, arr: any[]) => Math.max(max, arr ? arr.length : 0), 0);
+    let maxSegments = arrays.reduce(
+      (max: number, arr: any[]) => Math.max(max, arr ? arr.length : 0),
+      0
+    );
 
     if ((normalizedMode === 'firstN' || normalizedMode === 'lastN') && effectiveMaxColumns) {
       maxSegments = Math.min(maxSegments, effectiveMaxColumns);
@@ -219,16 +225,16 @@ export function applyTransform(table: any, transform: any, schema: string[], con
 
     const newColumns: any = {};
     for (let i = 0; i < maxSegments; i++) {
-        const colName = `${column}_${i + 1}`;
-        newColumns[colName] = (aq as any).escape((d: any) => {
-          const arr = d[arrayCol];
-          if (!arr) return undefined;
-          if (normalizedMode === 'lastN') {
-            const index = arr.length - maxSegments + i;
-            return index >= 0 ? arr[index] : undefined;
-          }
-          return arr[i];
-        });
+      const colName = `${column}_${i + 1}`;
+      newColumns[colName] = (aq as any).escape((d: any) => {
+        const arr = d[arrayCol];
+        if (!arr) return undefined;
+        if (normalizedMode === 'lastN') {
+          const index = arr.length - maxSegments + i;
+          return index >= 0 ? arr[index] : undefined;
+        }
+        return arr[i];
+      });
     }
 
     resultTable = resultTable.derive(newColumns).select((aq as any).not(arrayCol));

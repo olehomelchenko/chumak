@@ -19,7 +19,13 @@ describe('Notification Manager', () => {
         this._addNotification('error', title, message, stepInfo, duration);
       },
 
-      _addNotification(type: string, title: string, message: string, stepInfo: string | null, duration: number) {
+      _addNotification(
+        type: string,
+        title: string,
+        message: string,
+        stepInfo: string | null,
+        duration: number
+      ) {
         const id = ++this.notificationIdCounter;
         const notification = { id, type, title, message, stepInfo, visible: false };
         this.notifications.push(notification);

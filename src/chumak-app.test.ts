@@ -9,7 +9,7 @@ describe('ChumakApp URL Import', () => {
     global.fetch = vi.fn();
     // Mock console.error to keep test output clean
     vi.spyOn(console, 'error').mockImplementation(() => {});
-    
+
     app = new ChumakApp();
     // Mock methods called by fetchAndImportFromUrl
     app.closeDialog = vi.fn();
@@ -46,10 +46,10 @@ describe('ChumakApp URL Import', () => {
     expect(global.fetch).toHaveBeenCalledWith('https://example.com/data.csv');
     expect(app.importUrlDialogState.isFetching).toBe(false);
     expect(app.importUrlDialogState.error).toBeNull();
-    
+
     expect(app.closeDialog).toHaveBeenCalled();
     expect(app.showImportDialog).toHaveBeenCalledWith(expect.any(File));
-    
+
     const passedFile = (app.showImportDialog as any).mock.calls[0][0];
     expect(passedFile.name).toBe('data.csv');
   });
@@ -128,9 +128,7 @@ describe('ChumakApp URL Import', () => {
   it('should show top-level keys as suggestions if no path is provided', () => {
     const nestedData = {
       meta: { count: 1 },
-      results: [
-        { id: 1, name: 'Alice' },
-      ],
+      results: [{ id: 1, name: 'Alice' }],
     };
     const file = new File([''], 'data.json');
 
@@ -210,7 +208,7 @@ describe('ChumakApp URL Import', () => {
     expect(app.importDialogState.previewHeaders).toContain('user_name');
     expect(app.importDialogState.previewHeaders).toContain('user_details_age');
     expect(app.importDialogState.previewDataRows[0][1]).toBe('Alice');
-    
+
     // tags is an array, it should be stringified if serializeNested is on
     expect(typeof app.importDialogState.previewDataRows[0][3]).toBe('string');
     expect(app.importDialogState.previewDataRows[0][3]).toBe('["a","b"]');

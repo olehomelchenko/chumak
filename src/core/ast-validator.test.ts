@@ -162,7 +162,7 @@ describe('AST Validator', () => {
     });
 
     it('should handle null AST gracefully', () => {
-        // @ts-ignore
+      // @ts-ignore
       const result = validateAST(null, testSchema);
       expect(result.valid).toBe(false);
       expect(result.error?.message).toContain('Invalid AST node');

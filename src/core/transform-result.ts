@@ -25,7 +25,11 @@ export const TransformResult = {
   /**
    * Create a validated TransformResult from Arquero table
    */
-  create(table: any, previousSchema: ColumnSchema[], transform: TransformStep): TransformResultData {
+  create(
+    table: any,
+    previousSchema: ColumnSchema[],
+    transform: TransformStep
+  ): TransformResultData {
     const data = table.objects();
     const columns = table.columnNames();
 
@@ -48,7 +52,11 @@ export const TransformResult = {
   /**
    * Create result directly from data array
    */
-  createFromData(data: any[], previousSchema: ColumnSchema[], transform: TransformStep): TransformResultData {
+  createFromData(
+    data: any[],
+    previousSchema: ColumnSchema[],
+    transform: TransformStep
+  ): TransformResultData {
     const columns = data.length > 0 ? Object.keys(data[0]) : [];
     const sampleData = data.slice(0, 100);
     const schema = SchemaEngine.deriveNextSchema(previousSchema, transform, sampleData);

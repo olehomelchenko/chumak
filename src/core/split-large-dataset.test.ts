@@ -37,7 +37,8 @@ describe('Split Transform - Large Dataset Handling', () => {
 
   it('should handle varying split counts in large dataset', () => {
     const largeDataset = [];
-    for (let i = 0; i < 50000; i++) { // Reduced to 50k for faster tests
+    for (let i = 0; i < 50000; i++) {
+      // Reduced to 50k for faster tests
       const segments = (i % 4) + 2;
       const parts = [];
       for (let j = 0; j < segments; j++) {

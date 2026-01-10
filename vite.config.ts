@@ -9,10 +9,7 @@ export default defineConfig({
   plugins: [],
   css: {
     postcss: {
-      plugins: [
-        nested(),
-        autoprefixer()
-      ],
+      plugins: [nested(), autoprefixer()],
     },
   },
   test: {
@@ -22,6 +19,6 @@ export default defineConfig({
   },
   build: {
     target: 'esnext',
-    sourcemap: true
-  }
+    sourcemap: true,
+  },
 });

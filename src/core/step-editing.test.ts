@@ -118,10 +118,10 @@ describe('Step Editing', () => {
 
     it('should handle rolling back to original steps on failure', () => {
       const originalSteps = JSON.parse(JSON.stringify(mockApp.activeModel.steps));
-      
+
       // Attempt invalid edit
       mockApp.activeModel.steps[2] = { filter: 'invalid syntax error !!!' };
-      
+
       expect(() => {
         computeUpToStep(mockApp.activeModel, 2, mockApp.source.data);
       }).toThrow();

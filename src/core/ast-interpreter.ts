@@ -95,7 +95,11 @@ function evaluateNode(node: ASTNode, rowData: Record<string, any>): any {
       const left = evaluateNode(node.left!, rowData);
       const right = evaluateNode(node.right!, rowData);
 
-      if (node.operator && (left == null || right == null) && !NULL_COMPARISON_OPS.has(node.operator)) {
+      if (
+        node.operator &&
+        (left == null || right == null) &&
+        !NULL_COMPARISON_OPS.has(node.operator)
+      ) {
         return null;
       }
 
@@ -113,7 +117,9 @@ function evaluateNode(node: ASTNode, rowData: Record<string, any>): any {
 
     case 'ConditionalExpression': {
       const test = evaluateNode(node.test!, rowData);
-      return test ? evaluateNode(node.consequent!, rowData) : evaluateNode(node.alternate!, rowData);
+      return test
+        ? evaluateNode(node.consequent!, rowData)
+        : evaluateNode(node.alternate!, rowData);
     }
 
     case 'CallExpression': {
