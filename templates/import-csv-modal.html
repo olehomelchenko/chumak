@@ -22,6 +22,66 @@
         <p class="form-help">This name will appear in the Sources panel</p>
       </div>
 
+      <!-- JSON Data Path (shown only for JSON) -->
+      <div class="form-group" x-show="importDialogState.isJson">
+        <label class="form-label">Data Path (dot notation):</label>
+        <input
+          type="text"
+          class="form-input"
+          x-model="importDialogState.jsonPath"
+          @input.debounce.300ms="updateJsonPath()"
+          placeholder="e.g., results or data.items"
+        />
+        <p class="form-help">If the array is nested, specify the path to it.</p>
+        <div
+          class="form-help"
+          style="
+            margin-top: 4px;
+            padding: 8px;
+            background: var(--color-light-gray);
+            border-radius: 4px;
+            font-size: 11px;
+          "
+        >
+          <strong>Examples:</strong><br />
+          • <code>results</code> (if your JSON is <code>{ "results": [...] }</code>)<br />
+          • <code>data.items</code> (if your JSON is
+          <code>{ "data": { "items": [...] } }</code>)<br />
+          • <code>0.data</code> (if your JSON is an array and you want the first element's data)
+        </div>
+      </div>
+
+      <!-- JSON Raw Preview (shown only for JSON) -->
+      <div
+        class="form-group"
+        x-show="importDialogState.isJson && importDialogState.jsonRawValuePreview"
+      >
+        <label class="form-label">Value at path (preview):</label>
+        <div class="json-view" style="max-height: 150px; overflow-y: auto">
+          <pre
+            class="json-view__content"
+            style="
+              margin: 0;
+              padding: 10px;
+              font-size: 11px;
+              white-space: pre-wrap;
+              word-break: break-all;
+            "
+            x-text="importDialogState.jsonRawValuePreview"
+          ></pre>
+        </div>
+      </div>
+
+      <!-- JSON Validation Error -->
+      <div
+        x-show="importDialogState.isJson && !importDialogState.jsonData"
+        class="form-error"
+        style="margin-bottom: 1rem"
+      >
+        <span class="iconify" data-icon="carbon:warning"></span>
+        <span>No valid array of objects found at this path.</span>
+      </div>
+
       <!-- Delimiter Options -->
       <div class="form-group" x-show="!importDialogState.isJson">
         <label class="form-label">Delimiter:</label>

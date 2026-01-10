@@ -66,6 +66,9 @@ export class ChumakApp implements AppState {
     duplicateWarning: '',
     isJson: false,
     jsonData: null,
+    fullJsonData: null,
+    jsonPath: '',
+    jsonRawValuePreview: '',
   };
   importFileData: { file: File } | null = null;
   importUrlDialogState: any = {
@@ -572,12 +575,7 @@ export class ChumakApp implements AppState {
         try {
           const content = e.target?.result as string;
           const data = JSON.parse(content);
-          if (Array.isArray(data) && data.length > 0 && typeof data[0] === 'object') {
-            this.handleJsonPreview(file, data);
-          } else {
-            // Fallback to CSV preview if JSON is not an array of objects
-            this.handleCsvPreview(file);
-          }
+          this.handleJsonPreview(file, data);
         } catch (err) {
           this.handleCsvPreview(file);
         }
@@ -588,25 +586,69 @@ export class ChumakApp implements AppState {
     }
   }
 
-  handleJsonPreview(file: File, data: any[]) {
+  handleJsonPreview(file: File, data: any, path = '') {
     const defaultName = file.name.replace(/\.json$/i, '');
-    const previewData = data.slice(0, 5);
-    const headers = Object.keys(previewData[0] || {});
+    let resolvedData = data;
+
+    if (path) {
+      resolvedData = this.resolvePath(data, path);
+    }
+
+    // Attempt to find the first array if resolvedData isn't an array
+    if (!Array.isArray(resolvedData) && typeof resolvedData === 'object' && resolvedData !== null) {
+      const firstArrayKey = Object.keys(resolvedData).find((key) => Array.isArray(resolvedData[key]));
+      if (firstArrayKey) {
+        path = path ? `${path}.${firstArrayKey}` : firstArrayKey;
+        resolvedData = resolvedData[firstArrayKey];
+      }
+    }
+
+    const isValidArray =
+      Array.isArray(resolvedData) &&
+      resolvedData.length > 0 &&
+      typeof resolvedData[0] === 'object' &&
+      resolvedData[0] !== null;
+
+    const previewData = isValidArray ? resolvedData.slice(0, 5) : [];
+    const headers = isValidArray ? Object.keys(previewData[0]) : [];
 
     this.importDialogState = {
       fileName: file.name,
       sourceName: defaultName,
       rawPreviewData: [],
       previewHeaders: headers,
-      previewDataRows: previewData.map((row) => headers.map((h) => row[h])),
+      previewDataRows: previewData.map((row: any) => headers.map((h) => row[h])),
       headerMode: 'first-row',
       delimiter: ',',
       originalHeaders: headers,
       customHeaders: [...headers],
       isJson: true,
-      jsonData: data,
+      jsonData: isValidArray ? resolvedData : null,
+      fullJsonData: data,
+      jsonPath: path,
+      jsonRawValuePreview: resolvedData ? JSON.stringify(resolvedData, null, 2).slice(0, 1000) : '',
     };
     this.activeDialog = 'import-csv';
+  }
+
+  updateJsonPath() {
+    const { fullJsonData, jsonPath, fileName } = this.importDialogState;
+    if (!fullJsonData) return;
+
+    // We reuse handleJsonPreview but with the new path
+    const fileMock = { name: fileName } as any;
+    this.handleJsonPreview(fileMock, fullJsonData, jsonPath);
+  }
+
+  resolvePath(obj: any, path: string) {
+    if (!path) return obj;
+    try {
+      return path.split('.').reduce((prev, curr) => {
+        return prev ? prev[curr] : undefined;
+      }, obj);
+    } catch (e) {
+      return undefined;
+    }
   }
 
   handleCsvPreview(file: File) {

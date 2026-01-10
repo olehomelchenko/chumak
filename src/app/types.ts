@@ -48,6 +48,9 @@ export interface AppState {
     duplicateWarning: string;
     isJson?: boolean;
     jsonData?: any[];
+    fullJsonData?: any;
+    jsonPath?: string;
+    jsonRawValuePreview?: string;
   };
   importFileData: any;
   importUrlDialogState: {

@@ -107,4 +107,54 @@ describe('ChumakApp URL Import', () => {
     expect(passedFile.name).toBe('data.json');
     // Note: showImportDialog will internally handle the .json extension logic
   });
+
+  it('should resolve nested JSON paths', () => {
+    const nestedData = {
+      meta: { count: 1 },
+      results: [
+        { id: 1, name: 'Alice' },
+        { id: 2, name: 'Bob' },
+      ],
+    };
+    const file = new File([''], 'data.json');
+
+    app.handleJsonPreview(file, nestedData, 'results');
+
+    expect(app.importDialogState.jsonData).toHaveLength(2);
+    expect(app.importDialogState.previewHeaders).toContain('name');
+    expect(app.importDialogState.jsonPath).toBe('results');
+  });
+
+  it('should auto-detect the first array in JSON if no path is provided', () => {
+    const nestedData = {
+      meta: { count: 1 },
+      results: [
+        { id: 1, name: 'Alice' },
+      ],
+    };
+    const file = new File([''], 'data.json');
+
+    app.handleJsonPreview(file, nestedData);
+
+    // Should have found 'results' automatically
+    expect(app.importDialogState.jsonPath).toBe('results');
+    expect(app.importDialogState.jsonData).toHaveLength(1);
+  });
+
+  it('should provide a raw value preview for JSON paths', () => {
+    const data = {
+      nested: {
+        value: 'hello',
+        items: [1, 2, 3],
+      },
+    };
+    const file = new File([''], 'data.json');
+
+    app.handleJsonPreview(file, data, 'nested');
+
+    // It should auto-jump to 'items' because it's the first array found in 'nested'
+    expect(app.importDialogState.jsonPath).toBe('nested.items');
+    expect(app.importDialogState.jsonRawValuePreview).toContain('1');
+    expect(app.importDialogState.jsonRawValuePreview).toContain('2');
+  });
 });
