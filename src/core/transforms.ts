@@ -272,6 +272,17 @@ export function applyTransform(table: any, transform: any, schema: string[], con
     }
   }
 
+  if (transform.addIndex) {
+    const { columnName, startFrom } = transform.addIndex;
+    const start = startFrom ?? 1;
+    const rows = table.objects();
+    const indexedRows = rows.map((row: any, i: number) => ({
+      ...row,
+      [columnName]: i + start,
+    }));
+    return (aq as any).from(indexedRows);
+  }
+
   throw new Error(`Transform not implemented: ${Object.keys(transform)[0]}`);
 }
 
@@ -375,6 +386,10 @@ export function describeTransform(transform: any, rightName: string | null = nul
       removeLast: 'Remove last',
     };
     return `${modeLabels[mode] || mode} ${count} row${count !== 1 ? 's' : ''}`;
+  }
+
+  if (transform.addIndex) {
+    return `Add Index: ${transform.addIndex.columnName}`;
   }
 
   return 'Unknown transform';

@@ -1,0 +1,36 @@
+<div class="form-group">
+  <label class="form-label">Column name:</label>
+  <input
+    type="text"
+    class="form-input"
+    x-model="indexDialogState.columnName"
+    placeholder="row_index"
+  />
+</div>
+
+<div class="form-group">
+  <label class="form-label">Start from:</label>
+  <input
+    type="number"
+    class="form-input"
+    x-model.number="indexDialogState.startFrom"
+    min="0"
+    placeholder="1"
+  />
+</div>
+
+<div
+  class="form-group"
+  style="
+    margin-top: 1rem;
+    padding: 0.75rem;
+    background: var(--color-light-gray);
+    border-radius: var(--radius-sm);
+  "
+>
+  <span style="font-size: 0.875rem; color: var(--color-dark-gray)">
+    Will add column "<strong x-text="indexDialogState.columnName || 'row_index'"></strong>" with
+    values <strong x-text="indexDialogState.startFrom"></strong> to
+    <strong x-text="(indexDialogState.startFrom || 0) + (currentData?.length || 0) - 1"></strong>
+  </span>
+</div>

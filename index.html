@@ -221,9 +221,9 @@
                 <span>Extract</span>
               </button>
               <button
-                class="ribbon__button ribbon__button--disabled"
-                disabled
-                title="Add index/row number column (Coming soon)"
+                class="ribbon__button"
+                @click="openDialog('index')"
+                title="Add index/row number column"
               >
                 <span class="iconify" data-icon="carbon:row-insert"></span>
                 <span>Index</span>
@@ -1165,6 +1165,7 @@
           <div id="regexp-extract-modal-container" x-show="activeDialog === 'regexpExtract'"></div>
           <div id="sort-modal-container" x-show="activeDialog === 'sort'"></div>
           <div id="slice-rows-modal-container" x-show="activeDialog === 'sliceRows'"></div>
+          <div id="index-modal-container" x-show="activeDialog === 'index'"></div>
           <div id="rename-modal-container" x-show="activeDialog === 'rename'"></div>
           <div id="remove-modal-container" x-show="activeDialog === 'remove'"></div>
           <div id="unpivot-modal-container" x-show="activeDialog === 'fold'"></div>

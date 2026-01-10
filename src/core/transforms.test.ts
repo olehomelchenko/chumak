@@ -277,6 +277,51 @@ describe('Transform Engine', () => {
     });
   });
 
+  describe('applyTransform() - ADD INDEX', () => {
+    it('should add index column starting from 1', () => {
+      const table = createTestTable();
+      const transform = { addIndex: { columnName: 'row_num', startFrom: 1 } };
+      const result = applyTransform(table, transform, ['sales', 'revenue', 'cost', 'region', 'status']);
+
+      expect(result.columnNames()).toContain('row_num');
+      const rows = result.objects();
+      expect(rows[0].row_num).toBe(1);
+      expect(rows[1].row_num).toBe(2);
+      expect(rows[4].row_num).toBe(5);
+    });
+
+    it('should add index column starting from 0', () => {
+      const table = createTestTable();
+      const transform = { addIndex: { columnName: 'idx', startFrom: 0 } };
+      const result = applyTransform(table, transform, ['sales', 'revenue', 'cost', 'region', 'status']);
+
+      const rows = result.objects();
+      expect(rows[0].idx).toBe(0);
+      expect(rows[1].idx).toBe(1);
+      expect(rows[4].idx).toBe(4);
+    });
+
+    it('should add index column with custom start value', () => {
+      const table = createTestTable();
+      const transform = { addIndex: { columnName: 'id', startFrom: 100 } };
+      const result = applyTransform(table, transform, ['sales', 'revenue', 'cost', 'region', 'status']);
+
+      const rows = result.objects();
+      expect(rows[0].id).toBe(100);
+      expect(rows[1].id).toBe(101);
+      expect(rows[4].id).toBe(104);
+    });
+
+    it('should preserve existing columns when adding index', () => {
+      const table = createTestTable();
+      const transform = { addIndex: { columnName: 'row_index', startFrom: 1 } };
+      const result = applyTransform(table, transform, ['sales', 'revenue', 'cost', 'region', 'status']);
+
+      expect(result.columnNames()).toEqual(['sales', 'revenue', 'cost', 'region', 'status', 'row_index']);
+      expect(result.numRows()).toBe(5);
+    });
+  });
+
   describe('describeTransform()', () => {
     it('should describe import transform', () => {
       const transform = {
@@ -319,6 +364,11 @@ describe('Transform Engine', () => {
       expect(describeTransform({ sliceRows: { count: 5, mode: 'last' } })).toBe('Keep last 5 rows');
       expect(describeTransform({ sliceRows: { count: 3, mode: 'removeFirst' } })).toBe('Remove first 3 rows');
       expect(describeTransform({ sliceRows: { count: 1, mode: 'removeLast' } })).toBe('Remove last 1 row');
+    });
+
+    it('should describe addIndex transform', () => {
+      expect(describeTransform({ addIndex: { columnName: 'row_num', startFrom: 1 } })).toBe('Add Index: row_num');
+      expect(describeTransform({ addIndex: { columnName: 'idx', startFrom: 0 } })).toBe('Add Index: idx');
     });
   });
 

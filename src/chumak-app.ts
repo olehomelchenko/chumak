@@ -121,6 +121,7 @@ export class ChumakApp implements AppState {
   deriveDialogState = { columnName: '', expression: '', error: null as string | null };
   sortDialogState = { field: '', order: 'asc' as 'asc' | 'desc' };
   sliceRowsDialogState = { count: 10, mode: 'first' as 'first' | 'last' | 'removeFirst' | 'removeLast' };
+  indexDialogState = { columnName: 'row_index', startFrom: 1 };
   renameDialogState = { renames: {} as Record<string, string> };
   foldDialogState = { keyName: 'key', valueName: 'value', selectedColumns: [] as boolean[] };
   replaceDialogState = { column: '', findValue: '', replaceValue: '' };
@@ -293,6 +294,7 @@ export class ChumakApp implements AppState {
       { id: 'rename-modal-container', url: 'templates/rename-modal.html' },
       { id: 'sort-modal-container', url: 'templates/sort-modal.html' },
       { id: 'slice-rows-modal-container', url: 'templates/slice-rows-modal.html' },
+      { id: 'index-modal-container', url: 'templates/index-modal.html' },
       { id: 'derive-modal-container', url: 'templates/derive-modal.html' },
       { id: 'filter-modal-container', url: 'templates/filter-modal.html' },
       { id: 'regexp-match-modal-container', url: 'templates/regexp-match-modal.html' },
@@ -1590,6 +1592,12 @@ export class ChumakApp implements AppState {
     await this.runTransform('Slice Rows', { sliceRows: { count, mode } });
   }
 
+  async applyIndexTransform() {
+    const { columnName, startFrom } = this.indexDialogState;
+    if (!columnName || columnName.trim() === '') { alert('Please enter a column name'); return; }
+    await this.runTransform('Add Index', { addIndex: { columnName: columnName.trim(), startFrom: startFrom ?? 1 } });
+  }
+
   async applyRenameTransform() {
     const { renames } = this.renameDialogState;
     const actualRenames: Record<string, string> = {};
@@ -1951,6 +1959,7 @@ export class ChumakApp implements AppState {
       case 'filter': return this.filterExpression;
       case 'derive': return this.deriveDialogState;
       case 'sliceRows': return this.sliceRowsDialogState;
+      case 'index': return this.indexDialogState;
       case 'rename': return this.renameDialogState;
       case 'aggregate': return this.aggregateDialogState;
       case 'join': return { ...this.joinDialogState, rightModel: this.joinDialogState.rightModel?.id, availableTargets: null };
@@ -1991,6 +2000,8 @@ export class ChumakApp implements AppState {
       this.sortDialogState = { field: this.columns[0] || '', order: 'asc' };
     } else if (dialogName === 'sliceRows') {
       this.sliceRowsDialogState = { count: 10, mode: 'first' };
+    } else if (dialogName === 'index') {
+      this.indexDialogState = { columnName: 'row_index', startFrom: 1 };
     } else if (dialogName === 'rename') {
       const renames: Record<string, string> = {};
       this.columns.forEach((col) => { renames[col] = col; });
@@ -2028,7 +2039,7 @@ export class ChumakApp implements AppState {
   isSlidePanel(dialog: string | null): boolean {
     if (!dialog) return false;
     const slidePanels = [
-      'filter', 'sort', 'sliceRows', 'select', 'remove', 'rename',
+      'filter', 'sort', 'sliceRows', 'index', 'select', 'remove', 'rename',
       'split', 'derive', 'regexpMatch', 'regexpExtract',
       'fold', 'aggregate', 'join', 'replace'
     ];
@@ -2046,6 +2057,7 @@ export class ChumakApp implements AppState {
       case 'filter': return 'Filter Rows';
       case 'sort': return 'Sort Rows';
       case 'sliceRows': return 'Keep / Remove Rows';
+      case 'index': return 'Add Index Column';
       case 'select': return 'Select Columns';
       case 'remove': return 'Remove Columns';
       case 'rename': return 'Rename Columns';
@@ -2080,6 +2092,7 @@ export class ChumakApp implements AppState {
       case 'filter': return !!this.filterError;
       case 'derive': return !!this.deriveDialogState.error;
       case 'sliceRows': return !this.sliceRowsDialogState.count || this.sliceRowsDialogState.count <= 0;
+      case 'index': return !this.indexDialogState.columnName || this.indexDialogState.columnName.trim() === '';
       case 'regexpMatch': return !!this.regexpMatchDialogState.error;
       case 'regexpExtract': return !!this.regexpExtractDialogState.error;
       case 'split': return !!this.splitDialogState.error;
@@ -2094,6 +2107,7 @@ export class ChumakApp implements AppState {
       case 'filter': await this.applyFilterTransform(); break;
       case 'sort': await this.applySortTransform(); break;
       case 'sliceRows': await this.applySliceRowsTransform(); break;
+      case 'index': await this.applyIndexTransform(); break;
       case 'select': await this.applySelectTransform(); break;
       case 'remove': await this.applyRemoveTransform(); break;
       case 'rename': await this.applyRenameTransform(); break;
