@@ -651,6 +651,7 @@ export class ChumakApp implements AppState {
       serializeNested: this.importDialogState.serializeNested ?? true,
     };
     this.activeDialog = 'import-csv';
+    this.reSnapshot();
   }
 
   updateJsonPath() {
@@ -780,6 +781,7 @@ export class ChumakApp implements AppState {
       error: null,
     };
     this.activeDialog = 'import-url';
+    this.reSnapshot();
   }
 
   async fetchAndImportFromUrl() {
@@ -827,7 +829,7 @@ export class ChumakApp implements AppState {
       const file = new File([text], fileName, { type: 'text/csv' });
 
       // Close URL dialog and show the standard import dialog with the fetched data
-      this.closeDialog();
+      this.closeDialog(true);
       this.showImportDialog(file);
     } catch (error: any) {
       console.error('URL import error:', error);
@@ -984,7 +986,7 @@ export class ChumakApp implements AppState {
         file.name
       } (${(file.size / 1024).toFixed(1)} KB)`
     );
-    this.closeDialog();
+    this.closeDialog(true);
   }
 
   // ============================================================
@@ -1629,13 +1631,13 @@ export class ChumakApp implements AppState {
         actualRenames[oldName] = (newName as string).trim();
       }
     }
-    if (Object.keys(actualRenames).length === 0) { this.closeDialog(); return; }
+    if (Object.keys(actualRenames).length === 0) { this.closeDialog(true); return; }
     await this.runTransform('Rename', { rename: actualRenames });
   }
 
   async applyRemoveTransform() {
     const colsToRemove = this.columns.filter((_c, idx) => this.removedColumns[idx]);
-    if (colsToRemove.length === 0) { this.closeDialog(); return; }
+    if (colsToRemove.length === 0) { this.closeDialog(true); return; }
     if (colsToRemove.length === this.columns.length) { alert('Cannot remove all columns'); return; }
     await this.runTransform('Remove', { remove: colsToRemove });
   }
@@ -2087,22 +2089,30 @@ export class ChumakApp implements AppState {
   getDialogState(dialog: string) {
     switch (dialog) {
       case 'filter': return this.filterExpression;
-      case 'derive': return this.deriveDialogState;
+      case 'derive': return { columnName: this.deriveDialogState.columnName, expression: this.deriveDialogState.expression };
       case 'sliceRows': return this.sliceRowsDialogState;
       case 'index': return this.indexDialogState;
       case 'rename': return this.renameDialogState;
-      case 'aggregate': return this.aggregateDialogState;
-      case 'join': return { ...this.joinDialogState, rightModel: this.joinDialogState.rightModel?.id, availableTargets: null };
+      case 'aggregate': return { groupBy: this.aggregateDialogState.groupBy, aggregations: this.aggregateDialogState.aggregations };
+      case 'join': return { rightModel: this.joinDialogState.rightModel?.id, joinType: this.joinDialogState.joinType, keyPairs: this.joinDialogState.keyPairs, suffixes: this.joinDialogState.suffixes };
       case 'fold': return this.foldDialogState;
-      case 'pivot': return this.pivotDialogState;
+      case 'pivot': return { rowColumns: this.pivotDialogState.rowColumns, columnColumn: this.pivotDialogState.columnColumn, valueColumn: this.pivotDialogState.valueColumn, aggregation: this.pivotDialogState.aggregation, options: this.pivotDialogState.options };
       case 'sort': return this.sortDialogState;
       case 'remove': return this.removedColumns;
       case 'select': return { cols: this.selectedColumns, pattern: this.selectPatternText, mode: this.selectPatternMode, type: this.selectPatternMatchType };
-      case 'replace': return this.replaceDialogState;
-      case 'split': return this.splitDialogState;
-      case 'regexpMatch': return this.regexpMatchDialogState;
-      case 'regexpExtract': return this.regexpExtractDialogState;
+      case 'replace': return { column: this.replaceDialogState.column, findValue: this.replaceDialogState.findValue, replaceValue: this.replaceDialogState.replaceValue };
+      case 'split': return { column: this.splitDialogState.column, delimiter: this.splitDialogState.delimiter, isRegex: this.splitDialogState.isRegex, mode: this.splitDialogState.mode, maxColumns: this.splitDialogState.maxColumns, keepOriginal: this.splitDialogState.keepOriginal, columnRenames: this.splitDialogState.columnRenames };
+      case 'regexpMatch': return { sourceColumn: this.regexpMatchDialogState.sourceColumn, pattern: this.regexpMatchDialogState.pattern, columnName: this.regexpMatchDialogState.columnName };
+      case 'regexpExtract': return { sourceColumn: this.regexpExtractDialogState.sourceColumn, pattern: this.regexpExtractDialogState.pattern, columnName: this.regexpExtractDialogState.columnName, group: this.regexpExtractDialogState.group };
+      case 'import-csv': return { sourceName: this.importDialogState.sourceName, headerMode: this.importDialogState.headerMode, delimiter: this.importDialogState.delimiter, customHeaders: this.importDialogState.customHeaders, jsonPath: this.importDialogState.jsonPath, flattenJson: this.importDialogState.flattenJson, serializeNested: this.importDialogState.serializeNested };
+      case 'import-url': return { url: this.importUrlDialogState.url };
       default: return null;
+    }
+  }
+
+  reSnapshot() {
+    if (this.activeDialog) {
+      this.dialogSnapshot = JSON.stringify(this.getDialogState(this.activeDialog));
     }
   }
 
@@ -2110,7 +2120,7 @@ export class ChumakApp implements AppState {
     this.activeDialog = dialogName;
     this.initDialogState(dialogName);
     this.clearColumnSelection();
-    this.dialogSnapshot = JSON.stringify(this.getDialogState(dialogName));
+    this.reSnapshot();
   }
 
   private initDialogState(dialogName: string) {
@@ -2261,9 +2271,10 @@ export class ChumakApp implements AppState {
   }
 
   hasUnsavedChanges() {
-    if (!this.activeDialog) return false;
-    const currentState = JSON.stringify(this.getDialogState(this.activeDialog));
-    return currentState !== this.dialogSnapshot;
+    if (!this.activeDialog || this.dialogSnapshot === null) return false;
+    const current = this.getDialogState(this.activeDialog);
+    if (current === null) return false;
+    return JSON.stringify(current) !== this.dialogSnapshot;
   }
 
   closeDialog(force = false) {
@@ -2416,6 +2427,7 @@ export class ChumakApp implements AppState {
     if (!this.selectedColumn) return;
     this.openDialog('filter');
     this.filterExpression = `${this.selectedColumn} == `;
+    this.reSnapshot();
     setTimeout(() => {
       const input = document.querySelector('.modal input[x-model="filterExpression"]') as HTMLInputElement;
       if (input) {
@@ -2454,6 +2466,7 @@ export class ChumakApp implements AppState {
     const col = this.selectedColumn;
     this.openDialog('split');
     this.splitDialogState.column = col;
+    this.reSnapshot();
     // @ts-ignore
     const detected = this.detectDelimiter(col);
     if (detected) {
@@ -2474,6 +2487,7 @@ export class ChumakApp implements AppState {
     const { col, value } = this.selectedCell;
     this.openDialog('replace');
     this.replaceDialogState = { column: col, findValue: value, replaceValue: '' };
+    this.reSnapshot();
     setTimeout(() => {
       const input = document.querySelector('.slide-panel input[x-model="replaceDialogState.replaceValue"]') as HTMLInputElement;
       if (input) input.focus();

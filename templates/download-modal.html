@@ -11,7 +11,7 @@
 
   <button
     class="button button--secondary"
-    @click="exportCSV(); closeDialog()"
+    @click="exportCSV(); closeDialog(true)"
     style="
       justify-content: flex-start;
       gap: var(--space-md);
@@ -36,7 +36,7 @@
 
   <button
     class="button button--secondary"
-    @click="exportDataJSON(); closeDialog()"
+    @click="exportDataJSON(); closeDialog(true)"
     style="
       justify-content: flex-start;
       gap: var(--space-md);
@@ -61,7 +61,7 @@
 
   <button
     class="button button--secondary"
-    @click="exportWorkflowJSON(); closeDialog()"
+    @click="exportWorkflowJSON(); closeDialog(true)"
     style="
       justify-content: flex-start;
       gap: var(--space-md);
