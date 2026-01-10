@@ -9,15 +9,15 @@
   border: none;
 
   &--primary {
-    background: var(--color-midnight-blue);
+    background: var(--color-button-primary);
     color: var(--color-white);
 
     &:hover {
-      background: #004578;
+      background: var(--color-button-primary-hover);
     }
 
     &:active {
-      background: #002a4a;
+      background: var(--color-button-primary-active);
     }
 
     &:disabled,
@@ -35,11 +35,11 @@
     border: var(--border-width) solid var(--border-color);
 
     &:hover {
-      background: rgba(0, 187, 206, 0.05);
+      background: rgba(var(--color-cyan-rgb), 0.05);
     }
 
     &:active {
-      background: rgba(0, 187, 206, 0.1);
+      background: rgba(var(--color-cyan-rgb), 0.1);
     }
 
     &:disabled {
@@ -59,7 +59,7 @@
     gap: 6px;
 
     &:hover:not(:disabled) {
-      background: rgba(0, 187, 206, 0.08);
+      background: rgba(var(--color-cyan-rgb), 0.08);
       border-color: var(--color-cyan);
     }
 
@@ -73,7 +73,7 @@
     color: var(--color-red);
 
     &:hover:not(:disabled) {
-      background: rgba(241, 91, 67, 0.1);
+      background: rgba(var(--color-red-rgb), 0.1);
       border-color: var(--color-red);
     }
   }
@@ -96,7 +96,7 @@
 
     &:hover {
       text-decoration: underline;
-      background: rgba(0, 187, 206, 0.05);
+      background: rgba(var(--color-cyan-rgb), 0.05);
     }
   }
 

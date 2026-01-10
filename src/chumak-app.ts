@@ -36,6 +36,7 @@ export class ChumakApp implements AppState {
   edaStats: any = null;
   edaChartView: 'boxplot' | 'histogram' = 'boxplot';
   edaBrushSelection: any = null;
+  theme: 'chumak' | 'blues' = 'chumak';
 
   // Transformation status
   isTransforming = false;
@@ -163,6 +164,8 @@ export class ChumakApp implements AppState {
 
     const uxSettings = loadUXSettings();
     this.pageSize = uxSettings.pagination.pageSize;
+    this.theme = uxSettings.theme;
+    this.applyTheme();
 
     const { sources, models } = await loadInitialData();
     this.sources = sources;
@@ -249,6 +252,16 @@ export class ChumakApp implements AppState {
     this.transformMessage = '';
   }
 
+  applyTheme() {
+    document.documentElement.setAttribute('data-theme', this.theme);
+  }
+
+  switchTheme(theme: 'blues' | 'chumak') {
+    this.theme = theme;
+    this.applyTheme();
+    updateUXSetting('theme', '', theme); // updateUXSetting in current impl takes category, key, value. Category is 'theme'? No, category is main property.
+  }
+
   // ============================================================
   // Model & Source Management
   // ============================================================
@@ -269,6 +282,7 @@ export class ChumakApp implements AppState {
       { id: 'filter-modal-container', url: 'templates/filter-modal.html' },
       { id: 'regexp-match-modal-container', url: 'templates/regexp-match-modal.html' },
       { id: 'regexp-extract-modal-container', url: 'templates/regexp-extract-modal.html' },
+      { id: 'settings-modal-container', url: 'templates/settings-modal.html' },
     ];
 
     for (const template of templates) {

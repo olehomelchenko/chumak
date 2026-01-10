@@ -29,7 +29,7 @@
 
     &:hover:not(:disabled) {
       color: var(--color-midnight-blue);
-      background: rgba(0, 187, 206, 0.05);
+      background: rgba(var(--color-cyan-rgb), 0.05);
     }
 
     &--active {
@@ -80,12 +80,12 @@
     min-width: 60px;
 
     &:hover:not(:disabled) {
-      background: rgba(0, 187, 206, 0.08);
+      background: rgba(var(--color-cyan-rgb), 0.08);
       border-color: var(--color-cyan);
     }
 
     &:active:not(:disabled) {
-      background: rgba(0, 187, 206, 0.15);
+      background: rgba(var(--color-cyan-rgb), 0.15);
     }
 
     .iconify {

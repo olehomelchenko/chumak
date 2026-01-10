@@ -48,7 +48,7 @@
   &:hover {
     border-color: var(--color-yellow);
     color: #b5860a;
-    background: rgba(228, 229, 65, 0.1);
+    background: rgba(var(--color-yellow-rgb), 0.1);
   }
 }
 
@@ -60,7 +60,7 @@
   border: 2px solid var(--color-yellow);
   border-radius: var(--border-radius);
   padding: var(--space-sm);
-  background: rgba(228, 229, 65, 0.08);
+  background: rgba(var(--color-yellow-rgb), 0.08);
 }
 
 .json-edit-warning {
@@ -68,7 +68,11 @@
   align-items: flex-start;
   gap: var(--space-sm);
   padding: var(--space-sm) var(--space-md);
-  background: linear-gradient(135deg, rgba(228, 229, 65, 0.2) 0%, rgba(241, 91, 67, 0.15) 100%);
+  background: linear-gradient(
+    135deg,
+    rgba(var(--color-yellow-rgb), 0.2) 0%,
+    rgba(var(--color-red-rgb), 0.15) 100%
+  );
   border: 1px solid var(--color-yellow);
   border-radius: var(--border-radius);
 
@@ -104,23 +108,23 @@
   &:focus {
     outline: none;
     border-color: var(--color-yellow);
-    box-shadow: 0 0 0 2px rgba(228, 229, 65, 0.3);
+    box-shadow: 0 0 0 2px rgba(var(--color-yellow-rgb), 0.3);
   }
 
   &--error {
     border-color: var(--color-dark-red);
-    background: rgba(211, 62, 44, 0.03);
+    background: rgba(var(--color-dark-red-rgb), 0.03);
 
     &:focus {
       border-color: var(--color-dark-red);
-      box-shadow: 0 0 0 2px rgba(211, 62, 44, 0.2);
+      box-shadow: 0 0 0 2px rgba(var(--color-dark-red-rgb), 0.2);
     }
   }
 }
 
 .json-edit-error {
   padding: var(--space-xs) var(--space-sm);
-  background: rgba(211, 62, 44, 0.08);
+  background: rgba(var(--color-dark-red-rgb), 0.08);
   border: 1px solid var(--color-red);
   border-radius: var(--border-radius);
   color: var(--color-dark-red);

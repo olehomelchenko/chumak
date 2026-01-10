@@ -8,9 +8,20 @@ body {
   font-family: var(--font-family);
   font-size: var(--font-size-base);
   line-height: var(--line-height-normal);
-  color: var(--color-midnight-blue);
+  color: var(--color-text);
   background: var(--color-white);
   overflow: hidden;
+}
+
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-family: var(--font-family-heading);
+  font-weight: var(--font-weight-medium);
+  margin: 0;
 }
 
 /* Alpine.js cloak */

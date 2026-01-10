@@ -61,7 +61,7 @@
   transition: background var(--transition-fast);
 
   &:hover {
-    background: rgba(0, 187, 206, 0.05);
+    background: rgba(var(--color-cyan-rgb), 0.05);
   }
 
   input[type='checkbox'] {

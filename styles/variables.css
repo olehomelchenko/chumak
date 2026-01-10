@@ -1,19 +1,53 @@
 :root {
-  /* Colors - KSE Palette */
-  --color-midnight-blue: #003964;
-  --color-cyan: #00bbce;
-  --color-green: #a7c539;
-  --color-yellow: #e4e541;
-  --color-red: #f15b43;
-  --color-dark-red: #d33e2c;
-  --color-white: #ffffff;
-  --color-light-gray: #f5f5f5;
-  --color-medium-gray: #c8c8c8;
-  --color-dark-gray: #646464;
+  /* Palettes - KSE */
+  --palette-kse-midnight-blue: #003964;
+  --palette-kse-cyan: #00bbce;
+  --palette-kse-green: #a7c539;
+  --palette-kse-yellow: #e4e541;
+  --palette-kse-red: #f15b43;
+  --palette-kse-dark-red: #d33e2c;
+  --palette-kse-white: #ffffff;
+  --palette-kse-light-gray: #f5f5f5;
+  --palette-kse-medium-gray: #c8c8c8;
+  --palette-kse-dark-gray: #646464;
 
-  /* Typography */
+  /* Palettes - Chumak Custom */
+  --palette-chumak-blue: #1789fc;
+  --palette-chumak-yellow: #fdb833;
+  --palette-chumak-text: #2d2a26;
+  --palette-chumak-bg: #f5f3f0;
+  --palette-chumak-white: #ffffff;
+  --palette-chumak-gray-100: #e7e6e4;
+  --palette-chumak-gray-200: #d0cdc8;
+  --palette-chumak-gray-300: #b8b4ad;
+
+  /* Default Theme (Blues/KSE) */
+  --color-midnight-blue: var(--palette-kse-midnight-blue);
+  --color-midnight-blue-rgb: 0, 57, 100;
+  --color-cyan: var(--palette-kse-cyan);
+  --color-cyan-rgb: 0, 187, 206;
+  --color-green: var(--palette-kse-green);
+  --color-green-rgb: 167, 197, 57;
+  --color-yellow: var(--palette-kse-yellow);
+  --color-yellow-rgb: 228, 229, 65;
+  --color-red: var(--palette-kse-red);
+  --color-red-rgb: 241, 91, 67;
+  --color-dark-red: var(--palette-kse-dark-red);
+  --color-dark-red-rgb: 211, 62, 44;
+  --color-white: var(--palette-kse-white);
+  --color-light-gray: var(--palette-kse-light-gray);
+  --color-medium-gray: var(--palette-kse-medium-gray);
+  --color-dark-gray: var(--palette-kse-dark-gray);
+  --color-text: var(--color-midnight-blue);
+
+  --color-button-primary: var(--color-midnight-blue);
+  --color-button-primary-hover: #004578;
+  --color-button-primary-active: #002a4a;
+
+  /* Typography Defaults */
   --font-family: Arial, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-family-mono: 'SF Mono', 'Consolas', 'Monaco', monospace;
+  --font-family-heading: var(--font-family);
 
   --font-size-xs: 12px;
   --font-size-sm: 13px;
@@ -50,4 +84,31 @@
   /* Transitions */
   --transition-fast: 150ms ease-out;
   --transition-normal: 200ms ease-out;
+}
+
+/* Chumak Theme Overrides */
+[data-theme='chumak'] {
+  --color-midnight-blue: var(--palette-chumak-text);
+  --color-midnight-blue-rgb: 45, 42, 38;
+  --color-cyan: var(--palette-chumak-blue);
+  --color-cyan-rgb: 23, 137, 252;
+  --color-white: var(--palette-chumak-bg);
+  --color-light-gray: var(--palette-chumak-gray-100);
+  --color-medium-gray: var(--palette-chumak-gray-200);
+  --color-dark-gray: var(--palette-chumak-text);
+  --color-text: var(--palette-chumak-text);
+  --color-yellow: var(--palette-chumak-yellow);
+  --color-yellow-rgb: 253, 184, 51;
+
+  --color-button-primary: var(--palette-chumak-blue);
+  --color-button-primary-hover: #1579e0; /* Slightly darker blue */
+  --color-button-primary-active: #1268c1;
+
+  --border-color: var(--palette-chumak-gray-200);
+  --border-radius: 0;
+  --border-radius-lg: 0;
+
+  --font-family: 'IBM Plex Sans', sans-serif;
+  --font-family-mono: 'IBM Plex Mono', monospace;
+  --font-family-heading: 'Finlandica', sans-serif;
 }

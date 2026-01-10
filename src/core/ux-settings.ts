@@ -8,6 +8,7 @@ export interface UXSettings {
   pagination: {
     pageSize: number;
   };
+  theme: 'blues' | 'chumak';
 }
 
 // Default settings
@@ -15,6 +16,7 @@ const DEFAULT_SETTINGS: UXSettings = {
   pagination: {
     pageSize: 500,
   },
+  theme: 'chumak',
 };
 
 /**
@@ -30,6 +32,7 @@ export function loadUXSettings(): UXSettings {
           ...DEFAULT_SETTINGS.pagination,
           ...parsed.pagination,
         },
+        theme: parsed.theme || DEFAULT_SETTINGS.theme,
       };
     }
   } catch (error) {
@@ -57,11 +60,15 @@ export function saveUXSettings(settings: UXSettings): void {
 export function updateUXSetting(category: keyof UXSettings, key: string, value: any): UXSettings {
   const settings = loadUXSettings();
 
-  if (!(settings as any)[category]) {
-    (settings as any)[category] = {};
+  if (key === '') {
+    (settings as any)[category] = value;
+  } else {
+    if (!(settings as any)[category]) {
+      (settings as any)[category] = {};
+    }
+    (settings as any)[category][key] = value;
   }
-
-  (settings as any)[category][key] = value;
+  
   saveUXSettings(settings);
 
   return settings;

@@ -8,6 +8,14 @@
     <link rel="stylesheet" href="styles/index.css" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
 
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Finlandica:ital,wght@0,400..700;1,400..700&family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=IBM+Plex+Sans:ital,wght@0,100..700;1,100..700&display=swap"
+      rel="stylesheet"
+    />
+
     <!-- Core Infrastructure -->
     <script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
     <script type="module" src="/src/main.ts"></script>
@@ -58,6 +66,14 @@
         </div>
 
         <div style="margin-left: auto; display: flex; gap: 0.5rem; align-items: center">
+          <button
+            class="button button--secondary button--small"
+            @click="openDialog('settings')"
+            title="Application Settings"
+          >
+            <span class="iconify" data-icon="carbon:settings"></span>
+            <span>Settings</span>
+          </button>
           <button
             class="button button--secondary button--small"
             @click="clearAllData()"
@@ -1428,5 +1444,6 @@
         </div>
       </div>
     </footer>
+    <div id="settings-modal-container"></div>
   </body>
 </html>

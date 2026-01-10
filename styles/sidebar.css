@@ -53,11 +53,11 @@
   transition: background var(--transition-fast);
 
   &:hover {
-    background: rgba(0, 187, 206, 0.05);
+    background: rgba(var(--color-cyan-rgb), 0.05);
   }
 
   &--active {
-    background: rgba(0, 187, 206, 0.1);
+    background: rgba(var(--color-cyan-rgb), 0.1);
   }
 
   &--source {
@@ -140,7 +140,7 @@
   position: relative;
 
   &:hover {
-    background: rgba(0, 187, 206, 0.05);
+    background: rgba(var(--color-cyan-rgb), 0.05);
 
     .step-item__delete,
     .step-item__edit {
@@ -149,7 +149,7 @@
   }
 
   &--active {
-    background: rgba(0, 187, 206, 0.1);
+    background: rgba(var(--color-cyan-rgb), 0.1);
   }
 
   &__number {
@@ -185,7 +185,7 @@
     border-radius: var(--border-radius);
 
     &:hover {
-      background: rgba(0, 187, 206, 0.1);
+      background: rgba(var(--color-cyan-rgb), 0.1);
     }
   }
 
@@ -207,7 +207,7 @@
     border-radius: var(--border-radius);
 
     &:hover {
-      background: rgba(211, 62, 44, 0.1);
+      background: rgba(var(--color-dark-red-rgb), 0.1);
     }
   }
 }
@@ -227,7 +227,7 @@
   transition: all var(--transition-fast);
 
   &:hover {
-    background: rgba(0, 187, 206, 0.05);
+    background: rgba(var(--color-cyan-rgb), 0.05);
     border-color: var(--color-cyan);
   }
 }

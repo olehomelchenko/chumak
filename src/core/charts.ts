@@ -68,7 +68,7 @@ export const ChartsEngine = {
             extent: 1.5,
             ticks: false,
             size: 30,
-            color: '#00BBCE',
+            color: '#1789fc',
           },
           encoding: {},
         },
@@ -125,7 +125,8 @@ export const ChartsEngine = {
             domain: aggregatedData.map((d) => d.value),
             range: aggregatedData.map((d, i) => {
               if (d.isOther) return '#C8C8C8';
-              const colors = ['#003964', '#00BBCE', '#A7C539', '#E4E541', '#F15B43'];
+              // Mix of Chumak and KSE colors that look good in both
+              const colors = ['#1789fc', '#fdb833', '#a7c539', '#00bbce', '#f15b43'];
               return colors[i] || '#C8C8C8';
             }),
           },
@@ -213,7 +214,7 @@ export const ChartsEngine = {
           transform: [{ filter: { param: 'brush' } }],
           mark: {
             type: 'bar',
-            color: '#00BBCE',
+            color: '#1789fc',
           },
         },
       ],

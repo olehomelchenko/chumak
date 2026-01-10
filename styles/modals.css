@@ -4,7 +4,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 57, 100, 0.4);
+  background: rgba(var(--color-midnight-blue-rgb), 0.4);
   display: flex;
   align-items: center;
   justify-content: center;
