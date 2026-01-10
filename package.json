@@ -15,7 +15,7 @@
     "deploy": "gh-pages -d dist"
   },
   "lint-staged": {
-    "**/*.{js,css,html,md}": "prettier --write"
+    "**/*.{js,ts,css,html,json,md,yml}": "prettier --write"
   },
   "dependencies": {
     "alpinejs": "^3.14.8",
