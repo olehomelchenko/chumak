@@ -279,8 +279,8 @@ export class ChumakApp implements AppState {
   // Model & Source Management
   // ============================================================
 
-  async loadTemplates() {
-    const templates = [
+  private getTemplateConfigs() {
+    return [
       { id: 'join-modal-container', url: 'templates/join-modal.html' },
       { id: 'aggregate-modal-container', url: 'templates/aggregate-modal.html' },
       { id: 'import-csv-modal-container', url: 'templates/import-csv-modal.html' },
@@ -299,6 +299,10 @@ export class ChumakApp implements AppState {
       { id: 'import-url-modal-container', url: 'templates/import-url-modal.html' },
       { id: 'settings-modal-container', url: 'templates/settings-modal.html' },
     ];
+  }
+
+  async loadTemplates() {
+    const templates = this.getTemplateConfigs();
 
     for (const template of templates) {
       try {
@@ -1391,6 +1395,35 @@ export class ChumakApp implements AppState {
     }
   }
 
+  async runTransform(label: string, transform: any, closeDialog = true) {
+    await this.startTransformation(label);
+    try {
+      const table = aq.from(this.currentData!);
+      const context = { sources: this.sources, models: this.models };
+      const result = applyTransform(table, transform, this.columns, context);
+      await this.applyStepResult(transform, result, closeDialog);
+      return true;
+    } catch (error: any) {
+      console.error(`${label} error:`, error);
+      alert(`Error applying ${label.toLowerCase()}: ${error.message}`);
+      return false;
+    } finally {
+      this.endTransformation();
+    }
+  }
+
+  validateExpression(expr: string): string | null {
+    const trimmed = expr.trim();
+    if (!trimmed) return null;
+    try {
+      const ast = parseExpression(trimmed);
+      const validation = validateAST(ast, this.columns);
+      return validation.error ? formatError(validation.error, trimmed) : null;
+    } catch (error: any) {
+      return formatError(error, trimmed);
+    }
+  }
+
   getColumnType(colName: string) {
     const schema = this.getActiveSchema();
     if (schema) {
@@ -1423,39 +1456,11 @@ export class ChumakApp implements AppState {
       alert('Please select at least one column');
       return;
     }
-
-    await this.startTransformation('Applying Select...');
-    try {
-      const transform = { select: selectedCols };
-      const table = aq.from(this.currentData!);
-      const context = { sources: this.sources, models: this.models };
-      const result = applyTransform(table, transform, this.columns, context);
-      await this.applyStepResult(transform, result);
-    } catch (error: any) {
-      console.error('Transform error:', error);
-      alert('Error applying transform: ' + error.message);
-    } finally {
-      this.endTransformation();
-    }
+    await this.runTransform('Select', { select: selectedCols });
   }
 
   validateFilterExpression() {
-    const expr = this.filterExpression.trim();
-    if (!expr) {
-      this.filterError = null;
-      return;
-    }
-    try {
-      const ast = parseExpression(expr);
-      const validation = validateAST(ast, this.columns);
-      if (validation.error) {
-        this.filterError = formatError(validation.error, expr);
-      } else {
-        this.filterError = null;
-      }
-    } catch (error: any) {
-      this.filterError = formatError(error, expr);
-    }
+    this.filterError = this.validateExpression(this.filterExpression);
   }
 
   async applyFilterTransform() {
@@ -1469,39 +1474,12 @@ export class ChumakApp implements AppState {
       return;
     }
 
-    await this.startTransformation('Applying Filter...');
-    try {
-      const transform = { filter: expr };
-      const table = aq.from(this.currentData!);
-      const context = { sources: this.sources, models: this.models };
-      const result = applyTransform(table, transform, this.columns, context);
-      await this.applyStepResult(transform, result);
-    } catch (error: any) {
-      console.error('Filter transform error:', error);
-      alert('Error applying filter: ' + error.message);
-    } finally {
-      this.endTransformation();
-    }
+    const transform = { filter: expr };
+    await this.runTransform('Filter', transform);
   }
 
   validateDeriveExpression() {
-    const { expression } = this.deriveDialogState;
-    const expr = expression.trim();
-    if (!expr) {
-      this.deriveDialogState.error = null;
-      return;
-    }
-    try {
-      const ast = parseExpression(expr);
-      const validation = validateAST(ast, this.columns);
-      if (validation.error) {
-        this.deriveDialogState.error = formatError(validation.error, expr);
-      } else {
-        this.deriveDialogState.error = null;
-      }
-    } catch (error: any) {
-      this.deriveDialogState.error = formatError(error, expr);
-    }
+    this.deriveDialogState.error = this.validateExpression(this.deriveDialogState.expression);
   }
 
   async applyDeriveTransform() {
@@ -1518,19 +1496,8 @@ export class ChumakApp implements AppState {
       if (!confirm(`Column "${columnName}" already exists. It will be overwritten. Continue?`)) return;
     }
 
-    await this.startTransformation('Applying Derive...');
-    try {
-      const transform = { derive: { [columnName]: expression } };
-      const table = aq.from(this.currentData!);
-      const context = { sources: this.sources, models: this.models };
-      const result = applyTransform(table, transform, this.columns, context);
-      await this.applyStepResult(transform, result);
-    } catch (error: any) {
-      console.error('Derive transform error:', error);
-      alert('Error applying derive: ' + error.message);
-    } finally {
-      this.endTransformation();
-    }
+    const transform = { derive: { [columnName]: expression } };
+    await this.runTransform('Derive', transform);
   }
 
   quoteColumnRef(colName: string) {
@@ -1542,6 +1509,20 @@ export class ChumakApp implements AppState {
 
   escapePattern(pattern: string) {
     return pattern.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
+  }
+
+  formatLiteral(value: any, type?: string) {
+    if (value === null || value === undefined) return 'null';
+    if (type === 'number' || type === 'integer' || type === 'float' || typeof value === 'number') return String(value);
+    return `"${String(value).replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
+  }
+
+  preparePreviewData(table: any, limit = 100) {
+    return {
+      rows: table.slice(0, limit).objects(),
+      columns: table.columnNames(),
+      totalRows: table.numRows(),
+    };
   }
 
   validateRegexpPattern(pattern: string) {
@@ -1573,22 +1554,10 @@ export class ChumakApp implements AppState {
       if (!confirm(`Column "${columnName}" already exists. It will be overwritten. Continue?`)) return;
     }
 
-    await this.startTransformation('Applying Regexp Match...');
-    try {
-      const colRef = this.quoteColumnRef(sourceColumn);
-      const escapedPattern = this.escapePattern(pattern);
-      const expression = `regexp_match(${colRef}, "${escapedPattern}")`;
-      const transform = { derive: { [columnName]: expression } };
-      const table = aq.from(this.currentData!);
-      const context = { sources: this.sources, models: this.models };
-      const result = applyTransform(table, transform, this.columns, context);
-      await this.applyStepResult(transform, result);
-    } catch (error: any) {
-      console.error('Regexp match error:', error);
-      alert('Error applying regexp match: ' + error.message);
-    } finally {
-      this.endTransformation();
-    }
+    const colRef = this.quoteColumnRef(sourceColumn);
+    const escapedPattern = this.escapePattern(pattern);
+    const expression = `regexp_match(${colRef}, "${escapedPattern}")`;
+    await this.runTransform('Regexp Match', { derive: { [columnName]: expression } });
   }
 
   async applyRegexpExtractTransform() {
@@ -1600,42 +1569,17 @@ export class ChumakApp implements AppState {
       if (!confirm(`Column "${columnName}" already exists. It will be overwritten. Continue?`)) return;
     }
 
-    await this.startTransformation('Applying Regexp Extract...');
-    try {
-      const colRef = this.quoteColumnRef(sourceColumn);
-      const escapedPattern = this.escapePattern(pattern);
-      const groupNum = parseInt(group, 10) || 0;
-      const expression = `regexp_extract(${colRef}, "${escapedPattern}", ${groupNum})`;
-      const transform = { derive: { [columnName]: expression } };
-      const table = aq.from(this.currentData!);
-      const context = { sources: this.sources, models: this.models };
-      const result = applyTransform(table, transform, this.columns, context);
-      await this.applyStepResult(transform, result);
-    } catch (error: any) {
-      console.error('Regexp extract error:', error);
-      alert('Error applying regexp extract: ' + error.message);
-    } finally {
-      this.endTransformation();
-    }
+    const colRef = this.quoteColumnRef(sourceColumn);
+    const escapedPattern = this.escapePattern(pattern);
+    const groupNum = parseInt(group, 10) || 0;
+    const expression = `regexp_extract(${colRef}, "${escapedPattern}", ${groupNum})`;
+    await this.runTransform('Regexp Extract', { derive: { [columnName]: expression } });
   }
 
   async applySortTransform() {
     const { field, order } = this.sortDialogState;
     if (!field) { alert('Please select a column to sort by'); return; }
-
-    await this.startTransformation('Sorting data...');
-    try {
-      const transform = { sort: { field, order } };
-      const table = aq.from(this.currentData!);
-      const context = { sources: this.sources, models: this.models };
-      const result = applyTransform(table, transform, this.columns, context);
-      await this.applyStepResult(transform, result);
-    } catch (error: any) {
-      console.error('Sort transform error:', error);
-      alert('Error applying sort: ' + error.message);
-    } finally {
-      this.endTransformation();
-    }
+    await this.runTransform('Sort', { sort: { field, order } });
   }
 
   async applyRenameTransform() {
@@ -1647,64 +1591,27 @@ export class ChumakApp implements AppState {
       }
     }
     if (Object.keys(actualRenames).length === 0) { this.closeDialog(); return; }
-
-    await this.startTransformation('Applying Rename...');
-    try {
-      const transform = { rename: actualRenames };
-      const table = aq.from(this.currentData!);
-      const context = { sources: this.sources, models: this.models };
-      const result = applyTransform(table, transform, this.columns, context);
-      await this.applyStepResult(transform, result);
-    } catch (error: any) {
-      console.error('Rename transform error:', error);
-      alert('Error applying rename: ' + error.message);
-    } finally {
-      this.endTransformation();
-    }
+    await this.runTransform('Rename', { rename: actualRenames });
   }
 
   async applyRemoveTransform() {
     const colsToRemove = this.columns.filter((_c, idx) => this.removedColumns[idx]);
     if (colsToRemove.length === 0) { this.closeDialog(); return; }
     if (colsToRemove.length === this.columns.length) { alert('Cannot remove all columns'); return; }
-
-    await this.startTransformation('Removing columns...');
-    try {
-      const transform = { remove: colsToRemove };
-      const table = aq.from(this.currentData!);
-      const context = { sources: this.sources, models: this.models };
-      const result = applyTransform(table, transform, this.columns, context);
-      await this.applyStepResult(transform, result);
-    } catch (error: any) {
-      console.error('Remove transform error:', error);
-      alert('Error applying remove: ' + error.message);
-    } finally {
-      this.endTransformation();
-    }
+    await this.runTransform('Remove', { remove: colsToRemove });
   }
 
   async applyFoldTransform() {
     const { keyName, valueName, selectedColumns } = this.foldDialogState;
     const colsToFold = this.columns.filter((_c, idx) => selectedColumns[idx]);
     if (colsToFold.length === 0) { alert('Please select at least one column to unpivot'); return; }
-
-    await this.startTransformation('Unpivoting data...');
-    try {
-      const transform = {
-        fold: {
-          columns: colsToFold,
-          as: [keyName || 'key', valueName || 'value'],
-        },
-      };
-      const table = aq.from(this.currentData!);
-      const result = applyTransform(table, transform, this.columns);
-      await this.applyStepResult(transform, result);
-    } catch (error: any) {
-      console.error('Fold transform error:', error);
-      alert('Error applying unpivot: ' + error.message);
-    } finally {
-      this.endTransformation();
-    }
+    const transform = {
+      fold: {
+        columns: colsToFold,
+        as: [keyName || 'key', valueName || 'value'],
+      },
+    };
+    await this.runTransform('Fold', transform);
   }
 
   addAggregation() {
@@ -1752,13 +1659,7 @@ export class ChumakApp implements AppState {
       const step = this.constructAggregateStep();
       const table = aq.from(this.currentData!);
       const resultTable = applyTransform(table, step, this.columns);
-      const previewRows = resultTable.slice(0, 100).objects();
-      const previewCols = resultTable.columnNames();
-      this.aggregateDialogState.previewData = {
-        rows: previewRows,
-        columns: previewCols,
-        totalRows: resultTable.numRows(),
-      };
+      this.aggregateDialogState.previewData = this.preparePreviewData(resultTable, 100);
     } catch (error: any) {
       this.aggregateDialogState.previewError = error.message;
     } finally {
@@ -1767,16 +1668,11 @@ export class ChumakApp implements AppState {
   }
 
   async applyAggregateTransform() {
-    await this.startTransformation('Aggregating data...');
     try {
-      const step = this.constructAggregateStep();
-      const table = aq.from(this.currentData!);
-      const result = applyTransform(table, step, this.columns);
-      await this.applyStepResult(step, result);
+      const transform = this.constructAggregateStep();
+      await this.runTransform('Aggregate', transform);
     } catch (error: any) {
       alert(error.message);
-    } finally {
-      this.endTransformation();
     }
   }
 
@@ -1881,7 +1777,6 @@ export class ChumakApp implements AppState {
       if (completePairs.length === 0) { alert('Please specify at least one complete key pair'); return; }
     }
 
-    await this.startTransformation('Joining data...');
     try {
       const targetModel = this.models.find((m) => m.id === state.rightModel);
       if (targetModel && targetModel.steps.length > 0) {
@@ -1890,15 +1785,10 @@ export class ChumakApp implements AppState {
       }
       const completePairs = state.keyPairs.filter((pair: any) => pair[0] && pair[1]);
       const transform = { join: { right: state.rightModel, on: completePairs, how: state.joinType, suffixes: state.suffixes } };
-      const table = aq.from(this.currentData!);
-      const context = { sources: this.sources, models: this.models };
-      const result = applyTransform(table, transform, this.columns, context);
-      await this.applyStepResult(transform, result);
+      await this.runTransform('Join', transform);
     } catch (error: any) {
-      console.error('Join transform error:', error);
-      alert('Error applying join: ' + error.message);
-    } finally {
-      this.endTransformation();
+      console.error('Join transform setup error:', error);
+      alert('Error preparing join: ' + error.message);
     }
   }
 
@@ -1909,19 +1799,8 @@ export class ChumakApp implements AppState {
       if (!confirm('Replace null/empty values?')) return;
     }
 
-    await this.startTransformation('Replacing values...');
-    try {
-      const transform = { replace: { column: column, find: findValue, replace: replaceValue === '' ? null : replaceValue } };
-      const table = aq.from(this.currentData!);
-      const context = { sources: this.sources, models: this.models };
-      const result = applyTransform(table, transform, this.columns, context);
-      await this.applyStepResult(transform, result);
-    } catch (error: any) {
-      console.error('Replace transform error:', error);
-      alert('Error applying replace: ' + error.message);
-    } finally {
-      this.endTransformation();
-    }
+    const transform = { replace: { column: column, find: findValue, replace: replaceValue === '' ? null : replaceValue } };
+    await this.runTransform('Replace', transform);
   }
 
   detectDelimiter(column: string) {
@@ -2080,6 +1959,12 @@ export class ChumakApp implements AppState {
 
   openDialog(dialogName: string) {
     this.activeDialog = dialogName;
+    this.initDialogState(dialogName);
+    this.clearColumnSelection();
+    this.dialogSnapshot = JSON.stringify(this.getDialogState(dialogName));
+  }
+
+  private initDialogState(dialogName: string) {
     if (dialogName === 'select') {
       this.selectedColumns = this.columns.map(() => true);
       this.selectPatternText = '';
@@ -2127,8 +2012,6 @@ export class ChumakApp implements AppState {
     } else if (dialogName === 'regexpExtract') {
       this.regexpExtractDialogState = { columnName: '', sourceColumn: this.columns[0] || '', pattern: '', group: 0, error: null };
     }
-    this.clearColumnSelection();
-    this.dialogSnapshot = JSON.stringify(this.getDialogState(dialogName));
   }
 
   hasUnsavedChanges() {
@@ -2143,6 +2026,10 @@ export class ChumakApp implements AppState {
     }
     this.activeDialog = null;
     this.dialogSnapshot = null;
+    this.resetDialogStates();
+  }
+
+  resetDialogStates() {
     this.aggregateDialogState = { groupBy: [], aggregations: [], previewData: null, previewError: null, isPreviewing: false };
     this.joinDialogState = { rightModel: null, joinType: 'left', keyPairs: [[null, null]], suffixes: ['_x', '_y'], availableTargets: [], leftColumns: [], rightColumns: [], previewData: null, previewError: null, isPreviewing: false };
     this.importDialogState = { fileName: '', sourceName: '', rawPreviewData: [], previewHeaders: [], previewDataRows: [], headerMode: 'first-row', delimiter: ',', originalHeaders: [], customHeaders: [], duplicateWarning: '' };
@@ -2206,17 +2093,20 @@ export class ChumakApp implements AppState {
     this.edaBrushSelection = null;
   }
 
+  private calculateToolbarPosition(rect: DOMRect, toolbarWidth: number) {
+    const center = rect.left + rect.width / 2;
+    const windowWidth = window.innerWidth;
+    const margin = 12;
+    let x = Math.max(toolbarWidth / 2 + margin, Math.min(windowWidth - toolbarWidth / 2 - margin, center));
+    return { x: x, y: rect.top - 8, arrowOffset: center - x };
+  }
+
   updateToolbarPosition() {
     if (this.selectedColumn) {
       const header = document.querySelector(`.data-table__header[data-col="${this.selectedColumn}"]`);
       if (header) {
         const rect = header.getBoundingClientRect();
-        const center = rect.left + rect.width / 2;
-        const toolbarWidth = 200;
-        const windowWidth = window.innerWidth;
-        const margin = 12;
-        let x = Math.max(toolbarWidth / 2 + margin, Math.min(windowWidth - toolbarWidth / 2 - margin, center));
-        this.columnToolbarPos = { x: x, y: rect.top - 8, arrowOffset: center - x };
+        this.columnToolbarPos = this.calculateToolbarPosition(rect, 200);
       }
     }
     if (this.selectedCell) {
@@ -2224,12 +2114,8 @@ export class ChumakApp implements AppState {
       const cell = document.querySelector(`.data-table__cell[data-col="${this.selectedCell.col}"][data-row="${this.selectedCell.rowIdx}"]`);
       if (cell) {
         const rect = cell.getBoundingClientRect();
-        const center = rect.left + rect.width / 2;
         const toolbarWidth = ['number', 'integer', 'float'].includes(this.selectedCell.type) ? 220 : 80;
-        const windowWidth = window.innerWidth;
-        const margin = 12;
-        let x = Math.max(toolbarWidth / 2 + margin, Math.min(windowWidth - toolbarWidth / 2 - margin, center));
-        this.cellToolbarPos = { x: x, y: rect.top - 8, arrowOffset: center - x };
+        this.cellToolbarPos = this.calculateToolbarPosition(rect, toolbarWidth);
       }
     }
   }
@@ -2254,14 +2140,7 @@ export class ChumakApp implements AppState {
     if (!this.selectedCell) return;
     const { col, value, type } = this.selectedCell;
     let expr = '';
-    let formattedValue = value;
-    if (value === null || value === undefined) {
-      formattedValue = 'null';
-    } else if (type === 'number' || type === 'integer' || type === 'float') {
-      formattedValue = value;
-    } else {
-      formattedValue = `"${String(value).replace(/"/g, '\\"')}"`;
-    }
+    const formattedValue = this.formatLiteral(value, type);
     if (op === 'exact') expr = `[${col}] == ${formattedValue}`;
     else if (op === 'not') expr = `[${col}] != ${formattedValue}`;
     else if (op === 'gt') expr = `[${col}] > ${formattedValue}`;
