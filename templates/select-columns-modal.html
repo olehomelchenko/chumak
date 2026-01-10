@@ -1,116 +1,98 @@
-<!-- Select Columns Dialog -->
-<div x-show="activeDialog === 'select'" x-cloak>
-  <div class="slide-panel-backdrop" @click="closeDialog()"></div>
-  <div class="slide-panel" @click.stop>
-    <div class="slide-panel__header">
-      <h2 class="slide-panel__title">Select Columns</h2>
-      <button class="slide-panel__close" @click="closeDialog()" title="Close">×</button>
-    </div>
+<!-- Pattern Matching Section -->
+<div
+  class="form-group"
+  style="
+    margin-bottom: 1.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--color-border);
+  "
+>
+  <label class="form-label">Pattern Matching (optional):</label>
 
-    <div class="slide-panel__content">
-      <!-- Pattern Matching Section -->
-      <div
-        class="form-group"
-        style="
-          margin-bottom: 1.5rem;
-          padding-bottom: 1.5rem;
-          border-bottom: 1px solid var(--color-border);
-        "
-      >
-        <label class="form-label">Pattern Matching (optional):</label>
+  <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem">
+    <select
+      class="form-input"
+      x-model="selectPatternMode"
+      @change="applyColumnPattern()"
+      style="width: 120px"
+    >
+      <option value="include">Include</option>
+      <option value="exclude">Exclude</option>
+    </select>
 
-        <div style="display: flex; gap: 0.5rem; margin-bottom: 0.5rem">
-          <select
-            class="form-input"
-            x-model="selectPatternMode"
-            @change="applyColumnPattern()"
-            style="width: 120px"
-          >
-            <option value="include">Include</option>
-            <option value="exclude">Exclude</option>
-          </select>
+    <select
+      class="form-input"
+      x-model="selectPatternMatchType"
+      @change="applyColumnPattern()"
+      style="width: 140px"
+    >
+      <option value="prefix">Starts with</option>
+      <option value="suffix">Ends with</option>
+      <option value="exact">Exact match</option>
+    </select>
 
-          <select
-            class="form-input"
-            x-model="selectPatternMatchType"
-            @change="applyColumnPattern()"
-            style="width: 140px"
-          >
-            <option value="prefix">Starts with</option>
-            <option value="suffix">Ends with</option>
-            <option value="exact">Exact match</option>
-          </select>
+    <input
+      type="text"
+      class="form-input"
+      x-model="selectPatternText"
+      @input="applyColumnPattern()"
+      placeholder="e.g., sales_ or _2023"
+      style="flex: 1"
+    />
+  </div>
 
-          <input
-            type="text"
-            class="form-input"
-            x-model="selectPatternText"
-            @input="applyColumnPattern()"
-            placeholder="e.g., sales_ or _2023"
-            style="flex: 1"
-          />
-        </div>
+  <p class="form-help">
+    Use patterns to quickly select/deselect columns. Examples: "sales_" for columns starting with
+    "sales_", "_2023" for year columns
+  </p>
 
-        <p class="form-help">
-          Use patterns to quickly select/deselect columns. Examples: "sales_" for columns starting
-          with "sales_", "_2023" for year columns
-        </p>
+  <div
+    x-show="selectPatternText.trim() !== ''"
+    style="margin-top: 0.5rem; font-size: 0.875rem; color: var(--color-dark-gray)"
+  >
+    <span x-text="getPatternMatchInfo()"></span>
+  </div>
+</div>
 
-        <div
-          x-show="selectPatternText.trim() !== ''"
-          style="margin-top: 0.5rem; font-size: 0.875rem; color: var(--color-dark-gray)"
-        >
-          <span x-text="getPatternMatchInfo()"></span>
-        </div>
-      </div>
+<label class="form-label">Choose columns to keep:</label>
 
-      <label class="form-label">Choose columns to keep:</label>
+<div class="checkbox-list">
+  <template x-for="(column, index) in columns" :key="index">
+    <label class="checkbox-item">
+      <input type="checkbox" x-model="selectedColumns[index]" />
+      <span x-text="column"></span>
+    </label>
+  </template>
+</div>
 
-      <div class="checkbox-list">
-        <template x-for="(column, index) in columns" :key="index">
-          <label class="checkbox-item">
-            <input type="checkbox" x-model="selectedColumns[index]" />
-            <span x-text="column"></span>
-          </label>
+<div class="form-actions">
+  <button class="button button--text" @click="selectAllColumns()">Select All</button>
+  <button class="button button--text" @click="selectNoColumns()">Select None</button>
+</div>
+
+<div class="preview-section" x-show="getSelectedColumnsList().length > 0">
+  <div
+    class="preview-section__header"
+    x-text="`Preview (${getSelectedColumnsList().length} column${getSelectedColumnsList().length !== 1 ? 's' : ''})`"
+  ></div>
+  <div class="preview-table">
+    <table class="data-table data-table--compact">
+      <thead>
+        <tr>
+          <template x-for="column in getSelectedColumnsList()" :key="column">
+            <th class="data-table__header" x-text="column"></th>
+          </template>
+        </tr>
+      </thead>
+      <tbody>
+        <template x-for="(row, rowIndex) in currentData?.slice(0, 3) || []" :key="rowIndex">
+          <tr class="data-table__row">
+            <template x-for="column in getSelectedColumnsList()" :key="column">
+              <td class="data-table__cell" x-text="row[column]"></td>
+            </template>
+          </tr>
         </template>
-      </div>
-
-      <div class="form-actions">
-        <button class="button button--text" @click="selectAllColumns()">Select All</button>
-        <button class="button button--text" @click="selectNoColumns()">Select None</button>
-      </div>
-
-      <div class="preview-section" x-show="getSelectedColumnsList().length > 0">
-        <div
-          class="preview-section__header"
-          x-text="`Preview (${getSelectedColumnsList().length} column${getSelectedColumnsList().length !== 1 ? 's' : ''})`"
-        ></div>
-        <div class="preview-table">
-          <table class="data-table data-table--compact">
-            <thead>
-              <tr>
-                <template x-for="column in getSelectedColumnsList()" :key="column">
-                  <th class="data-table__header" x-text="column"></th>
-                </template>
-              </tr>
-            </thead>
-            <tbody>
-              <template x-for="(row, rowIndex) in currentData?.slice(0, 3) || []" :key="rowIndex">
-                <tr class="data-table__row">
-                  <template x-for="column in getSelectedColumnsList()" :key="column">
-                    <td class="data-table__cell" x-text="row[column]"></td>
-                  </template>
-                </tr>
-              </template>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-
-    <div class="slide-panel__footer">
-      <button class="button button--secondary" @click="closeDialog()">Cancel</button>
-      <button class="button button--primary" @click="applySelectTransform()">Apply</button>
-    </div>
+      </tbody>
+    </table>
   </div>
 </div>

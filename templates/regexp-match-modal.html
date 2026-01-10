@@ -1,125 +1,102 @@
-<div x-show="activeDialog === 'regexpMatch'" x-cloak>
-  <div class="slide-panel-backdrop" @click="closeDialog()"></div>
-  <div class="slide-panel" @click.stop>
-    <div class="slide-panel__header">
-      <h2 class="slide-panel__title">Regexp Match</h2>
-      <button class="slide-panel__close" @click="closeDialog()" title="Close">×</button>
-    </div>
+<p class="form-help" style="margin-bottom: 1rem">
+  Creates a boolean column indicating whether the pattern matches.
+</p>
 
-    <div class="slide-panel__content">
-      <p class="form-help" style="margin-bottom: 1rem">
-        Creates a boolean column indicating whether the pattern matches.
-      </p>
+<div class="form-group">
+  <label class="form-label">Source column:</label>
+  <select class="form-input" x-model="regexpMatchDialogState.sourceColumn">
+    <template x-for="col in columns" :key="col">
+      <option :value="col" x-text="col"></option>
+    </template>
+  </select>
+</div>
 
-      <div class="form-group">
-        <label class="form-label">Source column:</label>
-        <select class="form-input" x-model="regexpMatchDialogState.sourceColumn">
-          <template x-for="col in columns" :key="col">
-            <option :value="col" x-text="col"></option>
-          </template>
-        </select>
-      </div>
+<div class="form-group">
+  <label class="form-label">Pattern (regex):</label>
+  <input
+    type="text"
+    class="form-input"
+    x-model="regexpMatchDialogState.pattern"
+    @input="validateRegexpMatchExpression()"
+    placeholder="e.g., ^[A-Z]{2}\d+"
+  />
+</div>
 
-      <div class="form-group">
-        <label class="form-label">Pattern (regex):</label>
-        <input
-          type="text"
-          class="form-input"
-          x-model="regexpMatchDialogState.pattern"
-          @input="validateRegexpMatchExpression()"
-          placeholder="e.g., ^[A-Z]{2}\d+"
-        />
-      </div>
+<div class="form-group">
+  <label class="form-label">New column name:</label>
+  <input
+    type="text"
+    class="form-input"
+    x-model="regexpMatchDialogState.columnName"
+    placeholder="e.g., is_valid_code"
+  />
+</div>
 
-      <div class="form-group">
-        <label class="form-label">New column name:</label>
-        <input
-          type="text"
-          class="form-input"
-          x-model="regexpMatchDialogState.columnName"
-          placeholder="e.g., is_valid_code"
-        />
-      </div>
+<!-- Error message -->
+<div
+  x-show="regexpMatchDialogState.error"
+  x-text="regexpMatchDialogState.error"
+  style="
+    color: var(--color-red);
+    font-size: 13px;
+    margin-top: 8px;
+    white-space: pre-wrap;
+    font-family: var(--font-family-mono);
+  "
+></div>
 
-      <!-- Error message -->
-      <div
-        x-show="regexpMatchDialogState.error"
-        x-text="regexpMatchDialogState.error"
-        style="
-          color: var(--color-red);
-          font-size: 13px;
-          margin-top: 8px;
-          white-space: pre-wrap;
-          font-family: var(--font-family-mono);
-        "
-      ></div>
-
-      <!-- Help section -->
-      <div
-        class="derive-help"
-        style="
-          margin-top: 1rem;
-          padding: 0.75rem;
-          background: var(--color-soft-bg);
-          border-radius: 6px;
-          border: 1px solid var(--border-color);
-        "
+<!-- Help section -->
+<div
+  class="derive-help"
+  style="
+    margin-top: 1rem;
+    padding: 0.75rem;
+    background: var(--color-soft-bg);
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+  "
+>
+  <div
+    style="
+      font-weight: 600;
+      font-size: 0.8rem;
+      color: var(--color-dark-gray);
+      margin-bottom: 0.5rem;
+    "
+  >
+    Pattern Examples
+  </div>
+  <div
+    style="
+      font-size: 0.75rem;
+      font-family: var(--font-family-mono);
+      color: var(--color-text);
+      line-height: 1.8;
+    "
+  >
+    <div>
+      <code style="background: var(--color-white); padding: 2px 4px; border-radius: 3px"
+        >^[A-Z]{2}</code
       >
-        <div
-          style="
-            font-weight: 600;
-            font-size: 0.8rem;
-            color: var(--color-dark-gray);
-            margin-bottom: 0.5rem;
-          "
-        >
-          Pattern Examples
-        </div>
-        <div
-          style="
-            font-size: 0.75rem;
-            font-family: var(--font-family-mono);
-            color: var(--color-text);
-            line-height: 1.8;
-          "
-        >
-          <div>
-            <code style="background: var(--color-white); padding: 2px 4px; border-radius: 3px"
-              >^[A-Z]{2}</code
-            >
-            — starts with 2 uppercase letters
-          </div>
-          <div>
-            <code style="background: var(--color-white); padding: 2px 4px; border-radius: 3px"
-              >\d{3}-\d{4}</code
-            >
-            — phone format 123-4567
-          </div>
-          <div>
-            <code style="background: var(--color-white); padding: 2px 4px; border-radius: 3px"
-              >(?i)error</code
-            >
-            — case-insensitive "error"
-          </div>
-          <div>
-            <code style="background: var(--color-white); padding: 2px 4px; border-radius: 3px"
-              >@.+\.com$</code
-            >
-            — ends with @...com
-          </div>
-        </div>
-      </div>
+      — starts with 2 uppercase letters
     </div>
-
-    <div class="slide-panel__footer">
-      <button class="button button--secondary" @click="closeDialog()">Cancel</button>
-      <button
-        class="button button--primary"
-        @click="applyRegexpMatchTransform()"
-        :disabled="regexpMatchDialogState.error"
+    <div>
+      <code style="background: var(--color-white); padding: 2px 4px; border-radius: 3px"
+        >\d{3}-\d{4}</code
       >
-        Apply
-      </button>
+      — phone format 123-4567
+    </div>
+    <div>
+      <code style="background: var(--color-white); padding: 2px 4px; border-radius: 3px"
+        >(?i)error</code
+      >
+      — case-insensitive "error"
+    </div>
+    <div>
+      <code style="background: var(--color-white); padding: 2px 4px; border-radius: 3px"
+        >@.+\.com$</code
+      >
+      — ends with @...com
     </div>
   </div>
 </div>

@@ -1,28 +1,9 @@
-<div x-show="activeDialog === 'remove'" x-cloak>
-  <div class="slide-panel-backdrop" @click="closeDialog()"></div>
-  <div class="slide-panel" @click.stop>
-    <div class="slide-panel__header">
-      <h2 class="slide-panel__title">Remove Columns</h2>
-      <button class="slide-panel__close" @click="closeDialog()" title="Close">×</button>
-    </div>
-
-    <div class="slide-panel__content">
-      <p class="form-help" style="margin-bottom: 1rem">
-        Select columns to remove from the dataset:
-      </p>
-      <div class="checkbox-list" style="max-height: 300px; overflow-y: auto">
-        <template x-for="(col, index) in columns" :key="index">
-          <label class="checkbox-item">
-            <input type="checkbox" x-model="removedColumns[index]" />
-            <span x-text="col"></span>
-          </label>
-        </template>
-      </div>
-    </div>
-
-    <div class="slide-panel__footer">
-      <button class="button button--secondary" @click="closeDialog()">Cancel</button>
-      <button class="button button--primary" @click="applyRemoveTransform()">Apply</button>
-    </div>
-  </div>
+<p class="form-help" style="margin-bottom: 1rem">Select columns to remove from the dataset:</p>
+<div class="checkbox-list" style="max-height: 300px; overflow-y: auto">
+  <template x-for="(col, index) in columns" :key="index">
+    <label class="checkbox-item">
+      <input type="checkbox" x-model="removedColumns[index]" />
+      <span x-text="col"></span>
+    </label>
+  </template>
 </div>

@@ -2014,6 +2014,88 @@ export class ChumakApp implements AppState {
     }
   }
 
+  isSlidePanel(dialog: string | null): boolean {
+    if (!dialog) return false;
+    const slidePanels = [
+      'filter', 'sort', 'select', 'remove', 'rename',
+      'split', 'derive', 'regexpMatch', 'regexpExtract',
+      'fold', 'aggregate', 'join', 'replace'
+    ];
+    return slidePanels.includes(dialog);
+  }
+
+  isCenteredModal(dialog: string | null): boolean {
+    if (!dialog) return false;
+    const centeredModals = ['import-csv', 'import-url', 'settings', 'download'];
+    return centeredModals.includes(dialog);
+  }
+
+  getDialogTitle(): string {
+    switch (this.activeDialog) {
+      case 'filter': return 'Filter Rows';
+      case 'sort': return 'Sort Rows';
+      case 'select': return 'Select Columns';
+      case 'remove': return 'Remove Columns';
+      case 'rename': return 'Rename Columns';
+      case 'split': return 'Split Column';
+      case 'derive': return 'Derive Column';
+      case 'regexpMatch': return 'Regexp Match';
+      case 'regexpExtract': return 'Regexp Extract';
+      case 'fold': return 'Unpivot Data (Fold)';
+      case 'aggregate': return 'Aggregate Data';
+      case 'join': return 'Join Data';
+      case 'replace': return 'Replace Values';
+      case 'import-csv': return this.importDialogState.isJson ? 'Import JSON' : 'Import CSV';
+      case 'import-url': return 'Import from URL';
+      case 'settings': return 'Settings';
+      case 'download': return 'Download Data';
+      default: return '';
+    }
+  }
+
+  getDialogButtonText(): string {
+    switch (this.activeDialog) {
+      case 'import-csv': return 'Import';
+      case 'import-url': return 'Fetch Data';
+      case 'join': return 'Apply Join';
+      case 'download': return 'Download';
+      default: return 'Apply';
+    }
+  }
+
+  activeDialogError(): boolean {
+    switch (this.activeDialog) {
+      case 'filter': return !!this.filterError;
+      case 'derive': return !!this.deriveDialogState.error;
+      case 'regexpMatch': return !!this.regexpMatchDialogState.error;
+      case 'regexpExtract': return !!this.regexpExtractDialogState.error;
+      case 'split': return !!this.splitDialogState.error;
+      case 'join': return !this.joinDialogState.rightModel;
+      case 'import-url': return !this.importUrlDialogState.url || this.importUrlDialogState.isFetching;
+      default: return false;
+    }
+  }
+
+  async applyActiveTransform() {
+    switch (this.activeDialog) {
+      case 'filter': await this.applyFilterTransform(); break;
+      case 'sort': await this.applySortTransform(); break;
+      case 'select': await this.applySelectTransform(); break;
+      case 'remove': await this.applyRemoveTransform(); break;
+      case 'rename': await this.applyRenameTransform(); break;
+      case 'split': await this.applySplitTransform(); break;
+      case 'derive': await this.applyDeriveTransform(); break;
+      case 'regexpMatch': await this.applyRegexpMatchTransform(); break;
+      case 'regexpExtract': await this.applyRegexpExtractTransform(); break;
+      case 'fold': await this.applyFoldTransform(); break;
+      case 'aggregate': await this.applyAggregateTransform(); break;
+      case 'join': await this.applyJoinTransform(); break;
+      case 'replace': await this.applyReplaceTransform(); break;
+      case 'import-csv': this.confirmImport(); break;
+      case 'import-url': await this.fetchAndImportFromUrl(); break;
+    }
+  }
+
   hasUnsavedChanges() {
     if (!this.activeDialog) return false;
     const currentState = JSON.stringify(this.getDialogState(this.activeDialog));

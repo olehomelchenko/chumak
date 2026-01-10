@@ -1,47 +1,24 @@
-<div x-show="activeDialog === 'filter'" x-cloak>
-  <div class="slide-panel-backdrop" @click="closeDialog()"></div>
-  <div class="slide-panel" @click.stop>
-    <div class="slide-panel__header">
-      <h2 class="slide-panel__title">Filter</h2>
-      <button class="slide-panel__close" @click="closeDialog()" title="Close">×</button>
-    </div>
+<label class="form-label">Keep rows where:</label>
+<input
+  type="text"
+  class="form-input"
+  x-model="filterExpression"
+  placeholder="e.g., sales > 1000"
+  @input="validateFilterExpression()"
+/>
+<p class="form-help">
+  Examples: sales > 1000, region == "North", sales > 1000 && region == "North"
+</p>
 
-    <div class="slide-panel__content">
-      <label class="form-label">Keep rows where:</label>
-      <input
-        type="text"
-        class="form-input"
-        x-model="filterExpression"
-        placeholder="e.g., sales > 1000"
-        @input="validateFilterExpression()"
-      />
-      <p class="form-help">
-        Examples: sales > 1000, region == "North", sales > 1000 && region == "North"
-      </p>
-
-      <!-- Error message -->
-      <div
-        x-show="filterError"
-        x-text="filterError"
-        style="
-          color: var(--color-red);
-          font-size: 13px;
-          margin-top: 8px;
-          white-space: pre-wrap;
-          font-family: var(--font-family-mono);
-        "
-      ></div>
-    </div>
-
-    <div class="slide-panel__footer">
-      <button class="button button--secondary" @click="closeDialog()">Cancel</button>
-      <button
-        class="button button--primary"
-        @click="applyFilterTransform()"
-        :disabled="filterError"
-      >
-        Apply
-      </button>
-    </div>
-  </div>
-</div>
+<!-- Error message -->
+<div
+  x-show="filterError"
+  x-text="filterError"
+  style="
+    color: var(--color-red);
+    font-size: 13px;
+    margin-top: 8px;
+    white-space: pre-wrap;
+    font-family: var(--font-family-mono);
+  "
+></div>

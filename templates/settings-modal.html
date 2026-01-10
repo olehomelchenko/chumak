@@ -1,139 +1,119 @@
-<div x-show="activeDialog === 'settings'" x-cloak>
-  <div class="slide-panel-backdrop" @click="closeDialog()"></div>
-  <div class="slide-panel" @click.stop>
-    <div class="slide-panel__header">
-      <h2 class="slide-panel__title">Settings</h2>
-      <button class="slide-panel__close" @click="closeDialog()" title="Close">×</button>
-    </div>
-
-    <div class="slide-panel__content">
-      <div style="margin-bottom: 2rem">
-        <label
-          class="form-label"
-          style="font-weight: var(--font-weight-medium); margin-bottom: 1rem; display: block"
-          >Color Scheme</label
-        >
-        <div style="display: flex; flex-direction: column; gap: 1rem">
-          <!-- Chumak Theme Option -->
-          <div
-            @click="switchTheme('chumak')"
-            style="
-              padding: 1rem;
-              border: 1px solid var(--border-color);
-              border-radius: var(--border-radius);
-              cursor: pointer;
-              display: flex;
-              align-items: center;
-              gap: 1rem;
-              transition: all 0.2s;
-            "
-            :style="theme === 'chumak' ? 'border-color: var(--color-cyan); background: rgba(var(--color-cyan-rgb), 0.05);' : ''"
-          >
-            <div
-              style="
-                width: 20px;
-                height: 20px;
-                border-radius: 50%;
-                border: 2px solid var(--color-midnight-blue);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-              "
-            >
-              <div
-                x-show="theme === 'chumak'"
-                style="
-                  width: 10px;
-                  height: 10px;
-                  border-radius: 50%;
-                  background: var(--color-midnight-blue);
-                "
-              ></div>
-            </div>
-            <div>
-              <div style="font-weight: 500; color: var(--color-dark-gray)">Chumak</div>
-              <div style="font-size: 12px; color: var(--color-dark-gray); opacity: 0.7">
-                Modern vibrant custom palette
-              </div>
-            </div>
-            <div style="margin-left: auto; display: flex; gap: 4px">
-              <div style="width: 12px; height: 12px; background: #1789fc"></div>
-              <div style="width: 12px; height: 12px; background: #fdb833"></div>
-              <div
-                style="width: 12px; height: 12px; background: #f5f3f0; border: 1px solid #ddd"
-              ></div>
-            </div>
-          </div>
-
-          <!-- Blues Theme Option -->
-          <div
-            @click="switchTheme('blues')"
-            style="
-              padding: 1rem;
-              border: 1px solid var(--border-color);
-              border-radius: var(--border-radius);
-              cursor: pointer;
-              display: flex;
-              align-items: center;
-              gap: 1rem;
-              transition: all 0.2s;
-            "
-            :style="theme === 'blues' ? 'border-color: var(--color-cyan); background: rgba(var(--color-cyan-rgb), 0.05);' : ''"
-          >
-            <div
-              style="
-                width: 20px;
-                height: 20px;
-                border-radius: 50%;
-                border: 2px solid var(--color-midnight-blue);
-                display: flex;
-                align-items: center;
-                justify-content: center;
-              "
-            >
-              <div
-                x-show="theme === 'blues'"
-                style="
-                  width: 10px;
-                  height: 10px;
-                  border-radius: 50%;
-                  background: var(--color-midnight-blue);
-                "
-              ></div>
-            </div>
-            <div>
-              <div style="font-weight: 500; color: var(--color-dark-gray)">Blues (KSE)</div>
-              <div style="font-size: 12px; color: var(--color-dark-gray); opacity: 0.7">
-                Classic KSE professional palette
-              </div>
-            </div>
-            <div style="margin-left: auto; display: flex; gap: 4px">
-              <div style="width: 12px; height: 12px; background: #003964"></div>
-              <div style="width: 12px; height: 12px; background: #00bbce"></div>
-              <div style="width: 12px; height: 12px; background: #a7c539"></div>
-            </div>
-          </div>
-        </div>
-      </div>
-
+<div style="margin-bottom: 2rem">
+  <label
+    class="form-label"
+    style="font-weight: var(--font-weight-medium); margin-bottom: 1rem; display: block"
+    >Color Scheme</label
+  >
+  <div style="display: flex; flex-direction: column; gap: 1rem">
+    <!-- Chumak Theme Option -->
+    <div
+      @click="switchTheme('chumak')"
+      style="
+        padding: 1rem;
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        transition: all 0.2s;
+      "
+      :style="theme === 'chumak' ? 'border-color: var(--color-cyan); background: rgba(var(--color-cyan-rgb), 0.05);' : ''"
+    >
       <div
         style="
-          padding: 1rem;
-          background: #fff8e1;
-          border-left: 4px solid #ffca28;
-          font-size: 13px;
-          color: #795548;
+          width: 20px;
+          height: 20px;
+          border-radius: 50%;
+          border: 2px solid var(--color-midnight-blue);
+          display: flex;
+          align-items: center;
+          justify-content: center;
         "
       >
-        <strong>Note:</strong> Some interface elements use the primary theme color. The "Chumak"
-        theme also uses custom typography and removes border radiuses for a sharper look.
+        <div
+          x-show="theme === 'chumak'"
+          style="
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--color-midnight-blue);
+          "
+        ></div>
+      </div>
+      <div>
+        <div style="font-weight: 500; color: var(--color-dark-gray)">Chumak</div>
+        <div style="font-size: 12px; color: var(--color-dark-gray); opacity: 0.7">
+          Modern vibrant custom palette
+        </div>
+      </div>
+      <div style="margin-left: auto; display: flex; gap: 4px">
+        <div style="width: 12px; height: 12px; background: #1789fc"></div>
+        <div style="width: 12px; height: 12px; background: #fdb833"></div>
+        <div style="width: 12px; height: 12px; background: #f5f3f0; border: 1px solid #ddd"></div>
       </div>
     </div>
 
-    <div class="slide-panel__footer">
-      <button class="button button--primary" @click="closeDialog()" style="width: 100%">
-        Close Settings
-      </button>
+    <!-- Blues Theme Option -->
+    <div
+      @click="switchTheme('blues')"
+      style="
+        padding: 1rem;
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius);
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        gap: 1rem;
+        transition: all 0.2s;
+      "
+      :style="theme === 'blues' ? 'border-color: var(--color-cyan); background: rgba(var(--color-cyan-rgb), 0.05);' : ''"
+    >
+      <div
+        style="
+          width: 20px;
+          height: 20px;
+          border-radius: 50%;
+          border: 2px solid var(--color-midnight-blue);
+          display: flex;
+          align-items: center;
+          justify-content: center;
+        "
+      >
+        <div
+          x-show="theme === 'blues'"
+          style="
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background: var(--color-midnight-blue);
+          "
+        ></div>
+      </div>
+      <div>
+        <div style="font-weight: 500; color: var(--color-dark-gray)">Blues (KSE)</div>
+        <div style="font-size: 12px; color: var(--color-dark-gray); opacity: 0.7">
+          Classic KSE professional palette
+        </div>
+      </div>
+      <div style="margin-left: auto; display: flex; gap: 4px">
+        <div style="width: 12px; height: 12px; background: #003964"></div>
+        <div style="width: 12px; height: 12px; background: #00bbce"></div>
+        <div style="width: 12px; height: 12px; background: #a7c539"></div>
+      </div>
     </div>
   </div>
+</div>
+
+<div
+  style="
+    padding: 1rem;
+    background: #fff8e1;
+    border-left: 4px solid #ffca28;
+    font-size: 13px;
+    color: #795548;
+  "
+>
+  <strong>Note:</strong> Some interface elements use the primary theme color. The "Chumak" theme
+  also uses custom typography and removes border radiuses for a sharper look.
 </div>

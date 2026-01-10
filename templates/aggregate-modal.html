@@ -1,196 +1,168 @@
-<!-- Aggregate Dialog (Slide-in Panel) -->
-<div x-show="activeDialog === 'aggregate'" x-cloak>
-  <!-- Backdrop -->
-  <div class="slide-panel-backdrop" @click="closeDialog()"></div>
-
-  <!-- Slide-in Panel -->
-  <div class="slide-panel" @click.stop>
-    <div class="slide-panel__header">
-      <h2 class="slide-panel__title">Aggregate Data</h2>
-      <button class="slide-panel__close" @click="closeDialog()" title="Close">×</button>
+<!-- Group By Section -->
+<div class="form-group">
+  <label class="form-label">Group By (Columns)</label>
+  <div
+    style="
+      max-height: 150px;
+      overflow-y: auto;
+      border: 1px solid var(--color-medium-gray);
+      padding: 0.5rem;
+      border-radius: 4px;
+    "
+  >
+    <template x-for="col in columns" :key="col">
+      <label class="checkbox-item">
+        <input type="checkbox" :value="col" x-model="aggregateDialogState.groupBy" />
+        <span x-text="col"></span>
+      </label>
+    </template>
+    <div x-show="columns.length === 0" style="color: #888; font-size: 0.8rem">
+      No columns available
     </div>
+  </div>
+  <div class="form-help">Selected columns will define the grouping keys.</div>
+</div>
 
-    <div class="slide-panel__content">
-      <!-- Group By Section -->
-      <div class="form-group">
-        <label class="form-label">Group By (Columns)</label>
-        <div
-          style="
-            max-height: 150px;
-            overflow-y: auto;
-            border: 1px solid var(--color-medium-gray);
-            padding: 0.5rem;
-            border-radius: 4px;
-          "
-        >
-          <template x-for="col in columns" :key="col">
-            <label class="checkbox-item">
-              <input type="checkbox" :value="col" x-model="aggregateDialogState.groupBy" />
-              <span x-text="col"></span>
-            </label>
-          </template>
-          <div x-show="columns.length === 0" style="color: #888; font-size: 0.8rem">
-            No columns available
-          </div>
-        </div>
-        <div class="form-help">Selected columns will define the grouping keys.</div>
-      </div>
+<!-- Aggregations Section -->
+<div class="form-group">
+  <label class="form-label">Summarize / Rollup</label>
 
-      <!-- Aggregations Section -->
-      <div class="form-group">
-        <label class="form-label">Summarize / Rollup</label>
-
-        <div style="margin-bottom: 0.5rem">
-          <template x-for="(agg, index) in aggregateDialogState.aggregations" :key="index">
-            <div
-              style="
-                display: flex;
-                gap: 0.5rem;
-                margin-bottom: 0.5rem;
-                align-items: center;
-                background: #f8f9fa;
-                padding: 4px;
-                border-radius: 4px;
-              "
-            >
-              <!-- Function -->
-              <select
-                class="form-input"
-                style="width: 100px"
-                x-model="agg.func"
-                @change="updateAggregateOutputName(index)"
-              >
-                <option value="count">Count</option>
-                <option value="sum">Sum</option>
-                <option value="mean">Mean</option>
-                <option value="median">Median</option>
-                <option value="min">Min</option>
-                <option value="max">Max</option>
-                <option value="distinct">Distinct</option>
-                <option value="stdev">StDev</option>
-                <option value="first">First</option>
-                <option value="last">Last</option>
-              </select>
-
-              <!-- Column (hidden for count if desired, but count usually takes one or is generic) -->
-              <!-- For count(), we usually don't need a column in SQL (count(*)), but Arquero's op.count() is argument-less. -->
-              <!-- However valid() needs a col. Let's show column unless func is 'count'. -->
-              <select
-                class="form-input"
-                style="flex: 1"
-                x-model="agg.col"
-                @change="updateAggregateOutputName(index)"
-                :disabled="agg.func === 'count'"
-              >
-                <option
-                  value=""
-                  x-text="agg.func === 'count' ? '(All rows)' : 'Select column...'"
-                ></option>
-                <template x-for="col in columns" :key="col">
-                  <option :value="col" x-text="col"></option>
-                </template>
-              </select>
-
-              <span>&rarr;</span>
-
-              <!-- Output Name -->
-              <input
-                type="text"
-                class="form-input"
-                style="flex: 1"
-                x-model="agg.output"
-                placeholder="New Name"
-              />
-
-              <button
-                class="button button--secondary button--small"
-                @click="removeAggregation(index)"
-                :disabled="aggregateDialogState.aggregations.length === 1 && false"
-                title="Remove"
-              >
-                ×
-              </button>
-            </div>
-          </template>
-        </div>
-
-        <button class="button button--secondary button--small" @click="addAggregation()">
-          + Add Aggregation
-        </button>
-      </div>
-
-      <!-- Preview Button and Results -->
-      <div class="form-group" style="margin-top: 2rem">
-        <button
-          class="button button--secondary"
-          @click="previewAggregate()"
-          :disabled="aggregateDialogState.isPreviewing"
-        >
-          <span x-show="!aggregateDialogState.isPreviewing">Preview Result</span>
-          <span x-show="aggregateDialogState.isPreviewing">Previewing...</span>
-        </button>
-      </div>
-
-      <!-- Preview Error -->
+  <div style="margin-bottom: 0.5rem">
+    <template x-for="(agg, index) in aggregateDialogState.aggregations" :key="index">
       <div
-        x-show="aggregateDialogState.previewError"
-        class="error-message"
-        style="margin-bottom: 1rem"
+        style="
+          display: flex;
+          gap: 0.5rem;
+          margin-bottom: 0.5rem;
+          align-items: center;
+          background: #f8f9fa;
+          padding: 4px;
+          border-radius: 4px;
+        "
       >
-        <strong>Preview Error:</strong>
-        <div x-text="aggregateDialogState.previewError"></div>
-      </div>
-
-      <!-- Preview Results -->
-      <div x-show="aggregateDialogState.previewData" class="form-group">
-        <div
-          style="
-            padding: 1rem;
-            background: var(--color-light-gray);
-            border-radius: 4px;
-            margin-bottom: 1rem;
-          "
+        <!-- Function -->
+        <select
+          class="form-input"
+          style="width: 100px"
+          x-model="agg.func"
+          @change="updateAggregateOutputName(index)"
         >
-          <strong>Preview Result:</strong>
-          <div
-            x-text="`${aggregateDialogState.previewData?.totalRows || 0} rows, ${aggregateDialogState.previewData?.columns?.length || 0} columns`"
-          ></div>
-        </div>
+          <option value="count">Count</option>
+          <option value="sum">Sum</option>
+          <option value="mean">Mean</option>
+          <option value="median">Median</option>
+          <option value="min">Min</option>
+          <option value="max">Max</option>
+          <option value="distinct">Distinct</option>
+          <option value="stdev">StDev</option>
+          <option value="first">First</option>
+          <option value="last">Last</option>
+        </select>
 
-        <!-- Preview Table (scrollable) -->
-        <div
-          style="
-            max-height: 250px;
-            overflow: auto;
-            border: 1px solid var(--color-medium-gray);
-            border-radius: 4px;
-          "
+        <!-- Column -->
+        <select
+          class="form-input"
+          style="flex: 1"
+          x-model="agg.col"
+          @change="updateAggregateOutputName(index)"
+          :disabled="agg.func === 'count'"
         >
-          <table class="data-table" style="font-size: 0.75rem">
-            <thead>
-              <tr>
-                <template x-for="col in aggregateDialogState.previewData?.columns" :key="col">
-                  <th class="data-table__header" x-text="col"></th>
-                </template>
-              </tr>
-            </thead>
-            <tbody>
-              <template x-for="(row, idx) in aggregateDialogState.previewData?.rows" :key="idx">
-                <tr>
-                  <template x-for="col in aggregateDialogState.previewData?.columns" :key="col">
-                    <td class="data-table__cell" x-text="row[col]"></td>
-                  </template>
-                </tr>
-              </template>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
+          <option
+            value=""
+            x-text="agg.func === 'count' ? '(All rows)' : 'Select column...'"
+          ></option>
+          <template x-for="col in columns" :key="col">
+            <option :value="col" x-text="col"></option>
+          </template>
+        </select>
 
-    <div class="slide-panel__footer">
-      <button class="button button--secondary" @click="closeDialog()">Cancel</button>
-      <button class="button button--primary" @click="applyAggregateTransform()">Apply</button>
-    </div>
+        <span>&rarr;</span>
+
+        <!-- Output Name -->
+        <input
+          type="text"
+          class="form-input"
+          style="flex: 1"
+          x-model="agg.output"
+          placeholder="New Name"
+        />
+
+        <button
+          class="button button--secondary button--small"
+          @click="removeAggregation(index)"
+          title="Remove"
+        >
+          ×
+        </button>
+      </div>
+    </template>
+  </div>
+
+  <button class="button button--secondary button--small" @click="addAggregation()">
+    + Add Aggregation
+  </button>
+</div>
+
+<!-- Preview Button and Results -->
+<div class="form-group" style="margin-top: 2rem">
+  <button
+    class="button button--secondary"
+    @click="previewAggregate()"
+    :disabled="aggregateDialogState.isPreviewing"
+  >
+    <span x-show="!aggregateDialogState.isPreviewing">Preview Result</span>
+    <span x-show="aggregateDialogState.isPreviewing">Previewing...</span>
+  </button>
+</div>
+
+<!-- Preview Error -->
+<div x-show="aggregateDialogState.previewError" class="error-message" style="margin-bottom: 1rem">
+  <strong>Preview Error:</strong>
+  <div x-text="aggregateDialogState.previewError"></div>
+</div>
+
+<!-- Preview Results -->
+<div x-show="aggregateDialogState.previewData" class="form-group">
+  <div
+    style="
+      padding: 1rem;
+      background: var(--color-light-gray);
+      border-radius: 4px;
+      margin-bottom: 1rem;
+    "
+  >
+    <strong>Preview Result:</strong>
+    <div
+      x-text="`${aggregateDialogState.previewData?.totalRows || 0} rows, ${aggregateDialogState.previewData?.columns?.length || 0} columns`"
+    ></div>
+  </div>
+
+  <!-- Preview Table (scrollable) -->
+  <div
+    style="
+      max-height: 250px;
+      overflow: auto;
+      border: 1px solid var(--color-medium-gray);
+      border-radius: 4px;
+    "
+  >
+    <table class="data-table" style="font-size: 0.75rem">
+      <thead>
+        <tr>
+          <template x-for="col in aggregateDialogState.previewData?.columns" :key="col">
+            <th class="data-table__header" x-text="col"></th>
+          </template>
+        </tr>
+      </thead>
+      <tbody>
+        <template x-for="(row, idx) in aggregateDialogState.previewData?.rows" :key="idx">
+          <tr>
+            <template x-for="col in aggregateDialogState.previewData?.columns" :key="col">
+              <td class="data-table__cell" x-text="row[col]"></td>
+            </template>
+          </tr>
+        </template>
+      </tbody>
+    </table>
   </div>
 </div>

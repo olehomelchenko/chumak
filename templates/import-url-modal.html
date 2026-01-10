@@ -1,54 +1,31 @@
-<!-- Import from URL Dialog -->
-<div class="modal-backdrop" x-show="activeDialog === 'import-url'" @click="closeDialog()" x-cloak>
-  <div class="modal" @click.stop style="max-width: 500px">
-    <div class="modal__header">
-      <h3 class="modal__title">Import from URL</h3>
-      <button class="modal__close" @click="closeDialog()">×</button>
-    </div>
+<div class="form-group">
+  <label class="form-label">CSV URL:</label>
+  <input
+    type="url"
+    class="form-input"
+    x-model="importUrlDialogState.url"
+    placeholder="https://example.com/data.csv"
+    @keydown.enter="fetchAndImportFromUrl()"
+    autofocus
+  />
+  <p class="form-help">Enter the direct link to a CSV or TSV file.</p>
+</div>
 
-    <div class="modal__content">
-      <div class="form-group">
-        <label class="form-label">CSV URL:</label>
-        <input
-          type="url"
-          class="form-input"
-          x-model="importUrlDialogState.url"
-          placeholder="https://example.com/data.csv"
-          @keydown.enter="fetchAndImportFromUrl()"
-          autofocus
-        />
-        <p class="form-help">Enter the direct link to a CSV or TSV file.</p>
-      </div>
+<div x-show="importUrlDialogState.error" class="form-error" style="margin-top: 1rem">
+  <span class="iconify" data-icon="carbon:warning"></span>
+  <span x-text="importUrlDialogState.error"></span>
+</div>
 
-      <div x-show="importUrlDialogState.error" class="form-error" style="margin-top: 1rem">
-        <span class="iconify" data-icon="carbon:warning"></span>
-        <span x-text="importUrlDialogState.error"></span>
-      </div>
-
-      <div
-        x-show="importUrlDialogState.isFetching"
-        style="
-          margin-top: 1rem;
-          display: flex;
-          align-items: center;
-          gap: 0.5rem;
-          color: var(--color-dark-gray);
-        "
-      >
-        <span class="iconify spinning" data-icon="carbon:renew"></span>
-        <span>Fetching data...</span>
-      </div>
-    </div>
-
-    <div class="modal__footer">
-      <button class="button button--secondary" @click="closeDialog()">Cancel</button>
-      <button
-        class="button button--primary"
-        @click="fetchAndImportFromUrl()"
-        :disabled="!importUrlDialogState.url || importUrlDialogState.isFetching"
-      >
-        Fetch Data
-      </button>
-    </div>
-  </div>
+<div
+  x-show="importUrlDialogState.isFetching"
+  style="
+    margin-top: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    color: var(--color-dark-gray);
+  "
+>
+  <span class="iconify spinning" data-icon="carbon:renew"></span>
+  <span>Fetching data...</span>
 </div>

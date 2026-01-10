@@ -1150,46 +1150,72 @@
       </div>
     </main>
 
-    <!-- Filter Dialog -->
-    <div id="filter-modal-container"></div>
+    <!-- Slide-in Panel Shell (for Transformations) -->
+    <div x-show="isSlidePanel(activeDialog)" x-cloak>
+      <div class="slide-panel-backdrop" @click="closeDialog()"></div>
+      <div class="slide-panel" @click.stop>
+        <div class="slide-panel__header">
+          <h2 class="slide-panel__title" x-text="getDialogTitle()"></h2>
+          <button class="slide-panel__close" @click="closeDialog()" title="Close">×</button>
+        </div>
+        <div class="slide-panel__content">
+          <div id="filter-modal-container" x-show="activeDialog === 'filter'"></div>
+          <div id="derive-modal-container" x-show="activeDialog === 'derive'"></div>
+          <div id="regexp-match-modal-container" x-show="activeDialog === 'regexpMatch'"></div>
+          <div id="regexp-extract-modal-container" x-show="activeDialog === 'regexpExtract'"></div>
+          <div id="sort-modal-container" x-show="activeDialog === 'sort'"></div>
+          <div id="rename-modal-container" x-show="activeDialog === 'rename'"></div>
+          <div id="remove-modal-container" x-show="activeDialog === 'remove'"></div>
+          <div id="unpivot-modal-container" x-show="activeDialog === 'fold'"></div>
+          <div id="replace-modal-container" x-show="activeDialog === 'replace'"></div>
+          <div id="split-modal-container" x-show="activeDialog === 'split'"></div>
+          <div id="select-columns-modal-container" x-show="activeDialog === 'select'"></div>
+          <div id="join-modal-container" x-show="activeDialog === 'join'"></div>
+          <div id="aggregate-modal-container" x-show="activeDialog === 'aggregate'"></div>
+        </div>
+        <div class="slide-panel__footer" x-show="!['settings'].includes(activeDialog)">
+          <button class="button button--secondary" @click="closeDialog()">Cancel</button>
+          <button
+            class="button button--primary"
+            @click="applyActiveTransform()"
+            :disabled="activeDialogError()"
+          >
+            <span x-text="getDialogButtonText()"></span>
+          </button>
+        </div>
+      </div>
+    </div>
 
-    <!-- Derive Dialog -->
-    <div id="derive-modal-container"></div>
-
-    <!-- Regexp Match Dialog -->
-    <div id="regexp-match-modal-container"></div>
-
-    <!-- Regexp Extract Dialog -->
-    <div id="regexp-extract-modal-container"></div>
-
-    <!-- Sort Dialog -->
-    <div id="sort-modal-container"></div>
-
-    <!-- Rename Dialog -->
-    <div id="rename-modal-container"></div>
-
-    <!-- Remove Dialog -->
-    <div id="remove-modal-container"></div>
-
-    <!-- Unpivot (Fold) Dialog -->
-    <div id="unpivot-modal-container"></div>
-
-    <!-- Replace Dialog -->
-    <div id="replace-modal-container"></div>
-
-    <!-- Split Column Dialog -->
-    <div id="split-modal-container"></div>
-
-    <!-- Select Columns Dialog -->
-    <div id="select-columns-modal-container"></div>
-
-    <!-- Import CSV Dialog -->
-    <div id="import-csv-modal-container"></div>
-    <!-- Join Dialog (Slide-in Panel) -->
-    <div id="join-modal-container"></div>
-
-    <!-- Aggregate Dialog (Slide-in Panel) -->
-    <div id="aggregate-modal-container"></div>
+    <!-- Centered Modal Shell (for Imports/Settings) -->
+    <div
+      class="modal-backdrop"
+      x-show="isCenteredModal(activeDialog)"
+      @click="closeDialog()"
+      x-cloak
+    >
+      <div class="modal" @click.stop style="max-width: 80vw; max-height: 80vh">
+        <div class="modal__header">
+          <h3 class="modal__title" x-text="getDialogTitle()"></h3>
+          <button class="modal__close" @click="closeDialog()">×</button>
+        </div>
+        <div class="modal__content">
+          <div id="import-csv-modal-container" x-show="activeDialog === 'import-csv'"></div>
+          <div id="import-url-modal-container" x-show="activeDialog === 'import-url'"></div>
+          <div id="settings-modal-container" x-show="activeDialog === 'settings'"></div>
+          <div id="download-modal-container" x-show="activeDialog === 'download'"></div>
+        </div>
+        <div class="modal__footer" x-show="!['download', 'settings'].includes(activeDialog)">
+          <button class="button button--secondary" @click="closeDialog()">Cancel</button>
+          <button
+            class="button button--primary"
+            @click="applyActiveTransform()"
+            :disabled="activeDialogError()"
+          >
+            <span x-text="getDialogButtonText()"></span>
+          </button>
+        </div>
+      </div>
+    </div>
     <!-- Column Toolbar -->
     <div
       x-show="selectedColumn"

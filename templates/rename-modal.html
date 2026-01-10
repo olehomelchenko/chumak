@@ -1,41 +1,24 @@
-<div x-show="activeDialog === 'rename'" x-cloak>
-  <div class="slide-panel-backdrop" @click="closeDialog()"></div>
-  <div class="slide-panel" @click.stop>
-    <div class="slide-panel__header">
-      <h2 class="slide-panel__title">Rename Columns</h2>
-      <button class="slide-panel__close" @click="closeDialog()" title="Close">×</button>
+<p class="form-help" style="margin-bottom: 1rem">Edit column names below:</p>
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; align-items: center">
+  <template x-for="col in columns" :key="col">
+    <div style="display: contents">
+      <div
+        style="
+          font-size: 0.875rem;
+          font-weight: 500;
+          color: var(--color-dark-gray);
+          overflow: hidden;
+          text-overflow: ellipsis;
+        "
+        x-text="col"
+      ></div>
+      <input
+        type="text"
+        class="form-input"
+        x-model="renameDialogState.renames[col]"
+        :data-col="col"
+        style="padding: 0.25rem 0.5rem; font-size: 0.875rem"
+      />
     </div>
-
-    <div class="slide-panel__content">
-      <p class="form-help" style="margin-bottom: 1rem">Edit column names below:</p>
-      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; align-items: center">
-        <template x-for="col in columns" :key="col">
-          <div style="display: contents">
-            <div
-              style="
-                font-size: 0.875rem;
-                font-weight: 500;
-                color: var(--color-dark-gray);
-                overflow: hidden;
-                text-overflow: ellipsis;
-              "
-              x-text="col"
-            ></div>
-            <input
-              type="text"
-              class="form-input"
-              x-model="renameDialogState.renames[col]"
-              :data-col="col"
-              style="padding: 0.25rem 0.5rem; font-size: 0.875rem"
-            />
-          </div>
-        </template>
-      </div>
-    </div>
-
-    <div class="slide-panel__footer">
-      <button class="button button--secondary" @click="closeDialog()">Cancel</button>
-      <button class="button button--primary" @click="applyRenameTransform()">Apply</button>
-    </div>
-  </div>
+  </template>
 </div>
