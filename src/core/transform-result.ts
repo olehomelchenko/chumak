@@ -29,7 +29,7 @@ export const TransformResult = {
     const data = table.objects();
     const columns = table.columnNames();
 
-    const sampleData = data.slice(0, 20);
+    const sampleData = data.slice(0, 100);
     const schema = SchemaEngine.deriveNextSchema(previousSchema, transform, sampleData);
 
     const schemaNames = schema.map((c) => c.name);
@@ -50,7 +50,7 @@ export const TransformResult = {
    */
   createFromData(data: any[], previousSchema: ColumnSchema[], transform: TransformStep): TransformResultData {
     const columns = data.length > 0 ? Object.keys(data[0]) : [];
-    const sampleData = data.slice(0, 20);
+    const sampleData = data.slice(0, 100);
     const schema = SchemaEngine.deriveNextSchema(previousSchema, transform, sampleData);
 
     const schemaNames = schema.map((c) => c.name);

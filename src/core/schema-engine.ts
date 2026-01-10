@@ -28,6 +28,16 @@ export interface TransformStep {
     columns: string[];
     as: [string, string];
   };
+  pivot?: {
+    rows?: string[];
+    keys: string;
+    values: string;
+    aggregation: string;
+    options?: {
+      sort?: boolean;
+      limit?: number;
+    };
+  };
   split?: {
     column: string;
     mode: 'left' | 'right' | 'firstN' | 'lastN' | 'spread';
@@ -295,12 +305,24 @@ export const SchemaEngine = {
       let valType: ColumnType = 'string';
       if (sampleData && sampleData.length > 0) {
         const sampleValues = sampleData.map((row) => row[valueName]);
-        valType = this.inferType(sampleValues);
-      } else {
-        const foldedTypes = currentSchema
-          .filter((c) => columns.includes(c.name))
-          .map((c) => c.type);
+        const inferred = this.inferType(sampleValues);
 
+        if (inferred === 'string' && sampleValues.every((v) => v === null || v === undefined)) {
+          // Sparse column or no values in sample - try to inherit from source columns
+          const foldedTypes = currentSchema.filter((c) => columns.includes(c.name)).map((c) => c.type);
+          const uniqueTypes = [...new Set(foldedTypes)];
+          if (uniqueTypes.length === 1) {
+            valType = uniqueTypes[0];
+          } else if (foldedTypes.every((t) => t === 'integer' || t === 'float')) {
+            valType = 'float';
+          } else {
+            valType = 'string';
+          }
+        } else {
+          valType = inferred;
+        }
+      } else {
+        const foldedTypes = currentSchema.filter((c) => columns.includes(c.name)).map((c) => c.type);
         const uniqueTypes = [...new Set(foldedTypes)];
         if (uniqueTypes.length === 1) {
           valType = uniqueTypes[0];
@@ -321,7 +343,60 @@ export const SchemaEngine = {
       return newSchema;
     }
 
-    // 9. SPLIT: Split column into multiple columns
+    // 9. PIVOT (Wide)
+    if (transform.pivot) {
+      const { rows, values, aggregation } = transform.pivot;
+
+      // For pivot, we need sample data to know the new column names
+      // since they come from the unique values of the key column
+      if (sampleData && sampleData.length > 0) {
+        const sampleColumns = Object.keys(sampleData[0]);
+        const newSchema: ColumnSchema[] = [];
+        let pos = 0;
+
+        for (const colName of sampleColumns) {
+          // Check if this is an existing column (row identity from rows array)
+          const existing = currentSchema.find((c) => c.name === colName);
+          if (existing && rows?.includes(colName)) {
+            newSchema.push({ ...existing, originalPosition: pos++ });
+          } else {
+            // This is a pivoted column - determine type based on aggregation
+            let type: ColumnType;
+            const sampleValues = sampleData.map((row) => row[colName]);
+            if (['count'].includes(aggregation)) {
+              type = 'integer';
+            } else if (['sum', 'mean', 'avg', 'median', 'stdev', 'variance'].includes(aggregation)) {
+              type = 'float';
+            } else {
+              const inferred = this.inferType(sampleValues);
+              if (inferred === 'string' && sampleValues.every((v) => v === null || v === undefined)) {
+                // Sparse column - fallback to values column type
+                const valCol = currentSchema.find((c) => c.name === values);
+                type = valCol ? valCol.type : 'string';
+              } else {
+                type = inferred;
+              }
+            }
+
+            newSchema.push({
+              name: colName,
+              type,
+              format: {},
+              originalPosition: pos++,
+            });
+          }
+        }
+
+        return newSchema;
+      }
+
+      // Fallback: keep row columns, can't determine pivoted columns without data
+      const rowCols = rows || [];
+      const newSchema = currentSchema.filter((c) => rowCols.includes(c.name));
+      return newSchema.map((c, i) => ({ ...c, originalPosition: i }));
+    }
+
+    // 10. SPLIT: Split column into multiple columns
     if (transform.split) {
       const { column, mode, keepOriginal, maxColumns } = transform.split;
 

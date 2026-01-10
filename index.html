@@ -263,9 +263,9 @@
             <div class="ribbon__group-label">Reshape</div>
             <div style="display: flex; gap: 4px">
               <button
-                class="ribbon__button ribbon__button--disabled"
-                disabled
-                title="Pivot table - create columns from values (Coming soon)"
+                class="ribbon__button"
+                @click="openDialog('pivot')"
+                title="Pivot - create columns from values (long to wide)"
               >
                 <span
                   class="iconify"
@@ -1169,6 +1169,7 @@
           <div id="rename-modal-container" x-show="activeDialog === 'rename'"></div>
           <div id="remove-modal-container" x-show="activeDialog === 'remove'"></div>
           <div id="unpivot-modal-container" x-show="activeDialog === 'fold'"></div>
+          <div id="pivot-modal-container" x-show="activeDialog === 'pivot'"></div>
           <div id="replace-modal-container" x-show="activeDialog === 'replace'"></div>
           <div id="split-modal-container" x-show="activeDialog === 'split'"></div>
           <div id="select-columns-modal-container" x-show="activeDialog === 'select'"></div>

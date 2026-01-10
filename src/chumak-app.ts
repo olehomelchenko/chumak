@@ -124,6 +124,17 @@ export class ChumakApp implements AppState {
   indexDialogState = { columnName: 'row_index', startFrom: 1 };
   renameDialogState = { renames: {} as Record<string, string> };
   foldDialogState = { keyName: 'key', valueName: 'value', selectedColumns: [] as boolean[] };
+  pivotDialogState: any = {
+    rowColumns: [] as string[],
+    columnColumn: '',
+    valueColumn: '',
+    aggregation: 'sum',
+    options: { sort: true, limit: null as number | null },
+    uniqueValueCount: 0,
+    previewData: null,
+    previewError: null,
+    isPreviewing: false,
+  };
   replaceDialogState = { column: '', findValue: '', replaceValue: '' };
   splitDialogState: any = {
     column: '',
@@ -289,6 +300,7 @@ export class ChumakApp implements AppState {
       { id: 'select-columns-modal-container', url: 'templates/select-columns-modal.html' },
       { id: 'split-modal-container', url: 'templates/split-column-modal.html' },
       { id: 'unpivot-modal-container', url: 'templates/unpivot-modal.html' },
+      { id: 'pivot-modal-container', url: 'templates/pivot-modal.html' },
       { id: 'replace-modal-container', url: 'templates/replace-modal.html' },
       { id: 'remove-modal-container', url: 'templates/remove-modal.html' },
       { id: 'rename-modal-container', url: 'templates/rename-modal.html' },
@@ -1630,6 +1642,113 @@ export class ChumakApp implements AppState {
     await this.runTransform('Fold', transform);
   }
 
+  // ============================================================
+  // Pivot Transform
+  // ============================================================
+
+  initializePivotDialog() {
+    this.pivotDialogState = {
+      rowColumns: [],
+      columnColumn: '',
+      valueColumn: '',
+      aggregation: 'sum',
+      options: { sort: true, limit: null },
+      uniqueValueCount: 0,
+      previewData: null,
+      previewError: null,
+      isPreviewing: false,
+    };
+  }
+
+  onPivotConfigChange() {
+    const { columnColumn } = this.pivotDialogState;
+
+    // Update unique value count for column column
+    if (this.currentData && columnColumn) {
+      const uniqueValues = new Set(this.currentData.map((row: any) => row[columnColumn]));
+      this.pivotDialogState.uniqueValueCount = uniqueValues.size;
+    } else {
+      this.pivotDialogState.uniqueValueCount = 0;
+    }
+
+    // Clear preview when config changes
+    this.pivotDialogState.previewData = null;
+    this.pivotDialogState.previewError = null;
+  }
+
+  constructPivotStep() {
+    const { rowColumns, columnColumn, valueColumn, aggregation, options } = this.pivotDialogState;
+
+    if (!columnColumn) throw new Error('Please select a column for pivot headers');
+    if (!valueColumn) throw new Error('Please select a value column');
+    if (columnColumn === valueColumn) throw new Error('Column and value columns must be different');
+    if (rowColumns.includes(columnColumn)) throw new Error('Column column cannot be used as a row');
+    if (rowColumns.includes(valueColumn)) throw new Error('Value column cannot be used as a row');
+
+    const transform: any = {
+      pivot: {
+        rows: rowColumns.length > 0 ? rowColumns : undefined,
+        keys: columnColumn,
+        values: valueColumn,
+        aggregation,
+        options: {
+          sort: options.sort,
+          limit: options.limit || undefined,
+        },
+      },
+    };
+
+    return transform;
+  }
+
+  previewPivot() {
+    this.pivotDialogState.isPreviewing = true;
+    this.pivotDialogState.previewError = null;
+    this.pivotDialogState.previewData = null;
+    try {
+      const step = this.constructPivotStep();
+      const table = aq.from(this.currentData!);
+      const resultTable = applyTransform(table, step, this.columns);
+      this.pivotDialogState.previewData = this.preparePreviewData(resultTable, 100);
+    } catch (error: any) {
+      this.pivotDialogState.previewError = error.message;
+    } finally {
+      this.pivotDialogState.isPreviewing = false;
+    }
+  }
+
+  async applyPivotTransform() {
+    await this.startTransformation('Pivoting data...');
+    try {
+      const transform = this.constructPivotStep();
+      const table = aq.from(this.currentData!);
+      const context = { sources: this.sources, models: this.models };
+      const result = applyTransform(table, transform, this.columns, context);
+
+      const oldCols = new Set(this.columns);
+      const newCols = result.columnNames().filter((col: string) => !oldCols.has(col));
+      const hasTypesStep = newCols.length > 0;
+
+      await this.applyStepResult(transform, result, !hasTypesStep);
+
+      if (hasTypesStep) {
+        const typeSpecs: Record<string, string> = {};
+        for (const colName of newCols) {
+          const sampleValues = this.currentData!.slice(0, 100).map((row) => row[colName]);
+          const inferredType = SchemaEngine.inferType(sampleValues);
+          typeSpecs[colName] = inferredType;
+        }
+        const typesTransform = { types: typeSpecs };
+        await this.applyStepResult(typesTransform, this.currentData!, true);
+      }
+    } catch (error: any) {
+      console.error('Pivot transform error:', error);
+      alert('Error applying pivot: ' + error.message);
+    } finally {
+      this.endTransformation();
+    }
+  }
+
   addAggregation() {
     this.aggregateDialogState.aggregations.push({ output: '', func: 'mean', col: '' });
   }
@@ -1964,6 +2083,7 @@ export class ChumakApp implements AppState {
       case 'aggregate': return this.aggregateDialogState;
       case 'join': return { ...this.joinDialogState, rightModel: this.joinDialogState.rightModel?.id, availableTargets: null };
       case 'fold': return this.foldDialogState;
+      case 'pivot': return this.pivotDialogState;
       case 'sort': return this.sortDialogState;
       case 'remove': return this.removedColumns;
       case 'select': return { cols: this.selectedColumns, pattern: this.selectPatternText, mode: this.selectPatternMode, type: this.selectPatternMatchType };
@@ -2012,6 +2132,8 @@ export class ChumakApp implements AppState {
       this.aggregateDialogState = { groupBy: [], aggregations: [{ output: 'count', func: 'count', col: '' }], previewData: null, previewError: null, isPreviewing: false };
     } else if (dialogName === 'fold') {
       this.foldDialogState = { keyName: 'key', valueName: 'value', selectedColumns: this.columns.map(() => false) };
+    } else if (dialogName === 'pivot') {
+      this.initializePivotDialog();
     } else if (dialogName === 'replace') {
       this.replaceDialogState = { column: this.columns[0] || '', findValue: '', replaceValue: '' };
     } else if (dialogName === 'split') {
@@ -2041,7 +2163,7 @@ export class ChumakApp implements AppState {
     const slidePanels = [
       'filter', 'sort', 'sliceRows', 'index', 'select', 'remove', 'rename',
       'split', 'derive', 'regexpMatch', 'regexpExtract',
-      'fold', 'aggregate', 'join', 'replace'
+      'fold', 'pivot', 'aggregate', 'join', 'replace'
     ];
     return slidePanels.includes(dialog);
   }
@@ -2066,6 +2188,7 @@ export class ChumakApp implements AppState {
       case 'regexpMatch': return 'Regexp Match';
       case 'regexpExtract': return 'Regexp Extract';
       case 'fold': return 'Unpivot Data (Fold)';
+      case 'pivot': return 'Pivot Data (Wide)';
       case 'aggregate': return 'Aggregate Data';
       case 'join': return 'Join Data';
       case 'replace': return 'Replace Values';
@@ -2097,6 +2220,7 @@ export class ChumakApp implements AppState {
       case 'regexpExtract': return !!this.regexpExtractDialogState.error;
       case 'split': return !!this.splitDialogState.error;
       case 'join': return !this.joinDialogState.rightModel;
+      case 'pivot': return !this.pivotDialogState.columnColumn || !this.pivotDialogState.valueColumn;
       case 'import-url': return !this.importUrlDialogState.url || this.importUrlDialogState.isFetching;
       default: return false;
     }
@@ -2116,6 +2240,7 @@ export class ChumakApp implements AppState {
       case 'regexpMatch': await this.applyRegexpMatchTransform(); break;
       case 'regexpExtract': await this.applyRegexpExtractTransform(); break;
       case 'fold': await this.applyFoldTransform(); break;
+      case 'pivot': await this.applyPivotTransform(); break;
       case 'aggregate': await this.applyAggregateTransform(); break;
       case 'join': await this.applyJoinTransform(); break;
       case 'replace': await this.applyReplaceTransform(); break;
@@ -2145,6 +2270,7 @@ export class ChumakApp implements AppState {
     this.importDialogState = { fileName: '', sourceName: '', rawPreviewData: [], previewHeaders: [], previewDataRows: [], headerMode: 'first-row', delimiter: ',', originalHeaders: [], customHeaders: [], duplicateWarning: '' };
     this.importFileData = null;
     this.foldDialogState = { keyName: 'key', valueName: 'value', selectedColumns: this.columns ? this.columns.map(() => false) : [] };
+    this.pivotDialogState = { rowColumns: [], columnColumn: '', valueColumn: '', aggregation: 'sum', options: { sort: true, limit: null }, uniqueValueCount: 0, previewData: null, previewError: null, isPreviewing: false };
     this.splitDialogState = { column: '', delimiter: ',', isRegex: false, mode: 'spread', maxColumns: 10, keepOriginal: false, error: null, previewData: [], previewColumns: [], autoDetectedDelimiter: null, columnRenames: {} };
     this.regexpMatchDialogState = { columnName: '', sourceColumn: '', pattern: '', error: null };
     this.regexpExtractDialogState = { columnName: '', sourceColumn: '', pattern: '', group: 0, error: null };
@@ -2737,6 +2863,23 @@ export class ChumakApp implements AppState {
         valueName: step.fold.as[1],
         selectedColumns: this.columns.map((c) => step.fold.columns.includes(c)),
       };
+    } else if (step.pivot) {
+      this.openDialog('pivot');
+      this.pivotDialogState = {
+        rowColumns: step.pivot.rows || [],
+        columnColumn: step.pivot.keys,
+        valueColumn: step.pivot.values,
+        aggregation: step.pivot.aggregation || 'sum',
+        options: {
+          sort: step.pivot.options?.sort ?? true,
+          limit: step.pivot.options?.limit || null,
+        },
+        uniqueValueCount: 0,
+        previewData: null,
+        previewError: null,
+        isPreviewing: false,
+      };
+      this.onPivotConfigChange();
     } else if (step.replace) {
       this.openDialog('replace');
       this.replaceDialogState = {

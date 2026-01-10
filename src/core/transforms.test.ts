@@ -372,6 +372,157 @@ describe('Transform Engine', () => {
     });
   });
 
+  describe('applyTransform() - PIVOT', () => {
+    it('should pivot with rows, columns, and values', () => {
+      const table = (aq as any).from([
+        { product: 'Widget', region: 'North', sales: 100 },
+        { product: 'Widget', region: 'South', sales: 150 },
+        { product: 'Gadget', region: 'North', sales: 200 },
+        { product: 'Gadget', region: 'South', sales: 250 },
+      ]);
+      const transform = {
+        pivot: {
+          rows: ['product'],
+          keys: 'region',
+          values: 'sales',
+          aggregation: 'any',
+          options: { sort: true },
+        },
+      };
+      const result = applyTransform(table, transform, ['product', 'region', 'sales']);
+
+      expect(result.columnNames()).toContain('product');
+      expect(result.columnNames()).toContain('North');
+      expect(result.columnNames()).toContain('South');
+      expect(result.numRows()).toBe(2);
+
+      const rows = result.orderby('product').objects();
+      expect(rows[0].product).toBe('Gadget');
+      expect(rows[0].North).toBe(200);
+      expect(rows[0].South).toBe(250);
+      expect(rows[1].product).toBe('Widget');
+      expect(rows[1].North).toBe(100);
+      expect(rows[1].South).toBe(150);
+    });
+
+    it('should pivot with sum aggregation', () => {
+      const table = (aq as any).from([
+        { product: 'Widget', region: 'North', sales: 100 },
+        { product: 'Widget', region: 'North', sales: 50 },
+        { product: 'Widget', region: 'South', sales: 150 },
+      ]);
+      const transform = {
+        pivot: {
+          rows: ['product'],
+          keys: 'region',
+          values: 'sales',
+          aggregation: 'sum',
+          options: { sort: true },
+        },
+      };
+      const result = applyTransform(table, transform, ['product', 'region', 'sales']);
+
+      const rows = result.objects();
+      expect(rows[0].North).toBe(150); // 100 + 50
+      expect(rows[0].South).toBe(150);
+    });
+
+    it('should pivot without row columns (single aggregated row)', () => {
+      const table = (aq as any).from([
+        { product: 'Widget', region: 'North', sales: 100 },
+        { product: 'Widget', region: 'South', sales: 150 },
+        { product: 'Gadget', region: 'North', sales: 200 },
+      ]);
+      const transform = {
+        pivot: {
+          keys: 'region',
+          values: 'sales',
+          aggregation: 'sum',
+          options: { sort: true },
+        },
+      };
+      const result = applyTransform(table, transform, ['product', 'region', 'sales']);
+
+      expect(result.numRows()).toBe(1);
+      const rows = result.objects();
+      expect(rows[0].North).toBe(300); // 100 + 200
+      expect(rows[0].South).toBe(150);
+    });
+
+    it('should respect limit option', () => {
+      const table = (aq as any).from([
+        { product: 'Widget', region: 'North', sales: 100 },
+        { product: 'Widget', region: 'South', sales: 150 },
+        { product: 'Widget', region: 'East', sales: 120 },
+        { product: 'Widget', region: 'West', sales: 80 },
+      ]);
+      const transform = {
+        pivot: {
+          rows: ['product'],
+          keys: 'region',
+          values: 'sales',
+          aggregation: 'any',
+          options: { sort: true, limit: 2 },
+        },
+      };
+      const result = applyTransform(table, transform, ['product', 'region', 'sales']);
+
+      // Should only have product + 2 pivoted columns
+      expect(result.columnNames().length).toBe(3);
+    });
+
+    it('should pivot with multiple row columns', () => {
+      const table = (aq as any).from([
+        { category: 'Electronics', product: 'Phone', region: 'North', sales: 100 },
+        { category: 'Electronics', product: 'Phone', region: 'South', sales: 150 },
+        { category: 'Electronics', product: 'Laptop', region: 'North', sales: 200 },
+      ]);
+      const transform = {
+        pivot: {
+          rows: ['category', 'product'],
+          keys: 'region',
+          values: 'sales',
+          aggregation: 'sum',
+          options: { sort: true },
+        },
+      };
+      const result = applyTransform(table, transform, ['category', 'product', 'region', 'sales']);
+
+      expect(result.columnNames()).toContain('category');
+      expect(result.columnNames()).toContain('product');
+      expect(result.columnNames()).toContain('North');
+      expect(result.columnNames()).toContain('South');
+      expect(result.numRows()).toBe(2);
+    });
+  });
+
+  describe('describeTransform() - PIVOT', () => {
+    it('should describe pivot transform', () => {
+      const transform = {
+        pivot: {
+          rows: ['product'],
+          keys: 'region',
+          values: 'sales',
+          aggregation: 'sum',
+        },
+      };
+      const desc = describeTransform(transform);
+      expect(desc).toBe('Pivot: sum(sales) by region');
+    });
+
+    it('should describe pivot transform with count aggregation', () => {
+      const transform = {
+        pivot: {
+          keys: 'category',
+          values: 'id',
+          aggregation: 'count',
+        },
+      };
+      const desc = describeTransform(transform);
+      expect(desc).toBe('Pivot: count(id) by category');
+    });
+  });
+
   describe('SchemaEngine - Complex Inference', () => {
     it('should infer types after split', () => {
       const initialSchema = [

@@ -244,6 +244,44 @@ export function applyTransform(table: any, transform: any, schema: string[], con
     return table.fold(columns, as ? { as } : undefined);
   }
 
+  if (transform.pivot) {
+    const { rows, keys, values, aggregation, options } = transform.pivot;
+    const op = (aq as any).op;
+
+    // Row identity columns are explicitly specified (or empty for a single row result)
+    const rowIdentityCols = rows || [];
+
+    // Build the value expression based on aggregation
+    const aggFunc = aggregation || 'sum';
+    let valueSpec: any;
+    if (aggFunc === 'count') {
+      valueSpec = { [values]: op.count() };
+    } else if (op[aggFunc]) {
+      valueSpec = { [values]: op[aggFunc](values) };
+    } else {
+      valueSpec = { [values]: op.any(values) };
+    }
+
+    const pivotOptions: any = {};
+    if (options?.sort !== undefined) pivotOptions.sort = options.sort;
+    if (options?.limit) pivotOptions.limit = options.limit;
+
+    // Group by row identity columns before pivoting
+    let workTable = table;
+    if (rowIdentityCols.length > 0) {
+      workTable = table.groupby(rowIdentityCols);
+    }
+
+    let result = workTable.pivot(keys, valueSpec, pivotOptions);
+
+    // Ungroup if we grouped
+    if (rowIdentityCols.length > 0) {
+      result = result.ungroup();
+    }
+
+    return result;
+  }
+
   if (transform.replace) {
     const { column, find, replace } = transform.replace;
     const rows = table.objects();
@@ -316,6 +354,12 @@ export function describeTransform(transform: any, rightName: string | null = nul
     }
 
     return desc;
+  }
+
+  if (transform.pivot) {
+    const { rows, keys, values, aggregation } = transform.pivot;
+    const rowsLabel = rows && rows.length > 0 ? rows.join(', ') : 'all';
+    return `Pivot: ${aggregation}(${values}) by ${keys}`;
   }
 
   if (transform.types) {
