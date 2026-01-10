@@ -32,7 +32,28 @@
           @input.debounce.300ms="updateJsonPath()"
           placeholder="e.g., results or data.items"
         />
-        <p class="form-help">If the array is nested, specify the path to it.</p>
+        <div style="display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px">
+          <button
+            class="button button--secondary button--compact"
+            style="font-size: 11px; padding: 4px 8px"
+            @click="resetJsonPath()"
+            :disabled="!importDialogState.jsonPath"
+          >
+            Reset
+          </button>
+          <template x-for="key in importDialogState.suggestedJsonKeys" :key="key">
+            <button
+              class="button button--secondary button--compact"
+              style="font-size: 11px; padding: 4px 8px; border-style: dashed"
+              @click="selectJsonPathSegment(key)"
+              x-text="key"
+            ></button>
+          </template>
+        </div>
+        <p class="form-help" style="margin-top: 8px">
+          Click keys above to navigate or type a path. If the array is nested, specify the path to
+          it.
+        </p>
         <div
           class="form-help"
           style="
@@ -70,6 +91,34 @@
             x-text="importDialogState.jsonRawValuePreview"
           ></pre>
         </div>
+      </div>
+
+      <div
+        x-show="importDialogState.isJson && importDialogState.jsonRawValuePreview"
+        class="form-group"
+      >
+        <label class="form-label" style="margin-bottom: 8px">JSON Options:</label>
+        <div style="display: flex; flex-direction: column; gap: 8px">
+          <label class="checkbox-item">
+            <input
+              type="checkbox"
+              x-model="importDialogState.flattenJson"
+              @change="updateHeadersForPreview()"
+            />
+            <span>Flatten nested objects (e.g., user.name -> user_name)</span>
+          </label>
+          <label class="checkbox-item">
+            <input
+              type="checkbox"
+              x-model="importDialogState.serializeNested"
+              @change="updateHeadersForPreview()"
+            />
+            <span>Serialize nested structures to JSON strings</span>
+          </label>
+        </div>
+        <p class="form-help" style="margin-top: 4px">
+          By default, nested objects are serialized to avoid "[object Object]".
+        </p>
       </div>
 
       <!-- JSON Validation Error -->

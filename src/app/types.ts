@@ -51,6 +51,9 @@ export interface AppState {
     fullJsonData?: any;
     jsonPath?: string;
     jsonRawValuePreview?: string;
+    suggestedJsonKeys?: string[];
+    flattenJson?: boolean;
+    serializeNested?: boolean;
   };
   importFileData: any;
   importUrlDialogState: {

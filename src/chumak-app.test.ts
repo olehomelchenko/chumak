@@ -125,7 +125,7 @@ describe('ChumakApp URL Import', () => {
     expect(app.importDialogState.jsonPath).toBe('results');
   });
 
-  it('should auto-detect the first array in JSON if no path is provided', () => {
+  it('should show top-level keys as suggestions if no path is provided', () => {
     const nestedData = {
       meta: { count: 1 },
       results: [
@@ -136,9 +136,10 @@ describe('ChumakApp URL Import', () => {
 
     app.handleJsonPreview(file, nestedData);
 
-    // Should have found 'results' automatically
-    expect(app.importDialogState.jsonPath).toBe('results');
-    expect(app.importDialogState.jsonData).toHaveLength(1);
+    // Should NOT have found 'results' automatically anymore
+    expect(app.importDialogState.jsonPath).toBe('');
+    expect(app.importDialogState.suggestedJsonKeys).toContain('meta');
+    expect(app.importDialogState.suggestedJsonKeys).toContain('results');
   });
 
   it('should provide a raw value preview for JSON paths', () => {
@@ -152,9 +153,66 @@ describe('ChumakApp URL Import', () => {
 
     app.handleJsonPreview(file, data, 'nested');
 
-    // It should auto-jump to 'items' because it's the first array found in 'nested'
-    expect(app.importDialogState.jsonPath).toBe('nested.items');
-    expect(app.importDialogState.jsonRawValuePreview).toContain('1');
-    expect(app.importDialogState.jsonRawValuePreview).toContain('2');
+    expect(app.importDialogState.jsonRawValuePreview).toContain('"value": "hello"');
+    expect(app.importDialogState.jsonRawValuePreview).toContain('"items"');
+  });
+
+  it('should support interactive path navigation', () => {
+    const data = {
+      api: {
+        v1: {
+          users: [{ id: 1 }],
+        },
+      },
+    };
+    const file = new File([''], 'data.json');
+
+    app.handleJsonPreview(file, data);
+
+    expect(app.importDialogState.suggestedJsonKeys).toContain('api');
+
+    app.selectJsonPathSegment('api');
+    expect(app.importDialogState.jsonPath).toBe('api');
+    expect(app.importDialogState.suggestedJsonKeys).toContain('v1');
+
+    app.selectJsonPathSegment('v1');
+    expect(app.importDialogState.jsonPath).toBe('api.v1');
+    expect(app.importDialogState.suggestedJsonKeys).toContain('users');
+
+    app.selectJsonPathSegment('users');
+    expect(app.importDialogState.jsonPath).toBe('api.v1.users');
+    expect(app.importDialogState.jsonData).toHaveLength(1);
+    // When it's an array, it suggests '0' and keys of first element
+    expect(app.importDialogState.suggestedJsonKeys).toContain('0');
+  });
+
+  it('should support flattening and serializing nested JSON', () => {
+    const data = [
+      {
+        id: 1,
+        user: { name: 'Alice', details: { age: 30 } },
+        tags: ['a', 'b'],
+      },
+    ];
+    const file = new File([''], 'data.json');
+
+    app.handleJsonPreview(file, data);
+
+    // Default: serializeNested = true, flattenJson = false
+    app.updateHeadersForPreview();
+    expect(app.importDialogState.previewHeaders).toContain('user');
+    expect(typeof app.importDialogState.previewDataRows[0][1]).toBe('string'); // user is stringified
+
+    // Enable flattening
+    app.importDialogState.flattenJson = true;
+    app.updateHeadersForPreview();
+
+    expect(app.importDialogState.previewHeaders).toContain('user_name');
+    expect(app.importDialogState.previewHeaders).toContain('user_details_age');
+    expect(app.importDialogState.previewDataRows[0][1]).toBe('Alice');
+    
+    // tags is an array, it should be stringified if serializeNested is on
+    expect(typeof app.importDialogState.previewDataRows[0][3]).toBe('string');
+    expect(app.importDialogState.previewDataRows[0][3]).toBe('["a","b"]');
   });
 });

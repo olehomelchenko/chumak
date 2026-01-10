@@ -69,6 +69,9 @@ export class ChumakApp implements AppState {
     fullJsonData: null,
     jsonPath: '',
     jsonRawValuePreview: '',
+    suggestedJsonKeys: [],
+    flattenJson: false,
+    serializeNested: true,
   };
   importFileData: { file: File } | null = null;
   importUrlDialogState: any = {
@@ -594,15 +597,6 @@ export class ChumakApp implements AppState {
       resolvedData = this.resolvePath(data, path);
     }
 
-    // Attempt to find the first array if resolvedData isn't an array
-    if (!Array.isArray(resolvedData) && typeof resolvedData === 'object' && resolvedData !== null) {
-      const firstArrayKey = Object.keys(resolvedData).find((key) => Array.isArray(resolvedData[key]));
-      if (firstArrayKey) {
-        path = path ? `${path}.${firstArrayKey}` : firstArrayKey;
-        resolvedData = resolvedData[firstArrayKey];
-      }
-    }
-
     const isValidArray =
       Array.isArray(resolvedData) &&
       resolvedData.length > 0 &&
@@ -627,6 +621,9 @@ export class ChumakApp implements AppState {
       fullJsonData: data,
       jsonPath: path,
       jsonRawValuePreview: resolvedData ? JSON.stringify(resolvedData, null, 2).slice(0, 1000) : '',
+      suggestedJsonKeys: this.getSuggestedKeys(resolvedData),
+      flattenJson: this.importDialogState.flattenJson ?? false,
+      serializeNested: this.importDialogState.serializeNested ?? true,
     };
     this.activeDialog = 'import-csv';
   }
@@ -643,12 +640,80 @@ export class ChumakApp implements AppState {
   resolvePath(obj: any, path: string) {
     if (!path) return obj;
     try {
-      return path.split('.').reduce((prev, curr) => {
-        return prev ? prev[curr] : undefined;
-      }, obj);
+      const parts = path.split('.');
+      let current = obj;
+      for (const part of parts) {
+        if (current === null || current === undefined) return undefined;
+        // Handle array indices
+        if (Array.isArray(current) && /^\d+$/.test(part)) {
+          current = current[parseInt(part, 10)];
+        } else {
+          current = current[part];
+        }
+      }
+      return current;
     } catch (e) {
       return undefined;
     }
+  }
+
+  getSuggestedKeys(obj: any): string[] {
+    if (obj === null || typeof obj !== 'object') return [];
+    if (Array.isArray(obj)) {
+      // If it's an array, we could suggest indices or keys of the first element
+      // But usually user wants to import the array itself.
+      // However, we'll allow digging into the first element for deeper nesting
+      if (obj.length > 0) {
+        return ['0', ...Object.keys(obj[0] || {})];
+      }
+      return [];
+    }
+    return Object.keys(obj);
+  }
+
+  selectJsonPathSegment(segment: string) {
+    const currentPath = this.importDialogState.jsonPath;
+    const newPath = currentPath ? `${currentPath}.${segment}` : segment;
+    this.importDialogState.jsonPath = newPath;
+    this.updateJsonPath();
+  }
+
+  resetJsonPath() {
+    this.importDialogState.jsonPath = '';
+    this.updateJsonPath();
+  }
+
+  flattenData(data: any[]): any[] {
+    return data.map((item) => {
+      const flattened: any = {};
+      const flatten = (obj: any, prefix = '') => {
+        if (obj === null || typeof obj !== 'object' || Array.isArray(obj)) {
+          const key = prefix.slice(0, -1);
+          if (key) flattened[key] = obj;
+          return;
+        }
+        Object.keys(obj).forEach((k) => {
+          flatten(obj[k], `${prefix}${k}_`);
+        });
+      };
+      flatten(item);
+      return flattened;
+    });
+  }
+
+  serializeNestedData(data: any[]): any[] {
+    return data.map((item) => {
+      const newItem: any = {};
+      Object.keys(item).forEach((key) => {
+        const val = item[key];
+        if (val !== null && typeof val === 'object') {
+          newItem[key] = JSON.stringify(val);
+        } else {
+          newItem[key] = val;
+        }
+      });
+      return newItem;
+    });
   }
 
   handleCsvPreview(file: File) {
@@ -748,7 +813,16 @@ export class ChumakApp implements AppState {
   }
 
   confirmImport() {
-    const { headerMode, delimiter, customHeaders, sourceName, isJson, jsonData } = this.importDialogState;
+    const {
+      headerMode,
+      delimiter,
+      customHeaders,
+      sourceName,
+      isJson,
+      jsonData,
+      flattenJson,
+      serializeNested,
+    } = this.importDialogState;
     if (!this.importFileData) return;
     const file = this.importFileData.file;
     if (!sourceName || sourceName.trim() === '') {
@@ -757,14 +831,27 @@ export class ChumakApp implements AppState {
     }
 
     if (isJson && jsonData) {
+      let processedData = jsonData;
+
+      if (flattenJson) {
+        processedData = this.flattenData(processedData);
+      }
+
+      if (serializeNested) {
+        processedData = this.serializeNestedData(processedData);
+      }
+
+      const columns =
+        processedData.length > 0 ? Object.keys(processedData[0]) : customHeaders;
+
       this.createSource(
         file,
         sourceName.trim(),
-        customHeaders,
-        jsonData,
+        columns,
+        processedData,
         'first-row',
         ',',
-        customHeaders,
+        columns,
         'json'
       );
       return;
@@ -1039,19 +1126,29 @@ export class ChumakApp implements AppState {
   }
 
   updateHeadersForPreview() {
-    const { rawPreviewData, headerMode, originalHeaders, customHeaders, isJson, jsonData } =
+    const { rawPreviewData, headerMode, originalHeaders, customHeaders, isJson, jsonData, flattenJson, serializeNested } =
       this.importDialogState;
 
     if (isJson && jsonData) {
-      const { resolvedHeaders, warning } = this.resolveDuplicateHeaders(customHeaders);
+      let processedData = jsonData.slice(0, 5);
+      
+      if (flattenJson) {
+        processedData = this.flattenData(processedData);
+      }
+      
+      if (serializeNested) {
+        processedData = this.serializeNestedData(processedData);
+      }
+
+      const headers = processedData.length > 0 ? Object.keys(processedData[0]) : customHeaders;
+      const { resolvedHeaders, warning } = this.resolveDuplicateHeaders(headers);
+      
       this.importDialogState.previewHeaders = resolvedHeaders;
-      const previewData = jsonData.slice(0, 5);
-      // Map JSON data using original keys to raw preview rows
-      const originalKeys = Object.keys(jsonData[0] || {});
-      this.importDialogState.previewDataRows = previewData.map((row: any) =>
-        originalKeys.map((key) => row[key])
+      this.importDialogState.previewDataRows = processedData.map((row: any) =>
+        resolvedHeaders.map((h) => row[h])
       );
       this.importDialogState.duplicateWarning = warning;
+      this.importDialogState.customHeaders = resolvedHeaders;
       return;
     }
 
