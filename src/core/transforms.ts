@@ -363,8 +363,7 @@ export function describeTransform(transform: any, rightName: string | null = nul
   }
 
   if (transform.pivot) {
-    const { rows, keys, values, aggregation } = transform.pivot;
-    const rowsLabel = rows && rows.length > 0 ? rows.join(', ') : 'all';
+    const { keys, values, aggregation } = transform.pivot;
     return `Pivot: ${aggregation}(${values}) by ${keys}`;
   }
 
