@@ -896,11 +896,11 @@ export class ChumakApp implements AppState {
       this.edaBrushSelection = null;
       if (['integer', 'float', 'number'].includes(type)) {
         this.$nextTick(() => {
-          if (this.edaChartView === 'boxplot') ChartsEngine.renderBoxPlot('#eda-boxplot', this.currentData!, this.selectedColumn!);
-          else ChartsEngine.renderHistogram('#eda-histogram', this.currentData!, this.selectedColumn!, (sel) => this.handleBrushSelection(sel));
+          if (this.edaChartView === 'boxplot') ChartsEngine.renderBoxPlot('#eda-boxplot', this.currentData!, this.selectedColumn!, this.theme);
+          else ChartsEngine.renderHistogram('#eda-histogram', this.currentData!, this.selectedColumn!, this.theme, (sel: any) => this.handleBrushSelection(sel));
         });
       } else {
-        this.$nextTick(() => ChartsEngine.renderCategoricalBar('#eda-categorical-bar', this.edaStats.topValues));
+        this.$nextTick(() => ChartsEngine.renderCategoricalBar('#eda-categorical-bar', this.edaStats.topValues, this.theme));
       }
     } else {
       this.edaStats = null;
@@ -931,8 +931,8 @@ export class ChumakApp implements AppState {
       const type = this.edaStats.type;
       if (['integer', 'float', 'number'].includes(type)) {
         this.$nextTick(() => {
-          if (view === 'boxplot') ChartsEngine.renderBoxPlot('#eda-boxplot', this.currentData!, this.selectedColumn!);
-          else ChartsEngine.renderHistogram('#eda-histogram', this.currentData!, this.selectedColumn!, (sel) => this.handleBrushSelection(sel));
+          if (view === 'boxplot') ChartsEngine.renderBoxPlot('#eda-boxplot', this.currentData!, this.selectedColumn!, this.theme);
+          else ChartsEngine.renderHistogram('#eda-histogram', this.currentData!, this.selectedColumn!, this.theme, (sel: any) => this.handleBrushSelection(sel));
         });
       }
     }

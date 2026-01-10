@@ -1,4 +1,5 @@
 import vegaEmbed from 'vega-embed';
+import { chumakTheme, bluesTheme } from './vega-themes';
 
 /**
  * Chumak Charts Engine
@@ -20,6 +21,7 @@ export const ChartsEngine = {
     containerSelector: string,
     data: any[],
     column: string,
+    theme: 'chumak' | 'blues' = 'chumak',
     options: ChartOptions = {}
   ): Promise<void> {
     if (!data || data.length === 0 || !column) return;
@@ -68,24 +70,19 @@ export const ChartsEngine = {
             extent: 1.5,
             ticks: false,
             size: 30,
-            color: '#1789fc',
           },
           encoding: {},
         },
       ],
-      config: {
-        view: { stroke: 'transparent' },
-        axis: {
-          labelFontSize: 10,
-          labelColor: '#646464',
-        },
-      },
     };
 
+    const vegaTheme = theme === 'chumak' ? chumakTheme : bluesTheme;
+    
     try {
       await vegaEmbed(containerSelector, spec, {
         actions: false,
         renderer: 'svg',
+        config: vegaTheme,
       });
     } catch (error) {
       console.error('Error rendering boxplot:', error);
@@ -98,6 +95,7 @@ export const ChartsEngine = {
   async renderCategoricalBar(
     containerSelector: string,
     aggregatedData: any[],
+    theme: 'chumak' | 'blues' = 'chumak',
     options: ChartOptions = {}
   ): Promise<void> {
     if (!aggregatedData || aggregatedData.length === 0) return;
@@ -142,15 +140,15 @@ export const ChartsEngine = {
           { field: 'percentage', title: 'Percentage', format: '.1f' },
         ],
       },
-      config: {
-        view: { stroke: 'transparent' },
-      },
     };
 
+    const vegaTheme = theme === 'chumak' ? chumakTheme : bluesTheme;
+    
     try {
       await vegaEmbed(containerSelector, spec, {
         actions: false,
         renderer: 'svg',
+        config: vegaTheme,
       });
     } catch (error) {
       console.error('Error rendering categorical bar:', error);
@@ -164,6 +162,7 @@ export const ChartsEngine = {
     containerSelector: string,
     data: any[],
     column: string,
+    theme: 'chumak' | 'blues' = 'chumak',
     onBrush?: (selection: { min: number; max: number } | null) => void,
     options: ChartOptions = {}
   ): Promise<void> {
@@ -214,23 +213,18 @@ export const ChartsEngine = {
           transform: [{ filter: { param: 'brush' } }],
           mark: {
             type: 'bar',
-            color: '#1789fc',
           },
         },
       ],
-      config: {
-        view: { stroke: 'transparent' },
-        axis: {
-          labelFontSize: 10,
-          labelColor: '#646464',
-        },
-      },
     };
+
+    const vegaTheme = theme === 'chumak' ? chumakTheme : bluesTheme;
 
     try {
       const result = await vegaEmbed(containerSelector, spec, {
         actions: false,
         renderer: 'svg',
+        config: vegaTheme,
       });
 
       if (onBrush) {
