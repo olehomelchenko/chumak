@@ -22,6 +22,14 @@
     background: var(--border-color);
     margin: 0 var(--space-xs);
   }
+
+  &__page-indicator {
+    font-size: var(--font-size-sm);
+    color: var(--color-dark-gray);
+    padding: 0 var(--space-sm);
+    min-width: 100px;
+    text-align: center;
+  }
 }
 
 .model-actions {

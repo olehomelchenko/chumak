@@ -1,11 +1,11 @@
 .data-table {
   width: 100%;
   min-width: max-content;
-  border-collapse: collapse;
+  border-collapse: separate;
+  border-spacing: 0;
   border: var(--border-width) solid var(--border-color);
   font-family: var(--font-family-mono);
   font-size: var(--font-size-base);
-  overflow: hidden;
 
   &__header {
     background: var(--color-light-gray);
@@ -42,9 +42,8 @@
       z-index: 101;
 
       .type-indicator {
-        color: var(--color-midnight-blue);
-        background: var(--color-white);
-        border-color: var(--color-white);
+        background: rgba(var(--color-white-rgb), 0.2);
+        color: white; /* Fallback for white text on cyan bg */
       }
     }
   }
@@ -85,6 +84,16 @@
       text-align: right;
       font-variant-numeric: tabular-nums;
     }
+
+    &--empty {
+      background-color: rgba(var(--color-red-rgb), 0.05);
+      color: rgba(var(--color-red-rgb), 0.4);
+      font-style: italic;
+    }
+
+    &--zero {
+      color: rgba(var(--color-midnight-blue-rgb), 0.3);
+    }
   }
 
   &--compact {
@@ -102,17 +111,38 @@
   align-items: center;
   justify-content: center;
   margin-right: 8px;
-  font-family: var(--font-family-mono);
-  font-size: 10px;
-  font-weight: bold;
-  color: var(--color-dark-gray);
-  vertical-align: middle;
-  background: #f0f0f0;
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  width: 28px;
-  height: 20px;
+  width: 24px;
+  height: 24px;
   transition: all var(--transition-fast);
+  color: var(--color-dark-gray); /* Fallback */
+
+  .iconify {
+    width: 18px;
+    height: 18px;
+    display: block;
+  }
+
+  &:hover {
+    background: rgba(var(--color-midnight-blue-rgb), 0.08);
+  }
+
+  /* Type Colors - Specificity boost to ensure they win */
+  &.type-indicator--string {
+    color: var(--color-midnight-blue);
+  }
+  &.type-indicator--integer,
+  &.type-indicator--float,
+  &.type-indicator--number {
+    color: var(--color-cyan);
+  }
+  &.type-indicator--date,
+  &.type-indicator--datetime,
+  &.type-indicator--time {
+    color: #9b59b6;
+  } /* Slightly brighter purple */
+  &.type-indicator--boolean {
+    color: var(--color-green);
+  }
 }
 
 .floating-toolbar {

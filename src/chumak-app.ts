@@ -16,8 +16,6 @@ import { validateAST } from './core/ast-validator';
 import { formatError } from './core/error-formatter';
 import { matchColumnPattern } from './core/transforms';
 
-
-
 export class ChumakApp implements AppState {
   // UI state
   ribbonTab = 'prepare';
@@ -31,7 +29,14 @@ export class ChumakApp implements AppState {
   isDragging = false;
   selectedColumn: string | null = null;
   columnToolbarPos = { x: 0, y: 0, arrowOffset: 0 };
-  selectedCell: { col: string; value: any; type: string; rowIdx?: number; isEda?: boolean; edaLabel?: string } | null = null;
+  selectedCell: {
+    col: string;
+    value: any;
+    type: string;
+    rowIdx?: number;
+    isEda?: boolean;
+    edaLabel?: string;
+  } | null = null;
   cellToolbarPos = { x: 0, y: 0, arrowOffset: 0 };
   edaStats: any = null;
   edaChartView: 'boxplot' | 'histogram' = 'boxplot';
@@ -120,7 +125,10 @@ export class ChumakApp implements AppState {
   };
   deriveDialogState = { columnName: '', expression: '', error: null as string | null };
   sortDialogState = { field: '', order: 'asc' as 'asc' | 'desc' };
-  sliceRowsDialogState = { count: 10, mode: 'first' as 'first' | 'last' | 'removeFirst' | 'removeLast' };
+  sliceRowsDialogState = {
+    count: 10,
+    mode: 'first' as 'first' | 'last' | 'removeFirst' | 'removeLast',
+  };
   indexDialogState = { columnName: 'row_index', startFrom: 1 };
   renameDialogState = { renames: {} as Record<string, string> };
   foldDialogState = { keyName: 'key', valueName: 'value', selectedColumns: [] as boolean[] };
@@ -235,7 +243,8 @@ export class ChumakApp implements AppState {
     }
 
     if (this.activeModel) {
-      this.activeStepIndex = this.activeModel.steps?.length > 0 ? this.activeModel.steps.length - 1 : null;
+      this.activeStepIndex =
+        this.activeModel.steps?.length > 0 ? this.activeModel.steps.length - 1 : null;
       this.viewingIntermediate = false;
     }
 
@@ -252,7 +261,7 @@ export class ChumakApp implements AppState {
         this.columns = Object.keys(this.currentData[0]);
       }
     }
-    
+
     this.updatePagination();
 
     this.$nextTick(() => {
@@ -263,10 +272,22 @@ export class ChumakApp implements AppState {
 
     window.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
-        if (this.messageBox.visible) { this.closeMessageBox(false); return; }
-        if (this.activeDialog) { this.closeDialog(); return; }
-        if (this.typeMenuOpen) { this.typeMenuOpen = false; return; }
-        if (this.selectedColumn || this.selectedCell) { this.clearColumnSelection(); return; }
+        if (this.messageBox.visible) {
+          this.closeMessageBox(false);
+          return;
+        }
+        if (this.activeDialog) {
+          this.closeDialog();
+          return;
+        }
+        if (this.typeMenuOpen) {
+          this.typeMenuOpen = false;
+          return;
+        }
+        if (this.selectedColumn || this.selectedCell) {
+          this.clearColumnSelection();
+          return;
+        }
       }
     });
 
@@ -378,7 +399,9 @@ export class ChumakApp implements AppState {
       this.ribbonTab = 'prepare';
     }
     if (this.currentData && this.currentData.length > 0) {
-      this.columns = model.schema ? model.schema.map((c: any) => c.name) : Object.keys(this.currentData[0]);
+      this.columns = model.schema
+        ? model.schema.map((c: any) => c.name)
+        : Object.keys(this.currentData[0]);
     } else {
       this.columns = [];
     }
@@ -386,11 +409,18 @@ export class ChumakApp implements AppState {
   }
 
   async createNewModel(source: any) {
-    const modelName = await this.prompt('Enter name for new model:', `model_${this.models.filter((m) => m.sourceId === source.id).length + 1}`);
+    const modelName = await this.prompt(
+      'Enter name for new model:',
+      `model_${this.models.filter((m) => m.sourceId === source.id).length + 1}`
+    );
     if (!modelName || modelName.trim() === '') return;
-    const existingModel = this.models.find((m) => m.sourceId === source.id && m.name.toLowerCase() === modelName.trim().toLowerCase());
+    const existingModel = this.models.find(
+      (m) => m.sourceId === source.id && m.name.toLowerCase() === modelName.trim().toLowerCase()
+    );
     if (existingModel) {
-      await this.alert('A model with this name already exists for this source. Please choose a different name.');
+      await this.alert(
+        'A model with this name already exists for this source. Please choose a different name.'
+      );
       return;
     }
     const newModel = {
@@ -402,12 +432,19 @@ export class ChumakApp implements AppState {
       data: JSON.parse(JSON.stringify(source.data)),
     };
     const importStep = {
-      import: { source: source.name, fileName: source.fileName, delimiter: source.delimiter, headerMode: source.headerMode }
+      import: {
+        source: source.name,
+        fileName: source.fileName,
+        delimiter: source.delimiter,
+        headerMode: source.headerMode,
+      },
     } as any;
     if (source.customHeaders) importStep.import.customHeaders = source.customHeaders;
     newModel.steps.push(importStep);
     const typesStep = { types: {} as any };
-    source.columns.forEach((col: any) => { typesStep.types[col.name] = col.type; });
+    source.columns.forEach((col: any) => {
+      typesStep.types[col.name] = col.type;
+    });
     newModel.steps.push(typesStep);
     this.models.push(newModel);
     this.switchToModel(newModel);
@@ -415,19 +452,37 @@ export class ChumakApp implements AppState {
   }
 
   async createNewModelFromActive() {
-    if (!this.activeModel) { await this.alert('No active model selected'); return; }
+    if (!this.activeModel) {
+      await this.alert('No active model selected');
+      return;
+    }
     const source = this.sources.find((s) => s.id === this.activeModel.sourceId);
-    if (!source) { await this.alert('Source not found for current model'); return; }
+    if (!source) {
+      await this.alert('Source not found for current model');
+      return;
+    }
     await this.createNewModel(source);
   }
 
   async copyCurrentModel() {
-    if (!this.activeModel) { await this.alert('No active model selected'); return; }
-    const newName = await this.prompt('Enter name for copied model:', `${this.activeModel.name}_copy`);
+    if (!this.activeModel) {
+      await this.alert('No active model selected');
+      return;
+    }
+    const newName = await this.prompt(
+      'Enter name for copied model:',
+      `${this.activeModel.name}_copy`
+    );
     if (!newName || newName.trim() === '') return;
-    const existingModel = this.models.find((m) => m.sourceId === this.activeModel.sourceId && m.name.toLowerCase() === newName.trim().toLowerCase());
+    const existingModel = this.models.find(
+      (m) =>
+        m.sourceId === this.activeModel.sourceId &&
+        m.name.toLowerCase() === newName.trim().toLowerCase()
+    );
     if (existingModel) {
-      await this.alert('A model with this name already exists for this source. Please choose a different name.');
+      await this.alert(
+        'A model with this name already exists for this source. Please choose a different name.'
+      );
       return;
     }
     const copiedModel = {
@@ -444,13 +499,22 @@ export class ChumakApp implements AppState {
   }
 
   async renameCurrentModel() {
-    if (!this.activeModel) { await this.alert('No active model selected'); return; }
+    if (!this.activeModel) {
+      await this.alert('No active model selected');
+      return;
+    }
     const newName = await this.prompt('Enter new name for model:', this.activeModel.name);
     if (!newName || newName.trim() === '') return;
     if (newName.trim() === this.activeModel.name) return;
-    const existingModel = this.models.find((m) => m.sourceId === this.activeModel.sourceId && m.name.toLowerCase() === newName.trim().toLowerCase());
+    const existingModel = this.models.find(
+      (m) =>
+        m.sourceId === this.activeModel.sourceId &&
+        m.name.toLowerCase() === newName.trim().toLowerCase()
+    );
     if (existingModel) {
-      await this.alert('A model with this name already exists for this source. Please choose a different name.');
+      await this.alert(
+        'A model with this name already exists for this source. Please choose a different name.'
+      );
       return;
     }
     this.activeModel.name = newName.trim();
@@ -458,10 +522,17 @@ export class ChumakApp implements AppState {
   }
 
   async deleteCurrentModel() {
-    if (!this.activeModel) { await this.alert('No active model selected'); return; }
+    if (!this.activeModel) {
+      await this.alert('No active model selected');
+      return;
+    }
     const sourceModels = this.models.filter((m) => m.sourceId === this.activeModel.sourceId);
-    if (sourceModels.length === 1) { await this.alert('Cannot delete the last model for this source.'); return; }
-    if (!(await this.confirm(`Delete model "${this.activeModel.name}"?\n\nThis cannot be undone.`))) return;
+    if (sourceModels.length === 1) {
+      await this.alert('Cannot delete the last model for this source.');
+      return;
+    }
+    if (!(await this.confirm(`Delete model "${this.activeModel.name}"?\n\nThis cannot be undone.`)))
+      return;
     const deletedModelId = this.activeModel.id;
     const sourceId = this.activeModel.sourceId;
     this.models = this.models.filter((m) => m.id !== deletedModelId);
@@ -487,14 +558,18 @@ export class ChumakApp implements AppState {
 
   async deleteSource(source: any) {
     const modelCount = this.models.filter((m) => m.sourceId === source.id).length;
-    const message = modelCount > 0
-      ? `Delete source "${source.name}" and its ${modelCount} model${modelCount > 1 ? 's' : ''}?\n\nThis cannot be undone.`
-      : `Delete source "${source.name}"?\n\nThis cannot be undone.`;
+    const message =
+      modelCount > 0
+        ? `Delete source "${source.name}" and its ${modelCount} model${modelCount > 1 ? 's' : ''}?\n\nThis cannot be undone.`
+        : `Delete source "${source.name}"?\n\nThis cannot be undone.`;
     if (!(await this.confirm(message))) return;
     try {
       this.models = this.models.filter((m) => m.sourceId !== source.id);
       this.sources = this.sources.filter((s) => s.id !== source.id);
-      if (this.activeSource?.id === source.id || this.models.find((m) => m.id === this.activeModel?.id && m.sourceId === source.id)) {
+      if (
+        this.activeSource?.id === source.id ||
+        this.models.find((m) => m.id === this.activeModel?.id && m.sourceId === source.id)
+      ) {
         this.activeSource = null;
         this.activeModel = null;
         this.currentData = null;
@@ -549,7 +624,12 @@ export class ChumakApp implements AppState {
   }
 
   async handlePaste(event: any) {
-    if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA' || event.target.isContentEditable) return;
+    if (
+      event.target.tagName === 'INPUT' ||
+      event.target.tagName === 'TEXTAREA' ||
+      event.target.isContentEditable
+    )
+      return;
     const clipboardData = event.clipboardData || (window as any).clipboardData;
     if (!clipboardData) return;
     if (clipboardData.files && clipboardData.files.length > 0) {
@@ -593,10 +673,14 @@ export class ChumakApp implements AppState {
           });
           this.showImportDialog(file);
         } else {
-          await this.alert('Clipboard is empty or does not contain text. Try copying some CSV or JSON data first.');
+          await this.alert(
+            'Clipboard is empty or does not contain text. Try copying some CSV or JSON data first.'
+          );
         }
       } else {
-        await this.alert('Your browser does not support direct clipboard access. Please use Ctrl+V to paste data.');
+        await this.alert(
+          'Your browser does not support direct clipboard access. Please use Ctrl+V to paste data.'
+        );
       }
     } catch (err) {
       console.warn('Clipboard access denied:', err);
@@ -879,8 +963,7 @@ export class ChumakApp implements AppState {
         processedData = this.serializeNestedData(processedData);
       }
 
-      const columns =
-        processedData.length > 0 ? Object.keys(processedData[0]) : customHeaders;
+      const columns = processedData.length > 0 ? Object.keys(processedData[0]) : customHeaders;
 
       this.createSource(
         file,
@@ -901,7 +984,10 @@ export class ChumakApp implements AppState {
       skipEmptyLines: true,
       dynamicTyping: true,
       complete: async (results: any) => {
-        if (!results.data || results.data.length === 0) { await this.alert('Error: CSV file is empty'); return; }
+        if (!results.data || results.data.length === 0) {
+          await this.alert('Error: CSV file is empty');
+          return;
+        }
         let columns: string[], data: any[];
         const rawData = results.data;
         if (headerMode === 'first-row') {
@@ -909,15 +995,27 @@ export class ChumakApp implements AppState {
           const dataRows = rawData.slice(1);
           data = dataRows.map((row: any) => {
             const obj: any = {};
-            columns.forEach((col, i) => { obj[col] = row[i]; });
+            columns.forEach((col, i) => {
+              obj[col] = row[i];
+            });
             return obj;
           });
-          await this.createSource(file, sourceName.trim(), columns, data, headerMode, delimiter, customHeaders);
+          await this.createSource(
+            file,
+            sourceName.trim(),
+            columns,
+            data,
+            headerMode,
+            delimiter,
+            customHeaders
+          );
         } else if (headerMode === 'auto-generate') {
           columns = rawData[0]?.map((_: any, i: number) => `Column ${i + 1}`) || [];
           data = rawData.map((row: any) => {
             const obj: any = {};
-            columns.forEach((col, i) => { obj[col] = row[i]; });
+            columns.forEach((col, i) => {
+              obj[col] = row[i];
+            });
             return obj;
           });
           await this.createSource(file, sourceName.trim(), columns, data, headerMode, delimiter);
@@ -925,10 +1023,20 @@ export class ChumakApp implements AppState {
           columns = customHeaders;
           data = rawData.map((row: any) => {
             const obj: any = {};
-            columns.forEach((col, i) => { obj[col] = row[i]; });
+            columns.forEach((col, i) => {
+              obj[col] = row[i];
+            });
             return obj;
           });
-          await this.createSource(file, sourceName.trim(), columns, data, headerMode, delimiter, customHeaders);
+          await this.createSource(
+            file,
+            sourceName.trim(),
+            columns,
+            data,
+            headerMode,
+            delimiter,
+            customHeaders
+          );
         }
       },
       error: async (error: any) => {
@@ -977,11 +1085,20 @@ export class ChumakApp implements AppState {
       schema: JSON.parse(JSON.stringify(source.columns)),
       data: cleanData,
     };
-    const importStep = { import: { source: sourceName, fileName: file.name, delimiter: delimiter, headerMode: headerMode } } as any;
+    const importStep = {
+      import: {
+        source: sourceName,
+        fileName: file.name,
+        delimiter: delimiter,
+        headerMode: headerMode,
+      },
+    } as any;
     if (headerMode === 'manual' && customHeaders) importStep.import.customHeaders = customHeaders;
     mainModel.steps.push(importStep);
     const typesStep = { types: {} as any };
-    source.columns.forEach((col: any) => { typesStep.types[col.name] = col.type; });
+    source.columns.forEach((col: any) => {
+      typesStep.types[col.name] = col.type;
+    });
     mainModel.steps.push(typesStep);
     this.models.push(mainModel);
     this.activeModel = mainModel;
@@ -1166,23 +1283,31 @@ export class ChumakApp implements AppState {
   }
 
   updateHeadersForPreview() {
-    const { rawPreviewData, headerMode, originalHeaders, customHeaders, isJson, jsonData, flattenJson, serializeNested } =
-      this.importDialogState;
+    const {
+      rawPreviewData,
+      headerMode,
+      originalHeaders,
+      customHeaders,
+      isJson,
+      jsonData,
+      flattenJson,
+      serializeNested,
+    } = this.importDialogState;
 
     if (isJson && jsonData) {
       let processedData = jsonData.slice(0, 5);
-      
+
       if (flattenJson) {
         processedData = this.flattenData(processedData);
       }
-      
+
       if (serializeNested) {
         processedData = this.serializeNestedData(processedData);
       }
 
       const headers = processedData.length > 0 ? Object.keys(processedData[0]) : customHeaders;
       const { resolvedHeaders, warning } = this.resolveDuplicateHeaders(headers);
-      
+
       this.importDialogState.previewHeaders = resolvedHeaders;
       this.importDialogState.previewDataRows = processedData.map((row: any) =>
         resolvedHeaders.map((h) => row[h])
@@ -1238,7 +1363,9 @@ export class ChumakApp implements AppState {
     });
     let warning = '';
     if (duplicates.length > 0) {
-      const dupList = duplicates.map((d) => `"${d.name}" at positions ${d.positions.join(', ')}`).join('; ');
+      const dupList = duplicates
+        .map((d) => `"${d.name}" at positions ${d.positions.join(', ')}`)
+        .join('; ');
       warning = `Found ${duplicates.length} duplicate column name${duplicates.length > 1 ? 's' : ''}: ${dupList}`;
     }
     return { resolvedHeaders, warning };
@@ -1257,18 +1384,43 @@ export class ChumakApp implements AppState {
     this.$nextTick(() => this.updateToolbarPosition());
     if (this.selectedColumn && this.currentData) {
       let colSchema = null;
-      if (this.activeModel?.schema) colSchema = this.activeModel.schema.find((c: any) => c.name === this.selectedColumn);
-      else if (this.activeSource?.columns) colSchema = this.activeSource.columns.find((c: any) => c.name === this.selectedColumn);
-      const type = colSchema ? colSchema.type : SchemaEngine.inferType(this.currentData.slice(0, 20).map((r: any) => r[this.selectedColumn!]));
+      if (this.activeModel?.schema)
+        colSchema = this.activeModel.schema.find((c: any) => c.name === this.selectedColumn);
+      else if (this.activeSource?.columns)
+        colSchema = this.activeSource.columns.find((c: any) => c.name === this.selectedColumn);
+      const type = colSchema
+        ? colSchema.type
+        : SchemaEngine.inferType(
+            this.currentData.slice(0, 20).map((r: any) => r[this.selectedColumn!])
+          );
       this.edaStats = EDAEngine.calculateStats(this.currentData, this.selectedColumn, type);
       this.edaBrushSelection = null;
       if (['integer', 'float', 'number'].includes(type)) {
         this.$nextTick(() => {
-          if (this.edaChartView === 'boxplot') ChartsEngine.renderBoxPlot('#eda-boxplot', this.currentData!, this.selectedColumn!, this.theme);
-          else ChartsEngine.renderHistogram('#eda-histogram', this.currentData!, this.selectedColumn!, this.theme, (sel: any) => this.handleBrushSelection(sel));
+          if (this.edaChartView === 'boxplot')
+            ChartsEngine.renderBoxPlot(
+              '#eda-boxplot',
+              this.currentData!,
+              this.selectedColumn!,
+              this.theme
+            );
+          else
+            ChartsEngine.renderHistogram(
+              '#eda-histogram',
+              this.currentData!,
+              this.selectedColumn!,
+              this.theme,
+              (sel: any) => this.handleBrushSelection(sel)
+            );
         });
       } else {
-        this.$nextTick(() => ChartsEngine.renderCategoricalBar('#eda-categorical-bar', this.edaStats.topValues, this.theme));
+        this.$nextTick(() =>
+          ChartsEngine.renderCategoricalBar(
+            '#eda-categorical-bar',
+            this.edaStats.topValues,
+            this.theme
+          )
+        );
       }
     } else {
       this.edaStats = null;
@@ -1279,7 +1431,13 @@ export class ChumakApp implements AppState {
   selectEdaStat(label: string, rawValue: any, event: any) {
     const el = event.currentTarget;
     this.selectedCell = null;
-    this.selectedCell = { col: this.selectedColumn!, value: rawValue, type: 'number', isEda: true, edaLabel: label };
+    this.selectedCell = {
+      col: this.selectedColumn!,
+      value: rawValue,
+      type: 'number',
+      isEda: true,
+      edaLabel: label,
+    };
     this.$nextTick(() => {
       if (!el) return;
       const rect = el.getBoundingClientRect();
@@ -1287,7 +1445,10 @@ export class ChumakApp implements AppState {
       const toolbarWidth = 220;
       const windowWidth = window.innerWidth;
       const margin = 12;
-      let x = Math.max(toolbarWidth / 2 + margin, Math.min(windowWidth - toolbarWidth / 2 - margin, center));
+      let x = Math.max(
+        toolbarWidth / 2 + margin,
+        Math.min(windowWidth - toolbarWidth / 2 - margin, center)
+      );
       this.cellToolbarPos = { x: x, y: rect.top - 8, arrowOffset: center - x };
     });
   }
@@ -1299,8 +1460,21 @@ export class ChumakApp implements AppState {
       const type = this.edaStats.type;
       if (['integer', 'float', 'number'].includes(type)) {
         this.$nextTick(() => {
-          if (view === 'boxplot') ChartsEngine.renderBoxPlot('#eda-boxplot', this.currentData!, this.selectedColumn!, this.theme);
-          else ChartsEngine.renderHistogram('#eda-histogram', this.currentData!, this.selectedColumn!, this.theme, (sel: any) => this.handleBrushSelection(sel));
+          if (view === 'boxplot')
+            ChartsEngine.renderBoxPlot(
+              '#eda-boxplot',
+              this.currentData!,
+              this.selectedColumn!,
+              this.theme
+            );
+          else
+            ChartsEngine.renderHistogram(
+              '#eda-histogram',
+              this.currentData!,
+              this.selectedColumn!,
+              this.theme,
+              (sel: any) => this.handleBrushSelection(sel)
+            );
         });
       }
     }
@@ -1477,16 +1651,68 @@ export class ChumakApp implements AppState {
     return 'string';
   }
 
+  getTypeIcon(colName: string) {
+    const type = this.getColumnType(colName);
+    switch (type) {
+      case 'date':
+        return 'ix:calendar';
+      case 'datetime':
+        return 'ix:calendar';
+      case 'time':
+        return 'ix:clock';
+      case 'float':
+      case 'number':
+        return 'ix:data-type-double';
+      case 'string':
+        return 'ix:data-type-string';
+      case 'boolean':
+        return 'ix:data-type-boolean';
+      case 'integer':
+        return 'ix:data-type-integer';
+      default:
+        return 'ix:data-type-string';
+    }
+  }
+
+  getCellClass(value: any, column: string) {
+    const type = this.getColumnType(column);
+    const classes: string[] = ['data-table__cell'];
+
+    if (['number', 'integer', 'float'].includes(type)) {
+      classes.push('data-table__cell--number');
+    }
+
+    if (value === null || value === undefined || value === '') {
+      classes.push('data-table__cell--empty');
+    } else if (value === 0 || value === '0') {
+      classes.push('data-table__cell--zero');
+    }
+
+    return classes.join(' ');
+  }
+
+  formatCellValue(value: any) {
+    if (value === null || value === undefined || value === '') return 'null';
+    return value;
+  }
+
   getTypeIndicator(colName: string) {
     const type = this.getColumnType(colName);
     switch (type) {
-      case 'string': return 'Abc';
-      case 'integer': return '#';
-      case 'float': return '1.1';
-      case 'boolean': return '✓';
-      case 'date': return '📅';
-      case 'datetime': return '🕒';
-      default: return 'Abc';
+      case 'string':
+        return 'Abc';
+      case 'integer':
+        return '#';
+      case 'float':
+        return '1.1';
+      case 'boolean':
+        return '✓';
+      case 'date':
+        return '📅';
+      case 'datetime':
+        return '🕒';
+      default:
+        return 'Abc';
     }
   }
 
@@ -1533,7 +1759,12 @@ export class ChumakApp implements AppState {
       return;
     }
     if (this.columns.includes(columnName)) {
-      if (!(await this.confirm(`Column "${columnName}" already exists. It will be overwritten. Continue?`))) return;
+      if (
+        !(await this.confirm(
+          `Column "${columnName}" already exists. It will be overwritten. Continue?`
+        ))
+      )
+        return;
     }
 
     const transform = { derive: { [columnName]: expression } };
@@ -1553,7 +1784,8 @@ export class ChumakApp implements AppState {
 
   formatLiteral(value: any, type?: string) {
     if (value === null || value === undefined) return 'null';
-    if (type === 'number' || type === 'integer' || type === 'float' || typeof value === 'number') return String(value);
+    if (type === 'number' || type === 'integer' || type === 'float' || typeof value === 'number')
+      return String(value);
     return `"${String(value).replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
   }
 
@@ -1587,11 +1819,25 @@ export class ChumakApp implements AppState {
 
   async applyRegexpMatchTransform() {
     const { columnName, sourceColumn, pattern } = this.regexpMatchDialogState;
-    if (!columnName || !pattern) { await this.alert('Please provide column name and pattern'); return; }
-    if (this.regexpMatchDialogState.error) { await this.alert('Please fix pattern errors before applying'); return; }
-    if (!sourceColumn) { await this.alert('Please select a source column'); return; }
+    if (!columnName || !pattern) {
+      await this.alert('Please provide column name and pattern');
+      return;
+    }
+    if (this.regexpMatchDialogState.error) {
+      await this.alert('Please fix pattern errors before applying');
+      return;
+    }
+    if (!sourceColumn) {
+      await this.alert('Please select a source column');
+      return;
+    }
     if (this.columns.includes(columnName)) {
-      if (!(await this.confirm(`Column "${columnName}" already exists. It will be overwritten. Continue?`))) return;
+      if (
+        !(await this.confirm(
+          `Column "${columnName}" already exists. It will be overwritten. Continue?`
+        ))
+      )
+        return;
     }
 
     const colRef = this.quoteColumnRef(sourceColumn);
@@ -1602,11 +1848,25 @@ export class ChumakApp implements AppState {
 
   async applyRegexpExtractTransform() {
     const { columnName, sourceColumn, pattern, group } = this.regexpExtractDialogState;
-    if (!columnName || !pattern) { await this.alert('Please provide column name and pattern'); return; }
-    if (this.regexpExtractDialogState.error) { await this.alert('Please fix pattern errors before applying'); return; }
-    if (!sourceColumn) { await this.alert('Please select a source column'); return; }
+    if (!columnName || !pattern) {
+      await this.alert('Please provide column name and pattern');
+      return;
+    }
+    if (this.regexpExtractDialogState.error) {
+      await this.alert('Please fix pattern errors before applying');
+      return;
+    }
+    if (!sourceColumn) {
+      await this.alert('Please select a source column');
+      return;
+    }
     if (this.columns.includes(columnName)) {
-      if (!(await this.confirm(`Column "${columnName}" already exists. It will be overwritten. Continue?`))) return;
+      if (
+        !(await this.confirm(
+          `Column "${columnName}" already exists. It will be overwritten. Continue?`
+        ))
+      )
+        return;
     }
 
     const colRef = this.quoteColumnRef(sourceColumn);
@@ -1618,20 +1878,31 @@ export class ChumakApp implements AppState {
 
   async applySortTransform() {
     const { field, order } = this.sortDialogState;
-    if (!field) { await this.alert('Please select a column to sort by'); return; }
+    if (!field) {
+      await this.alert('Please select a column to sort by');
+      return;
+    }
     await this.runTransform('Sort', { sort: { field, order } });
   }
 
   async applySliceRowsTransform() {
     const { count, mode } = this.sliceRowsDialogState;
-    if (!count || count <= 0) { await this.alert('Please enter a valid number of rows'); return; }
+    if (!count || count <= 0) {
+      await this.alert('Please enter a valid number of rows');
+      return;
+    }
     await this.runTransform('Slice Rows', { sliceRows: { count, mode } });
   }
 
   async applyIndexTransform() {
     const { columnName, startFrom } = this.indexDialogState;
-    if (!columnName || columnName.trim() === '') { await this.alert('Please enter a column name'); return; }
-    await this.runTransform('Add Index', { addIndex: { columnName: columnName.trim(), startFrom: startFrom ?? 1 } });
+    if (!columnName || columnName.trim() === '') {
+      await this.alert('Please enter a column name');
+      return;
+    }
+    await this.runTransform('Add Index', {
+      addIndex: { columnName: columnName.trim(), startFrom: startFrom ?? 1 },
+    });
   }
 
   async applyRenameTransform() {
@@ -1642,21 +1913,33 @@ export class ChumakApp implements AppState {
         actualRenames[oldName] = (newName as string).trim();
       }
     }
-    if (Object.keys(actualRenames).length === 0) { this.closeDialog(true); return; }
+    if (Object.keys(actualRenames).length === 0) {
+      this.closeDialog(true);
+      return;
+    }
     await this.runTransform('Rename', { rename: actualRenames });
   }
 
   async applyRemoveTransform() {
     const colsToRemove = this.columns.filter((_c, idx) => this.removedColumns[idx]);
-    if (colsToRemove.length === 0) { this.closeDialog(true); return; }
-    if (colsToRemove.length === this.columns.length) { await this.alert('Cannot remove all columns'); return; }
+    if (colsToRemove.length === 0) {
+      this.closeDialog(true);
+      return;
+    }
+    if (colsToRemove.length === this.columns.length) {
+      await this.alert('Cannot remove all columns');
+      return;
+    }
     await this.runTransform('Remove', { remove: colsToRemove });
   }
 
   async applyFoldTransform() {
     const { keyName, valueName, selectedColumns } = this.foldDialogState;
     const colsToFold = this.columns.filter((_c, idx) => selectedColumns[idx]);
-    if (colsToFold.length === 0) { await this.alert('Please select at least one column to unpivot'); return; }
+    if (colsToFold.length === 0) {
+      await this.alert('Please select at least one column to unpivot');
+      return;
+    }
     const transform = {
       fold: {
         columns: colsToFold,
@@ -1848,7 +2131,12 @@ export class ChumakApp implements AppState {
       }
     });
     this.sources.forEach((source) => {
-      availableTargets.push({ id: source.id, name: source.name, type: 'source', sourceName: source.name });
+      availableTargets.push({
+        id: source.id,
+        name: source.name,
+        type: 'source',
+        sourceName: source.name,
+      });
     });
     this.joinDialogState = {
       rightModel: availableTargets[0]?.id || null,
@@ -1900,10 +2188,16 @@ export class ChumakApp implements AppState {
 
   async previewJoin() {
     const state = this.joinDialogState;
-    if (!state.rightModel) { state.previewError = 'Please select a model or source to join with'; return; }
+    if (!state.rightModel) {
+      state.previewError = 'Please select a model or source to join with';
+      return;
+    }
     if (state.joinType !== 'cross') {
       const hasCompleteKeyPair = state.keyPairs.some((pair: any) => pair[0] && pair[1]);
-      if (!hasCompleteKeyPair) { state.previewError = 'Please specify at least one complete key pair'; return; }
+      if (!hasCompleteKeyPair) {
+        state.previewError = 'Please specify at least one complete key pair';
+        return;
+      }
     }
     state.isPreviewing = true;
     state.previewError = null;
@@ -1914,12 +2208,23 @@ export class ChumakApp implements AppState {
         const result = this.computeModelUpToStep(targetModel, targetModel.steps.length - 1);
         targetModel.data = result.data;
       }
-      const transform = { join: { right: state.rightModel, on: state.keyPairs.filter((pair: any) => pair[0] && pair[1]), how: state.joinType, suffixes: state.suffixes } };
+      const transform = {
+        join: {
+          right: state.rightModel,
+          on: state.keyPairs.filter((pair: any) => pair[0] && pair[1]),
+          how: state.joinType,
+          suffixes: state.suffixes,
+        },
+      };
       const table = aq.from(this.currentData!);
       const context = { sources: this.sources, models: this.models };
       const result = applyTransform(table, transform, this.columns, context);
       const allData = result.objects();
-      state.previewData = { rows: allData.slice(0, 100), totalRows: allData.length, columns: result.columnNames() };
+      state.previewData = {
+        rows: allData.slice(0, 100),
+        totalRows: allData.length,
+        columns: result.columnNames(),
+      };
     } catch (error: any) {
       console.error('Join preview error:', error);
       state.previewError = error.message;
@@ -1930,10 +2235,16 @@ export class ChumakApp implements AppState {
 
   async applyJoinTransform() {
     const state = this.joinDialogState;
-    if (!state.rightModel) { await this.alert('Please select a model or source to join with'); return; }
+    if (!state.rightModel) {
+      await this.alert('Please select a model or source to join with');
+      return;
+    }
     if (state.joinType !== 'cross') {
       const completePairs = state.keyPairs.filter((pair: any) => pair[0] && pair[1]);
-      if (completePairs.length === 0) { await this.alert('Please specify at least one complete key pair'); return; }
+      if (completePairs.length === 0) {
+        await this.alert('Please specify at least one complete key pair');
+        return;
+      }
     }
 
     try {
@@ -1943,7 +2254,14 @@ export class ChumakApp implements AppState {
         targetModel.data = result.data;
       }
       const completePairs = state.keyPairs.filter((pair: any) => pair[0] && pair[1]);
-      const transform = { join: { right: state.rightModel, on: completePairs, how: state.joinType, suffixes: state.suffixes } };
+      const transform = {
+        join: {
+          right: state.rightModel,
+          on: completePairs,
+          how: state.joinType,
+          suffixes: state.suffixes,
+        },
+      };
       await this.runTransform('Join', transform);
     } catch (error: any) {
       console.error('Join transform setup error:', error);
@@ -1953,12 +2271,21 @@ export class ChumakApp implements AppState {
 
   async applyReplaceTransform() {
     const { column, findValue, replaceValue } = this.replaceDialogState;
-    if (!column) { await this.alert('Please select a column'); return; }
+    if (!column) {
+      await this.alert('Please select a column');
+      return;
+    }
     if (findValue === undefined || findValue === null) {
       if (!(await this.confirm('Replace null/empty values?'))) return;
     }
 
-    const transform = { replace: { column: column, find: findValue, replace: replaceValue === '' ? null : replaceValue } };
+    const transform = {
+      replace: {
+        column: column,
+        find: findValue,
+        replace: replaceValue === '' ? null : replaceValue,
+      },
+    };
     await this.runTransform('Replace', transform);
   }
 
@@ -1986,8 +2313,12 @@ export class ChumakApp implements AppState {
           const str = String(value);
           let matches;
           if (delim.isRegex) matches = str.match(new RegExp(delim.char, 'g'));
-          else matches = str.match(new RegExp(delim.char.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'));
-          if (matches && matches.length > 0) { totalOccurrences += matches.length; rowsWithDelimiter++; }
+          else
+            matches = str.match(new RegExp(delim.char.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'));
+          if (matches && matches.length > 0) {
+            totalOccurrences += matches.length;
+            rowsWithDelimiter++;
+          }
         }
       });
       const consistency = sampleSize > 0 ? rowsWithDelimiter / sampleSize : 0;
@@ -1995,15 +2326,18 @@ export class ChumakApp implements AppState {
       return { ...delim, count: totalOccurrences, rowsWithDelimiter, consistency, score };
     });
     const threshold = Math.max(2, sampleSize * 0.05);
-    const validDelimiters = counts.filter((d) => d.rowsWithDelimiter >= threshold).sort((a, b) => {
-      if (Math.abs(a.consistency - b.consistency) > 0.1) return b.consistency - a.consistency;
-      return b.count - a.count;
-    });
+    const validDelimiters = counts
+      .filter((d) => d.rowsWithDelimiter >= threshold)
+      .sort((a, b) => {
+        if (Math.abs(a.consistency - b.consistency) > 0.1) return b.consistency - a.consistency;
+        return b.count - a.count;
+      });
     return validDelimiters.length > 0 ? validDelimiters[0] : null;
   }
 
   debouncedUpdateSplitPreview() {
-    if (this.splitDialogState._previewDebounceTimer) clearTimeout(this.splitDialogState._previewDebounceTimer);
+    if (this.splitDialogState._previewDebounceTimer)
+      clearTimeout(this.splitDialogState._previewDebounceTimer);
     this.splitDialogState._previewDebounceTimer = setTimeout(() => {
       this.updateSplitPreview();
       this.splitDialogState._previewDebounceTimer = null;
@@ -2018,7 +2352,16 @@ export class ChumakApp implements AppState {
     if (!column || !delimiter) return;
     try {
       if (isRegex) new RegExp(delimiter);
-      const transform = { split: { column, delimiter, isRegex, mode, maxColumns: mode === 'firstN' || mode === 'lastN' ? maxColumns : undefined, keepOriginal } };
+      const transform = {
+        split: {
+          column,
+          delimiter,
+          isRegex,
+          mode,
+          maxColumns: mode === 'firstN' || mode === 'lastN' ? maxColumns : undefined,
+          keepOriginal,
+        },
+      };
       const previewRows = this.currentData!.slice(0, 50);
       const table = aq.from(previewRows);
       const context = { sources: this.sources, models: this.models };
@@ -2037,7 +2380,8 @@ export class ChumakApp implements AppState {
       resultColumns.forEach((name: string) => {
         if (name.startsWith(`${column}_`)) {
           previewColumns.push({ name, status: 'new' });
-          if (!this.splitDialogState.columnRenames[name]) this.splitDialogState.columnRenames[name] = name;
+          if (!this.splitDialogState.columnRenames[name])
+            this.splitDialogState.columnRenames[name] = name;
         }
       });
       this.splitDialogState.previewData = resultData;
@@ -2048,13 +2392,29 @@ export class ChumakApp implements AppState {
   }
 
   async applySplitTransform() {
-    const { column, delimiter, mode, maxColumns, keepOriginal, isRegex, columnRenames } = this.splitDialogState;
-    if (!column) { await this.alert('Please select a column'); return; }
-    if (!delimiter) { await this.alert('Please enter a delimiter'); return; }
+    const { column, delimiter, mode, maxColumns, keepOriginal, isRegex, columnRenames } =
+      this.splitDialogState;
+    if (!column) {
+      await this.alert('Please select a column');
+      return;
+    }
+    if (!delimiter) {
+      await this.alert('Please enter a delimiter');
+      return;
+    }
 
     await this.startTransformation('Splitting column...');
     try {
-      const splitTransform = { split: { column, delimiter, isRegex, mode, maxColumns: mode === 'firstN' || mode === 'lastN' ? maxColumns : undefined, keepOriginal } };
+      const splitTransform = {
+        split: {
+          column,
+          delimiter,
+          isRegex,
+          mode,
+          maxColumns: mode === 'firstN' || mode === 'lastN' ? maxColumns : undefined,
+          keepOriginal,
+        },
+      };
       let table = aq.from(this.currentData!);
       const context = { sources: this.sources, models: this.models };
       let result = applyTransform(table, splitTransform, this.columns, context);
@@ -2065,7 +2425,9 @@ export class ChumakApp implements AppState {
         }
       }
       const hasRenameStep = Object.keys(actualRenames).length > 0;
-      const newColumns = result.columnNames().filter((name: string) => name.startsWith(`${column}_`));
+      const newColumns = result
+        .columnNames()
+        .filter((name: string) => name.startsWith(`${column}_`));
       const hasTypesStep = newColumns.length > 0;
       await this.applyStepResult(splitTransform, result, !hasRenameStep && !hasTypesStep);
       if (hasRenameStep) {
@@ -2099,25 +2461,95 @@ export class ChumakApp implements AppState {
 
   getDialogState(dialog: string) {
     switch (dialog) {
-      case 'filter': return this.filterExpression;
-      case 'derive': return { columnName: this.deriveDialogState.columnName, expression: this.deriveDialogState.expression };
-      case 'sliceRows': return this.sliceRowsDialogState;
-      case 'index': return this.indexDialogState;
-      case 'rename': return this.renameDialogState;
-      case 'aggregate': return { groupBy: this.aggregateDialogState.groupBy, aggregations: this.aggregateDialogState.aggregations };
-      case 'join': return { rightModel: this.joinDialogState.rightModel?.id, joinType: this.joinDialogState.joinType, keyPairs: this.joinDialogState.keyPairs, suffixes: this.joinDialogState.suffixes };
-      case 'fold': return this.foldDialogState;
-      case 'pivot': return { rowColumns: this.pivotDialogState.rowColumns, columnColumn: this.pivotDialogState.columnColumn, valueColumn: this.pivotDialogState.valueColumn, aggregation: this.pivotDialogState.aggregation, options: this.pivotDialogState.options };
-      case 'sort': return this.sortDialogState;
-      case 'remove': return this.removedColumns;
-      case 'select': return { cols: this.selectedColumns, pattern: this.selectPatternText, mode: this.selectPatternMode, type: this.selectPatternMatchType };
-      case 'replace': return { column: this.replaceDialogState.column, findValue: this.replaceDialogState.findValue, replaceValue: this.replaceDialogState.replaceValue };
-      case 'split': return { column: this.splitDialogState.column, delimiter: this.splitDialogState.delimiter, isRegex: this.splitDialogState.isRegex, mode: this.splitDialogState.mode, maxColumns: this.splitDialogState.maxColumns, keepOriginal: this.splitDialogState.keepOriginal, columnRenames: this.splitDialogState.columnRenames };
-      case 'regexpMatch': return { sourceColumn: this.regexpMatchDialogState.sourceColumn, pattern: this.regexpMatchDialogState.pattern, columnName: this.regexpMatchDialogState.columnName };
-      case 'regexpExtract': return { sourceColumn: this.regexpExtractDialogState.sourceColumn, pattern: this.regexpExtractDialogState.pattern, columnName: this.regexpExtractDialogState.columnName, group: this.regexpExtractDialogState.group };
-      case 'import-csv': return { sourceName: this.importDialogState.sourceName, headerMode: this.importDialogState.headerMode, delimiter: this.importDialogState.delimiter, customHeaders: this.importDialogState.customHeaders, jsonPath: this.importDialogState.jsonPath, flattenJson: this.importDialogState.flattenJson, serializeNested: this.importDialogState.serializeNested };
-      case 'import-url': return { url: this.importUrlDialogState.url };
-      default: return null;
+      case 'filter':
+        return this.filterExpression;
+      case 'derive':
+        return {
+          columnName: this.deriveDialogState.columnName,
+          expression: this.deriveDialogState.expression,
+        };
+      case 'sliceRows':
+        return this.sliceRowsDialogState;
+      case 'index':
+        return this.indexDialogState;
+      case 'rename':
+        return this.renameDialogState;
+      case 'aggregate':
+        return {
+          groupBy: this.aggregateDialogState.groupBy,
+          aggregations: this.aggregateDialogState.aggregations,
+        };
+      case 'join':
+        return {
+          rightModel: this.joinDialogState.rightModel?.id,
+          joinType: this.joinDialogState.joinType,
+          keyPairs: this.joinDialogState.keyPairs,
+          suffixes: this.joinDialogState.suffixes,
+        };
+      case 'fold':
+        return this.foldDialogState;
+      case 'pivot':
+        return {
+          rowColumns: this.pivotDialogState.rowColumns,
+          columnColumn: this.pivotDialogState.columnColumn,
+          valueColumn: this.pivotDialogState.valueColumn,
+          aggregation: this.pivotDialogState.aggregation,
+          options: this.pivotDialogState.options,
+        };
+      case 'sort':
+        return this.sortDialogState;
+      case 'remove':
+        return this.removedColumns;
+      case 'select':
+        return {
+          cols: this.selectedColumns,
+          pattern: this.selectPatternText,
+          mode: this.selectPatternMode,
+          type: this.selectPatternMatchType,
+        };
+      case 'replace':
+        return {
+          column: this.replaceDialogState.column,
+          findValue: this.replaceDialogState.findValue,
+          replaceValue: this.replaceDialogState.replaceValue,
+        };
+      case 'split':
+        return {
+          column: this.splitDialogState.column,
+          delimiter: this.splitDialogState.delimiter,
+          isRegex: this.splitDialogState.isRegex,
+          mode: this.splitDialogState.mode,
+          maxColumns: this.splitDialogState.maxColumns,
+          keepOriginal: this.splitDialogState.keepOriginal,
+          columnRenames: this.splitDialogState.columnRenames,
+        };
+      case 'regexpMatch':
+        return {
+          sourceColumn: this.regexpMatchDialogState.sourceColumn,
+          pattern: this.regexpMatchDialogState.pattern,
+          columnName: this.regexpMatchDialogState.columnName,
+        };
+      case 'regexpExtract':
+        return {
+          sourceColumn: this.regexpExtractDialogState.sourceColumn,
+          pattern: this.regexpExtractDialogState.pattern,
+          columnName: this.regexpExtractDialogState.columnName,
+          group: this.regexpExtractDialogState.group,
+        };
+      case 'import-csv':
+        return {
+          sourceName: this.importDialogState.sourceName,
+          headerMode: this.importDialogState.headerMode,
+          delimiter: this.importDialogState.delimiter,
+          customHeaders: this.importDialogState.customHeaders,
+          jsonPath: this.importDialogState.jsonPath,
+          flattenJson: this.importDialogState.flattenJson,
+          serializeNested: this.importDialogState.serializeNested,
+        };
+      case 'import-url':
+        return { url: this.importUrlDialogState.url };
+      default:
+        return null;
     }
   }
 
@@ -2156,20 +2588,44 @@ export class ChumakApp implements AppState {
       this.indexDialogState = { columnName: 'row_index', startFrom: 1 };
     } else if (dialogName === 'rename') {
       const renames: Record<string, string> = {};
-      this.columns.forEach((col) => { renames[col] = col; });
+      this.columns.forEach((col) => {
+        renames[col] = col;
+      });
       this.renameDialogState = { renames };
     } else if (dialogName === 'remove') {
       this.removedColumns = this.columns.map(() => false);
     } else if (dialogName === 'aggregate') {
-      this.aggregateDialogState = { groupBy: [], aggregations: [{ output: 'count', func: 'count', col: '' }], previewData: null, previewError: null, isPreviewing: false };
+      this.aggregateDialogState = {
+        groupBy: [],
+        aggregations: [{ output: 'count', func: 'count', col: '' }],
+        previewData: null,
+        previewError: null,
+        isPreviewing: false,
+      };
     } else if (dialogName === 'fold') {
-      this.foldDialogState = { keyName: 'key', valueName: 'value', selectedColumns: this.columns.map(() => false) };
+      this.foldDialogState = {
+        keyName: 'key',
+        valueName: 'value',
+        selectedColumns: this.columns.map(() => false),
+      };
     } else if (dialogName === 'pivot') {
       this.initializePivotDialog();
     } else if (dialogName === 'replace') {
       this.replaceDialogState = { column: this.columns[0] || '', findValue: '', replaceValue: '' };
     } else if (dialogName === 'split') {
-      this.splitDialogState = { column: this.columns[0] || '', delimiter: ',', isRegex: false, mode: 'spread', maxColumns: 10, keepOriginal: false, error: null, previewData: [], previewColumns: [], autoDetectedDelimiter: null, columnRenames: {} };
+      this.splitDialogState = {
+        column: this.columns[0] || '',
+        delimiter: ',',
+        isRegex: false,
+        mode: 'spread',
+        maxColumns: 10,
+        keepOriginal: false,
+        error: null,
+        previewData: [],
+        previewColumns: [],
+        autoDetectedDelimiter: null,
+        columnRenames: {},
+      };
       if (this.columns.length > 0) {
         this.$nextTick(() => {
           // @ts-ignore
@@ -2184,18 +2640,42 @@ export class ChumakApp implements AppState {
         });
       }
     } else if (dialogName === 'regexpMatch') {
-      this.regexpMatchDialogState = { columnName: '', sourceColumn: this.columns[0] || '', pattern: '', error: null };
+      this.regexpMatchDialogState = {
+        columnName: '',
+        sourceColumn: this.columns[0] || '',
+        pattern: '',
+        error: null,
+      };
     } else if (dialogName === 'regexpExtract') {
-      this.regexpExtractDialogState = { columnName: '', sourceColumn: this.columns[0] || '', pattern: '', group: 0, error: null };
+      this.regexpExtractDialogState = {
+        columnName: '',
+        sourceColumn: this.columns[0] || '',
+        pattern: '',
+        group: 0,
+        error: null,
+      };
     }
   }
 
   isSlidePanel(dialog: string | null): boolean {
     if (!dialog) return false;
     const slidePanels = [
-      'filter', 'sort', 'sliceRows', 'index', 'select', 'remove', 'rename',
-      'split', 'derive', 'regexpMatch', 'regexpExtract',
-      'fold', 'pivot', 'aggregate', 'join', 'replace'
+      'filter',
+      'sort',
+      'sliceRows',
+      'index',
+      'select',
+      'remove',
+      'rename',
+      'split',
+      'derive',
+      'regexpMatch',
+      'regexpExtract',
+      'fold',
+      'pivot',
+      'aggregate',
+      'join',
+      'replace',
     ];
     return slidePanels.includes(dialog);
   }
@@ -2208,76 +2688,149 @@ export class ChumakApp implements AppState {
 
   getDialogTitle(): string {
     switch (this.activeDialog) {
-      case 'filter': return 'Filter Rows';
-      case 'sort': return 'Sort Rows';
-      case 'sliceRows': return 'Keep / Remove Rows';
-      case 'index': return 'Add Index Column';
-      case 'select': return 'Select Columns';
-      case 'remove': return 'Remove Columns';
-      case 'rename': return 'Rename Columns';
-      case 'split': return 'Split Column';
-      case 'derive': return 'Derive Column';
-      case 'regexpMatch': return 'Regexp Match';
-      case 'regexpExtract': return 'Regexp Extract';
-      case 'fold': return 'Unpivot Data (Fold)';
-      case 'pivot': return 'Pivot Data (Wide)';
-      case 'aggregate': return 'Aggregate Data';
-      case 'join': return 'Join Data';
-      case 'replace': return 'Replace Values';
-      case 'import-csv': return this.importDialogState.isJson ? 'Import JSON' : 'Import CSV';
-      case 'import-url': return 'Import from URL';
-      case 'settings': return 'Settings';
-      case 'download': return 'Download Data';
-      default: return '';
+      case 'filter':
+        return 'Filter Rows';
+      case 'sort':
+        return 'Sort Rows';
+      case 'sliceRows':
+        return 'Keep / Remove Rows';
+      case 'index':
+        return 'Add Index Column';
+      case 'select':
+        return 'Select Columns';
+      case 'remove':
+        return 'Remove Columns';
+      case 'rename':
+        return 'Rename Columns';
+      case 'split':
+        return 'Split Column';
+      case 'derive':
+        return 'Derive Column';
+      case 'regexpMatch':
+        return 'Regexp Match';
+      case 'regexpExtract':
+        return 'Regexp Extract';
+      case 'fold':
+        return 'Unpivot Data (Fold)';
+      case 'pivot':
+        return 'Pivot Data (Wide)';
+      case 'aggregate':
+        return 'Aggregate Data';
+      case 'join':
+        return 'Join Data';
+      case 'replace':
+        return 'Replace Values';
+      case 'import-csv':
+        return this.importDialogState.isJson ? 'Import JSON' : 'Import CSV';
+      case 'import-url':
+        return 'Import from URL';
+      case 'settings':
+        return 'Settings';
+      case 'download':
+        return 'Download Data';
+      default:
+        return '';
     }
   }
 
   getDialogButtonText(): string {
     switch (this.activeDialog) {
-      case 'import-csv': return 'Import';
-      case 'import-url': return 'Fetch Data';
-      case 'join': return 'Apply Join';
-      case 'download': return 'Download';
-      default: return 'Apply';
+      case 'import-csv':
+        return 'Import';
+      case 'import-url':
+        return 'Fetch Data';
+      case 'join':
+        return 'Apply Join';
+      case 'download':
+        return 'Download';
+      default:
+        return 'Apply';
     }
   }
 
   activeDialogError(): boolean {
     switch (this.activeDialog) {
-      case 'filter': return !!this.filterError;
-      case 'derive': return !!this.deriveDialogState.error;
-      case 'sliceRows': return !this.sliceRowsDialogState.count || this.sliceRowsDialogState.count <= 0;
-      case 'index': return !this.indexDialogState.columnName || this.indexDialogState.columnName.trim() === '';
-      case 'regexpMatch': return !!this.regexpMatchDialogState.error;
-      case 'regexpExtract': return !!this.regexpExtractDialogState.error;
-      case 'split': return !!this.splitDialogState.error;
-      case 'join': return !this.joinDialogState.rightModel;
-      case 'pivot': return !this.pivotDialogState.columnColumn || !this.pivotDialogState.valueColumn;
-      case 'import-url': return !this.importUrlDialogState.url || this.importUrlDialogState.isFetching;
-      default: return false;
+      case 'filter':
+        return !!this.filterError;
+      case 'derive':
+        return !!this.deriveDialogState.error;
+      case 'sliceRows':
+        return !this.sliceRowsDialogState.count || this.sliceRowsDialogState.count <= 0;
+      case 'index':
+        return !this.indexDialogState.columnName || this.indexDialogState.columnName.trim() === '';
+      case 'regexpMatch':
+        return !!this.regexpMatchDialogState.error;
+      case 'regexpExtract':
+        return !!this.regexpExtractDialogState.error;
+      case 'split':
+        return !!this.splitDialogState.error;
+      case 'join':
+        return !this.joinDialogState.rightModel;
+      case 'pivot':
+        return !this.pivotDialogState.columnColumn || !this.pivotDialogState.valueColumn;
+      case 'import-url':
+        return !this.importUrlDialogState.url || this.importUrlDialogState.isFetching;
+      default:
+        return false;
     }
   }
 
   async applyActiveTransform() {
     switch (this.activeDialog) {
-      case 'filter': await this.applyFilterTransform(); break;
-      case 'sort': await this.applySortTransform(); break;
-      case 'sliceRows': await this.applySliceRowsTransform(); break;
-      case 'index': await this.applyIndexTransform(); break;
-      case 'select': await this.applySelectTransform(); break;
-      case 'remove': await this.applyRemoveTransform(); break;
-      case 'rename': await this.applyRenameTransform(); break;
-      case 'split': await this.applySplitTransform(); break;
-      case 'derive': await this.applyDeriveTransform(); break;
-      case 'regexpMatch': await this.applyRegexpMatchTransform(); break;
-      case 'regexpExtract': await this.applyRegexpExtractTransform(); break;
-      case 'fold': await this.applyFoldTransform(); break;
-      case 'pivot': await this.applyPivotTransform(); break;
-      case 'aggregate': await this.applyAggregateTransform(); break;
-      case 'join': await this.applyJoinTransform(); break;
-      case 'replace': await this.applyReplaceTransform(); break;
-      case 'import-csv': this.confirmImport(); break;
-      case 'import-url': await this.fetchAndImportFromUrl(); break;
+      case 'filter':
+        await this.applyFilterTransform();
+        break;
+      case 'sort':
+        await this.applySortTransform();
+        break;
+      case 'sliceRows':
+        await this.applySliceRowsTransform();
+        break;
+      case 'index':
+        await this.applyIndexTransform();
+        break;
+      case 'select':
+        await this.applySelectTransform();
+        break;
+      case 'remove':
+        await this.applyRemoveTransform();
+        break;
+      case 'rename':
+        await this.applyRenameTransform();
+        break;
+      case 'split':
+        await this.applySplitTransform();
+        break;
+      case 'derive':
+        await this.applyDeriveTransform();
+        break;
+      case 'regexpMatch':
+        await this.applyRegexpMatchTransform();
+        break;
+      case 'regexpExtract':
+        await this.applyRegexpExtractTransform();
+        break;
+      case 'fold':
+        await this.applyFoldTransform();
+        break;
+      case 'pivot':
+        await this.applyPivotTransform();
+        break;
+      case 'aggregate':
+        await this.applyAggregateTransform();
+        break;
+      case 'join':
+        await this.applyJoinTransform();
+        break;
+      case 'replace':
+        await this.applyReplaceTransform();
+        break;
+      case 'import-csv':
+        this.confirmImport();
+        break;
+      case 'import-url':
+        await this.fetchAndImportFromUrl();
+        break;
     }
   }
 
@@ -2290,7 +2843,8 @@ export class ChumakApp implements AppState {
 
   async closeDialog(force = false) {
     if (!force && this.hasUnsavedChanges()) {
-      if (!(await this.confirm('You have unsaved changes. Are you sure you want to discard them?'))) return;
+      if (!(await this.confirm('You have unsaved changes. Are you sure you want to discard them?')))
+        return;
     }
     this.activeDialog = null;
     this.dialogSnapshot = null;
@@ -2298,15 +2852,75 @@ export class ChumakApp implements AppState {
   }
 
   resetDialogStates() {
-    this.aggregateDialogState = { groupBy: [], aggregations: [], previewData: null, previewError: null, isPreviewing: false };
-    this.joinDialogState = { rightModel: null, joinType: 'left', keyPairs: [[null, null]], suffixes: ['_x', '_y'], availableTargets: [], leftColumns: [], rightColumns: [], previewData: null, previewError: null, isPreviewing: false };
-    this.importDialogState = { fileName: '', sourceName: '', rawPreviewData: [], previewHeaders: [], previewDataRows: [], headerMode: 'first-row', delimiter: ',', originalHeaders: [], customHeaders: [], duplicateWarning: '' };
+    this.aggregateDialogState = {
+      groupBy: [],
+      aggregations: [],
+      previewData: null,
+      previewError: null,
+      isPreviewing: false,
+    };
+    this.joinDialogState = {
+      rightModel: null,
+      joinType: 'left',
+      keyPairs: [[null, null]],
+      suffixes: ['_x', '_y'],
+      availableTargets: [],
+      leftColumns: [],
+      rightColumns: [],
+      previewData: null,
+      previewError: null,
+      isPreviewing: false,
+    };
+    this.importDialogState = {
+      fileName: '',
+      sourceName: '',
+      rawPreviewData: [],
+      previewHeaders: [],
+      previewDataRows: [],
+      headerMode: 'first-row',
+      delimiter: ',',
+      originalHeaders: [],
+      customHeaders: [],
+      duplicateWarning: '',
+    };
     this.importFileData = null;
-    this.foldDialogState = { keyName: 'key', valueName: 'value', selectedColumns: this.columns ? this.columns.map(() => false) : [] };
-    this.pivotDialogState = { rowColumns: [], columnColumn: '', valueColumn: '', aggregation: 'sum', options: { sort: true, limit: null }, uniqueValueCount: 0, previewData: null, previewError: null, isPreviewing: false };
-    this.splitDialogState = { column: '', delimiter: ',', isRegex: false, mode: 'spread', maxColumns: 10, keepOriginal: false, error: null, previewData: [], previewColumns: [], autoDetectedDelimiter: null, columnRenames: {} };
+    this.foldDialogState = {
+      keyName: 'key',
+      valueName: 'value',
+      selectedColumns: this.columns ? this.columns.map(() => false) : [],
+    };
+    this.pivotDialogState = {
+      rowColumns: [],
+      columnColumn: '',
+      valueColumn: '',
+      aggregation: 'sum',
+      options: { sort: true, limit: null },
+      uniqueValueCount: 0,
+      previewData: null,
+      previewError: null,
+      isPreviewing: false,
+    };
+    this.splitDialogState = {
+      column: '',
+      delimiter: ',',
+      isRegex: false,
+      mode: 'spread',
+      maxColumns: 10,
+      keepOriginal: false,
+      error: null,
+      previewData: [],
+      previewColumns: [],
+      autoDetectedDelimiter: null,
+      columnRenames: {},
+    };
     this.regexpMatchDialogState = { columnName: '', sourceColumn: '', pattern: '', error: null };
-    this.regexpExtractDialogState = { columnName: '', sourceColumn: '', pattern: '', group: 0, error: null };
+    this.regexpExtractDialogState = {
+      columnName: '',
+      sourceColumn: '',
+      pattern: '',
+      group: 0,
+      error: null,
+    };
   }
 
   // ============================================================
@@ -2314,10 +2928,19 @@ export class ChumakApp implements AppState {
   // ============================================================
 
   handleBodyClick(event: any) {
-    if (this.selectedColumn && !event.target.closest('.data-table__header') && !event.target.closest('.floating-toolbar') && !event.target.closest('.modal')) {
+    if (
+      this.selectedColumn &&
+      !event.target.closest('.data-table__header') &&
+      !event.target.closest('.floating-toolbar') &&
+      !event.target.closest('.modal')
+    ) {
       this.selectedColumn = null;
     }
-    if (this.typeMenuOpen && !event.target.closest('.type-menu') && !event.target.closest('.type-indicator')) {
+    if (
+      this.typeMenuOpen &&
+      !event.target.closest('.type-menu') &&
+      !event.target.closest('.type-indicator')
+    ) {
       this.typeMenuOpen = false;
       this.typeMenuCol = null;
     }
@@ -2366,13 +2989,18 @@ export class ChumakApp implements AppState {
     const center = rect.left + rect.width / 2;
     const windowWidth = window.innerWidth;
     const margin = 12;
-    let x = Math.max(toolbarWidth / 2 + margin, Math.min(windowWidth - toolbarWidth / 2 - margin, center));
+    let x = Math.max(
+      toolbarWidth / 2 + margin,
+      Math.min(windowWidth - toolbarWidth / 2 - margin, center)
+    );
     return { x: x, y: rect.top - 8, arrowOffset: center - x };
   }
 
   updateToolbarPosition() {
     if (this.selectedColumn) {
-      const header = document.querySelector(`.data-table__header[data-col="${this.selectedColumn}"]`);
+      const header = document.querySelector(
+        `.data-table__header[data-col="${this.selectedColumn}"]`
+      );
       if (header) {
         const rect = header.getBoundingClientRect();
         this.columnToolbarPos = this.calculateToolbarPosition(rect, 200);
@@ -2380,10 +3008,14 @@ export class ChumakApp implements AppState {
     }
     if (this.selectedCell) {
       if (this.selectedCell.isEda) return;
-      const cell = document.querySelector(`.data-table__cell[data-col="${this.selectedCell.col}"][data-row="${this.selectedCell.rowIdx}"]`);
+      const cell = document.querySelector(
+        `.data-table__cell[data-col="${this.selectedCell.col}"][data-row="${this.selectedCell.rowIdx}"]`
+      );
       if (cell) {
         const rect = cell.getBoundingClientRect();
-        const toolbarWidth = ['number', 'integer', 'float'].includes(this.selectedCell.type) ? 220 : 80;
+        const toolbarWidth = ['number', 'integer', 'float'].includes(this.selectedCell.type)
+          ? 220
+          : 80;
         this.cellToolbarPos = this.calculateToolbarPosition(rect, toolbarWidth);
       }
     }
@@ -2440,7 +3072,9 @@ export class ChumakApp implements AppState {
     this.filterExpression = `${this.selectedColumn} == `;
     this.reSnapshot();
     setTimeout(() => {
-      const input = document.querySelector('.modal input[x-model="filterExpression"]') as HTMLInputElement;
+      const input = document.querySelector(
+        '.modal input[x-model="filterExpression"]'
+      ) as HTMLInputElement;
       if (input) {
         input.focus();
         input.setSelectionRange(input.value.length, input.value.length);
@@ -2500,7 +3134,9 @@ export class ChumakApp implements AppState {
     this.replaceDialogState = { column: col, findValue: value, replaceValue: '' };
     this.reSnapshot();
     setTimeout(() => {
-      const input = document.querySelector('.slide-panel input[x-model="replaceDialogState.replaceValue"]') as HTMLInputElement;
+      const input = document.querySelector(
+        '.slide-panel input[x-model="replaceDialogState.replaceValue"]'
+      ) as HTMLInputElement;
       if (input) input.focus();
     }, 50);
   }
@@ -2547,6 +3183,20 @@ export class ChumakApp implements AppState {
   nextPage() {
     if (this.currentPage < this.totalPages) {
       this.currentPage++;
+      this.clearColumnSelection();
+    }
+  }
+
+  goToFirstPage() {
+    if (this.currentPage !== 1) {
+      this.currentPage = 1;
+      this.clearColumnSelection();
+    }
+  }
+
+  goToLastPage() {
+    if (this.currentPage !== this.totalPages) {
+      this.currentPage = this.totalPages;
       this.clearColumnSelection();
     }
   }
@@ -2659,7 +3309,10 @@ export class ChumakApp implements AppState {
           stepDesc = describeTransform(newSteps[stepIdx]);
         }
       }
-      this.showError('Failed to apply JSON changes', `${error.message}`, { stepIndex: stepIdx, stepDescription: stepDesc });
+      this.showError('Failed to apply JSON changes', `${error.message}`, {
+        stepIndex: stepIdx,
+        stepDescription: stepDesc,
+      });
       this.jsonEditError = error.message;
       return false;
     }
@@ -2688,7 +3341,13 @@ export class ChumakApp implements AppState {
     this._addNotification('success', 'Success', message, null, duration);
   }
 
-  _addNotification(type: string, title: string, message: string, stepInfo: string | null, duration: number) {
+  _addNotification(
+    type: string,
+    title: string,
+    message: string,
+    stepInfo: string | null,
+    duration: number
+  ) {
     const id = ++this.notificationIdCounter;
     const notification = {
       id,
@@ -2722,10 +3381,14 @@ export class ChumakApp implements AppState {
 
   getNotificationIcon(type: string) {
     switch (type) {
-      case 'error': return '⚠️';
-      case 'warning': return '⚡';
-      case 'success': return '✓';
-      default: return 'ℹ️';
+      case 'error':
+        return '⚠️';
+      case 'warning':
+        return '⚡';
+      case 'success':
+        return '✓';
+      default:
+        return 'ℹ️';
     }
   }
 
@@ -2775,7 +3438,7 @@ export class ChumakApp implements AppState {
   closeMessageBox(result: boolean) {
     const { resolve, type, inputValue } = this.messageBox;
     this.messageBox.visible = false;
-    
+
     if (resolve) {
       if (type === 'prompt') {
         resolve(result ? inputValue : null);
@@ -2789,10 +3452,14 @@ export class ChumakApp implements AppState {
 
   getMessageBoxIcon() {
     switch (this.messageBox.type) {
-      case 'alert': return 'carbon:information-filled';
-      case 'confirm': return 'carbon:help-filled';
-      case 'prompt': return 'carbon:edit';
-      default: return 'carbon:information-filled';
+      case 'alert':
+        return 'carbon:information-filled';
+      case 'confirm':
+        return 'carbon:help-filled';
+      case 'prompt':
+        return 'carbon:edit';
+      default:
+        return 'carbon:information-filled';
     }
   }
 
@@ -2898,7 +3565,8 @@ export class ChumakApp implements AppState {
     } else {
       this.columns = [];
     }
-    this.activeStepIndex = this.activeModel.steps?.length > 0 ? this.activeModel.steps.length - 1 : null;
+    this.activeStepIndex =
+      this.activeModel.steps?.length > 0 ? this.activeModel.steps.length - 1 : null;
     this.viewingIntermediate = false;
     this.viewingSchema = null;
     this.updatePagination();

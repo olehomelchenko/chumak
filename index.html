@@ -865,7 +865,15 @@
 
           <div class="pagination__divider"></div>
 
-          <div style="display: flex; align-items: center; gap: 0.5rem">
+          <div style="display: flex; align-items: center; gap: 0.25rem">
+            <button
+              class="button button--secondary button--small"
+              @click="goToFirstPage()"
+              :disabled="currentPage === 1"
+              title="First page"
+            >
+              «
+            </button>
             <button
               class="button button--secondary button--small"
               @click="previousPage()"
@@ -874,10 +882,9 @@
             >
               ‹
             </button>
-            <span
-              style="font-size: 0.875rem; color: var(--color-dark-gray)"
-              x-text="`Page ${currentPage} of ${totalPages}`"
-            ></span>
+            <div class="pagination__page-indicator">
+              Page <span x-text="currentPage"></span> of <span x-text="totalPages"></span>
+            </div>
             <button
               class="button button--secondary button--small"
               @click="nextPage()"
@@ -886,23 +893,31 @@
             >
               ›
             </button>
-
-            <div class="pagination__divider" style="margin-left: 0.5rem"></div>
-
-            <span style="font-size: 0.875rem; color: var(--color-dark-gray)">Rows:</span>
-            <select
-              class="form-input"
-              style="width: auto; padding: 0.25rem 0.5rem; font-size: 0.875rem"
-              x-model="pageSize"
-              @change="updatePageSize($event.target.value)"
+            <button
+              class="button button--secondary button--small"
+              @click="goToLastPage()"
+              :disabled="currentPage >= totalPages"
+              title="Last page"
             >
-              <option value="100">100</option>
-              <option value="250">250</option>
-              <option value="500">500</option>
-              <option value="1000">1000</option>
-              <option value="2500">2500</option>
-            </select>
+              »
+            </button>
           </div>
+
+          <div class="pagination__divider" style="margin-left: 0.5rem"></div>
+
+          <span style="font-size: 0.875rem; color: var(--color-dark-gray)">Rows:</span>
+          <select
+            class="form-input"
+            style="width: auto; padding: 0.25rem 0.5rem; font-size: 0.875rem"
+            x-model="pageSize"
+            @change="updatePageSize($event.target.value)"
+          >
+            <option value="100">100</option>
+            <option value="250">250</option>
+            <option value="500">500</option>
+            <option value="1000">1000</option>
+            <option value="2500">2500</option>
+          </select>
         </div>
       </div>
 
@@ -915,7 +930,10 @@
         <table class="data-table">
           <thead>
             <tr>
-              <template x-for="(column, index) in columns" :key="index">
+              <template
+                x-for="(column, index) in columns"
+                :key="(activeModel?.id || activeSource?.id) + '-col-' + column"
+              >
                 <th
                   class="data-table__header"
                   :class="{ 'data-table__header--selected': selectedColumn === column }"
@@ -925,25 +943,29 @@
                 >
                   <span
                     class="type-indicator"
-                    x-text="getTypeIndicator(column)"
+                    :class="'type-indicator--' + getColumnType(column)"
                     @click.stop="openTypeMenu(column, $event)"
                     title="Click to change type"
-                  ></span>
+                  >
+                    <span class="iconify" :data-icon="getTypeIcon(column)"></span>
+                  </span>
                   <span x-text="column"></span>
                 </th>
               </template>
             </tr>
           </thead>
           <tbody>
-            <template x-for="(row, rowIndex) in getPaginatedData()" :key="rowIndex">
+            <template
+              x-for="(row, rowIndex) in getPaginatedData()"
+              :key="(activeModel?.id || activeSource?.id) + '-' + currentPage + '-' + rowIndex"
+            >
               <tr class="data-table__row" @click="clearColumnSelection()">
                 <template x-for="(column, colIndex) in columns" :key="colIndex">
                   <td
-                    class="data-table__cell"
-                    :class="{ 'data-table__cell--number': ['number', 'integer', 'float'].includes(getColumnType(column)) }"
+                    :class="getCellClass(row[column], column)"
                     :data-col="column"
                     :data-row="rowIndex"
-                    x-text="row[column]"
+                    x-text="formatCellValue(row[column])"
                     :title="`${column}: ${row[column]}`"
                     @click.stop="selectCell(column, row[column], rowIndex, $event)"
                   ></td>
