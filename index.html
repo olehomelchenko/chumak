@@ -113,9 +113,9 @@
                 <span>Dedupe</span>
               </button>
               <button
-                class="ribbon__button ribbon__button--disabled"
-                disabled
-                title="Keep top/bottom N rows (Coming soon)"
+                class="ribbon__button"
+                @click="openDialog('sliceRows')"
+                title="Keep or remove top/bottom N rows"
               >
                 <span class="iconify" data-icon="carbon:result"></span>
                 <span>Keep Rows</span>
@@ -1164,6 +1164,7 @@
           <div id="regexp-match-modal-container" x-show="activeDialog === 'regexpMatch'"></div>
           <div id="regexp-extract-modal-container" x-show="activeDialog === 'regexpExtract'"></div>
           <div id="sort-modal-container" x-show="activeDialog === 'sort'"></div>
+          <div id="slice-rows-modal-container" x-show="activeDialog === 'sliceRows'"></div>
           <div id="rename-modal-container" x-show="activeDialog === 'rename'"></div>
           <div id="remove-modal-container" x-show="activeDialog === 'remove'"></div>
           <div id="unpivot-modal-container" x-show="activeDialog === 'fold'"></div>

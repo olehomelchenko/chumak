@@ -120,6 +120,7 @@ export class ChumakApp implements AppState {
   };
   deriveDialogState = { columnName: '', expression: '', error: null as string | null };
   sortDialogState = { field: '', order: 'asc' as 'asc' | 'desc' };
+  sliceRowsDialogState = { count: 10, mode: 'first' as 'first' | 'last' | 'removeFirst' | 'removeLast' };
   renameDialogState = { renames: {} as Record<string, string> };
   foldDialogState = { keyName: 'key', valueName: 'value', selectedColumns: [] as boolean[] };
   replaceDialogState = { column: '', findValue: '', replaceValue: '' };
@@ -291,6 +292,7 @@ export class ChumakApp implements AppState {
       { id: 'remove-modal-container', url: 'templates/remove-modal.html' },
       { id: 'rename-modal-container', url: 'templates/rename-modal.html' },
       { id: 'sort-modal-container', url: 'templates/sort-modal.html' },
+      { id: 'slice-rows-modal-container', url: 'templates/slice-rows-modal.html' },
       { id: 'derive-modal-container', url: 'templates/derive-modal.html' },
       { id: 'filter-modal-container', url: 'templates/filter-modal.html' },
       { id: 'regexp-match-modal-container', url: 'templates/regexp-match-modal.html' },
@@ -1582,6 +1584,12 @@ export class ChumakApp implements AppState {
     await this.runTransform('Sort', { sort: { field, order } });
   }
 
+  async applySliceRowsTransform() {
+    const { count, mode } = this.sliceRowsDialogState;
+    if (!count || count <= 0) { alert('Please enter a valid number of rows'); return; }
+    await this.runTransform('Slice Rows', { sliceRows: { count, mode } });
+  }
+
   async applyRenameTransform() {
     const { renames } = this.renameDialogState;
     const actualRenames: Record<string, string> = {};
@@ -1942,6 +1950,7 @@ export class ChumakApp implements AppState {
     switch (dialog) {
       case 'filter': return this.filterExpression;
       case 'derive': return this.deriveDialogState;
+      case 'sliceRows': return this.sliceRowsDialogState;
       case 'rename': return this.renameDialogState;
       case 'aggregate': return this.aggregateDialogState;
       case 'join': return { ...this.joinDialogState, rightModel: this.joinDialogState.rightModel?.id, availableTargets: null };
@@ -1980,6 +1989,8 @@ export class ChumakApp implements AppState {
       this.deriveDialogState = { columnName: '', expression: '', error: null };
     } else if (dialogName === 'sort') {
       this.sortDialogState = { field: this.columns[0] || '', order: 'asc' };
+    } else if (dialogName === 'sliceRows') {
+      this.sliceRowsDialogState = { count: 10, mode: 'first' };
     } else if (dialogName === 'rename') {
       const renames: Record<string, string> = {};
       this.columns.forEach((col) => { renames[col] = col; });
@@ -2017,7 +2028,7 @@ export class ChumakApp implements AppState {
   isSlidePanel(dialog: string | null): boolean {
     if (!dialog) return false;
     const slidePanels = [
-      'filter', 'sort', 'select', 'remove', 'rename',
+      'filter', 'sort', 'sliceRows', 'select', 'remove', 'rename',
       'split', 'derive', 'regexpMatch', 'regexpExtract',
       'fold', 'aggregate', 'join', 'replace'
     ];
@@ -2034,6 +2045,7 @@ export class ChumakApp implements AppState {
     switch (this.activeDialog) {
       case 'filter': return 'Filter Rows';
       case 'sort': return 'Sort Rows';
+      case 'sliceRows': return 'Keep / Remove Rows';
       case 'select': return 'Select Columns';
       case 'remove': return 'Remove Columns';
       case 'rename': return 'Rename Columns';
@@ -2067,6 +2079,7 @@ export class ChumakApp implements AppState {
     switch (this.activeDialog) {
       case 'filter': return !!this.filterError;
       case 'derive': return !!this.deriveDialogState.error;
+      case 'sliceRows': return !this.sliceRowsDialogState.count || this.sliceRowsDialogState.count <= 0;
       case 'regexpMatch': return !!this.regexpMatchDialogState.error;
       case 'regexpExtract': return !!this.regexpExtractDialogState.error;
       case 'split': return !!this.splitDialogState.error;
@@ -2080,6 +2093,7 @@ export class ChumakApp implements AppState {
     switch (this.activeDialog) {
       case 'filter': await this.applyFilterTransform(); break;
       case 'sort': await this.applySortTransform(); break;
+      case 'sliceRows': await this.applySliceRowsTransform(); break;
       case 'select': await this.applySelectTransform(); break;
       case 'remove': await this.applyRemoveTransform(); break;
       case 'rename': await this.applyRenameTransform(); break;

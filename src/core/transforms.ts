@@ -257,6 +257,21 @@ export function applyTransform(table: any, transform: any, schema: string[], con
     return (aq as any).from(resultRows);
   }
 
+  if (transform.sliceRows) {
+    const { count, mode } = transform.sliceRows;
+    const numRows = table.numRows();
+
+    if (mode === 'first') {
+      return table.slice(0, Math.min(count, numRows));
+    } else if (mode === 'last') {
+      return table.slice(Math.max(0, numRows - count), numRows);
+    } else if (mode === 'removeFirst') {
+      return table.slice(Math.min(count, numRows), numRows);
+    } else if (mode === 'removeLast') {
+      return table.slice(0, Math.max(0, numRows - count));
+    }
+  }
+
   throw new Error(`Transform not implemented: ${Object.keys(transform)[0]}`);
 }
 
@@ -349,6 +364,17 @@ export function describeTransform(transform: any, rightName: string | null = nul
 
   if (transform.split) {
     return `Split: ${transform.split.column}`;
+  }
+
+  if (transform.sliceRows) {
+    const { count, mode } = transform.sliceRows;
+    const modeLabels: Record<string, string> = {
+      first: 'Keep first',
+      last: 'Keep last',
+      removeFirst: 'Remove first',
+      removeLast: 'Remove last',
+    };
+    return `${modeLabels[mode] || mode} ${count} row${count !== 1 ? 's' : ''}`;
   }
 
   return 'Unknown transform';

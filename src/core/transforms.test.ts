@@ -213,6 +213,70 @@ describe('Transform Engine', () => {
     });
   });
 
+  describe('applyTransform() - SLICE ROWS', () => {
+    it('should keep first N rows', () => {
+      const table = createTestTable();
+      const transform = { sliceRows: { count: 2, mode: 'first' } };
+      const result = applyTransform(table, transform, ['sales', 'revenue', 'cost', 'region', 'status']);
+
+      expect(result.numRows()).toBe(2);
+      const rows = result.objects();
+      expect(rows[0].sales).toBe(1000);
+      expect(rows[1].sales).toBe(1500);
+    });
+
+    it('should keep last N rows', () => {
+      const table = createTestTable();
+      const transform = { sliceRows: { count: 2, mode: 'last' } };
+      const result = applyTransform(table, transform, ['sales', 'revenue', 'cost', 'region', 'status']);
+
+      expect(result.numRows()).toBe(2);
+      const rows = result.objects();
+      expect(rows[0].sales).toBe(2000);
+      expect(rows[1].sales).toBe(500);
+    });
+
+    it('should remove first N rows', () => {
+      const table = createTestTable();
+      const transform = { sliceRows: { count: 2, mode: 'removeFirst' } };
+      const result = applyTransform(table, transform, ['sales', 'revenue', 'cost', 'region', 'status']);
+
+      expect(result.numRows()).toBe(3);
+      const rows = result.objects();
+      expect(rows[0].sales).toBe(800);
+      expect(rows[1].sales).toBe(2000);
+      expect(rows[2].sales).toBe(500);
+    });
+
+    it('should remove last N rows', () => {
+      const table = createTestTable();
+      const transform = { sliceRows: { count: 2, mode: 'removeLast' } };
+      const result = applyTransform(table, transform, ['sales', 'revenue', 'cost', 'region', 'status']);
+
+      expect(result.numRows()).toBe(3);
+      const rows = result.objects();
+      expect(rows[0].sales).toBe(1000);
+      expect(rows[1].sales).toBe(1500);
+      expect(rows[2].sales).toBe(800);
+    });
+
+    it('should handle count greater than total rows', () => {
+      const table = createTestTable();
+      const transform = { sliceRows: { count: 100, mode: 'first' } };
+      const result = applyTransform(table, transform, ['sales', 'revenue', 'cost', 'region', 'status']);
+
+      expect(result.numRows()).toBe(5);
+    });
+
+    it('should return empty table when removing all rows', () => {
+      const table = createTestTable();
+      const transform = { sliceRows: { count: 100, mode: 'removeFirst' } };
+      const result = applyTransform(table, transform, ['sales', 'revenue', 'cost', 'region', 'status']);
+
+      expect(result.numRows()).toBe(0);
+    });
+  });
+
   describe('describeTransform()', () => {
     it('should describe import transform', () => {
       const transform = {
@@ -248,6 +312,13 @@ describe('Transform Engine', () => {
       const desc = describeTransform(transform);
       expect(desc).toContain('Aggregate: by[region]');
       expect(desc).toContain('2 summaries');
+    });
+
+    it('should describe sliceRows transform', () => {
+      expect(describeTransform({ sliceRows: { count: 10, mode: 'first' } })).toBe('Keep first 10 rows');
+      expect(describeTransform({ sliceRows: { count: 5, mode: 'last' } })).toBe('Keep last 5 rows');
+      expect(describeTransform({ sliceRows: { count: 3, mode: 'removeFirst' } })).toBe('Remove first 3 rows');
+      expect(describeTransform({ sliceRows: { count: 1, mode: 'removeLast' } })).toBe('Remove last 1 row');
     });
   });
 
