@@ -173,6 +173,16 @@ export class ChumakApp implements AppState {
   notifications: any[] = [];
   notificationIdCounter = 0;
 
+  // Custom Dialogs (Alert/Confirm/Prompt)
+  messageBox = {
+    visible: false,
+    title: '',
+    message: '',
+    type: 'alert' as 'alert' | 'confirm' | 'prompt',
+    inputValue: '',
+    resolve: null as ((value: any) => void) | null,
+  };
+
   // Alpine's injected properties
   $nextTick: any;
   $watch: any;
@@ -253,6 +263,7 @@ export class ChumakApp implements AppState {
 
     window.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
+        if (this.messageBox.visible) { this.closeMessageBox(false); return; }
         if (this.activeDialog) { this.closeDialog(); return; }
         if (this.typeMenuOpen) { this.typeMenuOpen = false; return; }
         if (this.selectedColumn || this.selectedCell) { this.clearColumnSelection(); return; }
@@ -375,11 +386,11 @@ export class ChumakApp implements AppState {
   }
 
   async createNewModel(source: any) {
-    const modelName = prompt('Enter name for new model:', `model_${this.models.filter((m) => m.sourceId === source.id).length + 1}`);
+    const modelName = await this.prompt('Enter name for new model:', `model_${this.models.filter((m) => m.sourceId === source.id).length + 1}`);
     if (!modelName || modelName.trim() === '') return;
     const existingModel = this.models.find((m) => m.sourceId === source.id && m.name.toLowerCase() === modelName.trim().toLowerCase());
     if (existingModel) {
-      alert('A model with this name already exists for this source. Please choose a different name.');
+      await this.alert('A model with this name already exists for this source. Please choose a different name.');
       return;
     }
     const newModel = {
@@ -404,19 +415,19 @@ export class ChumakApp implements AppState {
   }
 
   async createNewModelFromActive() {
-    if (!this.activeModel) { alert('No active model selected'); return; }
+    if (!this.activeModel) { await this.alert('No active model selected'); return; }
     const source = this.sources.find((s) => s.id === this.activeModel.sourceId);
-    if (!source) { alert('Source not found for current model'); return; }
+    if (!source) { await this.alert('Source not found for current model'); return; }
     await this.createNewModel(source);
   }
 
   async copyCurrentModel() {
-    if (!this.activeModel) { alert('No active model selected'); return; }
-    const newName = prompt('Enter name for copied model:', `${this.activeModel.name}_copy`);
+    if (!this.activeModel) { await this.alert('No active model selected'); return; }
+    const newName = await this.prompt('Enter name for copied model:', `${this.activeModel.name}_copy`);
     if (!newName || newName.trim() === '') return;
     const existingModel = this.models.find((m) => m.sourceId === this.activeModel.sourceId && m.name.toLowerCase() === newName.trim().toLowerCase());
     if (existingModel) {
-      alert('A model with this name already exists for this source. Please choose a different name.');
+      await this.alert('A model with this name already exists for this source. Please choose a different name.');
       return;
     }
     const copiedModel = {
@@ -433,13 +444,13 @@ export class ChumakApp implements AppState {
   }
 
   async renameCurrentModel() {
-    if (!this.activeModel) { alert('No active model selected'); return; }
-    const newName = prompt('Enter new name for model:', this.activeModel.name);
+    if (!this.activeModel) { await this.alert('No active model selected'); return; }
+    const newName = await this.prompt('Enter new name for model:', this.activeModel.name);
     if (!newName || newName.trim() === '') return;
     if (newName.trim() === this.activeModel.name) return;
     const existingModel = this.models.find((m) => m.sourceId === this.activeModel.sourceId && m.name.toLowerCase() === newName.trim().toLowerCase());
     if (existingModel) {
-      alert('A model with this name already exists for this source. Please choose a different name.');
+      await this.alert('A model with this name already exists for this source. Please choose a different name.');
       return;
     }
     this.activeModel.name = newName.trim();
@@ -447,10 +458,10 @@ export class ChumakApp implements AppState {
   }
 
   async deleteCurrentModel() {
-    if (!this.activeModel) { alert('No active model selected'); return; }
+    if (!this.activeModel) { await this.alert('No active model selected'); return; }
     const sourceModels = this.models.filter((m) => m.sourceId === this.activeModel.sourceId);
-    if (sourceModels.length === 1) { alert('Cannot delete the last model for this source.'); return; }
-    if (!confirm(`Delete model "${this.activeModel.name}"?\n\nThis cannot be undone.`)) return;
+    if (sourceModels.length === 1) { await this.alert('Cannot delete the last model for this source.'); return; }
+    if (!(await this.confirm(`Delete model "${this.activeModel.name}"?\n\nThis cannot be undone.`))) return;
     const deletedModelId = this.activeModel.id;
     const sourceId = this.activeModel.sourceId;
     this.models = this.models.filter((m) => m.id !== deletedModelId);
@@ -467,7 +478,7 @@ export class ChumakApp implements AppState {
   }
 
   async renameSource(source: any) {
-    const newName = prompt('Enter new name for source:', source.name);
+    const newName = await this.prompt('Enter new name for source:', source.name);
     if (!newName || newName.trim() === '') return;
     if (newName.trim() === source.name) return;
     source.name = newName.trim();
@@ -479,7 +490,7 @@ export class ChumakApp implements AppState {
     const message = modelCount > 0
       ? `Delete source "${source.name}" and its ${modelCount} model${modelCount > 1 ? 's' : ''}?\n\nThis cannot be undone.`
       : `Delete source "${source.name}"?\n\nThis cannot be undone.`;
-    if (!confirm(message)) return;
+    if (!(await this.confirm(message))) return;
     try {
       this.models = this.models.filter((m) => m.sourceId !== source.id);
       this.sources = this.sources.filter((s) => s.id !== source.id);
@@ -493,12 +504,12 @@ export class ChumakApp implements AppState {
       await autoSave(this.sources, this.models);
     } catch (error: any) {
       console.error('Error deleting source:', error);
-      alert('Failed to delete source: ' + error.message);
+      await this.alert('Failed to delete source: ' + error.message);
     }
   }
 
   async clearAllData() {
-    if (!confirm('Clear all data from IndexedDB? This cannot be undone.')) return;
+    if (!(await this.confirm('Clear all data from IndexedDB? This cannot be undone.'))) return;
     try {
       await clearAllData();
       this.sources = [];
@@ -506,10 +517,10 @@ export class ChumakApp implements AppState {
       this.activeModel = null;
       this.currentData = null;
       this.columns = [];
-      alert('All data cleared successfully');
+      await this.alert('All data cleared successfully');
     } catch (error: any) {
       console.error('Error clearing data:', error);
-      alert('Failed to clear data: ' + error.message);
+      await this.alert('Failed to clear data: ' + error.message);
     }
   }
 
@@ -524,20 +535,20 @@ export class ChumakApp implements AppState {
     event.target.value = '';
   }
 
-  handleFileDrop(event: any) {
+  async handleFileDrop(event: any) {
     this.isDragging = false;
     const files = event.dataTransfer.files;
     if (files.length === 0) return;
     const file = files[0];
     const fileName = file.name.toLowerCase();
     if (!fileName.endsWith('.csv') && !fileName.endsWith('.json')) {
-      alert('Please drop a CSV or JSON file');
+      await this.alert('Please drop a CSV or JSON file');
       return;
     }
     this.showImportDialog(file);
   }
 
-  handlePaste(event: any) {
+  async handlePaste(event: any) {
     if (event.target.tagName === 'INPUT' || event.target.tagName === 'TEXTAREA' || event.target.isContentEditable) return;
     const clipboardData = event.clipboardData || (window as any).clipboardData;
     if (!clipboardData) return;
@@ -582,14 +593,14 @@ export class ChumakApp implements AppState {
           });
           this.showImportDialog(file);
         } else {
-          alert('Clipboard is empty or does not contain text. Try copying some CSV or JSON data first.');
+          await this.alert('Clipboard is empty or does not contain text. Try copying some CSV or JSON data first.');
         }
       } else {
-        alert('Your browser does not support direct clipboard access. Please use Ctrl+V to paste data.');
+        await this.alert('Your browser does not support direct clipboard access. Please use Ctrl+V to paste data.');
       }
     } catch (err) {
       console.warn('Clipboard access denied:', err);
-      alert('Please press Ctrl+V to paste your data directly.');
+      await this.alert('Please press Ctrl+V to paste your data directly.');
     }
   }
 
@@ -767,9 +778,9 @@ export class ChumakApp implements AppState {
         this.updateHeadersForPreview();
         this.activeDialog = 'import-csv';
       },
-      error: (error: any) => {
+      error: async (error: any) => {
         console.error('CSV preview error:', error);
-        alert('Error reading CSV: ' + error.message);
+        await this.alert('Error reading CSV: ' + error.message);
       },
     });
   }
@@ -839,7 +850,7 @@ export class ChumakApp implements AppState {
     }
   }
 
-  confirmImport() {
+  async confirmImport() {
     const {
       headerMode,
       delimiter,
@@ -853,7 +864,7 @@ export class ChumakApp implements AppState {
     if (!this.importFileData) return;
     const file = this.importFileData.file;
     if (!sourceName || sourceName.trim() === '') {
-      alert('Please enter a source name');
+      await this.alert('Please enter a source name');
       return;
     }
 
@@ -890,7 +901,7 @@ export class ChumakApp implements AppState {
       skipEmptyLines: true,
       dynamicTyping: true,
       complete: async (results: any) => {
-        if (!results.data || results.data.length === 0) { alert('Error: CSV file is empty'); return; }
+        if (!results.data || results.data.length === 0) { await this.alert('Error: CSV file is empty'); return; }
         let columns: string[], data: any[];
         const rawData = results.data;
         if (headerMode === 'first-row') {
@@ -920,9 +931,9 @@ export class ChumakApp implements AppState {
           await this.createSource(file, sourceName.trim(), columns, data, headerMode, delimiter, customHeaders);
         }
       },
-      error: (error: any) => {
+      error: async (error: any) => {
         console.error('CSV parsing error:', error);
-        alert('Error parsing CSV: ' + error.message);
+        await this.alert('Error parsing CSV: ' + error.message);
       },
     });
   }
@@ -939,7 +950,7 @@ export class ChumakApp implements AppState {
   ) {
     const start = performance.now();
     if (columns.some((c) => !c || c.trim() === '')) {
-      alert('Error: Column names cannot be empty.');
+      await this.alert('Error: Column names cannot be empty.');
       return;
     }
     const cleanData = JSON.parse(JSON.stringify(data));
@@ -993,9 +1004,9 @@ export class ChumakApp implements AppState {
   // Export Handlers
   // ============================================================
 
-  exportCSV() {
+  async exportCSV() {
     if (!this.currentData || this.currentData.length === 0) {
-      alert('No data to export');
+      await this.alert('No data to export');
       return;
     }
 
@@ -1018,13 +1029,13 @@ export class ChumakApp implements AppState {
       console.log(`⚡ Export CSV — ${(performance.now() - start).toFixed(1)}ms — ${filename}`);
     } catch (error: any) {
       console.error('CSV export error:', error);
-      alert('Failed to export CSV: ' + error.message);
+      await this.alert('Failed to export CSV: ' + error.message);
     }
   }
 
-  exportWorkflowJSON() {
+  async exportWorkflowJSON() {
     if (!this.activeModel) {
-      alert('No workflow to export');
+      await this.alert('No workflow to export');
       return;
     }
 
@@ -1063,13 +1074,13 @@ export class ChumakApp implements AppState {
       console.log('Exported workflow JSON:', filename);
     } catch (error: any) {
       console.error('Workflow export error:', error);
-      alert('Failed to export workflow: ' + error.message);
+      await this.alert('Failed to export workflow: ' + error.message);
     }
   }
 
-  exportDataJSON() {
+  async exportDataJSON() {
     if (!this.currentData || this.currentData.length === 0) {
-      alert('No data to export');
+      await this.alert('No data to export');
       return;
     }
 
@@ -1092,41 +1103,41 @@ export class ChumakApp implements AppState {
       console.log(`⚡ Export JSON — ${(performance.now() - start).toFixed(1)}ms — ${filename}`);
     } catch (error: any) {
       console.error('JSON export error:', error);
-      alert('Failed to export JSON: ' + error.message);
+      await this.alert('Failed to export JSON: ' + error.message);
     }
   }
 
   async copyCSVToClipboard() {
     const pageData = this.getPaginatedData();
     if (!pageData || pageData.length === 0) {
-      alert('No data to copy on this page');
+      await this.alert('No data to copy on this page');
       return;
     }
 
     try {
       const csv = Papa.unparse(pageData);
       await navigator.clipboard.writeText(csv);
-      alert('Current page data copied to clipboard (CSV)!');
+      await this.alert('Current page data copied to clipboard (CSV)!');
     } catch (error: any) {
       console.error('Copy to clipboard error:', error);
-      alert('Failed to copy to clipboard: ' + error.message);
+      await this.alert('Failed to copy to clipboard: ' + error.message);
     }
   }
 
   async copyJSONToClipboard() {
     const pageData = this.getPaginatedData();
     if (!pageData || pageData.length === 0) {
-      alert('No data to copy on this page');
+      await this.alert('No data to copy on this page');
       return;
     }
 
     try {
       const json = JSON.stringify(pageData, null, 2);
       await navigator.clipboard.writeText(json);
-      alert('Current page data copied to clipboard (JSON)!');
+      await this.alert('Current page data copied to clipboard (JSON)!');
     } catch (error: any) {
       console.error('Copy to clipboard error:', error);
-      alert('Failed to copy to clipboard: ' + error.message);
+      await this.alert('Failed to copy to clipboard: ' + error.message);
     }
   }
 
@@ -1147,9 +1158,9 @@ export class ChumakApp implements AppState {
         this.importDialogState.customHeaders = newHeaders;
         this.updateHeadersForPreview();
       },
-      error: (error: any) => {
+      error: async (error: any) => {
         console.error('CSV preview error:', error);
-        alert('Error parsing CSV with selected delimiter: ' + error.message);
+        await this.alert('Error parsing CSV with selected delimiter: ' + error.message);
       },
     });
   }
@@ -1434,7 +1445,7 @@ export class ChumakApp implements AppState {
       return true;
     } catch (error: any) {
       console.error(`${label} error:`, error);
-      alert(`Error applying ${label.toLowerCase()}: ${error.message}`);
+      await this.alert(`Error applying ${label.toLowerCase()}: ${error.message}`);
       return false;
     } finally {
       this.endTransformation();
@@ -1482,7 +1493,7 @@ export class ChumakApp implements AppState {
   async applySelectTransform() {
     const selectedCols = this.getSelectedColumnsList();
     if (selectedCols.length === 0) {
-      alert('Please select at least one column');
+      await this.alert('Please select at least one column');
       return;
     }
     await this.runTransform('Select', { select: selectedCols });
@@ -1495,11 +1506,11 @@ export class ChumakApp implements AppState {
   async applyFilterTransform() {
     const expr = this.filterExpression.trim();
     if (!expr) {
-      alert('Please enter a filter expression');
+      await this.alert('Please enter a filter expression');
       return;
     }
     if (this.filterError) {
-      alert('Please fix the expression errors before applying');
+      await this.alert('Please fix the expression errors before applying');
       return;
     }
 
@@ -1514,15 +1525,15 @@ export class ChumakApp implements AppState {
   async applyDeriveTransform() {
     const { columnName, expression } = this.deriveDialogState;
     if (!columnName || !expression) {
-      alert('Please provide both column name and expression');
+      await this.alert('Please provide both column name and expression');
       return;
     }
     if (this.deriveDialogState.error) {
-      alert('Please fix the expression errors before applying');
+      await this.alert('Please fix the expression errors before applying');
       return;
     }
     if (this.columns.includes(columnName)) {
-      if (!confirm(`Column "${columnName}" already exists. It will be overwritten. Continue?`)) return;
+      if (!(await this.confirm(`Column "${columnName}" already exists. It will be overwritten. Continue?`))) return;
     }
 
     const transform = { derive: { [columnName]: expression } };
@@ -1576,11 +1587,11 @@ export class ChumakApp implements AppState {
 
   async applyRegexpMatchTransform() {
     const { columnName, sourceColumn, pattern } = this.regexpMatchDialogState;
-    if (!columnName || !pattern) { alert('Please provide column name and pattern'); return; }
-    if (this.regexpMatchDialogState.error) { alert('Please fix pattern errors before applying'); return; }
-    if (!sourceColumn) { alert('Please select a source column'); return; }
+    if (!columnName || !pattern) { await this.alert('Please provide column name and pattern'); return; }
+    if (this.regexpMatchDialogState.error) { await this.alert('Please fix pattern errors before applying'); return; }
+    if (!sourceColumn) { await this.alert('Please select a source column'); return; }
     if (this.columns.includes(columnName)) {
-      if (!confirm(`Column "${columnName}" already exists. It will be overwritten. Continue?`)) return;
+      if (!(await this.confirm(`Column "${columnName}" already exists. It will be overwritten. Continue?`))) return;
     }
 
     const colRef = this.quoteColumnRef(sourceColumn);
@@ -1591,11 +1602,11 @@ export class ChumakApp implements AppState {
 
   async applyRegexpExtractTransform() {
     const { columnName, sourceColumn, pattern, group } = this.regexpExtractDialogState;
-    if (!columnName || !pattern) { alert('Please provide column name and pattern'); return; }
-    if (this.regexpExtractDialogState.error) { alert('Please fix pattern errors before applying'); return; }
-    if (!sourceColumn) { alert('Please select a source column'); return; }
+    if (!columnName || !pattern) { await this.alert('Please provide column name and pattern'); return; }
+    if (this.regexpExtractDialogState.error) { await this.alert('Please fix pattern errors before applying'); return; }
+    if (!sourceColumn) { await this.alert('Please select a source column'); return; }
     if (this.columns.includes(columnName)) {
-      if (!confirm(`Column "${columnName}" already exists. It will be overwritten. Continue?`)) return;
+      if (!(await this.confirm(`Column "${columnName}" already exists. It will be overwritten. Continue?`))) return;
     }
 
     const colRef = this.quoteColumnRef(sourceColumn);
@@ -1607,19 +1618,19 @@ export class ChumakApp implements AppState {
 
   async applySortTransform() {
     const { field, order } = this.sortDialogState;
-    if (!field) { alert('Please select a column to sort by'); return; }
+    if (!field) { await this.alert('Please select a column to sort by'); return; }
     await this.runTransform('Sort', { sort: { field, order } });
   }
 
   async applySliceRowsTransform() {
     const { count, mode } = this.sliceRowsDialogState;
-    if (!count || count <= 0) { alert('Please enter a valid number of rows'); return; }
+    if (!count || count <= 0) { await this.alert('Please enter a valid number of rows'); return; }
     await this.runTransform('Slice Rows', { sliceRows: { count, mode } });
   }
 
   async applyIndexTransform() {
     const { columnName, startFrom } = this.indexDialogState;
-    if (!columnName || columnName.trim() === '') { alert('Please enter a column name'); return; }
+    if (!columnName || columnName.trim() === '') { await this.alert('Please enter a column name'); return; }
     await this.runTransform('Add Index', { addIndex: { columnName: columnName.trim(), startFrom: startFrom ?? 1 } });
   }
 
@@ -1638,14 +1649,14 @@ export class ChumakApp implements AppState {
   async applyRemoveTransform() {
     const colsToRemove = this.columns.filter((_c, idx) => this.removedColumns[idx]);
     if (colsToRemove.length === 0) { this.closeDialog(true); return; }
-    if (colsToRemove.length === this.columns.length) { alert('Cannot remove all columns'); return; }
+    if (colsToRemove.length === this.columns.length) { await this.alert('Cannot remove all columns'); return; }
     await this.runTransform('Remove', { remove: colsToRemove });
   }
 
   async applyFoldTransform() {
     const { keyName, valueName, selectedColumns } = this.foldDialogState;
     const colsToFold = this.columns.filter((_c, idx) => selectedColumns[idx]);
-    if (colsToFold.length === 0) { alert('Please select at least one column to unpivot'); return; }
+    if (colsToFold.length === 0) { await this.alert('Please select at least one column to unpivot'); return; }
     const transform = {
       fold: {
         columns: colsToFold,
@@ -1756,7 +1767,7 @@ export class ChumakApp implements AppState {
       }
     } catch (error: any) {
       console.error('Pivot transform error:', error);
-      alert('Error applying pivot: ' + error.message);
+      await this.alert('Error applying pivot: ' + error.message);
     } finally {
       this.endTransformation();
     }
@@ -1820,7 +1831,7 @@ export class ChumakApp implements AppState {
       const transform = this.constructAggregateStep();
       await this.runTransform('Aggregate', transform);
     } catch (error: any) {
-      alert(error.message);
+      await this.alert(error.message);
     }
   }
 
@@ -1919,10 +1930,10 @@ export class ChumakApp implements AppState {
 
   async applyJoinTransform() {
     const state = this.joinDialogState;
-    if (!state.rightModel) { alert('Please select a model or source to join with'); return; }
+    if (!state.rightModel) { await this.alert('Please select a model or source to join with'); return; }
     if (state.joinType !== 'cross') {
       const completePairs = state.keyPairs.filter((pair: any) => pair[0] && pair[1]);
-      if (completePairs.length === 0) { alert('Please specify at least one complete key pair'); return; }
+      if (completePairs.length === 0) { await this.alert('Please specify at least one complete key pair'); return; }
     }
 
     try {
@@ -1936,15 +1947,15 @@ export class ChumakApp implements AppState {
       await this.runTransform('Join', transform);
     } catch (error: any) {
       console.error('Join transform setup error:', error);
-      alert('Error preparing join: ' + error.message);
+      await this.alert('Error preparing join: ' + error.message);
     }
   }
 
   async applyReplaceTransform() {
     const { column, findValue, replaceValue } = this.replaceDialogState;
-    if (!column) { alert('Please select a column'); return; }
+    if (!column) { await this.alert('Please select a column'); return; }
     if (findValue === undefined || findValue === null) {
-      if (!confirm('Replace null/empty values?')) return;
+      if (!(await this.confirm('Replace null/empty values?'))) return;
     }
 
     const transform = { replace: { column: column, find: findValue, replace: replaceValue === '' ? null : replaceValue } };
@@ -2038,8 +2049,8 @@ export class ChumakApp implements AppState {
 
   async applySplitTransform() {
     const { column, delimiter, mode, maxColumns, keepOriginal, isRegex, columnRenames } = this.splitDialogState;
-    if (!column) { alert('Please select a column'); return; }
-    if (!delimiter) { alert('Please enter a delimiter'); return; }
+    if (!column) { await this.alert('Please select a column'); return; }
+    if (!delimiter) { await this.alert('Please enter a delimiter'); return; }
 
     await this.startTransformation('Splitting column...');
     try {
@@ -2076,7 +2087,7 @@ export class ChumakApp implements AppState {
       }
     } catch (error: any) {
       console.error('Split transform error:', error);
-      alert('Error applying split: ' + error.message);
+      await this.alert('Error applying split: ' + error.message);
     } finally {
       this.endTransformation();
     }
@@ -2277,9 +2288,9 @@ export class ChumakApp implements AppState {
     return JSON.stringify(current) !== this.dialogSnapshot;
   }
 
-  closeDialog(force = false) {
+  async closeDialog(force = false) {
     if (!force && this.hasUnsavedChanges()) {
-      if (!confirm('You have unsaved changes. Are you sure you want to discard them?')) return;
+      if (!(await this.confirm('You have unsaved changes. Are you sure you want to discard them?'))) return;
     }
     this.activeDialog = null;
     this.dialogSnapshot = null;
@@ -2453,7 +2464,7 @@ export class ChumakApp implements AppState {
   async quickRemove() {
     if (!this.selectedColumn) return;
     const col = this.selectedColumn;
-    if (confirm(`Are you sure you want to remove column "${col}"?`)) {
+    if (await this.confirm(`Are you sure you want to remove column "${col}"?`)) {
       this.removedColumns = this.columns.map((c) => c === col);
       // @ts-ignore
       await this.applyRemoveTransform();
@@ -2719,6 +2730,73 @@ export class ChumakApp implements AppState {
   }
 
   // ============================================================
+  // Message Box (Custom Alert/Confirm/Prompt)
+  // ============================================================
+
+  alert(message: string, title = 'Alert'): Promise<boolean> {
+    return new Promise((resolve) => {
+      this.messageBox = {
+        visible: true,
+        title,
+        message,
+        type: 'alert',
+        inputValue: '',
+        resolve,
+      };
+    });
+  }
+
+  confirm(message: string, title = 'Confirm'): Promise<boolean> {
+    return new Promise((resolve) => {
+      this.messageBox = {
+        visible: true,
+        title,
+        message,
+        type: 'confirm',
+        inputValue: '',
+        resolve,
+      };
+    });
+  }
+
+  prompt(message: string, defaultValue = '', title = 'Prompt'): Promise<string | null> {
+    return new Promise((resolve) => {
+      this.messageBox = {
+        visible: true,
+        title,
+        message,
+        type: 'prompt',
+        inputValue: defaultValue,
+        resolve,
+      };
+    });
+  }
+
+  closeMessageBox(result: boolean) {
+    const { resolve, type, inputValue } = this.messageBox;
+    this.messageBox.visible = false;
+    
+    if (resolve) {
+      if (type === 'prompt') {
+        resolve(result ? inputValue : null);
+      } else if (type === 'confirm') {
+        resolve(result);
+      } else {
+        resolve(true); // alert always resolves to true
+      }
+    }
+  }
+
+  getMessageBoxIcon() {
+    switch (this.messageBox.type) {
+      case 'alert': return 'carbon:information-filled';
+      case 'confirm': return 'carbon:help-filled';
+      case 'prompt': return 'carbon:edit';
+      default: return 'carbon:information-filled';
+    }
+  }
+
+  // ============================================================
   // Step Management
   // ============================================================
 
@@ -2944,7 +3022,7 @@ export class ChumakApp implements AppState {
     }
 
     const step = this.activeModel.steps[stepIndex];
-    if (!confirm(`Remove step "${describeTransform(step)}"?`)) return;
+    if (!(await this.confirm(`Remove step "${describeTransform(step)}"?`))) return;
 
     try {
       this.activeModel.steps.splice(stepIndex, 1);

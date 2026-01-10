@@ -1421,6 +1421,46 @@
       </template>
     </div>
 
+    <!-- Custom Dialog (Alert/Confirm/Prompt) -->
+    <div
+      class="dialog-backdrop"
+      x-show="messageBox.visible"
+      x-cloak
+      @keydown.escape.window="if (messageBox.visible) closeMessageBox(false)"
+    >
+      <div class="dialog" :class="'dialog--' + messageBox.type" @click.stop>
+        <div class="dialog__header">
+          <h3 class="dialog__title">
+            <span class="iconify" :data-icon="getMessageBoxIcon()"></span>
+            <span x-text="messageBox.title"></span>
+          </h3>
+          <button class="dialog__close" @click="closeMessageBox(false)">×</button>
+        </div>
+        <div class="dialog__content">
+          <div class="dialog__message" x-text="messageBox.message"></div>
+          <template x-if="messageBox.type === 'prompt'">
+            <div class="dialog__input-container">
+              <input
+                type="text"
+                class="dialog__input"
+                x-model="messageBox.inputValue"
+                @keyup.enter="closeMessageBox(true)"
+                x-init="$watch('messageBox.visible', (v) => { if (v && messageBox.type === 'prompt') $nextTick(() => $el.focus()) })"
+              />
+            </div>
+          </template>
+        </div>
+        <div class="dialog__footer">
+          <template x-if="['confirm', 'prompt'].includes(messageBox.type)">
+            <button class="button button--secondary" @click="closeMessageBox(false)">Cancel</button>
+          </template>
+          <button class="button button--primary" @click="closeMessageBox(true)">
+            <span x-text="messageBox.type === 'confirm' ? 'Yes' : 'OK'"></span>
+          </button>
+        </div>
+      </div>
+    </div>
+
     <!-- Status Bar -->
     <footer class="status-bar" x-cloak x-show="isTransforming">
       <div class="status-bar__content">
@@ -1430,8 +1470,5 @@
         </div>
       </div>
     </footer>
-    <div id="download-modal-container"></div>
-    <div id="import-url-modal-container"></div>
-    <div id="settings-modal-container"></div>
   </body>
 </html>

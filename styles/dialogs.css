@@ -1,0 +1,144 @@
+.dialog-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(var(--color-midnight-blue-rgb), 0.6);
+  backdrop-filter: blur(2px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20000; /* Above everything */
+  padding: var(--space-md);
+  animation: dialog-fade-in 0.2s ease-out;
+}
+
+.dialog {
+  background: var(--color-white);
+  border: var(--border-width) solid var(--border-color);
+  border-radius: var(--border-radius-lg);
+  width: 100%;
+  max-width: 450px;
+  box-shadow:
+    0 20px 25px -5px rgba(0, 0, 0, 0.1),
+    0 10px 10px -5px rgba(0, 0, 0, 0.04);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  animation: dialog-zoom-in 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.dialog__header {
+  padding: var(--space-lg);
+  padding-bottom: var(--space-sm);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.dialog__title {
+  font-size: var(--font-size-xl);
+  font-weight: var(--font-weight-bold);
+  color: var(--color-midnight-blue);
+  margin: 0;
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.dialog__close {
+  background: transparent;
+  border: none;
+  font-size: var(--font-size-2xl);
+  color: var(--color-dark-gray);
+  cursor: pointer;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: var(--border-radius);
+  transition: all var(--transition-fast);
+}
+
+.dialog__close:hover {
+  background: var(--color-light-gray);
+  color: var(--color-midnight-blue);
+}
+
+.dialog__content {
+  padding: var(--space-lg);
+  font-size: var(--font-size-base);
+  color: var(--color-midnight-blue);
+  line-height: var(--line-height-relaxed);
+}
+
+.dialog__message {
+  white-space: pre-wrap;
+  word-break: break-word;
+}
+
+.dialog__input-container {
+  margin-top: var(--space-md);
+}
+
+.dialog__input {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  font-family: var(--font-family);
+  font-size: var(--font-size-base);
+  outline: none;
+  transition: border-color 0.2s;
+}
+
+.dialog__input:focus {
+  border-color: var(--color-cyan);
+  box-shadow: 0 0 0 3px rgba(var(--color-cyan-rgb), 0.1);
+}
+
+.dialog__footer {
+  padding: var(--space-lg);
+  padding-top: var(--space-sm);
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-md);
+}
+
+.dialog__button {
+  padding: 10px 20px;
+  font-weight: var(--font-weight-medium);
+  min-width: 90px;
+}
+
+/* Animations */
+@keyframes dialog-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes dialog-zoom-in {
+  from {
+    transform: scale(0.95);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+/* Highlighting specific types if needed */
+.dialog--error .dialog__title {
+  color: var(--color-red);
+}
+.dialog--confirm .dialog__title {
+  color: var(--color-cyan);
+}
