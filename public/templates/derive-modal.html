@@ -5,6 +5,7 @@
     class="form-input"
     x-model="deriveDialogState.columnName"
     placeholder="e.g., profit_margin"
+    @input="debouncedUpdateDerivePreview()"
   />
 </div>
 
@@ -15,7 +16,7 @@
     class="form-input"
     x-model="deriveDialogState.expression"
     placeholder="e.g., (profit / sales) * 100"
-    @input="validateDeriveExpression()"
+    @input="validateDeriveExpression(); debouncedUpdateDerivePreview()"
   />
 </div>
 

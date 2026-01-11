@@ -9,6 +9,7 @@
       type="text"
       class="form-input"
       x-model="foldDialogState.keyName"
+      @input="updateFoldPreview()"
       placeholder="e.g. Year"
     />
     <p class="form-help" style="font-size: 0.75rem; margin-top: 0.25rem">
@@ -22,6 +23,7 @@
       type="text"
       class="form-input"
       x-model="foldDialogState.valueName"
+      @input="updateFoldPreview()"
       placeholder="e.g. Sales"
     />
     <p class="form-help" style="font-size: 0.75rem; margin-top: 0.25rem">Contains values</p>
@@ -29,20 +31,45 @@
 </div>
 
 <label class="form-label">Select Columns to Fold:</label>
-<div
-  class="checkbox-list"
-  style="
-    max-height: 250px;
-    overflow-y: auto;
-    border: 1px solid var(--color-border);
-    padding: 0.5rem;
-    border-radius: 4px;
-  "
->
+
+<div class="form-actions" style="margin-bottom: 0.5rem; display: flex; gap: 0.5rem">
+  <button type="button" class="button button--text button--small" @click="selectAllForFold()">
+    Select All
+  </button>
+  <button type="button" class="button button--text button--small" @click="selectNoneForFold()">
+    Select None
+  </button>
+</div>
+
+<div class="column-chips-multi">
   <template x-for="(col, index) in columns" :key="index">
-    <label class="checkbox-item">
-      <input type="checkbox" x-model="foldDialogState.selectedColumns[index]" />
-      <span x-text="col"></span>
-    </label>
+    <button
+      type="button"
+      class="form-chip"
+      style="flex-direction: row; justify-content: start; gap: 0.5rem; padding: 0.5rem 0.75rem"
+      :class="{ active: foldDialogState.selectedColumns[index] }"
+      @click="toggleColumnForFold(index, $event)"
+    >
+      <span
+        class="iconify"
+        :data-icon="foldDialogState.selectedColumns[index] ? 'carbon:checkmark-filled' : 'carbon:checkbox'"
+        style="font-size: 1rem; flex-shrink: 0"
+        :style="foldDialogState.selectedColumns[index] ? 'color: var(--color-green)' : ''"
+      ></span>
+      <span
+        x-text="col"
+        style="
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          flex-grow: 1;
+          text-align: left;
+        "
+      ></span>
+    </button>
   </template>
 </div>
+
+<p class="form-help" style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--color-dark-gray)">
+  Tip: Cmd/Ctrl + click to toggle individual columns
+</p>

@@ -112,6 +112,14 @@
 - **[main.ts](src/main.ts)**: Application initialization
 - **[app/](src/app/)**: Specific UI handlers and type definitions
 
+### Modal Templates (`public/templates/`)
+
+- **21 modal templates** for transforms, imports, and settings
+- **Slide panel**: Transform modals (filter, derive, join, etc.) with unified preview panel
+- **Centered modal**: Import modals (import-csv, import-url) and settings
+- **Chips-based column selection**: Single-select and multi-select variants
+- **Preview system**: Unified `previewState` with debounced auto-updating for expressions
+
 ### Styles (`styles/`)
 
 - **[variables.css](styles/variables.css)**: Design tokens (colors, spacing)

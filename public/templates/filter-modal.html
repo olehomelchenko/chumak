@@ -4,7 +4,7 @@
   class="form-input"
   x-model="filterExpression"
   placeholder="e.g., sales > 1000"
-  @input="validateFilterExpression()"
+  @input="validateFilterExpression(); debouncedUpdateFilterPreview()"
 />
 <p class="form-help">
   Examples: sales > 1000, region == "North", sales > 1000 && region == "North"

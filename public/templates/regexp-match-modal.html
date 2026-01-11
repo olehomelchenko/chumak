@@ -4,11 +4,33 @@
 
 <div class="form-group">
   <label class="form-label">Source column:</label>
-  <select class="form-input" x-model="regexpMatchDialogState.sourceColumn">
+  <div class="column-chips">
     <template x-for="col in columns" :key="col">
-      <option :value="col" x-text="col"></option>
+      <button
+        type="button"
+        class="form-chip"
+        style="flex-direction: row; justify-content: start; gap: 0.5rem; padding: 0.5rem 0.75rem"
+        :class="{ active: regexpMatchDialogState.sourceColumn === col }"
+        @click="regexpMatchDialogState.sourceColumn = col; debouncedUpdateRegexpMatchPreview()"
+      >
+        <span
+          class="iconify"
+          data-icon="carbon:column"
+          style="font-size: 1rem; flex-shrink: 0"
+        ></span>
+        <span
+          x-text="col"
+          style="
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            text-align: left;
+            flex-grow: 1;
+          "
+        ></span>
+      </button>
     </template>
-  </select>
+  </div>
 </div>
 
 <div class="form-group">
@@ -17,7 +39,7 @@
     type="text"
     class="form-input"
     x-model="regexpMatchDialogState.pattern"
-    @input="validateRegexpMatchExpression()"
+    @input="validateRegexpMatchExpression(); debouncedUpdateRegexpMatchPreview()"
     placeholder="e.g., ^[A-Z]{2}\d+"
   />
 </div>
@@ -29,6 +51,7 @@
     class="form-input"
     x-model="regexpMatchDialogState.columnName"
     placeholder="e.g., is_valid_code"
+    @input="debouncedUpdateRegexpMatchPreview()"
   />
 </div>
 

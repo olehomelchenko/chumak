@@ -7,31 +7,51 @@
   <!-- Row Columns (grouping) -->
   <div class="form-group">
     <label class="form-label">Rows</label>
-    <div
-      style="
-        max-height: 180px;
-        overflow-y: auto;
-        border: 1px solid var(--color-border);
-        padding: 0.5rem;
-        border-radius: 4px;
-        background: var(--color-light-gray);
-      "
-    >
+    <div class="form-actions" style="margin-bottom: 0.5rem; display: flex; gap: 0.5rem">
+      <button
+        type="button"
+        class="button button--text button--small"
+        @click="pivotDialogState.rowColumns = columns.filter(c => pivotDialogState.columnColumn !== c && pivotDialogState.valueColumn !== c)"
+      >
+        Select All
+      </button>
+      <button
+        type="button"
+        class="button button--text button--small"
+        @click="pivotDialogState.rowColumns = []"
+      >
+        Select None
+      </button>
+    </div>
+
+    <div class="column-chips-multi" style="max-height: 180px">
       <template x-for="(col, index) in columns" :key="col">
-        <label
-          class="checkbox-item"
-          style="display: flex; align-items: center; padding: 0.25rem 0"
+        <button
+          type="button"
+          class="form-chip"
+          style="flex-direction: row; justify-content: start; gap: 0.5rem; padding: 0.5rem 0.75rem"
+          :class="{ active: pivotDialogState.rowColumns.includes(col) }"
+          :disabled="pivotDialogState.columnColumn === col || pivotDialogState.valueColumn === col"
           :style="pivotDialogState.columnColumn === col || pivotDialogState.valueColumn === col ? 'opacity: 0.4; pointer-events: none;' : ''"
+          @click="pivotDialogState.rowColumns.includes(col) ? pivotDialogState.rowColumns = pivotDialogState.rowColumns.filter(c => c !== col) : pivotDialogState.rowColumns.push(col); onPivotConfigChange()"
         >
-          <input
-            type="checkbox"
-            :value="col"
-            x-model="pivotDialogState.rowColumns"
-            :disabled="pivotDialogState.columnColumn === col || pivotDialogState.valueColumn === col"
-            @change="onPivotConfigChange()"
-          />
-          <span x-text="col" style="margin-left: 0.25rem"></span>
-        </label>
+          <span
+            class="iconify"
+            :data-icon="pivotDialogState.rowColumns.includes(col) ? 'carbon:checkmark-filled' : 'carbon:checkbox'"
+            style="font-size: 1rem; flex-shrink: 0"
+            :style="pivotDialogState.rowColumns.includes(col) ? 'color: var(--color-green)' : ''"
+          ></span>
+          <span
+            x-text="col"
+            style="
+              white-space: nowrap;
+              overflow: hidden;
+              text-overflow: ellipsis;
+              flex-grow: 1;
+              text-align: left;
+            "
+          ></span>
+        </button>
       </template>
     </div>
     <p class="form-help" style="font-size: 0.7rem; margin-top: 0.25rem">Group by these columns</p>
@@ -163,7 +183,6 @@
     </div>
   </div>
 </details>
-
 <!-- Preview Button -->
 <div class="form-group" style="margin-top: 1rem">
   <button
@@ -174,56 +193,4 @@
     <span x-show="!pivotDialogState.isPreviewing">Preview Result</span>
     <span x-show="pivotDialogState.isPreviewing">Previewing...</span>
   </button>
-</div>
-
-<!-- Preview Error -->
-<div x-show="pivotDialogState.previewError" class="error-message" style="margin-bottom: 1rem">
-  <strong>Preview Error:</strong>
-  <div x-text="pivotDialogState.previewError"></div>
-</div>
-
-<!-- Preview Results -->
-<div x-show="pivotDialogState.previewData" class="form-group">
-  <div
-    style="
-      padding: 0.75rem;
-      background: var(--color-light-gray);
-      border-radius: 4px;
-      margin-bottom: 0.5rem;
-    "
-  >
-    <strong>Preview:</strong>
-    <span
-      x-text="`${pivotDialogState.previewData?.totalRows || 0} rows, ${pivotDialogState.previewData?.columns?.length || 0} columns`"
-    ></span>
-  </div>
-
-  <!-- Preview Table -->
-  <div
-    style="
-      max-height: 250px;
-      overflow: auto;
-      border: 1px solid var(--color-border);
-      border-radius: 4px;
-    "
-  >
-    <table class="data-table" style="font-size: 0.75rem">
-      <thead>
-        <tr>
-          <template x-for="col in pivotDialogState.previewData?.columns" :key="col">
-            <th class="data-table__header" x-text="col"></th>
-          </template>
-        </tr>
-      </thead>
-      <tbody>
-        <template x-for="(row, idx) in pivotDialogState.previewData?.rows" :key="idx">
-          <tr>
-            <template x-for="col in pivotDialogState.previewData?.columns" :key="col">
-              <td class="data-table__cell" x-text="row[col]"></td>
-            </template>
-          </tr>
-        </template>
-      </tbody>
-    </table>
-  </div>
 </div>

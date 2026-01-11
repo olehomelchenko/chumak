@@ -1,14 +1,19 @@
 <div class="form-group">
   <label class="form-label">Column to split:</label>
-  <select
-    class="form-input"
-    x-model="splitDialogState.column"
-    @change="() => { const detected = detectDelimiter(splitDialogState.column); if (detected) { splitDialogState.delimiter = detected.char; splitDialogState.isRegex = detected.isRegex; splitDialogState.autoDetectedDelimiter = detected.name; } else { splitDialogState.autoDetectedDelimiter = null; } updateSplitPreview(); }"
-  >
+  <div class="column-chips">
     <template x-for="col in columns" :key="col">
-      <option :value="col" x-text="col"></option>
+      <button
+        type="button"
+        class="form-chip"
+        style="flex-direction: row; justify-content: start; gap: 0.5rem; padding: 0.5rem 0.75rem"
+        :class="{ active: splitDialogState.column === col }"
+        @click="selectSplitColumn(col)"
+      >
+        <span class="iconify" data-icon="carbon:column"></span>
+        <span x-text="col"></span>
+      </button>
     </template>
-  </select>
+  </div>
 </div>
 
 <div class="form-group">
@@ -202,68 +207,3 @@
     font-family: var(--font-family-mono);
   "
 ></div>
-
-<!-- Preview Panel -->
-<div
-  x-show="splitDialogState.previewData && splitDialogState.previewData.length > 0"
-  style="margin-top: 20px"
->
-  <label class="form-label">Preview (first 50 rows):</label>
-  <div
-    style="
-      max-height: 300px;
-      overflow: auto;
-      border: 1px solid var(--color-medium-gray);
-      border-radius: 4px;
-    "
-  >
-    <table style="width: 100%; border-collapse: collapse; font-size: 13px">
-      <thead style="position: sticky; top: 0; background: var(--color-light-gray); z-index: 1">
-        <tr>
-          <template x-for="col in splitDialogState.previewColumns" :key="col.name">
-            <th
-              :style="`padding: 8px; text-align: left; border-bottom: 1px solid var(--color-medium-gray);
-                           ${col.status === 'removed' ? 'color: #8B0000; text-decoration: line-through;' : ''}
-                           ${col.status === 'new' ? 'color: #006400; font-weight: 600;' : ''}`"
-            >
-              <template x-if="col.status === 'new'">
-                <input
-                  type="text"
-                  class="form-input"
-                  x-model="splitDialogState.columnRenames[col.name]"
-                  :placeholder="col.name"
-                  style="
-                    padding: 4px 6px;
-                    font-size: 13px;
-                    font-weight: 600;
-                    color: #006400;
-                    border: 1px solid #90ee90;
-                    background: white;
-                  "
-                  @click.stop
-                />
-              </template>
-              <template x-if="col.status !== 'new'">
-                <span x-text="col.name"></span>
-              </template>
-            </th>
-          </template>
-        </tr>
-      </thead>
-      <tbody>
-        <template x-for="(row, idx) in splitDialogState.previewData" :key="idx">
-          <tr>
-            <template x-for="col in splitDialogState.previewColumns" :key="col.name">
-              <td
-                :style="`padding: 8px; border-bottom: 1px solid var(--color-light-gray);
-                             ${col.status === 'removed' ? 'color: #8B0000; opacity: 0.6;' : ''}
-                             ${col.status === 'new' ? 'color: #006400;' : ''}`"
-                x-text="row[col.name] ?? ''"
-              ></td>
-            </template>
-          </tr>
-        </template>
-      </tbody>
-    </table>
-  </div>
-</div>

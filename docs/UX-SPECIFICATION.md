@@ -82,6 +82,25 @@ Located above the data preview table, this toolbar provides status and model-spe
 - **Cell Toolbar**: Clicking a cell allows for rapid "Keep only this" or "Exclude this" filtering based on that specific value.
 - **Type Badges**: Visual indicators for data types (Abc, #, 📅), synced with the granular schema engine.
 
+### 3.5 Modal System
+
+Two modal shells with consistent patterns:
+
+- **Slide Panel (1/3 screen)**: Used for transform operations. Opens from left with backdrop blur when preview is active.
+- **Centered Modal**: Used for imports, settings, and downloads.
+
+**Preview Panel**: Appears in the remaining 2/3 of screen space when preview data exists. Supports highlighting of new/derived columns.
+
+**Column Selection Patterns**:
+
+- **Single-select chips**: For source column pickers (sort, replace, regexp-\*)
+- **Multi-select chips**: For bulk column operations (remove, unpivot) with Cmd/Ctrl+click toggle
+
+**Preview Triggers**:
+
+- **Auto-updating (debounced)**: filter, derive, regexp-match, regexp-extract, date, select-columns
+- **Button-triggered**: aggregate, join, pivot (expensive operations)
+
 ---
 
 ## 4. Typography & Scaling

@@ -1,10 +1,32 @@
 <div class="form-group">
   <label class="form-label">Column:</label>
-  <select class="form-input" x-model="replaceDialogState.column">
+  <div class="column-chips">
     <template x-for="col in columns" :key="col">
-      <option :value="col" x-text="col"></option>
+      <button
+        type="button"
+        class="form-chip"
+        style="flex-direction: row; justify-content: start; gap: 0.5rem; padding: 0.5rem 0.75rem"
+        :class="{ active: replaceDialogState.column === col }"
+        @click="replaceDialogState.column = col"
+      >
+        <span
+          class="iconify"
+          data-icon="carbon:column"
+          style="font-size: 1rem; flex-shrink: 0"
+        ></span>
+        <span
+          x-text="col"
+          style="
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            text-align: left;
+            flex-grow: 1;
+          "
+        ></span>
+      </button>
     </template>
-  </select>
+  </div>
 </div>
 
 <div class="form-group">

@@ -181,6 +181,23 @@ export class ChumakApp implements AppState {
     previewData: [] as { input: string; output: any }[],
   };
 
+  // Unified preview panel state (shared across all dialogs with previews)
+  previewState: {
+    title: string;
+    stats: string;
+    columns: string[];
+    newColumns: string[];
+    rows: any[];
+    _debounceTimer: ReturnType<typeof setTimeout> | null;
+  } = {
+    title: '',
+    stats: '',
+    columns: [],
+    newColumns: [],
+    rows: [],
+    _debounceTimer: null,
+  };
+
   // JSON Editor
   jsonEditMode = false;
   jsonEditContent = '';
@@ -1540,10 +1557,12 @@ export class ChumakApp implements AppState {
 
   selectAllColumns() {
     this.selectedColumns = this.columns.map(() => true);
+    this.updateSelectPreview();
   }
 
   selectNoColumns() {
     this.selectedColumns = this.columns.map(() => false);
+    this.updateSelectPreview();
   }
 
   getSelectedColumnsList() {
@@ -1562,6 +1581,25 @@ export class ChumakApp implements AppState {
     });
 
     this.selectedColumns = this.columns.map((col) => matched.includes(col));
+    this.updateSelectPreview();
+  }
+
+  updateSelectPreview() {
+    const selectedList = this.getSelectedColumnsList();
+    if (selectedList.length === 0) {
+      this.clearPreview();
+      return;
+    }
+
+    const samples = this.currentData!.slice(0, 50);
+    this.previewState = {
+      title: 'Select Columns Preview',
+      stats: `Showing ${samples.length} rows, ${selectedList.length} columns selected`,
+      columns: selectedList,
+      newColumns: [], // None strictly new
+      rows: samples,
+      _debounceTimer: null,
+    };
   }
 
   getPatternMatchInfo() {
@@ -1756,6 +1794,51 @@ export class ChumakApp implements AppState {
     this.filterError = this.validateExpression(this.filterExpression);
   }
 
+  debouncedUpdateFilterPreview() {
+    if (this.previewState._debounceTimer) {
+      clearTimeout(this.previewState._debounceTimer);
+    }
+    this.previewState._debounceTimer = setTimeout(() => {
+      this.updateFilterPreview();
+    }, 150);
+  }
+
+  updateFilterPreview() {
+    const expr = this.filterExpression?.trim();
+    if (!expr || this.filterError || !this.currentData?.length) {
+      this.clearPreview();
+      return;
+    }
+
+    try {
+      const ast = parseExpression(expr);
+      const matchingRows: any[] = [];
+      let matchCount = 0;
+
+      for (const row of this.currentData) {
+        try {
+          if (interpretAST(ast, row)) {
+            matchCount++;
+            if (matchingRows.length < 50) matchingRows.push(row);
+          }
+        } catch {
+          // Skip rows with evaluation errors
+        }
+      }
+
+      this.previewState = {
+        title: 'Filter Preview',
+        stats: `<strong>${matchCount}</strong> of ${this.currentData.length} rows match`,
+        columns: this.columns.slice(0, 8),
+        newColumns: [],
+        rows: matchingRows,
+        _debounceTimer: null,
+      };
+    } catch {
+      this.clearPreview();
+    }
+  }
+
   async applyFilterTransform() {
     const expr = this.filterExpression.trim();
     if (!expr) {
@@ -1773,6 +1856,52 @@ export class ChumakApp implements AppState {
 
   validateDeriveExpression() {
     this.deriveDialogState.error = this.validateExpression(this.deriveDialogState.expression);
+  }
+
+  debouncedUpdateDerivePreview() {
+    if (this.previewState._debounceTimer) {
+      clearTimeout(this.previewState._debounceTimer);
+    }
+    this.previewState._debounceTimer = setTimeout(() => {
+      this.updateDerivePreview();
+    }, 150);
+  }
+
+  updateDerivePreview() {
+    const { columnName, expression } = this.deriveDialogState;
+    if (!expression || this.deriveDialogState.error || !this.currentData?.length) {
+      this.clearPreview();
+      return;
+    }
+
+    try {
+      const ast = parseExpression(expression);
+      const samples = this.currentData.slice(0, 20);
+      const outputCol = columnName || 'new_column';
+
+      const previewRows = samples.map((row: any) => {
+        try {
+          const result = interpretAST(ast, row);
+          return { ...row, [outputCol]: result };
+        } catch {
+          return { ...row, [outputCol]: '(error)' };
+        }
+      });
+
+      // Show first 4 source columns + new derived column
+      const previewCols = [...this.columns.slice(0, 4), outputCol];
+
+      this.previewState = {
+        title: `Derive: ${outputCol}`,
+        stats: `Showing ${previewRows.length} sample rows`,
+        columns: previewCols,
+        newColumns: [outputCol],
+        rows: previewRows,
+        _debounceTimer: null,
+      };
+    } catch {
+      this.clearPreview();
+    }
   }
 
   async applyDeriveTransform() {
@@ -1857,9 +1986,104 @@ export class ChumakApp implements AppState {
     this.regexpMatchDialogState.error = this.validateRegexpPattern(pattern);
   }
 
+  debouncedUpdateRegexpMatchPreview() {
+    if (this.previewState._debounceTimer) {
+      clearTimeout(this.previewState._debounceTimer);
+    }
+    this.previewState._debounceTimer = setTimeout(() => {
+      this.updateRegexpMatchPreview();
+    }, 150);
+  }
+
+  updateRegexpMatchPreview() {
+    const { sourceColumn, pattern, columnName } = this.regexpMatchDialogState;
+    if (
+      !sourceColumn ||
+      !pattern ||
+      this.regexpMatchDialogState.error ||
+      !this.currentData?.length
+    ) {
+      this.clearPreview();
+      return;
+    }
+
+    try {
+      const regex = new RegExp(pattern);
+      const samples = this.currentData.slice(0, 20);
+      const outputCol = columnName || 'is_match';
+
+      const previewRows = samples.map((row: any) => {
+        const val = row[sourceColumn];
+        const matches = val != null ? regex.test(String(val)) : false;
+        return { [sourceColumn]: val, [outputCol]: matches };
+      });
+
+      this.previewState = {
+        title: `Regexp Match: ${outputCol}`,
+        stats: `Testing pattern on ${samples.length} rows`,
+        columns: [sourceColumn, outputCol],
+        newColumns: [outputCol],
+        rows: previewRows,
+        _debounceTimer: null,
+      };
+    } catch {
+      this.clearPreview();
+    }
+  }
+
   validateRegexpExtractExpression() {
     const { pattern } = this.regexpExtractDialogState;
     this.regexpExtractDialogState.error = this.validateRegexpPattern(pattern);
+  }
+
+  debouncedUpdateRegexpExtractPreview() {
+    if (this.previewState._debounceTimer) {
+      clearTimeout(this.previewState._debounceTimer);
+    }
+    this.previewState._debounceTimer = setTimeout(() => {
+      this.updateRegexpExtractPreview();
+    }, 150);
+  }
+
+  updateRegexpExtractPreview() {
+    const { sourceColumn, pattern, group, columnName } = this.regexpExtractDialogState;
+    if (
+      !sourceColumn ||
+      !pattern ||
+      this.regexpExtractDialogState.error ||
+      !this.currentData?.length
+    ) {
+      this.clearPreview();
+      return;
+    }
+
+    try {
+      const regex = new RegExp(pattern);
+      const samples = this.currentData.slice(0, 20);
+      const outputCol = columnName || 'extracted';
+      const groupNum = group || 0;
+
+      const previewRows = samples.map((row: any) => {
+        const val = row[sourceColumn];
+        let extracted: string | null = null;
+        if (val != null) {
+          const match = String(val).match(regex);
+          extracted = match ? (match[groupNum] ?? match[0]) : null;
+        }
+        return { [sourceColumn]: val, [outputCol]: extracted ?? '(no match)' };
+      });
+
+      this.previewState = {
+        title: `Regexp Extract: ${outputCol}`,
+        stats: `Extracting group ${groupNum} from ${samples.length} rows`,
+        columns: [sourceColumn, outputCol],
+        newColumns: [outputCol],
+        rows: previewRows,
+        _debounceTimer: null,
+      };
+    } catch {
+      this.clearPreview();
+    }
   }
 
   async applyRegexpMatchTransform() {
@@ -2000,48 +2224,66 @@ export class ChumakApp implements AppState {
   }
 
   updateDatePreview() {
-    const { column, operation, extractParts, truncateUnits } = this.dateDialogState;
+    const { column, operation, extractParts, truncateUnits, outputColumn } = this.dateDialogState;
     if (!column || !this.currentData?.length) {
-      this.dateDialogState.previewData = [];
+      this.clearPreview();
       return;
     }
 
-    const samples = this.currentData.slice(0, 5);
-    const colRef = this.quoteColumnRef(column);
-
-    // If multiple parts, we'll just show the first one's preview to keep it simple,
-    // or we could show comma-separated? Let's do comma-separated for clarity.
-    this.dateDialogState.previewData = samples.map((row: any) => {
-      const input = row[column];
-      if (input == null) {
-        return { input: '(empty)', output: '(empty)' };
-      }
-
+    try {
+      const samples = this.currentData.slice(0, 20);
+      const colRef = this.quoteColumnRef(column);
       const activeParts = operation === 'extract' ? extractParts : truncateUnits;
-      const results: string[] = [];
 
-      for (const part of activeParts) {
-        let expression: string;
-        if (operation === 'extract') {
-          expression = `${part}(${colRef})`;
-        } else {
-          expression = `date_trunc(${colRef}, "${part}")`;
-        }
-
-        try {
-          const ast = parseExpression(expression);
-          const result = interpretAST(ast, row);
-          results.push(result != null ? String(result) : '(empty)');
-        } catch {
-          results.push('(error)');
-        }
+      if (activeParts.length === 0) {
+        this.clearPreview();
+        return;
       }
 
-      return {
-        input: String(input),
-        output: results.join(' | '),
+      const previewRows = samples.map((row) => {
+        const previewRow: any = { [column]: row[column] };
+        for (const part of activeParts) {
+          let outputName: string;
+          if (activeParts.length === 1 && outputColumn) {
+            outputName = outputColumn;
+          } else {
+            outputName = operation === 'extract' ? `${column}_${part}` : `${column}_${part}_trunc`;
+          }
+
+          let expression: string;
+          if (operation === 'extract') {
+            expression = `${part}(${colRef})`;
+          } else {
+            expression = `date_trunc(${colRef}, "${part}")`;
+          }
+
+          try {
+            const ast = parseExpression(expression);
+            const result = interpretAST(ast, row);
+            previewRow[outputName] = result != null ? String(result) : '—';
+          } catch {
+            previewRow[outputName] = '(error)';
+          }
+        }
+        return previewRow;
+      });
+
+      const outputCols = activeParts.map((part: string) => {
+        if (activeParts.length === 1 && outputColumn) return outputColumn;
+        return operation === 'extract' ? `${column}_${part}` : `${column}_${part}_trunc`;
+      });
+
+      this.previewState = {
+        title: `Date: ${operation === 'extract' ? 'Extract' : 'Truncate'}`,
+        stats: `Showing ${previewRows.length} sample rows`,
+        columns: [column, ...outputCols],
+        newColumns: outputCols,
+        rows: previewRows,
+        _debounceTimer: null,
       };
-    });
+    } catch (e) {
+      this.clearPreview();
+    }
   }
 
   async applyDateTransform() {
@@ -2137,6 +2379,26 @@ export class ChumakApp implements AppState {
     await this.runTransform('Rename', { rename: actualRenames });
   }
 
+  toggleColumnForRemoval(index: number, event: MouseEvent) {
+    if (event.metaKey || event.ctrlKey) {
+      // Toggle single item
+      this.removedColumns[index] = !this.removedColumns[index];
+    } else {
+      // Single click - select only this one
+      const wasSelected = this.removedColumns[index];
+      this.removedColumns = this.removedColumns.map(() => false);
+      if (!wasSelected) this.removedColumns[index] = true;
+    }
+  }
+
+  selectAllForRemoval() {
+    this.removedColumns = this.removedColumns.map(() => true);
+  }
+
+  selectNoneForRemoval() {
+    this.removedColumns = this.removedColumns.map(() => false);
+  }
+
   async applyRemoveTransform() {
     const colsToRemove = this.columns.filter((_c, idx) => this.removedColumns[idx]);
     if (colsToRemove.length === 0) {
@@ -2148,6 +2410,66 @@ export class ChumakApp implements AppState {
       return;
     }
     await this.runTransform('Remove', { remove: colsToRemove });
+  }
+
+  toggleColumnForFold(index: number, event: MouseEvent) {
+    if (event.metaKey || event.ctrlKey) {
+      // Toggle single item
+      this.foldDialogState.selectedColumns[index] = !this.foldDialogState.selectedColumns[index];
+    } else {
+      // Single click - select only this one
+      const wasSelected = this.foldDialogState.selectedColumns[index];
+      this.foldDialogState.selectedColumns = this.columns.map(() => false);
+      if (!wasSelected) this.foldDialogState.selectedColumns[index] = true;
+    }
+    this.updateFoldPreview();
+  }
+
+  selectAllForFold() {
+    this.foldDialogState.selectedColumns = this.columns.map(() => true);
+    this.updateFoldPreview();
+  }
+
+  selectNoneForFold() {
+    this.foldDialogState.selectedColumns = this.columns.map(() => false);
+    this.updateFoldPreview();
+  }
+
+  updateFoldPreview() {
+    const { keyName, valueName, selectedColumns } = this.foldDialogState;
+    const colsToFold = this.columns.filter((_c, idx) => selectedColumns[idx]);
+
+    if (colsToFold.length === 0) {
+      this.clearPreview();
+      return;
+    }
+
+    try {
+      const samples = this.currentData!.slice(0, 20);
+      const table = aq.from(samples);
+      const step = {
+        fold: {
+          columns: colsToFold,
+          as: [keyName || 'key', valueName || 'value'],
+        },
+      };
+
+      const resultTable = applyTransform(table, step, this.columns);
+      const previewRows = resultTable.objects();
+      const resultColumns = resultTable.columnNames();
+      const newCols = [keyName || 'key', valueName || 'value'];
+
+      this.previewState = {
+        title: 'Unpivot Preview',
+        stats: `Showing sample result: ${previewRows.length} rows produced`,
+        columns: resultColumns,
+        newColumns: newCols,
+        rows: previewRows,
+        _debounceTimer: null,
+      };
+    } catch (e) {
+      this.clearPreview();
+    }
   }
 
   async applyFoldTransform() {
@@ -2228,12 +2550,25 @@ export class ChumakApp implements AppState {
   previewPivot() {
     this.pivotDialogState.isPreviewing = true;
     this.pivotDialogState.previewError = null;
-    this.pivotDialogState.previewData = null;
+    this.clearPreview();
     try {
       const step = this.constructPivotStep();
-      const table = aq.from(this.currentData!);
+      const samples = this.currentData!.slice(0, 50);
+      const table = aq.from(samples);
       const resultTable = applyTransform(table, step, this.columns);
-      this.pivotDialogState.previewData = this.preparePreviewData(resultTable, 100);
+
+      const result = this.preparePreviewData(resultTable, 50);
+      const rowCols = this.pivotDialogState.rowColumns;
+      const newCols = result.columns.filter((c: string) => !rowCols.includes(c));
+
+      this.previewState = {
+        title: 'Pivot Preview',
+        stats: `Showing ${result.rows.length} rows, ${result.columns.length} columns`,
+        columns: result.columns,
+        newColumns: newCols,
+        rows: result.rows,
+        _debounceTimer: null,
+      };
     } catch (error: any) {
       this.pivotDialogState.previewError = error.message;
     } finally {
@@ -2313,12 +2648,25 @@ export class ChumakApp implements AppState {
   async previewAggregate() {
     this.aggregateDialogState.isPreviewing = true;
     this.aggregateDialogState.previewError = null;
-    this.aggregateDialogState.previewData = null;
+    this.clearPreview();
     try {
       const step = this.constructAggregateStep();
-      const table = aq.from(this.currentData!);
+      const samples = this.currentData!.slice(0, 50);
+      const table = aq.from(samples);
       const resultTable = applyTransform(table, step, this.columns);
-      this.aggregateDialogState.previewData = this.preparePreviewData(resultTable, 100);
+
+      const result = this.preparePreviewData(resultTable, 50);
+      const groupBy = this.aggregateDialogState.groupBy;
+      const newCols = result.columns.filter((c: string) => !groupBy.includes(c));
+
+      this.previewState = {
+        title: 'Aggregate Preview',
+        stats: `Showing ${result.rows.length} rows, ${result.columns.length} columns`,
+        columns: result.columns,
+        newColumns: newCols,
+        rows: result.rows,
+        _debounceTimer: null,
+      };
     } catch (error: any) {
       this.aggregateDialogState.previewError = error.message;
     } finally {
@@ -2561,12 +2909,26 @@ export class ChumakApp implements AppState {
     }, 150);
   }
 
+  selectSplitColumn(col: string) {
+    this.splitDialogState.column = col;
+    const detected = this.detectDelimiter(col);
+    if (detected) {
+      this.splitDialogState.delimiter = detected.char;
+      this.splitDialogState.isRegex = detected.isRegex;
+      this.splitDialogState.autoDetectedDelimiter = detected.name;
+    } else {
+      this.splitDialogState.autoDetectedDelimiter = null;
+    }
+    this.updateSplitPreview();
+  }
+
   updateSplitPreview() {
     const { column, delimiter, mode, maxColumns, keepOriginal, isRegex } = this.splitDialogState;
     this.splitDialogState.error = null;
-    this.splitDialogState.previewData = [];
-    this.splitDialogState.previewColumns = [];
+    this.clearPreview();
+
     if (!column || !delimiter) return;
+
     try {
       if (isRegex) new RegExp(delimiter);
       const transform = {
@@ -2579,38 +2941,32 @@ export class ChumakApp implements AppState {
           keepOriginal,
         },
       };
-      const previewRows = this.currentData!.slice(0, 50);
-      const table = aq.from(previewRows);
+
+      const samples = this.currentData!.slice(0, 50);
+      const table = aq.from(samples);
       const context = { sources: this.sources, models: this.models };
       const result = applyTransform(table, transform, this.columns, context);
-      const resultData = result.objects();
+
       const resultColumns = result.columnNames();
-      const previewColumns: any[] = [];
-      if (keepOriginal || !resultColumns.includes(column)) {
-        previewColumns.push({ name: column, status: keepOriginal ? 'unchanged' : 'removed' });
-        if (!keepOriginal) {
-          resultData.forEach((row: any, idx: number) => {
-            row[column] = previewRows[idx][column];
-          });
-        }
-      }
-      resultColumns.forEach((name: string) => {
-        if (name.startsWith(`${column}_`)) {
-          previewColumns.push({ name, status: 'new' });
-          if (!this.splitDialogState.columnRenames[name])
-            this.splitDialogState.columnRenames[name] = name;
-        }
-      });
-      this.splitDialogState.previewData = resultData;
-      this.splitDialogState.previewColumns = previewColumns;
+      const newCols = resultColumns.filter((c: string) => c.startsWith(`${column}_`));
+      const previewRows = result.objects();
+
+      this.previewState = {
+        title: 'Split Preview',
+        stats: `Showing ${previewRows.length} sample rows`,
+        columns: resultColumns,
+        newColumns: newCols,
+        rows: previewRows,
+        _debounceTimer: null,
+      };
     } catch (error: any) {
       this.splitDialogState.error = error.message;
+      this.clearPreview();
     }
   }
 
   async applySplitTransform() {
-    const { column, delimiter, mode, maxColumns, keepOriginal, isRegex, columnRenames } =
-      this.splitDialogState;
+    const { column, delimiter, mode, maxColumns, keepOriginal, isRegex } = this.splitDialogState;
     if (!column) {
       await this.alert('Please select a column');
       return;
@@ -2635,28 +2991,17 @@ export class ChumakApp implements AppState {
       let table = aq.from(this.currentData!);
       const context = { sources: this.sources, models: this.models };
       let result = applyTransform(table, splitTransform, this.columns, context);
-      const actualRenames: Record<string, string> = {};
-      for (const [oldName, newName] of Object.entries(columnRenames)) {
-        if (oldName !== newName && newName && (newName as string).trim() !== '') {
-          actualRenames[oldName] = (newName as string).trim();
-        }
-      }
-      const hasRenameStep = Object.keys(actualRenames).length > 0;
+
       const newColumns = result
         .columnNames()
         .filter((name: string) => name.startsWith(`${column}_`));
       const hasTypesStep = newColumns.length > 0;
-      await this.applyStepResult(splitTransform, result, !hasRenameStep && !hasTypesStep);
-      if (hasRenameStep) {
-        const renameTransform = { rename: actualRenames };
-        table = aq.from(this.currentData!);
-        result = applyTransform(table, renameTransform, this.columns, context);
-        await this.applyStepResult(renameTransform, result, !hasTypesStep);
-      }
-      const finalNewColumns = newColumns.map((name: string) => actualRenames[name] || name);
-      if (finalNewColumns.length > 0) {
+
+      await this.applyStepResult(splitTransform, result, !hasTypesStep);
+
+      if (hasTypesStep) {
         const typeSpecs: Record<string, string> = {};
-        for (const colName of finalNewColumns) {
+        for (const colName of newColumns) {
           const sampleValues = this.currentData!.slice(0, 100).map((row) => row[colName]);
           const inferredType = SchemaEngine.inferType(sampleValues);
           typeSpecs[colName] = inferredType;
@@ -2984,6 +3329,52 @@ export class ChumakApp implements AppState {
     }
   }
 
+  // Preview panel helper methods
+  hasPreviewData(): boolean {
+    return this.previewState.rows.length > 0;
+  }
+
+  getPreviewTitle(): string {
+    return this.previewState.title;
+  }
+
+  getPreviewStats(): string {
+    return this.previewState.stats;
+  }
+
+  getPreviewColumns(): string[] {
+    return this.previewState.columns;
+  }
+
+  getPreviewRows(): any[] {
+    return this.previewState.rows;
+  }
+
+  formatPreviewCell(row: any, col: string): string {
+    const val = row[col];
+    if (val == null) return '—';
+    if (typeof val === 'boolean') return val ? '✓' : '✗';
+    return String(val);
+  }
+
+  clearPreview(): void {
+    if (this.previewState._debounceTimer) {
+      clearTimeout(this.previewState._debounceTimer);
+    }
+    this.previewState = {
+      title: '',
+      stats: '',
+      columns: [],
+      newColumns: [],
+      rows: [],
+      _debounceTimer: null,
+    };
+  }
+
+  isNewPreviewColumn(col: string): boolean {
+    return this.previewState.newColumns.includes(col);
+  }
+
   activeDialogError(): boolean {
     switch (this.activeDialog) {
       case 'filter':
@@ -3085,6 +3476,7 @@ export class ChumakApp implements AppState {
       if (!(await this.confirm('You have unsaved changes. Are you sure you want to discard them?')))
         return;
     }
+    this.clearPreview();
     this.activeDialog = null;
     this.dialogSnapshot = null;
     this.resetDialogStates();

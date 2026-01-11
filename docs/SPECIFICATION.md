@@ -149,7 +149,20 @@ Support for complex formulas with security-validated interpretation:
 - **Model Toolbar**: Stats summary, navigation, and consolidated downloads/copying
 - **Step Editor**: Pipeline management with edit/delete actions and JSON toggle
 
-### 6.2 Data Visualization (Vega-Lite)
+### 6.2 Modal System
+
+| Modal Type         | Usage                                             | Preview                                         |
+| :----------------- | :------------------------------------------------ | :---------------------------------------------- |
+| **Slide Panel**    | Transform operations (filter, derive, join, etc.) | Unified preview panel in remaining screen space |
+| **Centered Modal** | Imports, settings, downloads                      | No preview panel                                |
+
+**Key Patterns**:
+
+- **Chips-based column selection**: Replaces dropdowns for better discoverability
+- **Debounced auto-preview**: For expression-based transforms (150ms)
+- **Button-triggered preview**: For expensive operations (aggregate, pivot, join)
+
+### 6.3 Data Visualization (Vega-Lite)
 
 - **Themed Visuals**: Charts automatically adopt either the "Chumak" or "Blues" (KSE) color palette.
 - **Chart Types**: Boxplots, Histograms, and Categorical Bar charts for Exploratory Data Analysis (EDA).

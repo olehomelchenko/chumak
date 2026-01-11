@@ -161,57 +161,6 @@
   "
 ></div>
 
-<!-- Preview Section -->
-<div
-  x-show="dateDialogState.column && dateDialogState.previewData.length > 0"
-  style="
-    margin-top: 1rem;
-    padding: 0.75rem;
-    background: var(--color-soft-bg);
-    border-radius: 6px;
-    border: 1px solid var(--border-color);
-  "
->
-  <div
-    style="
-      font-weight: 600;
-      font-size: 0.8rem;
-      color: var(--color-dark-gray);
-      margin-bottom: 0.5rem;
-    "
-  >
-    Preview
-  </div>
-  <div
-    style="
-      display: grid;
-      grid-template-columns: 1fr auto 1fr;
-      gap: 0.5rem;
-      font-size: 0.75rem;
-      font-family: var(--font-family-mono);
-    "
-  >
-    <div
-      style="font-weight: 600; color: var(--color-dark-gray)"
-      x-text="dateDialogState.column"
-    ></div>
-    <div style="color: var(--color-medium-gray)">→</div>
-    <div
-      style="font-weight: 600; color: var(--color-dark-gray)"
-      x-text="dateDialogState.outputColumn || getDateOutputPlaceholder()"
-    ></div>
-    <template x-for="(row, idx) in dateDialogState.previewData.slice(0, 5)" :key="idx">
-      <template x-if="true">
-        <div style="display: contents">
-          <div style="color: var(--color-text)" x-text="row.input"></div>
-          <div style="color: var(--color-medium-gray)">→</div>
-          <div style="color: var(--color-primary); font-weight: 500" x-text="row.output"></div>
-        </div>
-      </template>
-    </template>
-  </div>
-</div>
-
 <!-- Help Section -->
 <div
   x-show="dateDialogState.column"

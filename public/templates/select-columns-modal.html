@@ -56,43 +56,36 @@
 
 <label class="form-label">Choose columns to keep:</label>
 
-<div class="checkbox-list">
+<div class="column-chips-multi">
   <template x-for="(column, index) in columns" :key="index">
-    <label class="checkbox-item">
-      <input type="checkbox" x-model="selectedColumns[index]" />
-      <span x-text="column"></span>
-    </label>
+    <button
+      type="button"
+      class="form-chip"
+      style="flex-direction: row; justify-content: start; gap: 0.5rem; padding: 0.5rem 0.75rem"
+      :class="{ active: selectedColumns[index] }"
+      @click="selectedColumns[index] = !selectedColumns[index]; updateSelectPreview()"
+    >
+      <span
+        class="iconify"
+        :data-icon="selectedColumns[index] ? 'carbon:checkmark-filled' : 'carbon:checkbox'"
+        style="font-size: 1rem; flex-shrink: 0"
+        :style="selectedColumns[index] ? 'color: var(--color-green)' : ''"
+      ></span>
+      <span
+        x-text="column"
+        style="
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
+          flex-grow: 1;
+          text-align: left;
+        "
+      ></span>
+    </button>
   </template>
 </div>
 
 <div class="form-actions">
   <button class="button button--text" @click="selectAllColumns()">Select All</button>
   <button class="button button--text" @click="selectNoColumns()">Select None</button>
-</div>
-
-<div class="preview-section" x-show="getSelectedColumnsList().length > 0">
-  <div
-    class="preview-section__header"
-    x-text="`Preview (${getSelectedColumnsList().length} column${getSelectedColumnsList().length !== 1 ? 's' : ''})`"
-  ></div>
-  <div class="preview-table">
-    <table class="data-table data-table--compact">
-      <thead>
-        <tr>
-          <template x-for="column in getSelectedColumnsList()" :key="column">
-            <th class="data-table__header" x-text="column"></th>
-          </template>
-        </tr>
-      </thead>
-      <tbody>
-        <template x-for="(row, rowIndex) in currentData?.slice(0, 3) || []" :key="rowIndex">
-          <tr class="data-table__row">
-            <template x-for="column in getSelectedColumnsList()" :key="column">
-              <td class="data-table__cell" x-text="row[column]"></td>
-            </template>
-          </tr>
-        </template>
-      </tbody>
-    </table>
-  </div>
 </div>

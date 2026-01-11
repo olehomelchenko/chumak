@@ -1174,7 +1174,11 @@
 
     <!-- Slide-in Panel Shell (for Transformations) -->
     <div x-show="isSlidePanel(activeDialog)" x-cloak>
-      <div class="slide-panel-backdrop" @click="closeDialog()"></div>
+      <div
+        class="slide-panel-backdrop"
+        :class="{ 'slide-panel-backdrop--blurred': hasPreviewData() }"
+        @click="closeDialog()"
+      ></div>
       <div class="slide-panel" @click.stop>
         <div class="slide-panel__header">
           <h2 class="slide-panel__title" x-text="getDialogTitle()"></h2>
@@ -1208,6 +1212,54 @@
           >
             <span x-text="getDialogButtonText()"></span>
           </button>
+        </div>
+      </div>
+
+      <!-- Preview Panel - appears when preview data is available -->
+      <div
+        class="preview-panel"
+        x-show="hasPreviewData()"
+        x-cloak
+        x-transition:enter="transition ease-out duration-200"
+        x-transition:leave="transition ease-in duration-150"
+        x-transition:enter-start="opacity-0 transform scale-95"
+        x-transition:enter-end="opacity-100 transform scale-100"
+        x-transition:leave-start="opacity-100 transform scale-100"
+        x-transition:leave-end="opacity-0 transform scale-95"
+      >
+        <div class="preview-panel__header">
+          <span x-text="getPreviewTitle()"></span>
+        </div>
+        <div class="preview-panel__stats" x-show="getPreviewStats()">
+          <span x-html="getPreviewStats()"></span>
+        </div>
+        <div class="preview-panel__content">
+          <table class="data-table data-table--compact">
+            <thead>
+              <tr>
+                <template x-for="col in getPreviewColumns()" :key="col">
+                  <th
+                    class="data-table__header"
+                    :class="{ 'data-table__header--new': isNewPreviewColumn(col) }"
+                    x-text="col"
+                  ></th>
+                </template>
+              </tr>
+            </thead>
+            <tbody>
+              <template x-for="(row, idx) in getPreviewRows()" :key="idx">
+                <tr>
+                  <template x-for="col in getPreviewColumns()" :key="col">
+                    <td
+                      class="data-table__cell"
+                      :class="{ 'data-table__cell--new': isNewPreviewColumn(col) }"
+                      x-text="formatPreviewCell(row, col)"
+                    ></td>
+                  </template>
+                </tr>
+              </template>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>
