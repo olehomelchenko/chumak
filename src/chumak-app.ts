@@ -367,12 +367,17 @@ export class ChumakApp implements AppState {
 
   async loadTemplates() {
     const templates = this.getTemplateConfigs();
+    const baseUrl = import.meta.env.BASE_URL || '/';
 
     for (const template of templates) {
       try {
-        const response = await fetch(template.url);
+        // Construct the full URL using the base path
+        const url = `${baseUrl}${template.url}`;
+        const response = await fetch(url);
         if (!response.ok) {
-          console.error(`Failed to load template: ${template.url}`);
+          console.error(
+            `Failed to load template from ${url}: ${response.status} ${response.statusText}`
+          );
           continue;
         }
         const html = await response.text();
