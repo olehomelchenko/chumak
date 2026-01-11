@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { parseExpression } from './expression-parser';
-import { interpretAST } from './ast-interpreter';
+import { interpretAST, parseToDate } from './ast-interpreter';
 
 describe('AST Interpreter', () => {
   const row = {
@@ -276,8 +276,8 @@ describe('Date Functions', () => {
   describe('date_trunc()', () => {
     it('should truncate to year - returns start of year', () => {
       const result = interpretAST(parseExpression('date_trunc(datetime_str, "year")'), dateRow);
-      // Parse the result back and verify month=0 (Jan) and day=1
-      const parsed = new Date(result);
+      // Use parseToDate instead of native new Date() to ensure local TZ consistency
+      const parsed = parseToDate(result)!;
       expect(parsed.getMonth()).toBe(0); // January
       expect(parsed.getDate()).toBe(1);
       expect(parsed.getHours()).toBe(0);
@@ -287,7 +287,7 @@ describe('Date Functions', () => {
 
     it('should truncate to month - returns start of month', () => {
       const result = interpretAST(parseExpression('date_trunc(datetime_str, "month")'), dateRow);
-      const parsed = new Date(result);
+      const parsed = parseToDate(result)!;
       expect(parsed.getDate()).toBe(1);
       expect(parsed.getHours()).toBe(0);
       expect(parsed.getMinutes()).toBe(0);
@@ -295,7 +295,7 @@ describe('Date Functions', () => {
 
     it('should truncate to day - returns start of day', () => {
       const result = interpretAST(parseExpression('date_trunc(datetime_str, "day")'), dateRow);
-      const parsed = new Date(result);
+      const parsed = parseToDate(result)!;
       expect(parsed.getHours()).toBe(0);
       expect(parsed.getMinutes()).toBe(0);
       expect(parsed.getSeconds()).toBe(0);
@@ -303,14 +303,14 @@ describe('Date Functions', () => {
 
     it('should truncate to hour - zeroes minutes and seconds', () => {
       const result = interpretAST(parseExpression('date_trunc(datetime_str, "hour")'), dateRow);
-      const parsed = new Date(result);
+      const parsed = parseToDate(result)!;
       expect(parsed.getMinutes()).toBe(0);
       expect(parsed.getSeconds()).toBe(0);
     });
 
     it('should truncate to minute - zeroes seconds', () => {
       const result = interpretAST(parseExpression('date_trunc(datetime_str, "minute")'), dateRow);
-      const parsed = new Date(result);
+      const parsed = parseToDate(result)!;
       expect(parsed.getSeconds()).toBe(0);
     });
 

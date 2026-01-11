@@ -31,12 +31,20 @@ const NULL_COMPARISON_OPS = new Set(['==', '===', '!=', '!==']);
 /**
  * Parse input to Date object, handling multiple input formats
  */
-function parseToDate(value: any): Date | null {
+export function parseToDate(value: any): Date | null {
   if (value == null) return null;
   if (value instanceof Date) return isNaN(value.getTime()) ? null : value;
   if (typeof value === 'string') {
     const trimmed = value.trim();
     if (trimmed === '') return null;
+
+    // ISO Date only (YYYY-MM-DD) - forced to local midnight to avoid UTC shift
+    // by default JS parses YYYY-MM-DD as UTC which is inconsistent with other formats
+    if (/^\d{4}-\d{2}-\d{2}$/.test(trimmed)) {
+      const [y, m, d] = trimmed.split('-').map(Number);
+      return new Date(y, m - 1, d);
+    }
+
     const parsed = new Date(trimmed);
     return isNaN(parsed.getTime()) ? null : parsed;
   }
@@ -136,10 +144,16 @@ const FUNCTION_IMPLS: Record<string, (...args: any[]) => any> = {
 
   // Date utilities - Phase 3
   today: () => {
-    return new Date().toISOString().split('T')[0];
+    const d = new Date();
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
   },
   now: () => {
-    return new Date().toISOString();
+    const d = new Date();
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(
+      d.getHours()
+    )}:${pad(d.getMinutes())}:${pad(d.getSeconds())}`;
   },
 
   // Date arithmetic - Phase 4
@@ -188,7 +202,19 @@ const FUNCTION_IMPLS: Record<string, (...args: any[]) => any> = {
         return { type: 'error', message: `Unknown unit: ${unit}` };
     }
 
-    return result.toISOString();
+    const pad = (n: number) => String(n).padStart(2, '0');
+    const resultDate = new Date(result);
+    // If it's a date-level addition, return a date string, otherwise datetime
+    if (['day', 'days', 'month', 'months', 'year', 'years'].includes(unitLower)) {
+      return `${resultDate.getFullYear()}-${pad(resultDate.getMonth() + 1)}-${pad(
+        resultDate.getDate()
+      )}`;
+    }
+    return `${resultDate.getFullYear()}-${pad(resultDate.getMonth() + 1)}-${pad(
+      resultDate.getDate()
+    )}T${pad(resultDate.getHours())}:${pad(resultDate.getMinutes())}:${pad(
+      resultDate.getSeconds()
+    )}`;
   },
   date_trunc: (value, unit) => {
     const date = parseToDate(value);
@@ -235,7 +261,13 @@ const FUNCTION_IMPLS: Record<string, (...args: any[]) => any> = {
         return { type: 'error', message: `Unknown truncation unit: ${unit}` };
     }
 
-    return result.toISOString();
+    const pad = (n: number) => String(n).padStart(2, '0');
+    if (['year', 'quarter', 'month', 'week', 'day'].includes(unitLower)) {
+      return `${result.getFullYear()}-${pad(result.getMonth() + 1)}-${pad(result.getDate())}`;
+    }
+    return `${result.getFullYear()}-${pad(result.getMonth() + 1)}-${pad(result.getDate())}T${pad(
+      result.getHours()
+    )}:${pad(result.getMinutes())}:${pad(result.getSeconds())}`;
   },
   format_date: (value, format) => {
     const date = parseToDate(value);

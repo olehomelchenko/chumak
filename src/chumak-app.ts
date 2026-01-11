@@ -1808,10 +1808,23 @@ export class ChumakApp implements AppState {
     if (value === null || value === undefined) return 'null';
     if (type === 'number' || type === 'integer' || type === 'float' || typeof value === 'number')
       return String(value);
-    if (value instanceof Date) return `"${value.toISOString()}"`;
-    if ((type === 'date' || type === 'datetime') && typeof value === 'string') {
-      const d = new Date(value);
-      if (!isNaN(d.getTime())) return `"${d.toISOString()}"`;
+    if (
+      value instanceof Date ||
+      ((type === 'date' || type === 'datetime') && typeof value === 'string')
+    ) {
+      const d = value instanceof Date ? value : new Date(value);
+      if (!isNaN(d.getTime())) {
+        const pad = (n: number) => String(n).padStart(2, '0');
+        const dateStr = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+        // If it's specifically a date type OR it has no time components, just return the date
+        if (
+          type === 'date' ||
+          (d.getHours() === 0 && d.getMinutes() === 0 && d.getSeconds() === 0)
+        ) {
+          return `"${dateStr}"`;
+        }
+        return `"${dateStr}T${pad(d.getHours())}:${pad(d.getMinutes())}:${pad(d.getSeconds())}"`;
+      }
     }
     return `"${String(value).replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
   }
