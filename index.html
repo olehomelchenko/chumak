@@ -318,9 +318,9 @@
                 <span>Number</span>
               </button>
               <button
-                class="ribbon__button ribbon__button--disabled"
-                disabled
-                title="Date operations: extract year/month/day, date math (Coming soon)"
+                class="ribbon__button"
+                @click="openDialog('date')"
+                title="Date operations: extract parts, truncate to period"
               >
                 <span class="iconify" data-icon="carbon:calendar"></span>
                 <span>Date</span>
@@ -1185,6 +1185,7 @@
           <div id="derive-modal-container" x-show="activeDialog === 'derive'"></div>
           <div id="regexp-match-modal-container" x-show="activeDialog === 'regexpMatch'"></div>
           <div id="regexp-extract-modal-container" x-show="activeDialog === 'regexpExtract'"></div>
+          <div id="date-modal-container" x-show="activeDialog === 'date'"></div>
           <div id="sort-modal-container" x-show="activeDialog === 'sort'"></div>
           <div id="slice-rows-modal-container" x-show="activeDialog === 'sliceRows'"></div>
           <div id="index-modal-container" x-show="activeDialog === 'index'"></div>
@@ -1266,6 +1267,14 @@
         <span class="iconify" data-icon="carbon:split-screen"></span>
       </button>
       <button
+        x-show="isDateType(getColumnType(selectedColumn))"
+        class="floating-toolbar__button"
+        @click="quickDate()"
+        title="Date transformation"
+      >
+        <span class="iconify" data-icon="carbon:calendar"></span>
+      </button>
+      <button
         class="floating-toolbar__button"
         @click="quickRemove()"
         title="Remove this column"
@@ -1288,11 +1297,11 @@
         class="floating-toolbar__button"
         @click="applyQuickCellFilter('exact')"
         x-show="!selectedCell?.isEda"
-        :title="['number', 'integer', 'float'].includes(selectedCell?.type) ? 'Keep only this value (=)' : 'Keep only this value'"
+        :title="isComparable(selectedCell?.type) ? 'Keep only this value (=)' : 'Keep only this value'"
       >
         <span class="iconify" data-icon="carbon:filter"></span>
         <span
-          x-show="['number', 'integer', 'float'].includes(selectedCell?.type)"
+          x-show="isComparable(selectedCell?.type)"
           style="font-size: 10px; margin-left: 2px; font-weight: bold"
           >=</span
         >
@@ -1302,7 +1311,7 @@
         class="floating-toolbar__button"
         @click="applyQuickCellFilter('not')"
         x-show="!selectedCell?.isEda"
-        :title="['number', 'integer', 'float'].includes(selectedCell?.type) ? 'Exclude this value (&ne;)' : 'Exclude this value'"
+        :title="isComparable(selectedCell?.type) ? 'Exclude this value (&ne;)' : 'Exclude this value'"
         style="color: var(--color-dark-red)"
       >
         <span class="iconify" data-icon="carbon:filter-remove"></span>
@@ -1322,7 +1331,7 @@
         <span class="iconify" data-icon="codicon:replace"></span>
       </button>
 
-      <template x-if="['number', 'integer', 'float'].includes(selectedCell?.type)">
+      <template x-if="isComparable(selectedCell?.type)">
         <div style="display: flex; gap: 2px">
           <div
             x-show="!selectedCell?.isEda"
@@ -1331,7 +1340,7 @@
           <button
             class="floating-toolbar__button"
             @click="applyQuickCellFilter('gt')"
-            title="Keep values greater than (>)"
+            :title="isDateType(selectedCell?.type) ? 'Keep values after this date' : 'Keep values greater than (>)'"
           >
             <span style="font-size: 14px; font-weight: bold; font-family: var(--font-family-mono)"
               >&gt;</span
@@ -1340,7 +1349,7 @@
           <button
             class="floating-toolbar__button"
             @click="applyQuickCellFilter('gte')"
-            title="Keep values greater than or equal (&ge;)"
+            :title="isDateType(selectedCell?.type) ? 'Keep values on or after this date' : 'Keep values greater than or equal (&ge;)'"
           >
             <span style="font-size: 14px; font-weight: bold; font-family: var(--font-family-mono)"
               >&ge;</span
@@ -1349,7 +1358,7 @@
           <button
             class="floating-toolbar__button"
             @click="applyQuickCellFilter('lt')"
-            title="Keep values less than (<)"
+            :title="isDateType(selectedCell?.type) ? 'Keep values before this date' : 'Keep values less than (<)'"
           >
             <span style="font-size: 14px; font-weight: bold; font-family: var(--font-family-mono)"
               >&lt;</span
@@ -1358,7 +1367,7 @@
           <button
             class="floating-toolbar__button"
             @click="applyQuickCellFilter('lte')"
-            title="Keep values less than or equal (&le;)"
+            :title="isDateType(selectedCell?.type) ? 'Keep values on or before this date' : 'Keep values less than or equal (&le;)'"
           >
             <span style="font-size: 14px; font-weight: bold; font-family: var(--font-family-mono)"
               >&le;</span

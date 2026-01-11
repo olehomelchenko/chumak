@@ -12,7 +12,7 @@
   font-family: var(--font-family);
   font-size: var(--font-size-base);
   color: var(--color-midnight-blue);
-  background: var(--color-white);
+  background: #ffffff;
   border: var(--border-width) solid var(--border-color);
   border-radius: var(--border-radius);
   transition: border-color var(--transition-fast);
@@ -122,5 +122,56 @@
 
   .iconify {
     flex-shrink: 0;
+  }
+}
+
+.form-toggle-button {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--color-white);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+
+  &:hover {
+    background: var(--color-soft-bg);
+    border-color: var(--color-primary);
+  }
+
+  &.active {
+    background: var(--color-primary);
+    border-color: var(--color-primary);
+    color: var(--color-white);
+  }
+}
+
+.form-chip {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 0.5rem 0.25rem;
+  background: var(--color-white);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+
+  &:hover {
+    background: var(--color-soft-bg);
+    border-color: var(--color-primary);
+  }
+
+  &.active {
+    background: rgba(var(--color-primary-rgb), 0.1);
+    border-color: var(--color-primary);
+    color: var(--color-primary);
+    font-weight: var(--font-weight-medium);
   }
 }

@@ -13,6 +13,7 @@ import { EDAEngine } from './core/eda-engine';
 import { ChartsEngine } from './core/charts';
 import { parseExpression } from './core/expression-parser';
 import { validateAST } from './core/ast-validator';
+import { interpretAST } from './core/ast-interpreter';
 import { formatError } from './core/error-formatter';
 import { matchColumnPattern } from './core/transforms';
 
@@ -169,6 +170,15 @@ export class ChumakApp implements AppState {
     columnName: '',
     group: 0,
     error: null,
+  };
+  dateDialogState: any = {
+    column: '',
+    operation: 'extract' as 'extract' | 'truncate',
+    extractParts: ['year'] as string[],
+    truncateUnits: ['month'] as string[],
+    outputColumn: '',
+    error: null as string | null,
+    previewData: [] as { input: string; output: any }[],
   };
 
   // JSON Editor
@@ -348,6 +358,7 @@ export class ChumakApp implements AppState {
       { id: 'filter-modal-container', url: 'templates/filter-modal.html' },
       { id: 'regexp-match-modal-container', url: 'templates/regexp-match-modal.html' },
       { id: 'regexp-extract-modal-container', url: 'templates/regexp-extract-modal.html' },
+      { id: 'date-modal-container', url: 'templates/date-modal.html' },
       { id: 'download-modal-container', url: 'templates/download-modal.html' },
       { id: 'import-url-modal-container', url: 'templates/import-url-modal.html' },
       { id: 'settings-modal-container', url: 'templates/settings-modal.html' },
@@ -1376,6 +1387,9 @@ export class ChumakApp implements AppState {
   // ============================================================
 
   selectColumn(col: string) {
+    this.selectedCell = null;
+    this.typeMenuOpen = false;
+
     if (this.selectedColumn === col) {
       this.selectedColumn = null;
       return;
@@ -1651,6 +1665,14 @@ export class ChumakApp implements AppState {
     return 'string';
   }
 
+  isComparable(type?: string) {
+    return ['number', 'integer', 'float', 'date', 'datetime'].includes(type || '');
+  }
+
+  isDateType(type?: string) {
+    return ['date', 'datetime'].includes(type || '');
+  }
+
   getTypeIcon(colName: string) {
     const type = this.getColumnType(colName);
     switch (type) {
@@ -1786,6 +1808,11 @@ export class ChumakApp implements AppState {
     if (value === null || value === undefined) return 'null';
     if (type === 'number' || type === 'integer' || type === 'float' || typeof value === 'number')
       return String(value);
+    if (value instanceof Date) return `"${value.toISOString()}"`;
+    if ((type === 'date' || type === 'datetime') && typeof value === 'string') {
+      const d = new Date(value);
+      if (!isNaN(d.getTime())) return `"${d.toISOString()}"`;
+    }
     return `"${String(value).replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
   }
 
@@ -1874,6 +1901,178 @@ export class ChumakApp implements AppState {
     const groupNum = parseInt(group, 10) || 0;
     const expression = `regexp_extract(${colRef}, "${escapedPattern}", ${groupNum})`;
     await this.runTransform('Regexp Extract', { derive: { [columnName]: expression } });
+  }
+
+  // Date Operations
+  getDateColumns(): string[] {
+    const schema = this.getActiveSchema();
+    if (!schema) return [];
+    return this.columns.filter((col) => {
+      const colSchema = schema.find((c) => c.name === col);
+      const type = colSchema?.type;
+      return type === 'date' || type === 'datetime';
+    });
+  }
+
+  getExtractParts() {
+    return [
+      { value: 'year', label: 'Year', example: '2024' },
+      { value: 'month', label: 'Month', example: '1-12' },
+      { value: 'day', label: 'Day', example: '1-31' },
+      { value: 'quarter', label: 'Quarter', example: '1-4' },
+      { value: 'week', label: 'Week', example: '1-53' },
+      { value: 'weekday', label: 'Weekday', example: '0-6' },
+      { value: 'hour', label: 'Hour', example: '0-23' },
+      { value: 'minute', label: 'Minute', example: '0-59' },
+      { value: 'second', label: 'Second', example: '0-59' },
+    ];
+  }
+  getTruncateUnits() {
+    return [
+      { value: 'year', label: 'Year' },
+      { value: 'quarter', label: 'Quarter' },
+      { value: 'month', label: 'Month' },
+      { value: 'week', label: 'Week' },
+      { value: 'day', label: 'Day' },
+      { value: 'hour', label: 'Hour' },
+      { value: 'minute', label: 'Minute' },
+      { value: 'second', label: 'Second' },
+    ];
+  }
+
+  toggleDateSelection(value: string, event?: MouseEvent) {
+    const isExtract = this.dateDialogState.operation === 'extract';
+    const current = isExtract
+      ? [...this.dateDialogState.extractParts]
+      : [...this.dateDialogState.truncateUnits];
+
+    if (event?.metaKey || event?.ctrlKey) {
+      if (current.includes(value)) {
+        if (current.length > 1) {
+          const index = current.indexOf(value);
+          current.splice(index, 1);
+        }
+      } else {
+        current.push(value);
+      }
+    } else {
+      current.length = 0;
+      current.push(value);
+    }
+
+    if (isExtract) {
+      this.dateDialogState.extractParts = current;
+    } else {
+      this.dateDialogState.truncateUnits = current;
+    }
+    this.updateDatePreview();
+  }
+
+  getDateOutputPlaceholder(): string {
+    const { column, operation, extractParts, truncateUnits } = this.dateDialogState;
+    if (!column) return '';
+
+    if (operation === 'extract') {
+      if (extractParts.length > 1) return '(Multiple columns)';
+      return `${column}_${extractParts[0]}`;
+    }
+
+    if (truncateUnits.length > 1) return '(Multiple columns)';
+    return `${column}_${truncateUnits[0]}_trunc`;
+  }
+
+  updateDatePreview() {
+    const { column, operation, extractParts, truncateUnits } = this.dateDialogState;
+    if (!column || !this.currentData?.length) {
+      this.dateDialogState.previewData = [];
+      return;
+    }
+
+    const samples = this.currentData.slice(0, 5);
+    const colRef = this.quoteColumnRef(column);
+
+    // If multiple parts, we'll just show the first one's preview to keep it simple,
+    // or we could show comma-separated? Let's do comma-separated for clarity.
+    this.dateDialogState.previewData = samples.map((row: any) => {
+      const input = row[column];
+      if (input == null) {
+        return { input: '(empty)', output: '(empty)' };
+      }
+
+      const activeParts = operation === 'extract' ? extractParts : truncateUnits;
+      const results: string[] = [];
+
+      for (const part of activeParts) {
+        let expression: string;
+        if (operation === 'extract') {
+          expression = `${part}(${colRef})`;
+        } else {
+          expression = `date_trunc(${colRef}, "${part}")`;
+        }
+
+        try {
+          const ast = parseExpression(expression);
+          const result = interpretAST(ast, row);
+          results.push(result != null ? String(result) : '(empty)');
+        } catch {
+          results.push('(error)');
+        }
+      }
+
+      return {
+        input: String(input),
+        output: results.join(' | '),
+      };
+    });
+  }
+
+  async applyDateTransform() {
+    const { column, operation, extractParts, truncateUnits, outputColumn } = this.dateDialogState;
+
+    if (!column) {
+      await this.alert('Please select a source column');
+      return;
+    }
+
+    const colRef = this.quoteColumnRef(column);
+    const activeParts = operation === 'extract' ? extractParts : truncateUnits;
+    const deriveSpecs: Record<string, string> = {};
+
+    for (const part of activeParts) {
+      let partOutputName: string;
+      if (activeParts.length === 1 && outputColumn) {
+        partOutputName = outputColumn;
+      } else {
+        partOutputName = operation === 'extract' ? `${column}_${part}` : `${column}_${part}_trunc`;
+      }
+
+      // Check for existence
+      if (this.columns.includes(partOutputName) && partOutputName !== column) {
+        if (
+          !(await this.confirm(
+            `Column "${partOutputName}" already exists. It will be overwritten. Continue?`
+          ))
+        )
+          return;
+      }
+
+      if (operation === 'extract') {
+        deriveSpecs[partOutputName] = `${part}(${colRef})`;
+      } else {
+        deriveSpecs[partOutputName] = `date_trunc(${colRef}, "${part}")`;
+      }
+    }
+
+    const opName =
+      activeParts.length === 1
+        ? operation === 'extract'
+          ? `Extract ${activeParts[0]}`
+          : `Truncate to ${activeParts[0]}`
+        : operation === 'extract'
+          ? `Extract ${activeParts.length} parts`
+          : `Truncate ${activeParts.length} units`;
+
+    await this.runTransform(opName, { derive: deriveSpecs });
   }
 
   async applySortTransform() {
@@ -2654,6 +2853,22 @@ export class ChumakApp implements AppState {
         group: 0,
         error: null,
       };
+    } else if (dialogName === 'date') {
+      const dateColumns = this.getDateColumns();
+      const initialColumn =
+        this.selectedColumn && dateColumns.includes(this.selectedColumn)
+          ? this.selectedColumn
+          : dateColumns[0] || '';
+      this.dateDialogState = {
+        column: initialColumn,
+        operation: 'extract',
+        extractParts: ['year'],
+        truncateUnits: ['month'],
+        outputColumn: '',
+        error: null,
+        previewData: [],
+      };
+      this.$nextTick(() => this.updateDatePreview());
     }
   }
 
@@ -2671,6 +2886,7 @@ export class ChumakApp implements AppState {
       'derive',
       'regexpMatch',
       'regexpExtract',
+      'date',
       'fold',
       'pivot',
       'aggregate',
@@ -2710,6 +2926,8 @@ export class ChumakApp implements AppState {
         return 'Regexp Match';
       case 'regexpExtract':
         return 'Regexp Extract';
+      case 'date':
+        return 'Date Operations';
       case 'fold':
         return 'Unpivot Data (Fold)';
       case 'pivot':
@@ -2809,6 +3027,9 @@ export class ChumakApp implements AppState {
         break;
       case 'regexpExtract':
         await this.applyRegexpExtractTransform();
+        break;
+      case 'date':
+        await this.applyDateTransform();
         break;
       case 'fold':
         await this.applyFoldTransform();
@@ -2921,6 +3142,15 @@ export class ChumakApp implements AppState {
       group: 0,
       error: null,
     };
+    this.dateDialogState = {
+      column: '',
+      operation: 'extract',
+      extractParts: ['year'],
+      truncateUnits: ['month'],
+      outputColumn: '',
+      error: null,
+      previewData: [],
+    };
   }
 
   // ============================================================
@@ -2950,6 +3180,7 @@ export class ChumakApp implements AppState {
     this.typeMenuCol = col;
     this.typeMenuOpen = true;
     this.selectedColumn = null;
+    this.selectedCell = null;
     const rect = event.target.getBoundingClientRect();
     this.typeMenuPos = { x: rect.left, y: rect.bottom + 4 };
   }
@@ -3023,6 +3254,7 @@ export class ChumakApp implements AppState {
 
   selectCell(col: string, value: any, rowIdx: number) {
     this.selectedColumn = null;
+    this.typeMenuOpen = false;
     let type = 'string';
     if (this.activeModel?.schema) {
       const colInfo = this.activeModel.schema.find((c: any) => c.name === col);
@@ -3104,6 +3336,12 @@ export class ChumakApp implements AppState {
       await this.applyRemoveTransform();
       this.selectedColumn = null;
     }
+  }
+
+  quickDate() {
+    if (!this.selectedColumn) return;
+    this.openDialog('date');
+    this.selectedColumn = null;
   }
 
   quickSplit() {

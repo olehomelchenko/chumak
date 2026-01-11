@@ -44,6 +44,9 @@
   --color-button-primary-hover: #004578;
   --color-button-primary-active: #002a4a;
 
+  --color-primary: var(--color-midnight-blue);
+  --color-primary-rgb: var(--color-midnight-blue-rgb);
+
   /* Typography Defaults */
   --font-family: Arial, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   --font-family-mono: 'SF Mono', 'Consolas', 'Monaco', monospace;
@@ -103,6 +106,9 @@
   --color-button-primary: var(--palette-chumak-blue);
   --color-button-primary-hover: #1579e0; /* Slightly darker blue */
   --color-button-primary-active: #1268c1;
+
+  --color-primary: var(--palette-chumak-blue);
+  --color-primary-rgb: 23, 137, 252;
 
   --border-color: var(--palette-chumak-gray-200);
   --border-radius: 0;

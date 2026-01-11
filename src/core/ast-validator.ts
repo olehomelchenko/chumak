@@ -43,8 +43,32 @@ interface FunctionSpec {
 }
 
 const ALLOWED_FUNCTIONS: Record<string, FunctionSpec> = {
+  // Regex functions
   regexp_match: { minArgs: 2, maxArgs: 2 },
   regexp_extract: { minArgs: 2, maxArgs: 3 },
+
+  // Date extraction - Phase 1
+  year: { minArgs: 1, maxArgs: 1 },
+  month: { minArgs: 1, maxArgs: 1 },
+  day: { minArgs: 1, maxArgs: 1 },
+  hour: { minArgs: 1, maxArgs: 1 },
+  minute: { minArgs: 1, maxArgs: 1 },
+  second: { minArgs: 1, maxArgs: 1 },
+
+  // Date extraction - Phase 2
+  weekday: { minArgs: 1, maxArgs: 1 },
+  week: { minArgs: 1, maxArgs: 1 },
+  quarter: { minArgs: 1, maxArgs: 1 },
+
+  // Date utilities - Phase 3
+  today: { minArgs: 0, maxArgs: 0 },
+  now: { minArgs: 0, maxArgs: 0 },
+
+  // Date arithmetic - Phase 4
+  days_between: { minArgs: 2, maxArgs: 2 },
+  date_add: { minArgs: 3, maxArgs: 3 },
+  date_trunc: { minArgs: 2, maxArgs: 2 },
+  format_date: { minArgs: 2, maxArgs: 2 },
 };
 
 export interface ValidationResult {

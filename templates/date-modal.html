@@ -1,0 +1,252 @@
+<div class="form-group">
+  <label class="form-label">Source column:</label>
+  <div
+    style="
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 0.375rem;
+      max-height: 120px;
+      overflow-y: auto;
+      padding: 2px;
+    "
+  >
+    <template x-for="col in getDateColumns()" :key="col">
+      <button
+        type="button"
+        class="form-chip"
+        style="flex-direction: row; justify-content: start; gap: 0.5rem; padding: 0.5rem 0.75rem"
+        :class="{ active: dateDialogState.column === col }"
+        @click="dateDialogState.column = col; updateDatePreview()"
+      >
+        <span
+          class="iconify"
+          data-icon="carbon:calendar"
+          style="font-size: 1rem; flex-shrink: 0"
+        ></span>
+        <span
+          x-text="col"
+          style="
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            text-align: left;
+            flex-grow: 1;
+          "
+        ></span>
+      </button>
+    </template>
+  </div>
+  <div
+    x-show="getDateColumns().length === 0"
+    style="color: var(--color-dark-gray); font-size: 0.8rem; margin-top: 0.5rem; font-style: italic"
+  >
+    No date/datetime columns found. Use the column type menu to set a column as date.
+  </div>
+</div>
+
+<div class="form-group" x-show="dateDialogState.column">
+  <label class="form-label">Operation:</label>
+  <div style="display: flex; gap: 0.5rem; margin-bottom: 0.75rem">
+    <button
+      type="button"
+      class="form-toggle-button"
+      style="flex: 1; justify-content: center"
+      :class="{ active: dateDialogState.operation === 'extract' }"
+      @click="dateDialogState.operation = 'extract'; updateDatePreview()"
+    >
+      <span class="iconify" data-icon="carbon:chart-custom" style="font-size: 1rem"></span>
+      Extract Part
+    </button>
+    <button
+      type="button"
+      class="form-toggle-button"
+      style="flex: 1; justify-content: center"
+      :class="{ active: dateDialogState.operation === 'truncate' }"
+      @click="dateDialogState.operation = 'truncate'; updateDatePreview()"
+    >
+      <span class="iconify" data-icon="carbon:cut-out" style="font-size: 1rem"></span>
+      Truncate
+    </button>
+  </div>
+</div>
+
+<!-- Extract Part Options -->
+<div class="form-group" x-show="dateDialogState.column && dateDialogState.operation === 'extract'">
+  <label class="form-label">Extract:</label>
+  <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.375rem">
+    <template x-for="part in getExtractParts()" :key="part.value">
+      <button
+        type="button"
+        class="form-chip"
+        :class="{ active: dateDialogState.extractParts.includes(part.value) }"
+        @click="toggleDateSelection(part.value, $event)"
+      >
+        <span x-text="part.label"></span>
+        <span
+          style="font-size: 0.65rem; color: var(--color-dark-gray)"
+          x-text="part.example"
+        ></span>
+      </button>
+    </template>
+  </div>
+</div>
+
+<!-- Truncate Options -->
+<div class="form-group" x-show="dateDialogState.column && dateDialogState.operation === 'truncate'">
+  <label class="form-label">Truncate to:</label>
+  <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.375rem">
+    <template x-for="unit in getTruncateUnits()" :key="unit.value">
+      <button
+        type="button"
+        class="form-chip"
+        :class="{ active: dateDialogState.truncateUnits.includes(unit.value) }"
+        @click="toggleDateSelection(unit.value, $event)"
+      >
+        <span x-text="unit.label"></span>
+      </button>
+    </template>
+  </div>
+</div>
+
+<!-- Output Column Name -->
+<div class="form-group" x-show="dateDialogState.column">
+  <label
+    class="form-label"
+    style="display: flex; justify-content: space-between; align-items: center"
+  >
+    <span>Output column name:</span>
+    <span style="font-size: 0.75rem; color: var(--color-medium-gray); font-weight: normal">
+      Tip: Cmd + Click to select multiple
+    </span>
+  </label>
+  <template
+    x-if="(dateDialogState.operation === 'extract' ? dateDialogState.extractParts : dateDialogState.truncateUnits).length === 1"
+  >
+    <input
+      type="text"
+      class="form-input"
+      x-model="dateDialogState.outputColumn"
+      :placeholder="getDateOutputPlaceholder()"
+      @input="updateDatePreview()"
+    />
+  </template>
+  <template
+    x-if="(dateDialogState.operation === 'extract' ? dateDialogState.extractParts : dateDialogState.truncateUnits).length > 1"
+  >
+    <div
+      style="
+        font-size: 0.85rem;
+        color: var(--color-medium-gray);
+        padding: 0.5rem;
+        background: var(--color-soft-bg);
+        border-radius: var(--border-radius);
+        border: 1px dashed var(--border-color);
+      "
+    >
+      Multiple columns will be auto-named (e.g. <span x-text="getDateOutputPlaceholder()"></span>)
+    </div>
+  </template>
+</div>
+
+<!-- Error message -->
+<div
+  x-show="dateDialogState.error"
+  x-text="dateDialogState.error"
+  style="
+    color: var(--color-red);
+    font-size: 13px;
+    margin-top: 8px;
+    white-space: pre-wrap;
+    font-family: var(--font-family-mono);
+  "
+></div>
+
+<!-- Preview Section -->
+<div
+  x-show="dateDialogState.column && dateDialogState.previewData.length > 0"
+  style="
+    margin-top: 1rem;
+    padding: 0.75rem;
+    background: var(--color-soft-bg);
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+  "
+>
+  <div
+    style="
+      font-weight: 600;
+      font-size: 0.8rem;
+      color: var(--color-dark-gray);
+      margin-bottom: 0.5rem;
+    "
+  >
+    Preview
+  </div>
+  <div
+    style="
+      display: grid;
+      grid-template-columns: 1fr auto 1fr;
+      gap: 0.5rem;
+      font-size: 0.75rem;
+      font-family: var(--font-family-mono);
+    "
+  >
+    <div
+      style="font-weight: 600; color: var(--color-dark-gray)"
+      x-text="dateDialogState.column"
+    ></div>
+    <div style="color: var(--color-medium-gray)">→</div>
+    <div
+      style="font-weight: 600; color: var(--color-dark-gray)"
+      x-text="dateDialogState.outputColumn || getDateOutputPlaceholder()"
+    ></div>
+    <template x-for="(row, idx) in dateDialogState.previewData.slice(0, 5)" :key="idx">
+      <template x-if="true">
+        <div style="display: contents">
+          <div style="color: var(--color-text)" x-text="row.input"></div>
+          <div style="color: var(--color-medium-gray)">→</div>
+          <div style="color: var(--color-primary); font-weight: 500" x-text="row.output"></div>
+        </div>
+      </template>
+    </template>
+  </div>
+</div>
+
+<!-- Help Section -->
+<div
+  x-show="dateDialogState.column"
+  style="
+    margin-top: 1rem;
+    padding: 0.75rem;
+    background: var(--color-soft-bg);
+    border-radius: 6px;
+    border: 1px solid var(--border-color);
+  "
+>
+  <div
+    style="
+      font-weight: 600;
+      font-size: 0.8rem;
+      color: var(--color-dark-gray);
+      margin-bottom: 0.5rem;
+    "
+  >
+    <span x-show="dateDialogState.operation === 'extract'">Extract</span>
+    <span x-show="dateDialogState.operation === 'truncate'">Truncate</span>
+    — What it does
+  </div>
+  <div
+    x-show="dateDialogState.operation === 'extract'"
+    style="font-size: 0.75rem; color: var(--color-text); line-height: 1.5"
+  >
+    Extracts a numeric part from a date/datetime value. Useful for grouping or analyzing data by
+    time periods (e.g., sales by month, events by weekday).
+  </div>
+  <div
+    x-show="dateDialogState.operation === 'truncate'"
+    style="font-size: 0.75rem; color: var(--color-text); line-height: 1.5"
+  >
+    Rounds down a date/datetime to the start of the specified period. Useful for bucketing data
+    (e.g., grouping timestamps into daily or monthly buckets).
+  </div>
+</div>

@@ -218,5 +218,105 @@ describe('AST Validator', () => {
         expect(result.error?.message).toContain('Invalid');
       });
     });
+
+    describe('date function validation', () => {
+      const dateSchema = ['order_date', 'created_at', 'start_date', 'end_date'];
+
+      it('should allow year with 1 argument', () => {
+        const ast = parseExpression('year(order_date)');
+        const result = validateAST(ast, dateSchema);
+        expect(result.valid).toBe(true);
+      });
+
+      it('should allow all date extraction functions with 1 argument', () => {
+        const functions = [
+          'year',
+          'month',
+          'day',
+          'hour',
+          'minute',
+          'second',
+          'weekday',
+          'week',
+          'quarter',
+        ];
+        functions.forEach((fn) => {
+          const ast = parseExpression(`${fn}(order_date)`);
+          const result = validateAST(ast, dateSchema);
+          expect(result.valid).toBe(true);
+        });
+      });
+
+      it('should reject date extraction functions with wrong arity', () => {
+        const ast = parseExpression('year()');
+        const result = validateAST(ast, dateSchema);
+        expect(result.valid).toBe(false);
+        expect(result.error?.type).toBe('wrong-arity');
+      });
+
+      it('should allow today with 0 arguments', () => {
+        const ast = parseExpression('today()');
+        const result = validateAST(ast, dateSchema);
+        expect(result.valid).toBe(true);
+      });
+
+      it('should allow now with 0 arguments', () => {
+        const ast = parseExpression('now()');
+        const result = validateAST(ast, dateSchema);
+        expect(result.valid).toBe(true);
+      });
+
+      it('should reject today with arguments', () => {
+        const ast = parseExpression('today(order_date)');
+        const result = validateAST(ast, dateSchema);
+        expect(result.valid).toBe(false);
+        expect(result.error?.type).toBe('wrong-arity');
+      });
+
+      it('should allow days_between with 2 arguments', () => {
+        const ast = parseExpression('days_between(start_date, end_date)');
+        const result = validateAST(ast, dateSchema);
+        expect(result.valid).toBe(true);
+      });
+
+      it('should reject days_between with wrong arity', () => {
+        const ast = parseExpression('days_between(start_date)');
+        const result = validateAST(ast, dateSchema);
+        expect(result.valid).toBe(false);
+        expect(result.error?.type).toBe('wrong-arity');
+      });
+
+      it('should allow date_add with 3 arguments', () => {
+        const ast = parseExpression('date_add(order_date, 7, "days")');
+        const result = validateAST(ast, dateSchema);
+        expect(result.valid).toBe(true);
+      });
+
+      it('should reject date_add with wrong arity', () => {
+        const ast = parseExpression('date_add(order_date, 7)');
+        const result = validateAST(ast, dateSchema);
+        expect(result.valid).toBe(false);
+        expect(result.error?.type).toBe('wrong-arity');
+      });
+
+      it('should allow date_trunc with 2 arguments', () => {
+        const ast = parseExpression('date_trunc(created_at, "month")');
+        const result = validateAST(ast, dateSchema);
+        expect(result.valid).toBe(true);
+      });
+
+      it('should allow format_date with 2 arguments', () => {
+        const ast = parseExpression('format_date(order_date, "YYYY-MM-DD")');
+        const result = validateAST(ast, dateSchema);
+        expect(result.valid).toBe(true);
+      });
+
+      it('should validate column references in date functions', () => {
+        const ast = parseExpression('year(unknown_column)');
+        const result = validateAST(ast, dateSchema);
+        expect(result.valid).toBe(false);
+        expect(result.error?.type).toBe('unknown-column');
+      });
+    });
   });
 });
