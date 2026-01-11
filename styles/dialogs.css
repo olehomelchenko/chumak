@@ -109,12 +109,6 @@
   gap: var(--space-md);
 }
 
-.dialog__button {
-  padding: 10px 20px;
-  font-weight: var(--font-weight-medium);
-  min-width: 90px;
-}
-
 /* Animations */
 @keyframes dialog-fade-in {
   from {
@@ -137,9 +131,6 @@
 }
 
 /* Highlighting specific types if needed */
-.dialog--error .dialog__title {
-  color: var(--color-red);
-}
 .dialog--confirm .dialog__title {
   color: var(--color-cyan);
 }

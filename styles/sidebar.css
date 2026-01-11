@@ -71,11 +71,6 @@
     width: 18px;
     height: 18px;
   }
-
-  &--disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-  }
 }
 
 .tree-view {
@@ -250,25 +245,5 @@
     &:hover {
       background: rgba(var(--color-dark-red-rgb), 0.1);
     }
-  }
-}
-
-.add-step-button {
-  width: 100%;
-  padding: 6px var(--space-sm);
-  margin-top: 4px;
-  background: transparent;
-  border: var(--border-width) dashed var(--border-color);
-  border-radius: var(--border-radius);
-  color: var(--color-cyan);
-  font-family: var(--font-family);
-  font-size: var(--font-size-base);
-  cursor: pointer;
-  text-align: left;
-  transition: all var(--transition-fast);
-
-  &:hover {
-    background: rgba(var(--color-cyan-rgb), 0.05);
-    border-color: var(--color-cyan);
   }
 }

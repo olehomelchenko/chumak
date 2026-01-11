@@ -20,8 +20,7 @@
       background: var(--color-button-primary-active);
     }
 
-    &:disabled,
-    &.button--disabled {
+    &:disabled {
       background: var(--color-medium-gray);
       color: var(--color-light-gray);
       cursor: not-allowed;

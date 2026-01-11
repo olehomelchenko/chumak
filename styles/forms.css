@@ -44,13 +44,6 @@
   margin: var(--space-md) 0;
 }
 
-.checkbox-list {
-  display: flex;
-  flex-direction: column;
-  gap: var(--space-sm);
-  margin: var(--space-md) 0;
-}
-
 .checkbox-item {
   display: flex;
   align-items: center;

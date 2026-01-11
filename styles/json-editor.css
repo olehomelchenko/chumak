@@ -17,11 +17,6 @@
     overflow-x: auto;
     line-height: var(--line-height-relaxed);
   }
-
-  &__copy {
-    align-self: flex-end;
-    margin-top: 6px;
-  }
 }
 
 .json-editor {
