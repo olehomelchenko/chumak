@@ -17,6 +17,7 @@ import { interpretAST } from './core/ast-interpreter';
 import { formatError } from './core/error-formatter';
 import { matchColumnPattern } from './core/transforms';
 import { html as aboutHtml } from './content/about.md';
+import { html as expressionsHtml } from './content/expressions.md';
 
 export class ChumakApp implements AppState {
   // UI state
@@ -3262,7 +3263,14 @@ export class ChumakApp implements AppState {
 
   isCenteredModal(dialog: string | null): boolean {
     if (!dialog) return false;
-    const centeredModals = ['import-csv', 'import-url', 'settings', 'download', 'about'];
+    const centeredModals = [
+      'import-csv',
+      'import-url',
+      'settings',
+      'download',
+      'about',
+      'expressions',
+    ];
     return centeredModals.includes(dialog);
   }
 
@@ -3312,6 +3320,8 @@ export class ChumakApp implements AppState {
         return 'Download Data';
       case 'about':
         return 'About Chumak';
+      case 'expressions':
+        return 'Expression Reference';
       default:
         return '';
     }
@@ -3334,6 +3344,10 @@ export class ChumakApp implements AppState {
 
   getAboutContent(): string {
     return aboutHtml;
+  }
+
+  getExpressionsContent(): string {
+    return expressionsHtml;
   }
 
   // Preview panel helper methods

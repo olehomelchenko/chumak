@@ -1295,10 +1295,16 @@
             x-show="activeDialog === 'about'"
             x-html="getAboutContent()"
           ></div>
+          <div
+            id="expressions-modal-container"
+            class="about-content"
+            x-show="activeDialog === 'expressions'"
+            x-html="getExpressionsContent()"
+          ></div>
         </div>
         <div
           class="modal__footer"
-          x-show="!['download', 'settings', 'about'].includes(activeDialog)"
+          x-show="!['download', 'settings', 'about', 'expressions'].includes(activeDialog)"
         >
           <button class="button button--secondary" @click="closeDialog()">Cancel</button>
           <button
