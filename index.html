@@ -68,6 +68,14 @@
         <div style="margin-left: auto; display: flex; gap: 0.5rem; align-items: center">
           <button
             class="button button--secondary button--small"
+            @click="openDialog('about')"
+            title="About Chumak"
+          >
+            <span class="iconify" data-icon="carbon:information"></span>
+            <span>About</span>
+          </button>
+          <button
+            class="button button--secondary button--small"
             @click="openDialog('settings')"
             title="Application Settings"
           >
@@ -1281,8 +1289,17 @@
           <div id="import-url-modal-container" x-show="activeDialog === 'import-url'"></div>
           <div id="settings-modal-container" x-show="activeDialog === 'settings'"></div>
           <div id="download-modal-container" x-show="activeDialog === 'download'"></div>
+          <div
+            id="about-modal-container"
+            class="about-content"
+            x-show="activeDialog === 'about'"
+            x-html="getAboutContent()"
+          ></div>
         </div>
-        <div class="modal__footer" x-show="!['download', 'settings'].includes(activeDialog)">
+        <div
+          class="modal__footer"
+          x-show="!['download', 'settings', 'about'].includes(activeDialog)"
+        >
           <button class="button button--secondary" @click="closeDialog()">Cancel</button>
           <button
             class="button button--primary"
