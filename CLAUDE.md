@@ -131,7 +131,8 @@
 
 - `npm run dev`: Start Vite development server
 - `npm run build`: Type-check and build for production
-- `npm test`: Run Vitest suite (headless)
+- `npm test`: Run Vitest suite (headless, interactive)
+- `npm run test -- --run`: Run Vitest suite (non-interactive)
 - `npm run format`: Format code with Prettier
 
 ---
