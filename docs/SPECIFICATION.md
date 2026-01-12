@@ -24,7 +24,7 @@ Chumak is a browser-based data wrangling tool for cleaning and transforming tabu
 
 ### 1.4 Project Status
 
-**Core Features**: Fully functional data wrangling application with 13+ transformation types, granular schema management, exploratory analysis, and interactive visualizations. Verified by automated test suites (Vitest).
+**Core Features**: Fully functional data wrangling application with comprehensive transformation types, granular schema management, exploratory analysis, and interactive visualizations. Verified by automated test suites (Vitest).
 
 ---
 
@@ -69,7 +69,25 @@ Chumak is a browser-based data wrangling tool for cleaning and transforming tabu
 | **Alpine.js** | Declarative, reactive UI framework                 |
 | **Vega-Lite** | Grammar of Graphics for interactive visualizations |
 
-### 3.3 Storage
+### 3.3 Core Components
+
+#### Schema Engine
+
+The Schema Engine is responsible for granular type inference and schema propagation. It maintains a list of `ColumnSchema` objects, ensuring that data types (integer, float, date, etc.) are correctly tracked and available for downstream transformations and UI components.
+
+#### Expression Engine
+
+A three-stage pipeline for safe execution of user-defined formulas:
+
+1. **Parsing**: Uses `jsep` to convert string expressions into an Abstract Syntax Tree (AST).
+2. **Validation**: Checks the AST against the current schema for security and correctness.
+3. **Interpretation**: Executes the validated AST against row data in a sandboxed environment.
+
+#### Transformation Engine
+
+Wraps **Arquero** to provide a consistent interface for applying declarative transformations. It handles both standard Arquero verbs and custom logic for complex operations like delimiter-based splitting and regex extraction.
+
+### 3.4 Storage
 
 | Storage Type     | Purpose                                                                  |
 | ---------------- | ------------------------------------------------------------------------ |
@@ -116,55 +134,47 @@ Each transform is one object in an array.
 
 ### 5.2 Core Transformations
 
-| Transform     | Description                                                           |
-| :------------ | :-------------------------------------------------------------------- |
-| **Filter**    | Keep rows matching expression (`filter: "expr"`)                      |
-| **Select**    | Keep listed columns (`select: ["col1"]`)                              |
-| **Remove**    | Drop listed columns (`remove: ["col1"]`)                              |
-| **Rename**    | Rename one or more columns (`rename: { "old": "new" }`)               |
-| **Sort**      | Order by single field (`sort: { field: "col", order: "asc" }`)        |
-| **Derive**    | Add/Update calculated columns (`derive: { new: "expr" }`)             |
-| **Types**     | Explicitly set column types (`types: { col: "type" }`)                |
-| **Aggregate** | Group and rollup (`aggregate: { groupby: [], rollup: {} }`)           |
-| **Fold**      | Unpivot/Melt wide to long (`fold: { columns: [], as: [] }`)           |
-| **Split**     | Delimiter-based splitting (`split: { column: "col", ... }`)           |
-| **Replace**   | Value replacement (`replace: { column: "col", find: x, replace: y }`) |
-
-### 5.3 Expression Engine
-
-Support for complex formulas with security-validated interpretation:
-
-- **Operators**: Arithmetic (`+`, `-`, `*`, `/`, `%`), Comparison (`>`, `<`, `>=`, `<=`, `==`, `===`, `!=`, `!==`), Logical (`&&`, `||`, `!`), Conditional (`? :`), Null-coalescing (`??`)
-- **Functions**: `regexp_match(val, pattern)`, `regexp_extract(val, pattern, group)`
-- **Column References**: Bare identifiers (`sales`) or bracket notation (`[Column Name]`)
+| Transform      | Description                                                           |
+| :------------- | :-------------------------------------------------------------------- |
+| **Filter**     | Keep rows matching expression (`filter: "expr"`)                      |
+| **Select**     | Keep listed columns (`select: ["col1"]`)                              |
+| **Remove**     | Drop listed columns (`remove: ["col1"]`)                              |
+| **Rename**     | Rename one or more columns (`rename: { "old": "new" }`)               |
+| **Sort**       | Order by single field (`sort: { field: "col", order: "asc" }`)        |
+| **Derive**     | Add/Update calculated columns (`derive: { new: "expr" }`)             |
+| **Types**      | Explicitly set column types (`types: { col: "type" }`)                |
+| **Aggregate**  | Group and rollup (`aggregate: { groupby: [], rollup: {} }`)           |
+| **Fold**       | Unpivot/Melt wide to long (`fold: { columns: [], as: [] }`)           |
+| **Pivot**      | Long to wide transformation (`pivot: { ... }`)                        |
+| **Split**      | Delimiter-based splitting (`split: { column: "col", ... }`)           |
+| **Replace**    | Value replacement (`replace: { column: "col", find: x, replace: y }`) |
+| **Dedupe**     | Remove or keep duplicate rows based on column subset                  |
+| **Slice Rows** | Keep or remove top/bottom N rows                                      |
+| **Add Index**  | Generate a row index column                                           |
+| **Date Ops**   | Extract or truncate date parts                                        |
+| **Regexp**     | Pattern matching and extraction (`regexp_match`, `regexp_extract`)    |
 
 ---
 
-## 6. UI Structure
+## 6. UI Architecture
 
-### 6.1 Layout
+### 6.1 Layout & Components
 
 - **Ribbon Toolbar**: Workflow-based navigation (Prepare | Calculate | Combine)
 - **Sources Sidebar**: Integrated source management and I/O actions
+- **Unified Modal Shell**: A reusable container for all dialogs (Slide Panels and Centered Modals)
 - **Model Toolbar**: Stats summary, navigation, and consolidated downloads/copying
 - **Step Editor**: Pipeline management with edit/delete actions and JSON toggle
 
-### 6.2 Modal System
+### 6.2 Key Patterns
 
-| Modal Type         | Usage                                             | Preview                                         |
-| :----------------- | :------------------------------------------------ | :---------------------------------------------- |
-| **Slide Panel**    | Transform operations (filter, derive, join, etc.) | Unified preview panel in remaining screen space |
-| **Centered Modal** | Imports, settings, downloads                      | No preview panel                                |
-
-**Key Patterns**:
-
-- **Chips-based column selection**: Replaces dropdowns for better discoverability
-- **Debounced auto-preview**: For expression-based transforms (150ms)
-- **Button-triggered preview**: For expensive operations (aggregate, pivot, join)
+- **Chips-based column selection**: Standardized multi-selection UI
+- **Contextual Toolbars**: Column and cell-level actions triggered by interaction
+- **Debounced auto-preview**: Real-time feedback for most transformations
 
 ### 6.3 Data Visualization (Vega-Lite)
 
-- **Themed Visuals**: Charts automatically adopt either the "Chumak" or "Blues" (KSE) color palette.
+- **Themed Visuals**: Charts automatically adopt the active application theme.
 - **Chart Types**: Boxplots, Histograms, and Categorical Bar charts for Exploratory Data Analysis (EDA).
 
 ---
@@ -187,17 +197,16 @@ Tests are written in **TypeScript** using **Vitest** for native runner support a
 
 ## 8. Roadmap
 
-### 8.1 Short-Term
+### 8.1 Future Direction
 
-- **Dedupe**: Dedicated transform for duplicate removal
-- **Impute**: Filling missing values with constants or expressions
-- **Pivot**: Column-based pivoting (long-to-wide)
-
-### 8.2 Future
-
-- **Set Operations**: Union, Intersection, and Concat across models
-- **Sampling**: Random sampling for large dataset performance
-- **Array Transformations**: Spread and Unroll for array-based data
+- **Set Operations**: `Union`, `Intersect`, and `Except` for advanced multi-model workflows (joining models with same schema).
+- **Advanced Joins**: Support for `Semijoin` (filtering left by right), `Antijoin` (filtering left by lack of right), and `Lookup` (fast left-joins).
+- **Advanced Data Manipulation**: `Spread` (array to columns), `Unroll` (array to rows), and random `Sampling`.
+- **Expression Engine Expansion**:
+  - **String Functions**: `upper`, `lower`, `trim`, `substring`.
+  - **Math Functions**: `abs`, `round`, `floor`, `ceil`, `min`, `max`.
+  - **Type Conversion**: `parse_int`, `parse_float`, `is_nan`.
+- **Impute**: Advanced missing value handling using both constants and expressions (e.g., `sales ?? 0`).
 
 ---
 
