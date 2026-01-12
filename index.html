@@ -1288,11 +1288,14 @@
             </thead>
             <tbody>
               <template x-for="(row, idx) in getPreviewRows()" :key="idx">
-                <tr>
+                <tr :class="{ 'data-table__row--removed': row._removed }">
                   <template x-for="col in getPreviewColumns()" :key="col">
                     <td
                       class="data-table__cell"
-                      :class="{ 'data-table__cell--new': isNewPreviewColumn(col) }"
+                      :class="{
+                        'data-table__cell--new': isNewPreviewColumn(col),
+                        'data-table__cell--removed': row._removedColumns && row._removedColumns.includes(col)
+                      }"
                       x-text="formatPreviewCell(row, col)"
                     ></td>
                   </template>

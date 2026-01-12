@@ -10,20 +10,12 @@ This document contains a list of features and tasks that need to be completed to
 
 Style:
 
-- ~~the icon for the time data type is the same as for the date, should be `carbon:time` from iconify.~~ DONE
-- ~~in the table headers, the column name is not aligned vertically on the center - it is located to the bottom of its parent (it's neighboring .type-indicator is bigger in size)~~ DONE
-- ~~the modals .type-menu, .floating-toolbar, when opened on the column that is far on the right, are cut off by the right edge of the screen - they should be able to overflow the screen to the right.~~ DONE (type-menu now clamps to viewport)
-- ~~each div in the.tree-view should have a horizontal line separating end of the models in one source from the start of the next source~~ DONE
-- ~~the "keep rows" actually can both keep and remove rows, should update the name accordingly (the json has a name "sliceRows" which is a good candidate)~~ DONE (renamed to "Slice Rows")
+(no issues here currently)
 
 Toolbar:
 
 - some of the buttons should vary in size depending on how crucial are they. e.g. "Derive" button can be kept the same size, but the "regexp extract" and "regexp match" could be smaller and put on top on one another, with small icon on the left and name on the right.
 - the "Text" icon in "Transform Values" should also be split into several smaller icons with clear functions (upper / lower / trim / etc.)
-
-Filter modal:
-
-- the preview table should not filter out the values, but show them but mark as "removed" with some styles. Ideally, in the preview window itself there should be a toggle to decide how the preview should behave
 
 Derive modal:
 
@@ -46,17 +38,9 @@ Pivot data modal:
 
 - the style is not consistent with the rest of the modals: three blocks (rows / columns / values) are aligned horizontally, would use space better if were aligned vertically one below another.
 
-Fold data modal:
-
-- the multi-select only works when i hold CMD button, should work just on click here. Also, should be two modes of the operation: "columns to fold" and "columns to keep as index" (and fold every other column).
-
 Other:
 
-- ~~The "Full Reference" button in modals is rather small and can be easily missed. It should be made more visible.~~ DONE
-
 - in general, the preview should be calculated over the entire dataset unless it is too large, in which case it should be calculated over first 1000 rows. It would be optimal to be able to specify this number in settings.
-
-- implement len(text_column) function to get the number of characters in a string. Should provide options to account for multi-byte characters and collation if it is easily accessible via arquero or typescript.
 
 ### Bugs
 

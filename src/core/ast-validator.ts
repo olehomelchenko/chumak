@@ -75,6 +75,7 @@ const ALLOWED_FUNCTIONS: Record<string, FunctionSpec> = {
   lower: { minArgs: 1, maxArgs: 1 },
   trim: { minArgs: 1, maxArgs: 1 },
   substring: { minArgs: 2, maxArgs: 3 },
+  len: { minArgs: 1, maxArgs: 1 },
 
   // Math functions
   abs: { minArgs: 1, maxArgs: 1 },

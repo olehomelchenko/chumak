@@ -76,6 +76,19 @@
         background-color: rgba(var(--color-yellow-rgb), 0.25) !important;
       }
     }
+
+    &--removed {
+      background-color: rgba(var(--color-red-rgb), 0.08) !important;
+
+      .data-table__cell {
+        text-decoration: line-through;
+        color: rgba(var(--color-midnight-blue-rgb), 0.4);
+      }
+
+      &:hover {
+        background-color: rgba(var(--color-red-rgb), 0.12) !important;
+      }
+    }
   }
 
   &__cell {
@@ -106,6 +119,12 @@
 
     &--zero {
       color: rgba(var(--color-midnight-blue-rgb), 0.3);
+    }
+
+    &--removed {
+      background-color: rgba(var(--color-red-rgb), 0.08) !important;
+      text-decoration: line-through;
+      color: rgba(var(--color-midnight-blue-rgb), 0.4);
     }
   }
 

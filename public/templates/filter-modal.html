@@ -7,6 +7,27 @@
   @input="validateFilterExpression(); debouncedUpdateFilterPreview()"
 />
 
+<!-- Preview mode toggle -->
+<div style="margin-top: 0.75rem; display: flex; align-items: center; gap: 0.5rem">
+  <span style="font-size: 0.8rem; color: var(--color-dark-gray)">Preview:</span>
+  <button
+    type="button"
+    class="button button--small"
+    :class="filterPreviewMode === 'all' ? 'button--primary' : 'button--text'"
+    @click="filterPreviewMode = 'all'; updateFilterPreview()"
+  >
+    Show All
+  </button>
+  <button
+    type="button"
+    class="button button--small"
+    :class="filterPreviewMode === 'matching' ? 'button--primary' : 'button--text'"
+    @click="filterPreviewMode = 'matching'; updateFilterPreview()"
+  >
+    Matching Only
+  </button>
+</div>
+
 <!-- Error message -->
 <div
   x-show="filterError"

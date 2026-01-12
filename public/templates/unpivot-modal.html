@@ -30,7 +30,40 @@
   </div>
 </div>
 
-<label class="form-label">Select Columns to Fold:</label>
+<div class="form-group" style="margin-bottom: 0.75rem">
+  <label class="form-label">Selection Mode:</label>
+  <div style="display: flex; gap: 0.5rem">
+    <button
+      type="button"
+      class="button button--small"
+      :class="foldDialogState.mode === 'keep' ? 'button--primary' : 'button--text'"
+      @click="foldDialogState.mode = 'keep'; updateFoldPreview()"
+    >
+      Columns to Keep (as index)
+    </button>
+    <button
+      type="button"
+      class="button button--small"
+      :class="foldDialogState.mode === 'fold' ? 'button--primary' : 'button--text'"
+      @click="foldDialogState.mode = 'fold'; updateFoldPreview()"
+    >
+      Columns to Fold
+    </button>
+  </div>
+  <p class="form-help" style="font-size: 0.75rem; margin-top: 0.25rem">
+    <span x-show="foldDialogState.mode === 'keep'"
+      >Select columns to keep as identifiers; all other columns will be folded.</span
+    >
+    <span x-show="foldDialogState.mode === 'fold'"
+      >Select columns to fold into key-value pairs.</span
+    >
+  </p>
+</div>
+
+<label
+  class="form-label"
+  x-text="foldDialogState.mode === 'keep' ? 'Select Columns to Keep:' : 'Select Columns to Fold:'"
+></label>
 
 <div class="form-actions" style="margin-bottom: 0.5rem; display: flex; gap: 0.5rem">
   <button type="button" class="button button--text button--small" @click="selectAllForFold()">
@@ -48,7 +81,7 @@
       class="form-chip"
       style="flex-direction: row; justify-content: start; gap: 0.5rem; padding: 0.5rem 0.75rem"
       :class="{ active: foldDialogState.selectedColumns[index] }"
-      @click="toggleColumnForFold(index, $event)"
+      @click="toggleColumnForFold(index)"
     >
       <span
         class="iconify"
@@ -69,7 +102,3 @@
     </button>
   </template>
 </div>
-
-<p class="form-help" style="margin-top: 0.5rem; font-size: 0.75rem; color: var(--color-dark-gray)">
-  Tip: Cmd/Ctrl + click to toggle individual columns
-</p>

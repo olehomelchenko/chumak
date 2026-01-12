@@ -105,6 +105,7 @@ export class ChumakApp implements AppState {
   selectPatternMode: 'include' | 'exclude' = 'include';
   filterExpression = '';
   filterError: string | null = null;
+  filterPreviewMode: 'matching' | 'all' = 'all'; // 'matching' = show only matching, 'all' = show all with removed marked
   removedColumns: boolean[] = [];
 
   // Dialog states
@@ -135,7 +136,12 @@ export class ChumakApp implements AppState {
   };
   indexDialogState = { columnName: 'row_index', startFrom: 1 };
   renameDialogState = { renames: {} as Record<string, string> };
-  foldDialogState = { keyName: 'key', valueName: 'value', selectedColumns: [] as boolean[] };
+  foldDialogState = {
+    keyName: 'key',
+    valueName: 'value',
+    selectedColumns: [] as boolean[],
+    mode: 'keep' as 'keep' | 'fold', // 'keep' = select columns to keep as index, 'fold' = select columns to fold
+  };
   pivotDialogState: any = {
     rowColumns: [] as string[],
     columnColumn: '',
@@ -1875,31 +1881,63 @@ export class ChumakApp implements AppState {
 
     try {
       const ast = parseExpression(expr);
-      const matchingRows: any[] = [];
+      const previewRows: any[] = [];
       let matchCount = 0;
+      let removedCount = 0;
 
-      for (const row of this.currentData) {
+      // Limit to first 100 rows for preview
+      const sampleData = this.currentData.slice(0, 100);
+
+      for (const row of sampleData) {
         try {
-          if (interpretAST(ast, row)) {
+          const matches = interpretAST(ast, row);
+          if (matches) {
             matchCount++;
-            if (matchingRows.length < 50) matchingRows.push(row);
+            if (this.filterPreviewMode === 'matching') {
+              if (previewRows.length < 50) previewRows.push(row);
+            } else {
+              if (previewRows.length < 50) previewRows.push(row);
+            }
+          } else {
+            removedCount++;
+            if (this.filterPreviewMode === 'all' && previewRows.length < 50) {
+              previewRows.push({ ...row, _removed: true });
+            }
           }
         } catch {
           // Skip rows with evaluation errors
         }
       }
 
+      // Count matches in full dataset for stats
+      let totalMatchCount = matchCount;
+      if (this.currentData.length > 100) {
+        totalMatchCount = 0;
+        for (const row of this.currentData) {
+          try {
+            if (interpretAST(ast, row)) totalMatchCount++;
+          } catch {
+            // Skip
+          }
+        }
+      }
+
       this.previewState = {
         title: 'Filter Preview',
-        stats: `<strong>${matchCount}</strong> of ${this.currentData.length} rows match`,
+        stats: `<strong>${totalMatchCount}</strong> of ${this.currentData.length} rows match`,
         columns: this.columns.slice(0, 8),
         newColumns: [],
-        rows: matchingRows,
+        rows: previewRows,
         _debounceTimer: null,
       };
     } catch {
       this.clearPreview();
     }
+  }
+
+  toggleFilterPreviewMode() {
+    this.filterPreviewMode = this.filterPreviewMode === 'matching' ? 'all' : 'matching';
+    this.updateFilterPreview();
   }
 
   async applyFilterTransform() {
@@ -2610,17 +2648,28 @@ export class ChumakApp implements AppState {
     await this.runTransform('Remove', { remove: colsToRemove });
   }
 
-  toggleColumnForFold(index: number, event: MouseEvent) {
-    if (event.metaKey || event.ctrlKey) {
-      // Toggle single item
-      this.foldDialogState.selectedColumns[index] = !this.foldDialogState.selectedColumns[index];
-    } else {
-      // Single click - select only this one
-      const wasSelected = this.foldDialogState.selectedColumns[index];
-      this.foldDialogState.selectedColumns = this.columns.map(() => false);
-      if (!wasSelected) this.foldDialogState.selectedColumns[index] = true;
-    }
+  toggleColumnForFold(index: number) {
+    // Simple toggle - works like a checkbox
+    this.foldDialogState.selectedColumns[index] = !this.foldDialogState.selectedColumns[index];
     this.updateFoldPreview();
+  }
+
+  toggleFoldMode() {
+    // Toggle between 'keep' and 'fold' modes
+    this.foldDialogState.mode = this.foldDialogState.mode === 'keep' ? 'fold' : 'keep';
+    this.updateFoldPreview();
+  }
+
+  // Helper to get columns to fold based on current mode
+  getColumnsToFold(): string[] {
+    const { selectedColumns, mode } = this.foldDialogState;
+    if (mode === 'fold') {
+      // Selected columns are the ones to fold
+      return this.columns.filter((_c, idx) => selectedColumns[idx]);
+    } else {
+      // 'keep' mode: selected columns are kept as index, fold everything else
+      return this.columns.filter((_c, idx) => !selectedColumns[idx]);
+    }
   }
 
   selectAllForFold() {
@@ -2634,8 +2683,8 @@ export class ChumakApp implements AppState {
   }
 
   updateFoldPreview() {
-    const { keyName, valueName, selectedColumns } = this.foldDialogState;
-    const colsToFold = this.columns.filter((_c, idx) => selectedColumns[idx]);
+    const { keyName, valueName } = this.foldDialogState;
+    const colsToFold = this.getColumnsToFold();
 
     if (colsToFold.length === 0) {
       this.clearPreview();
@@ -2671,8 +2720,8 @@ export class ChumakApp implements AppState {
   }
 
   async applyFoldTransform() {
-    const { keyName, valueName, selectedColumns } = this.foldDialogState;
-    const colsToFold = this.columns.filter((_c, idx) => selectedColumns[idx]);
+    const { keyName, valueName } = this.foldDialogState;
+    const colsToFold = this.getColumnsToFold();
     if (colsToFold.length === 0) {
       await this.alert('Please select at least one column to unpivot');
       return;
@@ -3147,12 +3196,38 @@ export class ChumakApp implements AppState {
 
       const resultColumns = result.columnNames();
       const newCols = resultColumns.filter((c: string) => c.startsWith(`${column}_`));
-      const previewRows = result.objects();
+
+      // Show only affected columns: original (if kept or marked as removed) + new columns
+      const previewColumns = keepOriginal ? [column, ...newCols] : [column, ...newCols];
+      const fullRows = result.objects();
+
+      // Get original column values from source data for showing removed state
+      const previewRows = fullRows.map((row: any, idx: number) => {
+        const sourceRow = samples[idx];
+        const previewRow: any = {};
+
+        // Include original column (mark as removed if not keeping)
+        if (!keepOriginal) {
+          previewRow[column] = sourceRow[column];
+          previewRow._removedColumns = [column];
+        } else {
+          previewRow[column] = row[column];
+        }
+
+        // Include new columns
+        for (const newCol of newCols) {
+          previewRow[newCol] = row[newCol];
+        }
+
+        return previewRow;
+      });
 
       this.previewState = {
         title: 'Split Preview',
-        stats: `Showing ${previewRows.length} sample rows`,
-        columns: resultColumns,
+        stats: keepOriginal
+          ? `${newCols.length} new columns created`
+          : `Original column removed, ${newCols.length} new columns created`,
+        columns: previewColumns,
         newColumns: newCols,
         rows: previewRows,
         _debounceTimer: null,
@@ -3394,6 +3469,7 @@ export class ChumakApp implements AppState {
         keyName: 'key',
         valueName: 'value',
         selectedColumns: this.columns.map(() => false),
+        mode: 'keep',
       };
     } else if (dialogName === 'pivot') {
       this.initializePivotDialog();
@@ -3791,6 +3867,7 @@ export class ChumakApp implements AppState {
       keyName: 'key',
       valueName: 'value',
       selectedColumns: this.columns ? this.columns.map(() => false) : [],
+      mode: 'keep',
     };
     this.pivotDialogState = {
       rowColumns: [],
@@ -4571,10 +4648,12 @@ export class ChumakApp implements AppState {
       this.onJoinTargetChange();
     } else if (step.fold) {
       this.openDialog('fold');
+      // When editing, we use 'fold' mode since we're storing the columns to fold
       this.foldDialogState = {
         keyName: step.fold.as[0],
         valueName: step.fold.as[1],
         selectedColumns: this.columns.map((c) => step.fold.columns.includes(c)),
+        mode: 'fold',
       };
     } else if (step.pivot) {
       this.openDialog('pivot');

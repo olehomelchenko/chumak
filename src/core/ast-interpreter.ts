@@ -323,6 +323,12 @@ const FUNCTION_IMPLS: Record<string, (...args: any[]) => any> = {
     const len = Math.max(0, Math.floor(length));
     return str.substring(startIdx, startIdx + len);
   },
+  len: (value) => {
+    if (value == null) return null;
+    // Uses JavaScript's string length which counts UTF-16 code units
+    // This means surrogate pairs (emojis, etc.) count as 2
+    return String(value).length;
+  },
 
   // Math functions
   abs: (value) => {
