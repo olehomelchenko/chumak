@@ -3615,7 +3615,7 @@ export class ChumakApp implements AppState {
       case 'pivot':
         return 'Pivot Data (Wide)';
       case 'aggregate':
-        return 'Aggregate Data';
+        return 'Group By';
       case 'join':
         return 'Join Data';
       case 'replace':

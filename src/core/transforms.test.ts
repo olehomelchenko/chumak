@@ -422,7 +422,7 @@ describe('Transform Engine', () => {
         },
       };
       const desc = describeTransform(transform);
-      expect(desc).toContain('Aggregate: by[region]');
+      expect(desc).toContain('Group by (1 column)');
       expect(desc).toContain('2 summaries');
     });
 

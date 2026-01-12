@@ -2,8 +2,8 @@
   Create a pivot table by selecting row groupings, column headers, and values to aggregate.
 </p>
 
-<!-- Three-column layout: Rows, Columns, Values -->
-<div style="display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 1rem; margin-bottom: 1rem">
+<!-- Vertical layout: Rows, Columns, Values -->
+<div style="display: flex; flex-direction: column; gap: 1rem; margin-bottom: 1rem">
   <!-- Row Columns (grouping) -->
   <div class="form-group">
     <label class="form-label">Rows</label>
@@ -24,7 +24,7 @@
       </button>
     </div>
 
-    <div class="column-chips-multi" style="max-height: 180px">
+    <div class="column-chips-multi" style="max-height: 200px">
       <template x-for="(col, index) in columns" :key="col">
         <button
           type="button"
@@ -57,78 +57,81 @@
     <p class="form-help" style="font-size: 0.7rem; margin-top: 0.25rem">Group by these columns</p>
   </div>
 
-  <!-- Column Column (pivot headers) -->
-  <div class="form-group">
-    <label class="form-label">Columns</label>
-    <select
-      class="form-input"
-      x-model="pivotDialogState.columnColumn"
-      @change="onPivotConfigChange()"
-      style="margin-bottom: 0.5rem"
-    >
-      <option value="">Select column...</option>
-      <template x-for="col in columns" :key="col">
-        <option
-          :value="col"
-          x-text="col"
-          :disabled="pivotDialogState.rowColumns.includes(col) || pivotDialogState.valueColumn === col"
-        ></option>
-      </template>
-    </select>
-    <div
-      x-show="pivotDialogState.columnColumn"
-      style="
-        font-size: 0.75rem;
-        padding: 0.5rem;
-        background: var(--color-light-gray);
-        border-radius: 4px;
-        border: 1px solid var(--color-border);
-      "
-    >
-      <strong x-text="pivotDialogState.uniqueValueCount"></strong> unique values
-      <span x-show="pivotDialogState.uniqueValueCount > 50" style="color: var(--color-warning)">
-        (many columns!)
-      </span>
+  <!-- Columns and Values in a row -->
+  <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem">
+    <!-- Column Column (pivot headers) -->
+    <div class="form-group">
+      <label class="form-label">Columns</label>
+      <select
+        class="form-input"
+        x-model="pivotDialogState.columnColumn"
+        @change="onPivotConfigChange()"
+        style="margin-bottom: 0.5rem"
+      >
+        <option value="">Select column...</option>
+        <template x-for="col in columns" :key="col">
+          <option
+            :value="col"
+            x-text="col"
+            :disabled="pivotDialogState.rowColumns.includes(col) || pivotDialogState.valueColumn === col"
+          ></option>
+        </template>
+      </select>
+      <div
+        x-show="pivotDialogState.columnColumn"
+        style="
+          font-size: 0.75rem;
+          padding: 0.5rem;
+          background: var(--color-light-gray);
+          border-radius: 4px;
+          border: 1px solid var(--color-border);
+        "
+      >
+        <strong x-text="pivotDialogState.uniqueValueCount"></strong> unique values
+        <span x-show="pivotDialogState.uniqueValueCount > 50" style="color: var(--color-warning)">
+          (many columns!)
+        </span>
+      </div>
+      <p class="form-help" style="font-size: 0.7rem; margin-top: 0.25rem">
+        Values become column headers
+      </p>
     </div>
-    <p class="form-help" style="font-size: 0.7rem; margin-top: 0.25rem">
-      Values become column headers
-    </p>
-  </div>
 
-  <!-- Value Column + Aggregation -->
-  <div class="form-group">
-    <label class="form-label">Values</label>
-    <select
-      class="form-input"
-      x-model="pivotDialogState.valueColumn"
-      @change="onPivotConfigChange()"
-      style="margin-bottom: 0.5rem"
-    >
-      <option value="">Select column...</option>
-      <template x-for="col in columns" :key="col">
-        <option
-          :value="col"
-          x-text="col"
-          :disabled="pivotDialogState.rowColumns.includes(col) || pivotDialogState.columnColumn === col"
-        ></option>
-      </template>
-    </select>
-    <select
-      class="form-input"
-      x-model="pivotDialogState.aggregation"
-      @change="onPivotConfigChange()"
-      :disabled="!pivotDialogState.valueColumn"
-    >
-      <option value="sum">Sum</option>
-      <option value="mean">Average</option>
-      <option value="count">Count</option>
-      <option value="min">Min</option>
-      <option value="max">Max</option>
-      <option value="any">First value</option>
-    </select>
-    <p class="form-help" style="font-size: 0.7rem; margin-top: 0.25rem">
-      Aggregate function for cells
-    </p>
+    <!-- Value Column + Aggregation -->
+    <div class="form-group">
+      <label class="form-label">Values</label>
+      <select
+        class="form-input"
+        x-model="pivotDialogState.valueColumn"
+        @change="onPivotConfigChange()"
+        style="margin-bottom: 0.5rem"
+      >
+        <option value="">Select column...</option>
+        <template x-for="col in columns" :key="col">
+          <option
+            :value="col"
+            x-text="col"
+            :disabled="pivotDialogState.rowColumns.includes(col) || pivotDialogState.columnColumn === col"
+          ></option>
+        </template>
+      </select>
+      <select
+        class="form-input"
+        x-model="pivotDialogState.aggregation"
+        @change="onPivotConfigChange()"
+        :disabled="!pivotDialogState.valueColumn"
+      >
+        <option value="sum">Sum</option>
+        <option value="mean">Average</option>
+        <option value="count">Count</option>
+        <option value="min">Min</option>
+        <option value="max">Max</option>
+        <option value="any">First value</option>
+      </select>
+      <p class="form-help" style="font-size: 0.7rem; margin-top: 0.25rem">
+        Aggregate function for cells
+      </p>
+    </div>
   </div>
 </div>
 

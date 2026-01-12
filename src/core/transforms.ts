@@ -449,9 +449,11 @@ export function describeTransform(transform: any, rightName: string | null = nul
 
   if (transform.aggregate) {
     const { groupby, rollup } = transform.aggregate;
-    const groups = groupby && groupby.length > 0 ? groupby.join(', ') : 'All rows';
+    const groupCount = groupby && groupby.length > 0 ? groupby.length : 0;
     const aggs = Object.keys(rollup).length;
-    return `Aggregate: by[${groups}], ${aggs} summar${aggs !== 1 ? 'ies' : 'y'}`;
+    const groupLabel =
+      groupCount > 0 ? `${groupCount} column${groupCount !== 1 ? 's' : ''}` : 'all rows';
+    return `Group by (${groupLabel}), ${aggs} summar${aggs !== 1 ? 'ies' : 'y'}`;
   }
 
   if (transform.remove) {

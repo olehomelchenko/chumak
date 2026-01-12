@@ -69,6 +69,23 @@
           border-radius: 4px;
         "
       >
+        <!-- Column -->
+        <select
+          class="form-input"
+          style="flex: 1"
+          x-model="agg.col"
+          @change="updateAggregateOutputName(index)"
+          :disabled="agg.func === 'count'"
+        >
+          <option
+            value=""
+            x-text="agg.func === 'count' ? '(All rows)' : 'Select column...'"
+          ></option>
+          <template x-for="col in columns" :key="col">
+            <option :value="col" x-text="col"></option>
+          </template>
+        </select>
+
         <!-- Function -->
         <select
           class="form-input"
@@ -88,23 +105,6 @@
           <option value="last">Last</option>
         </select>
 
-        <!-- Column -->
-        <select
-          class="form-input"
-          style="flex: 1"
-          x-model="agg.col"
-          @change="updateAggregateOutputName(index)"
-          :disabled="agg.func === 'count'"
-        >
-          <option
-            value=""
-            x-text="agg.func === 'count' ? '(All rows)' : 'Select column...'"
-          ></option>
-          <template x-for="col in columns" :key="col">
-            <option :value="col" x-text="col"></option>
-          </template>
-        </select>
-
         <span>&rarr;</span>
 
         <!-- Output Name -->
@@ -113,7 +113,7 @@
           class="form-input"
           style="flex: 1"
           x-model="agg.output"
-          placeholder="New Name"
+          placeholder="Output name (auto-generated)"
         />
 
         <button

@@ -30,13 +30,11 @@ Rename modal:
 
 Aggregate data modal:
 
-- the summarize/rollup list of options should be reordered: first dropdown would show the column selector, second - aggregation method, third - the column name.
-- minor naming issue: the button is called "group by" but the model is "aggregate data" and the step name auto-generated is also "Aggregate: "
-- similarly, the name of the step should be generated " Aggregaty: by X columns to make it shorter
+(no issues here currently)
 
 Pivot data modal:
 
-- the style is not consistent with the rest of the modals: three blocks (rows / columns / values) are aligned horizontally, would use space better if were aligned vertically one below another.
+(no issues here currently)
 
 Other:
 
