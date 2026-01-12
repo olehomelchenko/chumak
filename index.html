@@ -95,7 +95,7 @@
     </header>
 
     <!-- Ribbon Toolbar -->
-    <div class="ribbon">
+    <div class="ribbon" :class="{ 'ribbon--disabled': !currentData }">
       <!-- Ribbon Content -->
       <div class="ribbon__content">
         <!-- Prepare Tab -->
@@ -384,23 +384,20 @@
     <aside class="left-panel">
       <!-- Sources & Models -->
       <section class="panel-section">
-        <div class="panel-section__header-container">
-          <h2 class="panel-section__header">Sources & Models</h2>
-          <div class="panel-section__actions">
-            <button
-              class="icon-button"
-              @click="$refs.fileInput.click()"
-              title="Add file (Import CSV)"
-            >
-              <span class="iconify" data-icon="carbon:upload"></span>
-            </button>
-            <button class="icon-button" @click="promptPaste()" title="Paste data from clipboard">
-              <span class="iconify" data-icon="carbon:paste"></span>
-            </button>
-            <button class="icon-button" @click="showImportUrlDialog()" title="Import from URL">
-              <span class="iconify" data-icon="carbon:link"></span>
-            </button>
-          </div>
+        <h2 class="panel-section__header">Sources & Models</h2>
+        <div class="import-actions">
+          <button class="import-action" @click="$refs.fileInput.click()" title="Upload CSV file">
+            <span class="iconify" data-icon="carbon:upload"></span>
+            <span>Upload</span>
+          </button>
+          <button class="import-action" @click="promptPaste()" title="Paste data from clipboard">
+            <span class="iconify" data-icon="carbon:paste"></span>
+            <span>Paste</span>
+          </button>
+          <button class="import-action" @click="showImportUrlDialog()" title="Import from URL">
+            <span class="iconify" data-icon="carbon:link"></span>
+            <span>URL</span>
+          </button>
         </div>
         <div class="tree-view">
           <template x-for="source in sources" :key="source.id">
@@ -433,20 +430,6 @@
                   <span class="tree-item__meta" x-text="getModelMeta(model)"></span>
                 </div>
               </template>
-
-              <!-- New Model button -->
-              <div
-                class="tree-item tree-item--action"
-                @click="createNewModel(source)"
-                style="cursor: pointer"
-                title="Create a new model from this source"
-              >
-                <span class="tree-item__indent"></span>
-                <span class="tree-item__icon">➕</span>
-                <span class="tree-item__name" style="color: #666; font-style: italic"
-                  >New Model</span
-                >
-              </div>
             </div>
           </template>
 
@@ -576,8 +559,7 @@
           <div x-show="currentData && activeModel?.steps?.length > 0" class="json-editor">
             <!-- Read-only mode -->
             <template x-if="!jsonEditMode">
-              <div>
-                <pre class="json-view__content" x-text="getStepsJson()"></pre>
+              <div class="json-view">
                 <button
                   class="json-edit-toggle"
                   @click="enterJsonEditMode()"
@@ -590,6 +572,7 @@
                   ></span>
                   Edit JSON
                 </button>
+                <pre class="json-view__content" x-text="getStepsJson()"></pre>
               </div>
             </template>
 
@@ -649,12 +632,29 @@
         @drop.prevent="handleFileDrop($event)"
       >
         <div class="empty-state__content">
-          <span class="iconify" data-icon="carbon:cloud-upload" class="empty-state__icon"></span>
+          <span class="iconify empty-state__icon" data-icon="carbon:cloud-upload"></span>
           <h2 class="empty-state__title">Get Started with Chumak</h2>
           <p class="empty-state__text">
-            Drag and drop a CSV file, paste from clipboard (Ctrl+V), use the "Import CSV" button or
-            "Import from URL"
+            Drag and drop a CSV file here, or use one of the options below
           </p>
+          <div class="empty-state__actions">
+            <button class="button button--primary" @click="$refs.fileInput.click()">
+              <span class="iconify" data-icon="carbon:upload"></span>
+              Upload CSV
+            </button>
+            <button class="button button--primary" @click="promptPaste()">
+              <span class="iconify" data-icon="carbon:paste"></span>
+              Paste Data
+            </button>
+            <button class="button button--primary" @click="showImportUrlDialog()">
+              <span class="iconify" data-icon="carbon:link"></span>
+              Import from URL
+            </button>
+            <button class="button button--secondary" disabled title="Coming soon">
+              <span class="iconify" data-icon="carbon:data-table"></span>
+              Load Example
+            </button>
+          </div>
         </div>
       </div>
 
@@ -999,6 +999,25 @@
               :class="`type-badge--${edaStats?.type}`"
               x-text="edaStats?.type"
             ></span>
+            <!-- Date treatment toggle -->
+            <template x-if="['date', 'datetime'].includes(edaStats?.type)">
+              <div class="eda-treatment-toggle">
+                <button
+                  class="eda-treatment-toggle__btn"
+                  :class="{ 'eda-treatment-toggle__btn--active': edaDateTreatment === 'temporal' }"
+                  @click="setEdaDateTreatment('temporal')"
+                >
+                  Temporal
+                </button>
+                <button
+                  class="eda-treatment-toggle__btn"
+                  :class="{ 'eda-treatment-toggle__btn--active': edaDateTreatment === 'categorical' }"
+                  @click="setEdaDateTreatment('categorical')"
+                >
+                  Categorical
+                </button>
+              </div>
+            </template>
           </div>
           <button class="eda-panel__close" @click="clearColumnSelection()">×</button>
         </div>
@@ -1142,8 +1161,20 @@
             </div>
           </template>
 
+          <!-- Temporal Stats (for date columns with temporal treatment) -->
+          <template
+            x-if="['date', 'datetime'].includes(edaStats?.type) && edaDateTreatment === 'temporal'"
+          >
+            <div class="eda-section eda-section--wide">
+              <div class="eda-section__title">Timeline Distribution</div>
+              <div id="eda-temporal-chart" style="width: 100%; min-height: 100px"></div>
+            </div>
+          </template>
+
           <!-- Categorical Stats (Top Frequencies) -->
-          <template x-if="!['number', 'integer', 'float'].includes(edaStats?.type)">
+          <template
+            x-if="!['number', 'integer', 'float'].includes(edaStats?.type) && !(['date', 'datetime'].includes(edaStats?.type) && edaDateTreatment === 'temporal')"
+          >
             <div class="eda-section eda-section--wide">
               <div class="eda-section__title">Frequency Distribution</div>
               <div style="display: flex; gap: var(--space-xl); align-items: start">
@@ -1468,22 +1499,40 @@
         Change Type
       </div>
       <button class="type-menu__item" @click="changeColumnType(typeMenuCol, 'string')">
-        <span class="type-badge type-badge--string">string</span> String
+        <span class="type-indicator type-indicator--string"
+          ><span class="iconify" data-icon="ix:data-type-string"></span
+        ></span>
+        String
       </button>
       <button class="type-menu__item" @click="changeColumnType(typeMenuCol, 'integer')">
-        <span class="type-badge type-badge--integer">integer</span> Integer
+        <span class="type-indicator type-indicator--integer"
+          ><span class="iconify" data-icon="ix:data-type-integer"></span
+        ></span>
+        Integer
       </button>
       <button class="type-menu__item" @click="changeColumnType(typeMenuCol, 'float')">
-        <span class="type-badge type-badge--float">float</span> Float
+        <span class="type-indicator type-indicator--float"
+          ><span class="iconify" data-icon="ix:data-type-double"></span
+        ></span>
+        Float
       </button>
       <button class="type-menu__item" @click="changeColumnType(typeMenuCol, 'boolean')">
-        <span class="type-badge type-badge--boolean">boolean</span> Boolean
+        <span class="type-indicator type-indicator--boolean"
+          ><span class="iconify" data-icon="ix:data-type-boolean"></span
+        ></span>
+        Boolean
       </button>
       <button class="type-menu__item" @click="changeColumnType(typeMenuCol, 'date')">
-        <span class="type-badge type-badge--date">date</span> Date
+        <span class="type-indicator type-indicator--date"
+          ><span class="iconify" data-icon="ix:calendar"></span
+        ></span>
+        Date
       </button>
       <button class="type-menu__item" @click="changeColumnType(typeMenuCol, 'datetime')">
-        <span class="type-badge type-badge--datetime">datetime</span> DateTime
+        <span class="type-indicator type-indicator--datetime"
+          ><span class="iconify" data-icon="ix:calendar"></span
+        ></span>
+        DateTime
       </button>
       <div
         style="width: 100%; height: 1px; background: var(--color-medium-gray); margin: 4px 0"
@@ -1567,6 +1616,78 @@
           <button class="button button--primary" @click="closeMessageBox(true)">
             <span x-text="messageBox.type === 'confirm' ? 'Yes' : 'OK'"></span>
           </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Step Removal Modal -->
+    <div
+      class="dialog-backdrop"
+      x-show="stepRemovalModal.visible"
+      x-cloak
+      @keydown.escape.window="if (stepRemovalModal.visible) closeStepRemovalModal(false)"
+    >
+      <div class="dialog dialog--warning" @click.stop>
+        <div class="dialog__header">
+          <h3 class="dialog__title">
+            <span class="iconify" data-icon="carbon:warning"></span>
+            <span>Remove Step</span>
+          </h3>
+          <button class="dialog__close" @click="closeStepRemovalModal(false)">×</button>
+        </div>
+        <div class="dialog__content">
+          <div class="dialog__message">
+            Remove step "<span x-text="stepRemovalModal.stepName"></span>"?
+          </div>
+          <div class="step-removal-options">
+            <label class="step-removal-option">
+              <input
+                type="radio"
+                name="removeMode"
+                value="all"
+                x-model="stepRemovalModal.removeMode"
+              />
+              <div class="step-removal-option__content">
+                <strong>Remove this step and all following steps</strong>
+                <div
+                  class="step-removal-option__preview"
+                  x-show="stepRemovalModal.affectedSteps.length > 0"
+                >
+                  <span class="step-removal-option__label">Will also remove:</span>
+                  <ul class="step-removal-option__list">
+                    <template x-for="(stepName, i) in stepRemovalModal.affectedSteps" :key="i">
+                      <li x-text="stepName"></li>
+                    </template>
+                  </ul>
+                </div>
+              </div>
+            </label>
+            <label class="step-removal-option">
+              <input
+                type="radio"
+                name="removeMode"
+                value="single"
+                x-model="stepRemovalModal.removeMode"
+              />
+              <div class="step-removal-option__content">
+                <strong>Remove only this step</strong>
+                <div class="step-removal-option__warning">
+                  <span
+                    class="iconify"
+                    data-icon="carbon:warning"
+                    style="color: var(--color-yellow)"
+                  ></span>
+                  Following steps may fail if they depend on this step's output
+                </div>
+              </div>
+            </label>
+          </div>
+        </div>
+        <div class="dialog__footer">
+          <button class="button button--secondary" @click="closeStepRemovalModal(false)">
+            Cancel
+          </button>
+          <button class="button button--danger" @click="closeStepRemovalModal(true)">Remove</button>
         </div>
       </div>
     </div>

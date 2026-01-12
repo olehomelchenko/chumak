@@ -226,3 +226,35 @@
   max-width: 30px;
   opacity: 0.3;
 }
+
+.eda-treatment-toggle {
+  display: flex;
+  background: var(--color-white);
+  border: 1px solid var(--color-medium-gray);
+  border-radius: 4px;
+  overflow: hidden;
+  padding: 1px;
+  margin-left: var(--space-md);
+
+  &__btn {
+    padding: 2px 10px;
+    font-size: 10px;
+    font-weight: var(--font-weight-medium);
+    border: none;
+    background: transparent;
+    color: var(--color-dark-gray);
+    cursor: pointer;
+    border-radius: 2px;
+    transition: all var(--transition-fast);
+
+    &:hover {
+      background: var(--color-light-gray);
+      color: var(--color-midnight-blue);
+    }
+
+    &--active {
+      background: var(--color-cyan) !important;
+      color: var(--color-white) !important;
+    }
+  }
+}

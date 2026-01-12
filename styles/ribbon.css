@@ -7,6 +7,13 @@
   position: relative;
   z-index: 1100;
 
+  &--disabled {
+    .ribbon__content {
+      opacity: 0.4;
+      pointer-events: none;
+    }
+  }
+
   &__tabs {
     display: flex;
     gap: 0;

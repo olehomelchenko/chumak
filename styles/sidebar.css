@@ -28,25 +28,46 @@
     border-top: var(--border-width) solid var(--border-color);
   }
 
-  &__header-container {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: var(--space-sm);
-  }
-
   &__header {
     font-size: var(--font-size-lg);
     font-weight: var(--font-weight-medium);
     color: var(--color-midnight-blue);
-    margin: 0;
+    margin: 0 0 var(--space-sm) 0;
     line-height: var(--line-height-tight);
   }
+}
 
-  &__actions {
-    display: flex;
-    gap: 4px;
-    align-items: center;
+.import-actions {
+  display: flex;
+  gap: 6px;
+  margin-bottom: var(--space-md);
+}
+
+.import-action {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 10px 8px;
+  background: rgba(var(--color-cyan-rgb), 0.08);
+  border: 1px dashed var(--color-cyan);
+  border-radius: var(--border-radius);
+  color: var(--color-midnight-blue);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-medium);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+
+  .iconify {
+    width: 20px;
+    height: 20px;
+    color: var(--color-cyan);
+  }
+
+  &:hover {
+    background: rgba(var(--color-cyan-rgb), 0.15);
+    border-style: solid;
   }
 }
 

@@ -29,21 +29,24 @@
 .json-edit-toggle {
   display: flex;
   align-items: center;
-  gap: 4px;
-  margin-top: var(--space-sm);
-  padding: 6px 12px;
-  background: transparent;
-  border: 1px dashed var(--color-medium-gray);
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  margin-bottom: var(--space-sm);
+  padding: 8px 12px;
+  background: rgba(var(--color-yellow-rgb), 0.1);
+  border: 1px solid var(--color-yellow);
   border-radius: var(--border-radius);
-  color: var(--color-dark-gray);
-  font-size: var(--font-size-xs);
+  color: #8a6508;
+  font-size: var(--font-size-sm);
+  font-weight: 500;
   cursor: pointer;
   transition: all var(--transition-fast);
 
   &:hover {
     border-color: var(--color-yellow);
-    color: #b5860a;
-    background: rgba(var(--color-yellow-rgb), 0.1);
+    color: #6b4f06;
+    background: rgba(var(--color-yellow-rgb), 0.2);
   }
 }
 

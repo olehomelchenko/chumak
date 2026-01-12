@@ -4,7 +4,7 @@ import { AppState } from './app/types';
 import { ColumnSchema, TransformStep, SchemaEngine } from './core/schema-engine';
 import { loadUXSettings, updateUXSetting } from './core/ux-settings';
 import { loadInitialData, autoSave, clearAllData } from './core/storage';
-import { getUrlState, setUrlState } from './core/url-state';
+import { getUrlState, setUrlState, clearUrlHash } from './core/url-state';
 import { Transformation } from './app/decorators';
 import { applyTransform, describeTransform } from './core/transforms';
 import { TransformResult } from './core/transform-result';
@@ -44,6 +44,7 @@ export class ChumakApp implements AppState {
   edaStats: any = null;
   edaChartView: 'boxplot' | 'histogram' = 'boxplot';
   edaBrushSelection: any = null;
+  edaDateTreatment: 'temporal' | 'categorical' = 'temporal';
   theme: 'chumak' | 'blues' = 'chumak';
 
   // Transformation status
@@ -231,6 +232,16 @@ export class ChumakApp implements AppState {
     resolve: null as ((value: any) => void) | null,
   };
 
+  // Step removal modal
+  stepRemovalModal = {
+    visible: false,
+    stepIndex: -1,
+    stepName: '',
+    affectedSteps: [] as string[],
+    removeMode: 'all' as 'single' | 'all',
+    resolve: null as ((value: 'single' | 'all' | null) => void) | null,
+  };
+
   // Alpine's injected properties
   $nextTick: any;
   $watch: any;
@@ -258,7 +269,11 @@ export class ChumakApp implements AppState {
     const urlState = getUrlState();
     let restored = false;
 
-    if (urlState.modelId) {
+    // Handle page routes (about, reference, expressions, settings)
+    if (urlState.page) {
+      this.openDialog(urlState.page, urlState.section);
+      restored = true;
+    } else if (urlState.modelId) {
       const model = models.find((m) => m.id === urlState.modelId);
       if (model) {
         this.activeModel = model;
@@ -275,6 +290,9 @@ export class ChumakApp implements AppState {
         restored = true;
       }
     }
+
+    // Listen for hash changes (browser back/forward)
+    window.addEventListener('hashchange', () => this.handleHashChange());
 
     if (!restored && models.length > 0) {
       this.activeModel = models[0];
@@ -1463,6 +1481,15 @@ export class ChumakApp implements AppState {
               (sel: any) => this.handleBrushSelection(sel)
             );
         });
+      } else if (['date', 'datetime'].includes(type) && this.edaDateTreatment === 'temporal') {
+        this.$nextTick(() =>
+          ChartsEngine.renderTemporalChart(
+            '#eda-temporal-chart',
+            this.currentData!,
+            this.selectedColumn!,
+            this.theme
+          )
+        );
       } else {
         this.$nextTick(() =>
           ChartsEngine.renderCategoricalBar(
@@ -1527,6 +1554,28 @@ export class ChumakApp implements AppState {
             );
         });
       }
+    }
+  }
+
+  setEdaDateTreatment(treatment: 'temporal' | 'categorical') {
+    this.edaDateTreatment = treatment;
+    if (this.selectedColumn && this.edaStats && ['date', 'datetime'].includes(this.edaStats.type)) {
+      this.$nextTick(() => {
+        if (treatment === 'temporal') {
+          ChartsEngine.renderTemporalChart(
+            '#eda-temporal-chart',
+            this.currentData!,
+            this.selectedColumn!,
+            this.theme
+          );
+        } else {
+          ChartsEngine.renderCategoricalBar(
+            '#eda-categorical-bar',
+            this.edaStats.topValues,
+            this.theme
+          );
+        }
+      });
     }
   }
 
@@ -3276,14 +3325,35 @@ export class ChumakApp implements AppState {
     }
   }
 
-  openDialog(dialogName: string) {
+  openDialog(dialogName: string, section?: string) {
     this.activeDialog = dialogName;
-    this.initDialogState(dialogName);
+    this.initDialogState(dialogName, section);
     this.clearColumnSelection();
     this.reSnapshot();
+
+    // Update URL for navigable pages
+    if (['about', 'reference', 'expressions', 'settings'].includes(dialogName)) {
+      setUrlState({ page: dialogName, section });
+    }
   }
 
-  private initDialogState(dialogName: string) {
+  handleHashChange() {
+    const urlState = getUrlState();
+    if (urlState.page) {
+      if (this.activeDialog !== urlState.page) {
+        this.openDialog(urlState.page, urlState.section);
+      }
+    } else if (
+      this.activeDialog &&
+      ['about', 'reference', 'expressions', 'settings'].includes(this.activeDialog)
+    ) {
+      // Hash cleared or changed to non-page route, close dialog
+      this.activeDialog = null;
+    }
+  }
+
+  private initDialogState(dialogName: string, _section?: string) {
+    // _section can be used for deep-linking within reference pages in the future
     if (dialogName === 'select') {
       this.selectedColumns = this.columns.map(() => true);
       this.selectPatternText = '';
@@ -3669,6 +3739,15 @@ export class ChumakApp implements AppState {
       if (!(await this.confirm('You have unsaved changes. Are you sure you want to discard them?')))
         return;
     }
+
+    // Clear URL hash if closing a navigable page
+    if (
+      this.activeDialog &&
+      ['about', 'reference', 'expressions', 'settings'].includes(this.activeDialog)
+    ) {
+      clearUrlHash();
+    }
+
     this.clearPreview();
     this.activeDialog = null;
     this.dialogSnapshot = null;
@@ -4558,10 +4637,54 @@ export class ChumakApp implements AppState {
     }
 
     const step = this.activeModel.steps[stepIndex];
-    if (!(await this.confirm(`Remove step "${describeTransform(step)}"?`))) return;
+    const isLastStep = stepIndex === this.activeModel.steps.length - 1;
 
+    // If it's the last step, use simple confirm
+    if (isLastStep) {
+      if (!(await this.confirm(`Remove step "${describeTransform(step)}"?`))) return;
+      await this.executeStepRemoval(stepIndex, 'single');
+    } else {
+      // For non-last steps, show the step removal modal
+      const removeMode = await this.showStepRemovalModal(stepIndex);
+      if (!removeMode) return;
+      await this.executeStepRemoval(stepIndex, removeMode);
+    }
+  }
+
+  showStepRemovalModal(stepIndex: number): Promise<'single' | 'all' | null> {
+    const step = this.activeModel.steps[stepIndex];
+    const affectedSteps = this.activeModel.steps
+      .slice(stepIndex + 1)
+      .map((s: any) => describeTransform(s));
+
+    return new Promise((resolve) => {
+      this.stepRemovalModal = {
+        visible: true,
+        stepIndex,
+        stepName: describeTransform(step),
+        affectedSteps,
+        removeMode: 'all',
+        resolve,
+      };
+    });
+  }
+
+  closeStepRemovalModal(confirmed: boolean) {
+    if (this.stepRemovalModal.resolve) {
+      this.stepRemovalModal.resolve(confirmed ? this.stepRemovalModal.removeMode : null);
+    }
+    this.stepRemovalModal.visible = false;
+  }
+
+  async executeStepRemoval(stepIndex: number, mode: 'single' | 'all') {
     try {
-      this.activeModel.steps.splice(stepIndex, 1);
+      if (mode === 'all') {
+        // Remove this step and all following steps
+        this.activeModel.steps.splice(stepIndex);
+      } else {
+        // Remove just this step
+        this.activeModel.steps.splice(stepIndex, 1);
+      }
       this.activeModel.steps = [...this.activeModel.steps];
 
       const result = this.computeUpToStep(this.activeModel.steps.length - 1);

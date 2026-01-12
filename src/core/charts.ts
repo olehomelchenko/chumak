@@ -243,4 +243,91 @@ export const ChartsEngine = {
       console.error('Error rendering histogram:', error);
     }
   },
+
+  /**
+   * Render a temporal line chart for date/datetime columns
+   */
+  async renderTemporalChart(
+    containerSelector: string,
+    data: any[],
+    column: string,
+    theme: 'chumak' | 'blues' = 'chumak',
+    options: ChartOptions = {}
+  ): Promise<void> {
+    if (!data || data.length === 0 || !column) return;
+
+    // Filter valid dates and sort by date
+    const chartData = data
+      .map((row) => ({ [column]: row[column] }))
+      .filter((row) => {
+        const val = row[column];
+        if (val === null || val === undefined || val === '') return false;
+        const date = new Date(val);
+        return !isNaN(date.getTime());
+      })
+      .sort((a, b) => new Date(a[column]).getTime() - new Date(b[column]).getTime());
+
+    if (chartData.length === 0) return;
+
+    // Aggregate by time unit based on date range
+    const firstDate = new Date(chartData[0][column]);
+    const lastDate = new Date(chartData[chartData.length - 1][column]);
+    const rangeDays = (lastDate.getTime() - firstDate.getTime()) / (1000 * 60 * 60 * 24);
+
+    let timeUnit: string;
+    if (rangeDays > 365 * 2) {
+      timeUnit = 'yearmonth';
+    } else if (rangeDays > 60) {
+      timeUnit = 'yearmonthdate';
+    } else if (rangeDays > 2) {
+      timeUnit = 'monthdate';
+    } else {
+      timeUnit = 'hoursminutes';
+    }
+
+    const spec: any = {
+      $schema: 'https://vega.github.io/schema/vega-lite/v6.json',
+      data: { values: chartData },
+      width: options.width || 'container',
+      height: options.height || 80,
+      padding: { top: 10, bottom: 25, left: 10, right: 10 },
+      mark: {
+        type: 'area',
+        line: true,
+        point: false,
+        opacity: 0.3,
+        tooltip: true,
+      },
+      encoding: {
+        x: {
+          field: column,
+          type: 'temporal',
+          timeUnit: timeUnit,
+          title: '',
+          axis: { grid: false, labels: true, ticks: true, format: '%b %Y' },
+        },
+        y: {
+          aggregate: 'count',
+          type: 'quantitative',
+          axis: null,
+        },
+        tooltip: [
+          { field: column, type: 'temporal', timeUnit: timeUnit, title: 'Date' },
+          { aggregate: 'count', title: 'Count' },
+        ],
+      },
+    };
+
+    const vegaTheme = theme === 'chumak' ? chumakTheme : bluesTheme;
+
+    try {
+      await vegaEmbed(containerSelector, spec, {
+        actions: false,
+        renderer: 'svg',
+        config: vegaTheme,
+      });
+    } catch (error) {
+      console.error('Error rendering temporal chart:', error);
+    }
+  },
 };
