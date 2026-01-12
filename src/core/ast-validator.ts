@@ -69,6 +69,25 @@ const ALLOWED_FUNCTIONS: Record<string, FunctionSpec> = {
   date_add: { minArgs: 3, maxArgs: 3 },
   date_trunc: { minArgs: 2, maxArgs: 2 },
   format_date: { minArgs: 2, maxArgs: 2 },
+
+  // String functions
+  upper: { minArgs: 1, maxArgs: 1 },
+  lower: { minArgs: 1, maxArgs: 1 },
+  trim: { minArgs: 1, maxArgs: 1 },
+  substring: { minArgs: 2, maxArgs: 3 },
+
+  // Math functions
+  abs: { minArgs: 1, maxArgs: 1 },
+  round: { minArgs: 1, maxArgs: 2 },
+  floor: { minArgs: 1, maxArgs: 1 },
+  ceil: { minArgs: 1, maxArgs: 1 },
+  min: { minArgs: 1, maxArgs: Infinity },
+  max: { minArgs: 1, maxArgs: Infinity },
+
+  // Type conversion
+  parse_int: { minArgs: 1, maxArgs: 1 },
+  parse_float: { minArgs: 1, maxArgs: 1 },
+  is_nan: { minArgs: 1, maxArgs: 1 },
 };
 
 export interface ValidationResult {

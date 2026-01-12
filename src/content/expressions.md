@@ -135,6 +135,36 @@ regexp_match(name, "(?i)john")     → Case-insensitive match
 regexp_extract(text, "(\\d+)", 1)  → Extract first capture group
 ```
 
+### String Manipulation
+
+| Function                  | Returns               | Example                          |
+| ------------------------- | --------------------- | -------------------------------- |
+| `upper(text)`             | Uppercase string      | `upper(name)` → "JOHN DOE"       |
+| `lower(text)`             | Lowercase string      | `lower(name)` → "john doe"       |
+| `trim(text)`              | Trimmed string        | `trim(padded)` → removes spaces  |
+| `substring(text, start)`  | Substring from start  | `substring(name, 5)` → "Doe"     |
+| `substring(text, s, len)` | Substring with length | `substring(name, 0, 4)` → "John" |
+
+## Math Functions
+
+| Function             | Returns           | Example                          |
+| -------------------- | ----------------- | -------------------------------- |
+| `abs(x)`             | Absolute value    | `abs(-5)` → 5                    |
+| `round(x)`           | Rounded integer   | `round(3.7)` → 4                 |
+| `round(x, decimals)` | Rounded to places | `round(3.14159, 2)` → 3.14       |
+| `floor(x)`           | Rounded down      | `floor(3.9)` → 3                 |
+| `ceil(x)`            | Rounded up        | `ceil(3.1)` → 4                  |
+| `min(a, b, ...)`     | Minimum value     | `min(price, cost, 100)` → lowest |
+| `max(a, b, ...)`     | Maximum value     | `max(price, cost)` → highest     |
+
+## Type Conversion
+
+| Function         | Returns              | Example                      |
+| ---------------- | -------------------- | ---------------------------- |
+| `parse_int(x)`   | Integer or null      | `parse_int("42")` → 42       |
+| `parse_float(x)` | Float or null        | `parse_float("3.14")` → 3.14 |
+| `is_nan(x)`      | true if not-a-number | `is_nan("abc")` → true       |
+
 ## Common Patterns
 
 ### Filtering Examples
@@ -180,7 +210,24 @@ weekday(date) == 0 ? "Monday" : weekday(date) == 4 ? "Friday" : "Other"
 
 // Text extraction
 regexp_extract(email, "(.+)@", 1)           → username from email
-regexp_extract(phone, "\\((\\d{3})\\)", 1)  → area code
+regexp_extract(phone, "\\((\d{3})\\)", 1)  → area code
+
+// String manipulation
+upper(name)                       → "JOHN DOE"
+lower(email)                      → normalized email
+trim(input)                       → remove whitespace
+substring(sku, 0, 3)              → product category prefix
+
+// Math utilities
+abs(profit)                       → always positive
+round(percentage, 2)              → two decimal places
+min(price, max_budget)            → capped price
+max(quantity, 1)                  → at least 1
+
+// Type conversion
+parse_int(quantity_str)           → numeric quantity
+parse_float(price_str)            → numeric price
+is_nan(value) ? 0 : value         → replace invalid with 0
 ```
 
 ## Security Note

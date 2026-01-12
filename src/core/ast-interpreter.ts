@@ -299,6 +299,84 @@ const FUNCTION_IMPLS: Record<string, (...args: any[]) => any> = {
 
     return result;
   },
+
+  // String functions
+  upper: (value) => {
+    if (value == null) return null;
+    return String(value).toUpperCase();
+  },
+  lower: (value) => {
+    if (value == null) return null;
+    return String(value).toLowerCase();
+  },
+  trim: (value) => {
+    if (value == null) return null;
+    return String(value).trim();
+  },
+  substring: (value, start, length) => {
+    if (value == null) return null;
+    const str = String(value);
+    const startIdx = Math.max(0, Math.floor(start));
+    if (length === undefined) {
+      return str.substring(startIdx);
+    }
+    const len = Math.max(0, Math.floor(length));
+    return str.substring(startIdx, startIdx + len);
+  },
+
+  // Math functions
+  abs: (value) => {
+    if (value == null) return null;
+    const num = Number(value);
+    return isNaN(num) ? null : Math.abs(num);
+  },
+  round: (value, decimals = 0) => {
+    if (value == null) return null;
+    const num = Number(value);
+    if (isNaN(num)) return null;
+    const factor = Math.pow(10, Math.floor(decimals));
+    return Math.round(num * factor) / factor;
+  },
+  floor: (value) => {
+    if (value == null) return null;
+    const num = Number(value);
+    return isNaN(num) ? null : Math.floor(num);
+  },
+  ceil: (value) => {
+    if (value == null) return null;
+    const num = Number(value);
+    return isNaN(num) ? null : Math.ceil(num);
+  },
+  min: (...args) => {
+    const nums = args
+      .filter((v) => v != null)
+      .map(Number)
+      .filter((n) => !isNaN(n));
+    return nums.length === 0 ? null : Math.min(...nums);
+  },
+  max: (...args) => {
+    const nums = args
+      .filter((v) => v != null)
+      .map(Number)
+      .filter((n) => !isNaN(n));
+    return nums.length === 0 ? null : Math.max(...nums);
+  },
+
+  // Type conversion
+  parse_int: (value) => {
+    if (value == null) return null;
+    const result = parseInt(String(value), 10);
+    return isNaN(result) ? null : result;
+  },
+  parse_float: (value) => {
+    if (value == null) return null;
+    const result = parseFloat(String(value));
+    return isNaN(result) ? null : result;
+  },
+  is_nan: (value) => {
+    if (value == null) return false;
+    return Number.isNaN(Number(value));
+  },
 };
 
 export function interpretAST(ast: ASTNode, rowData: Record<string, any>): any {

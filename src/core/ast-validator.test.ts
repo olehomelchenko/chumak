@@ -318,5 +318,121 @@ describe('AST Validator', () => {
         expect(result.error?.type).toBe('unknown-column');
       });
     });
+
+    describe('string function validation', () => {
+      it('should allow upper with 1 argument', () => {
+        const ast = parseExpression('upper(region)');
+        const result = validateAST(ast, testSchema);
+        expect(result.valid).toBe(true);
+      });
+
+      it('should allow lower with 1 argument', () => {
+        const ast = parseExpression('lower(region)');
+        const result = validateAST(ast, testSchema);
+        expect(result.valid).toBe(true);
+      });
+
+      it('should allow trim with 1 argument', () => {
+        const ast = parseExpression('trim(region)');
+        const result = validateAST(ast, testSchema);
+        expect(result.valid).toBe(true);
+      });
+
+      it('should allow substring with 2 arguments', () => {
+        const ast = parseExpression('substring(region, 0)');
+        const result = validateAST(ast, testSchema);
+        expect(result.valid).toBe(true);
+      });
+
+      it('should allow substring with 3 arguments', () => {
+        const ast = parseExpression('substring(region, 0, 3)');
+        const result = validateAST(ast, testSchema);
+        expect(result.valid).toBe(true);
+      });
+
+      it('should reject substring with wrong arity', () => {
+        const ast = parseExpression('substring(region)');
+        const result = validateAST(ast, testSchema);
+        expect(result.valid).toBe(false);
+        expect(result.error?.type).toBe('wrong-arity');
+      });
+    });
+
+    describe('math function validation', () => {
+      it('should allow abs with 1 argument', () => {
+        const ast = parseExpression('abs(sales)');
+        const result = validateAST(ast, testSchema);
+        expect(result.valid).toBe(true);
+      });
+
+      it('should allow round with 1 argument', () => {
+        const ast = parseExpression('round(sales)');
+        const result = validateAST(ast, testSchema);
+        expect(result.valid).toBe(true);
+      });
+
+      it('should allow round with 2 arguments', () => {
+        const ast = parseExpression('round(sales, 2)');
+        const result = validateAST(ast, testSchema);
+        expect(result.valid).toBe(true);
+      });
+
+      it('should allow floor with 1 argument', () => {
+        const ast = parseExpression('floor(sales)');
+        const result = validateAST(ast, testSchema);
+        expect(result.valid).toBe(true);
+      });
+
+      it('should allow ceil with 1 argument', () => {
+        const ast = parseExpression('ceil(sales)');
+        const result = validateAST(ast, testSchema);
+        expect(result.valid).toBe(true);
+      });
+
+      it('should allow min with multiple arguments', () => {
+        const ast = parseExpression('min(sales, revenue, cost)');
+        const result = validateAST(ast, testSchema);
+        expect(result.valid).toBe(true);
+      });
+
+      it('should allow max with multiple arguments', () => {
+        const ast = parseExpression('max(sales, revenue, cost)');
+        const result = validateAST(ast, testSchema);
+        expect(result.valid).toBe(true);
+      });
+
+      it('should allow min with 1 argument', () => {
+        const ast = parseExpression('min(sales)');
+        const result = validateAST(ast, testSchema);
+        expect(result.valid).toBe(true);
+      });
+    });
+
+    describe('type conversion function validation', () => {
+      it('should allow parse_int with 1 argument', () => {
+        const ast = parseExpression('parse_int(region)');
+        const result = validateAST(ast, testSchema);
+        expect(result.valid).toBe(true);
+      });
+
+      it('should allow parse_float with 1 argument', () => {
+        const ast = parseExpression('parse_float(region)');
+        const result = validateAST(ast, testSchema);
+        expect(result.valid).toBe(true);
+      });
+
+      it('should allow is_nan with 1 argument', () => {
+        const ast = parseExpression('is_nan(sales)');
+        const result = validateAST(ast, testSchema);
+        expect(result.valid).toBe(true);
+      });
+
+      it('should reject type conversion functions with wrong arity', () => {
+        const ast = parseExpression('parse_int()');
+        const result = validateAST(ast, testSchema);
+        expect(result.valid).toBe(false);
+        expect(result.error?.type).toBe('wrong-arity');
+      });
+    });
   });
 });

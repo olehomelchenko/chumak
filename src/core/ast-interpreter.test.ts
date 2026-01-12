@@ -387,3 +387,253 @@ describe('Date Functions', () => {
     });
   });
 });
+
+describe('String Functions', () => {
+  const row = {
+    name: 'Hello World',
+    padded: '  trimmed  ',
+    empty: '',
+    nullVal: null,
+  };
+
+  describe('upper()', () => {
+    it('should convert to uppercase', () => {
+      expect(interpretAST(parseExpression('upper(name)'), row)).toBe('HELLO WORLD');
+    });
+
+    it('should return null for null input', () => {
+      expect(interpretAST(parseExpression('upper(nullVal)'), row)).toBe(null);
+    });
+
+    it('should handle empty string', () => {
+      expect(interpretAST(parseExpression('upper(empty)'), row)).toBe('');
+    });
+  });
+
+  describe('lower()', () => {
+    it('should convert to lowercase', () => {
+      expect(interpretAST(parseExpression('lower(name)'), row)).toBe('hello world');
+    });
+
+    it('should return null for null input', () => {
+      expect(interpretAST(parseExpression('lower(nullVal)'), row)).toBe(null);
+    });
+  });
+
+  describe('trim()', () => {
+    it('should remove leading and trailing whitespace', () => {
+      expect(interpretAST(parseExpression('trim(padded)'), row)).toBe('trimmed');
+    });
+
+    it('should return null for null input', () => {
+      expect(interpretAST(parseExpression('trim(nullVal)'), row)).toBe(null);
+    });
+
+    it('should handle string without whitespace', () => {
+      expect(interpretAST(parseExpression('trim(name)'), row)).toBe('Hello World');
+    });
+  });
+
+  describe('substring()', () => {
+    it('should extract substring with start and length', () => {
+      expect(interpretAST(parseExpression('substring(name, 0, 5)'), row)).toBe('Hello');
+    });
+
+    it('should extract from start to end when no length', () => {
+      expect(interpretAST(parseExpression('substring(name, 6)'), row)).toBe('World');
+    });
+
+    it('should return null for null input', () => {
+      expect(interpretAST(parseExpression('substring(nullVal, 0, 5)'), row)).toBe(null);
+    });
+
+    it('should handle start beyond string length', () => {
+      expect(interpretAST(parseExpression('substring(name, 100)'), row)).toBe('');
+    });
+
+    it('should handle negative start as 0', () => {
+      expect(interpretAST(parseExpression('substring(name, -5, 5)'), row)).toBe('Hello');
+    });
+  });
+});
+
+describe('Math Functions', () => {
+  const row = {
+    positive: 42.7,
+    negative: -15.3,
+    integer: 100,
+    zero: 0,
+    nullVal: null,
+    notANumber: 'abc',
+  };
+
+  describe('abs()', () => {
+    it('should return absolute value of positive', () => {
+      expect(interpretAST(parseExpression('abs(positive)'), row)).toBe(42.7);
+    });
+
+    it('should return absolute value of negative', () => {
+      expect(interpretAST(parseExpression('abs(negative)'), row)).toBe(15.3);
+    });
+
+    it('should return null for null input', () => {
+      expect(interpretAST(parseExpression('abs(nullVal)'), row)).toBe(null);
+    });
+
+    it('should return null for non-numeric string', () => {
+      expect(interpretAST(parseExpression('abs(notANumber)'), row)).toBe(null);
+    });
+  });
+
+  describe('round()', () => {
+    it('should round to integer by default', () => {
+      expect(interpretAST(parseExpression('round(positive)'), row)).toBe(43);
+    });
+
+    it('should round to specified decimals', () => {
+      expect(interpretAST(parseExpression('round(positive, 1)'), row)).toBe(42.7);
+    });
+
+    it('should handle negative numbers', () => {
+      expect(interpretAST(parseExpression('round(negative)'), row)).toBe(-15);
+    });
+
+    it('should return null for null input', () => {
+      expect(interpretAST(parseExpression('round(nullVal)'), row)).toBe(null);
+    });
+  });
+
+  describe('floor()', () => {
+    it('should round down positive', () => {
+      expect(interpretAST(parseExpression('floor(positive)'), row)).toBe(42);
+    });
+
+    it('should round down negative (towards negative infinity)', () => {
+      expect(interpretAST(parseExpression('floor(negative)'), row)).toBe(-16);
+    });
+
+    it('should return null for null input', () => {
+      expect(interpretAST(parseExpression('floor(nullVal)'), row)).toBe(null);
+    });
+  });
+
+  describe('ceil()', () => {
+    it('should round up positive', () => {
+      expect(interpretAST(parseExpression('ceil(positive)'), row)).toBe(43);
+    });
+
+    it('should round up negative (towards positive infinity)', () => {
+      expect(interpretAST(parseExpression('ceil(negative)'), row)).toBe(-15);
+    });
+
+    it('should return null for null input', () => {
+      expect(interpretAST(parseExpression('ceil(nullVal)'), row)).toBe(null);
+    });
+  });
+
+  describe('min()', () => {
+    it('should return minimum of multiple values', () => {
+      expect(interpretAST(parseExpression('min(positive, negative, integer)'), row)).toBe(-15.3);
+    });
+
+    it('should return single value', () => {
+      expect(interpretAST(parseExpression('min(positive)'), row)).toBe(42.7);
+    });
+
+    it('should ignore null values', () => {
+      expect(interpretAST(parseExpression('min(positive, nullVal, negative)'), row)).toBe(-15.3);
+    });
+
+    it('should return null if all values are null', () => {
+      expect(interpretAST(parseExpression('min(nullVal)'), row)).toBe(null);
+    });
+  });
+
+  describe('max()', () => {
+    it('should return maximum of multiple values', () => {
+      expect(interpretAST(parseExpression('max(positive, negative, integer)'), row)).toBe(100);
+    });
+
+    it('should return single value', () => {
+      expect(interpretAST(parseExpression('max(positive)'), row)).toBe(42.7);
+    });
+
+    it('should ignore null values', () => {
+      expect(interpretAST(parseExpression('max(positive, nullVal, integer)'), row)).toBe(100);
+    });
+  });
+});
+
+describe('Type Conversion Functions', () => {
+  const row = {
+    intStr: '42',
+    floatStr: '3.14',
+    invalid: 'abc',
+    empty: '',
+    nullVal: null,
+    numericVal: 123,
+    nanVal: NaN,
+  };
+
+  describe('parse_int()', () => {
+    it('should parse integer string', () => {
+      expect(interpretAST(parseExpression('parse_int(intStr)'), row)).toBe(42);
+    });
+
+    it('should parse float string to integer', () => {
+      expect(interpretAST(parseExpression('parse_int(floatStr)'), row)).toBe(3);
+    });
+
+    it('should return null for invalid string', () => {
+      expect(interpretAST(parseExpression('parse_int(invalid)'), row)).toBe(null);
+    });
+
+    it('should return null for null input', () => {
+      expect(interpretAST(parseExpression('parse_int(nullVal)'), row)).toBe(null);
+    });
+
+    it('should return null for empty string', () => {
+      expect(interpretAST(parseExpression('parse_int(empty)'), row)).toBe(null);
+    });
+  });
+
+  describe('parse_float()', () => {
+    it('should parse float string', () => {
+      expect(interpretAST(parseExpression('parse_float(floatStr)'), row)).toBe(3.14);
+    });
+
+    it('should parse integer string as float', () => {
+      expect(interpretAST(parseExpression('parse_float(intStr)'), row)).toBe(42);
+    });
+
+    it('should return null for invalid string', () => {
+      expect(interpretAST(parseExpression('parse_float(invalid)'), row)).toBe(null);
+    });
+
+    it('should return null for null input', () => {
+      expect(interpretAST(parseExpression('parse_float(nullVal)'), row)).toBe(null);
+    });
+  });
+
+  describe('is_nan()', () => {
+    it('should return true for NaN', () => {
+      expect(interpretAST(parseExpression('is_nan(nanVal)'), row)).toBe(true);
+    });
+
+    it('should return true for non-numeric string', () => {
+      expect(interpretAST(parseExpression('is_nan(invalid)'), row)).toBe(true);
+    });
+
+    it('should return false for valid number', () => {
+      expect(interpretAST(parseExpression('is_nan(numericVal)'), row)).toBe(false);
+    });
+
+    it('should return false for numeric string', () => {
+      expect(interpretAST(parseExpression('is_nan(intStr)'), row)).toBe(false);
+    });
+
+    it('should return false for null (null is not NaN)', () => {
+      expect(interpretAST(parseExpression('is_nan(nullVal)'), row)).toBe(false);
+    });
+  });
+});

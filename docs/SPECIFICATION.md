@@ -202,10 +202,6 @@ Tests are written in **TypeScript** using **Vitest** for native runner support a
 - **Set Operations**: `Union`, `Intersect`, and `Except` for advanced multi-model workflows (joining models with same schema).
 - **Advanced Joins**: Support for `Semijoin` (filtering left by right), `Antijoin` (filtering left by lack of right), and `Lookup` (fast left-joins).
 - **Advanced Data Manipulation**: `Spread` (array to columns), `Unroll` (array to rows), and random `Sampling`.
-- **Expression Engine Expansion**:
-  - **String Functions**: `upper`, `lower`, `trim`, `substring`.
-  - **Math Functions**: `abs`, `round`, `floor`, `ceil`, `min`, `max`.
-  - **Type Conversion**: `parse_int`, `parse_float`, `is_nan`.
 - **Impute**: Advanced missing value handling using both constants and expressions (e.g., `sales ?? 0`).
 
 ---
