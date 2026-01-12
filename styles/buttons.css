@@ -34,11 +34,11 @@
     border: var(--border-width) solid var(--border-color);
 
     &:hover {
-      background: rgba(var(--color-cyan-rgb), 0.05);
+      background: var(--color-button-secondary-hover);
     }
 
     &:active {
-      background: rgba(var(--color-cyan-rgb), 0.1);
+      background: var(--color-button-secondary-active);
     }
 
     &:disabled {
@@ -100,7 +100,7 @@
   }
 
   &--small {
-    padding: 6px var(--space-sm);
+    padding: calc(var(--space-xs) + 2px) var(--space-sm);
     font-size: var(--font-size-sm);
   }
 }

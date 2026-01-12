@@ -113,9 +113,33 @@ Two modal shells with consistent patterns:
 
 ## 5. Implementation Standards
 
-- **Borders**: Rigorous 1px solid borders in Medium Gray (`#C8C8C8`) for structural separation.
-- **Micro-interactions**: Subtle hover states and status transitions (150ms ease-out).
-- **Z-Index Strategy**: Clear stacking for modals, floating toolbars, and tooltips to prevent overlap issues.
+- **Borders**: Rigorous 1px solid borders in Medium Gray (`--color-medium-gray`) for structural separation.
+- **Micro-interactions**: Subtle hover states and status transitions (`--transition-fast`).
+- **Z-Index Strategy**: Centralized stacking order defined in `variables.css` to prevent overlap conflicts.
+- **Token Usage**: Strict adherence to functional variables (e.g., `--color-text`, `--shadow-xl`) over hardcoded values.
+
+---
+
+## 6. CSS Architecture & Maintainability
+
+The project follows a **Modular Token-Based Architecture** designed for high modularity and theme-swapping reliability.
+
+### 6.1 Modular Structure
+
+Styles are divided into component-specific files (e.g., `ribbon.css`, `table.css`, `step-removal.css`), preventing side-effects and ensuring localized maintenance.
+
+### 6.2 Theming Logic
+
+A two-tier variable system separates static palettes from functional tokens:
+
+1.  **Palettes**: Raw hex codes grouped by brand (Chumak, KSE).
+2.  **Functional Tokens**: Logic-based variables (e.g., `--color-primary`, `--shadow-md`) that map to palettes based on the active theme.
+
+### 6.3 Unified Component Patterns
+
+- **Elevations**: Unified shadow system (`--shadow-sm` to `--shadow-xl`) applied across all overlays.
+- **Overlays**: Shared backdrop and blur tokens provide a consistent "glassmorphism" feel for both Slide Panels and Centered Dialogs.
+- **Aesthetic Consistency**: Modals and Dialogs share standardized header/footer padding and styling, ensuring a contiguous visual language regardless of the interaction type.
 
 ---
 

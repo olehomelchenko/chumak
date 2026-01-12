@@ -107,9 +107,9 @@
   align-items: center;
   gap: var(--space-xs);
   padding: var(--space-sm);
-  background: rgba(211, 62, 44, 0.05); /* --color-dark-red approx */
-  border: 1px solid #d33e2c;
-  color: #d33e2c;
+  background: rgba(var(--color-dark-red-rgb), 0.05);
+  border: 1px solid var(--color-dark-red);
+  color: var(--color-dark-red);
   border-radius: var(--border-radius);
   font-size: var(--font-size-sm);
 

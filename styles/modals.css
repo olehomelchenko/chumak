@@ -8,13 +8,14 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  z-index: 3000;
+  z-index: var(--z-index-modal-backdrop);
 }
 
 .modal {
   background: var(--color-white);
   border: var(--border-width) solid var(--border-color);
   border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-xl);
   max-width: 600px;
   width: 90%;
   max-height: 80vh;
@@ -79,9 +80,9 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: var(--color-backdrop);
   transition: backdrop-filter var(--transition-normal);
-  z-index: 9998;
+  z-index: var(--z-index-slide-panel-backdrop);
   animation: fadeIn 0.2s ease-in-out;
 
   &--blurred {
@@ -97,7 +98,7 @@
   width: min(33vw, 500px);
   background: var(--color-white);
   box-shadow: 4px 0 12px rgba(0, 0, 0, 0.15);
-  z-index: 9999;
+  z-index: var(--z-index-slide-panel);
   display: flex;
   flex-direction: column;
   animation: slideInLeft 0.3s ease-out;
@@ -149,10 +150,10 @@
   }
 
   &__footer {
-    padding: 1rem 1.5rem;
-    border-top: 1px solid var(--color-medium-gray);
+    padding: var(--space-md) var(--space-lg);
+    border-top: var(--border-width) solid var(--border-color);
     display: flex;
-    gap: 0.75rem;
+    gap: var(--space-sm);
     justify-content: flex-end;
     background: var(--color-light-gray);
   }
@@ -188,7 +189,7 @@
   border: var(--border-width) solid var(--border-color);
   border-radius: var(--border-radius-lg);
   box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
-  z-index: 9999;
+  z-index: var(--z-index-slide-panel);
   display: flex;
   flex-direction: column;
   animation: fadeIn var(--transition-normal);
@@ -216,128 +217,14 @@
     padding: var(--space-md);
 
     .data-table__header--new {
-      background: #e6f4ea;
-      color: #0d652d;
+      background: var(--color-border-success);
+      color: var(--color-text-success);
       font-weight: 600;
     }
 
     .data-table__cell--new {
-      background: #f1f8f3;
-      color: #0d652d;
-    }
-  }
-}
-
-/* About Modal Content - Markdown Styles */
-.about-content {
-  line-height: var(--line-height-normal);
-  color: var(--color-dark-gray);
-
-  h1 {
-    font-size: var(--font-size-2xl);
-    font-weight: var(--font-weight-bold);
-    color: var(--color-midnight-blue);
-    margin: 0 0 var(--space-sm) 0;
-    line-height: var(--line-height-tight);
-  }
-
-  h1 + p {
-    font-size: var(--font-size-lg);
-    color: var(--color-dark-gray);
-    margin: 0 0 var(--space-xl) 0;
-    opacity: 0.9;
-  }
-
-  h2 {
-    font-size: var(--font-size-lg);
-    font-weight: var(--font-weight-medium);
-    color: var(--color-midnight-blue);
-    margin: var(--space-xl) 0 var(--space-md) 0;
-    padding-bottom: var(--space-xs);
-    border-bottom: var(--border-width) solid var(--border-color);
-  }
-
-  h3 {
-    font-size: var(--font-size-base);
-    font-weight: var(--font-weight-medium);
-    color: var(--color-midnight-blue);
-    margin: var(--space-lg) 0 var(--space-sm) 0;
-  }
-
-  p {
-    margin: 0 0 var(--space-md) 0;
-  }
-
-  ul {
-    margin: 0 0 var(--space-md) 0;
-    padding-left: var(--space-lg);
-  }
-
-  li {
-    margin-bottom: var(--space-xs);
-  }
-
-  strong {
-    color: var(--color-midnight-blue);
-    font-weight: var(--font-weight-medium);
-  }
-
-  em {
-    font-style: italic;
-  }
-
-  code {
-    font-family: var(--font-family-mono);
-    font-size: var(--font-size-sm);
-    background: var(--color-light-gray);
-    padding: 0.1em 0.4em;
-    border-radius: var(--border-radius-sm);
-  }
-
-  a {
-    color: var(--color-cyan);
-    text-decoration: none;
-
-    &:hover {
-      text-decoration: underline;
-    }
-  }
-
-  table {
-    width: 100%;
-    border-collapse: collapse;
-    margin: var(--space-md) 0;
-    font-size: var(--font-size-sm);
-  }
-
-  th,
-  td {
-    padding: var(--space-xs) var(--space-sm);
-    text-align: left;
-    border: var(--border-width) solid var(--border-color);
-  }
-
-  th {
-    background: var(--color-light-gray);
-    font-weight: var(--font-weight-medium);
-    color: var(--color-midnight-blue);
-  }
-
-  tr:nth-child(even) {
-    background: var(--color-soft-bg);
-  }
-
-  pre {
-    background: var(--color-light-gray);
-    padding: var(--space-md);
-    border-radius: var(--border-radius);
-    overflow-x: auto;
-    margin: var(--space-md) 0;
-
-    code {
-      background: none;
-      padding: 0;
-      font-size: var(--font-size-sm);
+      background: var(--color-bg-success);
+      color: var(--color-text-success);
     }
   }
 }
