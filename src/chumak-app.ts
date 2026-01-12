@@ -182,6 +182,17 @@ export class ChumakApp implements AppState {
     error: null as string | null,
     previewData: [] as { input: string; output: any }[],
   };
+  dedupeDialogState: {
+    selectedColumns: boolean[];
+    useAllColumns: boolean;
+    duplicateCount: number;
+    mode: 'remove' | 'keep';
+  } = {
+    selectedColumns: [],
+    useAllColumns: true,
+    duplicateCount: 0,
+    mode: 'remove',
+  };
 
   // Unified preview panel state (shared across all dialogs with previews)
   previewState: {
@@ -378,6 +389,7 @@ export class ChumakApp implements AppState {
       { id: 'regexp-match-modal-container', url: 'templates/regexp-match-modal.html' },
       { id: 'regexp-extract-modal-container', url: 'templates/regexp-extract-modal.html' },
       { id: 'date-modal-container', url: 'templates/date-modal.html' },
+      { id: 'dedupe-modal-container', url: 'templates/dedupe-modal.html' },
       { id: 'download-modal-container', url: 'templates/download-modal.html' },
       { id: 'import-url-modal-container', url: 'templates/import-url-modal.html' },
       { id: 'settings-modal-container', url: 'templates/settings-modal.html' },
@@ -2337,6 +2349,141 @@ export class ChumakApp implements AppState {
     await this.runTransform(opName, { derive: deriveSpecs });
   }
 
+  // ============================================================
+  // Dedupe Dialog Methods
+  // ============================================================
+
+  toggleDedupeAllColumns(useAll: boolean) {
+    this.dedupeDialogState.useAllColumns = useAll;
+    if (useAll) {
+      this.dedupeDialogState.selectedColumns = this.columns.map(() => true);
+    }
+    this.updateDedupePreview();
+  }
+
+  toggleDedupeColumn(index: number) {
+    this.dedupeDialogState.selectedColumns[index] = !this.dedupeDialogState.selectedColumns[index];
+    this.updateDedupePreview();
+  }
+
+  selectAllForDedupe() {
+    this.dedupeDialogState.selectedColumns = this.columns.map(() => true);
+    this.updateDedupePreview();
+  }
+
+  selectNoneForDedupe() {
+    this.dedupeDialogState.selectedColumns = this.columns.map(() => false);
+    this.updateDedupePreview();
+  }
+
+  getDedupeColumns(): string[] {
+    if (this.dedupeDialogState.useAllColumns) {
+      return [];
+    }
+    return this.columns.filter((_, i) => this.dedupeDialogState.selectedColumns[i]);
+  }
+
+  findDuplicateRows(data: any[], columns: string[]): Set<number> {
+    const seen = new Map<string, number>();
+    const duplicates = new Set<number>();
+    const keys = columns.length > 0 ? columns : Object.keys(data[0] || {});
+
+    data.forEach((row, i) => {
+      const key = keys
+        .map((c) => {
+          const v = row[c];
+          return v == null ? '\0null\0' : String(v);
+        })
+        .join('\0');
+
+      if (seen.has(key)) {
+        duplicates.add(i);
+      } else {
+        seen.set(key, i);
+      }
+    });
+    return duplicates;
+  }
+
+  updateDedupePreview() {
+    if (!this.currentData || this.currentData.length === 0) {
+      this.dedupeDialogState.duplicateCount = 0;
+      this.clearPreview();
+      return;
+    }
+
+    const { mode } = this.dedupeDialogState;
+    const columns = this.getDedupeColumns();
+    const duplicates = this.findDuplicateRows(this.currentData, columns);
+    this.dedupeDialogState.duplicateCount = duplicates.size;
+
+    const colInfo =
+      columns.length === 0
+        ? 'all columns'
+        : columns.length === 1
+          ? `"${columns[0]}"`
+          : `${columns.length} columns`;
+
+    // Show first few duplicates in preview
+    const duplicateIndices = Array.from(duplicates).slice(0, 5);
+    const previewRows = duplicateIndices.map((i) => this.currentData![i]);
+
+    let statsText: string;
+    if (duplicates.size === 0) {
+      statsText = `No duplicates found by ${colInfo}`;
+    } else if (mode === 'keep') {
+      // For 'keep' mode, show how many duplicate rows will be kept
+      const totalDuplicateRows = this.findAllDuplicateRowCount(this.currentData, columns);
+      statsText = `${totalDuplicateRows} row${totalDuplicateRows !== 1 ? 's' : ''} are duplicates (will keep)`;
+    } else {
+      // For 'remove' mode, show how many will be removed
+      statsText = `${duplicates.size} duplicate row${duplicates.size !== 1 ? 's' : ''} will be removed`;
+    }
+
+    this.previewState = {
+      title: mode === 'keep' ? 'Keep Duplicates Preview' : 'Remove Duplicates Preview',
+      stats: statsText,
+      columns: columns.length > 0 ? columns : this.columns.slice(0, 5),
+      newColumns: [],
+      rows: previewRows,
+      _debounceTimer: null,
+    };
+  }
+
+  findAllDuplicateRowCount(data: any[], columns: string[]): number {
+    const seen = new Map<string, number[]>();
+    const keys = columns.length > 0 ? columns : Object.keys(data[0] || {});
+
+    data.forEach((row, i) => {
+      const key = keys
+        .map((c) => {
+          const v = row[c];
+          return v == null ? '\0null\0' : String(v);
+        })
+        .join('\0');
+      if (!seen.has(key)) {
+        seen.set(key, []);
+      }
+      seen.get(key)!.push(i);
+    });
+
+    let count = 0;
+    for (const indices of seen.values()) {
+      if (indices.length > 1) {
+        count += indices.length;
+      }
+    }
+    return count;
+  }
+
+  @Transformation('Duplicates')
+  async applyDedupeTransform() {
+    const { mode } = this.dedupeDialogState;
+    const columns = this.getDedupeColumns();
+    const opName = mode === 'keep' ? 'Keep Duplicates' : 'Remove Duplicates';
+    await this.runTransform(opName, { dedupe: { columns, mode } });
+  }
+
   async applySortTransform() {
     const { field, order } = this.sortDialogState;
     if (!field) {
@@ -3112,6 +3259,12 @@ export class ChumakApp implements AppState {
         };
       case 'import-url':
         return { url: this.importUrlDialogState.url };
+      case 'dedupe':
+        return {
+          selectedColumns: this.dedupeDialogState.selectedColumns,
+          useAllColumns: this.dedupeDialogState.useAllColumns,
+          mode: this.dedupeDialogState.mode,
+        };
       default:
         return null;
     }
@@ -3234,6 +3387,14 @@ export class ChumakApp implements AppState {
         previewData: [],
       };
       this.$nextTick(() => this.updateDatePreview());
+    } else if (dialogName === 'dedupe') {
+      this.dedupeDialogState = {
+        selectedColumns: this.columns.map(() => true),
+        useAllColumns: true,
+        duplicateCount: 0,
+        mode: 'remove',
+      };
+      this.$nextTick(() => this.updateDedupePreview());
     }
   }
 
@@ -3252,6 +3413,7 @@ export class ChumakApp implements AppState {
       'regexpMatch',
       'regexpExtract',
       'date',
+      'dedupe',
       'fold',
       'pivot',
       'aggregate',
@@ -3300,6 +3462,8 @@ export class ChumakApp implements AppState {
         return 'Regexp Extract';
       case 'date':
         return 'Date Operations';
+      case 'dedupe':
+        return 'Duplicates';
       case 'fold':
         return 'Unpivot Data (Fold)';
       case 'pivot':
@@ -3416,6 +3580,11 @@ export class ChumakApp implements AppState {
         return !this.joinDialogState.rightModel;
       case 'pivot':
         return !this.pivotDialogState.columnColumn || !this.pivotDialogState.valueColumn;
+      case 'dedupe':
+        return (
+          !this.dedupeDialogState.useAllColumns &&
+          !this.dedupeDialogState.selectedColumns.some((v) => v)
+        );
       case 'import-url':
         return !this.importUrlDialogState.url || this.importUrlDialogState.isFetching;
       default:
@@ -3475,6 +3644,9 @@ export class ChumakApp implements AppState {
         break;
       case 'replace':
         await this.applyReplaceTransform();
+        break;
+      case 'dedupe':
+        await this.applyDedupeTransform();
         break;
       case 'import-csv':
         this.confirmImport();
@@ -3581,6 +3753,12 @@ export class ChumakApp implements AppState {
       outputColumn: '',
       error: null,
       previewData: [],
+    };
+    this.dedupeDialogState = {
+      selectedColumns: [],
+      useAllColumns: true,
+      duplicateCount: 0,
+      mode: 'remove',
     };
   }
 
@@ -3808,6 +3986,17 @@ export class ChumakApp implements AppState {
       ) as HTMLInputElement;
       if (input) input.focus();
     }, 50);
+  }
+
+  quickDedupe() {
+    if (!this.selectedColumn) return;
+    const col = this.selectedColumn;
+    this.openDialog('dedupe');
+    // Pre-select only this column, switch to specific mode
+    this.dedupeDialogState.useAllColumns = false;
+    this.dedupeDialogState.selectedColumns = this.columns.map((c) => c === col);
+    this.reSnapshot();
+    this.updateDedupePreview();
   }
 
   // ============================================================
@@ -4343,6 +4532,16 @@ export class ChumakApp implements AppState {
         columnRenames: {},
       };
       this.updateSplitPreview();
+    } else if (step.dedupe) {
+      this.openDialog('dedupe');
+      const dedupeColumns = step.dedupe.columns || [];
+      this.dedupeDialogState = {
+        useAllColumns: dedupeColumns.length === 0,
+        selectedColumns: this.columns.map((c) => dedupeColumns.includes(c)),
+        duplicateCount: 0,
+        mode: step.dedupe.mode || 'remove',
+      };
+      this.updateDedupePreview();
     }
   }
 

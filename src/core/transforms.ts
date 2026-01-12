@@ -327,6 +327,49 @@ export function applyTransform(
     return (aq as any).from(indexedRows);
   }
 
+  if (transform.dedupe) {
+    const { columns, mode } = transform.dedupe;
+    const dedupeMode = mode || 'remove';
+
+    if (dedupeMode === 'remove') {
+      // Remove duplicates (keep first occurrence)
+      if (!columns || columns.length === 0) {
+        return table.dedupe();
+      }
+      return table.dedupe(...columns);
+    } else {
+      // Keep only duplicates
+      const rows = table.objects();
+      const keys = columns && columns.length > 0 ? columns : Object.keys(rows[0] || {});
+      const seen = new Map<string, number[]>();
+
+      // First pass: group row indices by composite key
+      rows.forEach((row: any, i: number) => {
+        const key = keys
+          .map((c: string) => {
+            const v = row[c];
+            return v == null ? '\0null\0' : String(v);
+          })
+          .join('\0');
+        if (!seen.has(key)) {
+          seen.set(key, []);
+        }
+        seen.get(key)!.push(i);
+      });
+
+      // Second pass: keep only rows that are part of a duplicate group
+      const duplicateIndices = new Set<number>();
+      for (const indices of seen.values()) {
+        if (indices.length > 1) {
+          indices.forEach((i) => duplicateIndices.add(i));
+        }
+      }
+
+      const duplicateRows = rows.filter((_: any, i: number) => duplicateIndices.has(i));
+      return (aq as any).from(duplicateRows);
+    }
+  }
+
   throw new Error(`Transform not implemented: ${Object.keys(transform)[0]}`);
 }
 
@@ -439,6 +482,21 @@ export function describeTransform(transform: any, rightName: string | null = nul
 
   if (transform.addIndex) {
     return `Add Index: ${transform.addIndex.columnName}`;
+  }
+
+  if (transform.dedupe) {
+    const cols = transform.dedupe.columns;
+    const mode = transform.dedupe.mode || 'remove';
+    const colInfo =
+      !cols || cols.length === 0
+        ? 'all columns'
+        : cols.length === 1
+          ? `"${cols[0]}"`
+          : `${cols.length} columns`;
+    if (mode === 'keep') {
+      return `Keep only duplicates: by ${colInfo}`;
+    }
+    return `Remove duplicates: by ${colInfo}`;
   }
 
   return 'Unknown transform';

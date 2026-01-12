@@ -113,12 +113,12 @@
                 <span>Sort</span>
               </button>
               <button
-                class="ribbon__button ribbon__button--disabled"
-                disabled
-                title="Remove duplicate rows (Coming soon)"
+                class="ribbon__button"
+                @click="openDialog('dedupe')"
+                title="Handle duplicate rows"
               >
                 <span class="iconify" data-icon="carbon:checkbox-checked"></span>
-                <span>Dedupe</span>
+                <span>Duplicates</span>
               </button>
               <button
                 class="ribbon__button"
@@ -1198,6 +1198,7 @@
           <div id="regexp-match-modal-container" x-show="activeDialog === 'regexpMatch'"></div>
           <div id="regexp-extract-modal-container" x-show="activeDialog === 'regexpExtract'"></div>
           <div id="date-modal-container" x-show="activeDialog === 'date'"></div>
+          <div id="dedupe-modal-container" x-show="activeDialog === 'dedupe'"></div>
           <div id="sort-modal-container" x-show="activeDialog === 'sort'"></div>
           <div id="slice-rows-modal-container" x-show="activeDialog === 'sliceRows'"></div>
           <div id="index-modal-container" x-show="activeDialog === 'index'"></div>
@@ -1348,6 +1349,9 @@
         title="Date transformation"
       >
         <span class="iconify" data-icon="carbon:calendar"></span>
+      </button>
+      <button class="floating-toolbar__button" @click="quickDedupe()" title="Dedupe by this column">
+        <span class="iconify" data-icon="carbon:checkbox-checked"></span>
       </button>
       <button
         class="floating-toolbar__button"

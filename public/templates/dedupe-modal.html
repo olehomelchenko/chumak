@@ -1,0 +1,138 @@
+<!-- Mode Toggle -->
+<div class="form-group" style="margin-bottom: 1rem">
+  <label class="form-label" style="margin-bottom: 0.5rem">Action</label>
+  <div class="form-row" style="display: flex; gap: 0.5rem">
+    <button
+      type="button"
+      class="button button--small"
+      :class="{ 'button--primary': dedupeDialogState.mode === 'remove', 'button--secondary': dedupeDialogState.mode !== 'remove' }"
+      @click="dedupeDialogState.mode = 'remove'; updateDedupePreview()"
+    >
+      Remove Duplicates
+    </button>
+    <button
+      type="button"
+      class="button button--small"
+      :class="{ 'button--primary': dedupeDialogState.mode === 'keep', 'button--secondary': dedupeDialogState.mode !== 'keep' }"
+      @click="dedupeDialogState.mode = 'keep'; updateDedupePreview()"
+    >
+      Keep Only Duplicates
+    </button>
+  </div>
+</div>
+
+<!-- Column Scope Toggle -->
+<div class="form-group">
+  <label class="form-label" style="margin-bottom: 0.5rem">Compare By</label>
+  <div class="form-row" style="display: flex; gap: 0.5rem; margin-bottom: 1rem">
+    <button
+      type="button"
+      class="button button--small"
+      :class="{ 'button--primary': dedupeDialogState.useAllColumns, 'button--secondary': !dedupeDialogState.useAllColumns }"
+      @click="toggleDedupeAllColumns(true)"
+    >
+      All Columns
+    </button>
+    <button
+      type="button"
+      class="button button--small"
+      :class="{ 'button--primary': !dedupeDialogState.useAllColumns, 'button--secondary': dedupeDialogState.useAllColumns }"
+      @click="toggleDedupeAllColumns(false)"
+    >
+      Specific Columns
+    </button>
+  </div>
+</div>
+
+<div x-show="!dedupeDialogState.useAllColumns">
+  <p class="form-help" style="margin-bottom: 0.75rem">Select columns to use as composite key:</p>
+
+  <div class="form-actions" style="margin-bottom: 0.5rem; display: flex; gap: 0.5rem">
+    <button type="button" class="button button--text button--small" @click="selectAllForDedupe()">
+      Select All
+    </button>
+    <button type="button" class="button button--text button--small" @click="selectNoneForDedupe()">
+      Select None
+    </button>
+  </div>
+
+  <div class="column-chips-multi">
+    <template x-for="(col, index) in columns" :key="index">
+      <button
+        type="button"
+        class="form-chip"
+        style="flex-direction: row; justify-content: start; gap: 0.5rem; padding: 0.5rem 0.75rem"
+        :class="{ active: dedupeDialogState.selectedColumns[index] }"
+        @click="toggleDedupeColumn(index)"
+      >
+        <span
+          class="iconify"
+          :data-icon="dedupeDialogState.selectedColumns[index] ? 'carbon:checkmark-filled' : 'carbon:checkbox'"
+          style="font-size: 1rem; flex-shrink: 0"
+          :style="dedupeDialogState.selectedColumns[index] ? 'color: var(--color-green)' : ''"
+        ></span>
+        <span
+          x-text="col"
+          style="
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            flex-grow: 1;
+            text-align: left;
+          "
+        ></span>
+      </button>
+    </template>
+  </div>
+</div>
+
+<div x-show="dedupeDialogState.useAllColumns" class="form-help" style="margin: 0.75rem 0">
+  <span class="iconify" data-icon="carbon:information" style="vertical-align: middle"></span>
+  Rows are considered duplicates if <strong>all columns</strong> have identical values.
+</div>
+
+<div
+  class="dedupe-stats"
+  style="
+    margin-top: 1rem;
+    padding: 1rem;
+    border-radius: var(--border-radius);
+    background: var(--color-light-gray);
+  "
+  :style="dedupeDialogState.duplicateCount > 0 ? 'background: rgba(var(--color-yellow-rgb), 0.15);' : 'background: rgba(var(--color-green-rgb), 0.1);'"
+>
+  <div style="display: flex; align-items: center; gap: 0.5rem">
+    <span
+      class="iconify"
+      :data-icon="dedupeDialogState.duplicateCount > 0 ? 'carbon:warning' : 'carbon:checkmark-outline'"
+      :style="dedupeDialogState.duplicateCount > 0 ? 'color: var(--color-yellow)' : 'color: var(--color-green)'"
+      style="font-size: 1.25rem"
+    ></span>
+    <span>
+      <template x-if="dedupeDialogState.duplicateCount > 0">
+        <span>
+          <strong x-text="dedupeDialogState.duplicateCount.toLocaleString()"></strong>
+          duplicate row<span x-show="dedupeDialogState.duplicateCount !== 1">s</span> found
+        </span>
+      </template>
+      <template x-if="dedupeDialogState.duplicateCount === 0">
+        <span>No duplicates found</span>
+      </template>
+    </span>
+  </div>
+</div>
+
+<p
+  class="form-help"
+  style="margin-top: 0.75rem; font-size: 0.75rem; color: var(--color-dark-gray)"
+  x-show="dedupeDialogState.mode === 'remove'"
+>
+  Removes duplicate rows, keeping only the first occurrence of each.
+</p>
+<p
+  class="form-help"
+  style="margin-top: 0.75rem; font-size: 0.75rem; color: var(--color-dark-gray)"
+  x-show="dedupeDialogState.mode === 'keep'"
+>
+  Keeps only rows that have duplicates (all occurrences of duplicated values).
+</p>

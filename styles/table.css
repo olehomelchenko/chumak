@@ -63,6 +63,14 @@
         background-color: rgba(var(--color-cyan-rgb), 0.06) !important;
       }
     }
+
+    &--duplicate {
+      background-color: rgba(var(--color-yellow-rgb), 0.15) !important;
+
+      &:hover {
+        background-color: rgba(var(--color-yellow-rgb), 0.25) !important;
+      }
+    }
   }
 
   &__cell {
