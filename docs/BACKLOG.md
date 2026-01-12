@@ -8,10 +8,6 @@ This document contains a list of features and tasks that need to be completed to
 
 ### Enhancements
 
-Style:
-
-(no issues here currently)
-
 Toolbar:
 
 - some of the buttons should vary in size depending on how crucial are they. e.g. "Derive" button can be kept the same size, but the "regexp extract" and "regexp match" could be smaller and put on top on one another, with small icon on the left and name on the right.
@@ -28,22 +24,7 @@ Rename modal:
 - also, review the possibility of merging the Rename and Select columns - they have lots of overlapping functionality (keep the available functionality from the "Select" such as pattern matching)
 - also, the "reorder" function can be merged into the same modal window - implement ability to reorder the columns via drag and drop, or react to the change in the list in the "single input" mode.
 
-Aggregate data modal:
-
-(no issues here currently)
-
-Pivot data modal:
-
-(no issues here currently)
-
-Other:
-
-- in general, the preview should be calculated over the entire dataset unless it is too large, in which case it should be calculated over first 1000 rows. It would be optimal to be able to specify this number in settings.
-
 ### Bugs
-
-- after removing a column, the table is updated but the column that replaces the removed one, is styled as if the values are null. This seems to be a recurring issue as several similar bugs were fixed previously that are related to rendering the table after removal of columns. Possibly some more profound refactoring is needed.
-  (upd later: similar problem is right after applying the "group by" model - the table is not properly rendered; going back and forth over the steps in the left sidebar fixes the issue)
 
 - the pivot transformation failed when I tried to aggregate sum of the column "count" (maybe a problem with name of the column, if I rename it to cnt and try same calculation, it works. Also, in any case the preview seems to also work regardless of column name)
 

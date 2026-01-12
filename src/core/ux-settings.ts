@@ -8,6 +8,9 @@ export interface UXSettings {
   pagination: {
     pageSize: number;
   };
+  preview: {
+    rowLimit: number;
+  };
   theme: 'blues' | 'chumak';
 }
 
@@ -15,6 +18,9 @@ export interface UXSettings {
 const DEFAULT_SETTINGS: UXSettings = {
   pagination: {
     pageSize: 500,
+  },
+  preview: {
+    rowLimit: 100,
   },
   theme: 'chumak',
 };
@@ -31,6 +37,10 @@ export function loadUXSettings(): UXSettings {
         pagination: {
           ...DEFAULT_SETTINGS.pagination,
           ...parsed.pagination,
+        },
+        preview: {
+          ...DEFAULT_SETTINGS.preview,
+          ...parsed.preview,
         },
         theme: parsed.theme || DEFAULT_SETTINGS.theme,
       };

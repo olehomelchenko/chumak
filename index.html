@@ -965,10 +965,10 @@
           <tbody>
             <template
               x-for="(row, rowIndex) in getPaginatedData()"
-              :key="(activeModel?.id || activeSource?.id) + '-' + currentPage + '-' + rowIndex"
+              :key="(activeModel?.id || activeSource?.id) + '-' + activeStepIndex + '-' + columns.length + '-' + currentPage + '-' + rowIndex"
             >
               <tr class="data-table__row" @click="clearColumnSelection()">
-                <template x-for="(column, colIndex) in columns" :key="colIndex">
+                <template x-for="(column, colIndex) in columns" :key="column">
                   <td
                     :class="getCellClass(row[column], column)"
                     :data-col="column"

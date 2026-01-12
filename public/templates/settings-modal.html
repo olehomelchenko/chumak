@@ -105,6 +105,37 @@
   </div>
 </div>
 
+<!-- Preview Row Limit Setting -->
+<div style="margin-bottom: 2rem">
+  <label
+    class="form-label"
+    style="font-weight: var(--font-weight-medium); margin-bottom: 0.5rem; display: block"
+    >Preview Row Limit</label
+  >
+  <div style="font-size: 12px; color: var(--color-dark-gray); opacity: 0.7; margin-bottom: 0.75rem">
+    Maximum number of rows to show in transform previews. Higher values may slow down previews for
+    complex expressions.
+  </div>
+  <div style="display: flex; align-items: center; gap: 1rem">
+    <input
+      type="number"
+      min="10"
+      max="10000"
+      step="10"
+      :value="uxSettings.preview?.rowLimit || 100"
+      @change="updatePreviewRowLimit($event.target.value)"
+      style="
+        width: 100px;
+        padding: 0.5rem;
+        border: 1px solid var(--border-color);
+        border-radius: var(--border-radius);
+        font-size: 14px;
+      "
+    />
+    <span style="font-size: 13px; color: var(--color-dark-gray)">rows (10-10000)</span>
+  </div>
+</div>
+
 <div
   style="
     padding: 1rem;

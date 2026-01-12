@@ -2,7 +2,7 @@ import * as aq from 'arquero';
 import Papa from 'papaparse';
 import { AppState } from './app/types';
 import { ColumnSchema, TransformStep, SchemaEngine } from './core/schema-engine';
-import { loadUXSettings, updateUXSetting } from './core/ux-settings';
+import { loadUXSettings, updateUXSetting, UXSettings } from './core/ux-settings';
 import { loadInitialData, autoSave, clearAllData } from './core/storage';
 import { getUrlState, setUrlState, clearUrlHash } from './core/url-state';
 import { Transformation } from './app/decorators';
@@ -46,6 +46,11 @@ export class ChumakApp implements AppState {
   edaBrushSelection: any = null;
   edaDateTreatment: 'temporal' | 'categorical' = 'temporal';
   theme: 'chumak' | 'blues' = 'chumak';
+  uxSettings: UXSettings = {
+    pagination: { pageSize: 500 },
+    preview: { rowLimit: 100 },
+    theme: 'chumak',
+  };
 
   // Transformation status
   isTransforming = false;
@@ -263,9 +268,9 @@ export class ChumakApp implements AppState {
   async init() {
     console.log('Initializing Chumak App Class...');
 
-    const uxSettings = loadUXSettings();
-    this.pageSize = uxSettings.pagination.pageSize;
-    this.theme = uxSettings.theme;
+    this.uxSettings = loadUXSettings();
+    this.pageSize = this.uxSettings.pagination.pageSize;
+    this.theme = this.uxSettings.theme;
     this.applyTheme();
 
     const { sources, models } = await loadInitialData();
@@ -387,6 +392,16 @@ export class ChumakApp implements AppState {
     this.theme = theme;
     this.applyTheme();
     updateUXSetting('theme', '', theme); // updateUXSetting in current impl takes category, key, value. Category is 'theme'? No, category is main property.
+  }
+
+  updatePreviewRowLimit(value: string) {
+    const limit = Math.max(10, Math.min(10000, parseInt(value, 10) || 100));
+    this.uxSettings.preview = { rowLimit: limit };
+    updateUXSetting('preview', 'rowLimit', limit);
+  }
+
+  getPreviewRowLimit(): number {
+    return this.uxSettings.preview?.rowLimit || 100;
   }
 
   // ============================================================
@@ -1885,8 +1900,9 @@ export class ChumakApp implements AppState {
       let matchCount = 0;
       let removedCount = 0;
 
-      // Limit to first 100 rows for preview
-      const sampleData = this.currentData.slice(0, 100);
+      // Use configurable preview row limit
+      const previewLimit = this.getPreviewRowLimit();
+      const sampleData = this.currentData.slice(0, previewLimit);
 
       for (const row of sampleData) {
         try {
@@ -1911,7 +1927,7 @@ export class ChumakApp implements AppState {
 
       // Count matches in full dataset for stats
       let totalMatchCount = matchCount;
-      if (this.currentData.length > 100) {
+      if (this.currentData.length > previewLimit) {
         totalMatchCount = 0;
         for (const row of this.currentData) {
           try {
@@ -1977,7 +1993,8 @@ export class ChumakApp implements AppState {
 
     try {
       const ast = parseExpression(expression);
-      const samples = this.currentData.slice(0, 20);
+      const previewLimit = Math.min(this.getPreviewRowLimit(), 50); // Cap at 50 for expression previews
+      const samples = this.currentData.slice(0, previewLimit);
       const outputCol = columnName || 'new_column';
 
       const previewRows = samples.map((row: any) => {
@@ -2110,7 +2127,8 @@ export class ChumakApp implements AppState {
 
     try {
       const regex = new RegExp(pattern);
-      const samples = this.currentData.slice(0, 20);
+      const previewLimit = Math.min(this.getPreviewRowLimit(), 50);
+      const samples = this.currentData.slice(0, previewLimit);
       const outputCol = columnName || 'is_match';
 
       const previewRows = samples.map((row: any) => {
@@ -2160,7 +2178,8 @@ export class ChumakApp implements AppState {
 
     try {
       const regex = new RegExp(pattern);
-      const samples = this.currentData.slice(0, 20);
+      const previewLimit = Math.min(this.getPreviewRowLimit(), 50);
+      const samples = this.currentData.slice(0, previewLimit);
       const outputCol = columnName || 'extracted';
       const groupNum = group || 0;
 
