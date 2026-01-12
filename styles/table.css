@@ -13,6 +13,7 @@
     font-weight: var(--font-weight-medium);
     padding: var(--space-sm) var(--space-md);
     text-align: left;
+    vertical-align: middle;
     border-bottom: var(--border-width) solid var(--border-color);
     border-right: 1px solid rgba(var(--color-midnight-blue-rgb), 0.05);
     position: sticky;
@@ -24,6 +25,10 @@
     overflow: hidden;
     text-overflow: ellipsis;
     z-index: 10;
+
+    > span {
+      vertical-align: middle;
+    }
 
     &:hover {
       background: var(--color-medium-gray);

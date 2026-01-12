@@ -214,7 +214,6 @@
   &__content {
     flex: 1;
     overflow: auto;
-    padding: var(--space-md);
 
     .data-table__header--new {
       background: var(--color-border-success);

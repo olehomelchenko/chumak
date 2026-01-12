@@ -98,6 +98,12 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
+
+  > div + div {
+    border-top: var(--border-width) solid var(--border-color);
+    margin-top: var(--space-sm);
+    padding-top: var(--space-sm);
+  }
 }
 
 .tree-item {
@@ -122,7 +128,6 @@
   }
 
   &--model {
-    padding-left: calc(var(--space-md) + var(--space-sm));
     font-size: var(--font-size-base);
   }
 

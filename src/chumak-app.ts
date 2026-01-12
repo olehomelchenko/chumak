@@ -1787,7 +1787,7 @@ export class ChumakApp implements AppState {
       case 'datetime':
         return 'ix:calendar';
       case 'time':
-        return 'ix:clock';
+        return 'carbon:time';
       case 'float':
       case 'number':
         return 'ix:data-type-double';
@@ -3870,7 +3870,12 @@ export class ChumakApp implements AppState {
     this.selectedColumn = null;
     this.selectedCell = null;
     const rect = event.target.getBoundingClientRect();
-    this.typeMenuPos = { x: rect.left, y: rect.bottom + 4 };
+    const menuWidth = 140; // Approximate width of type menu
+    const margin = 8;
+    const windowWidth = window.innerWidth;
+    // Clamp x position to keep menu within viewport
+    const x = Math.min(rect.left, windowWidth - menuWidth - margin);
+    this.typeMenuPos = { x, y: rect.bottom + 4 };
   }
 
   async changeColumnType(col: string, newType: string) {
