@@ -139,27 +139,11 @@
             <div style="display: flex; gap: 4px">
               <button
                 class="ribbon__button"
-                @click="openDialog('select')"
-                title="Select columns to keep"
+                @click="openDialog('column-editor')"
+                title="Select, rename, remove, and reorder columns"
               >
-                <span class="iconify" data-icon="carbon:column"></span>
-                <span>Select</span>
-              </button>
-              <button class="ribbon__button" @click="openDialog('remove')" title="Remove columns">
-                <span class="iconify" data-icon="carbon:close-outline"></span>
-                <span>Remove</span>
-              </button>
-              <button class="ribbon__button" @click="openDialog('rename')" title="Rename columns">
-                <span class="iconify" data-icon="carbon:text-font"></span>
-                <span>Rename</span>
-              </button>
-              <button
-                class="ribbon__button ribbon__button--disabled"
-                disabled
-                title="Reorder columns (Coming soon)"
-              >
-                <span class="iconify" data-icon="carbon:move"></span>
-                <span>Reorder</span>
+                <span class="iconify" data-icon="carbon:table-split"></span>
+                <span>Edit Columns</span>
               </button>
               <button
                 class="ribbon__button"
@@ -1233,15 +1217,13 @@
           <div id="sort-modal-container" x-show="activeDialog === 'sort'"></div>
           <div id="slice-rows-modal-container" x-show="activeDialog === 'sliceRows'"></div>
           <div id="index-modal-container" x-show="activeDialog === 'index'"></div>
-          <div id="rename-modal-container" x-show="activeDialog === 'rename'"></div>
-          <div id="remove-modal-container" x-show="activeDialog === 'remove'"></div>
           <div id="unpivot-modal-container" x-show="activeDialog === 'fold'"></div>
           <div id="pivot-modal-container" x-show="activeDialog === 'pivot'"></div>
           <div id="replace-modal-container" x-show="activeDialog === 'replace'"></div>
           <div id="split-modal-container" x-show="activeDialog === 'split'"></div>
-          <div id="select-columns-modal-container" x-show="activeDialog === 'select'"></div>
           <div id="join-modal-container" x-show="activeDialog === 'join'"></div>
           <div id="aggregate-modal-container" x-show="activeDialog === 'aggregate'"></div>
+          <div id="column-editor-modal-container" x-show="activeDialog === 'column-editor'"></div>
         </div>
         <div class="slide-panel__footer" x-show="!['settings'].includes(activeDialog)">
           <button class="button button--secondary" @click="closeDialog()">Cancel</button>

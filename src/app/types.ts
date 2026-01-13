@@ -72,13 +72,8 @@ export interface AppState {
   viewMode: 'empty' | 'dataset-info' | 'model';
 
   // Transform state
-  selectedColumns: boolean[];
-  selectPatternText: string;
-  selectPatternMatchType: 'prefix' | 'suffix' | 'exact';
-  selectPatternMode: 'include' | 'exclude';
   filterExpression: string;
   filterError: string | null;
-  removedColumns: boolean[];
 
   // Dialog states
   aggregateDialogState: any;
@@ -91,9 +86,6 @@ export interface AppState {
   sortDialogState: {
     field: string;
     order: 'asc' | 'desc';
-  };
-  renameDialogState: {
-    renames: Record<string, string>;
   };
   foldDialogState: {
     keyName: string;
@@ -120,6 +112,21 @@ export interface AppState {
   };
   regexpMatchDialogState: any;
   regexpExtractDialogState: any;
+  columnEditorState: {
+    mode: 'list' | 'text';
+    textSubMode: 'rename' | 'reorder' | 'select';
+    columns: Array<{
+      original: string;
+      renamed: string;
+      selected: boolean;
+    }>;
+    textValue: string;
+    textError: string | null;
+    patternText: string;
+    patternMode: 'include' | 'exclude';
+    patternMatchType: 'prefix' | 'suffix' | 'exact';
+    draggedIndex: number | null;
+  };
 
   // JSON Editor
   jsonEditMode: boolean;

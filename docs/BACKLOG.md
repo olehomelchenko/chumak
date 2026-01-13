@@ -18,12 +18,6 @@ Derive modal:
 - the quick documentation seems off in both how it looks and content
 - the formula window could be improved by auto-suggesting the functions, column names etc. (this needs additional brainstorming to implement)
 
-Rename modal:
-
-- currently, shows separate inputs for each column. Should add alternative option to transform into a single input with list of the columns. Upon editing the column name in each mode, the preview should be not a table, but a list of the changes to be made.
-- also, review the possibility of merging the Rename and Select columns - they have lots of overlapping functionality (keep the available functionality from the "Select" such as pattern matching)
-- also, the "reorder" function can be merged into the same modal window - implement ability to reorder the columns via drag and drop, or react to the change in the list in the "single input" mode.
-
 ### Bugs
 
 - the pivot transformation failed when I tried to aggregate sum of the column "count" (maybe a problem with name of the column, if I rename it to cnt and try same calculation, it works. Also, in any case the preview seems to also work regardless of column name)

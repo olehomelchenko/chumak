@@ -15,7 +15,6 @@ import { parseExpression } from './core/expression-parser';
 import { validateAST } from './core/ast-validator';
 import { interpretAST } from './core/ast-interpreter';
 import { formatError } from './core/error-formatter';
-import { matchColumnPattern } from './core/transforms';
 import { html as aboutHtml } from './content/about.md';
 import { html as expressionsHtml } from './content/expressions.md';
 
@@ -104,14 +103,9 @@ export class ChumakApp implements AppState {
   viewMode: 'empty' | 'dataset-info' | 'model' = 'empty';
 
   // Transform state
-  selectedColumns: boolean[] = [];
-  selectPatternText = '';
-  selectPatternMatchType: 'prefix' | 'suffix' | 'exact' = 'prefix';
-  selectPatternMode: 'include' | 'exclude' = 'include';
   filterExpression = '';
   filterError: string | null = null;
   filterPreviewMode: 'matching' | 'all' = 'all'; // 'matching' = show only matching, 'all' = show all with removed marked
-  removedColumns: boolean[] = [];
 
   // Dialog states
   aggregateDialogState: any = {
@@ -140,7 +134,6 @@ export class ChumakApp implements AppState {
     mode: 'first' as 'first' | 'last' | 'removeFirst' | 'removeLast',
   };
   indexDialogState = { columnName: 'row_index', startFrom: 1 };
-  renameDialogState = { renames: {} as Record<string, string> };
   foldDialogState = {
     keyName: 'key',
     valueName: 'value',
@@ -204,6 +197,27 @@ export class ChumakApp implements AppState {
     useAllColumns: true,
     duplicateCount: 0,
     mode: 'remove',
+  };
+  columnEditorState: {
+    mode: 'list' | 'text';
+    textSubMode: 'rename' | 'reorder' | 'select';
+    columns: Array<{ original: string; renamed: string; selected: boolean }>;
+    textValue: string;
+    textError: string | null;
+    patternText: string;
+    patternMode: 'include' | 'exclude';
+    patternMatchType: 'prefix' | 'suffix' | 'exact';
+    draggedIndex: number | null;
+  } = {
+    mode: 'list',
+    textSubMode: 'rename',
+    columns: [],
+    textValue: '',
+    textError: null,
+    patternText: '',
+    patternMode: 'include',
+    patternMatchType: 'prefix',
+    draggedIndex: null,
   };
 
   // Unified preview panel state (shared across all dialogs with previews)
@@ -413,13 +427,10 @@ export class ChumakApp implements AppState {
       { id: 'join-modal-container', url: 'templates/join-modal.html' },
       { id: 'aggregate-modal-container', url: 'templates/aggregate-modal.html' },
       { id: 'import-csv-modal-container', url: 'templates/import-csv-modal.html' },
-      { id: 'select-columns-modal-container', url: 'templates/select-columns-modal.html' },
       { id: 'split-modal-container', url: 'templates/split-column-modal.html' },
       { id: 'unpivot-modal-container', url: 'templates/unpivot-modal.html' },
       { id: 'pivot-modal-container', url: 'templates/pivot-modal.html' },
       { id: 'replace-modal-container', url: 'templates/replace-modal.html' },
-      { id: 'remove-modal-container', url: 'templates/remove-modal.html' },
-      { id: 'rename-modal-container', url: 'templates/rename-modal.html' },
       { id: 'sort-modal-container', url: 'templates/sort-modal.html' },
       { id: 'slice-rows-modal-container', url: 'templates/slice-rows-modal.html' },
       { id: 'index-modal-container', url: 'templates/index-modal.html' },
@@ -429,6 +440,7 @@ export class ChumakApp implements AppState {
       { id: 'regexp-extract-modal-container', url: 'templates/regexp-extract-modal.html' },
       { id: 'date-modal-container', url: 'templates/date-modal.html' },
       { id: 'dedupe-modal-container', url: 'templates/dedupe-modal.html' },
+      { id: 'column-editor-modal-container', url: 'templates/column-editor-modal.html' },
       { id: 'download-modal-container', url: 'templates/download-modal.html' },
       { id: 'import-url-modal-container', url: 'templates/import-url-modal.html' },
       { id: 'settings-modal-container', url: 'templates/settings-modal.html' },
@@ -1639,79 +1651,6 @@ export class ChumakApp implements AppState {
     return describeTransform(transform);
   }
 
-  selectAllColumns() {
-    this.selectedColumns = this.columns.map(() => true);
-    this.updateSelectPreview();
-  }
-
-  selectNoColumns() {
-    this.selectedColumns = this.columns.map(() => false);
-    this.updateSelectPreview();
-  }
-
-  getSelectedColumnsList() {
-    return this.columns.filter((_col, idx) => this.selectedColumns[idx]);
-  }
-
-  applyColumnPattern() {
-    if (!this.selectPatternText || this.selectPatternText.trim() === '') {
-      return;
-    }
-
-    const matched = matchColumnPattern(this.columns, {
-      pattern: this.selectPatternText,
-      matchType: this.selectPatternMatchType,
-      mode: this.selectPatternMode,
-    });
-
-    this.selectedColumns = this.columns.map((col) => matched.includes(col));
-    this.updateSelectPreview();
-  }
-
-  updateSelectPreview() {
-    const selectedList = this.getSelectedColumnsList();
-    if (selectedList.length === 0) {
-      this.clearPreview();
-      return;
-    }
-
-    const samples = this.currentData!.slice(0, 50);
-    this.previewState = {
-      title: 'Select Columns Preview',
-      stats: `Showing ${samples.length} rows, ${selectedList.length} columns selected`,
-      columns: selectedList,
-      newColumns: [], // None strictly new
-      rows: samples,
-      _debounceTimer: null,
-    };
-  }
-
-  getPatternMatchInfo() {
-    if (!this.selectPatternText || this.selectPatternText.trim() === '') {
-      return '';
-    }
-
-    const matched = matchColumnPattern(this.columns, {
-      pattern: this.selectPatternText,
-      matchType: this.selectPatternMatchType,
-      mode: this.selectPatternMode,
-    });
-
-    const totalColumns = this.columns.length;
-    const matchedCount = matched.length;
-    const removedCount = totalColumns - matchedCount;
-
-    if (matchedCount === 0) {
-      return 'No columns match this pattern';
-    }
-
-    if (this.selectPatternMode === 'include') {
-      return `${matchedCount} of ${totalColumns} columns selected, ${removedCount} will be removed`;
-    } else {
-      return `${matchedCount} of ${totalColumns} columns excluded, ${removedCount} will be kept`;
-    }
-  }
-
   async applyStepResult(transform: any, resultTable: any, closeDialogAfter = true) {
     if (this.editingStepIndex !== null) {
       await this.updateStep(this.editingStepIndex, transform);
@@ -1863,15 +1802,6 @@ export class ChumakApp implements AppState {
       default:
         return 'Abc';
     }
-  }
-
-  async applySelectTransform() {
-    const selectedCols = this.getSelectedColumnsList();
-    if (selectedCols.length === 0) {
-      await this.alert('Please select at least one column');
-      return;
-    }
-    await this.runTransform('Select', { select: selectedCols });
   }
 
   validateFilterExpression() {
@@ -2590,6 +2520,294 @@ export class ChumakApp implements AppState {
     await this.runTransform(opName, { dedupe: { columns, mode } });
   }
 
+  // ============================================================
+  // Column Editor Methods
+  // ============================================================
+
+  toggleColumnEditorColumn(index: number) {
+    this.columnEditorState.columns[index].selected =
+      !this.columnEditorState.columns[index].selected;
+  }
+
+  selectAllColumnEditor() {
+    this.columnEditorState.columns.forEach((c) => (c.selected = true));
+  }
+
+  selectNoneColumnEditor() {
+    this.columnEditorState.columns.forEach((c) => (c.selected = false));
+  }
+
+  applyColumnEditorPattern() {
+    const { patternText, patternMode, patternMatchType } = this.columnEditorState;
+    if (!patternText.trim()) return;
+
+    const pattern = patternText.trim().toLowerCase();
+    const matchFn = (name: string) => {
+      const lower = name.toLowerCase();
+      switch (patternMatchType) {
+        case 'prefix':
+          return lower.startsWith(pattern);
+        case 'suffix':
+          return lower.endsWith(pattern);
+        case 'exact':
+          return lower === pattern;
+        default:
+          return false;
+      }
+    };
+
+    const shouldSelect = patternMode === 'include';
+    this.columnEditorState.columns.forEach((c) => {
+      if (matchFn(c.original)) {
+        c.selected = shouldSelect;
+      }
+    });
+  }
+
+  handleColumnEditorDragStart(index: number, event: DragEvent) {
+    this.columnEditorState.draggedIndex = index;
+    if (event.dataTransfer) {
+      event.dataTransfer.effectAllowed = 'move';
+      event.dataTransfer.setData('text/plain', String(index));
+    }
+  }
+
+  handleColumnEditorDragOver(event: DragEvent) {
+    event.preventDefault();
+    if (event.dataTransfer) {
+      event.dataTransfer.dropEffect = 'move';
+    }
+  }
+
+  handleColumnEditorDrop(dropIndex: number) {
+    const dragIndex = this.columnEditorState.draggedIndex;
+    if (dragIndex === null || dragIndex === dropIndex) return;
+
+    const columns = this.columnEditorState.columns;
+    const [draggedItem] = columns.splice(dragIndex, 1);
+    columns.splice(dropIndex, 0, draggedItem);
+    this.columnEditorState.draggedIndex = null;
+  }
+
+  handleColumnEditorDragEnd() {
+    this.columnEditorState.draggedIndex = null;
+  }
+
+  switchColumnEditorToText() {
+    const state = this.columnEditorState;
+    // Populate text value based on sub-mode
+    if (state.textSubMode === 'rename') {
+      // Show renamed names for all columns (in current order)
+      const lines = state.columns.map((c) => c.renamed);
+      state.textValue = lines.join('\n');
+    } else if (state.textSubMode === 'reorder') {
+      // Show original names of selected columns (in current order)
+      const lines = state.columns.filter((c) => c.selected).map((c) => c.original);
+      state.textValue = lines.join('\n');
+    } else if (state.textSubMode === 'select') {
+      // Show original names of selected columns
+      const lines = state.columns.filter((c) => c.selected).map((c) => c.original);
+      state.textValue = lines.join('\n');
+    }
+    state.textError = null;
+    state.mode = 'text';
+  }
+
+  validateColumnEditorText(): boolean {
+    const state = this.columnEditorState;
+    const lines = state.textValue
+      .split('\n')
+      .map((l) => l.trim())
+      .filter((l) => l.length > 0);
+
+    const columnCount = this.columns.length;
+    const originalNameSet = new Set(this.columns);
+
+    if (lines.length === 0) {
+      state.textError = 'Please enter at least one column name';
+      return false;
+    }
+
+    // Check for duplicates (case-insensitive)
+    const seen = new Set<string>();
+    for (const line of lines) {
+      if (seen.has(line.toLowerCase())) {
+        state.textError = `Duplicate column name: "${line}"`;
+        return false;
+      }
+      seen.add(line.toLowerCase());
+    }
+
+    if (state.textSubMode === 'rename') {
+      // Must have exactly N lines for N columns
+      if (lines.length !== columnCount) {
+        state.textError = `Rename requires exactly ${columnCount} lines (one per column), got ${lines.length}`;
+        return false;
+      }
+    } else if (state.textSubMode === 'reorder') {
+      // All names must exist in original columns
+      for (const line of lines) {
+        if (!originalNameSet.has(line)) {
+          state.textError = `Unknown column: "${line}"`;
+          return false;
+        }
+      }
+      // Must include all columns (no removal in reorder mode)
+      if (lines.length !== columnCount) {
+        state.textError = `Reorder requires all ${columnCount} columns, got ${lines.length}`;
+        return false;
+      }
+    } else if (state.textSubMode === 'select') {
+      // All names must exist in original columns
+      for (const line of lines) {
+        if (!originalNameSet.has(line)) {
+          state.textError = `Unknown column: "${line}"`;
+          return false;
+        }
+      }
+    }
+
+    state.textError = null;
+    return true;
+  }
+
+  getColumnEditorChanges(): {
+    hasChanges: boolean;
+    removed: string[];
+    renamed: { from: string; to: string }[];
+    reordered: boolean;
+  } {
+    const state = this.columnEditorState;
+
+    if (state.mode === 'text') {
+      const lines = state.textValue
+        .split('\n')
+        .map((l) => l.trim())
+        .filter((l) => l.length > 0);
+
+      if (state.textSubMode === 'rename') {
+        // Compare line by line - same order
+        const renamed: { from: string; to: string }[] = [];
+        for (let i = 0; i < lines.length && i < this.columns.length; i++) {
+          if (this.columns[i] !== lines[i]) {
+            renamed.push({ from: this.columns[i], to: lines[i] });
+          }
+        }
+        return { hasChanges: renamed.length > 0, removed: [], renamed, reordered: false };
+      } else if (state.textSubMode === 'reorder') {
+        // Check if order differs
+        const reordered = lines.join(',') !== this.columns.join(',');
+        return { hasChanges: reordered, removed: [], renamed: [], reordered };
+      } else if (state.textSubMode === 'select') {
+        // Columns not in lines are removed
+        const lineSet = new Set(lines);
+        const removed = this.columns.filter((c) => !lineSet.has(c));
+        return { hasChanges: removed.length > 0, removed, renamed: [], reordered: false };
+      }
+    }
+
+    // List mode
+    const removed = state.columns.filter((c) => !c.selected).map((c) => c.original);
+
+    const renamed = state.columns
+      .filter((c) => c.selected && c.original !== c.renamed && c.renamed.trim() !== '')
+      .map((c) => ({ from: c.original, to: c.renamed.trim() }));
+
+    // Check reorder by comparing selected columns order to original
+    const selectedOriginals = state.columns.filter((c) => c.selected).map((c) => c.original);
+    const originalSelectedOrder = this.columns.filter((c) =>
+      state.columns.find((sc) => sc.original === c && sc.selected)
+    );
+    const reordered = JSON.stringify(selectedOriginals) !== JSON.stringify(originalSelectedOrder);
+
+    const hasChanges = removed.length > 0 || renamed.length > 0 || reordered;
+
+    return { hasChanges, removed, renamed, reordered };
+  }
+
+  async applyColumnEditorTransform() {
+    const state = this.columnEditorState;
+
+    // Handle text mode
+    if (state.mode === 'text') {
+      if (!this.validateColumnEditorText()) {
+        await this.alert(state.textError || 'Invalid column names');
+        return;
+      }
+
+      const lines = state.textValue
+        .split('\n')
+        .map((l) => l.trim())
+        .filter((l) => l.length > 0);
+
+      if (state.textSubMode === 'rename') {
+        // Apply rename transform - map column[i] -> lines[i]
+        const renames: Record<string, string> = {};
+        for (let i = 0; i < lines.length && i < this.columns.length; i++) {
+          if (this.columns[i] !== lines[i]) {
+            renames[this.columns[i]] = lines[i];
+          }
+        }
+        if (Object.keys(renames).length > 0) {
+          await this.runTransform('Rename', { rename: renames });
+        } else {
+          this.closeDialog(true);
+        }
+      } else if (state.textSubMode === 'reorder') {
+        // Apply select transform with new order
+        if (lines.join(',') !== this.columns.join(',')) {
+          await this.runTransform('Reorder Columns', { select: lines });
+        } else {
+          this.closeDialog(true);
+        }
+      } else if (state.textSubMode === 'select') {
+        // Apply select transform to keep only listed columns
+        if (lines.length < this.columns.length || lines.join(',') !== this.columns.join(',')) {
+          await this.runTransform('Select Columns', { select: lines });
+        } else {
+          this.closeDialog(true);
+        }
+      }
+
+      return;
+    }
+
+    // List mode
+    const changes = this.getColumnEditorChanges();
+
+    if (!changes.hasChanges) {
+      this.closeDialog(true);
+      return;
+    }
+
+    // Build select transform from current order of selected columns
+    const selectedInOrder = state.columns.filter((c) => c.selected).map((c) => c.original);
+
+    // Check if we need select (order changed or columns removed)
+    const needsSelect =
+      selectedInOrder.length !== this.columns.length ||
+      selectedInOrder.join(',') !== this.columns.join(',');
+
+    // Build rename map
+    const renames: Record<string, string> = {};
+    state.columns.forEach((c) => {
+      if (c.selected && c.original !== c.renamed && c.renamed.trim() !== '') {
+        renames[c.original] = c.renamed.trim();
+      }
+    });
+
+    const needsRename = Object.keys(renames).length > 0;
+
+    // Apply transforms
+    if (needsSelect) {
+      await this.runTransform('Edit Columns', { select: selectedInOrder });
+    }
+
+    if (needsRename) {
+      await this.runTransform('Rename', { rename: renames });
+    }
+  }
+
   async applySortTransform() {
     const { field, order } = this.sortDialogState;
     if (!field) {
@@ -2617,54 +2835,6 @@ export class ChumakApp implements AppState {
     await this.runTransform('Add Index', {
       addIndex: { columnName: columnName.trim(), startFrom: startFrom ?? 1 },
     });
-  }
-
-  async applyRenameTransform() {
-    const { renames } = this.renameDialogState;
-    const actualRenames: Record<string, string> = {};
-    for (const [oldName, newName] of Object.entries(renames)) {
-      if (oldName !== newName && newName && (newName as string).trim() !== '') {
-        actualRenames[oldName] = (newName as string).trim();
-      }
-    }
-    if (Object.keys(actualRenames).length === 0) {
-      this.closeDialog(true);
-      return;
-    }
-    await this.runTransform('Rename', { rename: actualRenames });
-  }
-
-  toggleColumnForRemoval(index: number, event: MouseEvent) {
-    if (event.metaKey || event.ctrlKey) {
-      // Toggle single item
-      this.removedColumns[index] = !this.removedColumns[index];
-    } else {
-      // Single click - select only this one
-      const wasSelected = this.removedColumns[index];
-      this.removedColumns = this.removedColumns.map(() => false);
-      if (!wasSelected) this.removedColumns[index] = true;
-    }
-  }
-
-  selectAllForRemoval() {
-    this.removedColumns = this.removedColumns.map(() => true);
-  }
-
-  selectNoneForRemoval() {
-    this.removedColumns = this.removedColumns.map(() => false);
-  }
-
-  async applyRemoveTransform() {
-    const colsToRemove = this.columns.filter((_c, idx) => this.removedColumns[idx]);
-    if (colsToRemove.length === 0) {
-      this.closeDialog(true);
-      return;
-    }
-    if (colsToRemove.length === this.columns.length) {
-      await this.alert('Cannot remove all columns');
-      return;
-    }
-    await this.runTransform('Remove', { remove: colsToRemove });
   }
 
   toggleColumnForFold(index: number) {
@@ -3326,8 +3496,6 @@ export class ChumakApp implements AppState {
         return this.sliceRowsDialogState;
       case 'index':
         return this.indexDialogState;
-      case 'rename':
-        return this.renameDialogState;
       case 'aggregate':
         return {
           groupBy: this.aggregateDialogState.groupBy,
@@ -3352,15 +3520,6 @@ export class ChumakApp implements AppState {
         };
       case 'sort':
         return this.sortDialogState;
-      case 'remove':
-        return this.removedColumns;
-      case 'select':
-        return {
-          cols: this.selectedColumns,
-          pattern: this.selectPatternText,
-          mode: this.selectPatternMode,
-          type: this.selectPatternMatchType,
-        };
       case 'replace':
         return {
           column: this.replaceDialogState.column,
@@ -3408,6 +3567,16 @@ export class ChumakApp implements AppState {
           useAllColumns: this.dedupeDialogState.useAllColumns,
           mode: this.dedupeDialogState.mode,
         };
+      case 'column-editor':
+        return {
+          mode: this.columnEditorState.mode,
+          columns: this.columnEditorState.columns.map((c) => ({
+            original: c.original,
+            renamed: c.renamed,
+            selected: c.selected,
+          })),
+          textValue: this.columnEditorState.textValue,
+        };
       default:
         return null;
     }
@@ -3448,12 +3617,7 @@ export class ChumakApp implements AppState {
 
   private initDialogState(dialogName: string, _section?: string) {
     // _section can be used for deep-linking within reference pages in the future
-    if (dialogName === 'select') {
-      this.selectedColumns = this.columns.map(() => true);
-      this.selectPatternText = '';
-      this.selectPatternMatchType = 'prefix';
-      this.selectPatternMode = 'include';
-    } else if (dialogName === 'filter') {
+    if (dialogName === 'filter') {
       this.filterExpression = '';
       this.filterError = null;
     } else if (dialogName === 'join') {
@@ -3467,14 +3631,6 @@ export class ChumakApp implements AppState {
       this.sliceRowsDialogState = { count: 10, mode: 'first' };
     } else if (dialogName === 'index') {
       this.indexDialogState = { columnName: 'row_index', startFrom: 1 };
-    } else if (dialogName === 'rename') {
-      const renames: Record<string, string> = {};
-      this.columns.forEach((col) => {
-        renames[col] = col;
-      });
-      this.renameDialogState = { renames };
-    } else if (dialogName === 'remove') {
-      this.removedColumns = this.columns.map(() => false);
     } else if (dialogName === 'aggregate') {
       this.aggregateDialogState = {
         groupBy: [],
@@ -3560,6 +3716,22 @@ export class ChumakApp implements AppState {
         mode: 'remove',
       };
       this.$nextTick(() => this.updateDedupePreview());
+    } else if (dialogName === 'column-editor') {
+      this.columnEditorState = {
+        mode: 'list',
+        textSubMode: 'rename',
+        columns: this.columns.map((col) => ({
+          original: col,
+          renamed: col,
+          selected: true,
+        })),
+        textValue: '',
+        textError: null,
+        patternText: '',
+        patternMode: 'include',
+        patternMatchType: 'prefix',
+        draggedIndex: null,
+      };
     }
   }
 
@@ -3584,6 +3756,7 @@ export class ChumakApp implements AppState {
       'aggregate',
       'join',
       'replace',
+      'column-editor',
     ];
     return slidePanels.includes(dialog);
   }
@@ -3611,12 +3784,6 @@ export class ChumakApp implements AppState {
         return 'Keep / Remove Rows';
       case 'index':
         return 'Add Index Column';
-      case 'select':
-        return 'Select Columns';
-      case 'remove':
-        return 'Remove Columns';
-      case 'rename':
-        return 'Rename Columns';
       case 'split':
         return 'Split Column';
       case 'derive':
@@ -3651,6 +3818,8 @@ export class ChumakApp implements AppState {
         return 'About Chumak';
       case 'expressions':
         return 'Expression Reference';
+      case 'column-editor':
+        return 'Edit Columns';
       default:
         return '';
     }
@@ -3771,15 +3940,6 @@ export class ChumakApp implements AppState {
       case 'index':
         await this.applyIndexTransform();
         break;
-      case 'select':
-        await this.applySelectTransform();
-        break;
-      case 'remove':
-        await this.applyRemoveTransform();
-        break;
-      case 'rename':
-        await this.applyRenameTransform();
-        break;
       case 'split':
         await this.applySplitTransform();
         break;
@@ -3812,6 +3972,9 @@ export class ChumakApp implements AppState {
         break;
       case 'dedupe':
         await this.applyDedupeTransform();
+        break;
+      case 'column-editor':
+        await this.applyColumnEditorTransform();
         break;
       case 'import-csv':
         this.confirmImport();
@@ -4120,9 +4283,7 @@ export class ChumakApp implements AppState {
     if (!this.selectedColumn) return;
     const col = this.selectedColumn;
     if (await this.confirm(`Are you sure you want to remove column "${col}"?`)) {
-      this.removedColumns = this.columns.map((c) => c === col);
-      // @ts-ignore
-      await this.applyRemoveTransform();
+      await this.runTransform('Remove Column', { remove: [col] });
       this.selectedColumn = null;
     }
   }
@@ -4628,14 +4789,71 @@ export class ChumakApp implements AppState {
         error: null,
       };
     } else if (step.select) {
-      this.openDialog('select');
-      this.selectedColumns = this.columns.map((c) => step.select.includes(c));
+      // Migrate to column-editor: select defines order and which columns to keep
+      this.openDialog('column-editor');
+      const selectedSet = new Set(step.select);
+      this.columnEditorState = {
+        mode: 'list',
+        textSubMode: 'rename',
+        columns: step.select
+          .map((col: string) => ({
+            original: col,
+            renamed: col,
+            selected: true,
+          }))
+          .concat(
+            this.columns
+              .filter((c) => !selectedSet.has(c))
+              .map((col) => ({
+                original: col,
+                renamed: col,
+                selected: false,
+              }))
+          ),
+        textValue: '',
+        textError: null,
+        patternText: '',
+        patternMode: 'include',
+        patternMatchType: 'prefix',
+        draggedIndex: null,
+      };
     } else if (step.rename) {
-      this.openDialog('rename');
-      this.renameDialogState = { renames: { ...step.rename } };
+      // Migrate to column-editor: rename shows current columns with edited names
+      this.openDialog('column-editor');
+      this.columnEditorState = {
+        mode: 'list',
+        textSubMode: 'rename',
+        columns: this.columns.map((col) => ({
+          original: col,
+          renamed: step.rename[col] || col,
+          selected: true,
+        })),
+        textValue: '',
+        textError: null,
+        patternText: '',
+        patternMode: 'include',
+        patternMatchType: 'prefix',
+        draggedIndex: null,
+      };
     } else if (step.remove) {
-      this.openDialog('remove');
-      this.removedColumns = this.columns.map((c) => step.remove.includes(c));
+      // Migrate to column-editor: remove shows columns with removed ones deselected
+      this.openDialog('column-editor');
+      const removedSet = new Set(step.remove);
+      this.columnEditorState = {
+        mode: 'list',
+        textSubMode: 'rename',
+        columns: this.columns.map((col) => ({
+          original: col,
+          renamed: col,
+          selected: !removedSet.has(col),
+        })),
+        textValue: '',
+        textError: null,
+        patternText: '',
+        patternMode: 'include',
+        patternMatchType: 'prefix',
+        draggedIndex: null,
+      };
     } else if (step.sort) {
       this.openDialog('sort');
       this.sortDialogState = { field: step.sort.field, order: step.sort.order };
