@@ -75,20 +75,39 @@ _Status: 🚧 In Progress_
 - [x] `FilterDialog.tsx` (was `filter-modal.html`)
 - [x] `PivotDialog.tsx` (was `pivot-modal.html`)
 - [x] `DateDialog.tsx` (was `date-modal.html`)
+- [x] `DeriveDialog.tsx` (was `derive-modal.html`)
 - [x] `SplitDialog.tsx` (was `split-column-modal.html`)
+- [x] `JoinDialog.tsx` (was `join-modal.html`)
 
 ### Remaining Dialogs to Migrate
 
 Priority list based on complexity:
 
-- [ ] `derive-modal.html` (High - has expression editor)
-- [ ] `join-modal.html` (High)
-- [ ] `aggregate-modal.html` (High)
-- [ ] `import-csv-modal.html` (High)
-- [ ] `column-editor-modal.html` (High)
-- [ ] `settings-modal.html` (Low - but different context)
+- [x] `AggregateDialog.tsx` (was `aggregate-modal.html`)
 
----
+### Remaining Dialogs to Migrate
+
+Priority list based on complexity:
+
+- [x] `ImportCsvDialog.tsx` (was `import-csv-modal.html`)
+
+### Remaining Dialogs to Migrate
+
+Priority list based on complexity:
+
+- [x] `ColumnEditorDialog.tsx` (was `column-editor-modal.html`)
+
+### Remaining Dialogs to Migrate
+
+Priority list based on complexity:
+
+- [x] `SettingsDialog.tsx` (was `settings-modal.html`)
+
+### Remaining Dialogs to Migrate
+
+Priority list based on complexity:
+
+_(All planned dialogs migrated)_
 
 ### Migration Recipe (SortDialog Example)
 

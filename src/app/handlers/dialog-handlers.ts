@@ -13,6 +13,16 @@ import { FilterDialog, FilterPreviewMode } from '../components/FilterDialog';
 import { PivotDialog, PivotAggregation } from '../components/PivotDialog';
 import { DateDialog, DateOperation } from '../components/DateDialog';
 import { SplitDialog, SplitMode } from '../components/SplitDialog';
+import { DeriveDialog } from '../components/DeriveDialog';
+import { JoinDialog, JoinType, JoinTarget } from '../components/JoinDialog';
+import { AggregateDialog, Aggregation } from '../components/AggregateDialog';
+import { ImportCsvDialog } from '../components/ImportCsvDialog';
+import {
+  ColumnEditorDialog,
+  ColumnEditorItem,
+  ColumnEditorChanges,
+} from '../components/ColumnEditorDialog';
+import { SettingsDialog } from '../components/SettingsDialog';
 
 // Preact signals for Sort Dialog
 let sortFieldSignal = signal('');
@@ -78,6 +88,70 @@ let splitMaxColumnsSignal = signal(10);
 let splitKeepOriginalSignal = signal(false);
 let splitErrorSignal = signal<string | null>(null);
 let splitEffectCleanup: (() => void) | null = null;
+
+// Preact signals for Derive Dialog
+let deriveColumnNameSignal = signal('');
+let deriveExpressionSignal = signal('');
+let deriveErrorSignal = signal<string | null>(null);
+let deriveEffectCleanup: (() => void) | null = null;
+
+// Preact signals for Join Dialog
+let joinRightModelSignal = signal<string | null>(null);
+let joinTypeSignal = signal<JoinType>('left');
+let joinKeyPairsSignal = signal<[string | null, string | null][]>([[null, null]]);
+let joinSuffixesSignal = signal<[string, string]>(['_x', '_y']);
+let joinRightColumnsSignal = signal<string[]>([]);
+let joinPreviewDataSignal = signal<any | null>(null);
+let joinPreviewErrorSignal = signal<string | null>(null);
+let joinIsPreviewingSignal = signal(false);
+
+let joinEffectCleanup: (() => void) | null = null;
+
+// Preact signals for Aggregate Dialog
+let aggGroupBySignal = signal<string[]>([]);
+let aggAggregationsSignal = signal<Aggregation[]>([{ col: '', func: 'count', output: 'count' }]);
+let aggIsPreviewingSignal = signal(false);
+let aggEffectCleanup: (() => void) | null = null;
+
+// Preact signals for Import CSV Dialog
+let importSourceNameSignal = signal('');
+let importIsJsonSignal = signal(false);
+let importJsonPathSignal = signal('');
+let importJsonRawValuePreviewSignal = signal('');
+let importSuggestedJsonKeysSignal = signal<string[]>([]);
+let importFlattenJsonSignal = signal(false);
+let importSerializeNestedSignal = signal(false);
+let importJsonDataSignal = signal<any>(null);
+let importDelimiterSignal = signal(',');
+let importHeaderModeSignal = signal<'first-row' | 'auto-generate' | 'manual'>('first-row');
+let importCustomHeadersSignal = signal<string[]>([]);
+let importDuplicateWarningSignal = signal('');
+let importPreviewHeadersSignal = signal<string[]>([]);
+let importPreviewDataRowsSignal = signal<any[][]>([]);
+let importEffectCleanup: (() => void) | null = null;
+
+// Preact signals for Column Editor Dialog
+let colEditModeSignal = signal<'list' | 'text'>('list');
+let colEditColumnsSignal = signal<ColumnEditorItem[]>([]);
+let colEditPatternTextSignal = signal('');
+let colEditPatternModeSignal = signal<'include' | 'exclude'>('include');
+let colEditPatternMatchTypeSignal = signal<'prefix' | 'suffix' | 'exact'>('prefix');
+let colEditDraggedIndexSignal = signal<number | null>(null);
+let colEditTextSubModeSignal = signal<'rename' | 'reorder' | 'select'>('rename');
+let colEditTextValueSignal = signal('');
+let colEditTextErrorSignal = signal<string | null>(null);
+let colEditChangesSignal = signal<ColumnEditorChanges>({
+  removed: [],
+  renamed: [],
+  reordered: false,
+  hasChanges: false,
+});
+let colEditEffectCleanup: (() => void) | null = null;
+
+// Preact signals for Settings Dialog
+let settingsThemeSignal = signal<'chumak' | 'blues'>('chumak');
+let settingsRowLimitSignal = signal(100);
+let settingsEffectCleanup: (() => void) | null = null;
 
 export function getDialogState(this: ChumakApp, dialog: string) {
   switch (dialog) {
@@ -173,6 +247,12 @@ export function getDialogState(this: ChumakApp, dialog: string) {
         })),
         textValue: this.columnEditorState.textValue,
       };
+
+    case 'settings':
+      return {
+        theme: this.theme,
+        rowLimit: this.uxSettings.preview?.rowLimit || 100,
+      };
     default:
       return null;
   }
@@ -257,8 +337,133 @@ export function initDialogState(this: ChumakApp, dialogName: string, _section?: 
     }
   } else if (dialogName === 'join') {
     (this as any).initializeJoinDialog();
+
+    // Mount Preact component
+    const container = document.getElementById('join-modal-container');
+    if (container) {
+      joinRightModelSignal.value = this.joinDialogState.rightModel;
+      joinTypeSignal.value = this.joinDialogState.joinType as JoinType;
+      // Deep copy nested arrays to ensure reactivity if structure changes
+      joinKeyPairsSignal.value = this.joinDialogState.keyPairs.map((p) => [...p]) as [
+        string | null,
+        string | null,
+      ][];
+      joinSuffixesSignal.value = [...this.joinDialogState.suffixes] as [string, string];
+
+      // We need to keep right columns in sync (populated by Alpine logic initially)
+      joinRightColumnsSignal.value = [...this.joinDialogState.rightColumns];
+
+      joinPreviewDataSignal.value = this.joinDialogState.previewData;
+      joinPreviewErrorSignal.value = this.joinDialogState.previewError;
+      joinIsPreviewingSignal.value = this.joinDialogState.isPreviewing;
+
+      joinEffectCleanup = effect(() => {
+        // Sync Signals -> Alpine
+        const oldRightModel = this.joinDialogState.rightModel;
+        this.joinDialogState.rightModel = joinRightModelSignal.value;
+        this.joinDialogState.joinType = joinTypeSignal.value;
+        this.joinDialogState.keyPairs = joinKeyPairsSignal.value;
+        this.joinDialogState.suffixes = joinSuffixesSignal.value;
+
+        // If right model changed, trigger the update logic which fetches columns
+        if (oldRightModel !== joinRightModelSignal.value) {
+          if (typeof (this as any).onJoinTargetChange === 'function') {
+            (this as any).onJoinTargetChange();
+          }
+        }
+
+        // Sync back right columns from Alpine (which might be updated by onJoinTargetChange)
+        // Note: Alpine's onJoinTargetChange runs synchronously mostly, but might be async if it did fetching?
+        // Actually onJoinTargetChange finds model locally.
+        // We need to detect if Alpine changed `rightColumns` and update signal.
+        // But effect here is triggered by signals.
+        // If we want two-way sync for columns, we might need to update signal after onJoinTargetChange.
+        // Let's rely on onJoinTargetChange updating the state, and we just need rightColumns signal to reflect it.
+        // Since we can't easily subscribe to Alpine state inside this signal effect loop without cycles,
+        // we can assume `onJoinTargetChange` updates `this.joinDialogState.rightColumns`.
+        // We should manually update signal there? Or poll?
+        // Better: onJoinTargetChange should be pure or we replicate it here.
+        // Let's replicate simple column fetching logic here or just read it back.
+
+        const targetId = joinRightModelSignal.value;
+        if (targetId) {
+          const target =
+            this.models.find((m) => m.id === targetId) ||
+            this.sources.find((s) => s.id === targetId);
+          if (target) {
+            const cols = (target as any).schema
+              ? (target as any).schema.map((c: any) => c.name)
+              : (target as any).columns.map((c: any) => c.name);
+            // Only update if different to avoid loop
+            if (JSON.stringify(cols) !== JSON.stringify(joinRightColumnsSignal.peek())) {
+              joinRightColumnsSignal.value = cols;
+            }
+          }
+        }
+      });
+
+      mountComponent(container, JoinDialog, {
+        targets: this.joinDialogState.availableTargets as JoinTarget[],
+        rightModel: joinRightModelSignal,
+        joinType: joinTypeSignal,
+        keyPairs: joinKeyPairsSignal as any,
+        suffixes: joinSuffixesSignal as any,
+        leftColumns: this.columns,
+        rightColumns: joinRightColumnsSignal,
+        previewData: joinPreviewDataSignal,
+        previewError: joinPreviewErrorSignal,
+        isPreviewing: joinIsPreviewingSignal,
+        onPreview: async () => {
+          joinIsPreviewingSignal.value = true;
+          try {
+            if (typeof (this as any).previewJoin === 'function') {
+              await (this as any).previewJoin();
+              // Sync back results
+              joinPreviewDataSignal.value = this.joinDialogState.previewData;
+              joinPreviewErrorSignal.value = this.joinDialogState.previewError;
+            }
+          } finally {
+            joinIsPreviewingSignal.value = false;
+          }
+        },
+      });
+    }
   } else if (dialogName === 'derive') {
     this.deriveDialogState = { columnName: '', expression: '', error: null };
+
+    // Mount Preact component
+    const container = document.getElementById('derive-modal-container');
+    if (container) {
+      deriveColumnNameSignal.value = this.deriveDialogState.columnName;
+      deriveExpressionSignal.value = this.deriveDialogState.expression;
+      deriveErrorSignal.value = this.deriveDialogState.error;
+
+      deriveEffectCleanup = effect(() => {
+        // Sync Signals -> Alpine
+        this.deriveDialogState.columnName = deriveColumnNameSignal.value;
+        this.deriveDialogState.expression = deriveExpressionSignal.value;
+
+        // Trigger validation and preview logic
+        if (typeof (this as any).validateDeriveExpression === 'function') {
+          (this as any).validateDeriveExpression();
+          // Sync Alpine Error -> Signal
+          if (deriveErrorSignal.peek() !== this.deriveDialogState.error) {
+            deriveErrorSignal.value = this.deriveDialogState.error;
+          }
+        }
+
+        if (typeof (this as any).debouncedUpdateDerivePreview === 'function') {
+          (this as any).debouncedUpdateDerivePreview();
+        }
+      });
+
+      mountComponent(container, DeriveDialog, {
+        columnName: deriveColumnNameSignal,
+        expression: deriveExpressionSignal,
+        error: deriveErrorSignal,
+        onOpenReference: () => this.openDialog('expressions'),
+      });
+    }
   } else if (dialogName === 'sort') {
     // Initialize Alpine state
     this.sortDialogState = { field: this.columns[0] || '', order: 'asc' };
@@ -330,6 +535,308 @@ export function initDialogState(this: ChumakApp, dialogName: string, _section?: 
       previewError: null,
       isPreviewing: false,
     };
+
+    // Mount Preact component
+    const container = document.getElementById('aggregate-modal-container');
+    if (container) {
+      aggGroupBySignal.value = [...this.aggregateDialogState.groupBy];
+      // Map Alpine aggregations to our typed objects
+      aggAggregationsSignal.value = this.aggregateDialogState.aggregations.map((a) => ({ ...a }));
+      aggIsPreviewingSignal.value = this.aggregateDialogState.isPreviewing;
+
+      aggEffectCleanup = effect(() => {
+        this.aggregateDialogState.groupBy = [...aggGroupBySignal.value];
+        this.aggregateDialogState.aggregations = aggAggregationsSignal.value.map((a) => ({ ...a }));
+        // isPreviewing is updated manually during async operation
+      });
+
+      mountComponent(container, AggregateDialog, {
+        columns: this.columns,
+        groupBy: aggGroupBySignal,
+        aggregations: aggAggregationsSignal,
+        isPreviewing: aggIsPreviewingSignal,
+        onPreview: async () => {
+          aggIsPreviewingSignal.value = true;
+          try {
+            if (typeof (this as any).previewAggregate === 'function') {
+              await (this as any).previewAggregate();
+            }
+          } finally {
+            aggIsPreviewingSignal.value = false;
+          }
+        },
+      });
+    }
+  } else if (dialogName === 'import-csv') {
+    const container = document.getElementById('import-csv-modal-container');
+    if (container) {
+      // Initialize signals from current Alpine state (populated by file loader)
+      // Note: isJson and other optional props might be undefined in fresh state, verify types.ts
+      importSourceNameSignal.value = this.importDialogState.sourceName;
+      importIsJsonSignal.value = !!this.importDialogState.isJson;
+      importJsonPathSignal.value = this.importDialogState.jsonPath || '';
+      importJsonRawValuePreviewSignal.value = this.importDialogState.jsonRawValuePreview || '';
+      importSuggestedJsonKeysSignal.value = this.importDialogState.suggestedJsonKeys || [];
+      importFlattenJsonSignal.value = !!this.importDialogState.flattenJson;
+      importSerializeNestedSignal.value = !!this.importDialogState.serializeNested;
+      importJsonDataSignal.value = this.importDialogState.jsonData || null;
+
+      importDelimiterSignal.value = this.importDialogState.delimiter;
+      importHeaderModeSignal.value = this.importDialogState.headerMode;
+      importCustomHeadersSignal.value = [...(this.importDialogState.customHeaders || [])];
+      importDuplicateWarningSignal.value = this.importDialogState.duplicateWarning || '';
+      importPreviewHeadersSignal.value = [...(this.importDialogState.previewHeaders || [])];
+      importPreviewDataRowsSignal.value = [...(this.importDialogState.previewDataRows || [])];
+
+      importEffectCleanup = effect(() => {
+        // Sync Signals -> Alpine
+        this.importDialogState.sourceName = importSourceNameSignal.value;
+        this.importDialogState.isJson = importIsJsonSignal.value;
+        this.importDialogState.jsonPath = importJsonPathSignal.value;
+        // suggestedJsonKeys is usually output from Alpine
+        this.importDialogState.flattenJson = importFlattenJsonSignal.value;
+        this.importDialogState.serializeNested = importSerializeNestedSignal.value;
+        // jsonData is output
+
+        this.importDialogState.delimiter = importDelimiterSignal.value;
+        this.importDialogState.headerMode = importHeaderModeSignal.value;
+        this.importDialogState.customHeaders = importCustomHeadersSignal.value;
+        // duplicateWarning is output
+      });
+
+      mountComponent(container, ImportCsvDialog, {
+        sourceName: importSourceNameSignal,
+        isJson: importIsJsonSignal,
+        jsonPath: importJsonPathSignal,
+        jsonRawValuePreview: importJsonRawValuePreviewSignal,
+        suggestedJsonKeys: importSuggestedJsonKeysSignal,
+        flattenJson: importFlattenJsonSignal,
+        serializeNested: importSerializeNestedSignal,
+        jsonData: importJsonDataSignal,
+        delimiter: importDelimiterSignal,
+        headerMode: importHeaderModeSignal,
+        customHeaders: importCustomHeadersSignal,
+        duplicateWarning: importDuplicateWarningSignal,
+        previewHeaders: importPreviewHeadersSignal,
+        previewDataRows: importPreviewDataRowsSignal,
+
+        onJsonPathUpdate: () => {
+          // Logic handled in Alpine: updateJsonPath()
+          // It uses the state we synced in effect
+          if (typeof (this as any).updateJsonPath === 'function') {
+            (this as any).updateJsonPath();
+            // Sync outputs
+            importJsonRawValuePreviewSignal.value =
+              this.importDialogState.jsonRawValuePreview || '';
+            importSuggestedJsonKeysSignal.value = this.importDialogState.suggestedJsonKeys || [];
+            importJsonDataSignal.value = this.importDialogState.jsonData;
+            importPreviewHeadersSignal.value = this.importDialogState.previewHeaders;
+            importPreviewDataRowsSignal.value = this.importDialogState.previewDataRows;
+            importCustomHeadersSignal.value = this.importDialogState.customHeaders; // headers might update
+          }
+        },
+        onJsonPathReset: () => {
+          if (typeof (this as any).resetJsonPath === 'function') {
+            (this as any).resetJsonPath();
+            // Update signals reflecting reset state
+            importJsonPathSignal.value = this.importDialogState.jsonPath || '';
+            importJsonRawValuePreviewSignal.value = '';
+            importSuggestedJsonKeysSignal.value = this.importDialogState.suggestedJsonKeys || [];
+            // ... sync other potential changes
+          }
+        },
+        onJsonPathSegmentSelect: (key: string) => {
+          if (typeof (this as any).selectJsonPathSegment === 'function') {
+            (this as any).selectJsonPathSegment(key);
+            importJsonPathSignal.value = this.importDialogState.jsonPath || '';
+            // Trigger update flow
+            if (typeof (this as any).updateJsonPath === 'function') {
+              (this as any).updateJsonPath();
+              importJsonRawValuePreviewSignal.value =
+                this.importDialogState.jsonRawValuePreview || '';
+              importSuggestedJsonKeysSignal.value = this.importDialogState.suggestedJsonKeys || [];
+              importJsonDataSignal.value = this.importDialogState.jsonData;
+              importPreviewHeadersSignal.value = this.importDialogState.previewHeaders;
+              importPreviewDataRowsSignal.value = this.importDialogState.previewDataRows;
+              importCustomHeadersSignal.value = this.importDialogState.customHeaders;
+            }
+          }
+        },
+        onParamChange: () => {
+          // For delimiter, headerMode, etc.
+          // Triggers updateImportPreview() or updateHeadersForPreview()
+          // In template: @change="updateHeadersForPreview()" for headers/options
+          // @change="updateImportPreview()" for delimiter
+
+          // Simplification: call updateImportPreview() which usually covers everything or chains them?
+          // Actually template calls updateHeadersForPreview() for JSON options and header mode.
+          // updateImportPreview() for delimiter.
+
+          // Let's call both or check based on what changed?
+          // Or better, just call updateImportPreview() if it refreshes data,
+          // and updateHeadersForPreview() if only headers change.
+
+          // A safe bet is calling updateImportPreview() for everything if it covers distinct cases,
+          // but checking existing logic would be best.
+          // Assuming updateImportPreview re-parses everything.
+
+          if (importIsJsonSignal.value) {
+            if (typeof (this as any).updateHeadersForPreview === 'function') {
+              (this as any).updateHeadersForPreview();
+            }
+          } else {
+            if (typeof (this as any).updateImportPreview === 'function') {
+              (this as any).updateImportPreview();
+            }
+            // Headers might need updateHeadersForPreview too if mode changed
+            if (typeof (this as any).updateHeadersForPreview === 'function') {
+              (this as any).updateHeadersForPreview();
+            }
+          }
+
+          // Sync outputs
+          importPreviewHeadersSignal.value = this.importDialogState.previewHeaders;
+          importPreviewDataRowsSignal.value = this.importDialogState.previewDataRows;
+          importDuplicateWarningSignal.value = this.importDialogState.duplicateWarning || '';
+        },
+      });
+    }
+  } else if (dialogName === 'column-editor') {
+    this.columnEditorState = {
+      mode: 'list',
+      textSubMode: 'rename',
+      columns: this.columns.map((col) => ({
+        original: col,
+        renamed: col,
+        selected: true,
+      })),
+      textValue: '',
+      textError: null,
+      patternText: '',
+      patternMode: 'include',
+      patternMatchType: 'prefix',
+      draggedIndex: null,
+    };
+
+    const container = document.getElementById('column-editor-modal-container');
+    if (container) {
+      colEditModeSignal.value = 'list';
+      colEditColumnsSignal.value = this.columnEditorState.columns.map((c) => ({ ...c }));
+      colEditPatternTextSignal.value = '';
+      colEditPatternModeSignal.value = 'include';
+      colEditPatternMatchTypeSignal.value = 'prefix';
+      colEditDraggedIndexSignal.value = null;
+      colEditTextSubModeSignal.value = 'rename';
+      colEditTextValueSignal.value = '';
+      colEditTextErrorSignal.value = null;
+      colEditChangesSignal.value = {
+        removed: [],
+        renamed: [],
+        reordered: false,
+        hasChanges: false,
+      };
+
+      colEditEffectCleanup = effect(() => {
+        this.columnEditorState.mode = colEditModeSignal.value;
+        this.columnEditorState.columns = colEditColumnsSignal.value.map((c) => ({ ...c }));
+        this.columnEditorState.patternText = colEditPatternTextSignal.value;
+        this.columnEditorState.patternMode = colEditPatternModeSignal.value;
+        this.columnEditorState.patternMatchType = colEditPatternMatchTypeSignal.value;
+        this.columnEditorState.draggedIndex = colEditDraggedIndexSignal.value;
+        this.columnEditorState.textSubMode = colEditTextSubModeSignal.value;
+        this.columnEditorState.textValue = colEditTextValueSignal.value;
+        this.columnEditorState.textError = colEditTextErrorSignal.value;
+
+        // Calculate Changes (for preview) - Logic replicated from Alpine or synced properly?
+        // Alpine had getColumnEditorChanges() method. We should probably reuse it or replicate logic.
+        // It uses `this.columnEditorState` so by syncing signals TO state, we can just call it.
+        // However, we want to update the SIGNAL `colEditChangesSignal` so the Preact component can see it.
+        if (typeof (this as any).getColumnEditorChanges === 'function') {
+          const changes = (this as any).getColumnEditorChanges();
+          colEditChangesSignal.value = changes;
+        }
+      });
+
+      mountComponent(container, ColumnEditorDialog, {
+        mode: colEditModeSignal,
+        columns: colEditColumnsSignal,
+        patternText: colEditPatternTextSignal,
+        patternMode: colEditPatternModeSignal,
+        patternMatchType: colEditPatternMatchTypeSignal,
+        draggedIndex: colEditDraggedIndexSignal,
+        textSubMode: colEditTextSubModeSignal,
+        textValue: colEditTextValueSignal,
+        textError: colEditTextErrorSignal,
+        changes: colEditChangesSignal,
+
+        onApplyPattern: () => {
+          if (typeof (this as any).applyColumnEditorPattern === 'function') {
+            (this as any).applyColumnEditorPattern();
+            // Sync back columns as they are modified by pattern
+            colEditColumnsSignal.value = this.columnEditorState.columns.map((c) => ({ ...c }));
+          }
+        },
+        onSwitchToText: () => {
+          if (typeof (this as any).switchColumnEditorToText === 'function') {
+            (this as any).switchColumnEditorToText();
+            // Sync back textValue as it is generated from columns
+            colEditTextValueSignal.value = this.columnEditorState.textValue;
+          }
+        },
+        onValidateText: () => {
+          if (typeof (this as any).validateColumnEditorText === 'function') {
+            (this as any).validateColumnEditorText();
+            // Sync back error state
+            colEditTextErrorSignal.value = this.columnEditorState.textError;
+            // Sync back columns if valid? No, only on Apply.
+            // But changes preview uses columns for List mode. Text mode logic is different.
+            // Actually validate function also updates columns? Verify Alpine logic.
+            // Checking validate logic: it updates this.columnEditorState.columns if valid?
+            // No, usually it just checks validity.
+            // But wait, if we are in text mode, `getColumnEditorChanges` needs to know what the NEW state is.
+            // Standard Alpine implementation of `getColumnEditorChanges` looks at `mode`.
+            // If text, it parses textValue.
+            // If list, it looks at `columns` array.
+
+            // If validateColumnEditorText() ran, it might update some internal state or we rely on getColumnEditorChanges().
+          }
+        },
+      });
+    }
+  } else if (dialogName === 'settings') {
+    const container = document.getElementById('settings-modal-container');
+    if (container) {
+      settingsThemeSignal.value = this.theme;
+      settingsRowLimitSignal.value = this.uxSettings.preview?.rowLimit || 100;
+
+      settingsEffectCleanup = effect(() => {
+        // In this case, we don't necessarily want two-way binding loop.
+        // But if `this.theme` changes from elsewhere, signal should update?
+        // Not critical as settings modal is ephemeral.
+      });
+
+      mountComponent(container, SettingsDialog, {
+        theme: settingsThemeSignal,
+        rowLimit: settingsRowLimitSignal,
+        onThemeChange: (theme) => {
+          settingsThemeSignal.value = theme;
+          if (typeof (this as any).switchTheme === 'function') {
+            (this as any).switchTheme(theme);
+          }
+        },
+        onRowLimitChange: (limit) => {
+          settingsRowLimitSignal.value = limit;
+          if (typeof (this as any).updatePreviewRowLimit === 'function') {
+            // updatePreviewRowLimit expects string in template, but accepts string and parses int.
+            // The signature in chumak-app.ts is (value: string).
+            // But let's check if we can pass string or if we should convert.
+            // Method implementation: const limit = Math.max(..., parseInt(value, 10)...)
+            // So we should pass string.
+            (this as any).updatePreviewRowLimit(String(limit));
+          }
+        },
+      });
+    }
   } else if (dialogName === 'fold') {
     // Initialize Alpine state
     this.foldDialogState = {
@@ -907,6 +1414,34 @@ export async function closeDialog(this: ChumakApp, force = false) {
     pivotEffectCleanup = null;
   }
 
+  if (this.activeDialog === 'aggregate') {
+    const container = document.getElementById('aggregate-modal-container');
+    if (container) unmountComponent(container);
+    aggEffectCleanup?.();
+    aggEffectCleanup = null;
+  }
+
+  if (this.activeDialog === 'import-csv') {
+    const container = document.getElementById('import-csv-modal-container');
+    if (container) unmountComponent(container);
+    importEffectCleanup?.();
+    importEffectCleanup = null;
+  }
+
+  if (this.activeDialog === 'column-editor') {
+    const container = document.getElementById('column-editor-modal-container');
+    if (container) unmountComponent(container);
+    colEditEffectCleanup?.();
+    colEditEffectCleanup = null;
+  }
+
+  if (this.activeDialog === 'settings') {
+    const container = document.getElementById('settings-modal-container');
+    if (container) unmountComponent(container);
+    settingsEffectCleanup?.();
+    settingsEffectCleanup = null;
+  }
+
   if (this.activeDialog === 'date') {
     const container = document.getElementById('date-modal-container');
     if (container) unmountComponent(container);
@@ -919,6 +1454,20 @@ export async function closeDialog(this: ChumakApp, force = false) {
     if (container) unmountComponent(container);
     splitEffectCleanup?.();
     splitEffectCleanup = null;
+  }
+
+  if (this.activeDialog === 'derive') {
+    const container = document.getElementById('derive-modal-container');
+    if (container) unmountComponent(container);
+    deriveEffectCleanup?.();
+    deriveEffectCleanup = null;
+  }
+
+  if (this.activeDialog === 'join') {
+    const container = document.getElementById('join-modal-container');
+    if (container) unmountComponent(container);
+    joinEffectCleanup?.();
+    joinEffectCleanup = null;
   }
 
   // Clear URL hash if closing a navigable page

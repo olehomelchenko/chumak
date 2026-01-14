@@ -5,23 +5,29 @@ import { autoSave, clearAllData as storageClearAllData } from '../../core/storag
 export function getTemplateConfigs(this: ChumakApp) {
   // Note: sort, index, replace dialogs are now Preact components (see src/app/components/)
   return [
-    { id: 'join-modal-container', url: 'templates/join-modal.html' },
-    { id: 'aggregate-modal-container', url: 'templates/aggregate-modal.html' },
-    { id: 'import-csv-modal-container', url: 'templates/import-csv-modal.html' },
+    // join-modal is now rendered by Preact (see JoinDialog.tsx)
+    // { id: 'join-modal-container', url: 'templates/join-modal.html' },
+    // aggregate-modal is now rendered by Preact (see AggregateDialog.tsx)
+    // { id: 'aggregate-modal-container', url: 'templates/aggregate-modal.html' },
+    // import-csv-modal is now rendered by Preact (see ImportCsvDialog.tsx)
+    // { id: 'import-csv-modal-container', url: 'templates/import-csv-modal.html' },
     // split-modal is now rendered by Preact (see SplitDialog.tsx)
     // unpivot-modal is now rendered by Preact (see UnpivotDialog.tsx)
     // pivot-modal is now rendered by Preact (see PivotDialog.tsx)
     // slice-rows-modal is now rendered by Preact (see SliceRowsDialog.tsx)
-    { id: 'derive-modal-container', url: 'templates/derive-modal.html' },
+    // derive-modal is now rendered by Preact (see DeriveDialog.tsx)
+    // { id: 'derive-modal-container', url: 'templates/derive-modal.html' },
     // filter-modal is now rendered by Preact (see FilterDialog.tsx)
     { id: 'regexp-match-modal-container', url: 'templates/regexp-match-modal.html' },
     { id: 'regexp-extract-modal-container', url: 'templates/regexp-extract-modal.html' },
     // date-modal is now rendered by Preact (see DateDialog.tsx)
     { id: 'dedupe-modal-container', url: 'templates/dedupe-modal.html' },
-    { id: 'column-editor-modal-container', url: 'templates/column-editor-modal.html' },
+    // column-editor-modal is now rendered by Preact (see ColumnEditorDialog.tsx)
+    // { id: 'column-editor-modal-container', url: 'templates/column-editor-modal.html' },
     { id: 'download-modal-container', url: 'templates/download-modal.html' },
     { id: 'import-url-modal-container', url: 'templates/import-url-modal.html' },
-    { id: 'settings-modal-container', url: 'templates/settings-modal.html' },
+    // settings-modal is now rendered by Preact (see SettingsDialog.tsx)
+    // { id: 'settings-modal-container', url: 'templates/settings-modal.html' },
   ];
 }
 

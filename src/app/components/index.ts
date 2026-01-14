@@ -34,3 +34,25 @@ export type { DateDialogProps, DateOperation } from './DateDialog';
 
 export { SplitDialog } from './SplitDialog';
 export type { SplitDialogProps, SplitMode } from './SplitDialog';
+
+export { DeriveDialog } from './DeriveDialog';
+export type { DeriveDialogProps } from './DeriveDialog';
+
+export { JoinDialog } from './JoinDialog';
+export type { JoinDialogProps, JoinType, JoinTarget } from './JoinDialog';
+
+export { AggregateDialog } from './AggregateDialog';
+export type { AggregateDialogProps, Aggregation } from './AggregateDialog';
+
+export { ImportCsvDialog } from './ImportCsvDialog';
+export type { ImportCsvDialogProps } from './ImportCsvDialog';
+
+export { ColumnEditorDialog } from './ColumnEditorDialog';
+export type {
+  ColumnEditorDialogProps,
+  ColumnEditorItem,
+  ColumnEditorChanges,
+} from './ColumnEditorDialog';
+
+export { SettingsDialog } from './SettingsDialog';
+export type { SettingsDialogProps } from './SettingsDialog';
