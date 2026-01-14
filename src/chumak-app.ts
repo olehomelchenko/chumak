@@ -6,6 +6,18 @@ import { loadUXSettings, updateUXSetting, UXSettings } from './core/ux-settings'
 import { loadInitialData, autoSave, clearAllData } from './core/storage';
 import { getUrlState, setUrlState, clearUrlHash } from './core/url-state';
 import { Transformation } from './app/decorators';
+import * as FilterHandlers from './app/transforms/filter-transform';
+import * as DeriveHandlers from './app/transforms/derive-transform';
+import * as AggregateHandlers from './app/transforms/aggregate-transform';
+import * as JoinHandlers from './app/transforms/join-transform';
+import * as PivotHandlers from './app/transforms/pivot-transform';
+import * as FoldHandlers from './app/transforms/fold-transform';
+import * as SplitHandlers from './app/transforms/split-transform';
+import * as DedupeHandlers from './app/transforms/dedupe-transform';
+import * as ColumnEditorHandlers from './app/transforms/column-editor';
+import * as DateHandlers from './app/transforms/date-transform';
+import * as RegexpHandlers from './app/transforms/regexp-transforms';
+import * as SimpleHandlers from './app/transforms/simple-transforms';
 import { applyTransform, describeTransform } from './core/transforms';
 import { TransformResult } from './core/transform-result';
 import { perfLogger } from './core/performance-logger';
@@ -13,7 +25,6 @@ import { EDAEngine } from './core/eda-engine';
 import { ChartsEngine } from './core/charts';
 import { parseExpression } from './core/expression-parser';
 import { validateAST } from './core/ast-validator';
-import { interpretAST } from './core/ast-interpreter';
 import { formatError } from './core/error-formatter';
 import { html as aboutHtml } from './content/about.md';
 import { html as expressionsHtml } from './content/expressions.md';
@@ -274,6 +285,271 @@ export class ChumakApp implements AppState {
 
   // Intermediate viewing state
   viewingSchema: ColumnSchema[] | null = null;
+
+  // Bind handlers
+  validateFilterExpression() {
+    return FilterHandlers.validateFilterExpression.call(this);
+  }
+  debouncedUpdateFilterPreview() {
+    return FilterHandlers.debouncedUpdateFilterPreview.call(this);
+  }
+  updateFilterPreview() {
+    return FilterHandlers.updateFilterPreview.call(this);
+  }
+  toggleFilterPreviewMode() {
+    return FilterHandlers.toggleFilterPreviewMode.call(this);
+  }
+  applyFilterTransform() {
+    return FilterHandlers.applyFilterTransform.call(this);
+  }
+
+  // Derive handlers
+  validateDeriveExpression() {
+    return DeriveHandlers.validateDeriveExpression.call(this);
+  }
+  debouncedUpdateDerivePreview() {
+    return DeriveHandlers.debouncedUpdateDerivePreview.call(this);
+  }
+  updateDerivePreview() {
+    return DeriveHandlers.updateDerivePreview.call(this);
+  }
+  applyDeriveTransform() {
+    return DeriveHandlers.applyDeriveTransform.call(this);
+  }
+
+  // Aggregate handlers
+  addAggregation() {
+    return AggregateHandlers.addAggregation.call(this);
+  }
+  removeAggregation(index: number) {
+    return AggregateHandlers.removeAggregation.call(this, index);
+  }
+  updateAggregateOutputName(index: number) {
+    return AggregateHandlers.updateAggregateOutputName.call(this, index);
+  }
+  constructAggregateStep() {
+    return AggregateHandlers.constructAggregateStep.call(this);
+  }
+  previewAggregate() {
+    return AggregateHandlers.previewAggregate.call(this);
+  }
+  applyAggregateTransform() {
+    return AggregateHandlers.applyAggregateTransform.call(this);
+  }
+
+  // Join handlers
+  initializeJoinDialog() {
+    return JoinHandlers.initializeJoinDialog.call(this);
+  }
+  getColumnsForTarget(targetId: string) {
+    return JoinHandlers.getColumnsForTarget.call(this, targetId);
+  }
+  onJoinTargetChange() {
+    return JoinHandlers.onJoinTargetChange.call(this);
+  }
+  addJoinKeyPair() {
+    return JoinHandlers.addJoinKeyPair.call(this);
+  }
+  removeJoinKeyPair(index: number) {
+    return JoinHandlers.removeJoinKeyPair.call(this, index);
+  }
+  previewJoin() {
+    return JoinHandlers.previewJoin.call(this);
+  }
+  applyJoinTransform() {
+    return JoinHandlers.applyJoinTransform.call(this);
+  }
+
+  // Pivot handlers
+  initializePivotDialog() {
+    return PivotHandlers.initializePivotDialog.call(this);
+  }
+  onPivotConfigChange() {
+    return PivotHandlers.onPivotConfigChange.call(this);
+  }
+  constructPivotStep() {
+    return PivotHandlers.constructPivotStep.call(this);
+  }
+  previewPivot() {
+    return PivotHandlers.previewPivot.call(this);
+  }
+  applyPivotTransform() {
+    return PivotHandlers.applyPivotTransform.call(this);
+  }
+
+  // Fold handlers
+  toggleColumnForFold(index: number) {
+    return FoldHandlers.toggleColumnForFold.call(this, index);
+  }
+  toggleFoldMode() {
+    return FoldHandlers.toggleFoldMode.call(this);
+  }
+  getColumnsToFold() {
+    return FoldHandlers.getColumnsToFold.call(this);
+  }
+  selectAllForFold() {
+    return FoldHandlers.selectAllForFold.call(this);
+  }
+  selectNoneForFold() {
+    return FoldHandlers.selectNoneForFold.call(this);
+  }
+  updateFoldPreview() {
+    return FoldHandlers.updateFoldPreview.call(this);
+  }
+  applyFoldTransform() {
+    return FoldHandlers.applyFoldTransform.call(this);
+  }
+
+  // Split handlers
+  detectDelimiter(column: string) {
+    return SplitHandlers.detectDelimiter.call(this, column);
+  }
+  debouncedUpdateSplitPreview() {
+    return SplitHandlers.debouncedUpdateSplitPreview.call(this);
+  }
+  selectSplitColumn(col: string) {
+    return SplitHandlers.selectSplitColumn.call(this, col);
+  }
+  updateSplitPreview() {
+    return SplitHandlers.updateSplitPreview.call(this);
+  }
+  applySplitTransform() {
+    return SplitHandlers.applySplitTransform.call(this);
+  }
+
+  // Dedupe handlers
+  toggleDedupeAllColumns(useAll: boolean) {
+    return DedupeHandlers.toggleDedupeAllColumns.call(this, useAll);
+  }
+  toggleDedupeColumn(index: number) {
+    return DedupeHandlers.toggleDedupeColumn.call(this, index);
+  }
+  selectAllForDedupe() {
+    return DedupeHandlers.selectAllForDedupe.call(this);
+  }
+  selectNoneForDedupe() {
+    return DedupeHandlers.selectNoneForDedupe.call(this);
+  }
+  getDedupeColumns() {
+    return DedupeHandlers.getDedupeColumns.call(this);
+  }
+  findDuplicateRows(data: any[], columns: string[]) {
+    return DedupeHandlers.findDuplicateRows.call(this, data, columns);
+  }
+  updateDedupePreview() {
+    return DedupeHandlers.updateDedupePreview.call(this);
+  }
+  findAllDuplicateRowCount(data: any[], columns: string[]) {
+    return DedupeHandlers.findAllDuplicateRowCount.call(this, data, columns);
+  }
+  @Transformation('Duplicates')
+  applyDedupeTransform() {
+    return DedupeHandlers.applyDedupeTransform.call(this);
+  }
+
+  // Column Editor handlers
+  toggleColumnEditorColumn(index: number) {
+    return ColumnEditorHandlers.toggleColumnEditorColumn.call(this, index);
+  }
+  selectAllColumnEditor() {
+    return ColumnEditorHandlers.selectAllColumnEditor.call(this);
+  }
+  selectNoneColumnEditor() {
+    return ColumnEditorHandlers.selectNoneColumnEditor.call(this);
+  }
+  applyColumnEditorPattern() {
+    return ColumnEditorHandlers.applyColumnEditorPattern.call(this);
+  }
+  handleColumnEditorDragStart(index: number, event: DragEvent) {
+    return ColumnEditorHandlers.handleColumnEditorDragStart.call(this, index, event);
+  }
+  handleColumnEditorDragOver(event: DragEvent) {
+    return ColumnEditorHandlers.handleColumnEditorDragOver.call(this, event);
+  }
+  handleColumnEditorDrop(dropIndex: number) {
+    return ColumnEditorHandlers.handleColumnEditorDrop.call(this, dropIndex);
+  }
+  handleColumnEditorDragEnd() {
+    return ColumnEditorHandlers.handleColumnEditorDragEnd.call(this);
+  }
+  switchColumnEditorToText() {
+    return ColumnEditorHandlers.switchColumnEditorToText.call(this);
+  }
+  validateColumnEditorText() {
+    return ColumnEditorHandlers.validateColumnEditorText.call(this);
+  }
+  getColumnEditorChanges() {
+    return ColumnEditorHandlers.getColumnEditorChanges.call(this);
+  }
+  applyColumnEditorTransform() {
+    return ColumnEditorHandlers.applyColumnEditorTransform.call(this);
+  }
+
+  // Date handlers
+  getDateColumns() {
+    return DateHandlers.getDateColumns.call(this);
+  }
+  getExtractParts() {
+    return DateHandlers.getExtractParts.call(this);
+  }
+  getTruncateUnits() {
+    return DateHandlers.getTruncateUnits.call(this);
+  }
+  toggleDateSelection(value: string, event?: MouseEvent) {
+    return DateHandlers.toggleDateSelection.call(this, value, event);
+  }
+  getDateOutputPlaceholder() {
+    return DateHandlers.getDateOutputPlaceholder.call(this);
+  }
+  updateDatePreview() {
+    return DateHandlers.updateDatePreview.call(this);
+  }
+  applyDateTransform() {
+    return DateHandlers.applyDateTransform.call(this);
+  }
+
+  // Regexp handlers
+  validateRegexpPattern(pattern: string) {
+    return RegexpHandlers.validateRegexpPattern.call(this, pattern);
+  }
+  validateRegexpMatchExpression() {
+    return RegexpHandlers.validateRegexpMatchExpression.call(this);
+  }
+  debouncedUpdateRegexpMatchPreview() {
+    return RegexpHandlers.debouncedUpdateRegexpMatchPreview.call(this);
+  }
+  updateRegexpMatchPreview() {
+    return RegexpHandlers.updateRegexpMatchPreview.call(this);
+  }
+  applyRegexpMatchTransform() {
+    return RegexpHandlers.applyRegexpMatchTransform.call(this);
+  }
+  validateRegexpExtractExpression() {
+    return RegexpHandlers.validateRegexpExtractExpression.call(this);
+  }
+  debouncedUpdateRegexpExtractPreview() {
+    return RegexpHandlers.debouncedUpdateRegexpExtractPreview.call(this);
+  }
+  updateRegexpExtractPreview() {
+    return RegexpHandlers.updateRegexpExtractPreview.call(this);
+  }
+  applyRegexpExtractTransform() {
+    return RegexpHandlers.applyRegexpExtractTransform.call(this);
+  }
+
+  // Simple handlers
+  applyReplaceTransform() {
+    return SimpleHandlers.applyReplaceTransform.call(this);
+  }
+  applySortTransform() {
+    return SimpleHandlers.applySortTransform.call(this);
+  }
+  applySliceRowsTransform() {
+    return SimpleHandlers.applySliceRowsTransform.call(this);
+  }
+  applyIndexTransform() {
+    return SimpleHandlers.applyIndexTransform.call(this);
+  }
 
   constructor() {
     // All handlers integrated into the class
@@ -1804,177 +2080,6 @@ export class ChumakApp implements AppState {
     }
   }
 
-  validateFilterExpression() {
-    this.filterError = this.validateExpression(this.filterExpression);
-  }
-
-  debouncedUpdateFilterPreview() {
-    if (this.previewState._debounceTimer) {
-      clearTimeout(this.previewState._debounceTimer);
-    }
-    this.previewState._debounceTimer = setTimeout(() => {
-      this.updateFilterPreview();
-    }, 150);
-  }
-
-  updateFilterPreview() {
-    const expr = this.filterExpression?.trim();
-    if (!expr || this.filterError || !this.currentData?.length) {
-      this.clearPreview();
-      return;
-    }
-
-    try {
-      const ast = parseExpression(expr);
-      const previewRows: any[] = [];
-      let matchCount = 0;
-      let removedCount = 0;
-
-      // Use configurable preview row limit
-      const previewLimit = this.getPreviewRowLimit();
-      const sampleData = this.currentData.slice(0, previewLimit);
-
-      for (const row of sampleData) {
-        try {
-          const matches = interpretAST(ast, row);
-          if (matches) {
-            matchCount++;
-            if (this.filterPreviewMode === 'matching') {
-              if (previewRows.length < 50) previewRows.push(row);
-            } else {
-              if (previewRows.length < 50) previewRows.push(row);
-            }
-          } else {
-            removedCount++;
-            if (this.filterPreviewMode === 'all' && previewRows.length < 50) {
-              previewRows.push({ ...row, _removed: true });
-            }
-          }
-        } catch {
-          // Skip rows with evaluation errors
-        }
-      }
-
-      // Count matches in full dataset for stats
-      let totalMatchCount = matchCount;
-      if (this.currentData.length > previewLimit) {
-        totalMatchCount = 0;
-        for (const row of this.currentData) {
-          try {
-            if (interpretAST(ast, row)) totalMatchCount++;
-          } catch {
-            // Skip
-          }
-        }
-      }
-
-      this.previewState = {
-        title: 'Filter Preview',
-        stats: `<strong>${totalMatchCount}</strong> of ${this.currentData.length} rows match`,
-        columns: this.columns.slice(0, 8),
-        newColumns: [],
-        rows: previewRows,
-        _debounceTimer: null,
-      };
-    } catch {
-      this.clearPreview();
-    }
-  }
-
-  toggleFilterPreviewMode() {
-    this.filterPreviewMode = this.filterPreviewMode === 'matching' ? 'all' : 'matching';
-    this.updateFilterPreview();
-  }
-
-  async applyFilterTransform() {
-    const expr = this.filterExpression.trim();
-    if (!expr) {
-      await this.alert('Please enter a filter expression');
-      return;
-    }
-    if (this.filterError) {
-      await this.alert('Please fix the expression errors before applying');
-      return;
-    }
-
-    const transform = { filter: expr };
-    await this.runTransform('Filter', transform);
-  }
-
-  validateDeriveExpression() {
-    this.deriveDialogState.error = this.validateExpression(this.deriveDialogState.expression);
-  }
-
-  debouncedUpdateDerivePreview() {
-    if (this.previewState._debounceTimer) {
-      clearTimeout(this.previewState._debounceTimer);
-    }
-    this.previewState._debounceTimer = setTimeout(() => {
-      this.updateDerivePreview();
-    }, 150);
-  }
-
-  updateDerivePreview() {
-    const { columnName, expression } = this.deriveDialogState;
-    if (!expression || this.deriveDialogState.error || !this.currentData?.length) {
-      this.clearPreview();
-      return;
-    }
-
-    try {
-      const ast = parseExpression(expression);
-      const previewLimit = Math.min(this.getPreviewRowLimit(), 50); // Cap at 50 for expression previews
-      const samples = this.currentData.slice(0, previewLimit);
-      const outputCol = columnName || 'new_column';
-
-      const previewRows = samples.map((row: any) => {
-        try {
-          const result = interpretAST(ast, row);
-          return { ...row, [outputCol]: result };
-        } catch {
-          return { ...row, [outputCol]: '(error)' };
-        }
-      });
-
-      // Show first 4 source columns + new derived column
-      const previewCols = [...this.columns.slice(0, 4), outputCol];
-
-      this.previewState = {
-        title: `Derive: ${outputCol}`,
-        stats: `Showing ${previewRows.length} sample rows`,
-        columns: previewCols,
-        newColumns: [outputCol],
-        rows: previewRows,
-        _debounceTimer: null,
-      };
-    } catch {
-      this.clearPreview();
-    }
-  }
-
-  async applyDeriveTransform() {
-    const { columnName, expression } = this.deriveDialogState;
-    if (!columnName || !expression) {
-      await this.alert('Please provide both column name and expression');
-      return;
-    }
-    if (this.deriveDialogState.error) {
-      await this.alert('Please fix the expression errors before applying');
-      return;
-    }
-    if (this.columns.includes(columnName)) {
-      if (
-        !(await this.confirm(
-          `Column "${columnName}" already exists. It will be overwritten. Continue?`
-        ))
-      )
-        return;
-    }
-
-    const transform = { derive: { [columnName]: expression } };
-    await this.runTransform('Derive', transform);
-  }
-
   quoteColumnRef(colName: string) {
     if (/[\s\-+*/()[\]{}]/.test(colName)) {
       return `[${colName}]`;
@@ -2019,1465 +2124,19 @@ export class ChumakApp implements AppState {
     };
   }
 
-  validateRegexpPattern(pattern: string) {
-    if (!pattern) return null;
-    try {
-      new RegExp(pattern);
-      return null;
-    } catch (e: any) {
-      return `Invalid pattern: ${e.message}`;
-    }
-  }
-
-  validateRegexpMatchExpression() {
-    const { pattern } = this.regexpMatchDialogState;
-    this.regexpMatchDialogState.error = this.validateRegexpPattern(pattern);
-  }
-
-  debouncedUpdateRegexpMatchPreview() {
-    if (this.previewState._debounceTimer) {
-      clearTimeout(this.previewState._debounceTimer);
-    }
-    this.previewState._debounceTimer = setTimeout(() => {
-      this.updateRegexpMatchPreview();
-    }, 150);
-  }
-
-  updateRegexpMatchPreview() {
-    const { sourceColumn, pattern, columnName } = this.regexpMatchDialogState;
-    if (
-      !sourceColumn ||
-      !pattern ||
-      this.regexpMatchDialogState.error ||
-      !this.currentData?.length
-    ) {
-      this.clearPreview();
-      return;
-    }
-
-    try {
-      const regex = new RegExp(pattern);
-      const previewLimit = Math.min(this.getPreviewRowLimit(), 50);
-      const samples = this.currentData.slice(0, previewLimit);
-      const outputCol = columnName || 'is_match';
-
-      const previewRows = samples.map((row: any) => {
-        const val = row[sourceColumn];
-        const matches = val != null ? regex.test(String(val)) : false;
-        return { [sourceColumn]: val, [outputCol]: matches };
-      });
-
-      this.previewState = {
-        title: `Regexp Match: ${outputCol}`,
-        stats: `Testing pattern on ${samples.length} rows`,
-        columns: [sourceColumn, outputCol],
-        newColumns: [outputCol],
-        rows: previewRows,
-        _debounceTimer: null,
-      };
-    } catch {
-      this.clearPreview();
-    }
-  }
-
-  validateRegexpExtractExpression() {
-    const { pattern } = this.regexpExtractDialogState;
-    this.regexpExtractDialogState.error = this.validateRegexpPattern(pattern);
-  }
-
-  debouncedUpdateRegexpExtractPreview() {
-    if (this.previewState._debounceTimer) {
-      clearTimeout(this.previewState._debounceTimer);
-    }
-    this.previewState._debounceTimer = setTimeout(() => {
-      this.updateRegexpExtractPreview();
-    }, 150);
-  }
-
-  updateRegexpExtractPreview() {
-    const { sourceColumn, pattern, group, columnName } = this.regexpExtractDialogState;
-    if (
-      !sourceColumn ||
-      !pattern ||
-      this.regexpExtractDialogState.error ||
-      !this.currentData?.length
-    ) {
-      this.clearPreview();
-      return;
-    }
-
-    try {
-      const regex = new RegExp(pattern);
-      const previewLimit = Math.min(this.getPreviewRowLimit(), 50);
-      const samples = this.currentData.slice(0, previewLimit);
-      const outputCol = columnName || 'extracted';
-      const groupNum = group || 0;
-
-      const previewRows = samples.map((row: any) => {
-        const val = row[sourceColumn];
-        let extracted: string | null = null;
-        if (val != null) {
-          const match = String(val).match(regex);
-          extracted = match ? (match[groupNum] ?? match[0]) : null;
-        }
-        return { [sourceColumn]: val, [outputCol]: extracted ?? '(no match)' };
-      });
-
-      this.previewState = {
-        title: `Regexp Extract: ${outputCol}`,
-        stats: `Extracting group ${groupNum} from ${samples.length} rows`,
-        columns: [sourceColumn, outputCol],
-        newColumns: [outputCol],
-        rows: previewRows,
-        _debounceTimer: null,
-      };
-    } catch {
-      this.clearPreview();
-    }
-  }
-
-  async applyRegexpMatchTransform() {
-    const { columnName, sourceColumn, pattern } = this.regexpMatchDialogState;
-    if (!columnName || !pattern) {
-      await this.alert('Please provide column name and pattern');
-      return;
-    }
-    if (this.regexpMatchDialogState.error) {
-      await this.alert('Please fix pattern errors before applying');
-      return;
-    }
-    if (!sourceColumn) {
-      await this.alert('Please select a source column');
-      return;
-    }
-    if (this.columns.includes(columnName)) {
-      if (
-        !(await this.confirm(
-          `Column "${columnName}" already exists. It will be overwritten. Continue?`
-        ))
-      )
-        return;
-    }
-
-    const colRef = this.quoteColumnRef(sourceColumn);
-    const escapedPattern = this.escapePattern(pattern);
-    const expression = `regexp_match(${colRef}, "${escapedPattern}")`;
-    await this.runTransform('Regexp Match', { derive: { [columnName]: expression } });
-  }
-
-  async applyRegexpExtractTransform() {
-    const { columnName, sourceColumn, pattern, group } = this.regexpExtractDialogState;
-    if (!columnName || !pattern) {
-      await this.alert('Please provide column name and pattern');
-      return;
-    }
-    if (this.regexpExtractDialogState.error) {
-      await this.alert('Please fix pattern errors before applying');
-      return;
-    }
-    if (!sourceColumn) {
-      await this.alert('Please select a source column');
-      return;
-    }
-    if (this.columns.includes(columnName)) {
-      if (
-        !(await this.confirm(
-          `Column "${columnName}" already exists. It will be overwritten. Continue?`
-        ))
-      )
-        return;
-    }
-
-    const colRef = this.quoteColumnRef(sourceColumn);
-    const escapedPattern = this.escapePattern(pattern);
-    const groupNum = parseInt(group, 10) || 0;
-    const expression = `regexp_extract(${colRef}, "${escapedPattern}", ${groupNum})`;
-    await this.runTransform('Regexp Extract', { derive: { [columnName]: expression } });
-  }
-
   // Date Operations
-  getDateColumns(): string[] {
-    const schema = this.getActiveSchema();
-    if (!schema) return [];
-    return this.columns.filter((col) => {
-      const colSchema = schema.find((c) => c.name === col);
-      const type = colSchema?.type;
-      return type === 'date' || type === 'datetime';
-    });
-  }
-
-  getExtractParts() {
-    return [
-      { value: 'year', label: 'Year', example: '2024' },
-      { value: 'month', label: 'Month', example: '1-12' },
-      { value: 'day', label: 'Day', example: '1-31' },
-      { value: 'quarter', label: 'Quarter', example: '1-4' },
-      { value: 'week', label: 'Week', example: '1-53' },
-      { value: 'weekday', label: 'Weekday', example: '0-6' },
-      { value: 'hour', label: 'Hour', example: '0-23' },
-      { value: 'minute', label: 'Minute', example: '0-59' },
-      { value: 'second', label: 'Second', example: '0-59' },
-    ];
-  }
-  getTruncateUnits() {
-    return [
-      { value: 'year', label: 'Year' },
-      { value: 'quarter', label: 'Quarter' },
-      { value: 'month', label: 'Month' },
-      { value: 'week', label: 'Week' },
-      { value: 'day', label: 'Day' },
-      { value: 'hour', label: 'Hour' },
-      { value: 'minute', label: 'Minute' },
-      { value: 'second', label: 'Second' },
-    ];
-  }
-
-  toggleDateSelection(value: string, event?: MouseEvent) {
-    const isExtract = this.dateDialogState.operation === 'extract';
-    const current = isExtract
-      ? [...this.dateDialogState.extractParts]
-      : [...this.dateDialogState.truncateUnits];
-
-    if (event?.metaKey || event?.ctrlKey) {
-      if (current.includes(value)) {
-        if (current.length > 1) {
-          const index = current.indexOf(value);
-          current.splice(index, 1);
-        }
-      } else {
-        current.push(value);
-      }
-    } else {
-      current.length = 0;
-      current.push(value);
-    }
-
-    if (isExtract) {
-      this.dateDialogState.extractParts = current;
-    } else {
-      this.dateDialogState.truncateUnits = current;
-    }
-    this.updateDatePreview();
-  }
-
-  getDateOutputPlaceholder(): string {
-    const { column, operation, extractParts, truncateUnits } = this.dateDialogState;
-    if (!column) return '';
-
-    if (operation === 'extract') {
-      if (extractParts.length > 1) return '(Multiple columns)';
-      return `${column}_${extractParts[0]}`;
-    }
-
-    if (truncateUnits.length > 1) return '(Multiple columns)';
-    return `${column}_${truncateUnits[0]}_trunc`;
-  }
-
-  updateDatePreview() {
-    const { column, operation, extractParts, truncateUnits, outputColumn } = this.dateDialogState;
-    if (!column || !this.currentData?.length) {
-      this.clearPreview();
-      return;
-    }
-
-    try {
-      const samples = this.currentData.slice(0, 20);
-      const colRef = this.quoteColumnRef(column);
-      const activeParts = operation === 'extract' ? extractParts : truncateUnits;
-
-      if (activeParts.length === 0) {
-        this.clearPreview();
-        return;
-      }
-
-      const previewRows = samples.map((row) => {
-        const previewRow: any = { [column]: row[column] };
-        for (const part of activeParts) {
-          let outputName: string;
-          if (activeParts.length === 1 && outputColumn) {
-            outputName = outputColumn;
-          } else {
-            outputName = operation === 'extract' ? `${column}_${part}` : `${column}_${part}_trunc`;
-          }
-
-          let expression: string;
-          if (operation === 'extract') {
-            expression = `${part}(${colRef})`;
-          } else {
-            expression = `date_trunc(${colRef}, "${part}")`;
-          }
-
-          try {
-            const ast = parseExpression(expression);
-            const result = interpretAST(ast, row);
-            previewRow[outputName] = result != null ? String(result) : '—';
-          } catch {
-            previewRow[outputName] = '(error)';
-          }
-        }
-        return previewRow;
-      });
-
-      const outputCols = activeParts.map((part: string) => {
-        if (activeParts.length === 1 && outputColumn) return outputColumn;
-        return operation === 'extract' ? `${column}_${part}` : `${column}_${part}_trunc`;
-      });
-
-      this.previewState = {
-        title: `Date: ${operation === 'extract' ? 'Extract' : 'Truncate'}`,
-        stats: `Showing ${previewRows.length} sample rows`,
-        columns: [column, ...outputCols],
-        newColumns: outputCols,
-        rows: previewRows,
-        _debounceTimer: null,
-      };
-    } catch (e) {
-      this.clearPreview();
-    }
-  }
-
-  async applyDateTransform() {
-    const { column, operation, extractParts, truncateUnits, outputColumn } = this.dateDialogState;
-
-    if (!column) {
-      await this.alert('Please select a source column');
-      return;
-    }
-
-    const colRef = this.quoteColumnRef(column);
-    const activeParts = operation === 'extract' ? extractParts : truncateUnits;
-    const deriveSpecs: Record<string, string> = {};
-
-    for (const part of activeParts) {
-      let partOutputName: string;
-      if (activeParts.length === 1 && outputColumn) {
-        partOutputName = outputColumn;
-      } else {
-        partOutputName = operation === 'extract' ? `${column}_${part}` : `${column}_${part}_trunc`;
-      }
-
-      // Check for existence
-      if (this.columns.includes(partOutputName) && partOutputName !== column) {
-        if (
-          !(await this.confirm(
-            `Column "${partOutputName}" already exists. It will be overwritten. Continue?`
-          ))
-        )
-          return;
-      }
-
-      if (operation === 'extract') {
-        deriveSpecs[partOutputName] = `${part}(${colRef})`;
-      } else {
-        deriveSpecs[partOutputName] = `date_trunc(${colRef}, "${part}")`;
-      }
-    }
-
-    const opName =
-      activeParts.length === 1
-        ? operation === 'extract'
-          ? `Extract ${activeParts[0]}`
-          : `Truncate to ${activeParts[0]}`
-        : operation === 'extract'
-          ? `Extract ${activeParts.length} parts`
-          : `Truncate ${activeParts.length} units`;
-
-    await this.runTransform(opName, { derive: deriveSpecs });
-  }
 
   // ============================================================
   // Dedupe Dialog Methods
   // ============================================================
 
-  toggleDedupeAllColumns(useAll: boolean) {
-    this.dedupeDialogState.useAllColumns = useAll;
-    if (useAll) {
-      this.dedupeDialogState.selectedColumns = this.columns.map(() => true);
-    }
-    this.updateDedupePreview();
-  }
-
-  toggleDedupeColumn(index: number) {
-    this.dedupeDialogState.selectedColumns[index] = !this.dedupeDialogState.selectedColumns[index];
-    this.updateDedupePreview();
-  }
-
-  selectAllForDedupe() {
-    this.dedupeDialogState.selectedColumns = this.columns.map(() => true);
-    this.updateDedupePreview();
-  }
-
-  selectNoneForDedupe() {
-    this.dedupeDialogState.selectedColumns = this.columns.map(() => false);
-    this.updateDedupePreview();
-  }
-
-  getDedupeColumns(): string[] {
-    if (this.dedupeDialogState.useAllColumns) {
-      return [];
-    }
-    return this.columns.filter((_, i) => this.dedupeDialogState.selectedColumns[i]);
-  }
-
-  findDuplicateRows(data: any[], columns: string[]): Set<number> {
-    const seen = new Map<string, number>();
-    const duplicates = new Set<number>();
-    const keys = columns.length > 0 ? columns : Object.keys(data[0] || {});
-
-    data.forEach((row, i) => {
-      const key = keys
-        .map((c) => {
-          const v = row[c];
-          return v == null ? '\0null\0' : String(v);
-        })
-        .join('\0');
-
-      if (seen.has(key)) {
-        duplicates.add(i);
-      } else {
-        seen.set(key, i);
-      }
-    });
-    return duplicates;
-  }
-
-  updateDedupePreview() {
-    if (!this.currentData || this.currentData.length === 0) {
-      this.dedupeDialogState.duplicateCount = 0;
-      this.clearPreview();
-      return;
-    }
-
-    const { mode } = this.dedupeDialogState;
-    const columns = this.getDedupeColumns();
-    const duplicates = this.findDuplicateRows(this.currentData, columns);
-    this.dedupeDialogState.duplicateCount = duplicates.size;
-
-    const colInfo =
-      columns.length === 0
-        ? 'all columns'
-        : columns.length === 1
-          ? `"${columns[0]}"`
-          : `${columns.length} columns`;
-
-    // Show first few duplicates in preview
-    const duplicateIndices = Array.from(duplicates).slice(0, 5);
-    const previewRows = duplicateIndices.map((i) => this.currentData![i]);
-
-    let statsText: string;
-    if (duplicates.size === 0) {
-      statsText = `No duplicates found by ${colInfo}`;
-    } else if (mode === 'keep') {
-      // For 'keep' mode, show how many duplicate rows will be kept
-      const totalDuplicateRows = this.findAllDuplicateRowCount(this.currentData, columns);
-      statsText = `${totalDuplicateRows} row${totalDuplicateRows !== 1 ? 's' : ''} are duplicates (will keep)`;
-    } else {
-      // For 'remove' mode, show how many will be removed
-      statsText = `${duplicates.size} duplicate row${duplicates.size !== 1 ? 's' : ''} will be removed`;
-    }
-
-    this.previewState = {
-      title: mode === 'keep' ? 'Keep Duplicates Preview' : 'Remove Duplicates Preview',
-      stats: statsText,
-      columns: columns.length > 0 ? columns : this.columns.slice(0, 5),
-      newColumns: [],
-      rows: previewRows,
-      _debounceTimer: null,
-    };
-  }
-
-  findAllDuplicateRowCount(data: any[], columns: string[]): number {
-    const seen = new Map<string, number[]>();
-    const keys = columns.length > 0 ? columns : Object.keys(data[0] || {});
-
-    data.forEach((row, i) => {
-      const key = keys
-        .map((c) => {
-          const v = row[c];
-          return v == null ? '\0null\0' : String(v);
-        })
-        .join('\0');
-      if (!seen.has(key)) {
-        seen.set(key, []);
-      }
-      seen.get(key)!.push(i);
-    });
-
-    let count = 0;
-    for (const indices of seen.values()) {
-      if (indices.length > 1) {
-        count += indices.length;
-      }
-    }
-    return count;
-  }
-
-  @Transformation('Duplicates')
-  async applyDedupeTransform() {
-    const { mode } = this.dedupeDialogState;
-    const columns = this.getDedupeColumns();
-    const opName = mode === 'keep' ? 'Keep Duplicates' : 'Remove Duplicates';
-    await this.runTransform(opName, { dedupe: { columns, mode } });
-  }
-
   // ============================================================
   // Column Editor Methods
   // ============================================================
 
-  toggleColumnEditorColumn(index: number) {
-    this.columnEditorState.columns[index].selected =
-      !this.columnEditorState.columns[index].selected;
-  }
-
-  selectAllColumnEditor() {
-    this.columnEditorState.columns.forEach((c) => (c.selected = true));
-  }
-
-  selectNoneColumnEditor() {
-    this.columnEditorState.columns.forEach((c) => (c.selected = false));
-  }
-
-  applyColumnEditorPattern() {
-    const { patternText, patternMode, patternMatchType } = this.columnEditorState;
-    if (!patternText.trim()) return;
-
-    const pattern = patternText.trim().toLowerCase();
-    const matchFn = (name: string) => {
-      const lower = name.toLowerCase();
-      switch (patternMatchType) {
-        case 'prefix':
-          return lower.startsWith(pattern);
-        case 'suffix':
-          return lower.endsWith(pattern);
-        case 'exact':
-          return lower === pattern;
-        default:
-          return false;
-      }
-    };
-
-    const shouldSelect = patternMode === 'include';
-    this.columnEditorState.columns.forEach((c) => {
-      if (matchFn(c.original)) {
-        c.selected = shouldSelect;
-      }
-    });
-  }
-
-  handleColumnEditorDragStart(index: number, event: DragEvent) {
-    this.columnEditorState.draggedIndex = index;
-    if (event.dataTransfer) {
-      event.dataTransfer.effectAllowed = 'move';
-      event.dataTransfer.setData('text/plain', String(index));
-    }
-  }
-
-  handleColumnEditorDragOver(event: DragEvent) {
-    event.preventDefault();
-    if (event.dataTransfer) {
-      event.dataTransfer.dropEffect = 'move';
-    }
-  }
-
-  handleColumnEditorDrop(dropIndex: number) {
-    const dragIndex = this.columnEditorState.draggedIndex;
-    if (dragIndex === null || dragIndex === dropIndex) return;
-
-    const columns = this.columnEditorState.columns;
-    const [draggedItem] = columns.splice(dragIndex, 1);
-    columns.splice(dropIndex, 0, draggedItem);
-    this.columnEditorState.draggedIndex = null;
-  }
-
-  handleColumnEditorDragEnd() {
-    this.columnEditorState.draggedIndex = null;
-  }
-
-  switchColumnEditorToText() {
-    const state = this.columnEditorState;
-    // Populate text value based on sub-mode
-    if (state.textSubMode === 'rename') {
-      // Show renamed names for all columns (in current order)
-      const lines = state.columns.map((c) => c.renamed);
-      state.textValue = lines.join('\n');
-    } else if (state.textSubMode === 'reorder') {
-      // Show original names of selected columns (in current order)
-      const lines = state.columns.filter((c) => c.selected).map((c) => c.original);
-      state.textValue = lines.join('\n');
-    } else if (state.textSubMode === 'select') {
-      // Show original names of selected columns
-      const lines = state.columns.filter((c) => c.selected).map((c) => c.original);
-      state.textValue = lines.join('\n');
-    }
-    state.textError = null;
-    state.mode = 'text';
-  }
-
-  validateColumnEditorText(): boolean {
-    const state = this.columnEditorState;
-    const lines = state.textValue
-      .split('\n')
-      .map((l) => l.trim())
-      .filter((l) => l.length > 0);
-
-    const columnCount = this.columns.length;
-    const originalNameSet = new Set(this.columns);
-
-    if (lines.length === 0) {
-      state.textError = 'Please enter at least one column name';
-      return false;
-    }
-
-    // Check for duplicates (case-insensitive)
-    const seen = new Set<string>();
-    for (const line of lines) {
-      if (seen.has(line.toLowerCase())) {
-        state.textError = `Duplicate column name: "${line}"`;
-        return false;
-      }
-      seen.add(line.toLowerCase());
-    }
-
-    if (state.textSubMode === 'rename') {
-      // Must have exactly N lines for N columns
-      if (lines.length !== columnCount) {
-        state.textError = `Rename requires exactly ${columnCount} lines (one per column), got ${lines.length}`;
-        return false;
-      }
-    } else if (state.textSubMode === 'reorder') {
-      // All names must exist in original columns
-      for (const line of lines) {
-        if (!originalNameSet.has(line)) {
-          state.textError = `Unknown column: "${line}"`;
-          return false;
-        }
-      }
-      // Must include all columns (no removal in reorder mode)
-      if (lines.length !== columnCount) {
-        state.textError = `Reorder requires all ${columnCount} columns, got ${lines.length}`;
-        return false;
-      }
-    } else if (state.textSubMode === 'select') {
-      // All names must exist in original columns
-      for (const line of lines) {
-        if (!originalNameSet.has(line)) {
-          state.textError = `Unknown column: "${line}"`;
-          return false;
-        }
-      }
-    }
-
-    state.textError = null;
-    return true;
-  }
-
-  getColumnEditorChanges(): {
-    hasChanges: boolean;
-    removed: string[];
-    renamed: { from: string; to: string }[];
-    reordered: boolean;
-  } {
-    const state = this.columnEditorState;
-
-    if (state.mode === 'text') {
-      const lines = state.textValue
-        .split('\n')
-        .map((l) => l.trim())
-        .filter((l) => l.length > 0);
-
-      if (state.textSubMode === 'rename') {
-        // Compare line by line - same order
-        const renamed: { from: string; to: string }[] = [];
-        for (let i = 0; i < lines.length && i < this.columns.length; i++) {
-          if (this.columns[i] !== lines[i]) {
-            renamed.push({ from: this.columns[i], to: lines[i] });
-          }
-        }
-        return { hasChanges: renamed.length > 0, removed: [], renamed, reordered: false };
-      } else if (state.textSubMode === 'reorder') {
-        // Check if order differs
-        const reordered = lines.join(',') !== this.columns.join(',');
-        return { hasChanges: reordered, removed: [], renamed: [], reordered };
-      } else if (state.textSubMode === 'select') {
-        // Columns not in lines are removed
-        const lineSet = new Set(lines);
-        const removed = this.columns.filter((c) => !lineSet.has(c));
-        return { hasChanges: removed.length > 0, removed, renamed: [], reordered: false };
-      }
-    }
-
-    // List mode
-    const removed = state.columns.filter((c) => !c.selected).map((c) => c.original);
-
-    const renamed = state.columns
-      .filter((c) => c.selected && c.original !== c.renamed && c.renamed.trim() !== '')
-      .map((c) => ({ from: c.original, to: c.renamed.trim() }));
-
-    // Check reorder by comparing selected columns order to original
-    const selectedOriginals = state.columns.filter((c) => c.selected).map((c) => c.original);
-    const originalSelectedOrder = this.columns.filter((c) =>
-      state.columns.find((sc) => sc.original === c && sc.selected)
-    );
-    const reordered = JSON.stringify(selectedOriginals) !== JSON.stringify(originalSelectedOrder);
-
-    const hasChanges = removed.length > 0 || renamed.length > 0 || reordered;
-
-    return { hasChanges, removed, renamed, reordered };
-  }
-
-  async applyColumnEditorTransform() {
-    const state = this.columnEditorState;
-
-    // Handle text mode
-    if (state.mode === 'text') {
-      if (!this.validateColumnEditorText()) {
-        await this.alert(state.textError || 'Invalid column names');
-        return;
-      }
-
-      const lines = state.textValue
-        .split('\n')
-        .map((l) => l.trim())
-        .filter((l) => l.length > 0);
-
-      if (state.textSubMode === 'rename') {
-        // Apply rename transform - map column[i] -> lines[i]
-        const renames: Record<string, string> = {};
-        for (let i = 0; i < lines.length && i < this.columns.length; i++) {
-          if (this.columns[i] !== lines[i]) {
-            renames[this.columns[i]] = lines[i];
-          }
-        }
-        if (Object.keys(renames).length > 0) {
-          await this.runTransform('Rename', { rename: renames });
-        } else {
-          this.closeDialog(true);
-        }
-      } else if (state.textSubMode === 'reorder') {
-        // Apply select transform with new order
-        if (lines.join(',') !== this.columns.join(',')) {
-          await this.runTransform('Reorder Columns', { select: lines });
-        } else {
-          this.closeDialog(true);
-        }
-      } else if (state.textSubMode === 'select') {
-        // Apply select transform to keep only listed columns
-        if (lines.length < this.columns.length || lines.join(',') !== this.columns.join(',')) {
-          await this.runTransform('Select Columns', { select: lines });
-        } else {
-          this.closeDialog(true);
-        }
-      }
-
-      return;
-    }
-
-    // List mode
-    const changes = this.getColumnEditorChanges();
-
-    if (!changes.hasChanges) {
-      this.closeDialog(true);
-      return;
-    }
-
-    // Build select transform from current order of selected columns
-    const selectedInOrder = state.columns.filter((c) => c.selected).map((c) => c.original);
-
-    // Check if we need select (order changed or columns removed)
-    const needsSelect =
-      selectedInOrder.length !== this.columns.length ||
-      selectedInOrder.join(',') !== this.columns.join(',');
-
-    // Build rename map
-    const renames: Record<string, string> = {};
-    state.columns.forEach((c) => {
-      if (c.selected && c.original !== c.renamed && c.renamed.trim() !== '') {
-        renames[c.original] = c.renamed.trim();
-      }
-    });
-
-    const needsRename = Object.keys(renames).length > 0;
-
-    // Apply transforms
-    if (needsSelect) {
-      await this.runTransform('Edit Columns', { select: selectedInOrder });
-    }
-
-    if (needsRename) {
-      await this.runTransform('Rename', { rename: renames });
-    }
-  }
-
-  async applySortTransform() {
-    const { field, order } = this.sortDialogState;
-    if (!field) {
-      await this.alert('Please select a column to sort by');
-      return;
-    }
-    await this.runTransform('Sort', { sort: { field, order } });
-  }
-
-  async applySliceRowsTransform() {
-    const { count, mode } = this.sliceRowsDialogState;
-    if (!count || count <= 0) {
-      await this.alert('Please enter a valid number of rows');
-      return;
-    }
-    await this.runTransform('Slice Rows', { sliceRows: { count, mode } });
-  }
-
-  async applyIndexTransform() {
-    const { columnName, startFrom } = this.indexDialogState;
-    if (!columnName || columnName.trim() === '') {
-      await this.alert('Please enter a column name');
-      return;
-    }
-    await this.runTransform('Add Index', {
-      addIndex: { columnName: columnName.trim(), startFrom: startFrom ?? 1 },
-    });
-  }
-
-  toggleColumnForFold(index: number) {
-    // Simple toggle - works like a checkbox
-    this.foldDialogState.selectedColumns[index] = !this.foldDialogState.selectedColumns[index];
-    this.updateFoldPreview();
-  }
-
-  toggleFoldMode() {
-    // Toggle between 'keep' and 'fold' modes
-    this.foldDialogState.mode = this.foldDialogState.mode === 'keep' ? 'fold' : 'keep';
-    this.updateFoldPreview();
-  }
-
-  // Helper to get columns to fold based on current mode
-  getColumnsToFold(): string[] {
-    const { selectedColumns, mode } = this.foldDialogState;
-    if (mode === 'fold') {
-      // Selected columns are the ones to fold
-      return this.columns.filter((_c, idx) => selectedColumns[idx]);
-    } else {
-      // 'keep' mode: selected columns are kept as index, fold everything else
-      return this.columns.filter((_c, idx) => !selectedColumns[idx]);
-    }
-  }
-
-  selectAllForFold() {
-    this.foldDialogState.selectedColumns = this.columns.map(() => true);
-    this.updateFoldPreview();
-  }
-
-  selectNoneForFold() {
-    this.foldDialogState.selectedColumns = this.columns.map(() => false);
-    this.updateFoldPreview();
-  }
-
-  updateFoldPreview() {
-    const { keyName, valueName } = this.foldDialogState;
-    const colsToFold = this.getColumnsToFold();
-
-    if (colsToFold.length === 0) {
-      this.clearPreview();
-      return;
-    }
-
-    try {
-      const samples = this.currentData!.slice(0, 20);
-      const table = aq.from(samples);
-      const step = {
-        fold: {
-          columns: colsToFold,
-          as: [keyName || 'key', valueName || 'value'],
-        },
-      };
-
-      const resultTable = applyTransform(table, step, this.columns);
-      const previewRows = resultTable.objects();
-      const resultColumns = resultTable.columnNames();
-      const newCols = [keyName || 'key', valueName || 'value'];
-
-      this.previewState = {
-        title: 'Unpivot Preview',
-        stats: `Showing sample result: ${previewRows.length} rows produced`,
-        columns: resultColumns,
-        newColumns: newCols,
-        rows: previewRows,
-        _debounceTimer: null,
-      };
-    } catch (e) {
-      this.clearPreview();
-    }
-  }
-
-  async applyFoldTransform() {
-    const { keyName, valueName } = this.foldDialogState;
-    const colsToFold = this.getColumnsToFold();
-    if (colsToFold.length === 0) {
-      await this.alert('Please select at least one column to unpivot');
-      return;
-    }
-    const transform = {
-      fold: {
-        columns: colsToFold,
-        as: [keyName || 'key', valueName || 'value'],
-      },
-    };
-    await this.runTransform('Fold', transform);
-  }
-
   // ============================================================
   // Pivot Transform
   // ============================================================
-
-  initializePivotDialog() {
-    this.pivotDialogState = {
-      rowColumns: [],
-      columnColumn: '',
-      valueColumn: '',
-      aggregation: 'sum',
-      options: { sort: true, limit: null },
-      uniqueValueCount: 0,
-      previewData: null,
-      previewError: null,
-      isPreviewing: false,
-    };
-  }
-
-  onPivotConfigChange() {
-    const { columnColumn } = this.pivotDialogState;
-
-    // Update unique value count for column column
-    if (this.currentData && columnColumn) {
-      const uniqueValues = new Set(this.currentData.map((row: any) => row[columnColumn]));
-      this.pivotDialogState.uniqueValueCount = uniqueValues.size;
-    } else {
-      this.pivotDialogState.uniqueValueCount = 0;
-    }
-
-    // Clear preview when config changes
-    this.pivotDialogState.previewData = null;
-    this.pivotDialogState.previewError = null;
-  }
-
-  constructPivotStep() {
-    const { rowColumns, columnColumn, valueColumn, aggregation, options } = this.pivotDialogState;
-
-    if (!columnColumn) throw new Error('Please select a column for pivot headers');
-    if (!valueColumn) throw new Error('Please select a value column');
-    if (columnColumn === valueColumn) throw new Error('Column and value columns must be different');
-    if (rowColumns.includes(columnColumn)) throw new Error('Column column cannot be used as a row');
-    if (rowColumns.includes(valueColumn)) throw new Error('Value column cannot be used as a row');
-
-    const transform: any = {
-      pivot: {
-        rows: rowColumns.length > 0 ? rowColumns : undefined,
-        keys: columnColumn,
-        values: valueColumn,
-        aggregation,
-        options: {
-          sort: options.sort,
-          limit: options.limit || undefined,
-        },
-      },
-    };
-
-    return transform;
-  }
-
-  previewPivot() {
-    this.pivotDialogState.isPreviewing = true;
-    this.pivotDialogState.previewError = null;
-    this.clearPreview();
-    try {
-      const step = this.constructPivotStep();
-      const samples = this.currentData!.slice(0, 50);
-      const table = aq.from(samples);
-      const resultTable = applyTransform(table, step, this.columns);
-
-      const result = this.preparePreviewData(resultTable, 50);
-      const rowCols = this.pivotDialogState.rowColumns;
-      const newCols = result.columns.filter((c: string) => !rowCols.includes(c));
-
-      this.previewState = {
-        title: 'Pivot Preview',
-        stats: `Showing ${result.rows.length} rows, ${result.columns.length} columns`,
-        columns: result.columns,
-        newColumns: newCols,
-        rows: result.rows,
-        _debounceTimer: null,
-      };
-    } catch (error: any) {
-      this.pivotDialogState.previewError = error.message;
-    } finally {
-      this.pivotDialogState.isPreviewing = false;
-    }
-  }
-
-  async applyPivotTransform() {
-    await this.startTransformation('Pivoting data...');
-    try {
-      const transform = this.constructPivotStep();
-      const table = aq.from(this.currentData!);
-      const context = { sources: this.sources, models: this.models };
-      const result = applyTransform(table, transform, this.columns, context);
-
-      const oldCols = new Set(this.columns);
-      const newCols = result.columnNames().filter((col: string) => !oldCols.has(col));
-      const hasTypesStep = newCols.length > 0;
-
-      await this.applyStepResult(transform, result, !hasTypesStep);
-
-      if (hasTypesStep) {
-        const typeSpecs: Record<string, string> = {};
-        for (const colName of newCols) {
-          const sampleValues = this.currentData!.slice(0, 100).map((row) => row[colName]);
-          const inferredType = SchemaEngine.inferType(sampleValues);
-          typeSpecs[colName] = inferredType;
-        }
-        const typesTransform = { types: typeSpecs };
-        await this.applyStepResult(typesTransform, this.currentData!, true);
-      }
-    } catch (error: any) {
-      console.error('Pivot transform error:', error);
-      await this.alert('Error applying pivot: ' + error.message);
-    } finally {
-      this.endTransformation();
-    }
-  }
-
-  addAggregation() {
-    this.aggregateDialogState.aggregations.push({ output: '', func: 'mean', col: '' });
-  }
-
-  removeAggregation(index: number) {
-    this.aggregateDialogState.aggregations.splice(index, 1);
-  }
-
-  updateAggregateOutputName(index: number) {
-    const agg = this.aggregateDialogState.aggregations[index];
-    if (agg.func === 'count') {
-      agg.output = 'count';
-    } else if (agg.col) {
-      agg.output = `${agg.func}_${agg.col}`;
-    }
-  }
-
-  constructAggregateStep() {
-    const { groupBy, aggregations } = this.aggregateDialogState;
-    if (aggregations.length === 0) throw new Error('At least one aggregation is required.');
-    const rollup: Record<string, string> = {};
-    aggregations.forEach((agg: any) => {
-      if (!agg.output) throw new Error('All aggregations must have an output name.');
-      if (agg.output.trim() === '') throw new Error('Output name cannot be empty.');
-      if (agg.func === 'count') {
-        rollup[agg.output] = 'op.count()';
-      } else if (agg.func === 'distinct') {
-        if (!agg.col) throw new Error(`Column required for ${agg.func}`);
-        rollup[agg.output] = `op.distinct('${agg.col}')`;
-      } else {
-        if (!agg.col) throw new Error(`Column required for ${agg.func}`);
-        rollup[agg.output] = `op.${agg.func}('${agg.col}')`;
-      }
-    });
-    return { aggregate: { groupby: groupBy, rollup: rollup } };
-  }
-
-  async previewAggregate() {
-    this.aggregateDialogState.isPreviewing = true;
-    this.aggregateDialogState.previewError = null;
-    this.clearPreview();
-    try {
-      const step = this.constructAggregateStep();
-      const samples = this.currentData!.slice(0, 50);
-      const table = aq.from(samples);
-      const resultTable = applyTransform(table, step, this.columns);
-
-      const result = this.preparePreviewData(resultTable, 50);
-      const groupBy = this.aggregateDialogState.groupBy;
-      const newCols = result.columns.filter((c: string) => !groupBy.includes(c));
-
-      this.previewState = {
-        title: 'Aggregate Preview',
-        stats: `Showing ${result.rows.length} rows, ${result.columns.length} columns`,
-        columns: result.columns,
-        newColumns: newCols,
-        rows: result.rows,
-        _debounceTimer: null,
-      };
-    } catch (error: any) {
-      this.aggregateDialogState.previewError = error.message;
-    } finally {
-      this.aggregateDialogState.isPreviewing = false;
-    }
-  }
-
-  async applyAggregateTransform() {
-    try {
-      const transform = this.constructAggregateStep();
-      await this.runTransform('Aggregate', transform);
-    } catch (error: any) {
-      await this.alert(error.message);
-    }
-  }
-
-  initializeJoinDialog() {
-    const availableTargets: any[] = [];
-    this.models.forEach((model) => {
-      if (model.id !== this.activeModel.id) {
-        availableTargets.push({
-          id: model.id,
-          name: model.name,
-          type: 'model',
-          sourceName: this.sources.find((s) => s.id === model.sourceId)?.name || 'Unknown',
-        });
-      }
-    });
-    this.sources.forEach((source) => {
-      availableTargets.push({
-        id: source.id,
-        name: source.name,
-        type: 'source',
-        sourceName: source.name,
-      });
-    });
-    this.joinDialogState = {
-      rightModel: availableTargets[0]?.id || null,
-      joinType: 'left',
-      keyPairs: [[null, null]],
-      suffixes: ['_x', '_y'],
-      availableTargets: availableTargets,
-      leftColumns: this.columns,
-      rightColumns: this.getColumnsForTarget(availableTargets[0]?.id),
-      previewData: null,
-      previewError: null,
-      isPreviewing: false,
-    };
-  }
-
-  getColumnsForTarget(targetId: string) {
-    if (!targetId) return [];
-    const model = this.models.find((m) => m.id === targetId);
-    if (model) {
-      try {
-        const result = this.computeModelUpToStep(model, model.steps.length - 1);
-        return result.columns;
-      } catch (error) {
-        console.error('Error computing columns for target model:', error);
-        if (model.data && model.data.length > 0) return Object.keys(model.data[0]);
-      }
-    }
-    const source = this.sources.find((s) => s.id === targetId);
-    if (source) return source.columns.map((c: any) => c.name);
-    return [];
-  }
-
-  onJoinTargetChange() {
-    this.joinDialogState.rightColumns = this.getColumnsForTarget(this.joinDialogState.rightModel);
-    this.joinDialogState.keyPairs = [[null, null]];
-    this.joinDialogState.previewData = null;
-    this.joinDialogState.previewError = null;
-  }
-
-  addJoinKeyPair() {
-    this.joinDialogState.keyPairs.push([null, null]);
-  }
-
-  removeJoinKeyPair(index: number) {
-    if (this.joinDialogState.keyPairs.length > 1) {
-      this.joinDialogState.keyPairs.splice(index, 1);
-    }
-  }
-
-  async previewJoin() {
-    const state = this.joinDialogState;
-    if (!state.rightModel) {
-      state.previewError = 'Please select a model or source to join with';
-      return;
-    }
-    if (state.joinType !== 'cross') {
-      const hasCompleteKeyPair = state.keyPairs.some((pair: any) => pair[0] && pair[1]);
-      if (!hasCompleteKeyPair) {
-        state.previewError = 'Please specify at least one complete key pair';
-        return;
-      }
-    }
-    state.isPreviewing = true;
-    state.previewError = null;
-    state.previewData = null;
-    try {
-      const targetModel = this.models.find((m) => m.id === state.rightModel);
-      if (targetModel && targetModel.steps.length > 0) {
-        const result = this.computeModelUpToStep(targetModel, targetModel.steps.length - 1);
-        targetModel.data = result.data;
-      }
-      const transform = {
-        join: {
-          right: state.rightModel,
-          on: state.keyPairs.filter((pair: any) => pair[0] && pair[1]),
-          how: state.joinType,
-          suffixes: state.suffixes,
-        },
-      };
-      const table = aq.from(this.currentData!);
-      const context = { sources: this.sources, models: this.models };
-      const result = applyTransform(table, transform, this.columns, context);
-      const allData = result.objects();
-      state.previewData = {
-        rows: allData.slice(0, 100),
-        totalRows: allData.length,
-        columns: result.columnNames(),
-      };
-    } catch (error: any) {
-      console.error('Join preview error:', error);
-      state.previewError = error.message;
-    } finally {
-      state.isPreviewing = false;
-    }
-  }
-
-  async applyJoinTransform() {
-    const state = this.joinDialogState;
-    if (!state.rightModel) {
-      await this.alert('Please select a model or source to join with');
-      return;
-    }
-    if (state.joinType !== 'cross') {
-      const completePairs = state.keyPairs.filter((pair: any) => pair[0] && pair[1]);
-      if (completePairs.length === 0) {
-        await this.alert('Please specify at least one complete key pair');
-        return;
-      }
-    }
-
-    try {
-      const targetModel = this.models.find((m) => m.id === state.rightModel);
-      if (targetModel && targetModel.steps.length > 0) {
-        const result = this.computeModelUpToStep(targetModel, targetModel.steps.length - 1);
-        targetModel.data = result.data;
-      }
-      const completePairs = state.keyPairs.filter((pair: any) => pair[0] && pair[1]);
-      const transform = {
-        join: {
-          right: state.rightModel,
-          on: completePairs,
-          how: state.joinType,
-          suffixes: state.suffixes,
-        },
-      };
-      await this.runTransform('Join', transform);
-    } catch (error: any) {
-      console.error('Join transform setup error:', error);
-      await this.alert('Error preparing join: ' + error.message);
-    }
-  }
-
-  async applyReplaceTransform() {
-    const { column, findValue, replaceValue } = this.replaceDialogState;
-    if (!column) {
-      await this.alert('Please select a column');
-      return;
-    }
-    if (findValue === undefined || findValue === null) {
-      if (!(await this.confirm('Replace null/empty values?'))) return;
-    }
-
-    const transform = {
-      replace: {
-        column: column,
-        find: findValue,
-        replace: replaceValue === '' ? null : replaceValue,
-      },
-    };
-    await this.runTransform('Replace', transform);
-  }
-
-  detectDelimiter(column: string) {
-    if (!column || !this.currentData || this.currentData.length === 0) return null;
-    const delimiters = [
-      { char: ',', name: 'Comma', isRegex: false },
-      { char: ';', name: 'Semicolon', isRegex: false },
-      { char: '|', name: 'Pipe', isRegex: false },
-      { char: '/', name: 'Forward Slash', isRegex: false },
-      { char: '-', name: 'Hyphen', isRegex: false },
-      { char: '@', name: '@ Sign', isRegex: false },
-      { char: '\t', name: 'Tab', isRegex: false },
-      { char: '\\s+', name: 'Whitespace', isRegex: true },
-      { char: '\\', name: 'Backslash', isRegex: false },
-    ];
-    const sampleSize = Math.min(100, this.currentData.length);
-    const sample = this.currentData.slice(0, sampleSize);
-    const counts = delimiters.map((delim) => {
-      let totalOccurrences = 0;
-      let rowsWithDelimiter = 0;
-      sample.forEach((row) => {
-        const value = row[column];
-        if (value != null) {
-          const str = String(value);
-          let matches;
-          if (delim.isRegex) matches = str.match(new RegExp(delim.char, 'g'));
-          else
-            matches = str.match(new RegExp(delim.char.replace(/[.*+?^${}()|[\]\\]/g, '\\$&'), 'g'));
-          if (matches && matches.length > 0) {
-            totalOccurrences += matches.length;
-            rowsWithDelimiter++;
-          }
-        }
-      });
-      const consistency = sampleSize > 0 ? rowsWithDelimiter / sampleSize : 0;
-      const score = consistency * (totalOccurrences / Math.max(sampleSize, 1));
-      return { ...delim, count: totalOccurrences, rowsWithDelimiter, consistency, score };
-    });
-    const threshold = Math.max(2, sampleSize * 0.05);
-    const validDelimiters = counts
-      .filter((d) => d.rowsWithDelimiter >= threshold)
-      .sort((a, b) => {
-        if (Math.abs(a.consistency - b.consistency) > 0.1) return b.consistency - a.consistency;
-        return b.count - a.count;
-      });
-    return validDelimiters.length > 0 ? validDelimiters[0] : null;
-  }
-
-  debouncedUpdateSplitPreview() {
-    if (this.splitDialogState._previewDebounceTimer)
-      clearTimeout(this.splitDialogState._previewDebounceTimer);
-    this.splitDialogState._previewDebounceTimer = setTimeout(() => {
-      this.updateSplitPreview();
-      this.splitDialogState._previewDebounceTimer = null;
-    }, 150);
-  }
-
-  selectSplitColumn(col: string) {
-    this.splitDialogState.column = col;
-    const detected = this.detectDelimiter(col);
-    if (detected) {
-      this.splitDialogState.delimiter = detected.char;
-      this.splitDialogState.isRegex = detected.isRegex;
-      this.splitDialogState.autoDetectedDelimiter = detected.name;
-    } else {
-      this.splitDialogState.autoDetectedDelimiter = null;
-    }
-    this.updateSplitPreview();
-  }
-
-  updateSplitPreview() {
-    const { column, delimiter, mode, maxColumns, keepOriginal, isRegex } = this.splitDialogState;
-    this.splitDialogState.error = null;
-    this.clearPreview();
-
-    if (!column || !delimiter) return;
-
-    try {
-      if (isRegex) new RegExp(delimiter);
-      const transform = {
-        split: {
-          column,
-          delimiter,
-          isRegex,
-          mode,
-          maxColumns: mode === 'firstN' || mode === 'lastN' ? maxColumns : undefined,
-          keepOriginal,
-        },
-      };
-
-      const samples = this.currentData!.slice(0, 50);
-      const table = aq.from(samples);
-      const context = { sources: this.sources, models: this.models };
-      const result = applyTransform(table, transform, this.columns, context);
-
-      const resultColumns = result.columnNames();
-      const newCols = resultColumns.filter((c: string) => c.startsWith(`${column}_`));
-
-      // Show only affected columns: original (if kept or marked as removed) + new columns
-      const previewColumns = keepOriginal ? [column, ...newCols] : [column, ...newCols];
-      const fullRows = result.objects();
-
-      // Get original column values from source data for showing removed state
-      const previewRows = fullRows.map((row: any, idx: number) => {
-        const sourceRow = samples[idx];
-        const previewRow: any = {};
-
-        // Include original column (mark as removed if not keeping)
-        if (!keepOriginal) {
-          previewRow[column] = sourceRow[column];
-          previewRow._removedColumns = [column];
-        } else {
-          previewRow[column] = row[column];
-        }
-
-        // Include new columns
-        for (const newCol of newCols) {
-          previewRow[newCol] = row[newCol];
-        }
-
-        return previewRow;
-      });
-
-      this.previewState = {
-        title: 'Split Preview',
-        stats: keepOriginal
-          ? `${newCols.length} new columns created`
-          : `Original column removed, ${newCols.length} new columns created`,
-        columns: previewColumns,
-        newColumns: newCols,
-        rows: previewRows,
-        _debounceTimer: null,
-      };
-    } catch (error: any) {
-      this.splitDialogState.error = error.message;
-      this.clearPreview();
-    }
-  }
-
-  async applySplitTransform() {
-    const { column, delimiter, mode, maxColumns, keepOriginal, isRegex } = this.splitDialogState;
-    if (!column) {
-      await this.alert('Please select a column');
-      return;
-    }
-    if (!delimiter) {
-      await this.alert('Please enter a delimiter');
-      return;
-    }
-
-    await this.startTransformation('Splitting column...');
-    try {
-      const splitTransform = {
-        split: {
-          column,
-          delimiter,
-          isRegex,
-          mode,
-          maxColumns: mode === 'firstN' || mode === 'lastN' ? maxColumns : undefined,
-          keepOriginal,
-        },
-      };
-      let table = aq.from(this.currentData!);
-      const context = { sources: this.sources, models: this.models };
-      let result = applyTransform(table, splitTransform, this.columns, context);
-
-      const newColumns = result
-        .columnNames()
-        .filter((name: string) => name.startsWith(`${column}_`));
-      const hasTypesStep = newColumns.length > 0;
-
-      await this.applyStepResult(splitTransform, result, !hasTypesStep);
-
-      if (hasTypesStep) {
-        const typeSpecs: Record<string, string> = {};
-        for (const colName of newColumns) {
-          const sampleValues = this.currentData!.slice(0, 100).map((row) => row[colName]);
-          const inferredType = SchemaEngine.inferType(sampleValues);
-          typeSpecs[colName] = inferredType;
-        }
-        const typesTransform = { types: typeSpecs };
-        await this.applyStepResult(typesTransform, this.currentData!, true);
-      }
-    } catch (error: any) {
-      console.error('Split transform error:', error);
-      await this.alert('Error applying split: ' + error.message);
-    } finally {
-      this.endTransformation();
-    }
-  }
 
   // ============================================================
   // Dialog Management
