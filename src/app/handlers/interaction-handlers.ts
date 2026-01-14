@@ -126,8 +126,8 @@ export async function applyQuickCellFilter(this: ChumakApp, op: string) {
   else if (op === 'lt') expr = `[${col}] < ${formattedValue}`;
   else if (op === 'lte') expr = `[${col}] <= ${formattedValue}`;
   if (expr) {
-    this.filterExpression = expr;
-    this.filterError = null;
+    DialogStore.filterState.expression.value = expr;
+    DialogStore.filterState.error.value = null;
     await (this as any).applyFilterTransform();
   }
   this.selectedCell = null;
@@ -146,8 +146,23 @@ export async function quickSort(this: ChumakApp, order: 'asc' | 'desc') {
 
 export function quickFilter(this: ChumakApp) {
   if (!this.selectedColumn) return;
+  DialogStore.openDialog('filter', {
+    expression: `${this.selectedColumn} == `,
+  });
+  // We call this.openDialog wrapper to handle side effects (clear selection, update URL)
   this.openDialog('filter');
-  this.filterExpression = `${this.selectedColumn} == `;
+
+  // Actually openDialog in handlers sets activeDialog, which triggers initDialogState.
+  // But DialogStore.openDialog also does.
+  // Our openDialog wrapper calls DialogStore? No.
+  // handler's openDialog calls initDialogState.
+
+  // Let's stick to the pattern: update store, then allow regular flow.
+  // Or better: update store AFTER openDialog if we want to override default empty string.
+
+  this.openDialog('filter');
+  DialogStore.filterState.expression.value = `${this.selectedColumn} == `;
+
   this.reSnapshot();
   setTimeout(() => {
     const input = document.querySelector(

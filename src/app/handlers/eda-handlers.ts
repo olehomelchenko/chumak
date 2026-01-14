@@ -150,6 +150,8 @@ export function handleBrushSelection(this: ChumakApp, selection: any) {
   this.edaBrushSelection = selection;
 }
 
+import { DialogStore } from '../stores/DialogStore';
+// ...
 export async function applyBrushFilter(this: ChumakApp) {
   if (!this.edaBrushSelection || !this.selectedColumn) return;
   const { min, max } = this.edaBrushSelection;
@@ -157,8 +159,8 @@ export async function applyBrushFilter(this: ChumakApp) {
   const fmtMin = Number.isInteger(min) ? min : min.toFixed(4);
   const fmtMax = Number.isInteger(max) ? max : max.toFixed(4);
   const expr = `[${col}] >= ${fmtMin} && [${col}] <= ${fmtMax}`;
-  this.filterExpression = expr;
-  this.filterError = null;
+  DialogStore.filterState.expression.value = expr;
+  DialogStore.filterState.error.value = null;
   await (this as any).applyFilterTransform();
   this.clearColumnSelection();
 }

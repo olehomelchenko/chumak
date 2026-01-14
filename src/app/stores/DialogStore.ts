@@ -1,4 +1,5 @@
 import { signal, Signal } from '@preact/signals';
+import { FilterPreviewMode } from '../components/FilterDialog';
 import { JoinType, JoinTarget } from '../components/JoinDialog';
 
 // Defines all possible dialog names in the application
@@ -45,6 +46,12 @@ export interface JoinState {
   isPreviewing: Signal<boolean>;
 }
 
+export interface FilterState {
+  expression: Signal<string>;
+  error: Signal<string | null>;
+  previewMode: Signal<FilterPreviewMode>;
+}
+
 /**
  * DialogStore
  *
@@ -77,6 +84,13 @@ export class DialogStore {
     isPreviewing: signal(false),
   };
 
+  // Filter Dialog State
+  static filterState = {
+    expression: signal(''),
+    error: signal<string | null>(null),
+    previewMode: signal<FilterPreviewMode>('all'),
+  };
+
   /**
    * Opens a dialog and initializes it with default or provided values.
    */
@@ -85,6 +99,14 @@ export class DialogStore {
     if (name === 'sort' && initialState) {
       if (initialState.field !== undefined) this.sortState.field.value = initialState.field;
       if (initialState.order !== undefined) this.sortState.order.value = initialState.order;
+    }
+
+    // Initialize Filter defaults if needed
+    if (name === 'filter') {
+      // Reset or use initial state
+      this.filterState.expression.value = initialState?.expression || '';
+      this.filterState.error.value = null;
+      this.filterState.previewMode.value = initialState?.previewMode || 'all';
     }
 
     this.activeDialog.value = name;

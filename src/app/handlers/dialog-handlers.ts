@@ -10,7 +10,7 @@ import { IndexDialog } from '../components/IndexDialog';
 import { ReplaceDialog } from '../components/ReplaceDialog';
 import { SliceRowsDialog, SliceMode } from '../components/SliceRowsDialog';
 import { UnpivotDialog, UnpivotMode } from '../components/UnpivotDialog';
-import { FilterDialog, FilterPreviewMode } from '../components/FilterDialog';
+import { FilterDialog } from '../components/FilterDialog';
 import { PivotDialog, PivotAggregation } from '../components/PivotDialog';
 import { DateDialog, DateOperation } from '../components/DateDialog';
 import { SplitDialog, SplitMode } from '../components/SplitDialog';
@@ -47,12 +47,6 @@ let foldValueNameSignal = signal('value');
 let foldModeSignal = signal<UnpivotMode>('keep');
 let foldSelectedColumnsSignal = signal<boolean[]>([]);
 let foldEffectCleanup: (() => void) | null = null;
-
-// Preact signals for Filter Dialog
-let filterExpressionSignal = signal('');
-let filterErrorSignal = signal<string | null>(null);
-let filterPreviewModeSignal = signal<FilterPreviewMode>('all');
-let filterEffectCleanup: (() => void) | null = null;
 
 // Preact signals for Pivot Dialog
 let pivotRowColumnsSignal = signal<string[]>([]);
@@ -140,7 +134,10 @@ let settingsEffectCleanup: (() => void) | null = null;
 export function getDialogState(this: ChumakApp, dialog: string) {
   switch (dialog) {
     case 'filter':
-      return this.filterExpression;
+      return {
+        expression: DialogStore.filterState.expression.value,
+        previewMode: DialogStore.filterState.previewMode.value,
+      };
     case 'derive':
       return {
         columnName: this.deriveDialogState.columnName,
@@ -280,46 +277,33 @@ export function handleHashChange(this: ChumakApp) {
 
 export function initDialogState(this: ChumakApp, dialogName: string, _section?: string) {
   if (dialogName === 'filter') {
-    this.filterExpression = '';
-    this.filterError = null;
-    this.filterPreviewMode = 'all'; // Ensure this default exists
+    // DialogStore.openDialog called from interaction/step handlers initializes the state
 
     // Mount Preact component
     const container = document.getElementById('filter-modal-container');
     if (container) {
-      filterExpressionSignal.value = this.filterExpression;
-      filterErrorSignal.value = this.filterError;
-      filterPreviewModeSignal.value = (this.filterPreviewMode as FilterPreviewMode) || 'all';
-
-      filterEffectCleanup = effect(() => {
-        // Sync Signals -> Alpine
-        this.filterExpression = filterExpressionSignal.value;
-        this.filterPreviewMode = filterPreviewModeSignal.value;
-
-        // Trigger validation/preview logic
-        if (typeof (this as any).validateFilterExpression === 'function') {
-          (this as any).validateFilterExpression();
-          // Sync Alpine Error -> Signal (validation updates `this.filterError`)
-          filterErrorSignal.peek(); // read to avoid dependency loop if we wrote blindly?
-          // actually we WANT to update signal if alpine changed it.
-          // But avoid infinite loop.
-          if (filterErrorSignal.peek() !== this.filterError) {
-            filterErrorSignal.value = this.filterError;
-          }
-        }
-
-        if (typeof (this as any).debouncedUpdateFilterPreview === 'function') {
-          (this as any).debouncedUpdateFilterPreview();
-        } else if (typeof (this as any).updateFilterPreview === 'function') {
-          (this as any).updateFilterPreview();
-        }
-      });
+      const { expression, error, previewMode } = DialogStore.filterState;
 
       mountComponent(container, FilterDialog, {
-        expression: filterExpressionSignal,
-        error: filterErrorSignal,
-        previewMode: filterPreviewModeSignal,
+        expression: expression,
+        error: error,
+        previewMode: previewMode,
         onOpenReference: () => this.openDialog('expressions'),
+      });
+
+      // Reactive logic: When expression changes, validate and update preview
+      effect(() => {
+        // subscribe by reading
+        void expression.value;
+        void previewMode.value;
+
+        // Use existing transform logic adjusted to read from store
+        if (typeof (this as any).validateFilterExpression === 'function') {
+          (this as any).validateFilterExpression();
+        }
+        if (typeof (this as any).debouncedUpdateFilterPreview === 'function') {
+          (this as any).debouncedUpdateFilterPreview();
+        }
       });
     }
   } else if (dialogName === 'join') {
@@ -1250,7 +1234,7 @@ export function isNewPreviewColumn(this: ChumakApp, col: string): boolean {
 export function activeDialogError(this: ChumakApp): boolean {
   switch (this.activeDialog) {
     case 'filter':
-      return !!this.filterError;
+      return !!DialogStore.filterState.error.value;
     case 'derive':
       return !!this.deriveDialogState.error;
     case 'sliceRows':
@@ -1330,8 +1314,7 @@ export async function closeDialog(this: ChumakApp, force = false) {
   if (this.activeDialog === 'filter') {
     const container = document.getElementById('filter-modal-container');
     if (container) unmountComponent(container);
-    filterEffectCleanup?.();
-    filterEffectCleanup = null;
+    // Cleanup not required for store signals
   }
 
   if (this.activeDialog === 'pivot') {

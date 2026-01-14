@@ -1,9 +1,11 @@
 import type { ChumakApp } from '../../chumak-app';
 import { parseExpression } from '../../core/expression-parser';
 import { interpretAST } from '../../core/ast-interpreter';
+import { DialogStore } from '../stores/DialogStore';
 
 export function validateFilterExpression(this: ChumakApp) {
-  this.filterError = this.validateExpression(this.filterExpression);
+  const expr = DialogStore.filterState.expression.value;
+  DialogStore.filterState.error.value = this.validateExpression(expr);
 }
 
 export function debouncedUpdateFilterPreview(this: ChumakApp) {
@@ -16,8 +18,11 @@ export function debouncedUpdateFilterPreview(this: ChumakApp) {
 }
 
 export function updateFilterPreview(this: ChumakApp) {
-  const expr = this.filterExpression?.trim();
-  if (!expr || this.filterError || !this.currentData?.length) {
+  const expr = DialogStore.filterState.expression.value.trim();
+  const hasError = DialogStore.filterState.error.value;
+  const previewMode = DialogStore.filterState.previewMode.value;
+
+  if (!expr || hasError || !this.currentData?.length) {
     this.clearPreview();
     return;
   }
@@ -37,14 +42,14 @@ export function updateFilterPreview(this: ChumakApp) {
         const matches = interpretAST(ast, row);
         if (matches) {
           matchCount++;
-          if (this.filterPreviewMode === 'matching') {
+          if (previewMode === 'matching') {
             if (previewRows.length < 50) previewRows.push(row);
           } else {
             if (previewRows.length < 50) previewRows.push(row);
           }
         } else {
           removedCount++;
-          if (this.filterPreviewMode === 'all' && previewRows.length < 50) {
+          if (previewMode === 'all' && previewRows.length < 50) {
             previewRows.push({ ...row, _removed: true });
           }
         }
@@ -80,17 +85,20 @@ export function updateFilterPreview(this: ChumakApp) {
 }
 
 export function toggleFilterPreviewMode(this: ChumakApp) {
-  this.filterPreviewMode = this.filterPreviewMode === 'matching' ? 'all' : 'matching';
+  const current = DialogStore.filterState.previewMode.value;
+  DialogStore.filterState.previewMode.value = current === 'matching' ? 'all' : 'matching';
   this.updateFilterPreview();
 }
 
 export async function applyFilterTransform(this: ChumakApp) {
-  const expr = this.filterExpression.trim();
+  const expr = DialogStore.filterState.expression.value.trim();
+  const hasError = DialogStore.filterState.error.value;
+
   if (!expr) {
     await this.alert('Please enter a filter expression');
     return;
   }
-  if (this.filterError) {
+  if (hasError) {
     await this.alert('Please fix the expression errors before applying');
     return;
   }

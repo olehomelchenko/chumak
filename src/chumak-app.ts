@@ -126,9 +126,6 @@ export class ChumakApp implements AppState {
   viewMode: 'empty' | 'dataset-info' | 'model' = 'empty';
 
   // Transform state
-  filterExpression = '';
-  filterError: string | null = null;
-  filterPreviewMode: 'matching' | 'all' = 'all';
 
   // Dialog states
   aggregateDialogState: AggregateDialogState = {

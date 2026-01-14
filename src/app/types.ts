@@ -186,9 +186,6 @@ export interface AppState {
   viewMode: 'empty' | 'dataset-info' | 'model';
 
   // Transform state
-  filterExpression: string;
-  filterError: string | null;
-  filterPreviewMode: 'matching' | 'all';
 
   // Dialog states
   aggregateDialogState: AggregateDialogState;

@@ -170,8 +170,10 @@ export function editStep(this: ChumakApp, stepIndex: number) {
   this.editingStepIndex = stepIndex;
 
   if (step.filter) {
-    this.openDialog('filter');
-    this.filterExpression = step.filter;
+    DialogStore.openDialog('filter', {
+      expression: step.filter as string,
+    });
+    this.openDialog('filter'); // Keep legacy side effects wrapper for now
   } else if (step.derive) {
     const [colName, expr] = Object.entries(step.derive)[0];
     this.openDialog('derive');
