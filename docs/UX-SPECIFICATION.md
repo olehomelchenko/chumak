@@ -123,7 +123,7 @@ The project follows a **Modular Token-Based Architecture** designed for high mod
 
 ### 6.1 Modular Structure
 
-Styles are divided into component-specific files (e.g., `ribbon.css`, `table.css`, `step-removal.css`), preventing side-effects and ensuring localized maintenance.
+Styles are divided into component-specific files (e.g., `ribbon.css`, `table.css`, `step-removal.css`), preventing side-effects and ensuring localized maintenance. This styling modularity is mirrored in the TypeScript architecture, where UI logic is delegated to specialized handler modules.
 
 ### 6.2 Theming Logic
 

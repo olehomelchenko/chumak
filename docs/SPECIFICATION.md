@@ -165,6 +165,7 @@ Each transform is one object in an array.
 - **Unified Modal Shell**: A reusable container for all dialogs (Slide Panels and Centered Modals)
 - **Model Toolbar**: Stats summary, navigation, and consolidated downloads/copying
 - **Step Editor**: Pipeline management with edit/delete actions and JSON toggle
+- **Modular Delegation Pattern**: UI logic is decoupled from the main class into specialized `Handlers` and `Transforms` modules to maintain codebase hygiene.
 
 ### 6.2 Key Patterns
 

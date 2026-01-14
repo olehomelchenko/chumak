@@ -108,9 +108,11 @@
 
 ### Application & UI (`src/`)
 
-- **[chumak-app.ts](src/chumak-app.ts)**: Main application class & store
-- **[main.ts](src/main.ts)**: Application initialization
-- **[app/](src/app/)**: Specific UI handlers and type definitions
+- **[chumak-app.ts](src/chumak-app.ts)**: Main orchestration class (Alpine.js state)
+- **[main.ts](src/main.ts)**: Application bootstrap
+- **[app/handlers/](src/app/handlers/)**: Modularized functional logic (Export, Import, Model, Step, Dialog, Notification, EDA, Interaction, Pagination, Helpers, JSON)
+- **[app/transforms/](src/app/transforms/)**: Transform-specific UI logic (Filter, Derive, Aggregate, Join, Pivot, Fold, Split, Dedupe, Date, Column Editor, etc.)
+- **[app/types.ts](src/app/types.ts)**: Application-wide TypeScript definitions
 
 ### Modal Templates (`public/templates/`)
 
