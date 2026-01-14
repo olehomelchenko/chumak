@@ -65,9 +65,28 @@ _Status: 🚧 In Progress_
 - `src/app/components/PreactBridge.tsx` — `mountComponent()`, `unmountComponent()`
 - `src/app/components/index.ts` — Barrel exports
 
-### Remaining
+**Migrated Components:**
 
-- [ ] Migrate remaining dialogs from `public/templates/*.html`
+- [x] `SortDialog.tsx` (was `sort-modal.html`)
+- [x] `IndexDialog.tsx` (was `index-modal.html`)
+- [x] `ReplaceDialog.tsx` (was `replace-modal.html`)
+- [x] `SliceRowsDialog.tsx` (was `slice-rows-modal.html`)
+- [x] `UnpivotDialog.tsx` (was `unpivot-modal.html` / "Fold")
+
+### Remaining Dialogs to Migrate
+
+Priority list based on complexity:
+
+- [ ] `date-modal.html` (Medium)
+- [ ] `pivot-modal.html` (Medium)
+- [ ] `split-column-modal.html` (Medium)
+- [ ] `filter-modal.html` (Medium/High)
+- [ ] `derive-modal.html` (High - has expression editor)
+- [ ] `join-modal.html` (High)
+- [ ] `aggregate-modal.html` (High)
+- [ ] `import-csv-modal.html` (High)
+- [ ] `column-editor-modal.html` (High)
+- [ ] `settings-modal.html` (Low - but different context)
 
 ---
 

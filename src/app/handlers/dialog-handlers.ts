@@ -6,6 +6,9 @@ import { signal, effect } from '@preact/signals';
 import { mountComponent, unmountComponent } from '../components/PreactBridge';
 import { SortDialog } from '../components/SortDialog';
 import { IndexDialog } from '../components/IndexDialog';
+import { ReplaceDialog } from '../components/ReplaceDialog';
+import { SliceRowsDialog, SliceMode } from '../components/SliceRowsDialog';
+import { UnpivotDialog, UnpivotMode } from '../components/UnpivotDialog';
 
 // Preact signals for Sort Dialog
 let sortFieldSignal = signal('');
@@ -16,6 +19,24 @@ let sortEffectCleanup: (() => void) | null = null;
 let indexColumnNameSignal = signal('row_index');
 let indexStartFromSignal = signal(1);
 let indexEffectCleanup: (() => void) | null = null;
+
+// Preact signals for Replace Dialog
+let replaceColumnSignal = signal('');
+let replaceFindSignal = signal('');
+let replaceWithSignal = signal('');
+let replaceEffectCleanup: (() => void) | null = null;
+
+// Preact signals for Slice Rows Dialog
+let sliceCountSignal = signal(10);
+let sliceModeSignal = signal<SliceMode>('first');
+let sliceEffectCleanup: (() => void) | null = null;
+
+// Preact signals for Unpivot (Fold) Dialog
+let foldKeyNameSignal = signal('key');
+let foldValueNameSignal = signal('value');
+let foldModeSignal = signal<UnpivotMode>('keep');
+let foldSelectedColumnsSignal = signal<boolean[]>([]);
+let foldEffectCleanup: (() => void) | null = null;
 
 export function getDialogState(this: ChumakApp, dialog: string) {
   switch (dialog) {
@@ -164,17 +185,14 @@ export function initDialogState(this: ChumakApp, dialogName: string, _section?: 
     // Mount Preact component
     const container = document.getElementById('sort-modal-container');
     if (container) {
-      // Reset signals to match Alpine state
       sortFieldSignal.value = this.sortDialogState.field;
       sortOrderSignal.value = this.sortDialogState.order;
 
-      // Set up effect to sync signal changes back to Alpine state
       sortEffectCleanup = effect(() => {
         this.sortDialogState.field = sortFieldSignal.value;
         this.sortDialogState.order = sortOrderSignal.value;
       });
 
-      // Mount the Preact component
       mountComponent(container, SortDialog, {
         columns: this.columns,
         field: sortFieldSignal,
@@ -182,7 +200,26 @@ export function initDialogState(this: ChumakApp, dialogName: string, _section?: 
       });
     }
   } else if (dialogName === 'sliceRows') {
+    // Initialize Alpine state
     this.sliceRowsDialogState = { count: 10, mode: 'first' };
+
+    // Mount Preact component
+    const container = document.getElementById('slice-rows-modal-container');
+    if (container) {
+      sliceCountSignal.value = this.sliceRowsDialogState.count;
+      sliceModeSignal.value = this.sliceRowsDialogState.mode as SliceMode;
+
+      sliceEffectCleanup = effect(() => {
+        this.sliceRowsDialogState.count = sliceCountSignal.value;
+        this.sliceRowsDialogState.mode = sliceModeSignal.value;
+      });
+
+      mountComponent(container, SliceRowsDialog, {
+        count: sliceCountSignal,
+        mode: sliceModeSignal,
+        rowCount: this.currentData?.length || 0,
+      });
+    }
   } else if (dialogName === 'index') {
     // Initialize Alpine state
     this.indexDialogState = { columnName: 'row_index', startFrom: 1 };
@@ -213,16 +250,78 @@ export function initDialogState(this: ChumakApp, dialogName: string, _section?: 
       isPreviewing: false,
     };
   } else if (dialogName === 'fold') {
+    // Initialize Alpine state
     this.foldDialogState = {
       keyName: 'key',
       valueName: 'value',
       selectedColumns: this.columns.map(() => false),
       mode: 'keep',
     };
+
+    // Mount Preact component
+    // Note: handler says 'fold', but container ID is 'unpivot-modal-container'
+    const container = document.getElementById('unpivot-modal-container');
+    if (container) {
+      foldKeyNameSignal.value = this.foldDialogState.keyName;
+      foldValueNameSignal.value = this.foldDialogState.valueName;
+      foldModeSignal.value = this.foldDialogState.mode as UnpivotMode;
+      foldSelectedColumnsSignal.value = [...this.foldDialogState.selectedColumns];
+
+      foldEffectCleanup = effect(() => {
+        this.foldDialogState.keyName = foldKeyNameSignal.value;
+        this.foldDialogState.valueName = foldValueNameSignal.value;
+        this.foldDialogState.mode = foldModeSignal.value;
+        // Deep compare/copy to trigger reactivity if changed
+        // For array, we just assign a new reference
+        this.foldDialogState.selectedColumns = [...foldSelectedColumnsSignal.value];
+
+        // Also trigger the preview update which exists in Alpine
+        // (this as any).updateFoldPreview();
+        // Since we can't easily call local methods from here if they rely on `this` context
+        // in a specific way, we rely on the fact that `this.foldDialogState` assignment
+        // might trigger watchers if Alpine is watching deep.
+        // However, the template logic used @click="updateFoldPreview()".
+        // The effect runs primarily on signal change.
+        // Let's explicitly call the update method if it exists on the app instance
+        if (typeof (this as any).updateFoldPreview === 'function') {
+          (this as any).updateFoldPreview();
+        }
+      });
+
+      mountComponent(container, UnpivotDialog, {
+        columns: this.columns,
+        keyName: foldKeyNameSignal,
+        valueName: foldValueNameSignal,
+        mode: foldModeSignal,
+        selectedColumns: foldSelectedColumnsSignal,
+      });
+    }
   } else if (dialogName === 'pivot') {
     (this as any).initializePivotDialog();
   } else if (dialogName === 'replace') {
+    // Initialize Alpine state
     this.replaceDialogState = { column: this.columns[0] || '', findValue: '', replaceValue: '' };
+
+    // Mount Preact component
+    const container = document.getElementById('replace-modal-container');
+    if (container) {
+      replaceColumnSignal.value = this.replaceDialogState.column;
+      replaceFindSignal.value = this.replaceDialogState.findValue;
+      replaceWithSignal.value = this.replaceDialogState.replaceValue;
+
+      replaceEffectCleanup = effect(() => {
+        this.replaceDialogState.column = replaceColumnSignal.value;
+        this.replaceDialogState.findValue = replaceFindSignal.value;
+        this.replaceDialogState.replaceValue = replaceWithSignal.value;
+      });
+
+      mountComponent(container, ReplaceDialog, {
+        columns: this.columns,
+        column: replaceColumnSignal,
+        findValue: replaceFindSignal,
+        replaceValue: replaceWithSignal,
+      });
+    }
   } else if (dialogName === 'split') {
     this.splitDialogState = {
       column: this.columns[0] || '',
@@ -522,6 +621,27 @@ export async function closeDialog(this: ChumakApp, force = false) {
     if (container) unmountComponent(container);
     indexEffectCleanup?.();
     indexEffectCleanup = null;
+  }
+
+  if (this.activeDialog === 'replace') {
+    const container = document.getElementById('replace-modal-container');
+    if (container) unmountComponent(container);
+    replaceEffectCleanup?.();
+    replaceEffectCleanup = null;
+  }
+
+  if (this.activeDialog === 'sliceRows') {
+    const container = document.getElementById('slice-rows-modal-container');
+    if (container) unmountComponent(container);
+    sliceEffectCleanup?.();
+    sliceEffectCleanup = null;
+  }
+
+  if (this.activeDialog === 'fold') {
+    const container = document.getElementById('unpivot-modal-container');
+    if (container) unmountComponent(container);
+    foldEffectCleanup?.();
+    foldEffectCleanup = null;
   }
 
   // Clear URL hash if closing a navigable page

@@ -1,0 +1,129 @@
+/**
+ * SliceRowsDialog - Preact component for slicing (filtering) rows
+ */
+
+import { Signal, computed } from '@preact/signals';
+
+export type SliceMode = 'first' | 'last' | 'removeFirst' | 'removeLast';
+
+export interface SliceRowsDialogProps {
+  count: Signal<number>;
+  mode: Signal<SliceMode>;
+  rowCount: number;
+}
+
+export function SliceRowsDialog({ count, mode, rowCount }: SliceRowsDialogProps) {
+  // Computed values for the preview text
+  const previewText = computed(() => {
+    const n = count.value || 0;
+    const total = rowCount || 0;
+
+    switch (mode.value) {
+      case 'first': {
+        const end = Math.min(n, total);
+        return (
+          <>
+            Will keep rows 1 to <strong>{end}</strong>
+          </>
+        );
+      }
+      case 'last': {
+        const start = Math.max(1, total - n + 1);
+        return (
+          <>
+            Will keep rows <strong>{start}</strong> to <strong>{total}</strong>
+          </>
+        );
+      }
+      case 'removeFirst': {
+        const end = Math.min(n, total);
+        return (
+          <>
+            Will remove rows 1 to <strong>{end}</strong>
+          </>
+        );
+      }
+      case 'removeLast': {
+        const start = Math.max(1, total - n + 1);
+        return (
+          <>
+            Will remove rows <strong>{start}</strong> to <strong>{total}</strong>
+          </>
+        );
+      }
+      default:
+        return null;
+    }
+  });
+
+  return (
+    <div class="dialog-content">
+      <div class="form-group">
+        <label class="form-label">Number of rows:</label>
+        <input
+          type="number"
+          class="form-input"
+          value={count.value}
+          onInput={(e) => (count.value = parseInt((e.target as HTMLInputElement).value) || 0)}
+          min="1"
+          placeholder="10"
+        />
+      </div>
+
+      <div class="form-group">
+        <label class="form-label">Mode:</label>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+          <label class="radio-label">
+            <input
+              type="radio"
+              checked={mode.value === 'first'}
+              onChange={() => (mode.value = 'first')}
+            />
+            <span>Keep first N rows</span>
+          </label>
+          <label class="radio-label">
+            <input
+              type="radio"
+              checked={mode.value === 'last'}
+              onChange={() => (mode.value = 'last')}
+            />
+            <span>Keep last N rows</span>
+          </label>
+          <label class="radio-label">
+            <input
+              type="radio"
+              checked={mode.value === 'removeFirst'}
+              onChange={() => (mode.value = 'removeFirst')}
+            />
+            <span>Remove first N rows</span>
+          </label>
+          <label class="radio-label">
+            <input
+              type="radio"
+              checked={mode.value === 'removeLast'}
+              onChange={() => (mode.value = 'removeLast')}
+            />
+            <span>Remove last N rows</span>
+          </label>
+        </div>
+      </div>
+
+      <div
+        class="form-group"
+        style={{
+          marginTop: '1rem',
+          padding: '0.75rem',
+          background: 'var(--color-light-gray)',
+          borderRadius: 'var(--radius-sm)',
+        }}
+      >
+        <span style={{ fontSize: '0.875rem', color: 'var(--color-dark-gray)' }}>
+          {previewText.value}
+          <span style={{ marginLeft: '0.5rem', color: 'var(--color-medium-gray)' }}>
+            (of {rowCount.toLocaleString()} total rows)
+          </span>
+        </span>
+      </div>
+    </div>
+  );
+}

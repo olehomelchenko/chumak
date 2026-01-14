@@ -20,13 +20,17 @@ export function mountComponent<P extends object>(
   Component: ComponentType<P>,
   props: P
 ): void {
-  if (mountedContainers.has(container)) {
-    // Already mounted - just update props by re-rendering
-    render(<Component {...props} />, container);
-  } else {
-    // First mount
-    render(<Component {...props} />, container);
-    mountedContainers.set(container, true);
+  try {
+    if (mountedContainers.has(container)) {
+      // Already mounted - just update props by re-rendering
+      render(<Component {...props} />, container);
+    } else {
+      // First mount
+      render(<Component {...props} />, container);
+      mountedContainers.set(container, true);
+    }
+  } catch (error) {
+    console.error('[PreactBridge] Error during render:', error);
   }
 }
 

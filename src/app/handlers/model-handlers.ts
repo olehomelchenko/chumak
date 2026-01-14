@@ -3,17 +3,15 @@ import { SchemaEngine } from '../../core/schema-engine';
 import { autoSave, clearAllData as storageClearAllData } from '../../core/storage';
 
 export function getTemplateConfigs(this: ChumakApp) {
+  // Note: sort, index, replace dialogs are now Preact components (see src/app/components/)
   return [
     { id: 'join-modal-container', url: 'templates/join-modal.html' },
     { id: 'aggregate-modal-container', url: 'templates/aggregate-modal.html' },
     { id: 'import-csv-modal-container', url: 'templates/import-csv-modal.html' },
     { id: 'split-modal-container', url: 'templates/split-column-modal.html' },
-    { id: 'unpivot-modal-container', url: 'templates/unpivot-modal.html' },
+    // unpivot-modal is now rendered by Preact (see UnpivotDialog.tsx)
     { id: 'pivot-modal-container', url: 'templates/pivot-modal.html' },
-    { id: 'replace-modal-container', url: 'templates/replace-modal.html' },
-    // sort-modal is now rendered by Preact (see SortDialog.tsx)
-    { id: 'slice-rows-modal-container', url: 'templates/slice-rows-modal.html' },
-    // index-modal is now rendered by Preact (see IndexDialog.tsx)
+    // slice-rows-modal is now rendered by Preact (see SliceRowsDialog.tsx)
     { id: 'derive-modal-container', url: 'templates/derive-modal.html' },
     { id: 'filter-modal-container', url: 'templates/filter-modal.html' },
     { id: 'regexp-match-modal-container', url: 'templates/regexp-match-modal.html' },

@@ -13,3 +13,12 @@ export type { SortDialogProps } from './SortDialog';
 
 export { IndexDialog } from './IndexDialog';
 export type { IndexDialogProps } from './IndexDialog';
+
+export { ReplaceDialog } from './ReplaceDialog';
+export type { ReplaceDialogProps } from './ReplaceDialog';
+
+export { SliceRowsDialog } from './SliceRowsDialog';
+export type { SliceRowsDialogProps, SliceMode } from './SliceRowsDialog';
+
+export { UnpivotDialog } from './UnpivotDialog';
+export type { UnpivotDialogProps, UnpivotMode } from './UnpivotDialog';
