@@ -4,7 +4,7 @@
  * This is the first TSX component migrated from public/templates/sort-modal.html
  */
 
-import { signal, Signal } from '@preact/signals';
+import { Signal } from '@preact/signals';
 
 export interface SortDialogProps {
   columns: string[];
@@ -72,12 +72,4 @@ export function SortDialog({ columns, field, order }: SortDialogProps) {
       </div>
     </div>
   );
-}
-
-// Factory function to create signals for this dialog
-export function createSortDialogState(initialField = '', initialOrder: 'asc' | 'desc' = 'asc') {
-  return {
-    field: signal(initialField),
-    order: signal(initialOrder),
-  };
 }

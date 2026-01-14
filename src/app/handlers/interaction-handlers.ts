@@ -133,10 +133,13 @@ export async function applyQuickCellFilter(this: ChumakApp, op: string) {
   this.selectedCell = null;
 }
 
+import { DialogStore } from '../stores/DialogStore';
+// ... imports
+
 export async function quickSort(this: ChumakApp, order: 'asc' | 'desc') {
   if (!this.selectedColumn) return;
-  this.sortDialogState.field = this.selectedColumn;
-  this.sortDialogState.order = order;
+  DialogStore.sortState.field.value = this.selectedColumn;
+  DialogStore.sortState.order.value = order;
   await (this as any).applySortTransform();
   this.selectedColumn = null;
 }

@@ -6,6 +6,7 @@ import { perfLogger } from '../../core/performance-logger';
 import { autoSave } from '../../core/storage';
 import { Model } from '../types';
 import { ColumnSchema, TransformStep } from '../../core/schema-engine';
+import { DialogStore } from '../stores/DialogStore';
 
 export async function applyActiveTransform(this: ChumakApp) {
   switch (this.activeDialog) {
@@ -243,8 +244,10 @@ export function editStep(this: ChumakApp, stepIndex: number) {
       draggedIndex: null,
     };
   } else if (step.sort) {
-    this.openDialog('sort');
-    this.sortDialogState = { field: step.sort.field, order: step.sort.order };
+    DialogStore.openDialog('sort', {
+      field: step.sort.field,
+      order: step.sort.order,
+    });
   } else if (step.aggregate) {
     this.openDialog('aggregate');
     const aggregations = Object.entries(step.aggregate.rollup).map(([output, opStr]) => {
@@ -266,10 +269,12 @@ export function editStep(this: ChumakApp, stepIndex: number) {
     };
   } else if (step.join) {
     this.openDialog('join');
-    this.joinDialogState.rightModel = step.join.right;
-    this.joinDialogState.joinType = step.join.how;
-    this.joinDialogState.keyPairs = step.join.on;
-    this.joinDialogState.suffixes = step.join.suffixes || ['_x', '_y'];
+    // We must manually populate the store for complex dialogs not fully covered by openDialog helper
+    DialogStore.joinState.rightModel.value = step.join.right;
+    DialogStore.joinState.joinType.value = step.join.how;
+    DialogStore.joinState.keyPairs.value = step.join.on;
+    DialogStore.joinState.suffixes.value = step.join.suffixes || ['_x', '_y'];
+    // Trigger side effects
     this.onJoinTargetChange();
   } else if (step.fold) {
     this.openDialog('fold');

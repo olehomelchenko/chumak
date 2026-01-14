@@ -50,28 +50,6 @@ export interface AggregateDialogState {
   isPreviewing: boolean;
 }
 
-export interface JoinDialogState {
-  rightModel: string | null;
-  availableTargets: Array<{
-    id: string;
-    name: string;
-    type: string;
-    sourceName: string;
-  }>;
-  joinType: 'inner' | 'left' | 'right' | 'full' | 'cross';
-  keyPairs: Array<[string | null, string | null]>;
-  leftColumns: string[];
-  rightColumns: string[];
-  suffixes: [string, string];
-  isPreviewing: boolean;
-  previewError: string | null;
-  previewData: {
-    rows: DataRow[];
-    totalRows: number;
-    columns: string[];
-  } | null;
-}
-
 export interface PivotDialogState {
   rowColumns: string[];
   columnColumn: string;
@@ -214,16 +192,13 @@ export interface AppState {
 
   // Dialog states
   aggregateDialogState: AggregateDialogState;
-  joinDialogState: JoinDialogState;
+
   deriveDialogState: {
     columnName: string;
     expression: string;
     error: string | null;
   };
-  sortDialogState: {
-    field: string;
-    order: 'asc' | 'desc';
-  };
+
   sliceRowsDialogState: {
     count: number;
     mode: 'first' | 'last' | 'removeFirst' | 'removeLast';

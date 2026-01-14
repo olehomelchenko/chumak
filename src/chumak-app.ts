@@ -34,7 +34,6 @@ import {
   DataRow,
   Notification,
   AggregateDialogState,
-  JoinDialogState,
   PivotDialogState,
   SplitDialogState,
   RegexpMatchDialogState,
@@ -139,20 +138,9 @@ export class ChumakApp implements AppState {
     previewError: null,
     isPreviewing: false,
   };
-  joinDialogState: JoinDialogState = {
-    rightModel: null,
-    availableTargets: [],
-    joinType: 'inner',
-    keyPairs: [[null, null]],
-    leftColumns: [],
-    rightColumns: [],
-    suffixes: ['_x', '_y'],
-    isPreviewing: false,
-    previewError: null,
-    previewData: null,
-  };
+
   deriveDialogState = { columnName: '', expression: '', error: null as string | null };
-  sortDialogState = { field: '', order: 'asc' as 'asc' | 'desc' };
+
   sliceRowsDialogState = {
     count: 10,
     mode: 'first' as 'first' | 'last' | 'removeFirst' | 'removeLast',

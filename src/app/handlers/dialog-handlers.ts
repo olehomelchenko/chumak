@@ -4,6 +4,7 @@ import { html as aboutHtml } from '../../content/about.md';
 import { html as expressionsHtml } from '../../content/expressions.md';
 import { signal, effect } from '@preact/signals';
 import { mountComponent, unmountComponent } from '../components/PreactBridge';
+import { DialogStore } from '../stores/DialogStore';
 import { SortDialog } from '../components/SortDialog';
 import { IndexDialog } from '../components/IndexDialog';
 import { ReplaceDialog } from '../components/ReplaceDialog';
@@ -14,7 +15,7 @@ import { PivotDialog, PivotAggregation } from '../components/PivotDialog';
 import { DateDialog, DateOperation } from '../components/DateDialog';
 import { SplitDialog, SplitMode } from '../components/SplitDialog';
 import { DeriveDialog } from '../components/DeriveDialog';
-import { JoinDialog, JoinType, JoinTarget } from '../components/JoinDialog';
+import { JoinDialog } from '../components/JoinDialog';
 import { AggregateDialog, Aggregation } from '../components/AggregateDialog';
 import { ImportCsvDialog } from '../components/ImportCsvDialog';
 import {
@@ -23,11 +24,6 @@ import {
   ColumnEditorChanges,
 } from '../components/ColumnEditorDialog';
 import { SettingsDialog } from '../components/SettingsDialog';
-
-// Preact signals for Sort Dialog
-let sortFieldSignal = signal('');
-let sortOrderSignal = signal<'asc' | 'desc'>('asc');
-let sortEffectCleanup: (() => void) | null = null;
 
 // Preact signals for Index Dialog
 let indexColumnNameSignal = signal('row_index');
@@ -95,18 +91,6 @@ let deriveExpressionSignal = signal('');
 let deriveErrorSignal = signal<string | null>(null);
 let deriveEffectCleanup: (() => void) | null = null;
 
-// Preact signals for Join Dialog
-let joinRightModelSignal = signal<string | null>(null);
-let joinTypeSignal = signal<JoinType>('left');
-let joinKeyPairsSignal = signal<[string | null, string | null][]>([[null, null]]);
-let joinSuffixesSignal = signal<[string, string]>(['_x', '_y']);
-let joinRightColumnsSignal = signal<string[]>([]);
-let joinPreviewDataSignal = signal<any | null>(null);
-let joinPreviewErrorSignal = signal<string | null>(null);
-let joinIsPreviewingSignal = signal(false);
-
-let joinEffectCleanup: (() => void) | null = null;
-
 // Preact signals for Aggregate Dialog
 let aggGroupBySignal = signal<string[]>([]);
 let aggAggregationsSignal = signal<Aggregation[]>([{ col: '', func: 'count', output: 'count' }]);
@@ -173,10 +157,10 @@ export function getDialogState(this: ChumakApp, dialog: string) {
       };
     case 'join':
       return {
-        rightModel: this.joinDialogState.rightModel,
-        joinType: this.joinDialogState.joinType,
-        keyPairs: this.joinDialogState.keyPairs,
-        suffixes: this.joinDialogState.suffixes,
+        rightModel: DialogStore.joinState.rightModel.value,
+        joinType: DialogStore.joinState.joinType.value,
+        keyPairs: DialogStore.joinState.keyPairs.value,
+        suffixes: DialogStore.joinState.suffixes.value,
       };
     case 'fold':
       return this.foldDialogState;
@@ -189,7 +173,10 @@ export function getDialogState(this: ChumakApp, dialog: string) {
         options: this.pivotDialogState.options,
       };
     case 'sort':
-      return this.sortDialogState;
+      return {
+        field: DialogStore.sortState.field.value,
+        order: DialogStore.sortState.order.value,
+      };
     case 'replace':
       return {
         column: this.replaceDialogState.column,
@@ -336,96 +323,43 @@ export function initDialogState(this: ChumakApp, dialogName: string, _section?: 
       });
     }
   } else if (dialogName === 'join') {
-    (this as any).initializeJoinDialog();
+    (this as any).initializeJoinDialog(); // This now populates DialogStore
 
     // Mount Preact component
     const container = document.getElementById('join-modal-container');
     if (container) {
-      joinRightModelSignal.value = this.joinDialogState.rightModel;
-      joinTypeSignal.value = this.joinDialogState.joinType as JoinType;
-      // Deep copy nested arrays to ensure reactivity if structure changes
-      joinKeyPairsSignal.value = this.joinDialogState.keyPairs.map((p) => [...p]) as [
-        string | null,
-        string | null,
-      ][];
-      joinSuffixesSignal.value = [...this.joinDialogState.suffixes] as [string, string];
-
-      // We need to keep right columns in sync (populated by Alpine logic initially)
-      joinRightColumnsSignal.value = [...this.joinDialogState.rightColumns];
-
-      joinPreviewDataSignal.value = this.joinDialogState.previewData;
-      joinPreviewErrorSignal.value = this.joinDialogState.previewError;
-      joinIsPreviewingSignal.value = this.joinDialogState.isPreviewing;
-
-      joinEffectCleanup = effect(() => {
-        // Sync Signals -> Alpine
-        const oldRightModel = this.joinDialogState.rightModel;
-        this.joinDialogState.rightModel = joinRightModelSignal.value;
-        this.joinDialogState.joinType = joinTypeSignal.value;
-        this.joinDialogState.keyPairs = joinKeyPairsSignal.value;
-        this.joinDialogState.suffixes = joinSuffixesSignal.value;
-
-        // If right model changed, trigger the update logic which fetches columns
-        if (oldRightModel !== joinRightModelSignal.value) {
-          if (typeof (this as any).onJoinTargetChange === 'function') {
-            (this as any).onJoinTargetChange();
-          }
-        }
-
-        // Sync back right columns from Alpine (which might be updated by onJoinTargetChange)
-        // Note: Alpine's onJoinTargetChange runs synchronously mostly, but might be async if it did fetching?
-        // Actually onJoinTargetChange finds model locally.
-        // We need to detect if Alpine changed `rightColumns` and update signal.
-        // But effect here is triggered by signals.
-        // If we want two-way sync for columns, we might need to update signal after onJoinTargetChange.
-        // Let's rely on onJoinTargetChange updating the state, and we just need rightColumns signal to reflect it.
-        // Since we can't easily subscribe to Alpine state inside this signal effect loop without cycles,
-        // we can assume `onJoinTargetChange` updates `this.joinDialogState.rightColumns`.
-        // We should manually update signal there? Or poll?
-        // Better: onJoinTargetChange should be pure or we replicate it here.
-        // Let's replicate simple column fetching logic here or just read it back.
-
-        const targetId = joinRightModelSignal.value;
-        if (targetId) {
-          const target =
-            this.models.find((m) => m.id === targetId) ||
-            this.sources.find((s) => s.id === targetId);
-          if (target) {
-            const cols = (target as any).schema
-              ? (target as any).schema.map((c: any) => c.name)
-              : (target as any).columns.map((c: any) => c.name);
-            // Only update if different to avoid loop
-            if (JSON.stringify(cols) !== JSON.stringify(joinRightColumnsSignal.peek())) {
-              joinRightColumnsSignal.value = cols;
-            }
-          }
-        }
-      });
+      const {
+        rightModel,
+        joinType,
+        keyPairs,
+        suffixes,
+        targets,
+        rightColumns,
+        previewData,
+        previewError,
+        isPreviewing,
+      } = DialogStore.joinState;
 
       mountComponent(container, JoinDialog, {
-        targets: this.joinDialogState.availableTargets as JoinTarget[],
-        rightModel: joinRightModelSignal,
-        joinType: joinTypeSignal,
-        keyPairs: joinKeyPairsSignal as any,
-        suffixes: joinSuffixesSignal as any,
+        targets: targets.value, // Pass initial value. For dynamic updates, component would need to accept Signal<JoinTarget[]>
+        rightModel: rightModel,
+        joinType: joinType,
+        keyPairs: keyPairs,
+        suffixes: suffixes,
         leftColumns: this.columns,
-        rightColumns: joinRightColumnsSignal,
-        previewData: joinPreviewDataSignal,
-        previewError: joinPreviewErrorSignal,
-        isPreviewing: joinIsPreviewingSignal,
-        onPreview: async () => {
-          joinIsPreviewingSignal.value = true;
-          try {
-            if (typeof (this as any).previewJoin === 'function') {
-              await (this as any).previewJoin();
-              // Sync back results
-              joinPreviewDataSignal.value = this.joinDialogState.previewData;
-              joinPreviewErrorSignal.value = this.joinDialogState.previewError;
-            }
-          } finally {
-            joinIsPreviewingSignal.value = false;
-          }
-        },
+        rightColumns: rightColumns,
+        previewData: previewData,
+        previewError: previewError,
+        isPreviewing: isPreviewing,
+        onPreview: () => (this as any).previewJoin(),
+      });
+
+      // Watch for model changes to update columns via legacy handler
+      effect(() => {
+        const modelId = rightModel.value;
+        if (modelId && typeof (this as any).onJoinTargetChange === 'function') {
+          (this as any).onJoinTargetChange();
+        }
       });
     }
   } else if (dialogName === 'derive') {
@@ -465,24 +399,18 @@ export function initDialogState(this: ChumakApp, dialogName: string, _section?: 
       });
     }
   } else if (dialogName === 'sort') {
-    // Initialize Alpine state
-    this.sortDialogState = { field: this.columns[0] || '', order: 'asc' };
+    // Initialize Store
+    DialogStore.sortState.field.value = this.columns[0] || '';
+    DialogStore.sortState.order.value = 'asc';
+    DialogStore.activeDialog.value = 'sort';
 
     // Mount Preact component
     const container = document.getElementById('sort-modal-container');
     if (container) {
-      sortFieldSignal.value = this.sortDialogState.field;
-      sortOrderSignal.value = this.sortDialogState.order;
-
-      sortEffectCleanup = effect(() => {
-        this.sortDialogState.field = sortFieldSignal.value;
-        this.sortDialogState.order = sortOrderSignal.value;
-      });
-
       mountComponent(container, SortDialog, {
         columns: this.columns,
-        field: sortFieldSignal,
-        order: sortOrderSignal,
+        field: DialogStore.sortState.field,
+        order: DialogStore.sortState.order,
       });
     }
   } else if (dialogName === 'sliceRows') {
@@ -1336,7 +1264,7 @@ export function activeDialogError(this: ChumakApp): boolean {
     case 'split':
       return !!this.splitDialogState.error;
     case 'join':
-      return !this.joinDialogState.rightModel;
+      return !DialogStore.joinState.rightModel.value;
     case 'pivot':
       return !this.pivotDialogState.columnColumn || !this.pivotDialogState.valueColumn;
     case 'dedupe':
@@ -1368,8 +1296,7 @@ export async function closeDialog(this: ChumakApp, force = false) {
   if (this.activeDialog === 'sort') {
     const container = document.getElementById('sort-modal-container');
     if (container) unmountComponent(container);
-    sortEffectCleanup?.();
-    sortEffectCleanup = null;
+    // No effect cleanup needed as we use global store signals
   }
 
   if (this.activeDialog === 'index') {
@@ -1466,8 +1393,7 @@ export async function closeDialog(this: ChumakApp, force = false) {
   if (this.activeDialog === 'join') {
     const container = document.getElementById('join-modal-container');
     if (container) unmountComponent(container);
-    joinEffectCleanup?.();
-    joinEffectCleanup = null;
+    // Cleanup not required for store signals
   }
 
   // Clear URL hash if closing a navigable page
@@ -1492,18 +1418,7 @@ export function resetDialogStates(this: ChumakApp) {
     previewError: null,
     isPreviewing: false,
   };
-  this.joinDialogState = {
-    rightModel: null,
-    joinType: 'left',
-    keyPairs: [[null, null]],
-    suffixes: ['_x', '_y'],
-    availableTargets: [],
-    leftColumns: [],
-    rightColumns: [],
-    previewData: null,
-    previewError: null,
-    isPreviewing: false,
-  };
+
   this.importDialogState = {
     fileName: '',
     sourceName: '',

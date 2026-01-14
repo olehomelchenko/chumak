@@ -6,14 +6,16 @@
 
 import { describe, it, expect } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/preact';
-import { SortDialog, createSortDialogState } from './SortDialog';
+import { signal } from '@preact/signals';
+import { SortDialog } from './SortDialog';
 
 describe('SortDialog', () => {
   const testColumns = ['name', 'age', 'city'];
 
   it('renders all column chips', () => {
-    const state = createSortDialogState();
-    render(<SortDialog columns={testColumns} field={state.field} order={state.order} />);
+    const field = signal('');
+    const order = signal<'asc' | 'desc'>('asc');
+    render(<SortDialog columns={testColumns} field={field} order={order} />);
 
     testColumns.forEach((col) => {
       expect(screen.getByText(col)).toBeDefined();
@@ -21,27 +23,30 @@ describe('SortDialog', () => {
   });
 
   it('selects a column when clicked', () => {
-    const state = createSortDialogState();
-    render(<SortDialog columns={testColumns} field={state.field} order={state.order} />);
+    const field = signal('');
+    const order = signal<'asc' | 'desc'>('asc');
+    render(<SortDialog columns={testColumns} field={field} order={order} />);
 
     const ageButton = screen.getByText('age').closest('button');
     expect(ageButton).toBeDefined();
 
     fireEvent.click(ageButton!);
-    expect(state.field.value).toBe('age');
+    expect(field.value).toBe('age');
   });
 
   it('highlights the selected column', () => {
-    const state = createSortDialogState('name');
-    render(<SortDialog columns={testColumns} field={state.field} order={state.order} />);
+    const field = signal('name');
+    const order = signal<'asc' | 'desc'>('asc');
+    render(<SortDialog columns={testColumns} field={field} order={order} />);
 
     const nameButton = screen.getByText('name').closest('button');
     expect(nameButton?.classList.contains('active')).toBe(true);
   });
 
   it('toggles between ascending and descending order', () => {
-    const state = createSortDialogState('name', 'asc');
-    render(<SortDialog columns={testColumns} field={state.field} order={state.order} />);
+    const field = signal('name');
+    const order = signal<'asc' | 'desc'>('asc');
+    render(<SortDialog columns={testColumns} field={field} order={order} />);
 
     // Find the descending radio button
     const descendingRadio = screen.getByText('Descending')
@@ -49,12 +54,13 @@ describe('SortDialog', () => {
     expect(descendingRadio).toBeDefined();
 
     fireEvent.click(descendingRadio);
-    expect(state.order.value).toBe('desc');
+    expect(order.value).toBe('desc');
   });
 
   it('shows ascending as default checked', () => {
-    const state = createSortDialogState('name', 'asc');
-    render(<SortDialog columns={testColumns} field={state.field} order={state.order} />);
+    const field = signal('name');
+    const order = signal<'asc' | 'desc'>('asc');
+    render(<SortDialog columns={testColumns} field={field} order={order} />);
 
     const ascendingRadio = screen.getByText('Ascending').previousElementSibling as HTMLInputElement;
     expect(ascendingRadio.checked).toBe(true);

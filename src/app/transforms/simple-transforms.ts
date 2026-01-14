@@ -1,7 +1,9 @@
 import type { ChumakApp } from '../../chumak-app';
+import { DialogStore } from '../stores/DialogStore';
 
 export async function applySortTransform(this: ChumakApp) {
-  const { field, order } = this.sortDialogState;
+  const field = DialogStore.sortState.field.value;
+  const order = DialogStore.sortState.order.value;
   if (!field) {
     await this.alert('Please select a column to sort by');
     return;

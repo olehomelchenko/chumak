@@ -7,7 +7,7 @@ Review the code that is currently not committed (either staded or unstaged).
 Focus on the following aspects:
 
 - number of lines of code should correspond to the complexity of the task
-- code should be readable and maintainable
+- code should be readable and maintainable, with comments used sparsingly to explain the non-obvious parts rather than plainly describing the code
 - code should not contain workarounds or suboptimal ways to solve the task
 - determine whether there is some leftover code that is no longer used and can be deleted
 
