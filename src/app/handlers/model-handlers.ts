@@ -11,7 +11,7 @@ export function getTemplateConfigs(this: ChumakApp) {
     { id: 'unpivot-modal-container', url: 'templates/unpivot-modal.html' },
     { id: 'pivot-modal-container', url: 'templates/pivot-modal.html' },
     { id: 'replace-modal-container', url: 'templates/replace-modal.html' },
-    { id: 'sort-modal-container', url: 'templates/sort-modal.html' },
+    // sort-modal is now rendered by Preact (see SortDialog.tsx)
     { id: 'slice-rows-modal-container', url: 'templates/slice-rows-modal.html' },
     { id: 'index-modal-container', url: 'templates/index-modal.html' },
     { id: 'derive-modal-container', url: 'templates/derive-modal.html' },

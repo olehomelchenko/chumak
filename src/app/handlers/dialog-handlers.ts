@@ -2,6 +2,14 @@ import type { ChumakApp } from '../../chumak-app';
 import { setUrlState, getUrlState, clearUrlHash } from '../../core/url-state';
 import { html as aboutHtml } from '../../content/about.md';
 import { html as expressionsHtml } from '../../content/expressions.md';
+import { signal, effect } from '@preact/signals';
+import { mountComponent, unmountComponent } from '../components/PreactBridge';
+import { SortDialog } from '../components/SortDialog';
+
+// Preact signals for Sort Dialog (bridge between Alpine and Preact)
+let sortFieldSignal = signal('');
+let sortOrderSignal = signal<'asc' | 'desc'>('asc');
+let sortEffectCleanup: (() => void) | null = null;
 
 export function getDialogState(this: ChumakApp, dialog: string) {
   switch (dialog) {
@@ -144,7 +152,29 @@ export function initDialogState(this: ChumakApp, dialogName: string, _section?: 
   } else if (dialogName === 'derive') {
     this.deriveDialogState = { columnName: '', expression: '', error: null };
   } else if (dialogName === 'sort') {
+    // Initialize Alpine state
     this.sortDialogState = { field: this.columns[0] || '', order: 'asc' };
+
+    // Mount Preact component
+    const container = document.getElementById('sort-modal-container');
+    if (container) {
+      // Reset signals to match Alpine state
+      sortFieldSignal.value = this.sortDialogState.field;
+      sortOrderSignal.value = this.sortDialogState.order;
+
+      // Set up effect to sync signal changes back to Alpine state
+      sortEffectCleanup = effect(() => {
+        this.sortDialogState.field = sortFieldSignal.value;
+        this.sortDialogState.order = sortOrderSignal.value;
+      });
+
+      // Mount the Preact component
+      mountComponent(container, SortDialog, {
+        columns: this.columns,
+        field: sortFieldSignal,
+        order: sortOrderSignal,
+      });
+    }
   } else if (dialogName === 'sliceRows') {
     this.sliceRowsDialogState = { count: 10, mode: 'first' };
   } else if (dialogName === 'index') {
@@ -452,6 +482,18 @@ export async function closeDialog(this: ChumakApp, force = false) {
   if (!force && this.hasUnsavedChanges()) {
     if (!(await this.confirm('You have unsaved changes. Are you sure you want to discard them?')))
       return;
+  }
+
+  // Unmount Preact components if they were mounted
+  if (this.activeDialog === 'sort') {
+    const container = document.getElementById('sort-modal-container');
+    if (container) {
+      unmountComponent(container);
+    }
+    if (sortEffectCleanup) {
+      sortEffectCleanup();
+      sortEffectCleanup = null;
+    }
   }
 
   // Clear URL hash if closing a navigable page

@@ -50,14 +50,113 @@ npm run typecheck  # Verify types before commits
 
 ## Phase 2: Componentization (The TSX Bridge)
 
-_Status: POC in progress (see `SortDialog.tsx`)_
+_Status: 🚧 In Progress_
 
-- [ ] **Testing Setup Spike**: Confirm `@testing-library/preact` works with existing Vitest + happy-dom config.
-- [ ] **Introduce Signals Early**: Add `@preact/signals` alongside first TSX components (no need to wait for Phase 3).
-- [ ] **Create Component Library**: Move UI from `public/templates/*.html` to `src/app/components/*.tsx`.
-- [ ] **UX Testing**: Add `*.test.tsx` for components using `@testing-library/preact`.
-- [ ] **Mounting Bridge**: Implement a lightweight bridge to render Preact components inside the existing Alpine modal shell.
-- [ ] **Data-Driven UI**: Ensure all component props are strictly typed to the interfaces defined in Phase 1.
+### Setup ✅
+
+- [x] **Dependencies**: `preact`, `@preact/signals`, `@preact/preset-vite`, `@testing-library/preact`
+- [x] **Vite Config**: Preact preset configured (TSX only, preserves decorator support in TS files)
+- [x] **TSConfig**: JSX settings for Preact (`jsx: react-jsx`, `jsxImportSource: preact`)
+- [x] **Testing**: Vitest + testing-library working with TSX components
+- [x] **Bridge Wired**: PreactBridge connected to Alpine modal lifecycle
+
+### Artifacts
+
+- `src/app/components/PreactBridge.tsx` — `mountComponent()`, `unmountComponent()`
+- `src/app/components/index.ts` — Barrel exports
+
+### Remaining
+
+- [ ] Migrate remaining dialogs from `public/templates/*.html`
+
+---
+
+### Migration Recipe (SortDialog Example)
+
+Use this pattern when converting a dialog from Alpine HTML to Preact TSX:
+
+#### 1. Create the TSX Component
+
+```tsx
+// src/app/components/SortDialog.tsx
+import { Signal } from '@preact/signals';
+
+export interface SortDialogProps {
+  columns: string[];
+  field: Signal<string>;
+  order: Signal<'asc' | 'desc'>;
+}
+
+export function SortDialog({ columns, field, order }: SortDialogProps) {
+  return <div class="dialog-content">{/* Convert x-for to .map(), x-model to signal.value */}</div>;
+}
+```
+
+#### 2. Add Component Tests
+
+```tsx
+// src/app/components/SortDialog.test.tsx
+import { render, screen, fireEvent } from '@testing-library/preact';
+import { signal } from '@preact/signals';
+
+it('selects column when clicked', () => {
+  const field = signal('');
+  render(<SortDialog columns={['a', 'b']} field={field} order={signal('asc')} />);
+  fireEvent.click(screen.getByText('b'));
+  expect(field.value).toBe('b');
+});
+```
+
+#### 3. Wire to Alpine in `dialog-handlers.ts`
+
+```typescript
+// At module level:
+import { signal, effect } from '@preact/signals';
+import { mountComponent, unmountComponent } from '../components/PreactBridge';
+import { SortDialog } from '../components/SortDialog';
+
+let sortFieldSignal = signal('');
+let sortOrderSignal = signal<'asc' | 'desc'>('asc');
+let sortEffectCleanup: (() => void) | null = null;
+
+// In initDialogState():
+if (dialogName === 'sort') {
+  this.sortDialogState = { field: this.columns[0] || '', order: 'asc' };
+
+  const container = document.getElementById('sort-modal-container');
+  if (container) {
+    sortFieldSignal.value = this.sortDialogState.field;
+    sortOrderSignal.value = this.sortDialogState.order;
+
+    // Sync signals → Alpine state
+    sortEffectCleanup = effect(() => {
+      this.sortDialogState.field = sortFieldSignal.value;
+      this.sortDialogState.order = sortOrderSignal.value;
+    });
+
+    mountComponent(container, SortDialog, {
+      columns: this.columns,
+      field: sortFieldSignal,
+      order: sortOrderSignal,
+    });
+  }
+}
+
+// In closeDialog():
+if (this.activeDialog === 'sort') {
+  const container = document.getElementById('sort-modal-container');
+  if (container) unmountComponent(container);
+  sortEffectCleanup?.();
+  sortEffectCleanup = null;
+}
+```
+
+#### 4. Cleanup
+
+- Remove template from `getTemplateConfigs()` in `model-handlers.ts`
+- Delete `public/templates/sort-modal.html`
+
+---
 
 **Done when**: All transform dialogs are TSX components with passing tests.
 

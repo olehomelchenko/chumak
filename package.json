@@ -16,18 +16,22 @@
     "deploy": "gh-pages -d dist"
   },
   "lint-staged": {
-    "**/*.{js,ts,css,html,json,md,yml}": "prettier --write"
+    "**/*.{js,ts,tsx,jsx,css,html,json,md,yml}": "prettier --write"
   },
   "dependencies": {
+    "@preact/signals": "^2.5.1",
     "alpinejs": "^3.14.8",
     "arquero": "^6.0.1",
     "jsep": "^1.4.0",
     "papaparse": "^5.5.1",
+    "preact": "^10.28.2",
     "vega": "^5.31.0",
     "vega-embed": "^6.29.0",
     "vega-lite": "^5.23.0"
   },
   "devDependencies": {
+    "@preact/preset-vite": "^2.10.2",
+    "@testing-library/preact": "^3.2.4",
     "@types/papaparse": "^5.3.15",
     "autoprefixer": "^10.4.20",
     "happy-dom": "^15.11.7",
