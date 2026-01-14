@@ -10,3 +10,6 @@ export { mountComponent, unmountComponent, createMounter } from './PreactBridge'
 // Dialog components
 export { SortDialog, createSortDialogState } from './SortDialog';
 export type { SortDialogProps } from './SortDialog';
+
+export { IndexDialog } from './IndexDialog';
+export type { IndexDialogProps } from './IndexDialog';

@@ -13,7 +13,7 @@ export function getTemplateConfigs(this: ChumakApp) {
     { id: 'replace-modal-container', url: 'templates/replace-modal.html' },
     // sort-modal is now rendered by Preact (see SortDialog.tsx)
     { id: 'slice-rows-modal-container', url: 'templates/slice-rows-modal.html' },
-    { id: 'index-modal-container', url: 'templates/index-modal.html' },
+    // index-modal is now rendered by Preact (see IndexDialog.tsx)
     { id: 'derive-modal-container', url: 'templates/derive-modal.html' },
     { id: 'filter-modal-container', url: 'templates/filter-modal.html' },
     { id: 'regexp-match-modal-container', url: 'templates/regexp-match-modal.html' },

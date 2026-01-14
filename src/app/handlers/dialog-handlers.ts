@@ -5,11 +5,17 @@ import { html as expressionsHtml } from '../../content/expressions.md';
 import { signal, effect } from '@preact/signals';
 import { mountComponent, unmountComponent } from '../components/PreactBridge';
 import { SortDialog } from '../components/SortDialog';
+import { IndexDialog } from '../components/IndexDialog';
 
-// Preact signals for Sort Dialog (bridge between Alpine and Preact)
+// Preact signals for Sort Dialog
 let sortFieldSignal = signal('');
 let sortOrderSignal = signal<'asc' | 'desc'>('asc');
 let sortEffectCleanup: (() => void) | null = null;
+
+// Preact signals for Index Dialog
+let indexColumnNameSignal = signal('row_index');
+let indexStartFromSignal = signal(1);
+let indexEffectCleanup: (() => void) | null = null;
 
 export function getDialogState(this: ChumakApp, dialog: string) {
   switch (dialog) {
@@ -178,7 +184,26 @@ export function initDialogState(this: ChumakApp, dialogName: string, _section?: 
   } else if (dialogName === 'sliceRows') {
     this.sliceRowsDialogState = { count: 10, mode: 'first' };
   } else if (dialogName === 'index') {
+    // Initialize Alpine state
     this.indexDialogState = { columnName: 'row_index', startFrom: 1 };
+
+    // Mount Preact component
+    const container = document.getElementById('index-modal-container');
+    if (container) {
+      indexColumnNameSignal.value = this.indexDialogState.columnName;
+      indexStartFromSignal.value = this.indexDialogState.startFrom;
+
+      indexEffectCleanup = effect(() => {
+        this.indexDialogState.columnName = indexColumnNameSignal.value;
+        this.indexDialogState.startFrom = indexStartFromSignal.value;
+      });
+
+      mountComponent(container, IndexDialog, {
+        columnName: indexColumnNameSignal,
+        startFrom: indexStartFromSignal,
+        rowCount: this.currentData?.length || 0,
+      });
+    }
   } else if (dialogName === 'aggregate') {
     this.aggregateDialogState = {
       groupBy: [],
@@ -487,13 +512,16 @@ export async function closeDialog(this: ChumakApp, force = false) {
   // Unmount Preact components if they were mounted
   if (this.activeDialog === 'sort') {
     const container = document.getElementById('sort-modal-container');
-    if (container) {
-      unmountComponent(container);
-    }
-    if (sortEffectCleanup) {
-      sortEffectCleanup();
-      sortEffectCleanup = null;
-    }
+    if (container) unmountComponent(container);
+    sortEffectCleanup?.();
+    sortEffectCleanup = null;
+  }
+
+  if (this.activeDialog === 'index') {
+    const container = document.getElementById('index-modal-container');
+    if (container) unmountComponent(container);
+    indexEffectCleanup?.();
+    indexEffectCleanup = null;
   }
 
   // Clear URL hash if closing a navigable page
