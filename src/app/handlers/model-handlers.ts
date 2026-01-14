@@ -8,15 +8,15 @@ export function getTemplateConfigs(this: ChumakApp) {
     { id: 'join-modal-container', url: 'templates/join-modal.html' },
     { id: 'aggregate-modal-container', url: 'templates/aggregate-modal.html' },
     { id: 'import-csv-modal-container', url: 'templates/import-csv-modal.html' },
-    { id: 'split-modal-container', url: 'templates/split-column-modal.html' },
+    // split-modal is now rendered by Preact (see SplitDialog.tsx)
     // unpivot-modal is now rendered by Preact (see UnpivotDialog.tsx)
-    { id: 'pivot-modal-container', url: 'templates/pivot-modal.html' },
+    // pivot-modal is now rendered by Preact (see PivotDialog.tsx)
     // slice-rows-modal is now rendered by Preact (see SliceRowsDialog.tsx)
     { id: 'derive-modal-container', url: 'templates/derive-modal.html' },
-    { id: 'filter-modal-container', url: 'templates/filter-modal.html' },
+    // filter-modal is now rendered by Preact (see FilterDialog.tsx)
     { id: 'regexp-match-modal-container', url: 'templates/regexp-match-modal.html' },
     { id: 'regexp-extract-modal-container', url: 'templates/regexp-extract-modal.html' },
-    { id: 'date-modal-container', url: 'templates/date-modal.html' },
+    // date-modal is now rendered by Preact (see DateDialog.tsx)
     { id: 'dedupe-modal-container', url: 'templates/dedupe-modal.html' },
     { id: 'column-editor-modal-container', url: 'templates/column-editor-modal.html' },
     { id: 'download-modal-container', url: 'templates/download-modal.html' },

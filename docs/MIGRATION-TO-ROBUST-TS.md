@@ -72,15 +72,15 @@ _Status: 🚧 In Progress_
 - [x] `ReplaceDialog.tsx` (was `replace-modal.html`)
 - [x] `SliceRowsDialog.tsx` (was `slice-rows-modal.html`)
 - [x] `UnpivotDialog.tsx` (was `unpivot-modal.html` / "Fold")
+- [x] `FilterDialog.tsx` (was `filter-modal.html`)
+- [x] `PivotDialog.tsx` (was `pivot-modal.html`)
+- [x] `DateDialog.tsx` (was `date-modal.html`)
+- [x] `SplitDialog.tsx` (was `split-column-modal.html`)
 
 ### Remaining Dialogs to Migrate
 
 Priority list based on complexity:
 
-- [ ] `date-modal.html` (Medium)
-- [ ] `pivot-modal.html` (Medium)
-- [ ] `split-column-modal.html` (Medium)
-- [ ] `filter-modal.html` (Medium/High)
 - [ ] `derive-modal.html` (High - has expression editor)
 - [ ] `join-modal.html` (High)
 - [ ] `aggregate-modal.html` (High)

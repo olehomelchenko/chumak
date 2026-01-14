@@ -9,6 +9,10 @@ import { IndexDialog } from '../components/IndexDialog';
 import { ReplaceDialog } from '../components/ReplaceDialog';
 import { SliceRowsDialog, SliceMode } from '../components/SliceRowsDialog';
 import { UnpivotDialog, UnpivotMode } from '../components/UnpivotDialog';
+import { FilterDialog, FilterPreviewMode } from '../components/FilterDialog';
+import { PivotDialog, PivotAggregation } from '../components/PivotDialog';
+import { DateDialog, DateOperation } from '../components/DateDialog';
+import { SplitDialog, SplitMode } from '../components/SplitDialog';
 
 // Preact signals for Sort Dialog
 let sortFieldSignal = signal('');
@@ -37,6 +41,43 @@ let foldValueNameSignal = signal('value');
 let foldModeSignal = signal<UnpivotMode>('keep');
 let foldSelectedColumnsSignal = signal<boolean[]>([]);
 let foldEffectCleanup: (() => void) | null = null;
+
+// Preact signals for Filter Dialog
+let filterExpressionSignal = signal('');
+let filterErrorSignal = signal<string | null>(null);
+let filterPreviewModeSignal = signal<FilterPreviewMode>('all');
+let filterEffectCleanup: (() => void) | null = null;
+
+// Preact signals for Pivot Dialog
+let pivotRowColumnsSignal = signal<string[]>([]);
+let pivotColumnColumnSignal = signal('');
+let pivotValueColumnSignal = signal('');
+let pivotAggregationSignal = signal<PivotAggregation>('sum');
+let pivotUniqueValueCountSignal = signal(0);
+let pivotSortSignal = signal(true);
+let pivotLimitSignal = signal<number | null>(null);
+let pivotIsPreviewingSignal = signal(false);
+let pivotEffectCleanup: (() => void) | null = null;
+
+// Preact signals for Date Dialog
+let dateColumnSignal = signal('');
+let dateOperationSignal = signal<DateOperation>('extract');
+let dateExtractPartsSignal = signal<string[]>(['year']);
+let dateTruncateUnitsSignal = signal<string[]>(['month']);
+let dateOutputColumnSignal = signal('');
+let dateErrorSignal = signal<string | null>(null);
+let dateEffectCleanup: (() => void) | null = null;
+
+// Preact signals for Split Dialog
+let splitColumnSignal = signal('');
+let splitDelimiterSignal = signal(',');
+let splitAutoDetectedDelimiterSignal = signal<string | null>(null);
+let splitIsRegexSignal = signal(false);
+let splitModeSignal = signal<SplitMode>('spread');
+let splitMaxColumnsSignal = signal(10);
+let splitKeepOriginalSignal = signal(false);
+let splitErrorSignal = signal<string | null>(null);
+let splitEffectCleanup: (() => void) | null = null;
 
 export function getDialogState(this: ChumakApp, dialog: string) {
   switch (dialog) {
@@ -174,6 +215,46 @@ export function initDialogState(this: ChumakApp, dialogName: string, _section?: 
   if (dialogName === 'filter') {
     this.filterExpression = '';
     this.filterError = null;
+    this.filterPreviewMode = 'all'; // Ensure this default exists
+
+    // Mount Preact component
+    const container = document.getElementById('filter-modal-container');
+    if (container) {
+      filterExpressionSignal.value = this.filterExpression;
+      filterErrorSignal.value = this.filterError;
+      filterPreviewModeSignal.value = (this.filterPreviewMode as FilterPreviewMode) || 'all';
+
+      filterEffectCleanup = effect(() => {
+        // Sync Signals -> Alpine
+        this.filterExpression = filterExpressionSignal.value;
+        this.filterPreviewMode = filterPreviewModeSignal.value;
+
+        // Trigger validation/preview logic
+        if (typeof (this as any).validateFilterExpression === 'function') {
+          (this as any).validateFilterExpression();
+          // Sync Alpine Error -> Signal (validation updates `this.filterError`)
+          filterErrorSignal.peek(); // read to avoid dependency loop if we wrote blindly?
+          // actually we WANT to update signal if alpine changed it.
+          // But avoid infinite loop.
+          if (filterErrorSignal.peek() !== this.filterError) {
+            filterErrorSignal.value = this.filterError;
+          }
+        }
+
+        if (typeof (this as any).debouncedUpdateFilterPreview === 'function') {
+          (this as any).debouncedUpdateFilterPreview();
+        } else if (typeof (this as any).updateFilterPreview === 'function') {
+          (this as any).updateFilterPreview();
+        }
+      });
+
+      mountComponent(container, FilterDialog, {
+        expression: filterExpressionSignal,
+        error: filterErrorSignal,
+        previewMode: filterPreviewModeSignal,
+        onOpenReference: () => this.openDialog('expressions'),
+      });
+    }
   } else if (dialogName === 'join') {
     (this as any).initializeJoinDialog();
   } else if (dialogName === 'derive') {
@@ -298,6 +379,76 @@ export function initDialogState(this: ChumakApp, dialogName: string, _section?: 
     }
   } else if (dialogName === 'pivot') {
     (this as any).initializePivotDialog();
+
+    // Mount Preact component
+    const container = document.getElementById('pivot-modal-container');
+    if (container) {
+      // Initialize signals from Alpine state which was just initialized
+      pivotRowColumnsSignal.value = [...this.pivotDialogState.rowColumns];
+      pivotColumnColumnSignal.value = this.pivotDialogState.columnColumn;
+      pivotValueColumnSignal.value = this.pivotDialogState.valueColumn;
+      pivotAggregationSignal.value = this.pivotDialogState.aggregation as PivotAggregation;
+      pivotUniqueValueCountSignal.value = this.pivotDialogState.uniqueValueCount;
+      pivotSortSignal.value = this.pivotDialogState.options.sort;
+      pivotLimitSignal.value = this.pivotDialogState.options.limit;
+      pivotIsPreviewingSignal.value = this.pivotDialogState.isPreviewing;
+
+      pivotEffectCleanup = effect(() => {
+        // Sync Signals -> Alpine
+        this.pivotDialogState.rowColumns = [...pivotRowColumnsSignal.value];
+        this.pivotDialogState.columnColumn = pivotColumnColumnSignal.value;
+        this.pivotDialogState.valueColumn = pivotValueColumnSignal.value;
+        this.pivotDialogState.aggregation = pivotAggregationSignal.value;
+        this.pivotDialogState.options.sort = pivotSortSignal.value;
+        this.pivotDialogState.options.limit = pivotLimitSignal.value;
+        // isPreviewing and uniqueValueCount are read-only (controlled by Alpine logic) or local
+
+        // Trigger calculation in Alpine
+        if (typeof (this as any).onPivotConfigChange === 'function') {
+          // We might want to avoid triggering if nothing meaningful changed, but simple is better
+          // This function calculates unique values and updates uniqueValueCount
+          Promise.resolve((this as any).onPivotConfigChange()).then(() => {
+            // Read back calculated values
+            // Use peek() to avoid cycles if we were writing to signals that this effect reads,
+            // but here we write to signals that this effect does NOT read (unique count)
+            // actually this effect reads everything.
+            // But since we are inside an effect, updating a signal will queue another run.
+            // We only want to update if changed.
+            if (pivotUniqueValueCountSignal.peek() !== this.pivotDialogState.uniqueValueCount) {
+              pivotUniqueValueCountSignal.value = this.pivotDialogState.uniqueValueCount;
+            }
+          });
+        }
+      });
+
+      // Also need to sync isPreviewing which might change during preview execution
+      // Since isPreviewing is updated by previewPivot() which is async,
+      // and effect() is synchronous reaction to signals, we might miss updates unless we poll or hook.
+      // However, the button in Preact triggers previewPivot.
+      // We can wrap the call.
+
+      mountComponent(container, PivotDialog, {
+        columns: this.columns,
+        rowColumns: pivotRowColumnsSignal,
+        columnColumn: pivotColumnColumnSignal,
+        valueColumn: pivotValueColumnSignal,
+        aggregation: pivotAggregationSignal,
+        uniqueValueCount: pivotUniqueValueCountSignal,
+        sort: pivotSortSignal,
+        limit: pivotLimitSignal,
+        isPreviewing: pivotIsPreviewingSignal,
+        onPreview: async () => {
+          pivotIsPreviewingSignal.value = true;
+          try {
+            if (typeof (this as any).previewPivot === 'function') {
+              await (this as any).previewPivot();
+            }
+          } finally {
+            pivotIsPreviewingSignal.value = false;
+          }
+        },
+      });
+    }
   } else if (dialogName === 'replace') {
     // Initialize Alpine state
     this.replaceDialogState = { column: this.columns[0] || '', findValue: '', replaceValue: '' };
@@ -323,8 +474,10 @@ export function initDialogState(this: ChumakApp, dialogName: string, _section?: 
       });
     }
   } else if (dialogName === 'split') {
+    const initialColumn = this.columns[0] || '';
+
     this.splitDialogState = {
-      column: this.columns[0] || '',
+      column: initialColumn,
       delimiter: ',',
       isRegex: false,
       mode: 'spread',
@@ -336,15 +489,74 @@ export function initDialogState(this: ChumakApp, dialogName: string, _section?: 
       autoDetectedDelimiter: null,
       columnRenames: {},
     };
-    if (this.columns.length > 0) {
-      this.$nextTick(() => {
-        const detected = (this as any).detectDelimiter(this.splitDialogState.column);
+
+    // Mount Preact component
+    const container = document.getElementById('split-modal-container');
+    if (container) {
+      splitColumnSignal.value = initialColumn;
+      splitDelimiterSignal.value = ',';
+      splitAutoDetectedDelimiterSignal.value = null;
+      splitIsRegexSignal.value = false;
+      splitModeSignal.value = 'spread';
+      splitMaxColumnsSignal.value = 10;
+      splitKeepOriginalSignal.value = false;
+      splitErrorSignal.value = null;
+
+      // Initial detection
+      if (initialColumn) {
+        const detected = (this as any).detectDelimiter(initialColumn);
         if (detected) {
-          this.splitDialogState.delimiter = detected.char;
-          this.splitDialogState.isRegex = detected.isRegex;
-          this.splitDialogState.autoDetectedDelimiter = detected.name;
+          splitDelimiterSignal.value = detected.char;
+          splitIsRegexSignal.value = detected.isRegex;
+          splitAutoDetectedDelimiterSignal.value = detected.name;
         }
-        (this as any).updateSplitPreview();
+      }
+
+      let lastSplitCol = initialColumn;
+
+      splitEffectCleanup = effect(() => {
+        // Detect logic if column changed
+        if (splitColumnSignal.value !== lastSplitCol) {
+          lastSplitCol = splitColumnSignal.value;
+          const detected = (this as any).detectDelimiter(lastSplitCol);
+          if (detected) {
+            splitDelimiterSignal.value = detected.char;
+            splitIsRegexSignal.value = detected.isRegex;
+            splitAutoDetectedDelimiterSignal.value = detected.name;
+          } else {
+            splitAutoDetectedDelimiterSignal.value = null;
+          }
+        }
+
+        // Sync Signals -> Alpine
+        this.splitDialogState.column = splitColumnSignal.value;
+        this.splitDialogState.delimiter = splitDelimiterSignal.value;
+        this.splitDialogState.isRegex = splitIsRegexSignal.value;
+        this.splitDialogState.mode = splitModeSignal.value;
+        this.splitDialogState.maxColumns = splitMaxColumnsSignal.value;
+        this.splitDialogState.keepOriginal = splitKeepOriginalSignal.value;
+        this.splitDialogState.autoDetectedDelimiter = splitAutoDetectedDelimiterSignal.value;
+
+        // Trigger preview
+        if (typeof (this as any).debouncedUpdateSplitPreview === 'function') {
+          (this as any).debouncedUpdateSplitPreview();
+        }
+
+        if (splitErrorSignal.peek() !== this.splitDialogState.error) {
+          splitErrorSignal.value = this.splitDialogState.error;
+        }
+      });
+
+      mountComponent(container, SplitDialog, {
+        columns: this.columns,
+        column: splitColumnSignal,
+        delimiter: splitDelimiterSignal,
+        autoDetectedDelimiter: splitAutoDetectedDelimiterSignal,
+        isRegex: splitIsRegexSignal,
+        mode: splitModeSignal,
+        maxColumns: splitMaxColumnsSignal,
+        keepOriginal: splitKeepOriginalSignal,
+        error: splitErrorSignal,
       });
     }
   } else if (dialogName === 'regexpMatch') {
@@ -363,11 +575,12 @@ export function initDialogState(this: ChumakApp, dialogName: string, _section?: 
       error: null,
     };
   } else if (dialogName === 'date') {
-    const dateColumns = (this as any).getDateColumns();
+    const dateColumns = (this as any).getDateColumns ? (this as any).getDateColumns() : [];
     const initialColumn =
       this.selectedColumn && dateColumns.includes(this.selectedColumn)
         ? this.selectedColumn
         : dateColumns[0] || '';
+
     this.dateDialogState = {
       column: initialColumn,
       operation: 'extract',
@@ -377,7 +590,43 @@ export function initDialogState(this: ChumakApp, dialogName: string, _section?: 
       error: null,
       previewData: [],
     };
-    this.$nextTick(() => (this as any).updateDatePreview());
+
+    // Mount Preact component
+    const container = document.getElementById('date-modal-container');
+    if (container) {
+      dateColumnSignal.value = initialColumn;
+      dateOperationSignal.value = 'extract';
+      dateExtractPartsSignal.value = ['year'];
+      dateTruncateUnitsSignal.value = ['month'];
+      dateOutputColumnSignal.value = '';
+      dateErrorSignal.value = null;
+
+      dateEffectCleanup = effect(() => {
+        this.dateDialogState.column = dateColumnSignal.value;
+        this.dateDialogState.operation = dateOperationSignal.value;
+        this.dateDialogState.extractParts = [...dateExtractPartsSignal.value];
+        this.dateDialogState.truncateUnits = [...dateTruncateUnitsSignal.value];
+        this.dateDialogState.outputColumn = dateOutputColumnSignal.value;
+
+        if (typeof (this as any).updateDatePreview === 'function') {
+          (this as any).updateDatePreview();
+        }
+
+        if (dateErrorSignal.peek() !== this.dateDialogState.error) {
+          dateErrorSignal.value = this.dateDialogState.error;
+        }
+      });
+
+      mountComponent(container, DateDialog, {
+        dateColumns: dateColumns,
+        column: dateColumnSignal,
+        operation: dateOperationSignal,
+        extractParts: dateExtractPartsSignal,
+        truncateUnits: dateTruncateUnitsSignal,
+        outputColumn: dateOutputColumnSignal,
+        error: dateErrorSignal,
+      });
+    }
   } else if (dialogName === 'dedupe') {
     this.dedupeDialogState = {
       selectedColumns: this.columns.map(() => true),
@@ -642,6 +891,34 @@ export async function closeDialog(this: ChumakApp, force = false) {
     if (container) unmountComponent(container);
     foldEffectCleanup?.();
     foldEffectCleanup = null;
+  }
+
+  if (this.activeDialog === 'filter') {
+    const container = document.getElementById('filter-modal-container');
+    if (container) unmountComponent(container);
+    filterEffectCleanup?.();
+    filterEffectCleanup = null;
+  }
+
+  if (this.activeDialog === 'pivot') {
+    const container = document.getElementById('pivot-modal-container');
+    if (container) unmountComponent(container);
+    pivotEffectCleanup?.();
+    pivotEffectCleanup = null;
+  }
+
+  if (this.activeDialog === 'date') {
+    const container = document.getElementById('date-modal-container');
+    if (container) unmountComponent(container);
+    dateEffectCleanup?.();
+    dateEffectCleanup = null;
+  }
+
+  if (this.activeDialog === 'split') {
+    const container = document.getElementById('split-modal-container');
+    if (container) unmountComponent(container);
+    splitEffectCleanup?.();
+    splitEffectCleanup = null;
   }
 
   // Clear URL hash if closing a navigable page
