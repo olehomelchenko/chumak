@@ -190,12 +190,6 @@ export interface AppState {
   // Dialog states
   aggregateDialogState: AggregateDialogState;
 
-  deriveDialogState: {
-    columnName: string;
-    expression: string;
-    error: string | null;
-  };
-
   sliceRowsDialogState: {
     count: number;
     mode: 'first' | 'last' | 'removeFirst' | 'removeLast';

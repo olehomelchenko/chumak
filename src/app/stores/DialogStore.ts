@@ -52,6 +52,12 @@ export interface FilterState {
   previewMode: Signal<FilterPreviewMode>;
 }
 
+export interface DeriveState {
+  columnName: Signal<string>;
+  expression: Signal<string>;
+  error: Signal<string | null>;
+}
+
 /**
  * DialogStore
  *
@@ -91,6 +97,13 @@ export class DialogStore {
     previewMode: signal<FilterPreviewMode>('all'),
   };
 
+  // Derive Dialog State
+  static deriveState = {
+    columnName: signal(''),
+    expression: signal(''),
+    error: signal<string | null>(null),
+  };
+
   /**
    * Opens a dialog and initializes it with default or provided values.
    */
@@ -107,6 +120,13 @@ export class DialogStore {
       this.filterState.expression.value = initialState?.expression || '';
       this.filterState.error.value = null;
       this.filterState.previewMode.value = initialState?.previewMode || 'all';
+    }
+
+    // Initialize Derive defaults if needed
+    if (name === 'derive') {
+      this.deriveState.columnName.value = initialState?.columnName || '';
+      this.deriveState.expression.value = initialState?.expression || '';
+      this.deriveState.error.value = null;
     }
 
     this.activeDialog.value = name;

@@ -70,6 +70,7 @@ _Status: 🚧 In Progress_
 - [x] **Dialog State Stores**: Move logic from `dialog-handlers.ts` into dedicated stores.
   - [x] SortDialog (Example)
   - [x] JoinDialog
+  - [x] FilterDialog
   - [ ] Other dialogs...
 - [ ] **Service Extraction**: Move `Import`, `Export`, and `Persistence` logic into standalone services.
 - [ ] **Remove Mix-ins**: Replace the `(this as any)` and `.call(this)` patterns with direct store/service usage.

@@ -79,12 +79,6 @@ let splitKeepOriginalSignal = signal(false);
 let splitErrorSignal = signal<string | null>(null);
 let splitEffectCleanup: (() => void) | null = null;
 
-// Preact signals for Derive Dialog
-let deriveColumnNameSignal = signal('');
-let deriveExpressionSignal = signal('');
-let deriveErrorSignal = signal<string | null>(null);
-let deriveEffectCleanup: (() => void) | null = null;
-
 // Preact signals for Aggregate Dialog
 let aggGroupBySignal = signal<string[]>([]);
 let aggAggregationsSignal = signal<Aggregation[]>([{ col: '', func: 'count', output: 'count' }]);
@@ -140,8 +134,8 @@ export function getDialogState(this: ChumakApp, dialog: string) {
       };
     case 'derive':
       return {
-        columnName: this.deriveDialogState.columnName,
-        expression: this.deriveDialogState.expression,
+        columnName: DialogStore.deriveState.columnName.value,
+        expression: DialogStore.deriveState.expression.value,
       };
     case 'sliceRows':
       return this.sliceRowsDialogState;
@@ -347,39 +341,34 @@ export function initDialogState(this: ChumakApp, dialogName: string, _section?: 
       });
     }
   } else if (dialogName === 'derive') {
-    this.deriveDialogState = { columnName: '', expression: '', error: null };
+    // DialogStore.openDialog called from interaction/step handlers initializes the state
 
     // Mount Preact component
     const container = document.getElementById('derive-modal-container');
     if (container) {
-      deriveColumnNameSignal.value = this.deriveDialogState.columnName;
-      deriveExpressionSignal.value = this.deriveDialogState.expression;
-      deriveErrorSignal.value = this.deriveDialogState.error;
+      const { columnName, expression, error } = DialogStore.deriveState;
 
-      deriveEffectCleanup = effect(() => {
-        // Sync Signals -> Alpine
-        this.deriveDialogState.columnName = deriveColumnNameSignal.value;
-        this.deriveDialogState.expression = deriveExpressionSignal.value;
+      mountComponent(container, DeriveDialog, {
+        columnName: columnName,
+        expression: expression,
+        error: error,
+        onOpenReference: () => this.openDialog('expressions'),
+      });
+
+      // Reactive logic
+      effect(() => {
+        // subscribe
+        void columnName.value;
+        void expression.value;
 
         // Trigger validation and preview logic
         if (typeof (this as any).validateDeriveExpression === 'function') {
           (this as any).validateDeriveExpression();
-          // Sync Alpine Error -> Signal
-          if (deriveErrorSignal.peek() !== this.deriveDialogState.error) {
-            deriveErrorSignal.value = this.deriveDialogState.error;
-          }
         }
 
         if (typeof (this as any).debouncedUpdateDerivePreview === 'function') {
           (this as any).debouncedUpdateDerivePreview();
         }
-      });
-
-      mountComponent(container, DeriveDialog, {
-        columnName: deriveColumnNameSignal,
-        expression: deriveExpressionSignal,
-        error: deriveErrorSignal,
-        onOpenReference: () => this.openDialog('expressions'),
       });
     }
   } else if (dialogName === 'sort') {
@@ -1236,7 +1225,7 @@ export function activeDialogError(this: ChumakApp): boolean {
     case 'filter':
       return !!DialogStore.filterState.error.value;
     case 'derive':
-      return !!this.deriveDialogState.error;
+      return !!DialogStore.deriveState.error.value;
     case 'sliceRows':
       return !this.sliceRowsDialogState.count || this.sliceRowsDialogState.count <= 0;
     case 'index':
@@ -1369,8 +1358,7 @@ export async function closeDialog(this: ChumakApp, force = false) {
   if (this.activeDialog === 'derive') {
     const container = document.getElementById('derive-modal-container');
     if (container) unmountComponent(container);
-    deriveEffectCleanup?.();
-    deriveEffectCleanup = null;
+    // Cleanup not required for store signals
   }
 
   if (this.activeDialog === 'join') {

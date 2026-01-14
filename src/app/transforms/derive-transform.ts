@@ -1,9 +1,11 @@
 import type { ChumakApp } from '../../chumak-app';
 import { parseExpression } from '../../core/expression-parser';
 import { interpretAST } from '../../core/ast-interpreter';
+import { DialogStore } from '../stores/DialogStore';
 
 export function validateDeriveExpression(this: ChumakApp) {
-  this.deriveDialogState.error = this.validateExpression(this.deriveDialogState.expression);
+  const expr = DialogStore.deriveState.expression.value;
+  DialogStore.deriveState.error.value = this.validateExpression(expr);
 }
 
 export function debouncedUpdateDerivePreview(this: ChumakApp) {
@@ -16,8 +18,11 @@ export function debouncedUpdateDerivePreview(this: ChumakApp) {
 }
 
 export function updateDerivePreview(this: ChumakApp) {
-  const { columnName, expression } = this.deriveDialogState;
-  if (!expression || this.deriveDialogState.error || !this.currentData?.length) {
+  const columnName = DialogStore.deriveState.columnName.value;
+  const expression = DialogStore.deriveState.expression.value;
+  const error = DialogStore.deriveState.error.value;
+
+  if (!expression || error || !this.currentData?.length) {
     this.clearPreview();
     return;
   }
@@ -54,12 +59,15 @@ export function updateDerivePreview(this: ChumakApp) {
 }
 
 export async function applyDeriveTransform(this: ChumakApp) {
-  const { columnName, expression } = this.deriveDialogState;
+  const columnName = DialogStore.deriveState.columnName.value;
+  const expression = DialogStore.deriveState.expression.value;
+  const error = DialogStore.deriveState.error.value;
+
   if (!columnName || !expression) {
     await this.alert('Please provide both column name and expression');
     return;
   }
-  if (this.deriveDialogState.error) {
+  if (error) {
     await this.alert('Please fix the expression errors before applying');
     return;
   }

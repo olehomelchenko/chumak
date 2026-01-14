@@ -176,12 +176,11 @@ export function editStep(this: ChumakApp, stepIndex: number) {
     this.openDialog('filter'); // Keep legacy side effects wrapper for now
   } else if (step.derive) {
     const [colName, expr] = Object.entries(step.derive)[0];
-    this.openDialog('derive');
-    this.deriveDialogState = {
+    DialogStore.openDialog('derive', {
       columnName: colName,
       expression: expr as string,
-      error: null,
-    };
+    });
+    this.openDialog('derive'); // Legacy side effects wrapper
   } else if (step.select) {
     this.openDialog('column-editor');
     const selectedSet = new Set(step.select as string[]);

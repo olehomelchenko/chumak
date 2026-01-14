@@ -136,8 +136,6 @@ export class ChumakApp implements AppState {
     isPreviewing: false,
   };
 
-  deriveDialogState = { columnName: '', expression: '', error: null as string | null };
-
   sliceRowsDialogState = {
     count: 10,
     mode: 'first' as 'first' | 'last' | 'removeFirst' | 'removeLast',
