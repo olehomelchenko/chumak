@@ -4,6 +4,8 @@ import { applyTransform, describeTransform } from '../../core/transforms';
 import { TransformResult } from '../../core/transform-result';
 import { perfLogger } from '../../core/performance-logger';
 import { autoSave } from '../../core/storage';
+import { Model } from '../types';
+import { ColumnSchema, TransformStep } from '../../core/schema-engine';
 
 export async function applyActiveTransform(this: ChumakApp) {
   switch (this.activeDialog) {
@@ -64,16 +66,16 @@ export async function applyActiveTransform(this: ChumakApp) {
   }
 }
 
-export function computeModelUpToStep(this: ChumakApp, model: any, stepIndex: number) {
+export function computeModelUpToStep(this: ChumakApp, model: Model, stepIndex: number) {
   const start = performance.now();
   if (!model) throw new Error('No model provided');
 
   const source = this.sources.find((s) => s.id === model.sourceId);
   if (!source) throw new Error('Source not found for model');
 
-  let table = (aq as any).from(source.data);
-  let schema = JSON.parse(JSON.stringify(source.columns));
-  let columns = schema.map((c: any) => c.name);
+  let table = aq.from(source.data);
+  let schema = JSON.parse(JSON.stringify(source.columns)) as ColumnSchema[];
+  let columns = schema.map((c: ColumnSchema) => c.name);
 
   for (let i = 0; i <= stepIndex; i++) {
     const step = model.steps[i];
@@ -99,7 +101,7 @@ export function computeModelUpToStep(this: ChumakApp, model: any, stepIndex: num
   }
 
   const result = {
-    data: table.objects(),
+    data: table.objects() as any[],
     schema: schema,
     columns: columns,
   };
@@ -129,7 +131,9 @@ export function viewStep(this: ChumakApp, stepIndex: number) {
     this.columns = result.columns;
     this.viewingSchema = result.schema;
     this.activeStepIndex = stepIndex;
-    this.viewingIntermediate = stepIndex < this.activeModel.steps.length - 1;
+    if (this.activeModel) {
+      this.viewingIntermediate = stepIndex < this.activeModel.steps.length - 1;
+    }
     this.updatePagination();
   } catch (error: any) {
     console.error('Error computing step:', error);
@@ -158,6 +162,7 @@ export function viewFinalResult(this: ChumakApp) {
 }
 
 export function editStep(this: ChumakApp, stepIndex: number) {
+  if (!this.activeModel) return;
   const step = this.activeModel.steps[stepIndex];
   if (!step || step.import || step.types) return;
 
@@ -209,7 +214,7 @@ export function editStep(this: ChumakApp, stepIndex: number) {
       textSubMode: 'rename',
       columns: this.columns.map((col) => ({
         original: col,
-        renamed: step.rename[col] || col,
+        renamed: (step.rename && step.rename[col]) || col,
         selected: true,
       })),
       textValue: '',
@@ -271,7 +276,7 @@ export function editStep(this: ChumakApp, stepIndex: number) {
     this.foldDialogState = {
       keyName: step.fold.as[0],
       valueName: step.fold.as[1],
-      selectedColumns: this.columns.map((c) => step.fold.columns.includes(c)),
+      selectedColumns: this.columns.map((c) => (step.fold ? step.fold.columns.includes(c) : false)),
       mode: 'fold',
     };
   } else if (step.pivot) {
@@ -333,6 +338,7 @@ export function cancelEdit(this: ChumakApp) {
 }
 
 export async function removeStep(this: ChumakApp, stepIndex: number) {
+  if (!this.activeModel) return;
   if (this.activeModel.steps[stepIndex].import) {
     (this as any).showWarning('Cannot remove import step', 'The import step is required.');
     return;
@@ -355,10 +361,11 @@ export function showStepRemovalModal(
   this: ChumakApp,
   stepIndex: number
 ): Promise<'single' | 'all' | null> {
+  if (!this.activeModel) return Promise.resolve(null);
   const step = this.activeModel.steps[stepIndex];
   const affectedSteps = this.activeModel.steps
     .slice(stepIndex + 1)
-    .map((s: any) => describeTransform(s));
+    .map((s: TransformStep) => describeTransform(s));
 
   return new Promise((resolve) => {
     (this as any).stepRemovalModal = {
@@ -385,6 +392,7 @@ export async function executeStepRemoval(
   mode: 'single' | 'all'
 ) {
   try {
+    if (!this.activeModel) return;
     if (mode === 'all') {
       this.activeModel.steps.splice(stepIndex);
     } else {
@@ -406,6 +414,7 @@ export async function executeStepRemoval(
 }
 
 export async function updateStep(this: ChumakApp, stepIndex: number, newTransform: any) {
+  if (!this.activeModel) return;
   const backup = {
     steps: JSON.parse(JSON.stringify(this.activeModel.steps)),
     data: JSON.parse(JSON.stringify(this.activeModel.data)),
@@ -430,7 +439,7 @@ export async function updateStep(this: ChumakApp, stepIndex: number, newTransfor
     this.activeModel.data = backup.data;
     this.activeModel.schema = backup.schema;
     this.currentData = this.activeModel.data;
-    this.columns = this.activeModel.schema.map((c: any) => c.name);
+    this.columns = this.activeModel.schema.map((c: ColumnSchema) => c.name);
     this.editingStepIndex = null;
     (this as any).showError('Error updating step', error.message);
   }

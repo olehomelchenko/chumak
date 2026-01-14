@@ -26,7 +26,21 @@ import * as PaginationHandlers from './app/handlers/pagination-handlers';
 import * as HelperHandlers from './app/handlers/helper-handlers';
 import * as JsonHandlers from './app/handlers/json-handlers';
 import { SchemaEngine, ColumnSchema, TransformStep } from './core/schema-engine';
-import { AppState } from './app/types';
+import { EDAStats } from './core/eda-engine';
+import {
+  AppState,
+  Source,
+  Model,
+  DataRow,
+  Notification,
+  AggregateDialogState,
+  JoinDialogState,
+  PivotDialogState,
+  SplitDialogState,
+  RegexpMatchDialogState,
+  RegexpExtractDialogState,
+  DateDialogState,
+} from './app/types';
 
 export class ChumakApp implements AppState {
   // UI state
@@ -50,9 +64,9 @@ export class ChumakApp implements AppState {
     edaLabel?: string;
   } | null = null;
   cellToolbarPos = { x: 0, y: 0, arrowOffset: 0 };
-  edaStats: any = null;
+  edaStats: EDAStats | null = null;
   edaChartView: 'boxplot' | 'histogram' = 'boxplot';
-  edaBrushSelection: any = null;
+  edaBrushSelection: { min: number; max: number } | null = null;
   edaDateTreatment: 'temporal' | 'categorical' = 'temporal';
   theme: 'chumak' | 'blues' = 'chumak';
   uxSettings: UXSettings = {
@@ -76,7 +90,7 @@ export class ChumakApp implements AppState {
   totalPages = 1;
 
   // Import dialog state
-  importDialogState: any = {
+  importDialogState: AppState['importDialogState'] = {
     fileName: '',
     sourceName: '',
     rawPreviewData: [],
@@ -97,35 +111,35 @@ export class ChumakApp implements AppState {
     serializeNested: true,
   };
   importFileData: { file: File } | null = null;
-  importUrlDialogState: any = {
+  importUrlDialogState: AppState['importUrlDialogState'] = {
     url: '',
     isFetching: false,
     error: null,
   };
 
   // Data state
-  sources: any[] = [];
-  models: any[] = [];
-  activeSource: any | null = null;
-  activeModel: any | null = null;
-  currentData: any[] | null = null;
+  sources: Source[] = [];
+  models: Model[] = [];
+  activeSource: Source | null = null;
+  activeModel: Model | null = null;
+  currentData: DataRow[] | null = null;
   columns: string[] = [];
   viewMode: 'empty' | 'dataset-info' | 'model' = 'empty';
 
   // Transform state
   filterExpression = '';
   filterError: string | null = null;
-  filterPreviewMode: 'matching' | 'all' = 'all'; // 'matching' = show only matching, 'all' = show all with removed marked
+  filterPreviewMode: 'matching' | 'all' = 'all';
 
   // Dialog states
-  aggregateDialogState: any = {
+  aggregateDialogState: AggregateDialogState = {
     groupBy: [],
     aggregations: [],
     previewData: null,
     previewError: null,
     isPreviewing: false,
   };
-  joinDialogState: any = {
+  joinDialogState: JoinDialogState = {
     rightModel: null,
     availableTargets: [],
     joinType: 'inner',
@@ -144,25 +158,25 @@ export class ChumakApp implements AppState {
     mode: 'first' as 'first' | 'last' | 'removeFirst' | 'removeLast',
   };
   indexDialogState = { columnName: 'row_index', startFrom: 1 };
-  foldDialogState = {
+  foldDialogState: AppState['foldDialogState'] = {
     keyName: 'key',
     valueName: 'value',
-    selectedColumns: [] as boolean[],
-    mode: 'keep' as 'keep' | 'fold', // 'keep' = select columns to keep as index, 'fold' = select columns to fold
+    selectedColumns: [],
+    mode: 'keep',
   };
-  pivotDialogState: any = {
-    rowColumns: [] as string[],
+  pivotDialogState: PivotDialogState = {
+    rowColumns: [],
     columnColumn: '',
     valueColumn: '',
     aggregation: 'sum',
-    options: { sort: true, limit: null as number | null },
+    options: { sort: true, limit: null },
     uniqueValueCount: 0,
     previewData: null,
     previewError: null,
     isPreviewing: false,
   };
   replaceDialogState = { column: '', findValue: '', replaceValue: '' };
-  splitDialogState: any = {
+  splitDialogState: SplitDialogState = {
     column: '',
     delimiter: ',',
     isRegex: false,
@@ -175,50 +189,35 @@ export class ChumakApp implements AppState {
     autoDetectedDelimiter: null,
     columnRenames: {},
   };
-  regexpMatchDialogState: any = {
+  regexpMatchDialogState: RegexpMatchDialogState = {
     sourceColumn: '',
     pattern: '',
     columnName: '',
     error: null,
   };
-  regexpExtractDialogState: any = {
+  regexpExtractDialogState: RegexpExtractDialogState = {
     sourceColumn: '',
     pattern: '',
     columnName: '',
     group: 0,
     error: null,
   };
-  dateDialogState: any = {
+  dateDialogState: DateDialogState = {
     column: '',
-    operation: 'extract' as 'extract' | 'truncate',
-    extractParts: ['year'] as string[],
-    truncateUnits: ['month'] as string[],
+    operation: 'extract',
+    extractParts: ['year'],
+    truncateUnits: ['month'],
     outputColumn: '',
-    error: null as string | null,
-    previewData: [] as { input: string; output: any }[],
+    error: null,
+    previewData: [],
   };
-  dedupeDialogState: {
-    selectedColumns: boolean[];
-    useAllColumns: boolean;
-    duplicateCount: number;
-    mode: 'remove' | 'keep';
-  } = {
+  dedupeDialogState: AppState['dedupeDialogState'] = {
     selectedColumns: [],
     useAllColumns: true,
     duplicateCount: 0,
     mode: 'remove',
   };
-  columnEditorState: {
-    mode: 'list' | 'text';
-    textSubMode: 'rename' | 'reorder' | 'select';
-    columns: Array<{ original: string; renamed: string; selected: boolean }>;
-    textValue: string;
-    textError: string | null;
-    patternText: string;
-    patternMode: 'include' | 'exclude';
-    patternMatchType: 'prefix' | 'suffix' | 'exact';
-    draggedIndex: number | null;
-  } = {
+  columnEditorState: AppState['columnEditorState'] = {
     mode: 'list',
     textSubMode: 'rename',
     columns: [],
@@ -231,14 +230,7 @@ export class ChumakApp implements AppState {
   };
 
   // Unified preview panel state (shared across all dialogs with previews)
-  previewState: {
-    title: string;
-    stats: string;
-    columns: string[];
-    newColumns: string[];
-    rows: any[];
-    _debounceTimer: ReturnType<typeof setTimeout> | null;
-  } = {
+  previewState: AppState['previewState'] = {
     title: '',
     stats: '',
     columns: [],
@@ -254,27 +246,27 @@ export class ChumakApp implements AppState {
   jsonEditBackup: any | null = null;
 
   // Notifications
-  notifications: any[] = [];
+  notifications: Notification[] = [];
   notificationIdCounter = 0;
 
   // Custom Dialogs (Alert/Confirm/Prompt)
-  messageBox = {
+  messageBox: AppState['messageBox'] = {
     visible: false,
     title: '',
     message: '',
-    type: 'alert' as 'alert' | 'confirm' | 'prompt',
+    type: 'alert',
     inputValue: '',
-    resolve: null as ((value: any) => void) | null,
+    resolve: null,
   };
 
   // Step removal modal
-  stepRemovalModal = {
+  stepRemovalModal: AppState['stepRemovalModal'] = {
     visible: false,
     stepIndex: -1,
     stepName: '',
-    affectedSteps: [] as string[],
-    removeMode: 'all' as 'single' | 'all',
-    resolve: null as ((value: 'single' | 'all' | null) => void) | null,
+    affectedSteps: [],
+    removeMode: 'all',
+    resolve: null,
   };
 
   // Alpine's injected properties
@@ -568,13 +560,13 @@ export class ChumakApp implements AppState {
   }
 
   // Import handlers
-  handleFileSelect(event: any) {
+  handleFileSelect(event: Event) {
     return ImportHandlers.handleFileSelect.call(this, event);
   }
-  handleFileDrop(event: any) {
+  handleFileDrop(event: DragEvent) {
     return ImportHandlers.handleFileDrop.call(this, event);
   }
-  handlePaste(event: any) {
+  handlePaste(event: ClipboardEvent) {
     return ImportHandlers.handlePaste.call(this, event);
   }
   promptPaste() {
@@ -658,13 +650,13 @@ export class ChumakApp implements AppState {
   loadTemplates() {
     return ModelHandlers.loadTemplates.call(this);
   }
-  switchToSource(source: any) {
+  switchToSource(source: Source) {
     return ModelHandlers.switchToSource.call(this, source);
   }
-  switchToModel(model: any) {
+  switchToModel(model: Model) {
     return ModelHandlers.switchToModel.call(this, model);
   }
-  createNewModel(source: any) {
+  createNewModel(source: Source) {
     return ModelHandlers.createNewModel.call(this, source);
   }
   createNewModelFromActive() {
@@ -679,10 +671,10 @@ export class ChumakApp implements AppState {
   deleteCurrentModel() {
     return ModelHandlers.deleteCurrentModel.call(this);
   }
-  renameSource(source: any) {
+  renameSource(source: Source) {
     return ModelHandlers.renameSource.call(this, source);
   }
-  deleteSource(source: any) {
+  deleteSource(source: Source) {
     return ModelHandlers.deleteSource.call(this, source);
   }
   clearAllData() {
@@ -693,7 +685,7 @@ export class ChumakApp implements AppState {
   async applyActiveTransform() {
     return StepHandlers.applyActiveTransform.call(this);
   }
-  computeModelUpToStep(model: any, stepIndex: number) {
+  computeModelUpToStep(model: Model, stepIndex: number) {
     return StepHandlers.computeModelUpToStep.call(this, model, stepIndex);
   }
   computeUpToStep(stepIndex: number) {

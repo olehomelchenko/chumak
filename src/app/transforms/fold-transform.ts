@@ -50,7 +50,7 @@ export function updateFoldPreview(this: ChumakApp) {
     const step = {
       fold: {
         columns: colsToFold,
-        as: [keyName || 'key', valueName || 'value'],
+        as: [keyName || 'key', valueName || 'value'] as [string, string],
       },
     };
 
@@ -82,7 +82,7 @@ export async function applyFoldTransform(this: ChumakApp) {
   const transform = {
     fold: {
       columns: colsToFold,
-      as: [keyName || 'key', valueName || 'value'],
+      as: [keyName || 'key', valueName || 'value'] as [string, string],
     },
   };
   await this.runTransform('Fold', transform);

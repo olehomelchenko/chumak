@@ -37,6 +37,7 @@ export async function applyStepResult(
     this.closeDialog(true);
     return;
   }
+  if (!this.activeModel) return;
 
   this.activeModel.steps.push(transform);
 
@@ -111,7 +112,7 @@ export function getColumnType(this: ChumakApp, colName: string) {
   }
   if (this.activeSource?.columns) {
     const col = this.activeSource.columns.find((c: any) => c.name === colName);
-    if (col) return col.type || col.inferredType;
+    if (col) return col.type;
   }
   return 'string';
 }

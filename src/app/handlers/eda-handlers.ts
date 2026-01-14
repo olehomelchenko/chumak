@@ -54,13 +54,15 @@ export function selectColumn(this: ChumakApp, col: string) {
         )
       );
     } else {
-      this.$nextTick(() =>
-        ChartsEngine.renderCategoricalBar(
-          '#eda-categorical-bar',
-          this.edaStats.topValues,
-          this.theme
-        )
-      );
+      this.$nextTick(() => {
+        if (this.edaStats && 'topValues' in this.edaStats) {
+          ChartsEngine.renderCategoricalBar(
+            '#eda-categorical-bar',
+            this.edaStats.topValues,
+            this.theme
+          );
+        }
+      });
     }
   } else {
     this.edaStats = null;
@@ -132,11 +134,13 @@ export function setEdaDateTreatment(this: ChumakApp, treatment: 'temporal' | 'ca
           this.theme
         );
       } else {
-        ChartsEngine.renderCategoricalBar(
-          '#eda-categorical-bar',
-          this.edaStats.topValues,
-          this.theme
-        );
+        if (this.edaStats && 'topValues' in this.edaStats) {
+          ChartsEngine.renderCategoricalBar(
+            '#eda-categorical-bar',
+            this.edaStats.topValues,
+            this.theme
+          );
+        }
       }
     });
   }

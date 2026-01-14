@@ -133,7 +133,7 @@ export async function createNewModelFromActive(this: ChumakApp) {
     await this.alert('No active model selected');
     return;
   }
-  const source = this.sources.find((s) => s.id === this.activeModel.sourceId);
+  const source = this.sources.find((s) => s.id === this.activeModel?.sourceId);
   if (!source) {
     await this.alert('Source not found for current model');
     return;
@@ -153,6 +153,7 @@ export async function copyCurrentModel(this: ChumakApp) {
   if (!newName || newName.trim() === '') return;
   const existingModel = this.models.find(
     (m) =>
+      this.activeModel &&
       m.sourceId === this.activeModel.sourceId &&
       m.name.toLowerCase() === newName.trim().toLowerCase()
   );
@@ -167,7 +168,7 @@ export async function copyCurrentModel(this: ChumakApp) {
     name: newName.trim(),
     sourceId: this.activeModel.sourceId,
     steps: JSON.parse(JSON.stringify(this.activeModel.steps)),
-    schema: this.activeModel.schema ? JSON.parse(JSON.stringify(this.activeModel.schema)) : null,
+    schema: this.activeModel.schema ? JSON.parse(JSON.stringify(this.activeModel.schema)) : [],
     data: JSON.parse(JSON.stringify(this.activeModel.data)),
   };
   this.models.push(copiedModel);
@@ -185,7 +186,7 @@ export async function renameCurrentModel(this: ChumakApp) {
   if (newName.trim() === this.activeModel.name) return;
   const existingModel = this.models.find(
     (m) =>
-      m.sourceId === this.activeModel.sourceId &&
+      m.sourceId === this.activeModel?.sourceId &&
       m.name.toLowerCase() === newName.trim().toLowerCase()
   );
   if (existingModel) {
@@ -203,7 +204,7 @@ export async function deleteCurrentModel(this: ChumakApp) {
     await this.alert('No active model selected');
     return;
   }
-  const sourceModels = this.models.filter((m) => m.sourceId === this.activeModel.sourceId);
+  const sourceModels = this.models.filter((m) => m.sourceId === this.activeModel?.sourceId);
   if (sourceModels.length === 1) {
     await this.alert('Cannot delete the last model for this source.');
     return;

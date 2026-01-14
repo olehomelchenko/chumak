@@ -106,7 +106,7 @@ export function selectCell(this: ChumakApp, col: string, value: any, rowIdx: num
     if (colInfo) type = colInfo.type;
   } else if (this.activeSource) {
     const colInfo = this.activeSource.columns.find((c: any) => c.name === col);
-    if (colInfo) type = colInfo.type || colInfo.inferredType;
+    if (colInfo) type = colInfo.type;
   } else {
     type = typeof value === 'number' ? 'number' : 'string';
   }

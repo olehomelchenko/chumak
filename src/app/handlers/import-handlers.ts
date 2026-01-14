@@ -1,19 +1,21 @@
 import type { ChumakApp } from '../../chumak-app';
+import type { DataRow } from '../types';
 import Papa from 'papaparse';
 import { SchemaEngine } from '../../core/schema-engine';
 import { autoSave } from '../../core/storage';
 
-export function handleFileSelect(this: ChumakApp, event: any) {
-  const file = event.target.files[0];
+export function handleFileSelect(this: ChumakApp, event: Event) {
+  const target = event.target as HTMLInputElement;
+  const file = target.files?.[0];
   if (!file) return;
   this.showImportDialog(file);
-  event.target.value = '';
+  target.value = '';
 }
 
-export async function handleFileDrop(this: ChumakApp, event: any) {
+export async function handleFileDrop(this: ChumakApp, event: DragEvent) {
   this.isDragging = false;
-  const files = event.dataTransfer.files;
-  if (files.length === 0) return;
+  const files = event.dataTransfer?.files;
+  if (!files || files.length === 0) return;
   const file = files[0];
   const fileName = file.name.toLowerCase();
   if (!fileName.endsWith('.csv') && !fileName.endsWith('.json')) {
@@ -23,14 +25,11 @@ export async function handleFileDrop(this: ChumakApp, event: any) {
   this.showImportDialog(file);
 }
 
-export async function handlePaste(this: ChumakApp, event: any) {
-  if (
-    event.target.tagName === 'INPUT' ||
-    event.target.tagName === 'TEXTAREA' ||
-    event.target.isContentEditable
-  )
+export async function handlePaste(this: ChumakApp, event: ClipboardEvent) {
+  const target = event.target as HTMLElement;
+  if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)
     return;
-  const clipboardData = event.clipboardData || (window as any).clipboardData;
+  const clipboardData = event.clipboardData;
   if (!clipboardData) return;
   if (clipboardData.files && clipboardData.files.length > 0) {
     const file = clipboardData.files[0];
@@ -136,6 +135,7 @@ export function handleJsonPreview(this: ChumakApp, file: File, data: any, path =
     delimiter: ',',
     originalHeaders: headers,
     customHeaders: [...headers],
+    duplicateWarning: '',
     isJson: true,
     jsonData: isValidArray ? resolvedData : null,
     fullJsonData: data,
@@ -240,27 +240,29 @@ export function handleCsvPreview(this: ChumakApp, file: File) {
     preview: 5,
     header: false,
     skipEmptyLines: true,
-    complete: (previewResult: any) => {
-      const firstRow = previewResult.data[0] || [];
+    complete: (previewResult) => {
+      const data = previewResult.data as string[][];
+      const firstRow = data[0] || [];
       const defaultName = file.name.replace(/\.csv$/i, '');
-      const initialHeaders = firstRow.map((cell: any, i: number) => cell || `Column ${i + 1}`);
+      const initialHeaders = firstRow.map((cell, i) => cell || `Column ${i + 1}`);
       this.importDialogState = {
         fileName: file.name,
         sourceName: defaultName,
-        rawPreviewData: previewResult.data,
+        rawPreviewData: data,
         previewHeaders: [],
         previewDataRows: [],
         headerMode: 'first-row',
         delimiter: previewResult.meta.delimiter || ',',
         originalHeaders: initialHeaders,
         customHeaders: initialHeaders,
+        duplicateWarning: '',
         isJson: false,
         jsonData: null,
       };
       this.updateHeadersForPreview();
       this.activeDialog = 'import-csv';
     },
-    error: async (error: any) => {
+    error: async (error) => {
       console.error('CSV preview error:', error);
       await this.alert('Error reading CSV: ' + error.message);
     },
@@ -381,18 +383,18 @@ export async function confirmImport(this: ChumakApp) {
     delimiter: delimiter === '\t' ? '\t' : delimiter,
     skipEmptyLines: true,
     dynamicTyping: true,
-    complete: async (results: any) => {
-      if (!results.data || results.data.length === 0) {
+    complete: async (results) => {
+      const rawData = results.data as unknown[][];
+      if (!rawData || rawData.length === 0) {
         await this.alert('Error: CSV file is empty');
         return;
       }
-      let columns: string[], data: any[];
-      const rawData = results.data;
+      let columns: string[], data: DataRow[];
       if (headerMode === 'first-row') {
         columns = customHeaders;
         const dataRows = rawData.slice(1);
-        data = dataRows.map((row: any) => {
-          const obj: any = {};
+        data = dataRows.map((row) => {
+          const obj: DataRow = {};
           columns.forEach((col, i) => {
             obj[col] = row[i];
           });
@@ -408,9 +410,9 @@ export async function confirmImport(this: ChumakApp) {
           customHeaders
         );
       } else if (headerMode === 'auto-generate') {
-        columns = rawData[0]?.map((_: any, i: number) => `Column ${i + 1}`) || [];
-        data = rawData.map((row: any) => {
-          const obj: any = {};
+        columns = rawData[0]?.map((_, i) => `Column ${i + 1}`) || [];
+        data = rawData.map((row) => {
+          const obj: DataRow = {};
           columns.forEach((col, i) => {
             obj[col] = row[i];
           });
@@ -419,8 +421,8 @@ export async function confirmImport(this: ChumakApp) {
         await this.createSource(file, sourceName.trim(), columns, data, headerMode, delimiter);
       } else if (headerMode === 'manual') {
         columns = customHeaders;
-        data = rawData.map((row: any) => {
-          const obj: any = {};
+        data = rawData.map((row) => {
+          const obj: DataRow = {};
           columns.forEach((col, i) => {
             obj[col] = row[i];
           });
@@ -437,7 +439,7 @@ export async function confirmImport(this: ChumakApp) {
         );
       }
     },
-    error: async (error: any) => {
+    error: async (error) => {
       console.error('CSV parsing error:', error);
       await this.alert('Error parsing CSV: ' + error.message);
     },
@@ -467,7 +469,7 @@ export async function createSource(
     fileName: file.name,
     origin: origin,
     delimiter: delimiter,
-    headerMode: headerMode,
+    headerMode: headerMode as 'first-row' | 'auto-generate' | 'manual',
     customHeaders: customHeaders || null,
     rawSize: file.size,
     rowCount: cleanData.length,
@@ -525,15 +527,16 @@ export function updateImportPreview(this: ChumakApp) {
     header: false,
     skipEmptyLines: true,
     delimiter: delimiter === '\t' ? '\t' : delimiter,
-    complete: (previewResult: any) => {
-      const firstRow = previewResult.data[0] || [];
-      this.importDialogState.rawPreviewData = previewResult.data;
-      const newHeaders = firstRow.map((cell: any, i: number) => cell || `Column ${i + 1}`);
+    complete: (previewResult) => {
+      const data = previewResult.data as string[][];
+      const firstRow = data[0] || [];
+      this.importDialogState.rawPreviewData = data;
+      const newHeaders = firstRow.map((cell, i) => cell || `Column ${i + 1}`);
       this.importDialogState.originalHeaders = newHeaders;
       this.importDialogState.customHeaders = newHeaders;
       this.updateHeadersForPreview();
     },
-    error: async (error: any) => {
+    error: async (error) => {
       console.error('CSV preview error:', error);
       await this.alert('Error parsing CSV with selected delimiter: ' + error.message);
     },
@@ -592,11 +595,13 @@ export function updateHeadersForPreview(this: ChumakApp) {
     headers = customHeaders;
     this.importDialogState.previewDataRows = rawPreviewData;
   }
-  const { resolvedHeaders, warning } = this.resolveDuplicateHeaders(headers);
-  this.importDialogState.previewHeaders = resolvedHeaders;
-  this.importDialogState.duplicateWarning = warning;
-  if (headerMode === 'first-row' || headerMode === 'manual') {
-    this.importDialogState.customHeaders = resolvedHeaders;
+  if (headers && headers.length > 0) {
+    const { resolvedHeaders, warning } = this.resolveDuplicateHeaders(headers);
+    this.importDialogState.previewHeaders = resolvedHeaders;
+    this.importDialogState.duplicateWarning = warning;
+    if (headerMode === 'first-row' || headerMode === 'manual') {
+      this.importDialogState.customHeaders = resolvedHeaders;
+    }
   }
 }
 

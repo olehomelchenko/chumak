@@ -23,7 +23,7 @@ export function getDialogState(this: ChumakApp, dialog: string) {
       };
     case 'join':
       return {
-        rightModel: this.joinDialogState.rightModel?.id,
+        rightModel: this.joinDialogState.rightModel,
         joinType: this.joinDialogState.joinType,
         keyPairs: this.joinDialogState.keyPairs,
         suffixes: this.joinDialogState.suffixes,

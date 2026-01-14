@@ -5,7 +5,7 @@ import { applyTransform } from '../../core/transforms';
 export function initializeJoinDialog(this: ChumakApp) {
   const availableTargets: any[] = [];
   this.models.forEach((model) => {
-    if (model.id !== this.activeModel.id) {
+    if (this.activeModel && model.id !== this.activeModel.id) {
       availableTargets.push({
         id: model.id,
         name: model.name,
@@ -54,7 +54,9 @@ export function getColumnsForTarget(this: ChumakApp, targetId: string) {
 }
 
 export function onJoinTargetChange(this: ChumakApp) {
-  this.joinDialogState.rightColumns = this.getColumnsForTarget(this.joinDialogState.rightModel);
+  if (this.joinDialogState.rightModel) {
+    this.joinDialogState.rightColumns = this.getColumnsForTarget(this.joinDialogState.rightModel);
+  }
   this.joinDialogState.keyPairs = [[null, null]];
   this.joinDialogState.previewData = null;
   this.joinDialogState.previewError = null;

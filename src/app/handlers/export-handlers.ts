@@ -14,7 +14,8 @@ export async function exportCSV(this: ChumakApp) {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     const timestamp = new Date().toISOString().slice(0, 10);
-    const filename = `${this.activeModel.name}_${timestamp}.csv`;
+    const modelName = this.activeModel ? this.activeModel.name : 'export';
+    const filename = `${modelName}_${timestamp}.csv`;
 
     link.setAttribute('href', url);
     link.setAttribute('download', filename);
@@ -37,10 +38,11 @@ export async function exportWorkflowJSON(this: ChumakApp) {
   }
 
   try {
-    const source = this.sources.find((s) => s.id === this.activeModel.sourceId);
+    const activeModel = this.activeModel!;
+    const source = this.sources.find((s) => s.id === activeModel.sourceId);
     const workflow = {
       version: '1.0',
-      name: this.activeModel.name,
+      name: activeModel.name,
       exportedAt: new Date().toISOString(),
       source: {
         id: source?.id,
@@ -48,9 +50,9 @@ export async function exportWorkflowJSON(this: ChumakApp) {
         columns: source?.columns,
       },
       model: {
-        id: this.activeModel.id,
-        name: this.activeModel.name,
-        steps: this.activeModel.steps,
+        id: activeModel.id,
+        name: activeModel.name,
+        steps: activeModel.steps,
       },
     };
 
@@ -59,7 +61,7 @@ export async function exportWorkflowJSON(this: ChumakApp) {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     const timestamp = new Date().toISOString().slice(0, 10);
-    const filename = `${this.activeModel.name}_workflow_${timestamp}.json`;
+    const filename = `${activeModel.name}_workflow_${timestamp}.json`;
 
     link.setAttribute('href', url);
     link.setAttribute('download', filename);
@@ -88,7 +90,8 @@ export async function exportDataJSON(this: ChumakApp) {
     const url = URL.createObjectURL(blob);
     const link = document.createElement('a');
     const timestamp = new Date().toISOString().slice(0, 10);
-    const filename = `${this.activeModel.name}_data_${timestamp}.json`;
+    const modelName = this.activeModel ? this.activeModel.name : 'export';
+    const filename = `${modelName}_data_${timestamp}.json`;
 
     link.setAttribute('href', url);
     link.setAttribute('download', filename);

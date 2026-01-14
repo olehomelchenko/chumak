@@ -18,7 +18,18 @@ export interface TransformStep {
   remove?: string[];
   rename?: Record<string, string>;
   derive?: Record<string, string>;
+  filter?: string;
+  sort?: { field: string; order: 'asc' | 'desc' };
+  replace?: { column: string; find: any; replace: any };
+  dedupe?: { columns?: string[]; mode?: 'remove' | 'keep' };
   join?: any;
+  import?: {
+    source: string;
+    fileName: string;
+    delimiter: string;
+    headerMode: string;
+    customHeaders?: string[];
+  };
   types?: Record<string, ColumnType>;
   aggregate?: {
     groupby: string[];

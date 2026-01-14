@@ -2,6 +2,8 @@ import * as aq from 'arquero';
 import { parseExpression } from './expression-parser';
 import { validateAST } from './ast-validator';
 import { interpretAST } from './ast-interpreter';
+import { TransformStep } from './schema-engine';
+import type { Source, Model } from '../app/types';
 
 /**
  * Chumak Transform Engine
@@ -11,6 +13,11 @@ export interface MatchOptions {
   pattern: string;
   matchType: 'prefix' | 'suffix' | 'exact';
   mode: 'include' | 'exclude';
+}
+
+export interface TransformContext {
+  sources: Source[];
+  models: Model[];
 }
 
 /**
@@ -40,14 +47,22 @@ export function matchColumnPattern(columns: string[], options: MatchOptions): st
   }
 }
 
+// Extended transform step that includes all transform types (superset of schema-engine's TransformStep)
+export interface FullTransformStep extends TransformStep {
+  sliceRows?: { count: number; mode: 'first' | 'last' | 'removeFirst' | 'removeLast' };
+  addIndex?: { columnName: string; startFrom?: number };
+}
+
 /**
  * Apply a single transform to an Arquero table
+ * Note: We use 'any' for the table type because arquero's ColumnTable type is complex
+ * and doesn't play well with TypeScript's structural typing in some cases.
  */
 export function applyTransform(
   table: any,
-  transform: any,
+  transform: FullTransformStep,
   schema: string[],
-  context: any = null
+  context: TransformContext | null = null
 ): any {
   // Since we're in the process of migrating, we'll keep the logic mostly the same
   // but use the imported engines.

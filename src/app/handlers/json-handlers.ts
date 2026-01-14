@@ -14,12 +14,16 @@ export function enterJsonEditMode(this: ChumakApp) {
 }
 
 export function cancelJsonEdit(this: ChumakApp) {
-  this.activeModel.steps = this.jsonEditBackup;
+  if (this.activeModel) {
+    this.activeModel.steps = this.jsonEditBackup;
+  }
   this.jsonEditMode = false;
   this.jsonEditError = null;
 }
 
 export async function applyJsonChanges(this: ChumakApp) {
+  if (!this.activeModel) return;
+
   try {
     const parsed = JSON.parse(this.jsonEditContent);
     if (!Array.isArray(parsed.transforms)) {

@@ -126,6 +126,7 @@
 
 - **[variables.css](styles/variables.css)**: Design tokens (colors, spacing)
 - **[index.css](styles/index.css)**: Entry point for modular PostCSS
+- **[MIGRATION-TO-ROBUST-TS.md](docs/MIGRATION-TO-ROBUST-TS.md)**: Roadmap for Preact/TSX modernization
 
 ---
 
