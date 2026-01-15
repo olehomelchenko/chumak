@@ -3,6 +3,7 @@
  */
 
 import { Signal, computed } from '@preact/signals';
+import styles from './TransformDialog.module.css';
 
 export interface IndexDialogProps {
   columnName: Signal<string>;
@@ -15,23 +16,23 @@ export function IndexDialog({ columnName, startFrom, rowCount }: IndexDialogProp
   const displayName = computed(() => columnName.value || 'row_index');
 
   return (
-    <div class="dialog-content">
-      <div class="form-group">
-        <label class="form-label">Column name:</label>
+    <div>
+      <div class={styles.group}>
+        <label class={styles.label}>Column name:</label>
         <input
           type="text"
-          class="form-input"
+          class={styles.input}
           value={columnName.value}
           onInput={(e) => (columnName.value = (e.target as HTMLInputElement).value)}
           placeholder="row_index"
         />
       </div>
 
-      <div class="form-group">
-        <label class="form-label">Start from:</label>
+      <div class={styles.group}>
+        <label class={styles.label}>Start from:</label>
         <input
           type="number"
-          class="form-input"
+          class={styles.input}
           value={startFrom.value}
           onInput={(e) => (startFrom.value = parseInt((e.target as HTMLInputElement).value) || 0)}
           min="0"
@@ -39,15 +40,7 @@ export function IndexDialog({ columnName, startFrom, rowCount }: IndexDialogProp
         />
       </div>
 
-      <div
-        class="form-group"
-        style={{
-          marginTop: '1rem',
-          padding: '0.75rem',
-          background: 'var(--color-light-gray)',
-          borderRadius: 'var(--radius-sm)',
-        }}
-      >
+      <div class={`${styles.group} ${styles.expressionHelp}`}>
         <span style={{ fontSize: '0.875rem', color: 'var(--color-dark-gray)' }}>
           Will add column "<strong>{displayName}</strong>" with values <strong>{startFrom}</strong>{' '}
           to <strong>{endValue}</strong>

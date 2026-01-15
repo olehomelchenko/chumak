@@ -1,6 +1,7 @@
 import { JSX } from 'preact';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
+import styles from './TransformDialog.module.css';
 
 export type JoinType = 'inner' | 'left' | 'right' | 'full' | 'cross';
 
@@ -75,15 +76,15 @@ export function JoinDialog({ onPreview }: JoinDialogProps = {}) {
   };
 
   return (
-    <div className="dialog-content">
+    <div>
       {/* Join With */}
-      <div className="form-group">
-        <label className="form-label" htmlFor="join-target-select">
+      <div class={styles.group}>
+        <label class={styles.label} for="join-target-select">
           Join With
         </label>
         <select
           id="join-target-select"
-          className="form-input"
+          class={styles.input}
           value={rightModel.value || ''}
           onChange={handleTargetChange}
         >
@@ -99,7 +100,7 @@ export function JoinDialog({ onPreview }: JoinDialogProps = {}) {
           ))}
         </select>
         {targets.value.length === 0 && (
-          <div className="form-help" style={{ color: 'var(--color-error)' }}>
+          <div class={styles.error}>
             No other models or sources available. Create another model or import another dataset
             first.
           </div>
@@ -107,11 +108,11 @@ export function JoinDialog({ onPreview }: JoinDialogProps = {}) {
       </div>
 
       {/* Join Type */}
-      <div className="form-group">
-        <label className="form-label">Join Type</label>
+      <div class={styles.group}>
+        <label class={styles.label}>Join Type</label>
         <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
           {(['inner', 'left', 'right', 'full', 'cross'] as JoinType[]).map((type) => (
-            <label key={type} className="radio-label">
+            <label key={type} class={styles.radioLabel}>
               <input
                 type="radio"
                 name="joinType"
@@ -125,7 +126,7 @@ export function JoinDialog({ onPreview }: JoinDialogProps = {}) {
             </label>
           ))}
         </div>
-        <div className="form-help">
+        <div class={styles.helpText}>
           {joinType.value === 'inner' && 'Keep only rows that match in both tables'}
           {joinType.value === 'left' && 'Keep all rows from left table, matching rows from right'}
           {joinType.value === 'right' && 'Keep all rows from right table, matching rows from left'}
@@ -136,20 +137,12 @@ export function JoinDialog({ onPreview }: JoinDialogProps = {}) {
 
       {/* Join Keys */}
       {joinType.value !== 'cross' && (
-        <div className="form-group">
-          <label className="form-label">Join Keys</label>
+        <div class={styles.group}>
+          <label class={styles.label}>Join Keys</label>
           {keyPairs.value.map((pair, index) => (
-            <div
-              key={index}
-              style={{
-                display: 'flex',
-                gap: '0.5rem',
-                marginBottom: '0.5rem',
-                alignItems: 'center',
-              }}
-            >
+            <div key={index} class={styles.keyGrid}>
               <select
-                className="form-input"
+                class={styles.input}
                 style={{ flex: 1 }}
                 value={pair[0] || ''}
                 onChange={(e) => updateKeyPair(index, 0, e.currentTarget.value || null)}
@@ -163,7 +156,7 @@ export function JoinDialog({ onPreview }: JoinDialogProps = {}) {
               </select>
               <span>=</span>
               <select
-                className="form-input"
+                class={styles.input}
                 style={{ flex: 1 }}
                 value={pair[1] || ''}
                 onChange={(e) => updateKeyPair(index, 1, e.currentTarget.value || null)}
@@ -176,7 +169,7 @@ export function JoinDialog({ onPreview }: JoinDialogProps = {}) {
                 ))}
               </select>
               <button
-                className="button button--secondary button--small"
+                class="button button--secondary button--small"
                 onClick={() => removeKeyPair(index)}
                 disabled={keyPairs.value.length === 1}
                 title="Remove key pair"
@@ -185,24 +178,20 @@ export function JoinDialog({ onPreview }: JoinDialogProps = {}) {
               </button>
             </div>
           ))}
-          <button
-            className="button button--secondary button--small"
-            onClick={addKeyPair}
-            style={{ marginTop: '0.5rem' }}
-          >
+          <button class="button button--secondary button--small" onClick={addKeyPair}>
             + Add Key Pair
           </button>
-          <div className="form-help">Match rows where these columns have equal values</div>
+          <div class={styles.helpText}>Match rows where these columns have equal values</div>
         </div>
       )}
 
       {/* Column Suffixes */}
-      <div className="form-group">
-        <label className="form-label">Column Name Suffixes (for conflicts)</label>
+      <div class={styles.group}>
+        <label class={styles.label}>Column Name Suffixes (for conflicts)</label>
         <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
           <input
             type="text"
-            className="form-input"
+            class={styles.input}
             style={{ flex: 1 }}
             value={suffixes.value[0]}
             onInput={(e) => handleSuffixChange(0, e.currentTarget.value)}
@@ -211,20 +200,20 @@ export function JoinDialog({ onPreview }: JoinDialogProps = {}) {
           <span>/</span>
           <input
             type="text"
-            className="form-input"
+            class={styles.input}
             style={{ flex: 1 }}
             value={suffixes.value[1]}
             onInput={(e) => handleSuffixChange(1, e.currentTarget.value)}
             placeholder="_y"
           />
         </div>
-        <div className="form-help">Applied to left/right columns when names conflict</div>
+        <div class={styles.helpText}>Applied to left/right columns when names conflict</div>
       </div>
 
       {/* Preview Button */}
-      <div className="form-group">
+      <div class={styles.group}>
         <button
-          className="button button--secondary"
+          class="button button--secondary"
           onClick={handlePreview}
           disabled={isPreviewing.value || !rightModel.value}
         >
@@ -233,24 +222,12 @@ export function JoinDialog({ onPreview }: JoinDialogProps = {}) {
       </div>
 
       {/* Preview Error */}
-      {previewError.value && (
-        <div className="error-message" style={{ marginBottom: '1rem' }}>
-          <strong>Preview Error:</strong>
-          <div>{previewError.value}</div>
-        </div>
-      )}
+      {previewError.value && <div class={styles.error}>{previewError.value}</div>}
 
       {/* Preview Results */}
       {previewData.value && (
-        <div className="form-group">
-          <div
-            style={{
-              padding: '1rem',
-              background: 'var(--color-light-gray)',
-              borderRadius: '4px',
-              marginBottom: '1rem',
-            }}
-          >
+        <div class={styles.group}>
+          <div class={styles.previewContainer}>
             <strong>Preview Result:</strong>
             <div>
               {`${previewData.value.totalRows || 0} rows, ${
@@ -264,21 +241,12 @@ export function JoinDialog({ onPreview }: JoinDialogProps = {}) {
             </div>
           </div>
 
-          <div
-            style={{
-              maxHeight: '300px',
-              overflow: 'auto',
-              border: '1px solid var(--color-medium-gray)',
-              borderRadius: '4px',
-            }}
-          >
-            <table className="data-table" style={{ fontSize: '0.75rem' }}>
+          <div class={styles.previewScroll}>
+            <table class={styles.previewTable}>
               <thead>
                 <tr>
                   {previewData.value.columns?.map((col: string) => (
-                    <th key={col} className="data-table__header">
-                      {col}
-                    </th>
+                    <th key={col}>{col}</th>
                   ))}
                 </tr>
               </thead>
@@ -286,9 +254,7 @@ export function JoinDialog({ onPreview }: JoinDialogProps = {}) {
                 {previewData.value.rows?.map((row: any, idx: number) => (
                   <tr key={idx}>
                     {previewData.value.columns?.map((col: string) => (
-                      <td key={col} className="data-table__cell">
-                        {row[col]}
-                      </td>
+                      <td key={col}>{row[col]}</td>
                     ))}
                   </tr>
                 ))}

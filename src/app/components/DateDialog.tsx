@@ -3,6 +3,7 @@
  */
 
 import { Signal, useComputed, useSignalEffect } from '@preact/signals';
+import styles from './TransformDialog.module.css';
 
 export type DateOperation = 'extract' | 'truncate';
 
@@ -55,9 +56,10 @@ export function DateDialog({
     void operation.value;
     void extractParts.value;
     void truncateUnits.value;
-    void outputColumn.value; // Maybe update on output name change?
+    void outputColumn.value;
     if (onValidate) onValidate();
   });
+
   const handleSelection = (value: string, currentSelection: Signal<string[]>, metaKey: boolean) => {
     const current = [...currentSelection.value];
     if (metaKey) {
@@ -89,25 +91,16 @@ export function DateDialog({
   });
 
   return (
-    <div class="dialog-content">
+    <div>
       {/* Source Column */}
-      <div class="form-group">
-        <label class="form-label">Source column:</label>
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(2, 1fr)',
-            gap: '0.375rem',
-            maxHeight: '120px',
-            overflowY: 'auto',
-            padding: '2px',
-          }}
-        >
+      <div class={styles.group}>
+        <label class={styles.label}>Source column:</label>
+        <div class={styles.chipGrid2}>
           {dateColumns.map((col) => (
             <button
               key={col}
               type="button"
-              class={`form-chip ${column.value === col ? 'active' : ''}`}
+              class={`${styles.chip} ${column.value === col ? styles.active : ''}`}
               style={{
                 flexDirection: 'row',
                 justifyContent: 'start',
@@ -116,11 +109,7 @@ export function DateDialog({
               }}
               onClick={() => (column.value = col)}
             >
-              <span
-                class="iconify"
-                data-icon="carbon:calendar"
-                style={{ fontSize: '1rem', flexShrink: 0 }}
-              />
+              <span class={`iconify ${styles.chipIcon}`} data-icon="carbon:calendar" />
               <span
                 style={{
                   whiteSpace: 'nowrap',
@@ -152,12 +141,12 @@ export function DateDialog({
       {column.value && (
         <>
           {/* Operation Toggle */}
-          <div class="form-group">
-            <label class="form-label">Operation:</label>
+          <div class={styles.group}>
+            <label class={styles.label}>Operation:</label>
             <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem' }}>
               <button
                 type="button"
-                class={`form-toggle-button ${operation.value === 'extract' ? 'active' : ''}`}
+                class={`${styles.toggleButton} ${operation.value === 'extract' ? styles.active : ''}`}
                 style={{ flex: 1, justifyContent: 'center' }}
                 onClick={() => (operation.value = 'extract')}
               >
@@ -170,7 +159,7 @@ export function DateDialog({
               </button>
               <button
                 type="button"
-                class={`form-toggle-button ${operation.value === 'truncate' ? 'active' : ''}`}
+                class={`${styles.toggleButton} ${operation.value === 'truncate' ? styles.active : ''}`}
                 style={{ flex: 1, justifyContent: 'center' }}
                 onClick={() => (operation.value = 'truncate')}
               >
@@ -182,16 +171,14 @@ export function DateDialog({
 
           {/* Extract Options */}
           {operation.value === 'extract' && (
-            <div class="form-group">
-              <label class="form-label">Extract:</label>
-              <div
-                style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.375rem' }}
-              >
+            <div class={styles.group}>
+              <label class={styles.label}>Extract:</label>
+              <div class={styles.chipGrid3}>
                 {EXTRACT_OPTIONS.map((part) => (
                   <button
                     key={part.value}
                     type="button"
-                    class={`form-chip ${extractParts.value.includes(part.value) ? 'active' : ''}`}
+                    class={`${styles.chip} ${extractParts.value.includes(part.value) ? styles.active : ''}`}
                     onClick={(e) =>
                       handleSelection(part.value, extractParts, e.metaKey || e.ctrlKey)
                     }
@@ -208,16 +195,14 @@ export function DateDialog({
 
           {/* Truncate Options */}
           {operation.value === 'truncate' && (
-            <div class="form-group">
-              <label class="form-label">Truncate to:</label>
-              <div
-                style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.375rem' }}
-              >
+            <div class={styles.group}>
+              <label class={styles.label}>Truncate to:</label>
+              <div class={styles.chipGrid3}>
                 {TRUNCATE_OPTIONS.map((unit) => (
                   <button
                     key={unit.value}
                     type="button"
-                    class={`form-chip ${truncateUnits.value.includes(unit.value) ? 'active' : ''}`}
+                    class={`${styles.chip} ${truncateUnits.value.includes(unit.value) ? styles.active : ''}`}
                     onClick={(e) =>
                       handleSelection(unit.value, truncateUnits, e.metaKey || e.ctrlKey)
                     }
@@ -230,9 +215,9 @@ export function DateDialog({
           )}
 
           {/* Output Column Name */}
-          <div class="form-group">
+          <div class={styles.group}>
             <label
-              class="form-label"
+              class={styles.label}
               style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
             >
               <span>Output column name:</span>
@@ -249,7 +234,7 @@ export function DateDialog({
             {activeSelectionCount.value === 1 ? (
               <input
                 type="text"
-                class="form-input"
+                class={styles.input}
                 value={outputColumn.value}
                 onInput={(e) => (outputColumn.value = (e.target as HTMLInputElement).value)}
                 placeholder={placeholderText.value}
@@ -273,39 +258,12 @@ export function DateDialog({
       )}
 
       {/* Error message */}
-      {error.value && (
-        <div
-          style={{
-            color: 'var(--color-red)',
-            fontSize: '13px',
-            marginTop: '8px',
-            whiteSpace: 'pre-wrap',
-            fontFamily: 'var(--font-family-mono)',
-          }}
-        >
-          {error.value}
-        </div>
-      )}
+      {error.value && <div class={styles.error}>{error.value}</div>}
 
       {/* Help Section */}
       {column.value && (
-        <div
-          style={{
-            marginTop: '1rem',
-            padding: '0.75rem',
-            background: 'var(--color-soft-bg)',
-            borderRadius: '6px',
-            border: '1px solid var(--border-color)',
-          }}
-        >
-          <div
-            style={{
-              fontWeight: 600,
-              fontSize: '0.8rem',
-              color: 'var(--color-dark-gray)',
-              marginBottom: '0.5rem',
-            }}
-          >
+        <div class={styles.expressionHelp}>
+          <div class={styles.expressionHelpTitle} style={{ display: 'block' }}>
             {operation.value === 'extract' ? 'Extract' : 'Truncate'}
             {' — What it does'}
           </div>

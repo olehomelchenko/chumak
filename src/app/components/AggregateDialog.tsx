@@ -1,4 +1,5 @@
 import { Signal } from '@preact/signals';
+import styles from './TransformDialog.module.css';
 
 export interface Aggregation {
   col: string;
@@ -50,7 +51,6 @@ export function AggregateDialog({
     const agg = { ...newAggs[index], [field]: value };
 
     // Auto-update output name if not manually edited?
-    // replicating logic: updateAggregateOutputName(index)
     if (field === 'col' || field === 'func') {
       if (agg.func === 'count' && !agg.col) {
         agg.output = 'count';
@@ -77,30 +77,30 @@ export function AggregateDialog({
   ];
 
   return (
-    <div className="dialog-content">
+    <div>
       {/* Group By Section */}
-      <div className="form-group">
-        <label className="form-label">Group By (Columns)</label>
+      <div class={styles.group}>
+        <label class={styles.label}>Group By (Columns)</label>
         <div
-          className="form-actions"
+          class={styles.actions}
           style={{ marginBottom: '0.5rem', display: 'flex', gap: '0.5rem' }}
         >
-          <button type="button" className="button button--text button--small" onClick={selectAll}>
+          <button type="button" class="button button--text button--small" onClick={selectAll}>
             Select All
           </button>
-          <button type="button" className="button button--text button--small" onClick={selectNone}>
+          <button type="button" class="button button--text button--small" onClick={selectNone}>
             Select None
           </button>
         </div>
 
-        <div className="column-chips-multi">
+        <div class={styles.chipGrid}>
           {columns.map((col) => {
             const isSelected = groupBy.value.includes(col);
             return (
               <button
                 key={col}
                 type="button"
-                className={`form-chip ${isSelected ? 'active' : ''}`}
+                class={`${styles.chip} ${isSelected ? styles.active : ''}`}
                 style={{
                   flexDirection: 'row',
                   justifyContent: 'start',
@@ -110,12 +110,9 @@ export function AggregateDialog({
                 onClick={() => toggleColumn(col)}
               >
                 <div
-                  className="iconify"
+                  class={`iconify ${styles.chipIcon}`}
                   style={{
-                    fontSize: '1rem',
-                    flexShrink: 0,
                     color: isSelected ? 'var(--color-green)' : 'currentColor',
-                    // Simulate icon appearance or use text fallback if iconify not loaded
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
@@ -141,33 +138,24 @@ export function AggregateDialog({
             <div style={{ color: '#888', fontSize: '0.8rem' }}>No columns available</div>
           )}
         </div>
-        <div className="form-help">Selected columns will define the grouping keys.</div>
+        <div class={styles.helpText}>Selected columns will define the grouping keys.</div>
       </div>
 
       {/* Aggregations Section */}
-      <div className="form-group">
-        <label className="form-label">Summarize / Rollup</label>
+      <div class={styles.group}>
+        <label class={styles.label}>Summarize / Rollup</label>
 
         <div style={{ marginBottom: '0.5rem' }}>
           {aggregations.value.map((agg, index) => (
-            <div
-              key={index}
-              style={{
-                display: 'flex',
-                gap: '0.5rem',
-                marginBottom: '0.5rem',
-                alignItems: 'center',
-                background: '#f8f9fa',
-                padding: '4px',
-                borderRadius: '4px',
-              }}
-            >
+            <div key={index} class={styles.aggregationRow}>
               {/* Column */}
               <select
-                className="form-input"
+                class={styles.input}
                 style={{ flex: 1 }}
                 value={agg.col}
-                onChange={(e) => updateAggregation(index, 'col', e.currentTarget.value)}
+                onChange={(e) =>
+                  updateAggregation(index, 'col', (e.target as HTMLSelectElement).value)
+                }
                 disabled={agg.func === 'count'}
               >
                 <option value="">{agg.func === 'count' ? '(All rows)' : 'Select column...'}</option>
@@ -180,10 +168,12 @@ export function AggregateDialog({
 
               {/* Function */}
               <select
-                className="form-input"
+                class={styles.input}
                 style={{ width: '100px' }}
                 value={agg.func}
-                onChange={(e) => updateAggregation(index, 'func', e.currentTarget.value)}
+                onChange={(e) =>
+                  updateAggregation(index, 'func', (e.target as HTMLSelectElement).value)
+                }
               >
                 {aggFunctions.map((f) => (
                   <option key={f.value} value={f.value}>
@@ -197,15 +187,17 @@ export function AggregateDialog({
               {/* Output Name */}
               <input
                 type="text"
-                className="form-input"
+                class={styles.input}
                 style={{ flex: 1 }}
                 value={agg.output}
-                onInput={(e) => updateAggregation(index, 'output', e.currentTarget.value)}
+                onInput={(e) =>
+                  updateAggregation(index, 'output', (e.target as HTMLInputElement).value)
+                }
                 placeholder="Output name (auto-generated)"
               />
 
               <button
-                className="button button--secondary button--small"
+                class="button button--secondary button--small"
                 onClick={() => removeAggregation(index)}
                 title="Remove"
               >
@@ -215,18 +207,14 @@ export function AggregateDialog({
           ))}
         </div>
 
-        <button className="button button--secondary button--small" onClick={addAggregation}>
+        <button class="button button--secondary button--small" onClick={addAggregation}>
           + Add Aggregation
         </button>
       </div>
 
       {/* Preview Button */}
-      <div className="form-group" style={{ marginTop: '1rem' }}>
-        <button
-          className="button button--secondary"
-          onClick={onPreview}
-          disabled={isPreviewing.value}
-        >
+      <div class={styles.group} style={{ marginTop: '1rem' }}>
+        <button class="button button--secondary" onClick={onPreview} disabled={isPreviewing.value}>
           {isPreviewing.value ? 'Previewing...' : 'Preview Result'}
         </button>
       </div>

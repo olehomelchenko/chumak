@@ -1,6 +1,6 @@
-// Note: 'h' import not needed - Vite's JSX transform handles it
 import { AppStore } from '../stores/AppStore';
 import type { Source, Model } from '../types';
+import styles from './DatasetInfoView.module.css';
 
 export interface DatasetInfoViewProps {
   onRenameSource: (source: Source) => void;
@@ -24,60 +24,54 @@ export function DatasetInfoView({
   const sourceModels = models.value.filter((m) => m.sourceId === source.id);
 
   return (
-    <div class="dataset-info">
-      <div class="dataset-info__header">
+    <div class={styles.datasetInfo}>
+      <div class={styles.header}>
         <div>
-          <h1 class="dataset-info__title">{source.name}</h1>
-          <p class="dataset-info__subtitle">Dataset Source</p>
+          <h1 class={styles.title}>{source.name}</h1>
+          <p class={styles.subtitle}>Dataset Source</p>
         </div>
-        <div class="dataset-info__actions">
+        <div class={styles.actions}>
           <button class="button button--secondary" onClick={() => onRenameSource(source)}>
-            <span
-              class="iconify"
-              data-icon="carbon:edit"
-              style={{ width: '24px', height: '24px' }}
-            ></span>
+            <span class="iconify" data-icon="carbon:edit" style={{ fontSize: '24px' }}></span>
             Rename
           </button>
           <button class="button button--danger" onClick={() => onDeleteSource(source)}>
-            <span
-              class="iconify"
-              data-icon="carbon:trash-can"
-              style={{ width: '24px', height: '24px' }}
-            ></span>
+            <span class="iconify" data-icon="carbon:trash-can" style={{ fontSize: '24px' }}></span>
             Delete
           </button>
         </div>
       </div>
 
-      <div class="dataset-info__content">
+      <div class={styles.content}>
         {/* Metadata Card */}
-        <div class="info-card">
-          <h3 class="info-card__title">Dataset Information</h3>
-          <dl class="info-list">
-            <div class="info-list__item">
-              <dt class="info-list__label">Source Name</dt>
-              <dd class="info-list__value">{source.name}</dd>
+        <div class={styles.infoCard}>
+          <h3 class={styles.infoCard__title}>Dataset Information</h3>
+          <dl class={styles.infoList}>
+            <div class={styles.infoList__item}>
+              <dt class={styles.infoList__label}>Source Name</dt>
+              <dd class={styles.infoList__value}>{source.name}</dd>
             </div>
-            <div class="info-list__item">
-              <dt class="info-list__label">Original File</dt>
-              <dd class="info-list__value">{source.fileName}</dd>
+            <div class={styles.infoList__item}>
+              <dt class={styles.infoList__label}>Original File</dt>
+              <dd class={styles.infoList__value}>{source.fileName}</dd>
             </div>
-            <div class="info-list__item">
-              <dt class="info-list__label">Rows</dt>
-              <dd class="info-list__value">{source.rowCount?.toLocaleString()}</dd>
+            <div class={styles.infoList__item}>
+              <dt class={styles.infoList__label}>Rows</dt>
+              <dd class={styles.infoList__value}>{source.rowCount?.toLocaleString()}</dd>
             </div>
-            <div class="info-list__item">
-              <dt class="info-list__label">Columns</dt>
-              <dd class="info-list__value">{source.columns?.length}</dd>
+            <div class={styles.infoList__item}>
+              <dt class={styles.infoList__label}>Columns</dt>
+              <dd class={styles.infoList__value}>{source.columns?.length}</dd>
             </div>
-            <div class="info-list__item">
-              <dt class="info-list__label">File Size</dt>
-              <dd class="info-list__value">{`${((source.rawSize || 0) / 1024).toFixed(1)} KB`}</dd>
+            <div class={styles.infoList__item}>
+              <dt class={styles.infoList__label}>File Size</dt>
+              <dd
+                class={styles.infoList__value}
+              >{`${((source.rawSize || 0) / 1024).toFixed(1)} KB`}</dd>
             </div>
-            <div class="info-list__item">
-              <dt class="info-list__label">Imported</dt>
-              <dd class="info-list__value">
+            <div class={styles.infoList__item}>
+              <dt class={styles.infoList__label}>Imported</dt>
+              <dd class={styles.infoList__value}>
                 {source.createdAt ? new Date(source.createdAt).toLocaleString() : 'Unknown'}
               </dd>
             </div>
@@ -85,29 +79,24 @@ export function DatasetInfoView({
         </div>
 
         {/* Models List Card */}
-        <div class="info-card">
-          <h3 class="info-card__title">
+        <div class={styles.infoCard}>
+          <h3 class={styles.infoCard__title}>
             Models
-            <span class="badge">{sourceModels.length}</span>
+            <span class={styles.badge}>{sourceModels.length}</span>
           </h3>
-          <div class="models-list">
+          <div class={styles.modelsList}>
             {sourceModels.map((model) => (
-              <div
-                key={model.id}
-                class="model-card"
-                onClick={() => onSwitchToModel(model)}
-                style={{ cursor: 'pointer' }}
-              >
-                <div class="model-card__icon">📊</div>
-                <div class="model-card__content">
-                  <div class="model-card__name">{model.name}</div>
-                  <div class="model-card__meta">
+              <div key={model.id} class={styles.modelCard} onClick={() => onSwitchToModel(model)}>
+                <div class={styles.modelCard__icon}>📊</div>
+                <div class={styles.modelCard__content}>
+                  <div class={styles.modelCard__name}>{model.name}</div>
+                  <div class={styles.modelCard__meta}>
                     <span>{`${(model.steps?.length || 1) - 1} step${(model.steps?.length || 1) - 1 !== 1 ? 's' : ''}`}</span>
                     <span>•</span>
                     <span>{`${model.data?.length?.toLocaleString() || 0} rows`}</span>
                   </div>
                 </div>
-                <div class="model-card__arrow">→</div>
+                <div class={styles.modelCardArrow}>→</div>
               </div>
             ))}
 
@@ -123,26 +112,28 @@ export function DatasetInfoView({
         </div>
 
         {/* Column Schema Card */}
-        <div class="info-card info-card--full">
-          <h3 class="info-card__title">Column Schema</h3>
-          <table class="schema-table">
+        <div class={`${styles.infoCard} ${styles.full}`}>
+          <h3 class={styles.infoCard__title}>Column Schema</h3>
+          <table class={styles.schemaTable}>
             <thead>
               <tr>
-                <th class="schema-table__header">Column Name</th>
-                <th class="schema-table__header">Type</th>
-                <th class="schema-table__header">Position</th>
+                <th class={styles.schemaTable__header}>Column Name</th>
+                <th class={styles.schemaTable__header}>Type</th>
+                <th class={styles.schemaTable__header}>Position</th>
               </tr>
             </thead>
             <tbody>
               {(source.columns || []).map((column: any) => (
-                <tr key={column.name} class="schema-table__row">
-                  <td class="schema-table__cell">{column.name}</td>
-                  <td class="schema-table__cell">
-                    <span class={`type-badge type-badge--${column.type || column.inferredType}`}>
+                <tr key={column.name} class={styles.schemaTable__row}>
+                  <td class={styles.schemaTable__cell}>{column.name}</td>
+                  <td class={styles.schemaTable__cell}>
+                    <span
+                      class={`${styles.typeBadge} ${styles[`typeBadge--${column.type || column.inferredType}`]}`}
+                    >
                       {column.type || column.inferredType}
                     </span>
                   </td>
-                  <td class="schema-table__cell">{column.originalPosition + 1}</td>
+                  <td class={styles.schemaTable__cell}>{column.originalPosition + 1}</td>
                 </tr>
               ))}
             </tbody>

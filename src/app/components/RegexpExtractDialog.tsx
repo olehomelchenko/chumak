@@ -4,6 +4,7 @@ import {
   validateRegexpExtractExpression,
   debouncedUpdateRegexpExtractPreview,
 } from '../transforms/regexp-transforms';
+import styles from './TransformDialog.module.css';
 
 export function RegexpExtractDialog() {
   const { sourceColumn, pattern, columnName, group, error } = DialogStore.regexpExtractState;
@@ -15,56 +16,36 @@ export function RegexpExtractDialog() {
   };
 
   return (
-    <div class="dialog-content">
-      <p class="form-help" style={{ marginBottom: '1rem' }}>
+    <div>
+      <p class={styles.helpText} style={{ marginBottom: '1rem' }}>
         Extracts text matching a pattern into a new column.
       </p>
 
-      <div class="form-group">
-        <label class="form-label">Source column:</label>
-        <div class="column-chips">
+      <div class={styles.group}>
+        <label class={styles.label}>Source column:</label>
+        <div class={styles.chipGrid}>
           {columns.map((col) => (
             <button
               key={col}
               type="button"
-              class={`form-chip ${sourceColumn.value === col ? 'active' : ''}`}
-              style={{
-                flexDirection: 'row',
-                justifyContent: 'start',
-                gap: '0.5rem',
-                padding: '0.5rem 0.75rem',
-              }}
+              class={`${styles.chip} ${sourceColumn.value === col ? styles.active : ''}`}
               onClick={() => {
                 sourceColumn.value = col;
                 debouncedUpdateRegexpExtractPreview();
               }}
             >
-              <span
-                class="iconify"
-                data-icon="carbon:column"
-                style={{ fontSize: '1rem', flexShrink: 0 }}
-              ></span>
-              <span
-                style={{
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  textAlign: 'left',
-                  flexGrow: 1,
-                }}
-              >
-                {col}
-              </span>
+              <span class={`iconify ${styles.chipIcon}`} data-icon="carbon:column"></span>
+              <span class={styles.chipText}>{col}</span>
             </button>
           ))}
         </div>
       </div>
 
-      <div class="form-group">
-        <label class="form-label">Pattern (regex):</label>
+      <div class={styles.group}>
+        <label class={styles.label}>Pattern (regex):</label>
         <input
           type="text"
-          class="form-input"
+          class={styles.input}
           value={pattern.value}
           onInput={(e) => {
             pattern.value = (e.target as HTMLInputElement).value;
@@ -74,11 +55,11 @@ export function RegexpExtractDialog() {
         />
       </div>
 
-      <div class="form-group">
-        <label class="form-label">Capture group (0 = entire match):</label>
+      <div class={styles.group}>
+        <label class={styles.label}>Capture group (0 = entire match):</label>
         <input
           type="number"
-          class="form-input"
+          class={styles.input}
           value={group.value}
           onInput={(e) => {
             group.value = parseInt((e.target as HTMLInputElement).value) || 0;
@@ -90,11 +71,11 @@ export function RegexpExtractDialog() {
         />
       </div>
 
-      <div class="form-group">
-        <label class="form-label">New column name:</label>
+      <div class={styles.group}>
+        <label class={styles.label}>New column name:</label>
         <input
           type="text"
-          class="form-input"
+          class={styles.input}
           value={columnName.value}
           onInput={(e) => {
             columnName.value = (e.target as HTMLInputElement).value;
@@ -106,105 +87,40 @@ export function RegexpExtractDialog() {
 
       {/* Error message */}
       {error.value && (
-        <div
-          style={{
-            color: 'var(--color-red)',
-            fontSize: '13px',
-            marginTop: '8px',
-            whiteSpace: 'pre-wrap',
-            fontFamily: 'var(--font-family-mono)',
-          }}
-        >
+        <div class={styles.error} style={{ margin: '8px 0', fontFamily: 'var(--font-mono)' }}>
           {error.value}
         </div>
       )}
 
       {/* Help section */}
-      <div
-        class="derive-help"
-        style={{
-          marginTop: '1rem',
-          padding: '0.75rem',
-          background: 'var(--color-soft-bg)',
-          borderRadius: '6px',
-          border: '1px solid var(--border-color)',
-        }}
-      >
-        <div
-          style={{
-            fontWeight: 600,
-            fontSize: '0.8rem',
-            color: 'var(--color-dark-gray)',
-            marginBottom: '0.5rem',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-          }}
-        >
+      <div class={styles.expressionHelp} style={{ borderStyle: 'solid' }}>
+        <div class={styles.helpHeader}>
           <span>Pattern Examples</span>
           <button
             type="button"
             class="button button--text button--small"
             onClick={() => (AppStore.activeDialog.value = 'expressions')}
-            style={{ fontWeight: 500, textDecoration: 'underline' }}
           >
             Full Reference
           </button>
         </div>
-        <div
-          style={{
-            fontSize: '0.75rem',
-            fontFamily: 'var(--font-family-mono)',
-            color: 'var(--color-text)',
-            lineHeight: 1.8,
-          }}
-        >
+        <div class={styles.codeList}>
           <div>
-            <code
-              style={{
-                background: 'var(--color-white)',
-                padding: '2px 4px',
-                borderRadius: '3px',
-              }}
-            >
+            <code class={styles.mono}>
               (\d{`{4}`})-(\d{`{2}`})-(\d{`{2}`})
             </code>
             {' — date parts (1=year, 2=month, 3=day)'}
           </div>
           <div>
-            <code
-              style={{
-                background: 'var(--color-white)',
-                padding: '2px 4px',
-                borderRadius: '3px',
-              }}
-            >
-              @(.+)$
-            </code>
+            <code class={styles.mono}>@(.+)$</code>
             {' — domain from email (group 1)'}
           </div>
           <div>
-            <code
-              style={{
-                background: 'var(--color-white)',
-                padding: '2px 4px',
-                borderRadius: '3px',
-              }}
-            >
-              (?i)(error|warning)
-            </code>
+            <code class={styles.mono}>(?i)(error|warning)</code>
             {' — extract level (case-insensitive)'}
           </div>
           <div>
-            <code
-              style={{
-                background: 'var(--color-white)',
-                padding: '2px 4px',
-                borderRadius: '3px',
-              }}
-            >
-              ^([A-Z]{`{2}`})
-            </code>
+            <code class={styles.mono}>^([A-Z]{`{2}`})</code>
             {' — first 2 uppercase letters'}
           </div>
         </div>

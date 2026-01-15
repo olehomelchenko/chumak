@@ -1,4 +1,5 @@
 import { AppStore } from '../stores/AppStore';
+import styles from './StatusBar.module.css';
 
 export function StatusBar() {
   const isTransforming = AppStore.isTransforming.value;
@@ -7,11 +8,11 @@ export function StatusBar() {
   if (!isTransforming) return null;
 
   return (
-    <footer class="status-bar">
-      <div class="status-bar__content">
-        <span class="status-bar__message">{message || 'Processing...'}</span>
-        <div class="status-bar__loader">
-          <div class="status-bar__loader-bar"></div>
+    <footer class={styles.statusBar}>
+      <div class={styles.content}>
+        <span class={styles.message}>{message || 'Processing...'}</span>
+        <div class={styles.loader}>
+          <div class={styles.loaderBar}></div>
         </div>
       </div>
     </footer>

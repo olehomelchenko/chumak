@@ -7,6 +7,7 @@ import {
   selectNoneForDedupe,
   updateDedupePreview,
 } from '../transforms/dedupe-transform';
+import styles from './TransformDialog.module.css';
 
 export function DedupeDialog() {
   const { mode, useAllColumns, selectedColumns, duplicateCount } = DialogStore.dedupeState;
@@ -18,13 +19,13 @@ export function DedupeDialog() {
   };
 
   return (
-    <div class="dialog-content">
+    <div>
       {/* Mode Toggle */}
-      <div class="form-group" style={{ marginBottom: '1rem' }}>
-        <label class="form-label" style={{ marginBottom: '0.5rem' }}>
+      <div class={styles.group} style={{ marginBottom: '1rem' }}>
+        <label class={styles.label} style={{ marginBottom: '0.5rem' }}>
           Action
         </label>
-        <div class="form-row" style={{ display: 'flex', gap: '0.5rem' }}>
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
           <button
             type="button"
             class={`button button--small ${
@@ -47,11 +48,11 @@ export function DedupeDialog() {
       </div>
 
       {/* Column Scope Toggle */}
-      <div class="form-group">
-        <label class="form-label" style={{ marginBottom: '0.5rem' }}>
+      <div class={styles.group}>
+        <label class={styles.label} style={{ marginBottom: '0.5rem' }}>
           Compare By
         </label>
-        <div class="form-row" style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
+        <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
           <button
             type="button"
             class={`button button--small ${
@@ -74,15 +75,12 @@ export function DedupeDialog() {
       </div>
 
       {!useAllColumns.value && (
-        <div>
-          <p class="form-help" style={{ marginBottom: '0.75rem' }}>
+        <div class={styles.group}>
+          <p class={styles.helpText} style={{ marginBottom: '0.75rem' }}>
             Select columns to use as composite key:
           </p>
 
-          <div
-            class="form-actions"
-            style={{ marginBottom: '0.5rem', display: 'flex', gap: '0.5rem' }}
-          >
+          <div class={styles.actions} style={{ marginBottom: '0.5rem', marginTop: 0 }}>
             <button
               type="button"
               class="button button--text button--small"
@@ -99,42 +97,22 @@ export function DedupeDialog() {
             </button>
           </div>
 
-          <div class="column-chips-multi">
+          <div class={styles.chipGrid}>
             {columns.map((col, index) => {
               const isActive = selectedColumns.value[index];
               return (
                 <button
                   key={col}
                   type="button"
-                  class={`form-chip ${isActive ? 'active' : ''}`}
-                  style={{
-                    flexDirection: 'row',
-                    justifyContent: 'start',
-                    gap: '0.5rem',
-                    padding: '0.5rem 0.75rem',
-                  }}
+                  class={`${styles.chip} ${isActive ? styles.active : ''}`}
                   onClick={() => toggleDedupeColumn(index)}
                 >
                   <span
-                    class="iconify"
+                    class={`iconify ${styles.chipIcon}`}
                     data-icon={isActive ? 'carbon:checkmark-filled' : 'carbon:checkbox'}
-                    style={{
-                      fontSize: '1rem',
-                      flexShrink: 0,
-                      color: isActive ? 'var(--color-green)' : '',
-                    }}
+                    style={{ color: isActive ? 'var(--color-green)' : '' }}
                   ></span>
-                  <span
-                    style={{
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      flexGrow: 1,
-                      textAlign: 'left',
-                    }}
-                  >
-                    {col}
-                  </span>
+                  <span class={styles.chipText}>{col}</span>
                 </button>
               );
             })}
@@ -143,7 +121,7 @@ export function DedupeDialog() {
       )}
 
       {useAllColumns.value && (
-        <div class="form-help" style={{ margin: '0.75rem 0' }}>
+        <div class={styles.helpText} style={{ margin: '0.75rem 0' }}>
           <span
             class="iconify"
             data-icon="carbon:information"
@@ -154,56 +132,48 @@ export function DedupeDialog() {
       )}
 
       <div
-        class="dedupe-stats"
+        class={styles.warningBox}
         style={{
-          marginTop: '1rem',
-          padding: '1rem',
-          borderRadius: 'var(--border-radius)',
           background:
-            duplicateCount.value > 0
-              ? 'rgba(var(--color-yellow-rgb), 0.15)'
-              : 'rgba(var(--color-green-rgb), 0.1)',
+            duplicateCount.value > 0 ? 'rgba(255, 193, 7, 0.15)' : 'rgba(76, 175, 80, 0.1)',
+          borderColor: duplicateCount.value > 0 ? 'var(--color-yellow)' : 'var(--color-green)',
         }}
       >
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <span
-            class="iconify"
-            data-icon={duplicateCount.value > 0 ? 'carbon:warning' : 'carbon:checkmark-outline'}
-            style={{
-              fontSize: '1.25rem',
-              color: duplicateCount.value > 0 ? 'var(--color-yellow)' : 'var(--color-green)',
-            }}
-          ></span>
-          <span>
-            {duplicateCount.value > 0 ? (
-              <span>
-                <strong>{duplicateCount.value.toLocaleString()}</strong> duplicate row
-                {duplicateCount.value !== 1 ? 's' : ''} found
-              </span>
-            ) : (
-              <span>No duplicates found</span>
-            )}
-          </span>
+        <span
+          class="iconify"
+          data-icon={duplicateCount.value > 0 ? 'carbon:warning' : 'carbon:checkmark-outline'}
+          style={{
+            fontSize: '1.25rem',
+            color: duplicateCount.value > 0 ? 'var(--color-yellow)' : 'var(--color-green)',
+          }}
+        ></span>
+        <div class={styles.warningText} style={{ color: 'var(--color-text)' }}>
+          {duplicateCount.value > 0 ? (
+            <span>
+              <strong>{duplicateCount.value.toLocaleString()}</strong> duplicate row
+              {duplicateCount.value !== 1 ? 's' : ''} found
+            </span>
+          ) : (
+            <span>No duplicates found</span>
+          )}
         </div>
       </div>
 
       <p
-        class="form-help"
+        class={styles.helpText}
         style={{
           marginTop: '0.75rem',
           fontSize: '0.75rem',
-          color: 'var(--color-dark-gray)',
           display: mode.value === 'remove' ? 'block' : 'none',
         }}
       >
         Removes duplicate rows, keeping only the first occurrence of each.
       </p>
       <p
-        class="form-help"
+        class={styles.helpText}
         style={{
           marginTop: '0.75rem',
           fontSize: '0.75rem',
-          color: 'var(--color-dark-gray)',
           display: mode.value === 'keep' ? 'block' : 'none',
         }}
       >

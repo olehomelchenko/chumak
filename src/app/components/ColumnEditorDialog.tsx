@@ -1,6 +1,7 @@
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 import { useComputed } from '@preact/signals';
+import styles from './TransformDialog.module.css';
 
 export interface ColumnEditorItem {
   original: string;
@@ -115,20 +116,20 @@ export function ColumnEditorDialog({
   };
 
   return (
-    <div className="dialog-content">
+    <div>
       {/* Mode Toggle */}
-      <div className="form-group" style={{ marginBottom: '1rem' }}>
+      <div class={styles.group}>
         <div style={{ display: 'flex', gap: '0.5rem' }}>
           <button
             type="button"
-            className={`button button--small ${mode.value === 'list' ? 'button--primary' : ''}`}
+            class={`${styles.toggleButton} ${mode.value === 'list' ? styles.active : ''}`}
             onClick={() => (mode.value = 'list')}
           >
             List Mode
           </button>
           <button
             type="button"
-            className={`button button--small ${mode.value === 'text' ? 'button--primary' : ''}`}
+            class={`${styles.toggleButton} ${mode.value === 'text' ? styles.active : ''}`}
             onClick={() => {
               mode.value = 'text';
               handleSwitchToText();
@@ -143,17 +144,17 @@ export function ColumnEditorDialog({
         <div>
           {/* Pattern Matching */}
           <div
-            className="form-group"
+            class={styles.group}
             style={{
               marginBottom: '1rem',
               paddingBottom: '1rem',
-              borderBottom: '1px solid var(--color-border)',
+              borderBottom: '1px solid var(--border-color)',
             }}
           >
-            <label className="form-label">Pattern Matching (optional):</label>
+            <label class={styles.label}>Pattern Matching (optional):</label>
             <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
               <select
-                className="form-input"
+                class={styles.input}
                 value={patternMode.value}
                 onChange={(e) => (patternMode.value = e.currentTarget.value as any)}
                 style={{ width: '120px' }}
@@ -162,7 +163,7 @@ export function ColumnEditorDialog({
                 <option value="exclude">Deselect</option>
               </select>
               <select
-                className="form-input"
+                class={styles.input}
                 value={patternMatchType.value}
                 onChange={(e) => (patternMatchType.value = e.currentTarget.value as any)}
                 style={{ width: '140px' }}
@@ -173,7 +174,7 @@ export function ColumnEditorDialog({
               </select>
               <input
                 type="text"
-                className="form-input"
+                class={styles.input}
                 value={patternText.value}
                 onInput={(e) => (patternText.value = e.currentTarget.value)}
                 placeholder="e.g., sales_ or _2023"
@@ -181,14 +182,14 @@ export function ColumnEditorDialog({
               />
               <button
                 type="button"
-                className="button button--small button--primary"
+                class="button button--small button--primary"
                 onClick={handleApplyPattern}
                 disabled={!patternText.value.trim()}
               >
                 Apply
               </button>
             </div>
-            <div className="form-actions" style={{ marginTop: '0.5rem' }}>
+            <div class={styles.actions} style={{ marginTop: '0.5rem' }}>
               <button className="button button--text button--small" onClick={selectAll}>
                 Select All
               </button>
@@ -199,57 +200,27 @@ export function ColumnEditorDialog({
           </div>
 
           {/* Column List */}
-          <div
-            className="column-editor-list"
-            style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}
-          >
+          <div class={styles.columnEditorList}>
             {columns.value.map((item, index) => (
               <div
                 key={item.original}
-                className={`column-editor-item ${!item.selected ? 'column-editor-item--unselected' : ''} ${draggedIndex.value === index ? 'column-editor-item--dragging' : ''}`}
+                class={`${styles.columnEditorItem} ${!item.selected ? styles.unselected : ''} ${draggedIndex.value === index ? styles.dragging : ''}`}
                 draggable
                 onDragStart={(e) => handleDragStart(e, index)}
                 onDragOver={handleDragOver}
                 onDrop={(e) => handleDrop(e, index)}
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem',
-                  padding: '0.5rem',
-                  background: 'var(--color-background)',
-                  border: '1px solid var(--color-border)',
-                  borderRadius: 'var(--radius-sm)',
-                  cursor: 'grab',
-                }}
               >
                 {/* Handle */}
-                <span
-                  style={{
-                    fontSize: '1rem',
-                    color: 'var(--color-dark-gray)',
-                    flexShrink: 0,
-                    cursor: 'grab',
-                  }}
-                >
-                  ⋮⋮
-                </span>
+                <span class={styles.dragHandle}>⋮⋮</span>
 
                 {/* Checkbox */}
                 <button
                   type="button"
-                  style={{
-                    background: 'none',
-                    border: 'none',
-                    cursor: 'pointer',
-                    padding: 0,
-                    display: 'flex',
-                    alignItems: 'center',
-                  }}
+                  class={styles.itemCheckbox}
                   onClick={() => toggleSelection(index)}
                 >
                   <span
                     style={{
-                      fontSize: '1.25rem',
                       color: item.selected ? 'var(--color-green)' : 'var(--color-red)',
                     }}
                   >
@@ -259,11 +230,8 @@ export function ColumnEditorDialog({
 
                 {/* Original Name */}
                 <span
+                  class={styles.originalName}
                   style={{
-                    fontSize: '0.875rem',
-                    color: 'var(--color-dark-gray)',
-                    minWidth: '100px',
-                    flexShrink: 0,
                     textDecoration: !item.selected ? 'line-through' : 'none',
                     opacity: !item.selected ? 0.6 : 1,
                   }}
@@ -272,25 +240,16 @@ export function ColumnEditorDialog({
                 </span>
 
                 {/* Arrow */}
-                {item.selected && (
-                  <span
-                    style={{ fontSize: '0.875rem', color: 'var(--color-dark-gray)', flexShrink: 0 }}
-                  >
-                    →
-                  </span>
-                )}
+                {item.selected && <span class={styles.arrow}>→</span>}
 
                 {/* Editable Name */}
                 <input
                   type="text"
-                  className="form-input"
+                  class={`${styles.input} ${styles.renamedName}`}
                   value={item.renamed}
                   disabled={!item.selected}
                   onInput={(e) => updateRename(index, e.currentTarget.value)}
                   style={{
-                    flex: 1,
-                    padding: '0.25rem 0.5rem',
-                    fontSize: '0.875rem',
                     opacity: !item.selected ? 0.4 : 1,
                   }}
                 />
@@ -303,23 +262,15 @@ export function ColumnEditorDialog({
       {mode.value === 'text' && (
         <div>
           {/* Sub-mode Selection */}
-          <div className="form-group" style={{ marginBottom: '1rem' }}>
-            <label className="form-label">Text Mode Operation:</label>
+          <div class={styles.group}>
+            <label class={styles.label}>Text Mode Operation:</label>
             <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
               {[
                 { val: 'rename', label: 'Rename' },
                 { val: 'reorder', label: 'Reorder' },
                 { val: 'select', label: 'Select' },
               ].map((opt) => (
-                <label
-                  key={opt.val}
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '0.25rem',
-                    cursor: 'pointer',
-                  }}
-                >
+                <label key={opt.val} class={styles.checkboxLabel}>
                   <input
                     type="radio"
                     name="textSubMode"
@@ -337,7 +288,7 @@ export function ColumnEditorDialog({
           </div>
 
           {/* Help Text */}
-          <p className="form-help" style={{ marginBottom: '0.5rem' }}>
+          <p class={styles.helpText}>
             {textSubMode.value === 'rename' && (
               <span>
                 Enter new names for each column (one per line, same order). Must have exactly{' '}
@@ -356,7 +307,7 @@ export function ColumnEditorDialog({
           </p>
 
           <textarea
-            className="form-input"
+            class={styles.input}
             value={textValue.value}
             onInput={(e) => {
               textValue.value = e.currentTarget.value;
@@ -367,32 +318,22 @@ export function ColumnEditorDialog({
             placeholder="Enter column names, one per line..."
           ></textarea>
 
-          {textError.value && (
-            <div style={{ marginTop: '0.5rem', color: 'var(--color-red)', fontSize: '0.875rem' }}>
-              {textError.value}
-            </div>
-          )}
+          {textError.value && <div class={styles.error}>{textError.value}</div>}
         </div>
       )}
 
       {/* Changes Preview */}
       {changes.value.hasChanges && (
-        <div
-          style={{
-            marginTop: '1rem',
-            padding: '0.75rem',
-            background: 'var(--color-surface)',
-            borderRadius: 'var(--radius-sm)',
-            fontSize: '0.875rem',
-          }}
-        >
-          <div style={{ fontWeight: 600, marginBottom: '0.5rem' }}>Changes Preview:</div>
+        <div class={styles.expressionHelp}>
+          <div class={styles.expressionHelpTitle} style={{ display: 'block' }}>
+            Changes Preview:
+          </div>
 
           {/* Removed */}
           {changes.value.removed.length > 0 && (
             <div style={{ marginBottom: '0.5rem' }}>
               <span style={{ color: 'var(--color-red)' }}>Remove: </span>
-              <span>{changes.value.removed.join(', ')}</span>
+              <span style={{ fontSize: '0.8125rem' }}>{changes.value.removed.join(', ')}</span>
             </div>
           )}
 
@@ -401,7 +342,10 @@ export function ColumnEditorDialog({
             <div style={{ marginBottom: '0.5rem' }}>
               <span style={{ color: 'var(--color-primary)' }}>Rename: </span>
               {changes.value.renamed.map((r) => (
-                <span key={r.from} style={{ marginLeft: '0.25rem' }}>{`${r.from} → ${r.to}`}</span>
+                <span
+                  key={r.from}
+                  style={{ marginLeft: '0.25rem', fontSize: '0.8125rem' }}
+                >{`${r.from} → ${r.to}`}</span>
               ))}
             </div>
           )}

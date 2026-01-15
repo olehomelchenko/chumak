@@ -1,0 +1,98 @@
+.pagination {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: var(--space-xs) var(--space-lg);
+  border-bottom: var(--border-width) solid var(--border-color);
+  background: var(--color-white);
+}
+
+.modelActions {
+  display: flex;
+  gap: 4px;
+  align-items: center;
+}
+
+.controls {
+  display: flex;
+  gap: var(--space-sm);
+  align-items: center;
+}
+
+.divider {
+  width: 1px;
+  height: 20px;
+  background: var(--border-color);
+  margin: 0 var(--space-xs);
+}
+
+.pageIndicator {
+  font-size: var(--font-size-sm);
+  color: var(--color-dark-gray);
+  padding: 0 var(--space-sm);
+  min-width: 100px;
+  text-align: center;
+}
+
+.paginationInfo {
+  font-size: var(--font-size-base);
+  color: var(--color-dark-gray);
+}
+
+.pageSizeSelect {
+  width: auto;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.875rem;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  background: var(--color-white);
+  color: var(--color-midnight-blue);
+  cursor: pointer;
+  outline: none;
+
+  &:focus {
+    border-color: var(--color-cyan);
+  }
+}
+
+.rowsLabel {
+  font-size: 0.875rem;
+  color: var(--color-dark-gray);
+}
+
+/* Copy button styles integrated from buttons.css to localize them */
+.copyButton {
+  position: relative;
+  background: transparent;
+  border: 1px solid transparent;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: var(--border-radius);
+  color: var(--color-midnight-blue);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  transition: all var(--transition-fast);
+
+  &:hover {
+    background: rgba(var(--color-cyan-rgb), 0.08);
+    border-color: var(--color-cyan);
+  }
+
+  .baseIcon {
+    width: 26px;
+    height: 26px;
+  }
+
+  .overlayIcon {
+    position: absolute;
+    bottom: -1px;
+    right: -1px;
+    width: 14px;
+    height: 14px;
+    padding: 0px;
+    z-index: 1;
+  }
+}

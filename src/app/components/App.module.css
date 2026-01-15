@@ -41,10 +41,6 @@
   &.open.dedupe {
     width: 800px;
   }
-
-  &.hasPreview {
-    /* Adjust if needed when preview is present */
-  }
 }
 
 .backdrop {

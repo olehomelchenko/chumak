@@ -1,4 +1,5 @@
 import { AppStore } from '../stores/AppStore';
+import styles from './FloatingToolbar.module.css';
 
 interface ColumnToolbarProps {
   onSort: (order: 'asc' | 'desc') => void;
@@ -31,7 +32,7 @@ export function ColumnToolbar({
 
   return (
     <div
-      class="floating-toolbar"
+      class={styles.floatingToolbar}
       style={
         {
           left: `${pos.x}px`,
@@ -41,41 +42,50 @@ export function ColumnToolbar({
       }
       onClick={(e) => e.stopPropagation()}
     >
-      <button class="floating-toolbar__button" onClick={() => onSort('asc')} title="Sort Ascending">
+      <button
+        class={styles.floatingToolbar__button}
+        onClick={() => onSort('asc')}
+        title="Sort Ascending"
+      >
         <span class="iconify" data-icon="carbon:arrow-up"></span>
       </button>
       <button
-        class="floating-toolbar__button"
+        class={styles.floatingToolbar__button}
         onClick={() => onSort('desc')}
         title="Sort Descending"
       >
         <span class="iconify" data-icon="carbon:arrow-down"></span>
       </button>
-      <div
-        style={{ width: '1px', background: 'var(--color-medium-gray)', margin: '4px 2px' }}
-      ></div>
-      <button class="floating-toolbar__button" onClick={onFilter} title="Filter by this column">
+      <div class={styles.floatingToolbar__divider}></div>
+      <button
+        class={styles.floatingToolbar__button}
+        onClick={onFilter}
+        title="Filter by this column"
+      >
         <span class="iconify" data-icon="carbon:filter"></span>
       </button>
-      <button class="floating-toolbar__button" onClick={onRename} title="Rename this column">
+      <button class={styles.floatingToolbar__button} onClick={onRename} title="Rename this column">
         <span class="iconify" data-icon="carbon:edit"></span>
       </button>
-      <button class="floating-toolbar__button" onClick={onSplit} title="Split this column">
+      <button class={styles.floatingToolbar__button} onClick={onSplit} title="Split this column">
         <span class="iconify" data-icon="carbon:split-screen"></span>
       </button>
       {isDate && (
-        <button class="floating-toolbar__button" onClick={onDate} title="Date transformation">
+        <button class={styles.floatingToolbar__button} onClick={onDate} title="Date transformation">
           <span class="iconify" data-icon="carbon:calendar"></span>
         </button>
       )}
-      <button class="floating-toolbar__button" onClick={onDedupe} title="Dedupe by this column">
+      <button
+        class={styles.floatingToolbar__button}
+        onClick={onDedupe}
+        title="Dedupe by this column"
+      >
         <span class="iconify" data-icon="carbon:checkbox-checked"></span>
       </button>
       <button
-        class="floating-toolbar__button"
+        class={`${styles.floatingToolbar__button} ${styles.danger}`}
         onClick={onRemove}
         title="Remove this column"
-        style={{ color: 'var(--color-dark-red)' }}
       >
         <span class="iconify" data-icon="carbon:trash-can"></span>
       </button>

@@ -3,6 +3,7 @@
  */
 
 import { Signal, useComputed } from '@preact/signals';
+import styles from './TransformDialog.module.css';
 
 export type PivotAggregation = 'sum' | 'mean' | 'count' | 'min' | 'max' | 'any';
 
@@ -66,18 +67,18 @@ export function PivotDialog({
   });
 
   return (
-    <div class="dialog-content">
-      <p class="form-help" style={{ marginBottom: '1rem' }}>
+    <div>
+      <p class={styles.helpText} style={{ marginBottom: '1rem' }}>
         Create a pivot table by selecting row groupings, column headers, and values to aggregate.
       </p>
 
       {/* Main Layout */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1rem' }}>
         {/* Row Columns */}
-        <div class="form-group">
-          <label class="form-label">Rows</label>
+        <div class={styles.group}>
+          <label class={styles.label}>Rows</label>
           <div
-            class="form-actions"
+            class={styles.actions}
             style={{ marginBottom: '0.5rem', display: 'flex', gap: '0.5rem' }}
           >
             <button type="button" class="button button--text button--small" onClick={selectAllRows}>
@@ -92,7 +93,7 @@ export function PivotDialog({
             </button>
           </div>
 
-          <div class="column-chips-multi" style={{ maxHeight: '200px' }}>
+          <div class={styles.chipGrid} style={{ maxHeight: '200px' }}>
             {columns.map((col) => {
               const isDisabled = col === columnColumn.value || col === valueColumn.value;
               const isSelected = rowColumns.value.includes(col);
@@ -100,7 +101,7 @@ export function PivotDialog({
                 <button
                   key={col}
                   type="button"
-                  class={`form-chip ${isSelected ? 'active' : ''}`}
+                  class={`${styles.chip} ${isSelected ? styles.active : ''}`}
                   disabled={isDisabled}
                   style={{
                     flexDirection: 'row',
@@ -113,11 +114,9 @@ export function PivotDialog({
                   onClick={() => toggleRowColumn(col)}
                 >
                   <span
-                    class="iconify"
+                    class={`iconify ${styles.chipIcon}`}
                     data-icon={isSelected ? 'carbon:checkmark-filled' : 'carbon:checkbox'}
                     style={{
-                      fontSize: '1rem',
-                      flexShrink: 0,
                       color: isSelected ? 'var(--color-green)' : '',
                     }}
                   />
@@ -136,7 +135,7 @@ export function PivotDialog({
               );
             })}
           </div>
-          <p class="form-help" style={{ fontSize: '0.7rem', marginTop: '0.25rem' }}>
+          <p class={styles.helpText} style={{ fontSize: '0.7rem', marginTop: '0.25rem' }}>
             Group by these columns
           </p>
         </div>
@@ -144,10 +143,10 @@ export function PivotDialog({
         {/* Columns & Values */}
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
           {/* Column Column */}
-          <div class="form-group">
-            <label class="form-label">Columns</label>
+          <div class={styles.group}>
+            <label class={styles.label}>Columns</label>
             <select
-              class="form-input"
+              class={styles.input}
               value={columnColumn.value}
               onChange={(e) => (columnColumn.value = (e.target as HTMLSelectElement).value)}
               style={{ marginBottom: '0.5rem' }}
@@ -168,27 +167,27 @@ export function PivotDialog({
                 style={{
                   fontSize: '0.75rem',
                   padding: '0.5rem',
-                  background: 'var(--color-light-gray)',
+                  background: 'var(--color-soft-bg)',
                   borderRadius: '4px',
-                  border: '1px solid var(--color-border)',
+                  border: '1px solid var(--border-color)',
                 }}
               >
                 <strong>{uniqueValueCount.value}</strong> unique values
                 {uniqueValueCount.value > 50 && (
-                  <span style={{ color: 'var(--color-warning)' }}> (many columns!)</span>
+                  <span style={{ color: 'var(--color-red)' }}> (many columns!)</span>
                 )}
               </div>
             )}
-            <p class="form-help" style={{ fontSize: '0.7rem', marginTop: '0.25rem' }}>
+            <p class={styles.helpText} style={{ fontSize: '0.7rem', marginTop: '0.25rem' }}>
               Values become column headers
             </p>
           </div>
 
           {/* Value Column */}
-          <div class="form-group">
-            <label class="form-label">Values</label>
+          <div class={styles.group}>
+            <label class={styles.label}>Values</label>
             <select
-              class="form-input"
+              class={styles.input}
               value={valueColumn.value}
               onChange={(e) => (valueColumn.value = (e.target as HTMLSelectElement).value)}
               style={{ marginBottom: '0.5rem' }}
@@ -205,7 +204,7 @@ export function PivotDialog({
               ))}
             </select>
             <select
-              class="form-input"
+              class={styles.input}
               value={aggregation.value}
               onChange={(e) =>
                 (aggregation.value = (e.target as HTMLSelectElement).value as PivotAggregation)
@@ -219,7 +218,7 @@ export function PivotDialog({
               <option value="max">Max</option>
               <option value="any">First value</option>
             </select>
-            <p class="form-help" style={{ fontSize: '0.7rem', marginTop: '0.25rem' }}>
+            <p class={styles.helpText} style={{ fontSize: '0.7rem', marginTop: '0.25rem' }}>
               Aggregate function for cells
             </p>
           </div>
@@ -227,20 +226,7 @@ export function PivotDialog({
       </div>
 
       {/* Summary info */}
-      {summaryText.value && (
-        <div
-          style={{
-            background: 'var(--color-light-gray)',
-            border: '1px solid var(--color-border)',
-            borderRadius: '4px',
-            padding: '0.75rem',
-            marginBottom: '1rem',
-            fontSize: '0.85rem',
-          }}
-        >
-          {summaryText.value}
-        </div>
-      )}
+      {summaryText.value && <div class={styles.expressionHelp}>{summaryText.value}</div>}
 
       {/* Advanced Options */}
       <details style={{ marginBottom: '1rem' }}>
@@ -250,11 +236,11 @@ export function PivotDialog({
         <div
           style={{
             padding: '0.75rem',
-            border: '1px solid var(--color-border)',
+            border: '1px solid var(--border-color)',
             borderRadius: '4px',
           }}
         >
-          <label class="checkbox-item" style={{ marginBottom: '0.5rem' }}>
+          <label class={styles.checkboxLabel} style={{ marginBottom: '0.5rem' }}>
             <input
               type="checkbox"
               checked={options.value.sort}
@@ -264,13 +250,13 @@ export function PivotDialog({
             />
             <span>Sort column names alphabetically</span>
           </label>
-          <div class="form-group" style={{ marginTop: '0.5rem' }}>
-            <label class="form-label" style={{ fontSize: '0.85rem' }}>
+          <div class={styles.group} style={{ marginTop: '0.5rem' }}>
+            <label class={styles.label} style={{ fontSize: '0.85rem' }}>
               Limit new columns
             </label>
             <input
               type="number"
-              class="form-input"
+              class={styles.input}
               value={options.value.limit || ''}
               onInput={(e) => {
                 const val = (e.target as HTMLInputElement).value;
@@ -281,7 +267,7 @@ export function PivotDialog({
               min="1"
               style={{ width: '120px' }}
             />
-            <p class="form-help" style={{ fontSize: '0.75rem' }}>
+            <p class={styles.helpText} style={{ fontSize: '0.75rem' }}>
               Leave empty for unlimited
             </p>
           </div>
@@ -289,7 +275,7 @@ export function PivotDialog({
       </details>
 
       {/* Preview Button */}
-      <div class="form-group" style={{ marginTop: '1rem' }}>
+      <div class={styles.group} style={{ marginTop: '1rem' }}>
         <button
           type="button"
           class="button button--secondary"

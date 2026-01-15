@@ -1,5 +1,5 @@
-// Note: 'h' import not needed - Vite's JSX transform handles it
 import { AppStore } from '../stores/AppStore';
+import styles from './TypeMenu.module.css';
 
 export interface TypeMenuProps {
   onChangeType: (column: string, type: string) => void;
@@ -21,60 +21,42 @@ export function TypeMenu({ onChangeType, onClose }: TypeMenuProps) {
 
   return (
     <>
+      <div class={styles.overlay} onClick={onClose} />
       <div
-        class="type-menu-overlay"
-        style={{ position: 'fixed', inset: 0, zIndex: 1999 }}
-        onClick={onClose}
-      />
-      <div
-        class="type-menu"
+        class={styles.typeMenu}
         style={{
           top: `${position.value.y}px`,
           left: `${position.value.x}px`,
-          position: 'fixed',
-          zIndex: 2000,
-          display: 'block',
         }}
       >
-        <div class="type-menu__header">Change Type</div>
-        <button class="type-menu__item" onClick={handleCreateTypeClick('string')}>
-          <span class="type-indicator type-indicator--string">Aa</span> String
+        <div class={styles.header}>Change Type</div>
+        <button class={styles.item} onClick={handleCreateTypeClick('string')}>
+          <span class={`${styles.indicator} ${styles.string}`}>Aa</span> String
         </button>
-        <button class="type-menu__item" onClick={handleCreateTypeClick('integer')}>
-          <span class="type-indicator type-indicator--integer">#</span> Integer
+        <button class={styles.item} onClick={handleCreateTypeClick('integer')}>
+          <span class={`${styles.indicator} ${styles.integer}`}>#</span> Integer
         </button>
-        <button class="type-menu__item" onClick={handleCreateTypeClick('float')}>
-          <span class="type-indicator type-indicator--float">0.0</span> Float
+        <button class={styles.item} onClick={handleCreateTypeClick('float')}>
+          <span class={`${styles.indicator} ${styles.float}`}>0.0</span> Float
         </button>
-        <button class="type-menu__item" onClick={handleCreateTypeClick('boolean')}>
-          <span class="type-indicator type-indicator--boolean">✓</span> Boolean
+        <button class={styles.item} onClick={handleCreateTypeClick('boolean')}>
+          <span class={`${styles.indicator} ${styles.boolean}`}>✓</span> Boolean
         </button>
-        <button class="type-menu__item" onClick={handleCreateTypeClick('date')}>
-          <span class="type-indicator type-indicator--date">
+        <button class={styles.item} onClick={handleCreateTypeClick('date')}>
+          <span class={`${styles.indicator} ${styles.date}`}>
             <span class="iconify" data-icon="carbon:calendar"></span>
           </span>
           Date
         </button>
-        <button class="type-menu__item" onClick={handleCreateTypeClick('datetime')}>
-          <span class="type-indicator type-indicator--datetime">
+        <button class={styles.item} onClick={handleCreateTypeClick('datetime')}>
+          <span class={`${styles.indicator} ${styles.datetime}`}>
             <span class="iconify" data-icon="ix:calendar"></span>
           </span>
           DateTime
         </button>
-        <div
-          style={{
-            width: '100%',
-            height: '1px',
-            background: 'var(--color-medium-gray)',
-            margin: '4px 0',
-          }}
-        ></div>
-        <button class="type-menu__item" onClick={handleCreateTypeClick('auto')}>
-          <span
-            class="iconify"
-            data-icon="carbon:flash"
-            style={{ width: '14px', height: '14px', marginRight: '4px' }}
-          ></span>
+        <div class={styles.divider}></div>
+        <button class={styles.item} onClick={handleCreateTypeClick('auto')}>
+          <span class="iconify" data-icon="carbon:flash"></span>
           Auto-Detect
         </button>
       </div>

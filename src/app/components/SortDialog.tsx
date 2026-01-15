@@ -1,10 +1,9 @@
 /**
  * SortDialog - Preact component for the Sort transformation dialog
- *
- * This is the first TSX component migrated from public/templates/sort-modal.html
  */
 
 import { Signal } from '@preact/signals';
+import styles from './TransformDialog.module.css';
 
 export interface SortDialogProps {
   columns: string[];
@@ -14,23 +13,24 @@ export interface SortDialogProps {
 
 export function SortDialog({ columns, field, order }: SortDialogProps) {
   return (
-    <div class="dialog-content">
-      <div class="form-group">
-        <label class="form-label">Sort by:</label>
-        <div class="column-chips">
+    <div>
+      <div class={styles.group}>
+        <label class={styles.label}>Sort by:</label>
+        <div class={styles.chipGrid}>
           {columns.map((col) => (
             <button
               key={col}
               type="button"
-              class={`form-chip ${field.value === col ? 'active' : ''}`}
-              style="flex-direction: row; justify-content: start; gap: 0.5rem; padding: 0.5rem 0.75rem"
+              class={`${styles.chip} ${field.value === col ? styles.active : ''}`}
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'start',
+                gap: '0.5rem',
+                padding: '0.5rem 0.75rem',
+              }}
               onClick={() => (field.value = col)}
             >
-              <span
-                class="iconify"
-                data-icon="carbon:column"
-                style="font-size: 1rem; flex-shrink: 0"
-              />
+              <span class={`iconify ${styles.chipIcon}`} data-icon="carbon:column" />
               <span
                 style={{
                   whiteSpace: 'nowrap',
@@ -47,10 +47,10 @@ export function SortDialog({ columns, field, order }: SortDialogProps) {
         </div>
       </div>
 
-      <div class="form-group">
-        <label class="form-label">Order:</label>
-        <div style="display: flex; gap: 1rem">
-          <label class="radio-label">
+      <div class={styles.group}>
+        <label class={styles.label}>Order:</label>
+        <div style={{ display: 'flex', gap: '1rem' }}>
+          <label class={styles.radioLabel}>
             <input
               type="radio"
               name="sort-order"
@@ -59,7 +59,7 @@ export function SortDialog({ columns, field, order }: SortDialogProps) {
             />
             <span>Ascending</span>
           </label>
-          <label class="radio-label">
+          <label class={styles.radioLabel}>
             <input
               type="radio"
               name="sort-order"

@@ -1,4 +1,5 @@
 import { AppStore } from '../stores/AppStore';
+import styles from './FloatingToolbar.module.css';
 
 interface CellToolbarProps {
   onFilter: (op: 'exact' | 'not' | 'gt' | 'gte' | 'lt' | 'lte') => void;
@@ -12,12 +13,11 @@ export function CellToolbar({ onFilter, onReplace }: CellToolbarProps) {
   if (!selectedCell || selectedCell.isEda) return null;
 
   const { type } = selectedCell;
-  const isDate = ['date', 'datetime'].includes(type);
   const isComparable = ['number', 'integer', 'float', 'date', 'datetime'].includes(type);
 
   return (
     <div
-      class="floating-toolbar"
+      class={styles.floatingToolbar}
       style={
         {
           left: `${pos.x}px`,
@@ -28,101 +28,70 @@ export function CellToolbar({ onFilter, onReplace }: CellToolbarProps) {
       onClick={(e) => e.stopPropagation()}
     >
       <button
-        class="floating-toolbar__button"
+        class={styles.floatingToolbar__button}
         onClick={() => onFilter('exact')}
         title={isComparable ? 'Keep only this value (=)' : 'Keep only this value'}
       >
         <span class="iconify" data-icon="carbon:filter"></span>
-        {isComparable && (
-          <span style={{ fontSize: '10px', marginLeft: '2px', fontWeight: 'bold' }}>=</span>
-        )}
+        {isComparable && <span class={styles.floatingToolbar__operatorLabel}>=</span>}
       </button>
 
       <button
-        class="floating-toolbar__button"
+        class={`${styles.floatingToolbar__button} ${styles.danger}`}
         onClick={() => onFilter('not')}
         title={isComparable ? 'Exclude this value (≠)' : 'Exclude this value'}
-        style={{ color: 'var(--color-dark-red)' }}
       >
         <span class="iconify" data-icon="carbon:filter-remove"></span>
       </button>
 
-      <div
-        style={{ width: '1px', background: 'var(--color-medium-gray)', margin: '4px 2px' }}
-      ></div>
+      <div class={styles.floatingToolbar__divider}></div>
 
-      <button class="floating-toolbar__button" onClick={onReplace} title="Replace this value">
+      <button class={styles.floatingToolbar__button} onClick={onReplace} title="Replace this value">
         <span class="iconify" data-icon="codicon:replace"></span>
       </button>
 
       {isComparable && (
-        <div style={{ display: 'flex', gap: '2px' }}>
-          <div
-            style={{ width: '1px', background: 'var(--color-medium-gray)', margin: '4px 2px' }}
-          ></div>
+        <div class={styles.floatingToolbar__comparableGroup}>
+          <div class={styles.floatingToolbar__divider}></div>
           <button
-            class="floating-toolbar__button"
+            class={styles.floatingToolbar__button}
             onClick={() => onFilter('gt')}
-            title={isDate ? 'Keep values after this date' : 'Keep values greater than (>)'}
+            title={
+              type.includes('date') ? 'Keep values after this date' : 'Keep values greater than (>)'
+            }
           >
-            <span
-              style={{
-                fontSize: '14px',
-                fontWeight: 'bold',
-                fontFamily: 'var(--font-family-mono)',
-              }}
-            >
-              &gt;
-            </span>
+            <span class={styles.floatingToolbar__textOp}>&gt;</span>
           </button>
           <button
-            class="floating-toolbar__button"
+            class={styles.floatingToolbar__button}
             onClick={() => onFilter('gte')}
             title={
-              isDate ? 'Keep values on or after this date' : 'Keep values greater than or equal (≥)'
+              type.includes('date')
+                ? 'Keep values on or after this date'
+                : 'Keep values greater than or equal (≥)'
             }
           >
-            <span
-              style={{
-                fontSize: '14px',
-                fontWeight: 'bold',
-                fontFamily: 'var(--font-family-mono)',
-              }}
-            >
-              &ge;
-            </span>
+            <span class={styles.floatingToolbar__textOp}>&ge;</span>
           </button>
           <button
-            class="floating-toolbar__button"
+            class={styles.floatingToolbar__button}
             onClick={() => onFilter('lt')}
-            title={isDate ? 'Keep values before this date' : 'Keep values less than (<)'}
+            title={
+              type.includes('date') ? 'Keep values before this date' : 'Keep values less than (<)'
+            }
           >
-            <span
-              style={{
-                fontSize: '14px',
-                fontWeight: 'bold',
-                fontFamily: 'var(--font-family-mono)',
-              }}
-            >
-              &lt;
-            </span>
+            <span class={styles.floatingToolbar__textOp}>&lt;</span>
           </button>
           <button
-            class="floating-toolbar__button"
+            class={styles.floatingToolbar__button}
             onClick={() => onFilter('lte')}
             title={
-              isDate ? 'Keep values on or before this date' : 'Keep values less than or equal (≤)'
+              type.includes('date')
+                ? 'Keep values on or before this date'
+                : 'Keep values less than or equal (≤)'
             }
           >
-            <span
-              style={{
-                fontSize: '14px',
-                fontWeight: 'bold',
-                fontFamily: 'var(--font-family-mono)',
-              }}
-            >
-              &le;
-            </span>
+            <span class={styles.floatingToolbar__textOp}>&le;</span>
           </button>
         </div>
       )}

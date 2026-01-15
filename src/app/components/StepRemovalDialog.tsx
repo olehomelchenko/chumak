@@ -1,4 +1,5 @@
 import { AppStore } from '../stores/AppStore';
+import styles from './Dialog.module.css';
 
 export function StepRemovalDialog() {
   const modal = AppStore.stepRemovalModal.value;
@@ -20,28 +21,28 @@ export function StepRemovalDialog() {
 
   return (
     <div
-      class="dialog-backdrop"
+      class={styles.backdrop}
       onClick={() => close(false)}
       onKeyDown={(e) => {
         if (e.key === 'Escape') close(false);
       }}
     >
-      <div class="dialog dialog--warning" onClick={(e) => e.stopPropagation()}>
-        <div class="dialog__header">
-          <h3 class="dialog__title">
+      <div class={`${styles.dialog} ${styles.warning}`} onClick={(e) => e.stopPropagation()}>
+        <div class={styles.header}>
+          <h3 class={styles.title}>
             <span class="iconify" data-icon="carbon:warning"></span>
             <span>Remove Step</span>
           </h3>
-          <button class="dialog__close" onClick={() => close(false)}>
+          <button class={styles.close} onClick={() => close(false)}>
             ×
           </button>
         </div>
-        <div class="dialog__content">
-          <div class="dialog__message">
+        <div class={styles.content}>
+          <div class={styles.message}>
             Remove step "<span>{modal.stepName}</span>"?
           </div>
-          <div class="step-removal-options">
-            <label class="step-removal-option">
+          <div class={styles.options}>
+            <label class={`${styles.option} ${modal.removeMode === 'all' ? styles.active : ''}`}>
               <input
                 type="radio"
                 name="removeMode"
@@ -49,12 +50,12 @@ export function StepRemovalDialog() {
                 checked={modal.removeMode === 'all'}
                 onChange={() => setRemoveMode('all')}
               />
-              <div class="step-removal-option__content">
+              <div class={styles.optionContent}>
                 <strong>Remove this step and all following steps</strong>
                 {modal.affectedSteps.length > 0 && (
-                  <div class="step-removal-option__preview">
-                    <span class="step-removal-option__label">Will also remove:</span>
-                    <ul class="step-removal-option__list">
+                  <div class={styles.preview}>
+                    <span class={styles.previewLabel}>Will also remove:</span>
+                    <ul class={styles.previewList}>
                       {modal.affectedSteps.map((stepName, i) => (
                         <li key={i}>{stepName}</li>
                       ))}
@@ -63,7 +64,7 @@ export function StepRemovalDialog() {
                 )}
               </div>
             </label>
-            <label class="step-removal-option">
+            <label class={`${styles.option} ${modal.removeMode === 'single' ? styles.active : ''}`}>
               <input
                 type="radio"
                 name="removeMode"
@@ -71,9 +72,9 @@ export function StepRemovalDialog() {
                 checked={modal.removeMode === 'single'}
                 onChange={() => setRemoveMode('single')}
               />
-              <div class="step-removal-option__content">
+              <div class={styles.optionContent}>
                 <strong>Remove only this step</strong>
-                <div class="step-removal-option__warning">
+                <div class={styles.warning}>
                   <span
                     class="iconify"
                     data-icon="carbon:warning"
@@ -85,7 +86,7 @@ export function StepRemovalDialog() {
             </label>
           </div>
         </div>
-        <div class="dialog__footer">
+        <div class={styles.footer}>
           <button class="button button--secondary" onClick={() => close(false)}>
             Cancel
           </button>

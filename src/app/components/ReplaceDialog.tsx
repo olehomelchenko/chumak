@@ -3,6 +3,7 @@
  */
 
 import { Signal } from '@preact/signals';
+import styles from './TransformDialog.module.css';
 
 export interface ReplaceDialogProps {
   columns: string[];
@@ -13,23 +14,24 @@ export interface ReplaceDialogProps {
 
 export function ReplaceDialog({ columns, column, findValue, replaceValue }: ReplaceDialogProps) {
   return (
-    <div class="dialog-content">
-      <div class="form-group">
-        <label class="form-label">Column:</label>
-        <div class="column-chips">
+    <div>
+      <div class={styles.group}>
+        <label class={styles.label}>Column:</label>
+        <div class={styles.chipGrid}>
           {columns.map((col) => (
             <button
               key={col}
               type="button"
-              class={`form-chip ${column.value === col ? 'active' : ''}`}
-              style="flex-direction: row; justify-content: start; gap: 0.5rem; padding: 0.5rem 0.75rem"
+              class={`${styles.chip} ${column.value === col ? styles.active : ''}`}
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'start',
+                gap: '0.5rem',
+                padding: '0.5rem 0.75rem',
+              }}
               onClick={() => (column.value = col)}
             >
-              <span
-                class="iconify"
-                data-icon="carbon:column"
-                style="font-size: 1rem; flex-shrink: 0"
-              />
+              <span class={`iconify ${styles.chipIcon}`} data-icon="carbon:column" />
               <span
                 style={{
                   whiteSpace: 'nowrap',
@@ -46,28 +48,28 @@ export function ReplaceDialog({ columns, column, findValue, replaceValue }: Repl
         </div>
       </div>
 
-      <div class="form-group">
-        <label class="form-label">Find value:</label>
+      <div class={styles.group}>
+        <label class={styles.label}>Find value:</label>
         <input
           type="text"
-          class="form-input"
+          class={styles.input}
           value={findValue.value}
           onInput={(e) => (findValue.value = (e.target as HTMLInputElement).value)}
           placeholder="Value to replace"
         />
-        <p class="form-help">The exact value to find and replace</p>
+        <p class={styles.helpText}>The exact value to find and replace</p>
       </div>
 
-      <div class="form-group">
-        <label class="form-label">Replace with:</label>
+      <div class={styles.group}>
+        <label class={styles.label}>Replace with:</label>
         <input
           type="text"
-          class="form-input"
+          class={styles.input}
           value={replaceValue.value}
           onInput={(e) => (replaceValue.value = (e.target as HTMLInputElement).value)}
           placeholder="New value (leave empty for null)"
         />
-        <p class="form-help">New value to use (leave empty to replace with null)</p>
+        <p class={styles.helpText}>New value to use (leave empty to replace with null)</p>
       </div>
     </div>
   );

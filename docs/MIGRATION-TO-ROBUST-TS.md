@@ -160,7 +160,7 @@ _Status: ✅ Complete_
 
 ## Phase 5: Design Revamp & Code Hygiene (CSS Modules)
 
-_Status: ✅ Complete (Initial Migration)_
+_Status: ✅ Complete_
 
 **Goal**: Standardize component-scoped styling using CSS Modules, eliminating global CSS conflicts and removing brittle inline styles.
 
@@ -171,56 +171,38 @@ _Status: ✅ Complete (Initial Migration)_
   - [x] `DataTable`: Migrated from `table.css` + automated cell styling logic.
   - [x] `AppHeader` & `RibbonToolbar`: Migrated from global styles with better layout segregation.
   - [x] `App Shell`: Root layout moved to `App.module.css`.
+  - [x] **Shared UI Components**:
+    - [x] `PaginationBar.tsx`, `DatasetInfoView.tsx`, `StatusBar.tsx`, `ToastContainer.tsx`, `TypeMenu.tsx`.
+  - [x] **Contextual Toolbars**:
+    - [x] `ColumnToolbar.tsx`, `CellToolbar.tsx` (using `FloatingToolbar.module.css`).
+  - [x] **Dialog System**:
+    - [x] `GlobalDialogs.tsx` & `StepRemovalDialog.tsx` (using `Dialog.module.css`).
+    - [x] **Transform Dialogs**: All dialogs (Filter, Sort, Derive, etc.) migrated to `TransformDialog.module.css`.
 - [x] **Global CSS Cleanup**:
-  - [x] Deleted `sidebar.css`, `eda-panel.css`, `table.css`, `header.css`, `ribbon.css`.
-  - [x] Removed imports from `index.css`.
+  - [x] Deleted all component-specific CSS files (`sidebar.css`, `eda-panel.css`, `table.css`, `modals.css`, `forms.css`, etc.).
+  - [x] Removed all component-specific imports from `index.css`.
 - [x] **Logic Cleanup**:
-  - [x] Removed `getCellClass` from `helper-handlers.ts`.
+  - [x] Removed legacy utility classes and brittle inline styles.
   - [x] Integrated dynamic styling directly into components using template literals and imported `styles`.
 
 **Done when**: No component-specific styles remain in the global scope.
 
 ---
 
-## Current State (Phase 5 in progress)
+## Current State
 
 - **Typecheck**: ✅ Passes cleanly
 - **Tests**: ✅ 354/354 passing
 - **Build**: ✅ Successful production build
 - **Alpine.js**: ✅ Removed from UI layer
 - **HTML Templates**: ✅ All removed (100% TSX)
-- **Styling**: ✅ Core components migrated to CSS Modules
+- **Styling**: ✅ 100% migrated to CSS Modules
 
-### Remaining Technical Debt
+### Remaining Tasks
 
-1. **Integration/E2E Tests**: Not yet implemented.
-2. **CI Pipeline**: Typecheck and test enforcement not yet added to build.
-3. **CSS Modules Strategy (Remaining)**:
-   - [ ] **Shared UI Components**:
-     - [ ] `PaginationBar.tsx` (migrate from `pagination.css`)
-     - [ ] `DatasetInfoView.tsx` (migrate from `dataset-info.css`)
-     - [ ] `StatusBar.tsx` (migrate from `status-bar.css`)
-     - [ ] `ToastContainer.tsx` (migrate from `toast.css`)
-     - [ ] `TypeMenu.tsx` (migrate from global BEM classes)
-   - [ ] **Contextual Toolbars**:
-     - [ ] `ColumnToolbar.tsx` (currently mix of global/inline)
-     - [ ] `CellToolbar.tsx` (currently mix of global/inline)
-   - [ ] **Dialog System**:
-     - [ ] `GlobalDialogs.tsx` & `StepRemovalDialog.tsx` (migrate from `modals.css`, `dialogs.css`, `step-removal.css`)
-     - [ ] **Transform Dialog Dialogs** (Migrate from shared `modals.css`, `dialogs.css`, `forms.css`):
-       - [ ] `AggregateDialog.tsx`
-       - [ ] `ColumnEditorDialog.tsx`
-       - [ ] `DateDialog.tsx`
-       - [ ] `DeriveDialog.tsx`
-       - [ ] `FilterDialog.tsx`
-       - [ ] `ImportCsvDialog.tsx`
-       - [ ] `JoinDialog.tsx`
-       - [ ] `PivotDialog.tsx`
-       - [ ] `RegexpExtractDialog.tsx` / `RegexpMatchDialog.tsx`
-       - [ ] `SettingsDialog.tsx`
-       - [ ] `SplitDialog.tsx`
-       - [ ] `UnpivotDialog.tsx`
-   - [ ] **Global CSS Audit**: Solidify what remains in `variables.css`, `base.css`, `typography.css`, `layout.css`, `buttons.css`, and `util.css`.
+1. **Integration/E2E Tests**: Implement smoke tests for the critical path (Import -> Transform -> Export).
+2. **CI Pipeline**: Add typecheck and test enforcement to the repository workflow.
+3. **Global CSS Audit**: Final review of `variables.css`, `base.css`, `typography.css`, `layout.css`, `buttons.css`, and `util.css` to ensure they only contain truly global tokens and utilities.
 
 ---
 

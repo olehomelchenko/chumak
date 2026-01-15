@@ -1,6 +1,6 @@
-// Note: 'h' import not needed - Vite's JSX transform handles it
 import { AppStore } from '../stores/AppStore';
 import { DialogName } from '../types';
+import styles from './PaginationBar.module.css';
 
 export interface PaginationBarProps {
   onRenameModel: () => void;
@@ -38,9 +38,9 @@ export function PaginationBar({
   const pageSize = AppStore.pageSize;
 
   return (
-    <div class="pagination">
+    <div class={styles.pagination}>
       {/* Model Actions (Left) */}
-      <div class="model-actions">
+      <div class={styles.modelActions}>
         <button
           class="button button--ghost button--small"
           onClick={onRenameModel}
@@ -70,7 +70,7 @@ export function PaginationBar({
           <span>Delete</span>
         </button>
 
-        <div class="pagination__divider"></div>
+        <div class={styles.divider}></div>
 
         <button
           class="button button--ghost button--small"
@@ -81,38 +81,35 @@ export function PaginationBar({
         </button>
 
         <button
-          class="copy-button"
+          class={styles.copyButton}
           onClick={onCopyCSV}
           title="Copy current page to clipboard (CSV)"
         >
           <span
-            class="iconify base-icon"
+            class={`iconify ${styles.baseIcon}`}
             data-icon="material-symbols-light:csv-outline-rounded"
           ></span>
-          <span class="iconify overlay-icon" data-icon="carbon:copy"></span>
+          <span class={`iconify ${styles.overlayIcon}`} data-icon="carbon:copy"></span>
         </button>
 
         <button
-          class="copy-button"
+          class={styles.copyButton}
           onClick={onCopyJSON}
           title="Copy current page to clipboard (JSON)"
         >
           <span
-            class="iconify base-icon"
+            class={`iconify ${styles.baseIcon}`}
             data-icon="material-symbols-light:file-json-outline-rounded"
           ></span>
-          <span class="iconify overlay-icon" data-icon="carbon:copy"></span>
+          <span class={`iconify ${styles.overlayIcon}`} data-icon="carbon:copy"></span>
         </button>
       </div>
 
       {/* Pagination Context (Right) */}
-      <div
-        class="pagination__controls"
-        style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}
-      >
-        <span class="pagination__info">{getPaginationInfo()}</span>
+      <div class={styles.controls}>
+        <span class={styles.paginationInfo}>{getPaginationInfo()}</span>
 
-        <div class="pagination__divider"></div>
+        <div class={styles.divider}></div>
 
         <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
           <button
@@ -131,7 +128,7 @@ export function PaginationBar({
           >
             ‹
           </button>
-          <div class="pagination__page-indicator">
+          <div class={styles.pageIndicator}>
             Page <span>{currentPage.value}</span> of <span>{totalPages.value}</span>
           </div>
           <button
@@ -152,12 +149,11 @@ export function PaginationBar({
           </button>
         </div>
 
-        <div class="pagination__divider" style={{ marginLeft: '0.5rem' }}></div>
+        <div class={styles.divider}></div>
 
-        <span style={{ fontSize: '0.875rem', color: 'var(--color-dark-gray)' }}>Rows:</span>
+        <span class={styles.rowsLabel}>Rows:</span>
         <select
-          class="form-input"
-          style={{ width: 'auto', padding: '0.25rem 0.5rem', fontSize: '0.875rem' }}
+          class={styles.pageSizeSelect}
           value={pageSize.value}
           onChange={(e) => onPageSizeChange(Number((e.target as HTMLSelectElement).value))}
         >

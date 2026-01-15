@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'preact/hooks';
 import { AppStore } from '../stores/AppStore';
+import styles from './Dialog.module.css';
 
 export function GlobalDialogs() {
   const messageBox = AppStore.messageBox.value;
@@ -50,30 +51,33 @@ export function GlobalDialogs() {
 
   return (
     <div
-      class="dialog-backdrop"
+      class={styles.backdrop}
       onClick={() => close(false)}
       onKeyDown={(e) => {
         if (e.key === 'Escape') close(false);
       }}
     >
-      <div class={`dialog dialog--${messageBox.type}`} onClick={(e) => e.stopPropagation()}>
-        <div class="dialog__header">
-          <h3 class="dialog__title">
+      <div
+        class={`${styles.dialog} ${styles[messageBox.type]}`}
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div class={styles.header}>
+          <h3 class={styles.title}>
             <span class="iconify" data-icon={getIcon()}></span>
             <span>{messageBox.title}</span>
           </h3>
-          <button class="dialog__close" onClick={() => close(false)}>
+          <button class={styles.close} onClick={() => close(false)}>
             ×
           </button>
         </div>
-        <div class="dialog__content">
-          <div class="dialog__message">{messageBox.message}</div>
+        <div class={styles.content}>
+          <div class={styles.message}>{messageBox.message}</div>
           {messageBox.type === 'prompt' && (
-            <div class="dialog__input-container">
+            <div class={styles.inputContainer}>
               <input
                 ref={inputRef}
                 type="text"
-                class="dialog__input"
+                class={styles.input}
                 value={messageBox.inputValue}
                 onInput={(e) => updateInput((e.target as HTMLInputElement).value)}
                 onKeyUp={(e) => {
@@ -83,7 +87,7 @@ export function GlobalDialogs() {
             </div>
           )}
         </div>
-        <div class="dialog__footer">
+        <div class={styles.footer}>
           {['confirm', 'prompt'].includes(messageBox.type) && (
             <button class="button button--secondary" onClick={() => close(false)}>
               Cancel

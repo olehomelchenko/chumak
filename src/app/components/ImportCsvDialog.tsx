@@ -1,5 +1,6 @@
 import { JSX } from 'preact';
 import { DialogStore } from '../stores/DialogStore';
+import styles from './TransformDialog.module.css';
 
 // Props interface kept for reference/testing
 export interface ImportCsvDialogProps {
@@ -75,35 +76,35 @@ export function ImportCsvDialog({
   };
 
   return (
-    <div className="dialog-content">
+    <div>
       {/* Source Name */}
-      <div className="form-group">
-        <label className="form-label">Source Name:</label>
+      <div class={styles.group}>
+        <label class={styles.label}>Source Name:</label>
         <input
           type="text"
-          className="form-input"
+          class={styles.input}
           value={sourceName.value}
           onInput={(e) => (sourceName.value = e.currentTarget.value)}
           placeholder="e.g., sales_data"
         />
-        <p className="form-help">This name will appear in the Sources panel</p>
+        <p class={styles.helpText}>This name will appear in the Sources panel</p>
       </div>
 
       {/* JSON Section */}
       {isJson.value && (
         <>
-          <div className="form-group">
-            <label className="form-label">Data Path (dot notation):</label>
+          <div class={styles.group}>
+            <label class={styles.label}>Data Path (dot notation):</label>
             <input
               type="text"
-              className="form-input"
+              class={styles.input}
               value={jsonPath.value || ''}
               onInput={handleJsonPathInput}
               placeholder="e.g., results or data.items"
             />
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '8px' }}>
               <button
-                className="button button--secondary button--compact"
+                class="button button--secondary button--compact"
                 style={{ fontSize: '11px', padding: '4px 8px' }}
                 onClick={handleJsonPathReset}
                 disabled={!jsonPath.value}
@@ -113,7 +114,7 @@ export function ImportCsvDialog({
               {suggestedJsonKeys.value.map((key) => (
                 <button
                   key={key}
-                  className="button button--secondary button--compact"
+                  class="button button--secondary button--compact"
                   style={{ fontSize: '11px', padding: '4px 8px', borderStyle: 'dashed' }}
                   onClick={() => handleJsonPathSegmentSelect(key)}
                 >
@@ -121,16 +122,16 @@ export function ImportCsvDialog({
                 </button>
               ))}
             </div>
-            <p className="form-help" style={{ marginTop: '8px' }}>
+            <p class={styles.helpText} style={{ marginTop: '8px' }}>
               Click keys above to navigate or type a path. If the array is nested, specify the path
               to it.
             </p>
             <div
-              className="form-help"
+              class={styles.helpText}
               style={{
                 marginTop: '4px',
                 padding: '8px',
-                background: 'var(--color-light-gray)',
+                background: 'var(--color-soft-bg)',
                 borderRadius: '4px',
                 fontSize: '11px',
               }}
@@ -144,32 +145,21 @@ export function ImportCsvDialog({
           </div>
 
           {jsonRawValuePreview.value && (
-            <div className="form-group">
-              <label className="form-label">Value at path (preview):</label>
-              <div className="json-view" style={{ maxHeight: '150px', overflowY: 'auto' }}>
-                <pre
-                  className="json-view__content"
-                  style={{
-                    margin: 0,
-                    padding: '10px',
-                    fontSize: '11px',
-                    whiteSpace: 'pre-wrap',
-                    wordBreak: 'break-all',
-                  }}
-                >
-                  {jsonRawValuePreview.value}
-                </pre>
+            <div class={styles.group}>
+              <label class={styles.label}>Value at path (preview):</label>
+              <div class={styles.jsonView}>
+                <pre class={styles.jsonViewContent}>{jsonRawValuePreview.value}</pre>
               </div>
             </div>
           )}
 
           {jsonRawValuePreview.value && (
-            <div className="form-group">
-              <label className="form-label" style={{ marginBottom: '8px' }}>
+            <div class={styles.group}>
+              <label class={styles.label} style={{ marginBottom: '8px' }}>
                 JSON Options:
               </label>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <label className="checkbox-item">
+                <label class={styles.checkboxLabel}>
                   <input
                     type="checkbox"
                     checked={flattenJson.value}
@@ -182,7 +172,7 @@ export function ImportCsvDialog({
                   />
                   <span>Flatten nested objects (e.g., user.name -&gt; user_name)</span>
                 </label>
-                <label className="checkbox-item">
+                <label class={styles.checkboxLabel}>
                   <input
                     type="checkbox"
                     checked={serializeNested.value}
@@ -196,15 +186,15 @@ export function ImportCsvDialog({
                   <span>Serialize nested structures to JSON strings</span>
                 </label>
               </div>
-              <p className="form-help" style={{ marginTop: '4px' }}>
+              <p class={styles.helpText} style={{ marginTop: '4px' }}>
                 By default, nested objects are serialized to avoid "[object Object]".
               </p>
             </div>
           )}
 
           {!jsonData.value && (
-            <div className="form-error" style={{ marginBottom: '1rem' }}>
-              <span className="iconify" data-icon="carbon:warning"></span>
+            <div class={styles.error} style={{ marginBottom: '1rem' }}>
+              <span class="iconify" data-icon="carbon:warning"></span>
               <span>No valid array of objects found at this path.</span>
             </div>
           )}
@@ -214,15 +204,15 @@ export function ImportCsvDialog({
       {/* CSV Section */}
       {!isJson.value && (
         <>
-          <div className="form-group">
-            <label className="form-label">Delimiter:</label>
+          <div class={styles.group}>
+            <label class={styles.label}>Delimiter:</label>
             <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
               {[
                 { val: ',', label: 'Comma (,)' },
                 { val: '\t', label: 'Tab' },
                 { val: ';', label: 'Semicolon (;)' },
               ].map((opt) => (
-                <label key={opt.val} className="checkbox-item" style={{ margin: 0 }}>
+                <label key={opt.val} class={styles.checkboxLabel} style={{ margin: 0 }}>
                   <input
                     type="radio"
                     name="delimiter"
@@ -236,14 +226,14 @@ export function ImportCsvDialog({
             </div>
           </div>
 
-          <div className="form-group">
-            <label className="form-label">Column Headers:</label>
+          <div class={styles.group}>
+            <label class={styles.label}>Column Headers:</label>
             {[
               { val: 'first-row', label: 'First row contains headers (recommended)' },
               { val: 'auto-generate', label: 'Auto-generate headers (Column 1, Column 2, ...)' },
               { val: 'manual', label: 'Specify manually' },
             ].map((opt) => (
-              <label key={opt.val} className="checkbox-item">
+              <label key={opt.val} class={styles.checkboxLabel}>
                 <input
                   type="radio"
                   name="headerMode"
@@ -260,8 +250,8 @@ export function ImportCsvDialog({
 
       {/* Manual Headers Input (CSV Manual OR JSON) */}
       {(headerMode.value === 'manual' || isJson.value) && (
-        <div className="form-group" style={{ maxHeight: '150px', overflowY: 'auto' }}>
-          <label className="form-label" style={{ fontSize: '13px', marginBottom: '8px' }}>
+        <div class={styles.group} style={{ maxHeight: '150px', overflowY: 'auto' }}>
+          <label class={styles.label} style={{ fontSize: '13px', marginBottom: '8px' }}>
             Specify column names:
           </label>
           <div
@@ -275,7 +265,7 @@ export function ImportCsvDialog({
               <input
                 key={index}
                 type="text"
-                className="form-input"
+                class={styles.input}
                 value={name}
                 onInput={(e) => handleHeaderNameChange(index, e.currentTarget.value)}
                 placeholder={`Column ${index + 1}`}
@@ -295,27 +285,15 @@ export function ImportCsvDialog({
 
       {/* Duplicate Warning */}
       {duplicateWarning.value && (
-        <div
-          style={{
-            marginTop: '1rem',
-            padding: '1rem',
-            background: '#fff4e5',
-            border: '1px solid #ffb020',
-            borderRadius: '4px',
-          }}
-        >
-          <div style={{ display: 'flex', alignItems: 'start', gap: '0.5rem' }}>
-            <span style={{ color: '#ffb020', fontSize: '20px' }}>⚠️</span>
-            <div style={{ flex: 1 }}>
-              <div style={{ fontWeight: 600, color: '#8b5a00', marginBottom: '0.5rem' }}>
-                Duplicate Column Names Detected
-              </div>
-              <div style={{ fontSize: '13px', color: '#8b5a00', marginBottom: '0.5rem' }}>
-                {duplicateWarning.value}
-              </div>
-              <div style={{ fontSize: '13px', color: '#8b5a00' }}>
-                Duplicates have been automatically renamed by adding a suffix (e.g., "_2", "_3").
-              </div>
+        <div class={styles.warningBox}>
+          <span style={{ fontSize: '20px' }}>⚠️</span>
+          <div style={{ flex: 1 }}>
+            <div class={styles.warningTitle}>Duplicate Column Names Detected</div>
+            <div class={styles.warningText} style={{ marginBottom: '0.5rem' }}>
+              {duplicateWarning.value}
+            </div>
+            <div class={styles.warningText}>
+              Duplicates have been automatically renamed by adding a suffix (e.g., "_2", "_3").
             </div>
           </div>
         </div>
@@ -323,23 +301,21 @@ export function ImportCsvDialog({
 
       {/* Preview Section */}
       <div style={{ marginTop: '1.5rem' }}>
-        <label className="form-label">Preview (first 5 rows):</label>
-        <div className="preview-table">
-          <table className="data-table data-table--compact">
+        <label class={styles.label}>Preview (first 5 rows):</label>
+        <div class={styles.previewTableContainer}>
+          <table class={styles.previewTable}>
             <thead>
               <tr>
                 {previewHeaders.value.map((header, index) => (
-                  <th key={index} className="data-table__header">
-                    {header}
-                  </th>
+                  <th key={index}>{header}</th>
                 ))}
               </tr>
             </thead>
             <tbody>
               {previewDataRows.value.map((row, rowIndex) => (
-                <tr key={rowIndex} className="data-table__row">
+                <tr key={rowIndex}>
                   {row.map((cell: any, cellIndex: number) => (
-                    <td key={cellIndex} className="data-table__cell">
+                    <td key={cellIndex}>
                       {typeof cell === 'object' && cell !== null
                         ? JSON.stringify(cell)
                         : String(cell)}

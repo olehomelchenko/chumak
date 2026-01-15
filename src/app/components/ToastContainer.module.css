@@ -1,4 +1,4 @@
-.toast-container {
+.toastContainer {
   position: fixed;
   top: var(--space-lg);
   right: var(--space-lg);
@@ -22,22 +22,22 @@
   transform: translateX(100%);
   transition: all var(--transition-normal);
 
-  &--visible {
+  &.visible {
     opacity: 1;
     transform: translateX(0);
   }
 
-  &--error {
+  &.error {
     border-left-color: var(--color-dark-red);
     background: #fff5f4;
   }
 
-  &--warning {
+  &.warning {
     border-left-color: var(--color-yellow);
     background: #fffcf0;
   }
 
-  &--success {
+  &.success {
     border-left-color: var(--color-green);
     background: #f7fdf0;
   }

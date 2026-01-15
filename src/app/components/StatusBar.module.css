@@ -1,0 +1,55 @@
+.statusBar {
+  grid-area: footer;
+  background: var(--color-light-gray);
+  color: var(--color-midnight-blue);
+  height: 24px;
+  display: flex;
+  align-items: center;
+  padding: 0 var(--space-md);
+  font-size: var(--font-size-xs);
+  z-index: 9999;
+  position: relative;
+  border-top: 1px solid var(--border-color);
+}
+
+.content {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  width: 100%;
+}
+
+.message {
+  white-space: nowrap;
+  font-weight: var(--font-weight-medium);
+}
+
+.loader {
+  flex: 1;
+  height: 4px;
+  background: var(--color-medium-gray);
+  border-radius: 2px;
+  overflow: hidden;
+}
+
+.loaderBar {
+  height: 100%;
+  width: 30%;
+  background: var(--color-cyan);
+  border-radius: 2px;
+  animation: loading-bar 1s infinite linear;
+}
+
+@keyframes loading-bar {
+  0% {
+    transform: translateX(-100%);
+    width: 0%;
+  }
+  50% {
+    width: 30%;
+  }
+  100% {
+    transform: translateX(400%);
+    width: 0%;
+  }
+}

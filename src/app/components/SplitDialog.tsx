@@ -3,6 +3,7 @@
  */
 
 import { Signal, useSignalEffect } from '@preact/signals';
+import styles from './TransformDialog.module.css';
 
 export type SplitMode = 'spread' | 'left' | 'right' | 'firstN' | 'lastN';
 
@@ -49,22 +50,23 @@ export function SplitDialog({
     void keepOriginal.value;
     if (onPreview) onPreview();
   });
+
   const setPreset = (val: string, regex: boolean) => {
     delimiter.value = val;
     isRegex.value = regex;
   };
 
   return (
-    <div class="dialog-content">
+    <div>
       {/* Column Selection */}
-      <div class="form-group">
-        <label class="form-label">Column to split:</label>
-        <div class="column-chips">
+      <div class={styles.group}>
+        <label class={styles.label}>Column to split:</label>
+        <div class={styles.chipGrid}>
           {columns.map((col) => (
             <button
               key={col}
               type="button"
-              class={`form-chip ${column.value === col ? 'active' : ''}`}
+              class={`${styles.chip} ${column.value === col ? styles.active : ''}`}
               style={{
                 flexDirection: 'row',
                 justifyContent: 'start',
@@ -73,7 +75,7 @@ export function SplitDialog({
               }}
               onClick={() => (column.value = col)}
             >
-              <span class="iconify" data-icon="carbon:column" />
+              <span class={`iconify ${styles.chipIcon}`} data-icon="carbon:column" />
               <span>{col}</span>
             </button>
           ))}
@@ -81,8 +83,8 @@ export function SplitDialog({
       </div>
 
       {/* Delimiter */}
-      <div class="form-group">
-        <label class="form-label">Delimiter:</label>
+      <div class={styles.group}>
+        <label class={styles.label}>Delimiter:</label>
         {autoDetectedDelimiter.value && (
           <div
             style={{
@@ -136,13 +138,13 @@ export function SplitDialog({
         </div>
         <input
           type="text"
-          class="form-input"
+          class={styles.input}
           value={delimiter.value}
           onInput={(e) => (delimiter.value = (e.target as HTMLInputElement).value)}
           placeholder="Enter delimiter"
         />
         <div style={{ marginTop: '8px' }}>
-          <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <label class={styles.checkboxLabel}>
             <input
               type="checkbox"
               checked={isRegex.value}
@@ -157,10 +159,10 @@ export function SplitDialog({
       </div>
 
       {/* Mode */}
-      <div class="form-group">
-        <label class="form-label">Split mode:</label>
+      <div class={styles.group}>
+        <label class={styles.label}>Split mode:</label>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-          <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <label class={styles.checkboxLabel}>
             <input
               type="radio"
               name="splitMode"
@@ -170,7 +172,7 @@ export function SplitDialog({
             />
             <span>Spread All - create column for each segment</span>
           </label>
-          <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <label class={styles.checkboxLabel}>
             <input
               type="radio"
               name="splitMode"
@@ -180,7 +182,7 @@ export function SplitDialog({
             />
             <span>Keep Left - keep only first segment</span>
           </label>
-          <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <label class={styles.checkboxLabel}>
             <input
               type="radio"
               name="splitMode"
@@ -190,7 +192,7 @@ export function SplitDialog({
             />
             <span>Keep Right - keep only last segment</span>
           </label>
-          <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <label class={styles.checkboxLabel}>
             <input
               type="radio"
               name="splitMode"
@@ -200,7 +202,7 @@ export function SplitDialog({
             />
             <span>Keep First N - limit number of columns</span>
           </label>
-          <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <label class={styles.checkboxLabel}>
             <input
               type="radio"
               name="splitMode"
@@ -215,11 +217,11 @@ export function SplitDialog({
 
       {/* Max Columns (Conditional) */}
       {(mode.value === 'firstN' || mode.value === 'lastN') && (
-        <div class="form-group">
-          <label class="form-label">Max columns:</label>
+        <div class={styles.group}>
+          <label class={styles.label}>Max columns:</label>
           <input
             type="number"
-            class="form-input"
+            class={styles.input}
             value={maxColumns.value}
             onInput={(e) => {
               const val = (e.target as HTMLInputElement).value;
@@ -233,8 +235,8 @@ export function SplitDialog({
       )}
 
       {/* Keep Original */}
-      <div class="form-group">
-        <label style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+      <div class={styles.group}>
+        <label class={styles.checkboxLabel}>
           <input
             type="checkbox"
             checked={keepOriginal.value}
@@ -245,19 +247,7 @@ export function SplitDialog({
       </div>
 
       {/* Error message */}
-      {error.value && (
-        <div
-          style={{
-            color: 'var(--color-red)',
-            fontSize: '13px',
-            marginTop: '8px',
-            whiteSpace: 'pre-wrap',
-            fontFamily: 'var(--font-family-mono)',
-          }}
-        >
-          {error.value}
-        </div>
-      )}
+      {error.value && <div class={styles.error}>{error.value}</div>}
     </div>
   );
 }

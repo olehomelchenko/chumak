@@ -1,4 +1,5 @@
 import { AppStore } from '../stores/AppStore';
+import styles from './ToastContainer.module.css';
 
 export function ToastContainer() {
   const notifications = AppStore.notifications.value;
@@ -31,21 +32,27 @@ export function ToastContainer() {
   };
 
   return (
-    <div class="toast-container">
+    <div class={styles.toastContainer}>
       {notifications.map((notification) => (
         <div
           key={notification.id}
-          class={`toast ${notification.visible ? 'toast--visible' : ''} toast--${notification.type}`}
+          class={`${styles.toast} ${notification.visible ? styles.visible : ''} ${styles[notification.type]}`}
         >
-          <div class="toast__icon">
+          <div class={styles.toast__icon}>
             <span class="iconify" data-icon={getIcon(notification.type)}></span>
           </div>
-          <div class="toast__content">
-            <div class="toast__title">{notification.title}</div>
-            <div class="toast__message">{notification.message}</div>
-            {notification.stepInfo && <div class="toast__step-info">{notification.stepInfo}</div>}
+          <div class={styles.toast__content}>
+            <div class={styles.toast__title}>{notification.title}</div>
+            <div class={styles.toast__message}>{notification.message}</div>
+            {notification.stepInfo && (
+              <div class={styles.toast__stepInfo}>{notification.stepInfo}</div>
+            )}
           </div>
-          <button class="toast__close" onClick={() => dismiss(notification.id)} title="Dismiss">
+          <button
+            class={styles.toast__close}
+            onClick={() => dismiss(notification.id)}
+            title="Dismiss"
+          >
             ×
           </button>
         </div>

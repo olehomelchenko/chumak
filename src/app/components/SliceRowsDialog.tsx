@@ -3,6 +3,7 @@
  */
 
 import { Signal, computed } from '@preact/signals';
+import styles from './TransformDialog.module.css';
 
 export type SliceMode = 'first' | 'last' | 'removeFirst' | 'removeLast';
 
@@ -57,12 +58,12 @@ export function SliceRowsDialog({ count, mode, rowCount }: SliceRowsDialogProps)
   });
 
   return (
-    <div class="dialog-content">
-      <div class="form-group">
-        <label class="form-label">Number of rows:</label>
+    <div>
+      <div class={styles.group}>
+        <label class={styles.label}>Number of rows:</label>
         <input
           type="number"
-          class="form-input"
+          class={styles.input}
           value={count.value}
           onInput={(e) => (count.value = parseInt((e.target as HTMLInputElement).value) || 0)}
           min="1"
@@ -70,10 +71,10 @@ export function SliceRowsDialog({ count, mode, rowCount }: SliceRowsDialogProps)
         />
       </div>
 
-      <div class="form-group">
-        <label class="form-label">Mode:</label>
+      <div class={styles.group}>
+        <label class={styles.label}>Mode:</label>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-          <label class="radio-label">
+          <label class={styles.radioLabel}>
             <input
               type="radio"
               checked={mode.value === 'first'}
@@ -81,7 +82,7 @@ export function SliceRowsDialog({ count, mode, rowCount }: SliceRowsDialogProps)
             />
             <span>Keep first N rows</span>
           </label>
-          <label class="radio-label">
+          <label class={styles.radioLabel}>
             <input
               type="radio"
               checked={mode.value === 'last'}
@@ -89,7 +90,7 @@ export function SliceRowsDialog({ count, mode, rowCount }: SliceRowsDialogProps)
             />
             <span>Keep last N rows</span>
           </label>
-          <label class="radio-label">
+          <label class={styles.radioLabel}>
             <input
               type="radio"
               checked={mode.value === 'removeFirst'}
@@ -97,7 +98,7 @@ export function SliceRowsDialog({ count, mode, rowCount }: SliceRowsDialogProps)
             />
             <span>Remove first N rows</span>
           </label>
-          <label class="radio-label">
+          <label class={styles.radioLabel}>
             <input
               type="radio"
               checked={mode.value === 'removeLast'}
@@ -108,15 +109,7 @@ export function SliceRowsDialog({ count, mode, rowCount }: SliceRowsDialogProps)
         </div>
       </div>
 
-      <div
-        class="form-group"
-        style={{
-          marginTop: '1rem',
-          padding: '0.75rem',
-          background: 'var(--color-light-gray)',
-          borderRadius: 'var(--radius-sm)',
-        }}
-      >
+      <div class={styles.expressionHelp}>
         <span style={{ fontSize: '0.875rem', color: 'var(--color-dark-gray)' }}>
           {previewText.value}
           <span style={{ marginLeft: '0.5rem', color: 'var(--color-medium-gray)' }}>
