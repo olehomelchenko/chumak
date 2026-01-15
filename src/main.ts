@@ -62,11 +62,30 @@ import '../styles/index.css';
 
 // Core bundled
 import { ChumakApp } from './chumak-app';
+import { mountComponent } from './app/components/PreactBridge';
+import { RibbonToolbar } from './app/components/RibbonToolbar';
+
+// Store global app reference for Ribbon callbacks
+let appInstance: ChumakApp | null = null;
 
 // Register Alpine component
-Alpine.data('chumakApp', () => new ChumakApp());
+Alpine.data('chumakApp', () => {
+  appInstance = new ChumakApp();
+  return appInstance;
+});
 
 // Start Alpine
 Alpine.start();
+
+// Mount Preact Ribbon after DOM is ready
+document.addEventListener('DOMContentLoaded', () => {
+  const ribbonContainer = document.getElementById('ribbon-container');
+  if (ribbonContainer && appInstance) {
+    mountComponent(ribbonContainer, RibbonToolbar, {
+      onOpenDialog: (dialog: any) => appInstance?.openDialog(dialog),
+      onAutoDetectSchema: () => appInstance?.autoDetectSchema(),
+    });
+  }
+});
 
 console.log('🚀 Chumak modern bundle initialized');

@@ -58,6 +58,7 @@
   }
 
   &__content {
+    display: flex;
     padding: var(--space-sm) var(--space-md);
     min-height: 40px;
     background: var(--color-white);
@@ -66,7 +67,6 @@
   &__panel {
     display: flex;
     gap: var(--space-xs);
-    flex-wrap: wrap;
     align-items: center;
   }
 

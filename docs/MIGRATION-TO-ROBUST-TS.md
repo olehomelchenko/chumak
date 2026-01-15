@@ -115,10 +115,18 @@ This architecture ensures a **Single Source of Truth** in signals while letting 
 
 ## Phase 4: Final Modernization
 
-### 4a: Replace Top-Level Alpine
+_Status: 🚧 In Progress_
 
-- [ ] **Preact Root**: Replace Alpine's top-level `x-data` with a Preact root + signals store.
-- [ ] **Remove Alpine.js**: Delete the dependency and the `x-data` / `x-model` attributes from `index.html`.
+### 4a: Replace Top-Level Alpine (Section by Section)
+
+- [x] **RibbonToolbar**: Converted to Preact component (`src/app/components/RibbonToolbar.tsx`).
+  - Removed 268 lines of Alpine directives from `index.html`.
+  - Uses `AppStore.ribbonTab` and `AppStore.currentData` signals directly.
+  - Mounted via `main.ts` after Alpine starts.
+- [ ] **Header**: Convert tabs and settings buttons.
+- [ ] **Sidebar**: Convert Sources/Models tree and Steps list.
+- [ ] **Main Content**: Convert data table, pagination, and toolbars.
+- [ ] **Remove Alpine.js**: Delete the dependency and `x-data` from `<body>`.
 
 ### 4b: Cleanup
 
