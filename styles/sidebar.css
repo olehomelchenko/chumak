@@ -1,4 +1,6 @@
 .left-panel {
+  width: var(--left-panel-width);
+  flex-shrink: 0;
   grid-area: left;
   background: var(--color-white);
   border-right: var(--border-width) solid var(--border-color);

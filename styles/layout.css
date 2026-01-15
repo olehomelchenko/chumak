@@ -1,13 +1,12 @@
 body {
-  display: grid;
-  grid-template-columns: var(--left-panel-width) 1fr;
-  grid-template-rows: var(--header-height) auto 1fr auto;
   height: 100vh;
-  grid-template-areas:
-    'header  header'
-    'ribbon  ribbon'
-    'left    main'
-    'footer  footer';
+  width: 100vw;
+  overflow: hidden;
+}
+
+#app-root {
+  height: 100%;
+  width: 100%;
 }
 
 .main-content {

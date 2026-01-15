@@ -120,15 +120,30 @@ _Status: 🚧 In Progress_
 ### 4a: Replace Top-Level Alpine (Section by Section)
 
 - [x] **RibbonToolbar**: Converted to Preact component (`src/app/components/RibbonToolbar.tsx`).
-  - Removed 268 lines of Alpine directives from `index.html`.
-  - Uses `AppStore.ribbonTab` and `AppStore.currentData` signals directly.
-  - Mounted via `main.ts` after Alpine starts.
-- [ ] **Header**: Convert tabs and settings buttons.
-- [ ] **Sidebar**: Convert Sources/Models tree and Steps list.
-- [ ] **Main Content**: Convert data table, pagination, and toolbars.
-- [ ] **Remove Alpine.js**: Delete the dependency and `x-data` from `<body>`.
+- [x] **Header**: Converted to Preact component (`src/app/components/AppHeader.tsx`).
+- [x] **Sidebar**: Converted to Preact component (`src/app/components/Sidebar.tsx`).
+- [x] **Main Content**: Converted to Preact component (`src/app/components/MainContent.tsx`).
+  - Includes Data Table, Pagination, Empty State, and Dataset Info.
+- [x] **Type Menu**: Converted to Preact component (`src/app/components/TypeMenu.tsx`).
 
-### 4b: Cleanup
+### 4b: Remaining Migration Targets
+
+- [x] **EDA Panel**: Converted to `EdaPanel.tsx`.
+- [x] **Floating Toolbars**:
+  - `ColumnToolbar.tsx`
+  - `CellToolbar.tsx`
+- [x] **Global UI Elements**:
+  - `ToastContainer.tsx`
+  - `GlobalDialogs.tsx` (Alert/Confirm/Prompt)
+  - `StepRemovalDialog.tsx`
+  - `StatusBar.tsx`
+- [x] **App Shell**:
+  - [x] Convert the Slide-in Panel and Centered Modal shells to a main `App.tsx` layout.
+  - [x] Replace `src/main.ts` with `src/main.tsx` as the app entry point.
+  - [x] Replace `index.html` body with a single `#app-root`.
+  - [ ] Remove `x-data="chumakApp()"` and Alpine dependency (Legacy compatibility layer still active).
+
+### 4c: Cleanup
 
 - [ ] **Template Cleanup**: Delete the `public/templates/` directory.
 - [ ] **CI Enforcement**: Add `tsc --noEmit` and `vitest` to the build pipeline to ensure no regressions.

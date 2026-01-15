@@ -18,7 +18,7 @@ export const ChartsEngine = {
    * Render a boxplot for a specific column
    */
   async renderBoxPlot(
-    containerSelector: string,
+    container: string | HTMLElement,
     data: any[],
     column: string,
     theme: 'chumak' | 'blues' = 'chumak',
@@ -79,7 +79,7 @@ export const ChartsEngine = {
     const vegaTheme = theme === 'chumak' ? chumakTheme : bluesTheme;
 
     try {
-      await vegaEmbed(containerSelector, spec, {
+      await vegaEmbed(container, spec, {
         actions: false,
         renderer: 'svg',
         config: vegaTheme,
@@ -93,7 +93,7 @@ export const ChartsEngine = {
    * Render a 100% stacked horizontal bar chart for categorical data
    */
   async renderCategoricalBar(
-    containerSelector: string,
+    container: string | HTMLElement,
     aggregatedData: any[],
     theme: 'chumak' | 'blues' = 'chumak',
     options: ChartOptions = {}
@@ -145,7 +145,7 @@ export const ChartsEngine = {
     const vegaTheme = theme === 'chumak' ? chumakTheme : bluesTheme;
 
     try {
-      await vegaEmbed(containerSelector, spec, {
+      await vegaEmbed(container, spec, {
         actions: false,
         renderer: 'svg',
         config: vegaTheme,
@@ -159,7 +159,7 @@ export const ChartsEngine = {
    * Render a histogram with brushing for numerical data
    */
   async renderHistogram(
-    containerSelector: string,
+    container: string | HTMLElement,
     data: any[],
     column: string,
     theme: 'chumak' | 'blues' = 'chumak',
@@ -221,7 +221,7 @@ export const ChartsEngine = {
     const vegaTheme = theme === 'chumak' ? chumakTheme : bluesTheme;
 
     try {
-      const result = await vegaEmbed(containerSelector, spec, {
+      const result = await vegaEmbed(container, spec, {
         actions: false,
         renderer: 'svg',
         config: vegaTheme,
@@ -248,7 +248,7 @@ export const ChartsEngine = {
    * Render a temporal line chart for date/datetime columns
    */
   async renderTemporalChart(
-    containerSelector: string,
+    container: string | HTMLElement,
     data: any[],
     column: string,
     theme: 'chumak' | 'blues' = 'chumak',
@@ -321,7 +321,7 @@ export const ChartsEngine = {
     const vegaTheme = theme === 'chumak' ? chumakTheme : bluesTheme;
 
     try {
-      await vegaEmbed(containerSelector, spec, {
+      await vegaEmbed(container, spec, {
         actions: false,
         renderer: 'svg',
         config: vegaTheme,

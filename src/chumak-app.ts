@@ -1490,11 +1490,15 @@ export class ChumakApp implements AppState {
 
     this.updatePagination();
 
-    this.$nextTick(() => {
-      this.$watch('activeModel', () => this.syncUrlState());
-      this.$watch('activeSource', () => this.syncUrlState());
+    // Legacy: this.$nextTick(() => { ... })
+    // We are now managing state via signals in AppStore.
+    // Sync URL state initially.
+    setTimeout(() => {
+      // Watched properties are now signals in AppStore.
+      // If we need to react to them, we'd use useSignalEffect or standard effects.
+      // For now, let's just trigger initial sync.
       this.syncUrlState();
-    });
+    }, 0);
 
     window.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
