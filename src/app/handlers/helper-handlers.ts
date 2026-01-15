@@ -1,12 +1,10 @@
 import type { ChumakApp } from '../../chumak-app';
-import { describeTransform, applyTransform } from '../../core/transforms';
-import { TransformResult } from '../../core/transform-result';
-import { autoSave } from '../../core/storage';
+import { describeTransform } from '../../core/transforms';
 import { parseExpression } from '../../core/expression-parser';
 import { validateAST } from '../../core/ast-validator';
 import { formatError } from '../../core/error-formatter';
 import { ColumnSchema } from '../../core/schema-engine';
-import * as aq from 'arquero';
+import { StepService, ExecutionCallbacks } from '../services/StepService';
 
 export function getModelMeta(this: ChumakApp, model: any) {
   if (!model) return '';
@@ -26,70 +24,48 @@ export function describeTransformWrapper(this: ChumakApp, transform: any) {
   return describeTransform(transform);
 }
 
-export async function applyStepResult(
-  this: ChumakApp,
-  transform: any,
-  resultTable: any,
-  closeDialogAfter = true
-) {
-  if (this.editingStepIndex !== null) {
-    await this.updateStep(this.editingStepIndex, transform);
-    this.closeDialog(true);
-    return;
-  }
-  if (!this.activeModel) return;
-
-  this.activeModel.steps.push(transform);
-
-  let result;
-  if (Array.isArray(resultTable)) {
-    result = TransformResult.createFromData(resultTable, this.activeModel.schema, transform);
-  } else {
-    result = TransformResult.create(resultTable, this.activeModel.schema, transform);
-  }
-
-  this.currentData = result.data;
-  this.activeModel.schema = result.schema;
-  this.columns = result.columns;
-  this.activeModel.data = JSON.parse(JSON.stringify(result.data));
-
-  const validation = TransformResult.validate(result);
-  if (!validation.valid) {
-    console.warn('applyStepResult: Result validation warnings', validation.errors);
-  }
-
-  this.activeStepIndex = this.activeModel.steps.length - 1;
-  this.viewingIntermediate = false;
-  this.viewingSchema = null;
-
-  this.updatePagination();
-  await autoSave(this.sources, this.models);
-
-  if (closeDialogAfter) {
-    this.closeDialog(true);
-  }
+/**
+ * Creates the callback bridge from ChumakApp to StepService.
+ * This allows the framework-agnostic StepService to interact with the UI.
+ */
+export function createExecutionCallbacks(app: ChumakApp): ExecutionCallbacks {
+  return {
+    onTransformStart: (label: string) => app.startTransformation(label),
+    onTransformEnd: () => app.endTransformation(),
+    onError: async (message: string) => {
+      await app.alert(message);
+    },
+    onDialogClose: (clearPreview?: boolean) => app.closeDialog(clearPreview),
+    updatePagination: () => app.updatePagination(),
+  };
 }
 
+/**
+ * Runs a transform using StepService.
+ * This is the legacy bridge that maintains backward compatibility with ChumakApp.
+ */
 export async function runTransform(
   this: ChumakApp,
   label: string,
   transform: any,
   closeDialog = true
 ) {
-  this.startTransformation(label);
-  try {
-    const table = aq.from(this.currentData!);
-    const context = { sources: this.sources, models: this.models };
-    const result = applyTransform(table, transform, this.columns, context);
-    await this.applyStepResult(transform, result, closeDialog);
-    return true;
-  } catch (error: any) {
-    console.error(`${label} error:`, error);
-    await this.alert(`Error applying ${label.toLowerCase()}: ${error.message}`);
-    return false;
-  } finally {
-    this.endTransformation();
-  }
+  const callbacks = createExecutionCallbacks(this);
+  return StepService.runTransform(label, transform, callbacks, closeDialog);
+}
+
+/**
+ * @deprecated Use StepService.applyStepResult directly with callbacks
+ * Kept for backward compatibility during migration
+ */
+export async function applyStepResult(
+  this: ChumakApp,
+  transform: any,
+  resultTable: any,
+  closeDialogAfter = true
+) {
+  const callbacks = createExecutionCallbacks(this);
+  return StepService.applyStepResult(transform, resultTable, callbacks, closeDialogAfter);
 }
 
 export function validateExpression(this: ChumakApp, expr: string): string | null {

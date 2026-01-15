@@ -18,13 +18,133 @@ export interface ComputeContext {
   models: Model[];
 }
 
+export interface ExecutionCallbacks {
+  onTransformStart?: (label: string) => void;
+  onTransformEnd?: () => void;
+  onError?: (message: string) => Promise<void>;
+  onDialogClose?: (clearPreview?: boolean) => void;
+  updatePagination?: () => void;
+}
+
 /**
  * StepService
  *
  * Handles step computation, viewing, editing, and removal.
- * Replaces logic previously in step-handlers.ts with proper typing.
+ * This is the "Execution Engine" - framework-agnostic transform orchestration.
  */
 export class StepService {
+  /**
+   * Executes a transform and applies the result to the active model.
+   * This is the main entry point for running transforms.
+   * Returns true on success, false on failure.
+   */
+  static async runTransform(
+    label: string,
+    transform: TransformStep,
+    callbacks: ExecutionCallbacks,
+    closeDialog = true
+  ): Promise<boolean> {
+    const model = AppStore.activeModel.value;
+    const currentData = AppStore.currentData.value;
+    const columns = AppStore.columns.value;
+
+    if (!model || !currentData) {
+      await callbacks.onError?.('No active model or data');
+      return false;
+    }
+
+    callbacks.onTransformStart?.(label);
+
+    try {
+      const table = aq.from(currentData);
+      const context = StepService.getContext();
+      const resultTable = applyTransform(table, transform, columns, context);
+
+      await StepService.applyStepResult(transform, resultTable, callbacks, closeDialog);
+      return true;
+    } catch (error: any) {
+      console.error(`${label} error:`, error);
+      await callbacks.onError?.(`Error applying ${label.toLowerCase()}: ${error.message}`);
+      return false;
+    } finally {
+      callbacks.onTransformEnd?.();
+    }
+  }
+
+  /**
+   * Applies a transform result to the active model.
+   * Handles both new step addition and step editing.
+   */
+  static async applyStepResult(
+    transform: TransformStep,
+    resultTable: any,
+    callbacks: ExecutionCallbacks,
+    closeDialogAfter = true
+  ): Promise<void> {
+    const model = AppStore.activeModel.value;
+    const editingStepIndex = AppStore.editingStepIndex.value;
+
+    if (!model) return;
+
+    // Handle editing existing step
+    if (editingStepIndex !== null) {
+      await StepService.updateStep(model, editingStepIndex, transform, {
+        onSuccess: (result) => {
+          AppStore.currentData.value = result.data;
+          AppStore.columns.value = result.columns;
+          AppStore.activeStepIndex.value = model.steps.length - 1;
+          AppStore.viewingIntermediate.value = false;
+          AppStore.viewingSchema.value = null;
+          AppStore.editingStepIndex.value = null;
+          callbacks.updatePagination?.();
+        },
+        onError: (error, backup) => {
+          // Rollback on failure
+          model.steps = backup.steps;
+          model.data = backup.data;
+          model.schema = backup.schema;
+          console.error('Step update failed, rolled back:', error);
+        },
+      });
+      callbacks.onDialogClose?.(true);
+      return;
+    }
+
+    // Add new step
+    model.steps.push(transform);
+
+    let result;
+    if (Array.isArray(resultTable)) {
+      result = TransformResult.createFromData(resultTable, model.schema, transform);
+    } else {
+      result = TransformResult.create(resultTable, model.schema, transform);
+    }
+
+    // Update AppStore signals
+    AppStore.currentData.value = result.data;
+    AppStore.columns.value = result.columns;
+
+    // Update model
+    model.schema = result.schema;
+    model.data = JSON.parse(JSON.stringify(result.data));
+
+    const validation = TransformResult.validate(result);
+    if (!validation.valid) {
+      console.warn('applyStepResult: Result validation warnings', validation.errors);
+    }
+
+    AppStore.activeStepIndex.value = model.steps.length - 1;
+    AppStore.viewingIntermediate.value = false;
+    AppStore.viewingSchema.value = null;
+
+    callbacks.updatePagination?.();
+    await PersistenceService.autoSave();
+
+    if (closeDialogAfter) {
+      callbacks.onDialogClose?.(true);
+    }
+  }
+
   /**
    * Computes a model's data up to (and including) a specific step index.
    * This is a pure function that doesn't depend on ChumakApp state.

@@ -82,8 +82,10 @@ _Status: 🚧 In Progress_
 
 ### 3b: Core Separation
 
-- [ ] **Pure Transforms**: Ensure `src/core` remains framework-agnostic.
-- [ ] **Execution Engine**: Isolate the code that actually runs the transforms from the UI that configures them.
+- [x] **Pure Transforms**: `src/core` remains framework-agnostic (only type imports from `src/app/types.ts`).
+- [x] **Execution Engine**: `StepService.runTransform()` and `StepService.applyStepResult()` now handle all transform execution.
+  - [x] `ExecutionCallbacks` interface bridges UI callbacks without coupling to `ChumakApp`.
+  - [x] `helper-handlers.ts` provides `createExecutionCallbacks(app)` for legacy compatibility.
 
 ### 3c: Testing Strategy
 
