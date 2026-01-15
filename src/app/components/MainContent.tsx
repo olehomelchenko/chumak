@@ -1,0 +1,67 @@
+// Note: 'h' import not needed - Vite's JSX transform handles it
+import { AppStore } from '../stores/AppStore';
+import { EmptyState, EmptyStateProps } from './EmptyState';
+import { DatasetInfoView, DatasetInfoViewProps } from './DatasetInfoView';
+import { PaginationBar, PaginationBarProps } from './PaginationBar';
+import { DataTable, DataTableProps } from './DataTable';
+
+export interface MainContentProps
+  extends EmptyStateProps, DatasetInfoViewProps, PaginationBarProps, DataTableProps {}
+
+export function MainContent(props: MainContentProps) {
+  const viewMode = AppStore.viewMode;
+
+  return (
+    <>
+      {viewMode.value === 'empty' && (
+        <EmptyState
+          onUploadClick={props.onUploadClick}
+          onPasteClick={props.onPasteClick}
+          onUrlClick={props.onUrlClick}
+          onFileDrop={props.onFileDrop}
+        />
+      )}
+
+      {viewMode.value === 'dataset-info' && (
+        <DatasetInfoView
+          onRenameSource={props.onRenameSource}
+          onDeleteSource={props.onDeleteSource}
+          onSwitchToModel={props.onSwitchToModel}
+          onCreateNewModel={props.onCreateNewModel}
+        />
+      )}
+
+      {viewMode.value === 'model' && (
+        <>
+          <PaginationBar
+            onRenameModel={props.onRenameModel}
+            onCopyModel={props.onCopyModel}
+            onCreateNewModelFromActive={props.onCreateNewModelFromActive}
+            onDeleteModel={props.onDeleteModel}
+            onOpenDialog={props.onOpenDialog}
+            onCopyCSV={props.onCopyCSV}
+            onCopyJSON={props.onCopyJSON}
+            onFirstPage={props.onFirstPage}
+            onPrevPage={props.onPrevPage}
+            onNextPage={props.onNextPage}
+            onLastPage={props.onLastPage}
+            onPageSizeChange={props.onPageSizeChange}
+            getPaginationInfo={props.getPaginationInfo}
+          />
+          <DataTable
+            getPaginatedData={props.getPaginatedData}
+            getColumnType={props.getColumnType}
+            getTypeIcon={props.getTypeIcon}
+            getCellClass={props.getCellClass}
+            formatCellValue={props.formatCellValue}
+            onSelectColumn={props.onSelectColumn}
+            onSelectCell={props.onSelectCell}
+            onOpenTypeMenu={props.onOpenTypeMenu}
+            onClearColumnSelection={props.onClearColumnSelection}
+            onScroll={props.onScroll}
+          />
+        </>
+      )}
+    </>
+  );
+}

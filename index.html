@@ -40,367 +40,8 @@
 
     <!-- Main Content Area -->
     <main class="main-content">
-      <!-- Default/Empty State with Drag-n-Drop -->
-      <div
-        x-show="viewMode === 'empty'"
-        class="empty-state"
-        :class="{ 'empty-state--dragover': isDragging }"
-        @dragover.prevent="isDragging = true"
-        @dragleave.prevent="isDragging = false"
-        @drop.prevent="handleFileDrop($event)"
-      >
-        <div class="empty-state__content">
-          <span class="iconify empty-state__icon" data-icon="carbon:cloud-upload"></span>
-          <h2 class="empty-state__title">Get Started with Chumak</h2>
-          <p class="empty-state__text">
-            Drag and drop a CSV file here, or use one of the options below
-          </p>
-          <div class="empty-state__actions">
-            <button class="button button--primary" @click="$refs.fileInput.click()">
-              <span class="iconify" data-icon="carbon:upload"></span>
-              Upload CSV
-            </button>
-            <button class="button button--primary" @click="promptPaste()">
-              <span class="iconify" data-icon="carbon:paste"></span>
-              Paste Data
-            </button>
-            <button class="button button--primary" @click="showImportUrlDialog()">
-              <span class="iconify" data-icon="carbon:link"></span>
-              Import from URL
-            </button>
-            <button class="button button--secondary" disabled title="Coming soon">
-              <span class="iconify" data-icon="carbon:data-table"></span>
-              Load Example
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Dataset Info View -->
-      <div x-show="viewMode === 'dataset-info'" class="dataset-info">
-        <div class="dataset-info__header">
-          <div>
-            <h1 class="dataset-info__title" x-text="activeSource?.name"></h1>
-            <p class="dataset-info__subtitle">Dataset Source</p>
-          </div>
-          <div class="dataset-info__actions">
-            <button class="button button--secondary" @click="renameSource(activeSource)">
-              <span
-                class="iconify"
-                data-icon="carbon:edit"
-                style="width: 24px; height: 24px"
-              ></span>
-              Rename
-            </button>
-            <button class="button button--danger" @click="deleteSource(activeSource)">
-              <span
-                class="iconify"
-                data-icon="carbon:trash-can"
-                style="width: 24px; height: 24px"
-              ></span>
-              Delete
-            </button>
-          </div>
-        </div>
-
-        <div class="dataset-info__content">
-          <!-- Metadata Card -->
-          <div class="info-card">
-            <h3 class="info-card__title">Dataset Information</h3>
-            <dl class="info-list">
-              <div class="info-list__item">
-                <dt class="info-list__label">Source Name</dt>
-                <dd class="info-list__value" x-text="activeSource?.name"></dd>
-              </div>
-              <div class="info-list__item">
-                <dt class="info-list__label">Original File</dt>
-                <dd class="info-list__value" x-text="activeSource?.fileName"></dd>
-              </div>
-              <div class="info-list__item">
-                <dt class="info-list__label">Rows</dt>
-                <dd class="info-list__value" x-text="activeSource?.rowCount?.toLocaleString()"></dd>
-              </div>
-              <div class="info-list__item">
-                <dt class="info-list__label">Columns</dt>
-                <dd class="info-list__value" x-text="activeSource?.columns?.length"></dd>
-              </div>
-              <div class="info-list__item">
-                <dt class="info-list__label">File Size</dt>
-                <dd
-                  class="info-list__value"
-                  x-text="`${(activeSource?.rawSize / 1024).toFixed(1)} KB`"
-                ></dd>
-              </div>
-              <div class="info-list__item">
-                <dt class="info-list__label">Imported</dt>
-                <dd
-                  class="info-list__value"
-                  x-text="activeSource?.createdAt ? new Date(activeSource.createdAt).toLocaleString() : 'Unknown'"
-                ></dd>
-              </div>
-            </dl>
-          </div>
-
-          <!-- Models List Card -->
-          <div class="info-card">
-            <h3 class="info-card__title">
-              Models
-              <span
-                class="badge"
-                x-text="models.filter(m => m.sourceId === activeSource?.id).length"
-              ></span>
-            </h3>
-            <div class="models-list">
-              <template
-                x-for="model in models.filter(m => m.sourceId === activeSource?.id)"
-                :key="model.id"
-              >
-                <div class="model-card" @click="switchToModel(model)" style="cursor: pointer">
-                  <div class="model-card__icon">📊</div>
-                  <div class="model-card__content">
-                    <div class="model-card__name" x-text="model.name"></div>
-                    <div class="model-card__meta">
-                      <span
-                        x-text="`${model.steps?.length - 1 || 0} step${model.steps?.length - 1 !== 1 ? 's' : ''}`"
-                      ></span>
-                      <span>•</span>
-                      <span x-text="`${model.data?.length?.toLocaleString() || 0} rows`"></span>
-                    </div>
-                  </div>
-                  <div class="model-card__arrow">→</div>
-                </div>
-              </template>
-
-              <!-- New Model button -->
-              <button
-                class="button button--secondary"
-                @click="createNewModel(activeSource)"
-                style="width: 100%; margin-top: 0.5rem"
-              >
-                ➕ New Model
-              </button>
-            </div>
-          </div>
-
-          <!-- Column Schema Card -->
-          <div class="info-card info-card--full">
-            <h3 class="info-card__title">Column Schema</h3>
-            <table class="schema-table">
-              <thead>
-                <tr>
-                  <th class="schema-table__header">Column Name</th>
-                  <th class="schema-table__header">Type</th>
-                  <th class="schema-table__header">Position</th>
-                </tr>
-              </thead>
-              <tbody>
-                <template x-for="column in activeSource?.columns" :key="column.name">
-                  <tr class="schema-table__row">
-                    <td class="schema-table__cell" x-text="column.name"></td>
-                    <td class="schema-table__cell">
-                      <span
-                        class="type-badge"
-                        :class="`type-badge--${column.type || column.inferredType}`"
-                        x-text="column.type || column.inferredType"
-                      ></span>
-                    </td>
-                    <td class="schema-table__cell" x-text="column.originalPosition + 1"></td>
-                  </tr>
-                </template>
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-
-      <!-- Pagination -->
-      <div class="pagination" x-show="viewMode === 'model'">
-        <!-- Model Actions (Left) -->
-        <div class="model-actions">
-          <button
-            class="button button--ghost button--small"
-            @click="renameCurrentModel()"
-            title="Rename model"
-          >
-            <span class="iconify" data-icon="carbon:edit"></span>
-            <span>Rename</span>
-          </button>
-          <button
-            class="button button--ghost button--small"
-            @click="copyCurrentModel()"
-            title="Copy model"
-          >
-            <span class="iconify" data-icon="carbon:copy"></span>
-            <span>Copy</span>
-          </button>
-          <button
-            class="button button--ghost button--small"
-            @click="createNewModelFromActive()"
-            title="New model from same source"
-          >
-            <span class="iconify" data-icon="carbon:add-filled"></span>
-            <span>New</span>
-          </button>
-          <button
-            class="button button--ghost button--small button--danger-text"
-            @click="deleteCurrentModel()"
-            title="Delete model"
-          >
-            <span class="iconify" data-icon="carbon:trash-can"></span>
-            <span>Delete</span>
-          </button>
-
-          <div class="pagination__divider"></div>
-
-          <button
-            class="button button--ghost button--small"
-            @click="openDialog('download')"
-            title="Download options (CSV, JSON, Workflow)"
-          >
-            <span class="iconify" data-icon="carbon:download"></span>
-          </button>
-
-          <button
-            class="copy-button"
-            @click="copyCSVToClipboard()"
-            title="Copy current page to clipboard (CSV)"
-          >
-            <span
-              class="iconify base-icon"
-              data-icon="material-symbols-light:csv-outline-rounded"
-            ></span>
-            <span class="iconify overlay-icon" data-icon="carbon:copy"></span>
-          </button>
-
-          <button
-            class="copy-button"
-            @click="copyJSONToClipboard()"
-            title="Copy current page to clipboard (JSON)"
-          >
-            <span
-              class="iconify base-icon"
-              data-icon="material-symbols-light:file-json-outline-rounded"
-            ></span>
-            <span class="iconify overlay-icon" data-icon="carbon:copy"></span>
-          </button>
-        </div>
-
-        <!-- Pagination Context (Right) -->
-        <div class="pagination__controls" style="display: flex; align-items: center; gap: 1rem">
-          <span class="pagination__info" x-text="getPaginationInfo()"></span>
-
-          <div class="pagination__divider"></div>
-
-          <div style="display: flex; align-items: center; gap: 0.25rem">
-            <button
-              class="button button--secondary button--small"
-              @click="goToFirstPage()"
-              :disabled="currentPage === 1"
-              title="First page"
-            >
-              «
-            </button>
-            <button
-              class="button button--secondary button--small"
-              @click="previousPage()"
-              :disabled="currentPage === 1"
-              title="Previous page"
-            >
-              ‹
-            </button>
-            <div class="pagination__page-indicator">
-              Page <span x-text="currentPage"></span> of <span x-text="totalPages"></span>
-            </div>
-            <button
-              class="button button--secondary button--small"
-              @click="nextPage()"
-              :disabled="currentPage >= totalPages"
-              title="Next page"
-            >
-              ›
-            </button>
-            <button
-              class="button button--secondary button--small"
-              @click="goToLastPage()"
-              :disabled="currentPage >= totalPages"
-              title="Last page"
-            >
-              »
-            </button>
-          </div>
-
-          <div class="pagination__divider" style="margin-left: 0.5rem"></div>
-
-          <span style="font-size: 0.875rem; color: var(--color-dark-gray)">Rows:</span>
-          <select
-            class="form-input"
-            style="width: auto; padding: 0.25rem 0.5rem; font-size: 0.875rem"
-            x-model="pageSize"
-            @change="updatePageSize($event.target.value)"
-          >
-            <option value="100">100</option>
-            <option value="250">250</option>
-            <option value="500">500</option>
-            <option value="1000">1000</option>
-            <option value="2500">2500</option>
-          </select>
-        </div>
-      </div>
-
-      <!-- Data Preview Table -->
-      <div
-        class="table-container"
-        x-show="viewMode === 'model'"
-        @scroll.passive="updateToolbarPosition()"
-      >
-        <table class="data-table">
-          <thead>
-            <tr>
-              <template
-                x-for="(column, index) in columns"
-                :key="(activeModel?.id || activeSource?.id) + '-col-' + column"
-              >
-                <th
-                  class="data-table__header"
-                  :class="{ 'data-table__header--selected': selectedColumn === column }"
-                  :data-col="column"
-                  @click.stop="selectColumn(column, $event)"
-                  :title="`Column: ${column}`"
-                >
-                  <span
-                    class="type-indicator"
-                    :class="'type-indicator--' + getColumnType(column)"
-                    @click.stop="openTypeMenu(column, $event)"
-                    title="Click to change type"
-                  >
-                    <span class="iconify" :data-icon="getTypeIcon(column)"></span>
-                  </span>
-                  <span x-text="column"></span>
-                </th>
-              </template>
-            </tr>
-          </thead>
-          <tbody>
-            <template
-              x-for="(row, rowIndex) in getPaginatedData()"
-              :key="(activeModel?.id || activeSource?.id) + '-' + activeStepIndex + '-' + columns.length + '-' + currentPage + '-' + rowIndex"
-            >
-              <tr class="data-table__row" @click="clearColumnSelection()">
-                <template x-for="(column, colIndex) in columns" :key="column">
-                  <td
-                    :class="getCellClass(row[column], column)"
-                    :data-col="column"
-                    :data-row="rowIndex"
-                    x-text="formatCellValue(row[column])"
-                    :title="`${column}: ${row[column]}`"
-                    @click.stop="selectCell(column, row[column], rowIndex, $event)"
-                  ></td>
-                </template>
-              </tr>
-            </template>
-          </tbody>
-        </table>
-      </div>
+      <!-- Main Content (Preact Component) -->
+      <div id="main-content-container"></div>
 
       <!-- EDA Panel -->
       <div
@@ -906,65 +547,8 @@
       </template>
     </div>
 
-    <!-- Floating Type Menu -->
-    <div
-      class="type-menu"
-      x-show="typeMenuOpen"
-      x-cloak
-      :style="`top: ${typeMenuPos.y}px; left: ${typeMenuPos.x}px`"
-      @click.away="typeMenuOpen = false"
-    >
-      <div style="padding: 4px 8px; font-size: 11px; color: #888; text-transform: uppercase">
-        Change Type
-      </div>
-      <button class="type-menu__item" @click="changeColumnType(typeMenuCol, 'string')">
-        <span class="type-indicator type-indicator--string"
-          ><span class="iconify" data-icon="ix:data-type-string"></span
-        ></span>
-        String
-      </button>
-      <button class="type-menu__item" @click="changeColumnType(typeMenuCol, 'integer')">
-        <span class="type-indicator type-indicator--integer"
-          ><span class="iconify" data-icon="ix:data-type-integer"></span
-        ></span>
-        Integer
-      </button>
-      <button class="type-menu__item" @click="changeColumnType(typeMenuCol, 'float')">
-        <span class="type-indicator type-indicator--float"
-          ><span class="iconify" data-icon="ix:data-type-double"></span
-        ></span>
-        Float
-      </button>
-      <button class="type-menu__item" @click="changeColumnType(typeMenuCol, 'boolean')">
-        <span class="type-indicator type-indicator--boolean"
-          ><span class="iconify" data-icon="ix:data-type-boolean"></span
-        ></span>
-        Boolean
-      </button>
-      <button class="type-menu__item" @click="changeColumnType(typeMenuCol, 'date')">
-        <span class="type-indicator type-indicator--date"
-          ><span class="iconify" data-icon="ix:calendar"></span
-        ></span>
-        Date
-      </button>
-      <button class="type-menu__item" @click="changeColumnType(typeMenuCol, 'datetime')">
-        <span class="type-indicator type-indicator--datetime"
-          ><span class="iconify" data-icon="ix:calendar"></span
-        ></span>
-        DateTime
-      </button>
-      <div
-        style="width: 100%; height: 1px; background: var(--color-medium-gray); margin: 4px 0"
-      ></div>
-      <button class="type-menu__item" @click="changeColumnType(typeMenuCol, 'auto')">
-        <span
-          class="iconify"
-          data-icon="carbon:flash"
-          style="width: 14px; height: 14px; margin-right: 4px"
-        ></span>
-        Auto-Detect
-      </button>
-    </div>
+    <!-- Floating Type Menu (Preact Component) -->
+    <div id="type-menu-container"></div>
 
     <!-- Toast Notifications Container -->
     <div class="toast-container">
@@ -1110,6 +694,30 @@
         </div>
       </div>
     </div>
+
+    <!-- Modal Containers -->
+    <div id="filter-modal-container"></div>
+    <div id="derive-modal-container"></div>
+    <div id="sort-modal-container"></div>
+    <div id="slice-rows-modal-container"></div>
+    <div id="index-modal-container"></div>
+    <div id="join-modal-container"></div>
+    <div id="aggregate-modal-container"></div>
+    <div id="unpivot-modal-container"></div>
+    <div id="pivot-modal-container"></div>
+    <div id="replace-modal-container"></div>
+    <div id="split-modal-container"></div>
+    <div id="date-modal-container"></div>
+    <div id="regexp-match-modal-container"></div>
+    <div id="regexp-extract-modal-container"></div>
+    <div id="dedupe-modal-container"></div>
+    <div id="import-csv-modal-container"></div>
+    <div id="import-url-modal-container"></div>
+    <div id="column-editor-modal-container"></div>
+    <div id="settings-modal-container"></div>
+    <div id="download-modal-container"></div>
+    <div id="about-modal-container"></div>
+    <div id="expressions-modal-container"></div>
 
     <!-- Status Bar -->
     <footer class="status-bar" x-cloak x-show="isTransforming">

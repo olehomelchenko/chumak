@@ -66,6 +66,8 @@ import { mountComponent } from './app/components/PreactBridge';
 import { RibbonToolbar } from './app/components/RibbonToolbar';
 import { AppHeader } from './app/components/AppHeader';
 import { Sidebar } from './app/components/Sidebar';
+import { MainContent } from './app/components/MainContent';
+import { TypeMenu } from './app/components/TypeMenu';
 
 // Store global app reference for Ribbon callbacks
 let appInstance: ChumakApp | null = null;
@@ -81,61 +83,127 @@ Alpine.start();
 
 // Mount Preact components after DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
-  // Mount Header
-  const headerContainer = document.getElementById('header-container');
-  if (headerContainer && appInstance) {
-    mountComponent(headerContainer, AppHeader, {
-      onOpenDialog: (dialog: any) => appInstance?.openDialog(dialog),
-      onClearAllData: () => appInstance?.clearAllData(),
-    });
-  }
+  const mountComponents = () => {
+    if (!appInstance) {
+      setTimeout(mountComponents, 50);
+      return;
+    }
 
-  // Mount Ribbon
-  const ribbonContainer = document.getElementById('ribbon-container');
-  if (ribbonContainer && appInstance) {
-    mountComponent(ribbonContainer, RibbonToolbar, {
-      onOpenDialog: (dialog: any) => appInstance?.openDialog(dialog),
-      onAutoDetectSchema: () => appInstance?.autoDetectSchema(),
-    });
-  }
-
-  // Mount Sidebar
-  const sidebarContainer = document.getElementById('sidebar-container');
-  if (sidebarContainer && appInstance) {
     const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
-    mountComponent(sidebarContainer, Sidebar, {
-      onUploadClick: () => fileInput?.click(),
-      onPasteClick: () => appInstance?.promptPaste(),
-      onUrlClick: () => appInstance?.showImportUrlDialog(),
-      onSwitchToSource: (source: any) => appInstance?.switchToSource(source),
-      onSwitchToModel: (model: any) => appInstance?.switchToModel(model),
-      onViewStep: (index: number) => appInstance?.viewStep(index),
-      onEditStep: (index: number) => appInstance?.editStep(index),
-      onRemoveStep: (index: number) => appInstance?.removeStep(index),
-      onViewFinalResult: () => appInstance?.viewFinalResult(),
-      onGetStepsJson: () => appInstance?.getStepsJson() || '[]',
-      onEnterJsonEditMode: () => appInstance?.enterJsonEditMode(),
-      onCancelJsonEdit: () => appInstance?.cancelJsonEdit(),
-      onApplyJsonEdit: () => appInstance?.applyJsonChanges(),
-      onValidateJsonEdit: () => {
-        // Inline validation - update jsonEditError signal based on JSON parse
-        try {
-          const content = appInstance?.jsonEditContent;
-          if (content) {
-            const parsed = JSON.parse(content);
-            if (!Array.isArray(parsed.transforms)) {
-              if (appInstance) appInstance.jsonEditError = 'JSON must contain a "transforms" array';
-            } else {
-              if (appInstance) appInstance.jsonEditError = null;
+
+    // Mount Header
+    const headerContainer = document.getElementById('header-container');
+    if (headerContainer) {
+      mountComponent(headerContainer, AppHeader, {
+        onOpenDialog: (dialog: any) => appInstance?.openDialog(dialog),
+        onClearAllData: () => appInstance?.clearAllData(),
+      });
+    }
+
+    // Mount Ribbon
+    const ribbonContainer = document.getElementById('ribbon-container');
+    if (ribbonContainer) {
+      mountComponent(ribbonContainer, RibbonToolbar, {
+        onOpenDialog: (dialog: any) => appInstance?.openDialog(dialog),
+        onAutoDetectSchema: () => appInstance?.autoDetectSchema(),
+      });
+    }
+
+    // Mount Sidebar
+    const sidebarContainer = document.getElementById('sidebar-container');
+    if (sidebarContainer) {
+      mountComponent(sidebarContainer, Sidebar, {
+        onUploadClick: () => fileInput?.click(),
+        onPasteClick: () => appInstance?.promptPaste(),
+        onUrlClick: () => appInstance?.showImportUrlDialog(),
+        onSwitchToSource: (source: any) => appInstance?.switchToSource(source),
+        onSwitchToModel: (model: any) => appInstance?.switchToModel(model),
+        onViewStep: (index: number) => appInstance?.viewStep(index),
+        onEditStep: (index: number) => appInstance?.editStep(index),
+        onRemoveStep: (index: number) => appInstance?.removeStep(index),
+        onViewFinalResult: () => appInstance?.viewFinalResult(),
+        onGetStepsJson: () => appInstance?.getStepsJson() || '[]',
+        onEnterJsonEditMode: () => appInstance?.enterJsonEditMode(),
+        onCancelJsonEdit: () => appInstance?.cancelJsonEdit(),
+        onApplyJsonEdit: () => appInstance?.applyJsonChanges(),
+        onValidateJsonEdit: () => {
+          try {
+            const content = appInstance?.jsonEditContent;
+            if (content) {
+              const parsed = JSON.parse(content);
+              if (!Array.isArray(parsed.transforms)) {
+                if (appInstance)
+                  appInstance.jsonEditError = 'JSON must contain a "transforms" array';
+              } else {
+                if (appInstance) appInstance.jsonEditError = null;
+              }
             }
+          } catch (e: any) {
+            if (appInstance) appInstance.jsonEditError = `Invalid JSON: ${e.message}`;
           }
-        } catch (e: any) {
-          if (appInstance) appInstance.jsonEditError = `Invalid JSON: ${e.message}`;
-        }
-      },
-      getModelMeta: (model: any) => appInstance?.getModelMeta(model) || '',
-    });
-  }
+        },
+        getModelMeta: (model: any) => appInstance?.getModelMeta(model) || '',
+      });
+    }
+
+    // Mount Main Content
+    const mainContentContainer = document.getElementById('main-content-container');
+    if (mainContentContainer) {
+      mountComponent(mainContentContainer, MainContent, {
+        // Empty state props
+        onUploadClick: () => fileInput?.click(),
+        onPasteClick: () => appInstance?.promptPaste(),
+        onUrlClick: () => appInstance?.showImportUrlDialog(),
+        onFileDrop: (e: any) => appInstance?.handleFileDrop(e),
+        // Dataset info props
+        onRenameSource: (source: any) => appInstance?.renameSource(source),
+        onDeleteSource: (source: any) => appInstance?.deleteSource(source),
+        onSwitchToModel: (model: any) => appInstance?.switchToModel(model),
+        onCreateNewModel: (source: any) => appInstance?.createNewModel(source),
+        // Pagination props
+        onRenameModel: () => appInstance?.renameCurrentModel(),
+        onCopyModel: () => appInstance?.copyCurrentModel(),
+        onCreateNewModelFromActive: () => appInstance?.createNewModelFromActive(),
+        onDeleteModel: () => appInstance?.deleteCurrentModel(),
+        onOpenDialog: (dialog: any) => appInstance?.openDialog(dialog),
+        onCopyCSV: () => appInstance?.copyCSVToClipboard(),
+        onCopyJSON: () => appInstance?.copyJSONToClipboard(),
+        onFirstPage: () => appInstance?.goToFirstPage(),
+        onPrevPage: () => appInstance?.previousPage(),
+        onNextPage: () => appInstance?.nextPage(),
+        onLastPage: () => appInstance?.goToLastPage(),
+        onPageSizeChange: (size: number) => appInstance?.updatePageSize(size),
+        getPaginationInfo: () => appInstance?.getPaginationInfo() || '',
+        // Data table props
+        getPaginatedData: () => appInstance?.getPaginatedData() || [],
+        getColumnType: (col: string) => appInstance?.getColumnType(col) || 'string',
+        getTypeIcon: (col: string) =>
+          appInstance?.getTypeIcon(col) || 'carbon:text-short-paragraph',
+        getCellClass: (val: any, col: string) =>
+          appInstance?.getCellClass(val, col) || 'data-table__cell',
+        formatCellValue: (val: any) => appInstance?.formatCellValue(val) || String(val),
+        onSelectColumn: (col: string) => appInstance?.selectColumn(col),
+        onSelectCell: (col: string, val: any, idx: number) =>
+          appInstance?.selectCell(col, val, idx),
+        onOpenTypeMenu: (col: string, e: MouseEvent) => appInstance?.openTypeMenu(col, e),
+        onClearColumnSelection: () => appInstance?.clearColumnSelection(),
+        onScroll: () => appInstance?.updateToolbarPosition(),
+      });
+    }
+
+    // Mount Type Menu
+    const typeMenuContainer = document.getElementById('type-menu-container');
+    if (typeMenuContainer) {
+      mountComponent(typeMenuContainer, TypeMenu, {
+        onChangeType: (col: string, type: string) => appInstance?.changeColumnType(col, type),
+        onClose: () => {
+          if (appInstance) appInstance.typeMenuOpen = false;
+        },
+      });
+    }
+  };
+
+  mountComponents();
 });
 
 console.log('🚀 Chumak modern bundle initialized');
