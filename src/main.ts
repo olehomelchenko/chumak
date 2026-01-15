@@ -65,6 +65,7 @@ import { ChumakApp } from './chumak-app';
 import { mountComponent } from './app/components/PreactBridge';
 import { RibbonToolbar } from './app/components/RibbonToolbar';
 import { AppHeader } from './app/components/AppHeader';
+import { Sidebar } from './app/components/Sidebar';
 
 // Store global app reference for Ribbon callbacks
 let appInstance: ChumakApp | null = null;
@@ -95,6 +96,44 @@ document.addEventListener('DOMContentLoaded', () => {
     mountComponent(ribbonContainer, RibbonToolbar, {
       onOpenDialog: (dialog: any) => appInstance?.openDialog(dialog),
       onAutoDetectSchema: () => appInstance?.autoDetectSchema(),
+    });
+  }
+
+  // Mount Sidebar
+  const sidebarContainer = document.getElementById('sidebar-container');
+  if (sidebarContainer && appInstance) {
+    const fileInput = document.querySelector('input[type="file"]') as HTMLInputElement;
+    mountComponent(sidebarContainer, Sidebar, {
+      onUploadClick: () => fileInput?.click(),
+      onPasteClick: () => appInstance?.promptPaste(),
+      onUrlClick: () => appInstance?.showImportUrlDialog(),
+      onSwitchToSource: (source: any) => appInstance?.switchToSource(source),
+      onSwitchToModel: (model: any) => appInstance?.switchToModel(model),
+      onViewStep: (index: number) => appInstance?.viewStep(index),
+      onEditStep: (index: number) => appInstance?.editStep(index),
+      onRemoveStep: (index: number) => appInstance?.removeStep(index),
+      onViewFinalResult: () => appInstance?.viewFinalResult(),
+      onGetStepsJson: () => appInstance?.getStepsJson() || '[]',
+      onEnterJsonEditMode: () => appInstance?.enterJsonEditMode(),
+      onCancelJsonEdit: () => appInstance?.cancelJsonEdit(),
+      onApplyJsonEdit: () => appInstance?.applyJsonChanges(),
+      onValidateJsonEdit: () => {
+        // Inline validation - update jsonEditError signal based on JSON parse
+        try {
+          const content = appInstance?.jsonEditContent;
+          if (content) {
+            const parsed = JSON.parse(content);
+            if (!Array.isArray(parsed.transforms)) {
+              if (appInstance) appInstance.jsonEditError = 'JSON must contain a "transforms" array';
+            } else {
+              if (appInstance) appInstance.jsonEditError = null;
+            }
+          }
+        } catch (e: any) {
+          if (appInstance) appInstance.jsonEditError = `Invalid JSON: ${e.message}`;
+        }
+      },
+      getModelMeta: (model: any) => appInstance?.getModelMeta(model) || '',
     });
   }
 });
