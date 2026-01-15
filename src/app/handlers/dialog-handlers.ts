@@ -245,7 +245,7 @@ export function reSnapshot(this: ChumakApp) {
 
 export function openDialog(this: ChumakApp, dialogName: string, section?: string) {
   this.activeDialog = dialogName;
-  (this as any).initDialogState(dialogName, section);
+  this.initDialogState(dialogName, section);
   this.clearColumnSelection();
   this.reSnapshot();
 
@@ -293,16 +293,16 @@ export function initDialogState(this: ChumakApp, dialogName: string, section?: s
         void previewMode.value;
 
         // Use existing transform logic adjusted to read from store
-        if (typeof (this as any).validateFilterExpression === 'function') {
-          (this as any).validateFilterExpression();
+        if (typeof this.validateFilterExpression === 'function') {
+          this.validateFilterExpression();
         }
-        if (typeof (this as any).debouncedUpdateFilterPreview === 'function') {
-          (this as any).debouncedUpdateFilterPreview();
+        if (typeof this.debouncedUpdateFilterPreview === 'function') {
+          this.debouncedUpdateFilterPreview();
         }
       });
     }
   } else if (dialogName === 'join') {
-    (this as any).initializeJoinDialog(); // This now populates DialogStore
+    this.initializeJoinDialog(); // This now populates DialogStore
 
     // Mount Preact component
     const container = document.getElementById('join-modal-container');
@@ -330,14 +330,14 @@ export function initDialogState(this: ChumakApp, dialogName: string, section?: s
         previewData: previewData,
         previewError: previewError,
         isPreviewing: isPreviewing,
-        onPreview: () => (this as any).previewJoin(),
+        onPreview: () => this.previewJoin(),
       });
 
       // Watch for model changes to update columns via legacy handler
       effect(() => {
         const modelId = rightModel.value;
-        if (modelId && typeof (this as any).onJoinTargetChange === 'function') {
-          (this as any).onJoinTargetChange();
+        if (modelId && typeof this.onJoinTargetChange === 'function') {
+          this.onJoinTargetChange();
         }
       });
     }
@@ -363,12 +363,12 @@ export function initDialogState(this: ChumakApp, dialogName: string, section?: s
         void expression.value;
 
         // Trigger validation and preview logic
-        if (typeof (this as any).validateDeriveExpression === 'function') {
-          (this as any).validateDeriveExpression();
+        if (typeof this.validateDeriveExpression === 'function') {
+          this.validateDeriveExpression();
         }
 
-        if (typeof (this as any).debouncedUpdateDerivePreview === 'function') {
-          (this as any).debouncedUpdateDerivePreview();
+        if (typeof this.debouncedUpdateDerivePreview === 'function') {
+          this.debouncedUpdateDerivePreview();
         }
       });
     }
@@ -460,8 +460,8 @@ export function initDialogState(this: ChumakApp, dialogName: string, section?: s
         onPreview: async () => {
           aggIsPreviewingSignal.value = true;
           try {
-            if (typeof (this as any).previewAggregate === 'function') {
-              await (this as any).previewAggregate();
+            if (typeof this.previewAggregate === 'function') {
+              await this.previewAggregate();
             }
           } finally {
             aggIsPreviewingSignal.value = false;
@@ -525,8 +525,8 @@ export function initDialogState(this: ChumakApp, dialogName: string, section?: s
         onJsonPathUpdate: () => {
           // Logic handled in Alpine: updateJsonPath()
           // It uses the state we synced in effect
-          if (typeof (this as any).updateJsonPath === 'function') {
-            (this as any).updateJsonPath();
+          if (typeof this.updateJsonPath === 'function') {
+            this.updateJsonPath();
             // Sync outputs
             importJsonRawValuePreviewSignal.value =
               this.importDialogState.jsonRawValuePreview || '';
@@ -538,8 +538,8 @@ export function initDialogState(this: ChumakApp, dialogName: string, section?: s
           }
         },
         onJsonPathReset: () => {
-          if (typeof (this as any).resetJsonPath === 'function') {
-            (this as any).resetJsonPath();
+          if (typeof this.resetJsonPath === 'function') {
+            this.resetJsonPath();
             // Update signals reflecting reset state
             importJsonPathSignal.value = this.importDialogState.jsonPath || '';
             importJsonRawValuePreviewSignal.value = '';
@@ -548,12 +548,12 @@ export function initDialogState(this: ChumakApp, dialogName: string, section?: s
           }
         },
         onJsonPathSegmentSelect: (key: string) => {
-          if (typeof (this as any).selectJsonPathSegment === 'function') {
-            (this as any).selectJsonPathSegment(key);
+          if (typeof this.selectJsonPathSegment === 'function') {
+            this.selectJsonPathSegment(key);
             importJsonPathSignal.value = this.importDialogState.jsonPath || '';
             // Trigger update flow
-            if (typeof (this as any).updateJsonPath === 'function') {
-              (this as any).updateJsonPath();
+            if (typeof this.updateJsonPath === 'function') {
+              this.updateJsonPath();
               importJsonRawValuePreviewSignal.value =
                 this.importDialogState.jsonRawValuePreview || '';
               importSuggestedJsonKeysSignal.value = this.importDialogState.suggestedJsonKeys || [];
@@ -583,16 +583,16 @@ export function initDialogState(this: ChumakApp, dialogName: string, section?: s
           // Assuming updateImportPreview re-parses everything.
 
           if (importIsJsonSignal.value) {
-            if (typeof (this as any).updateHeadersForPreview === 'function') {
-              (this as any).updateHeadersForPreview();
+            if (typeof this.updateHeadersForPreview === 'function') {
+              this.updateHeadersForPreview();
             }
           } else {
-            if (typeof (this as any).updateImportPreview === 'function') {
-              (this as any).updateImportPreview();
+            if (typeof this.updateImportPreview === 'function') {
+              this.updateImportPreview();
             }
             // Headers might need updateHeadersForPreview too if mode changed
-            if (typeof (this as any).updateHeadersForPreview === 'function') {
-              (this as any).updateHeadersForPreview();
+            if (typeof this.updateHeadersForPreview === 'function') {
+              this.updateHeadersForPreview();
             }
           }
 
@@ -654,8 +654,8 @@ export function initDialogState(this: ChumakApp, dialogName: string, section?: s
         // Alpine had getColumnEditorChanges() method. We should probably reuse it or replicate logic.
         // It uses `this.columnEditorState` so by syncing signals TO state, we can just call it.
         // However, we want to update the SIGNAL `colEditChangesSignal` so the Preact component can see it.
-        if (typeof (this as any).getColumnEditorChanges === 'function') {
-          const changes = (this as any).getColumnEditorChanges();
+        if (typeof this.getColumnEditorChanges === 'function') {
+          const changes = this.getColumnEditorChanges();
           colEditChangesSignal.value = changes;
         }
       });
@@ -673,22 +673,22 @@ export function initDialogState(this: ChumakApp, dialogName: string, section?: s
         changes: colEditChangesSignal,
 
         onApplyPattern: () => {
-          if (typeof (this as any).applyColumnEditorPattern === 'function') {
-            (this as any).applyColumnEditorPattern();
+          if (typeof this.applyColumnEditorPattern === 'function') {
+            this.applyColumnEditorPattern();
             // Sync back columns as they are modified by pattern
             colEditColumnsSignal.value = this.columnEditorState.columns.map((c) => ({ ...c }));
           }
         },
         onSwitchToText: () => {
-          if (typeof (this as any).switchColumnEditorToText === 'function') {
-            (this as any).switchColumnEditorToText();
+          if (typeof this.switchColumnEditorToText === 'function') {
+            this.switchColumnEditorToText();
             // Sync back textValue as it is generated from columns
             colEditTextValueSignal.value = this.columnEditorState.textValue;
           }
         },
         onValidateText: () => {
-          if (typeof (this as any).validateColumnEditorText === 'function') {
-            (this as any).validateColumnEditorText();
+          if (typeof this.validateColumnEditorText === 'function') {
+            this.validateColumnEditorText();
             // Sync back error state
             colEditTextErrorSignal.value = this.columnEditorState.textError;
             // Sync back columns if valid? No, only on Apply.
@@ -723,19 +723,19 @@ export function initDialogState(this: ChumakApp, dialogName: string, section?: s
         rowLimit: settingsRowLimitSignal,
         onThemeChange: (theme) => {
           settingsThemeSignal.value = theme;
-          if (typeof (this as any).switchTheme === 'function') {
-            (this as any).switchTheme(theme);
+          if (typeof this.switchTheme === 'function') {
+            this.switchTheme(theme);
           }
         },
         onRowLimitChange: (limit) => {
           settingsRowLimitSignal.value = limit;
-          if (typeof (this as any).updatePreviewRowLimit === 'function') {
+          if (typeof this.updatePreviewRowLimit === 'function') {
             // updatePreviewRowLimit expects string in template, but accepts string and parses int.
             // The signature in chumak-app.ts is (value: string).
             // But let's check if we can pass string or if we should convert.
             // Method implementation: const limit = Math.max(..., parseInt(value, 10)...)
             // So we should pass string.
-            (this as any).updatePreviewRowLimit(String(limit));
+            this.updatePreviewRowLimit(String(limit));
           }
         },
       });
@@ -767,15 +767,15 @@ export function initDialogState(this: ChumakApp, dialogName: string, section?: s
         this.foldDialogState.selectedColumns = [...foldSelectedColumnsSignal.value];
 
         // Also trigger the preview update which exists in Alpine
-        // (this as any).updateFoldPreview();
+        // this.updateFoldPreview();
         // Since we can't easily call local methods from here if they rely on `this` context
         // in a specific way, we rely on the fact that `this.foldDialogState` assignment
         // might trigger watchers if Alpine is watching deep.
         // However, the template logic used @click="updateFoldPreview()".
         // The effect runs primarily on signal change.
         // Let's explicitly call the update method if it exists on the app instance
-        if (typeof (this as any).updateFoldPreview === 'function') {
-          (this as any).updateFoldPreview();
+        if (typeof this.updateFoldPreview === 'function') {
+          this.updateFoldPreview();
         }
       });
 
@@ -788,7 +788,7 @@ export function initDialogState(this: ChumakApp, dialogName: string, section?: s
       });
     }
   } else if (dialogName === 'pivot') {
-    (this as any).initializePivotDialog();
+    this.initializePivotDialog();
 
     // Mount Preact component
     const container = document.getElementById('pivot-modal-container');
@@ -814,10 +814,10 @@ export function initDialogState(this: ChumakApp, dialogName: string, section?: s
         // isPreviewing and uniqueValueCount are read-only (controlled by Alpine logic) or local
 
         // Trigger calculation in Alpine
-        if (typeof (this as any).onPivotConfigChange === 'function') {
+        if (typeof this.onPivotConfigChange === 'function') {
           // We might want to avoid triggering if nothing meaningful changed, but simple is better
           // This function calculates unique values and updates uniqueValueCount
-          Promise.resolve((this as any).onPivotConfigChange()).then(() => {
+          Promise.resolve(this.onPivotConfigChange()).then(() => {
             // Read back calculated values
             // Use peek() to avoid cycles if we were writing to signals that this effect reads,
             // but here we write to signals that this effect does NOT read (unique count)
@@ -850,8 +850,8 @@ export function initDialogState(this: ChumakApp, dialogName: string, section?: s
         onPreview: async () => {
           pivotIsPreviewingSignal.value = true;
           try {
-            if (typeof (this as any).previewPivot === 'function') {
-              await (this as any).previewPivot();
+            if (typeof this.previewPivot === 'function') {
+              await this.previewPivot();
             }
           } finally {
             pivotIsPreviewingSignal.value = false;
@@ -914,7 +914,7 @@ export function initDialogState(this: ChumakApp, dialogName: string, section?: s
 
       // Initial detection
       if (initialColumn) {
-        const detected = (this as any).detectDelimiter(initialColumn);
+        const detected = this.detectDelimiter(initialColumn);
         if (detected) {
           splitDelimiterSignal.value = detected.char;
           splitIsRegexSignal.value = detected.isRegex;
@@ -928,7 +928,7 @@ export function initDialogState(this: ChumakApp, dialogName: string, section?: s
         // Detect logic if column changed
         if (splitColumnSignal.value !== lastSplitCol) {
           lastSplitCol = splitColumnSignal.value;
-          const detected = (this as any).detectDelimiter(lastSplitCol);
+          const detected = this.detectDelimiter(lastSplitCol);
           if (detected) {
             splitDelimiterSignal.value = detected.char;
             splitIsRegexSignal.value = detected.isRegex;
@@ -948,8 +948,8 @@ export function initDialogState(this: ChumakApp, dialogName: string, section?: s
         this.splitDialogState.autoDetectedDelimiter = splitAutoDetectedDelimiterSignal.value;
 
         // Trigger preview
-        if (typeof (this as any).debouncedUpdateSplitPreview === 'function') {
-          (this as any).debouncedUpdateSplitPreview();
+        if (typeof this.debouncedUpdateSplitPreview === 'function') {
+          this.debouncedUpdateSplitPreview();
         }
 
         if (splitErrorSignal.peek() !== this.splitDialogState.error) {
@@ -985,7 +985,7 @@ export function initDialogState(this: ChumakApp, dialogName: string, section?: s
       error: null,
     };
   } else if (dialogName === 'date') {
-    const dateColumns = (this as any).getDateColumns ? (this as any).getDateColumns() : [];
+    const dateColumns = this.getDateColumns ? this.getDateColumns() : [];
     const initialColumn =
       this.selectedColumn && dateColumns.includes(this.selectedColumn)
         ? this.selectedColumn
@@ -1018,8 +1018,8 @@ export function initDialogState(this: ChumakApp, dialogName: string, section?: s
         this.dateDialogState.truncateUnits = [...dateTruncateUnitsSignal.value];
         this.dateDialogState.outputColumn = dateOutputColumnSignal.value;
 
-        if (typeof (this as any).updateDatePreview === 'function') {
-          (this as any).updateDatePreview();
+        if (typeof this.updateDatePreview === 'function') {
+          this.updateDatePreview();
         }
 
         if (dateErrorSignal.peek() !== this.dateDialogState.error) {
@@ -1044,7 +1044,7 @@ export function initDialogState(this: ChumakApp, dialogName: string, section?: s
       duplicateCount: 0,
       mode: 'remove',
     };
-    this.$nextTick(() => (this as any).updateDedupePreview());
+    this.$nextTick(() => this.updateDedupePreview());
   }
 }
 

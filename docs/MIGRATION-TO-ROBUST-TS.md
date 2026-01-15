@@ -65,15 +65,27 @@ _Status: 🚧 In Progress_
 
 **Goal**: Break the 1200+ line `ChumakApp` "God Object" into manageable execution units.
 
-### 3a: Logic Extraction (Store Pattern)
+### 3a: Logic Extraction (Store & Service Pattern)
 
+- [x] **Global Signal Store**: Centralize global app state (`sources`, `models`, `activeModel`) into `AppStore` using Preact signals.
 - [x] **Dialog State Stores**: Move logic from `dialog-handlers.ts` into dedicated stores.
-  - [x] SortDialog (Example)
-  - [x] JoinDialog
-  - [x] FilterDialog
-  - [ ] Other dialogs...
-- [ ] **Service Extraction**: Move `Import`, `Export`, and `Persistence` logic into standalone services.
-- [ ] **Remove Mix-ins**: Replace the `(this as any)` and `.call(this)` patterns with direct store/service usage.
+  - [x] SortDialog, JoinDialog, FilterDialog, DeriveDialog.
+  - [ ] Other dialogs (Aggregate, Pivot, etc. - pending full store migration).
+- [x] **Service Extraction**: Move business logic into standalone services.
+  - [x] **ModelService**: Source/Model lifecycle management.
+  - [x] **ExportService**: CSV/JSON/Workflow exports.
+  - [x] **ImportService**: Core source creation logic (JSON/CSV).
+  - [x] **StepService**: Step computation, removal, and update logic.
+  - [ ] **PersistenceService**: Strategy for auto-save and IndexedDB (currently in `core/storage.ts`).
+- [x] **Remove Mix-ins**: replace the `(this as any)` and `.call(this)` patterns.
+  - [x] Model handlers replaced by `ModelService`.
+  - [x] Export handlers replaced by `ExportService`.
+  - [x] Step handlers replaced by `StepService` (29 `(this as any)` removed).
+  - [x] Helper handlers refactored (6 `(this as any)` removed).
+  - [x] Interaction handlers refactored (10 `(this as any)` removed).
+  - [x] Dialog handlers refactored (50+ `(this as any)` removed).
+  - [x] EDA handlers refactored (2 `(this as any)` removed).
+  - [x] Notification handlers refactored (3 `(this as any)` removed).
 
 ### 3b: Core Separation
 

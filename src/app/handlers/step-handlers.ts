@@ -1,133 +1,98 @@
 import type { ChumakApp } from '../../chumak-app';
-import * as aq from 'arquero';
-import { applyTransform, describeTransform } from '../../core/transforms';
-import { TransformResult } from '../../core/transform-result';
-import { perfLogger } from '../../core/performance-logger';
-import { autoSave } from '../../core/storage';
+import { describeTransform } from '../../core/transforms';
 import { Model } from '../types';
 import { ColumnSchema, TransformStep } from '../../core/schema-engine';
 import { DialogStore } from '../stores/DialogStore';
+import { StepService, ComputeResult } from '../services/StepService';
 
+/**
+ * Dispatches transform application based on the active dialog.
+ * Each case calls the corresponding method on ChumakApp directly.
+ */
 export async function applyActiveTransform(this: ChumakApp) {
   switch (this.activeDialog) {
     case 'filter':
-      await (this as any).applyFilterTransform();
+      await this.applyFilterTransform();
       break;
     case 'sort':
-      await (this as any).applySortTransform();
+      await this.applySortTransform();
       break;
     case 'sliceRows':
-      await (this as any).applySliceRowsTransform();
+      await this.applySliceRowsTransform();
       break;
     case 'index':
-      await (this as any).applyIndexTransform();
+      await this.applyIndexTransform();
       break;
     case 'split':
-      await (this as any).applySplitTransform();
+      await this.applySplitTransform();
       break;
     case 'derive':
-      await (this as any).applyDeriveTransform();
+      await this.applyDeriveTransform();
       break;
     case 'regexpMatch':
-      await (this as any).applyRegexpMatchTransform();
+      await this.applyRegexpMatchTransform();
       break;
     case 'regexpExtract':
-      await (this as any).applyRegexpExtractTransform();
+      await this.applyRegexpExtractTransform();
       break;
     case 'date':
-      await (this as any).applyDateTransform();
+      await this.applyDateTransform();
       break;
     case 'fold':
-      await (this as any).applyFoldTransform();
+      await this.applyFoldTransform();
       break;
     case 'pivot':
-      await (this as any).applyPivotTransform();
+      await this.applyPivotTransform();
       break;
     case 'aggregate':
-      await (this as any).applyAggregateTransform();
+      await this.applyAggregateTransform();
       break;
     case 'join':
-      await (this as any).applyJoinTransform();
+      await this.applyJoinTransform();
       break;
     case 'replace':
-      await (this as any).applyReplaceTransform();
+      await this.applyReplaceTransform();
       break;
     case 'dedupe':
-      await (this as any).applyDedupeTransform();
+      await this.applyDedupeTransform();
       break;
     case 'column-editor':
-      await (this as any).applyColumnEditorTransform();
+      await this.applyColumnEditorTransform();
       break;
     case 'import-csv':
-      (this as any).confirmImport();
+      this.confirmImport();
       break;
     case 'import-url':
-      await (this as any).fetchAndImportFromUrl();
+      await this.fetchAndImportFromUrl();
       break;
   }
 }
 
+/**
+ * Computes a model's data up to a specific step.
+ * Delegates to StepService for the actual computation.
+ */
 export function computeModelUpToStep(this: ChumakApp, model: Model, stepIndex: number) {
-  const start = performance.now();
-  if (!model) throw new Error('No model provided');
-
-  const source = this.sources.find((s) => s.id === model.sourceId);
-  if (!source) throw new Error('Source not found for model');
-
-  let table = aq.from(source.data);
-  let schema = JSON.parse(JSON.stringify(source.columns)) as ColumnSchema[];
-  let columns = schema.map((c: ColumnSchema) => c.name);
-
-  for (let i = 0; i <= stepIndex; i++) {
-    const step = model.steps[i];
-    if (step.import) continue;
-
-    try {
-      const context = { sources: this.sources, models: this.models };
-      table = applyTransform(table, step, columns, context);
-
-      const stepResult = TransformResult.create(table, schema, step);
-      schema = stepResult.schema;
-      columns = stepResult.columns;
-    } catch (error: any) {
-      console.error(`Error applying step ${i}:`, error);
-      const stepDescription = describeTransform(step);
-      const enhancedError = new Error(
-        `Step ${i + 1} failed: ${stepDescription}\n\n${error.message}`
-      ) as any;
-      enhancedError.stepIndex = i;
-      enhancedError.stepDescription = stepDescription;
-      throw enhancedError;
-    }
-  }
-
-  const result = {
-    data: table.objects() as any[],
-    schema: schema,
-    columns: columns,
-  };
-
-  const validation = TransformResult.validate(result);
-  if (!validation.valid) {
-    console.warn('computeModelUpToStep: Result validation warnings', validation.errors);
-  }
-
-  perfLogger.log(
-    `Compute model '${model.name}' to step ${stepIndex + 1}`,
-    source.data,
-    result.data,
-    performance.now() - start
-  );
-  return result;
+  return StepService.computeModelUpToStep(model, stepIndex, {
+    sources: this.sources,
+    models: this.models,
+  });
 }
 
+/**
+ * Computes the active model up to a specific step.
+ */
 export function computeUpToStep(this: ChumakApp, stepIndex: number) {
-  return (this as any).computeModelUpToStep(this.activeModel, stepIndex);
+  if (!this.activeModel) throw new Error('No active model');
+  return this.computeModelUpToStep(this.activeModel, stepIndex);
 }
 
+/**
+ * Views the result at a specific step index.
+ */
 export function viewStep(this: ChumakApp, stepIndex: number) {
   try {
-    const result = (this as any).computeUpToStep(stepIndex);
+    const result = this.computeUpToStep(stepIndex);
     this.currentData = result.data;
     this.columns = result.columns;
     this.viewingSchema = result.schema;
@@ -145,11 +110,14 @@ export function viewStep(this: ChumakApp, stepIndex: number) {
   }
 }
 
+/**
+ * Views the final result of the active model.
+ */
 export function viewFinalResult(this: ChumakApp) {
   if (!this.activeModel) return;
   this.currentData = this.activeModel.data;
   if (this.activeModel.schema && this.activeModel.schema.length > 0) {
-    this.columns = this.activeModel.schema.map((c: any) => c.name);
+    this.columns = this.activeModel.schema.map((c: ColumnSchema) => c.name);
   } else if (this.currentData && this.currentData.length > 0) {
     this.columns = Object.keys(this.currentData[0]);
   } else {
@@ -162,6 +130,9 @@ export function viewFinalResult(this: ChumakApp) {
   this.updatePagination();
 }
 
+/**
+ * Opens a dialog to edit an existing step.
+ */
 export function editStep(this: ChumakApp, stepIndex: number) {
   if (!this.activeModel) return;
   const step = this.activeModel.steps[stepIndex];
@@ -265,12 +236,10 @@ export function editStep(this: ChumakApp, stepIndex: number) {
     };
   } else if (step.join) {
     this.openDialog('join');
-    // We must manually populate the store for complex dialogs not fully covered by openDialog helper
     DialogStore.joinState.rightModel.value = step.join.right;
     DialogStore.joinState.joinType.value = step.join.how;
     DialogStore.joinState.keyPairs.value = step.join.on;
     DialogStore.joinState.suffixes.value = step.join.suffixes || ['_x', '_y'];
-    // Trigger side effects
     this.onJoinTargetChange();
   } else if (step.fold) {
     this.openDialog('fold');
@@ -319,7 +288,7 @@ export function editStep(this: ChumakApp, stepIndex: number) {
       autoDetectedDelimiter: null,
       columnRenames: {},
     };
-    (this as any).updateSplitPreview();
+    this.updateSplitPreview();
   } else if (step.dedupe) {
     this.openDialog('dedupe');
     const dedupeColumns = step.dedupe.columns || [];
@@ -329,19 +298,25 @@ export function editStep(this: ChumakApp, stepIndex: number) {
       duplicateCount: 0,
       mode: step.dedupe.mode || 'remove',
     };
-    (this as any).updateDedupePreview();
+    this.updateDedupePreview();
   }
 }
 
+/**
+ * Cancels the current edit operation.
+ */
 export function cancelEdit(this: ChumakApp) {
   this.editingStepIndex = null;
   this.closeDialog(true);
 }
 
+/**
+ * Removes a step from the active model.
+ */
 export async function removeStep(this: ChumakApp, stepIndex: number) {
   if (!this.activeModel) return;
   if (this.activeModel.steps[stepIndex].import) {
-    (this as any).showWarning('Cannot remove import step', 'The import step is required.');
+    this.showWarning('Cannot remove import step', 'The import step is required.');
     return;
   }
 
@@ -350,36 +325,40 @@ export async function removeStep(this: ChumakApp, stepIndex: number) {
 
   if (isLastStep) {
     if (!(await this.confirm(`Remove step "${describeTransform(step)}"?`))) return;
-    await (this as any).executeStepRemoval(stepIndex, 'single');
+    await this.executeStepRemoval(stepIndex, 'single');
   } else {
-    const removeMode = await (this as any).showStepRemovalModal(stepIndex);
+    const removeMode = await this.showStepRemovalModal(stepIndex);
     if (!removeMode) return;
-    await (this as any).executeStepRemoval(stepIndex, removeMode);
+    await this.executeStepRemoval(stepIndex, removeMode);
   }
 }
 
+/**
+ * Shows a modal for choosing how to remove a step (single vs cascade).
+ */
 export function showStepRemovalModal(
   this: ChumakApp,
   stepIndex: number
 ): Promise<'single' | 'all' | null> {
   if (!this.activeModel) return Promise.resolve(null);
-  const step = this.activeModel.steps[stepIndex];
-  const affectedSteps = this.activeModel.steps
-    .slice(stepIndex + 1)
-    .map((s: TransformStep) => describeTransform(s));
+
+  const info = StepService.getStepRemovalInfo(this.activeModel, stepIndex);
 
   return new Promise((resolve) => {
-    (this as any).stepRemovalModal = {
+    this.stepRemovalModal = {
       visible: true,
-      stepIndex,
-      stepName: describeTransform(step),
-      affectedSteps,
+      stepIndex: info.stepIndex,
+      stepName: info.stepName,
+      affectedSteps: info.affectedSteps,
       removeMode: 'all',
       resolve,
     };
   });
 }
 
+/**
+ * Closes the step removal modal.
+ */
 export function closeStepRemovalModal(this: ChumakApp, confirmed: boolean) {
   if (this.stepRemovalModal.resolve) {
     this.stepRemovalModal.resolve(confirmed ? this.stepRemovalModal.removeMode : null);
@@ -387,61 +366,51 @@ export function closeStepRemovalModal(this: ChumakApp, confirmed: boolean) {
   this.stepRemovalModal.visible = false;
 }
 
+/**
+ * Executes the removal of a step from the model.
+ */
 export async function executeStepRemoval(
   this: ChumakApp,
   stepIndex: number,
   mode: 'single' | 'all'
 ) {
-  try {
-    if (!this.activeModel) return;
-    if (mode === 'all') {
-      this.activeModel.steps.splice(stepIndex);
-    } else {
-      this.activeModel.steps.splice(stepIndex, 1);
-    }
-    this.activeModel.steps = [...this.activeModel.steps];
+  if (!this.activeModel) return;
 
-    const result = (this as any).computeUpToStep(this.activeModel.steps.length - 1);
-    this.activeModel.data = JSON.parse(JSON.stringify(result.data));
-    this.activeModel.schema = result.schema;
-    this.currentData = this.activeModel.data;
-    this.columns = result.columns;
-
-    this.viewFinalResult();
-    await autoSave(this.sources, this.models);
-  } catch (error: any) {
-    (this as any).showError('Error recomputing after removal', error.message);
-  }
+  const self = this;
+  await StepService.executeStepRemoval(this.activeModel, stepIndex, mode, {
+    onSuccess(result: ComputeResult) {
+      self.currentData = self.activeModel!.data;
+      self.columns = result.columns;
+      self.viewFinalResult();
+    },
+    onError(error: Error) {
+      self.showError('Error recomputing after removal', error.message);
+    },
+  });
 }
 
-export async function updateStep(this: ChumakApp, stepIndex: number, newTransform: any) {
+/**
+ * Updates a step in the model with a new transform.
+ */
+export async function updateStep(this: ChumakApp, stepIndex: number, newTransform: TransformStep) {
   if (!this.activeModel) return;
-  const backup = {
-    steps: JSON.parse(JSON.stringify(this.activeModel.steps)),
-    data: JSON.parse(JSON.stringify(this.activeModel.data)),
-    schema: JSON.parse(JSON.stringify(this.activeModel.schema)),
-  };
 
-  try {
-    this.activeModel.steps[stepIndex] = newTransform;
-    this.activeModel.steps = [...this.activeModel.steps];
-
-    const result = (this as any).computeUpToStep(this.activeModel.steps.length - 1);
-    this.activeModel.data = JSON.parse(JSON.stringify(result.data));
-    this.activeModel.schema = result.schema;
-    this.currentData = this.activeModel.data;
-    this.columns = result.columns;
-
-    this.viewFinalResult();
-    await autoSave(this.sources, this.models);
-    this.editingStepIndex = null;
-  } catch (error: any) {
-    this.activeModel.steps = backup.steps;
-    this.activeModel.data = backup.data;
-    this.activeModel.schema = backup.schema;
-    this.currentData = this.activeModel.data;
-    this.columns = this.activeModel.schema.map((c: ColumnSchema) => c.name);
-    this.editingStepIndex = null;
-    (this as any).showError('Error updating step', error.message);
-  }
+  const self = this;
+  await StepService.updateStep(this.activeModel, stepIndex, newTransform, {
+    onSuccess(result: ComputeResult) {
+      self.currentData = self.activeModel!.data;
+      self.columns = result.columns;
+      self.viewFinalResult();
+      self.editingStepIndex = null;
+    },
+    onError(error: Error, backup) {
+      self.activeModel!.steps = backup.steps;
+      self.activeModel!.data = backup.data;
+      self.activeModel!.schema = backup.schema;
+      self.currentData = self.activeModel!.data;
+      self.columns = self.activeModel!.schema.map((c: ColumnSchema) => c.name);
+      self.editingStepIndex = null;
+      self.showError('Error updating step', error.message);
+    },
+  });
 }

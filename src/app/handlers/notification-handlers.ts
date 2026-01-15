@@ -6,17 +6,17 @@ export function showError(this: ChumakApp, title: string, message: string, optio
   if (stepIndex !== undefined && stepDescription) {
     stepInfo = `Step ${stepIndex + 1}: ${stepDescription}`;
   }
-  (this as any)._addNotification('error', title, message, stepInfo, duration);
+  this._addNotification('error', title, message, stepInfo, duration);
 }
 
 export function showWarning(this: ChumakApp, title: string, message: string, options: any = {}) {
   const { duration = 6000 } = options;
-  (this as any)._addNotification('warning', title, message, null, duration);
+  this._addNotification('warning', title, message, null, duration);
 }
 
 export function showSuccess(this: ChumakApp, message: string, options: any = {}) {
   const { duration = 3000 } = options;
-  (this as any)._addNotification('success', 'Success', message, null, duration);
+  this._addNotification('success', 'Success', message, null, duration);
 }
 
 export function _addNotification(

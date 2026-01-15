@@ -1,5 +1,6 @@
 import type { ChumakApp } from '../../chumak-app';
 import { SchemaEngine } from '../../core/schema-engine';
+import { DialogStore } from '../stores/DialogStore';
 
 export function handleBodyClick(this: ChumakApp, event: any) {
   if (
@@ -42,7 +43,7 @@ export async function changeColumnType(this: ChumakApp, col: string, newType: st
     typeToSet = SchemaEngine.inferType(sample);
   }
   const typeStep = { types: { [col]: typeToSet } };
-  await (this as any).applyStepResult(typeStep, this.currentData);
+  await this.applyStepResult(typeStep, this.currentData);
 }
 
 export async function autoDetectSchema(this: ChumakApp) {
@@ -53,7 +54,7 @@ export async function autoDetectSchema(this: ChumakApp) {
     types[col] = SchemaEngine.inferType(sample);
   });
   const typeStep = { types };
-  await (this as any).applyStepResult(typeStep, this.currentData);
+  await this.applyStepResult(typeStep, this.currentData);
 }
 
 export function clearColumnSelection(this: ChumakApp) {
@@ -79,7 +80,7 @@ export function updateToolbarPosition(this: ChumakApp) {
     const header = document.querySelector(`.data-table__header[data-col="${this.selectedColumn}"]`);
     if (header) {
       const rect = header.getBoundingClientRect();
-      this.columnToolbarPos = (this as any).calculateToolbarPosition(rect, 200);
+      this.columnToolbarPos = this.calculateToolbarPosition(rect, 200);
     }
   }
   if (this.selectedCell) {
@@ -92,7 +93,7 @@ export function updateToolbarPosition(this: ChumakApp) {
       const toolbarWidth = ['number', 'integer', 'float'].includes(this.selectedCell.type)
         ? 220
         : 80;
-      this.cellToolbarPos = (this as any).calculateToolbarPosition(rect, toolbarWidth);
+      this.cellToolbarPos = this.calculateToolbarPosition(rect, toolbarWidth);
     }
   }
 }
@@ -118,7 +119,7 @@ export async function applyQuickCellFilter(this: ChumakApp, op: string) {
   if (!this.selectedCell) return;
   const { col, value, type } = this.selectedCell;
   let expr = '';
-  const formattedValue = (this as any).formatLiteral(value, type);
+  const formattedValue = this.formatLiteral(value, type);
   if (op === 'exact') expr = `[${col}] == ${formattedValue}`;
   else if (op === 'not') expr = `[${col}] != ${formattedValue}`;
   else if (op === 'gt') expr = `[${col}] > ${formattedValue}`;
@@ -128,19 +129,16 @@ export async function applyQuickCellFilter(this: ChumakApp, op: string) {
   if (expr) {
     DialogStore.filterState.expression.value = expr;
     DialogStore.filterState.error.value = null;
-    await (this as any).applyFilterTransform();
+    await this.applyFilterTransform();
   }
   this.selectedCell = null;
 }
-
-import { DialogStore } from '../stores/DialogStore';
-// ... imports
 
 export async function quickSort(this: ChumakApp, order: 'asc' | 'desc') {
   if (!this.selectedColumn) return;
   DialogStore.sortState.field.value = this.selectedColumn;
   DialogStore.sortState.order.value = order;
-  await (this as any).applySortTransform();
+  await this.applySortTransform();
   this.selectedColumn = null;
 }
 
@@ -187,7 +185,7 @@ export function quickSplit(this: ChumakApp) {
   const col = this.selectedColumn;
 
   // 1. Initialize logic-heavy fields first
-  const detected = (this as any).detectDelimiter(col);
+  const detected = this.detectDelimiter(col);
 
   this.splitDialogState.column = col;
   if (detected) {
@@ -202,7 +200,7 @@ export function quickSplit(this: ChumakApp) {
   this.openDialog('split');
 
   // 3. Trigger preview
-  (this as any).updateSplitPreview();
+  this.updateSplitPreview();
 }
 
 export function quickReplace(this: ChumakApp) {
@@ -228,5 +226,5 @@ export function quickDedupe(this: ChumakApp) {
   this.openDialog('dedupe');
 
   // 3. Trigger preview
-  (this as any).updateDedupePreview();
+  this.updateDedupePreview();
 }

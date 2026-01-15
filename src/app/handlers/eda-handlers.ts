@@ -2,6 +2,7 @@ import type { ChumakApp } from '../../chumak-app';
 import { SchemaEngine } from '../../core/schema-engine';
 import { EDAEngine } from '../../core/eda-engine';
 import { ChartsEngine } from '../../core/charts';
+import { DialogStore } from '../stores/DialogStore';
 
 export function selectColumn(this: ChumakApp, col: string) {
   this.selectedCell = null;
@@ -12,7 +13,7 @@ export function selectColumn(this: ChumakApp, col: string) {
     return;
   }
   this.selectedColumn = col;
-  this.$nextTick(() => (this as any).updateToolbarPosition());
+  this.$nextTick(() => this.updateToolbarPosition());
   if (this.selectedColumn && this.currentData) {
     let colSchema = null;
     if (this.activeModel?.schema)
@@ -150,8 +151,6 @@ export function handleBrushSelection(this: ChumakApp, selection: any) {
   this.edaBrushSelection = selection;
 }
 
-import { DialogStore } from '../stores/DialogStore';
-// ...
 export async function applyBrushFilter(this: ChumakApp) {
   if (!this.edaBrushSelection || !this.selectedColumn) return;
   const { min, max } = this.edaBrushSelection;
@@ -161,6 +160,6 @@ export async function applyBrushFilter(this: ChumakApp) {
   const expr = `[${col}] >= ${fmtMin} && [${col}] <= ${fmtMax}`;
   DialogStore.filterState.expression.value = expr;
   DialogStore.filterState.error.value = null;
-  await (this as any).applyFilterTransform();
+  await this.applyFilterTransform();
   this.clearColumnSelection();
 }

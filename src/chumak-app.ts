@@ -24,6 +24,7 @@ import * as PaginationHandlers from './app/handlers/pagination-handlers';
 import * as HelperHandlers from './app/handlers/helper-handlers';
 import * as JsonHandlers from './app/handlers/json-handlers';
 import { SchemaEngine, ColumnSchema, TransformStep } from './core/schema-engine';
+import { effect } from '@preact/signals';
 import { AppStore, ViewMode } from './app/stores/AppStore';
 import { ModelService } from './app/services/ModelService';
 import { ImportService } from './app/services/ImportService';
@@ -44,6 +45,7 @@ import {
 
 export class ChumakApp implements AppState {
   // UI state
+  _rev = 0;
   activeStep: TransformStep | null = null;
   editingStepIndex: number | null = null;
   dialogSnapshot: string | null = null;
@@ -107,6 +109,7 @@ export class ChumakApp implements AppState {
 
   // Data state (wired to AppStore)
   get sources() {
+    this._rev;
     return AppStore.sources.value;
   }
   set sources(val) {
@@ -114,6 +117,7 @@ export class ChumakApp implements AppState {
   }
 
   get models() {
+    this._rev;
     return AppStore.models.value;
   }
   set models(val) {
@@ -121,6 +125,7 @@ export class ChumakApp implements AppState {
   }
 
   get activeSource() {
+    this._rev;
     return AppStore.activeSource.value;
   }
   set activeSource(val) {
@@ -128,6 +133,7 @@ export class ChumakApp implements AppState {
   }
 
   get activeModel() {
+    this._rev;
     return AppStore.activeModel.value;
   }
   set activeModel(val) {
@@ -135,6 +141,7 @@ export class ChumakApp implements AppState {
   }
 
   get currentData() {
+    this._rev;
     return AppStore.currentData.value;
   }
   set currentData(val) {
@@ -142,6 +149,7 @@ export class ChumakApp implements AppState {
   }
 
   get columns() {
+    this._rev;
     return AppStore.columns.value;
   }
   set columns(val) {
@@ -149,6 +157,7 @@ export class ChumakApp implements AppState {
   }
 
   get viewMode() {
+    this._rev;
     return AppStore.viewMode.value;
   }
   set viewMode(val) {
@@ -156,6 +165,7 @@ export class ChumakApp implements AppState {
   }
 
   get activeStepIndex() {
+    this._rev;
     return AppStore.activeStepIndex.value;
   }
   set activeStepIndex(val) {
@@ -163,6 +173,7 @@ export class ChumakApp implements AppState {
   }
 
   get viewingIntermediate() {
+    this._rev;
     return AppStore.viewingIntermediate.value;
   }
   set viewingIntermediate(val) {
@@ -170,6 +181,7 @@ export class ChumakApp implements AppState {
   }
 
   get ribbonTab() {
+    this._rev;
     return AppStore.ribbonTab.value;
   }
   set ribbonTab(val) {
@@ -177,6 +189,7 @@ export class ChumakApp implements AppState {
   }
 
   get activeTab() {
+    this._rev;
     return AppStore.activeTab.value;
   }
   set activeTab(val) {
@@ -184,6 +197,7 @@ export class ChumakApp implements AppState {
   }
 
   get activeDialog() {
+    this._rev;
     return AppStore.activeDialog.value as any;
   }
   set activeDialog(val) {
@@ -191,6 +205,7 @@ export class ChumakApp implements AppState {
   }
 
   get isDragging() {
+    this._rev;
     return AppStore.isDragging.value;
   }
   set isDragging(val) {
@@ -198,6 +213,7 @@ export class ChumakApp implements AppState {
   }
 
   get selectedColumn() {
+    this._rev;
     return AppStore.selectedColumn.value;
   }
   set selectedColumn(val) {
@@ -205,6 +221,7 @@ export class ChumakApp implements AppState {
   }
 
   get theme() {
+    this._rev;
     return AppStore.theme.value;
   }
   set theme(val) {
@@ -212,6 +229,7 @@ export class ChumakApp implements AppState {
   }
 
   get isTransforming() {
+    this._rev;
     return AppStore.isTransforming.value;
   }
   set isTransforming(val) {
@@ -219,6 +237,7 @@ export class ChumakApp implements AppState {
   }
 
   get transformMessage() {
+    this._rev;
     return AppStore.transformMessage.value;
   }
   set transformMessage(val) {
@@ -1136,6 +1155,31 @@ export class ChumakApp implements AppState {
 
   async init() {
     console.log('Initializing Chumak App Class...');
+
+    // Setup reactivity bridge between Preact Signals and Alpine.js
+    effect(() => {
+      // Access all signals to subscribe to changes
+      AppStore.sources.value;
+      AppStore.models.value;
+      AppStore.activeSource.value;
+      AppStore.activeModel.value;
+      AppStore.currentData.value;
+      AppStore.columns.value;
+      AppStore.viewMode.value;
+      AppStore.activeStepIndex.value;
+      AppStore.viewingIntermediate.value;
+      AppStore.ribbonTab.value;
+      AppStore.activeTab.value;
+      AppStore.activeDialog.value;
+      AppStore.isDragging.value;
+      AppStore.selectedColumn.value;
+      AppStore.theme.value;
+      AppStore.isTransforming.value;
+      AppStore.transformMessage.value;
+
+      // Trigger Alpine re-render by incrementing version
+      this._rev++;
+    });
 
     this.uxSettings = loadUXSettings();
     this.pageSize = this.uxSettings.pagination.pageSize;

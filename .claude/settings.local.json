@@ -8,7 +8,8 @@
       "Bash(npx vitest:*)",
       "Bash(npm run build:*)",
       "Bash(npm test:*)",
-      "Bash(npm run test:*)"
+      "Bash(npm run test:*)",
+      "Bash(npm run typecheck:*)"
     ]
   }
 }

@@ -50,7 +50,7 @@ export async function applyStepResult(
 
   this.currentData = result.data;
   this.activeModel.schema = result.schema;
-  (this as any).columns = result.columns;
+  this.columns = result.columns;
   this.activeModel.data = JSON.parse(JSON.stringify(result.data));
 
   const validation = TransformResult.validate(result);
@@ -62,7 +62,7 @@ export async function applyStepResult(
   this.viewingIntermediate = false;
   this.viewingSchema = null;
 
-  (this as any).updatePagination();
+  this.updatePagination();
   await autoSave(this.sources, this.models);
 
   if (closeDialogAfter) {
@@ -76,19 +76,19 @@ export async function runTransform(
   transform: any,
   closeDialog = true
 ) {
-  (this as any).startTransformation(label);
+  this.startTransformation(label);
   try {
     const table = aq.from(this.currentData!);
     const context = { sources: this.sources, models: this.models };
     const result = applyTransform(table, transform, this.columns, context);
-    await (this as any).applyStepResult(transform, result, closeDialog);
+    await this.applyStepResult(transform, result, closeDialog);
     return true;
   } catch (error: any) {
     console.error(`${label} error:`, error);
     await this.alert(`Error applying ${label.toLowerCase()}: ${error.message}`);
     return false;
   } finally {
-    (this as any).endTransformation();
+    this.endTransformation();
   }
 }
 
@@ -104,8 +104,8 @@ export function validateExpression(this: ChumakApp, expr: string): string | null
   }
 }
 
-export function getColumnType(this: ChumakApp, colName: string) {
-  const schema = (this as any).getActiveSchema();
+export function getColumnType(this: ChumakApp, colName: string): string {
+  const schema = this.getActiveSchema();
   if (schema) {
     const col = schema.find((c: any) => c.name === colName);
     if (col) return col.type;
