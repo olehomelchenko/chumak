@@ -64,6 +64,7 @@ import '../styles/index.css';
 import { ChumakApp } from './chumak-app';
 import { mountComponent } from './app/components/PreactBridge';
 import { RibbonToolbar } from './app/components/RibbonToolbar';
+import { AppHeader } from './app/components/AppHeader';
 
 // Store global app reference for Ribbon callbacks
 let appInstance: ChumakApp | null = null;
@@ -77,8 +78,18 @@ Alpine.data('chumakApp', () => {
 // Start Alpine
 Alpine.start();
 
-// Mount Preact Ribbon after DOM is ready
+// Mount Preact components after DOM is ready
 document.addEventListener('DOMContentLoaded', () => {
+  // Mount Header
+  const headerContainer = document.getElementById('header-container');
+  if (headerContainer && appInstance) {
+    mountComponent(headerContainer, AppHeader, {
+      onOpenDialog: (dialog: any) => appInstance?.openDialog(dialog),
+      onClearAllData: () => appInstance?.clearAllData(),
+    });
+  }
+
+  // Mount Ribbon
   const ribbonContainer = document.getElementById('ribbon-container');
   if (ribbonContainer && appInstance) {
     mountComponent(ribbonContainer, RibbonToolbar, {

@@ -60,3 +60,6 @@ export type { SettingsDialogProps } from './SettingsDialog';
 // Layout components
 export { RibbonToolbar } from './RibbonToolbar';
 export type { RibbonToolbarProps } from './RibbonToolbar';
+
+export { AppHeader } from './AppHeader';
+export type { AppHeaderProps } from './AppHeader';

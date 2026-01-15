@@ -29,73 +29,11 @@
       x-ref="fileInput"
       @change="handleFileSelect($event)"
     />
-    <!-- Header with Ribbon Tabs -->
-    <header class="header">
-      <div class="header__content">
-        <div class="header__logo">
-          <span class="header__logo-icon">☆</span>
-          <span class="header__logo-text">Chumak</span>
-        </div>
-
-        <!-- Ribbon Tabs (moved to header) -->
-        <div class="ribbon__tabs" style="margin-left: 2rem">
-          <button
-            class="ribbon__tab"
-            :class="{ 'ribbon__tab--active': ribbonTab === 'prepare', 'ribbon__tab--disabled': !currentData }"
-            :disabled="!currentData"
-            @click="currentData && (ribbonTab = 'prepare')"
-          >
-            Prepare
-          </button>
-          <button
-            class="ribbon__tab"
-            :class="{ 'ribbon__tab--active': ribbonTab === 'calculate', 'ribbon__tab--disabled': !currentData }"
-            :disabled="!currentData"
-            @click="currentData && (ribbonTab = 'calculate')"
-          >
-            Calculate
-          </button>
-          <button
-            class="ribbon__tab"
-            :class="{ 'ribbon__tab--active': ribbonTab === 'combine', 'ribbon__tab--disabled': !currentData }"
-            :disabled="!currentData"
-            @click="currentData && (ribbonTab = 'combine')"
-          >
-            Combine
-          </button>
-        </div>
-
-        <div style="margin-left: auto; display: flex; gap: 0.5rem; align-items: center">
-          <button
-            class="button button--secondary button--small"
-            @click="openDialog('about')"
-            title="About Chumak"
-          >
-            <span class="iconify" data-icon="carbon:information"></span>
-            <span>About</span>
-          </button>
-          <button
-            class="button button--secondary button--small"
-            @click="openDialog('settings')"
-            title="Application Settings"
-          >
-            <span class="iconify" data-icon="carbon:settings"></span>
-            <span>Settings</span>
-          </button>
-          <button
-            class="button button--secondary button--small"
-            @click="clearAllData()"
-            title="Clear all data from IndexedDB (for debugging)"
-            style="background: #d33e2c; color: white; border-color: #d33e2c"
-          >
-            Clear All Data
-          </button>
-        </div>
-      </div>
-    </header>
+    <!-- Header (Preact Component) -->
+    <div id="header-container" class="header"></div>
 
     <!-- Ribbon Toolbar (Preact Component) -->
-    <div id="ribbon-container"></div>
+    <div id="ribbon-container" class="ribbon"></div>
 
     <!-- Left Panel -->
     <aside class="left-panel">
