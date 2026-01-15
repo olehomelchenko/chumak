@@ -2,6 +2,7 @@ import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 import { useComputed } from '@preact/signals';
 import styles from './TransformDialog.module.css';
+import * as Handlers from '../handlers/column-editor-handlers';
 
 export interface ColumnEditorItem {
   original: string;
@@ -16,18 +17,7 @@ export interface ColumnEditorChanges {
   hasChanges: boolean;
 }
 
-// Props interface kept for reference/testing
-export interface ColumnEditorDialogProps {
-  onApplyPattern?: () => void;
-  onSwitchToText?: () => void;
-  onValidateText?: () => void;
-}
-
-export function ColumnEditorDialog({
-  onApplyPattern,
-  onSwitchToText,
-  onValidateText,
-}: ColumnEditorDialogProps = {}) {
+export function ColumnEditorDialog() {
   const {
     mode,
     columns,
@@ -40,79 +30,16 @@ export function ColumnEditorDialog({
     textError,
   } = DialogStore.columnEditorState;
 
-  // Compute changes
+  // Compute changes using shared logic (or keep here for immediate reactivity if needed,
+  // but let's use the one that matches our handler logic)
   const changes = useComputed<ColumnEditorChanges>(() => {
-    const removed = columns.value.filter((c) => !c.selected).map((c) => c.original);
-    const renamed = columns.value
-      .filter((c) => c.selected && c.renamed !== c.original)
-      .map((c) => ({ from: c.original, to: c.renamed }));
-    const originalOrder = AppStore.columns.value;
-    const currentOrder = columns.value.filter((c) => c.selected).map((c) => c.original);
-    const reordered = originalOrder.some((col, i) => col !== currentOrder[i]);
-    return {
-      removed,
-      renamed,
-      reordered,
-      hasChanges: removed.length > 0 || renamed.length > 0 || reordered,
-    };
+    return Handlers.getColumnEditorChanges();
   });
-
-  const handleDragStart = (_e: DragEvent, index: number) => {
-    draggedIndex.value = index;
-  };
-
-  const handleDragOver = (e: DragEvent) => {
-    e.preventDefault();
-  };
-
-  const handleDrop = (e: DragEvent, index: number) => {
-    e.preventDefault();
-    const fromIndex = draggedIndex.value;
-    if (fromIndex !== null && fromIndex !== index) {
-      const newCols = [...columns.value];
-      const [moved] = newCols.splice(fromIndex, 1);
-      newCols.splice(index, 0, moved);
-      columns.value = newCols;
-    }
-    draggedIndex.value = null;
-  };
-
-  const toggleSelection = (index: number) => {
-    const newCols = [...columns.value];
-    newCols[index] = { ...newCols[index], selected: !newCols[index].selected };
-    columns.value = newCols;
-  };
 
   const updateRename = (index: number, val: string) => {
     const newCols = [...columns.value];
     newCols[index] = { ...newCols[index], renamed: val };
     columns.value = newCols;
-  };
-
-  const selectAll = () => {
-    columns.value = columns.value.map((c) => ({ ...c, selected: true }));
-  };
-
-  const selectNone = () => {
-    columns.value = columns.value.map((c) => ({ ...c, selected: false }));
-  };
-
-  const handleApplyPattern = () => {
-    if (onApplyPattern) {
-      onApplyPattern();
-    }
-  };
-
-  const handleSwitchToText = () => {
-    if (onSwitchToText) {
-      onSwitchToText();
-    }
-  };
-
-  const handleValidateText = () => {
-    if (onValidateText) {
-      onValidateText();
-    }
   };
 
   return (
@@ -130,10 +57,7 @@ export function ColumnEditorDialog({
           <button
             type="button"
             class={`${styles.toggleButton} ${mode.value === 'text' ? styles.active : ''}`}
-            onClick={() => {
-              mode.value = 'text';
-              handleSwitchToText();
-            }}
+            onClick={() => Handlers.switchColumnEditorToText()}
           >
             Text Mode
           </button>
@@ -183,17 +107,23 @@ export function ColumnEditorDialog({
               <button
                 type="button"
                 class="button button--small button--primary"
-                onClick={handleApplyPattern}
+                onClick={() => Handlers.applyColumnEditorPattern()}
                 disabled={!patternText.value.trim()}
               >
                 Apply
               </button>
             </div>
             <div class={styles.actions} style={{ marginTop: '0.5rem' }}>
-              <button className="button button--text button--small" onClick={selectAll}>
+              <button
+                className="button button--text button--small"
+                onClick={() => Handlers.selectAllColumnEditor()}
+              >
                 Select All
               </button>
-              <button className="button button--text button--small" onClick={selectNone}>
+              <button
+                className="button button--text button--small"
+                onClick={() => Handlers.selectNoneColumnEditor()}
+              >
                 Select None
               </button>
             </div>
@@ -206,9 +136,10 @@ export function ColumnEditorDialog({
                 key={item.original}
                 class={`${styles.columnEditorItem} ${!item.selected ? styles.unselected : ''} ${draggedIndex.value === index ? styles.dragging : ''}`}
                 draggable
-                onDragStart={(e) => handleDragStart(e, index)}
-                onDragOver={handleDragOver}
-                onDrop={(e) => handleDrop(e, index)}
+                onDragStart={(e) => Handlers.handleColumnEditorDragStart(index, e)}
+                onDragOver={(e) => Handlers.handleColumnEditorDragOver(e)}
+                onDrop={() => Handlers.handleColumnEditorDrop(index)}
+                onDragEnd={() => Handlers.handleColumnEditorDragEnd()}
               >
                 {/* Handle */}
                 <span class={styles.dragHandle}>⋮⋮</span>
@@ -217,7 +148,7 @@ export function ColumnEditorDialog({
                 <button
                   type="button"
                   class={styles.itemCheckbox}
-                  onClick={() => toggleSelection(index)}
+                  onClick={() => Handlers.toggleColumnEditorColumn(index)}
                 >
                   <span
                     style={{
@@ -278,7 +209,7 @@ export function ColumnEditorDialog({
                     checked={textSubMode.value === opt.val}
                     onChange={() => {
                       textSubMode.value = opt.val as any;
-                      handleSwitchToText();
+                      Handlers.switchColumnEditorToText();
                     }}
                   />
                   <span>{opt.label}</span>
@@ -292,13 +223,13 @@ export function ColumnEditorDialog({
             {textSubMode.value === 'rename' && (
               <span>
                 Enter new names for each column (one per line, same order). Must have exactly{' '}
-                <strong>{columns.value.length}</strong> lines.
+                <strong>{AppStore.columns.value.length}</strong> lines.
               </span>
             )}
             {textSubMode.value === 'reorder' && (
               <span>
                 Rearrange column names to change order. Must include all{' '}
-                <strong>{columns.value.length}</strong> columns.
+                <strong>{AppStore.columns.value.length}</strong> columns.
               </span>
             )}
             {textSubMode.value === 'select' && (
@@ -311,7 +242,7 @@ export function ColumnEditorDialog({
             value={textValue.value}
             onInput={(e) => {
               textValue.value = e.currentTarget.value;
-              handleValidateText();
+              Handlers.validateColumnEditorText();
             }}
             rows={12}
             style={{ fontFamily: 'monospace', fontSize: '0.875rem' }}

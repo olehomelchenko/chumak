@@ -2,42 +2,33 @@
  * SplitDialog - Preact component for splitting columns
  */
 
-import { Signal, useSignalEffect } from '@preact/signals';
+import { useSignalEffect } from '@preact/signals';
+import { DialogStore } from '../stores/DialogStore';
+import { AppStore } from '../stores/AppStore';
+import * as SplitHandlers from '../handlers/split-handlers';
 import styles from './TransformDialog.module.css';
 
 export type SplitMode = 'spread' | 'left' | 'right' | 'firstN' | 'lastN';
 
-export interface SplitDialogProps {
-  columns: string[];
-  column: Signal<string>;
-  delimiter: Signal<string>;
-  autoDetectedDelimiter: Signal<string | null>;
-  isRegex: Signal<boolean>;
-  mode: Signal<SplitMode>;
-  maxColumns: Signal<number>;
-  keepOriginal: Signal<boolean>;
-  error: Signal<string | null>;
-  onPreview?: () => void;
-  onDetect?: (col: string) => void;
-}
+export function SplitDialog() {
+  const {
+    column,
+    delimiter,
+    autoDetectedDelimiter,
+    isRegex,
+    mode,
+    maxColumns,
+    keepOriginal,
+    error,
+  } = DialogStore.splitState;
+  const columns = AppStore.columns.value;
 
-export function SplitDialog({
-  columns,
-  column,
-  delimiter,
-  autoDetectedDelimiter,
-  isRegex,
-  mode,
-  maxColumns,
-  keepOriginal,
-  error,
-  onPreview,
-  onDetect,
-}: SplitDialogProps) {
   useSignalEffect(() => {
     // Detect delimiter when column changes
     const col = column.value;
-    if (onDetect) onDetect(col);
+    if (col) {
+      SplitHandlers.detectDelimiter(col);
+    }
   });
 
   useSignalEffect(() => {
@@ -48,7 +39,9 @@ export function SplitDialog({
     void mode.value;
     void maxColumns.value;
     void keepOriginal.value;
-    if (onPreview) onPreview();
+    if (column.value) {
+      SplitHandlers.debouncedUpdateSplitPreview();
+    }
   });
 
   const setPreset = (val: string, regex: boolean) => {
@@ -73,7 +66,7 @@ export function SplitDialog({
                 gap: '0.5rem',
                 padding: '0.5rem 0.75rem',
               }}
-              onClick={() => (column.value = col)}
+              onClick={() => SplitHandlers.selectSplitColumn(col)}
             >
               <span class={`iconify ${styles.chipIcon}`} data-icon="carbon:column" />
               <span>{col}</span>

@@ -1,18 +1,10 @@
-/**
- * ReplaceDialog - Preact component for the Replace Values dialog
- */
-
-import { Signal } from '@preact/signals';
+import { DialogStore } from '../stores/DialogStore';
+import { AppStore } from '../stores/AppStore';
 import styles from './TransformDialog.module.css';
 
-export interface ReplaceDialogProps {
-  columns: string[];
-  column: Signal<string>;
-  findValue: Signal<string>;
-  replaceValue: Signal<string>;
-}
-
-export function ReplaceDialog({ columns, column, findValue, replaceValue }: ReplaceDialogProps) {
+export function ReplaceDialog() {
+  const { column, findValue, replaceValue } = DialogStore.replaceState;
+  const columns = AppStore.columns.value;
   return (
     <div>
       <div class={styles.group}>

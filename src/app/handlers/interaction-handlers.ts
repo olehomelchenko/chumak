@@ -1,71 +1,81 @@
-import type { ChumakApp } from '../../chumak-app';
-import { SchemaEngine } from '../../core/schema-engine';
+import { SchemaEngine, ColumnType } from '../../core/schema-engine';
 import { DialogStore } from '../stores/DialogStore';
+import { AppStore } from '../stores/AppStore';
+import * as HelperHandlers from './helper-handlers';
+import * as NotificationHandlers from './notification-handlers';
+import * as FilterHandlers from './filter-handlers';
+import * as SimpleHandlers from './simple-handlers';
+import * as SplitHandlers from './split-handlers';
+import * as DedupeHandlers from './dedupe-handlers';
+import { StepService } from '../services/StepService';
 
-export function handleBodyClick(this: ChumakApp, event: any) {
+export function handleBodyClick(event: any) {
   if (
-    this.selectedColumn &&
+    AppStore.selectedColumn.value &&
     !event.target.closest('.data-table__header') &&
     !event.target.closest('.floating-toolbar') &&
     !event.target.closest('.slide-panel') &&
     !event.target.closest('.centered-modal')
   ) {
-    this.selectedColumn = null;
+    AppStore.selectedColumn.value = null;
   }
   if (
-    this.typeMenuOpen &&
+    AppStore.typeMenuOpen.value &&
     !event.target.closest('.type-menu') &&
     !event.target.closest('.type-indicator')
   ) {
-    this.typeMenuOpen = false;
-    this.typeMenuCol = null;
+    AppStore.typeMenuOpen.value = false;
+    AppStore.typeMenuCol.value = null;
   }
 }
 
-export function openTypeMenu(this: ChumakApp, col: string, event: any) {
-  this.typeMenuCol = col;
-  this.typeMenuOpen = true;
-  this.selectedColumn = null;
-  this.selectedCell = null;
+export function openTypeMenu(col: string, event: any) {
+  AppStore.typeMenuCol.value = col;
+  AppStore.typeMenuOpen.value = true;
+  AppStore.selectedColumn.value = null;
+  AppStore.selectedCell.value = null;
   const rect = event.target.getBoundingClientRect();
   const menuWidth = 140; // Approximate width of type menu
   const margin = 8;
   const windowWidth = window.innerWidth;
   // Clamp x position to keep menu within viewport
   const x = Math.min(rect.left, windowWidth - menuWidth - margin);
-  this.typeMenuPos = { x, y: rect.bottom + 4 };
+  AppStore.typeMenuPos.value = { x, y: rect.bottom + 4 };
 }
 
-export async function changeColumnType(this: ChumakApp, col: string, newType: string) {
-  this.typeMenuOpen = false;
+export async function changeColumnType(col: string, newType: string, callbacks: any) {
+  AppStore.typeMenuOpen.value = false;
   let typeToSet = newType;
-  if (newType === 'auto' && this.currentData) {
-    const sample = this.currentData.slice(0, 50).map((row) => row[col]);
+  const data = AppStore.currentData.value;
+  if (newType === 'auto' && data) {
+    const sample = data.slice(0, 50).map((row) => row[col]);
     typeToSet = SchemaEngine.inferType(sample);
   }
-  const typeStep = { types: { [col]: typeToSet } };
-  await this.applyStepResult(typeStep, this.currentData);
+  const typeStep = { types: { [col]: typeToSet as ColumnType } };
+  await StepService.runTransform('Change Type', typeStep, callbacks);
 }
 
-export async function autoDetectSchema(this: ChumakApp) {
-  if (!this.currentData || !this.columns) return;
-  const types: Record<string, string> = {};
-  this.columns.forEach((col) => {
-    const sample = this.currentData!.slice(0, 50).map((row) => row[col]);
+export async function autoDetectSchema(callbacks: any) {
+  const data = AppStore.currentData.value;
+  const columns = AppStore.columns.value;
+  if (!data || !columns) return;
+  const types: Record<string, ColumnType> = {};
+  columns.forEach((col) => {
+    const sample = data!.slice(0, 50).map((row) => row[col]);
     types[col] = SchemaEngine.inferType(sample);
   });
   const typeStep = { types };
-  await this.applyStepResult(typeStep, this.currentData);
+  await StepService.runTransform('Auto-Detect Types', typeStep, callbacks);
 }
 
-export function clearColumnSelection(this: ChumakApp) {
-  this.selectedColumn = null;
-  this.selectedCell = null;
-  this.edaStats = null;
-  this.edaBrushSelection = null;
+export function clearColumnSelection() {
+  AppStore.selectedColumn.value = null;
+  AppStore.selectedCell.value = null;
+  AppStore.edaStats.value = null;
+  AppStore.edaBrushSelection.value = null;
 }
 
-export function calculateToolbarPosition(this: ChumakApp, rect: DOMRect, toolbarWidth: number) {
+export function calculateToolbarPosition(rect: DOMRect, toolbarWidth: number) {
   const center = rect.left + rect.width / 2;
   const windowWidth = window.innerWidth;
   const margin = 12;
@@ -76,51 +86,56 @@ export function calculateToolbarPosition(this: ChumakApp, rect: DOMRect, toolbar
   return { x: x, y: rect.top - 8, arrowOffset: center - x };
 }
 
-export function updateToolbarPosition(this: ChumakApp) {
-  if (this.selectedColumn) {
-    const header = document.querySelector(`.data-table__header[data-col="${this.selectedColumn}"]`);
+export function updateToolbarPosition() {
+  const selectedColumn = AppStore.selectedColumn.value;
+  const selectedCell = AppStore.selectedCell.value;
+
+  if (selectedColumn) {
+    const header = document.querySelector(`.data-table__header[data-col="${selectedColumn}"]`);
     if (header) {
       const rect = header.getBoundingClientRect();
-      this.columnToolbarPos = this.calculateToolbarPosition(rect, 200);
+      AppStore.columnToolbarPos.value = calculateToolbarPosition(rect, 200);
     }
   }
-  if (this.selectedCell) {
-    if (this.selectedCell.isEda) return;
+  if (selectedCell) {
+    if (selectedCell.isEda) return;
     const cell = document.querySelector(
-      `.data-table__cell[data-col="${this.selectedCell.col}"][data-row="${this.selectedCell.rowIdx}"]`
+      `.data-table__cell[data-col="${selectedCell.col}"][data-row="${selectedCell.rowIdx}"]`
     );
     if (cell) {
       const rect = cell.getBoundingClientRect();
-      const toolbarWidth = ['number', 'integer', 'float'].includes(this.selectedCell.type)
-        ? 220
-        : 80;
-      this.cellToolbarPos = this.calculateToolbarPosition(rect, toolbarWidth);
+      const toolbarWidth = ['number', 'integer', 'float'].includes(selectedCell.type) ? 220 : 80;
+      AppStore.cellToolbarPos.value = calculateToolbarPosition(rect, toolbarWidth);
     }
   }
 }
 
-export function selectCell(this: ChumakApp, col: string, value: any, rowIdx: number) {
-  this.selectedColumn = null;
-  this.typeMenuOpen = false;
+export function selectCell(col: string, value: any, rowIdx: number) {
+  AppStore.selectedColumn.value = null;
+  AppStore.typeMenuOpen.value = false;
   let type = 'string';
-  if (this.activeModel?.schema) {
-    const colInfo = this.activeModel.schema.find((c: any) => c.name === col);
+  const model = AppStore.activeModel.value;
+  const source = AppStore.activeSource.value;
+
+  if (model?.schema) {
+    const colInfo = model.schema.find((c: any) => c.name === col);
     if (colInfo) type = colInfo.type;
-  } else if (this.activeSource) {
-    const colInfo = this.activeSource.columns.find((c: any) => c.name === col);
+  } else if (source) {
+    const colInfo = source.columns.find((c: any) => c.name === col);
     if (colInfo) type = colInfo.type;
   } else {
     type = typeof value === 'number' ? 'number' : 'string';
   }
-  this.selectedCell = { col, value, type, rowIdx };
-  requestAnimationFrame(() => this.updateToolbarPosition());
+  AppStore.selectedCell.value = { col, value, type, rowIdx };
+  requestAnimationFrame(() => updateToolbarPosition());
 }
 
-export async function applyQuickCellFilter(this: ChumakApp, op: string) {
-  if (!this.selectedCell) return;
-  const { col, value, type } = this.selectedCell;
+export async function applyQuickCellFilter(op: string, callbacks: any) {
+  const selectedCell = AppStore.selectedCell.value;
+  if (!selectedCell) return;
+  const { col, value, type } = selectedCell;
   let expr = '';
-  const formattedValue = this.formatLiteral(value, type);
+  const formattedValue = HelperHandlers.formatLiteral.call(null as any, value, type);
   if (op === 'exact') expr = `[${col}] == ${formattedValue}`;
   else if (op === 'not') expr = `[${col}] != ${formattedValue}`;
   else if (op === 'gt') expr = `[${col}] > ${formattedValue}`;
@@ -130,98 +145,97 @@ export async function applyQuickCellFilter(this: ChumakApp, op: string) {
   if (expr) {
     DialogStore.filterState.expression.value = expr;
     DialogStore.filterState.error.value = null;
-    await this.applyFilterTransform();
+    await FilterHandlers.applyFilterTransform(callbacks);
   }
-  this.selectedCell = null;
+  AppStore.selectedCell.value = null;
 }
 
-export async function quickSort(this: ChumakApp, order: 'asc' | 'desc') {
-  if (!this.selectedColumn) return;
-  DialogStore.sortState.field.value = this.selectedColumn;
+export async function quickSort(order: 'asc' | 'desc', callbacks: any) {
+  const selectedColumn = AppStore.selectedColumn.value;
+  if (!selectedColumn) return;
+  DialogStore.sortState.field.value = selectedColumn;
   DialogStore.sortState.order.value = order;
-  await this.applySortTransform();
-  this.selectedColumn = null;
+  await SimpleHandlers.applySortTransform(callbacks);
+  AppStore.selectedColumn.value = null;
 }
 
-export function quickFilter(this: ChumakApp) {
-  if (!this.selectedColumn) return;
+export function quickFilter(onOpenDialog: (name: string) => void) {
+  const selectedColumn = AppStore.selectedColumn.value;
+  if (!selectedColumn) return;
 
-  const initialExpr = `[${this.selectedColumn}] == `;
-
-  // 1. Initialize DialogStore state
+  const initialExpr = `[${selectedColumn}] == `;
   DialogStore.filterState.expression.value = initialExpr;
   DialogStore.filterState.error.value = null;
 
-  // 2. Open dialog via wrapper (handles side effects like clear selection, URL)
-  this.openDialog('filter');
+  onOpenDialog('filter');
 }
 
-export function quickRename(this: ChumakApp) {
-  if (!this.selectedColumn) return;
-  // Use column-editor dialog in rename mode
-  this.openDialog('column-editor', 'rename');
+export function quickRename(onOpenDialog: (name: string, section?: string) => void) {
+  if (!AppStore.selectedColumn.value) return;
+  onOpenDialog('column-editor', 'rename');
 }
 
-export async function quickRemove(this: ChumakApp) {
-  if (!this.selectedColumn) return;
-  const col = this.selectedColumn;
-  if (await this.confirm(`Are you sure you want to remove column "${col}"?`)) {
-    await this.runTransform('Remove Column', { remove: [col] });
-    this.selectedColumn = null;
+export async function quickRemove(callbacks: any) {
+  const selectedColumn = AppStore.selectedColumn.value;
+  if (!selectedColumn) return;
+  const col = selectedColumn;
+  const confirmed = await NotificationHandlers.confirm.call(
+    null as any,
+    `Are you sure you want to remove column "${col}"?`
+  );
+  if (confirmed) {
+    await StepService.runTransform('Remove Column', { remove: [col] }, callbacks);
+    AppStore.selectedColumn.value = null;
   }
 }
 
-export function quickDate(this: ChumakApp) {
-  if (!this.selectedColumn) return;
-  this.openDialog('date');
-  this.selectedColumn = null;
+export function quickDate(onOpenDialog: (name: string) => void) {
+  if (!AppStore.selectedColumn.value) return;
+  onOpenDialog('date');
+  AppStore.selectedColumn.value = null;
 }
 
-export function quickSplit(this: ChumakApp) {
-  if (!this.selectedColumn) return;
-  const col = this.selectedColumn;
+export function quickSplit(onOpenDialog: (name: string) => void) {
+  const col = AppStore.selectedColumn.value;
+  if (!col) return;
 
-  // 1. Initialize logic-heavy fields first
-  const detected = this.detectDelimiter(col);
+  const detected = SplitHandlers.detectDelimiter(col);
 
-  this.splitDialogState.column = col;
+  const state = DialogStore.splitState;
+  state.column.value = col;
   if (detected) {
-    this.splitDialogState.delimiter = detected.char;
-    this.splitDialogState.isRegex = detected.isRegex;
-    this.splitDialogState.autoDetectedDelimiter = detected.name;
+    state.delimiter.value = detected.char;
+    state.isRegex.value = detected.isRegex;
+    state.autoDetectedDelimiter.value = detected.name;
   } else {
-    this.splitDialogState.autoDetectedDelimiter = null;
+    state.autoDetectedDelimiter.value = null;
   }
 
-  // 2. Open dialog
-  this.openDialog('split');
-
-  // 3. Trigger preview
-  this.updateSplitPreview();
+  onOpenDialog('split');
+  SplitHandlers.updateSplitPreview();
 }
 
-export function quickReplace(this: ChumakApp) {
-  if (!this.selectedCell) return;
-  const { col, value } = this.selectedCell;
+export function quickReplace(onOpenDialog: (name: string) => void) {
+  const selectedCell = AppStore.selectedCell.value;
+  if (!selectedCell) return;
+  const { col, value } = selectedCell;
 
-  // 1. Initialize state
-  this.replaceDialogState = { column: col, findValue: value, replaceValue: '' };
+  const state = DialogStore.replaceState;
+  state.column.value = col;
+  state.findValue.value = value;
+  state.replaceValue.value = '';
 
-  // 2. Open dialog (handles re-snapshotting the initialized state)
-  this.openDialog('replace');
+  onOpenDialog('replace');
 }
 
-export function quickDedupe(this: ChumakApp) {
-  if (!this.selectedColumn) return;
-  const col = this.selectedColumn;
+export function quickDedupe(onOpenDialog: (name: string) => void) {
+  const col = AppStore.selectedColumn.value;
+  if (!col) return;
 
-  // 1. Initialize state
-  this.dedupeDialogState.useAllColumns = false;
-  this.dedupeDialogState.selectedColumns = this.columns.map((c) => c === col);
+  const state = DialogStore.dedupeState;
+  state.useAllColumns.value = false;
+  state.selectedColumns.value = AppStore.columns.value.map((c) => c === col);
 
-  // 2. Open dialog
-  this.openDialog('dedupe');
-
-  // 3. Trigger preview
-  this.updateDedupePreview();
+  onOpenDialog('dedupe');
+  DedupeHandlers.updateDedupePreview();
 }

@@ -2,32 +2,29 @@
  * FilterDialog - Preact component for filtering rows
  */
 
-import { Signal, useSignalEffect } from '@preact/signals';
+import { useSignalEffect } from '@preact/signals';
+import { DialogStore } from '../stores/DialogStore';
+import { AppStore } from '../stores/AppStore';
+import * as FilterHandlers from '../handlers/filter-handlers';
 import styles from './TransformDialog.module.css';
 
 export type FilterPreviewMode = 'all' | 'matching';
 
-export interface FilterDialogProps {
-  expression: Signal<string>;
-  error: Signal<string | null>;
-  previewMode: Signal<FilterPreviewMode>;
-  onOpenReference: () => void;
-  onValidate?: () => void;
-}
+export function FilterDialog() {
+  const { expression, error, previewMode } = DialogStore.filterState;
 
-export function FilterDialog({
-  expression,
-  error,
-  previewMode,
-  onOpenReference,
-  onValidate,
-}: FilterDialogProps) {
   useSignalEffect(() => {
-    // Subscribe to changes
+    // Subscribe to changes and validate
     void expression.value;
     void previewMode.value;
-    if (onValidate) onValidate();
+    FilterHandlers.validateFilterExpression();
+    FilterHandlers.debouncedUpdateFilterPreview();
   });
+
+  const handleOpenReference = () => {
+    AppStore.activeDialog.value = 'expressions';
+  };
+
   return (
     <div>
       <label class={styles.label}>Keep rows where:</label>
@@ -68,7 +65,7 @@ export function FilterDialog({
           <button
             type="button"
             class="button button--text button--small"
-            onClick={onOpenReference}
+            onClick={handleOpenReference}
             style={{ fontWeight: 500, textDecoration: 'underline' }}
           >
             Full Reference

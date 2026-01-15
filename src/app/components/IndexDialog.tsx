@@ -1,17 +1,11 @@
-/**
- * IndexDialog - Preact component for the Add Index Column dialog
- */
-
-import { Signal, computed } from '@preact/signals';
+import { computed } from '@preact/signals';
+import { DialogStore } from '../stores/DialogStore';
+import { AppStore } from '../stores/AppStore';
 import styles from './TransformDialog.module.css';
 
-export interface IndexDialogProps {
-  columnName: Signal<string>;
-  startFrom: Signal<number>;
-  rowCount: number;
-}
-
-export function IndexDialog({ columnName, startFrom, rowCount }: IndexDialogProps) {
+export function IndexDialog() {
+  const { columnName, startFrom } = DialogStore.indexState;
+  const rowCount = AppStore.currentData.value?.length || 0;
   const endValue = computed(() => (startFrom.value || 0) + rowCount - 1);
   const displayName = computed(() => columnName.value || 'row_index');
 

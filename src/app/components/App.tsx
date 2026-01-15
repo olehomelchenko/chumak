@@ -1,5 +1,4 @@
 import { AppStore } from '../stores/AppStore';
-import { DialogStore } from '../stores/DialogStore';
 import { AppHeader } from './AppHeader';
 import { RibbonToolbar } from './RibbonToolbar';
 import { Sidebar } from './Sidebar';
@@ -209,22 +208,10 @@ export function App({ app }: AppProps) {
 
             <div class={styles.slidePanelContent}>
               <div style={{ display: activeDialog === 'filter' ? 'block' : 'none' }}>
-                <FilterDialog
-                  expression={DialogStore.filterState.expression}
-                  error={DialogStore.filterState.error}
-                  previewMode={DialogStore.filterState.previewMode}
-                  onOpenReference={() => app.openDialog('expressions')}
-                  onValidate={() => app.debouncedUpdateFilterPreview()}
-                />
+                <FilterDialog />
               </div>
               <div style={{ display: activeDialog === 'derive' ? 'block' : 'none' }}>
-                <DeriveDialog
-                  columnName={DialogStore.deriveState.columnName}
-                  expression={DialogStore.deriveState.expression}
-                  error={DialogStore.deriveState.error}
-                  onOpenReference={() => app.openDialog('expressions')}
-                  onValidate={() => app.debouncedUpdateDerivePreview()}
-                />
+                <DeriveDialog />
               </div>
               <div style={{ display: activeDialog === 'regexpMatch' ? 'block' : 'none' }}>
                 <RegexpMatchDialog />
@@ -233,106 +220,37 @@ export function App({ app }: AppProps) {
                 <RegexpExtractDialog />
               </div>
               <div style={{ display: activeDialog === 'date' ? 'block' : 'none' }}>
-                <DateDialog
-                  dateColumns={app.getDateColumns()}
-                  column={DialogStore.dateState.column}
-                  operation={DialogStore.dateState.operation}
-                  extractParts={DialogStore.dateState.extractParts}
-                  truncateUnits={DialogStore.dateState.truncateUnits}
-                  outputColumn={DialogStore.dateState.outputColumn}
-                  error={DialogStore.dateState.error}
-                  onValidate={() => app.updateDatePreview()}
-                />
+                <DateDialog />
               </div>
               <div style={{ display: activeDialog === 'dedupe' ? 'block' : 'none' }}>
                 <DedupeDialog />
               </div>
               <div style={{ display: activeDialog === 'sort' ? 'block' : 'none' }}>
-                <SortDialog
-                  columns={app.columns}
-                  field={DialogStore.sortState.field}
-                  order={DialogStore.sortState.order}
-                />
+                <SortDialog />
               </div>
               <div style={{ display: activeDialog === 'sliceRows' ? 'block' : 'none' }}>
-                <SliceRowsDialog
-                  count={DialogStore.sliceRowsState.count}
-                  mode={DialogStore.sliceRowsState.mode}
-                  rowCount={app.currentData?.length || 0}
-                />
+                <SliceRowsDialog />
               </div>
               <div style={{ display: activeDialog === 'index' ? 'block' : 'none' }}>
-                <IndexDialog
-                  columnName={DialogStore.indexState.columnName}
-                  startFrom={DialogStore.indexState.startFrom}
-                  rowCount={app.currentData?.length || 0}
-                />
+                <IndexDialog />
               </div>
               <div style={{ display: activeDialog === 'fold' ? 'block' : 'none' }}>
-                <UnpivotDialog
-                  columns={app.columns}
-                  keyName={DialogStore.foldState.keyName}
-                  valueName={DialogStore.foldState.valueName}
-                  mode={DialogStore.foldState.mode}
-                  selectedColumns={DialogStore.foldState.selectedColumns}
-                />
+                <UnpivotDialog />
               </div>
               <div style={{ display: activeDialog === 'pivot' ? 'block' : 'none' }}>
-                <PivotDialog
-                  columns={app.columns}
-                  rowColumns={DialogStore.pivotState.rowColumns}
-                  columnColumn={DialogStore.pivotState.columnColumn}
-                  valueColumn={DialogStore.pivotState.valueColumn}
-                  aggregation={DialogStore.pivotState.aggregation}
-                  uniqueValueCount={DialogStore.pivotState.uniqueValueCount}
-                  options={DialogStore.pivotState.options}
-                  isPreviewing={DialogStore.pivotState.isPreviewing}
-                  onPreview={() => app.previewPivot()}
-                />
+                <PivotDialog />
               </div>
               <div style={{ display: activeDialog === 'replace' ? 'block' : 'none' }}>
-                <ReplaceDialog
-                  columns={app.columns}
-                  column={DialogStore.replaceState.column}
-                  findValue={DialogStore.replaceState.findValue}
-                  replaceValue={DialogStore.replaceState.replaceValue}
-                />
+                <ReplaceDialog />
               </div>
               <div style={{ display: activeDialog === 'split' ? 'block' : 'none' }}>
-                <SplitDialog
-                  columns={app.columns}
-                  column={DialogStore.splitState.column}
-                  delimiter={DialogStore.splitState.delimiter}
-                  autoDetectedDelimiter={DialogStore.splitState.autoDetectedDelimiter}
-                  isRegex={DialogStore.splitState.isRegex}
-                  mode={DialogStore.splitState.mode}
-                  maxColumns={DialogStore.splitState.maxColumns}
-                  keepOriginal={DialogStore.splitState.keepOriginal}
-                  error={DialogStore.splitState.error}
-                  onPreview={() => app.updateSplitPreview()}
-                  onDetect={(col: string) => {
-                    const detected = app.detectDelimiter(col);
-                    if (detected) {
-                      DialogStore.splitState.delimiter.value = detected.char;
-                      DialogStore.splitState.isRegex.value = detected.isRegex;
-                      DialogStore.splitState.autoDetectedDelimiter.value = detected.name;
-                    } else {
-                      DialogStore.splitState.autoDetectedDelimiter.value = null;
-                    }
-                  }}
-                />
+                <SplitDialog />
               </div>
               <div style={{ display: activeDialog === 'join' ? 'block' : 'none' }}>
                 <JoinDialog />
               </div>
               <div style={{ display: activeDialog === 'aggregate' ? 'block' : 'none' }}>
-                <AggregateDialog
-                  columns={app.columns}
-                  groupBy={DialogStore.aggregateState.groupBy}
-                  aggregations={DialogStore.aggregateState.aggregations}
-                  isPreviewing={DialogStore.aggregateState.isPreviewing}
-                  onPreview={() => app.previewAggregate()}
-                />
+                <AggregateDialog />
               </div>
               <div style={{ display: activeDialog === 'column-editor' ? 'block' : 'none' }}>
                 <ColumnEditorDialog />

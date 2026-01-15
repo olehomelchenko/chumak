@@ -2,105 +2,59 @@
  * FilterDialog Component Tests
  */
 
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/preact';
-import { signal } from '@preact/signals';
-import { FilterDialog, FilterPreviewMode } from './FilterDialog';
+import { FilterDialog } from './FilterDialog';
+import { DialogStore } from '../stores/DialogStore';
+import { AppStore } from '../stores/AppStore';
 
 describe('FilterDialog', () => {
-  it('renders with default values', () => {
-    const expression = signal('');
-    const error = signal<string | null>(null);
-    const previewMode = signal<FilterPreviewMode>('all');
-    const onOpenReference = vi.fn();
+  beforeEach(() => {
+    // Reset store state before each test
+    DialogStore.filterState.expression.value = '';
+    DialogStore.filterState.error.value = null;
+    DialogStore.filterState.previewMode.value = 'all';
+    AppStore.columns.value = [];
+  });
 
-    render(
-      <FilterDialog
-        expression={expression}
-        error={error}
-        previewMode={previewMode}
-        onOpenReference={onOpenReference}
-      />
-    );
+  it('renders with default values', () => {
+    render(<FilterDialog />);
 
     expect(screen.getByPlaceholderText('e.g., sales > 1000')).toBeDefined();
     expect(screen.getByText('Show All').className).toContain('button--primary');
   });
 
   it('updates expression when typed', () => {
-    const expression = signal('');
-    const error = signal<string | null>(null);
-    const previewMode = signal<FilterPreviewMode>('all');
-    const onOpenReference = vi.fn();
-
-    render(
-      <FilterDialog
-        expression={expression}
-        error={error}
-        previewMode={previewMode}
-        onOpenReference={onOpenReference}
-      />
-    );
+    render(<FilterDialog />);
 
     const input = screen.getByPlaceholderText('e.g., sales > 1000') as HTMLInputElement;
-    fireEvent.input(input, { target: { value: 'price > 10' } });
+    fireEvent.input(input, { target: { value: 'sales > 1000' } });
 
-    expect(expression.value).toBe('price > 10');
+    expect(DialogStore.filterState.expression.value).toBe('sales > 1000');
   });
 
   it('toggles preview mode', () => {
-    const expression = signal('');
-    const error = signal<string | null>(null);
-    const previewMode = signal<FilterPreviewMode>('all');
-    const onOpenReference = vi.fn();
+    render(<FilterDialog />);
 
-    render(
-      <FilterDialog
-        expression={expression}
-        error={error}
-        previewMode={previewMode}
-        onOpenReference={onOpenReference}
-      />
-    );
+    const matchingButton = screen.getByText('Matching Only');
+    fireEvent.click(matchingButton);
 
-    fireEvent.click(screen.getByText('Matching Only'));
-    expect(previewMode.value).toBe('matching');
+    expect(DialogStore.filterState.previewMode.value).toBe('matching');
   });
 
   it('shows error message when present', () => {
-    const expression = signal('invalid');
-    const error = signal<string | null>('Syntax error');
-    const previewMode = signal<FilterPreviewMode>('all');
-    const onOpenReference = vi.fn();
-
-    render(
-      <FilterDialog
-        expression={expression}
-        error={error}
-        previewMode={previewMode}
-        onOpenReference={onOpenReference}
-      />
-    );
+    DialogStore.filterState.error.value = 'Syntax error';
+    render(<FilterDialog />);
 
     expect(screen.getByText('Syntax error')).toBeDefined();
   });
 
-  it('calls onOpenReference when clicked', () => {
-    const expression = signal('');
-    const error = signal<string | null>(null);
-    const previewMode = signal<FilterPreviewMode>('all');
-    const onOpenReference = vi.fn();
+  it('opens expressions dialog when reference button is clicked', () => {
+    render(<FilterDialog />);
 
-    render(
-      <FilterDialog
-        expression={expression}
-        error={error}
-        previewMode={previewMode}
-        onOpenReference={onOpenReference}
-      />
-    );
+    const refButton = screen.getByText('Full Reference');
+    fireEvent.click(refButton);
 
-    fireEvent.click(screen.getByText('Full Reference'));
-    expect(onOpenReference).toHaveBeenCalled();
+    expect(AppStore.activeDialog.value).toBe('expressions');
   });
 });

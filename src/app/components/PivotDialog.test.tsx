@@ -2,37 +2,30 @@
  * PivotDialog Component Tests
  */
 
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/preact';
-import { signal } from '@preact/signals';
-import { PivotDialog, PivotAggregation } from './PivotDialog';
+import { PivotDialog } from './PivotDialog';
+import { DialogStore } from '../stores/DialogStore';
+import { AppStore } from '../stores/AppStore';
+import * as PivotHandlers from '../handlers/pivot-handlers';
 
 describe('PivotDialog', () => {
   const testColumns = ['Year', 'Region', 'Sales', 'Category'];
 
-  it('renders with default values', () => {
-    const rowColumns = signal<string[]>([]);
-    const columnColumn = signal('');
-    const valueColumn = signal('');
-    const aggregation = signal<PivotAggregation>('sum');
-    const uniqueValueCount = signal(0);
-    const options = signal({ sort: true, limit: null as number | null });
-    const isPreviewing = signal(false);
-    const onPreview = vi.fn();
+  beforeEach(() => {
+    // Reset store state before each test
+    DialogStore.pivotState.rowColumns.value = [];
+    DialogStore.pivotState.columnColumn.value = '';
+    DialogStore.pivotState.valueColumn.value = '';
+    DialogStore.pivotState.aggregation.value = 'sum';
+    DialogStore.pivotState.uniqueValueCount.value = 0;
+    DialogStore.pivotState.options.value = { sort: true, limit: null };
+    DialogStore.pivotState.isPreviewing.value = false;
+    AppStore.columns.value = testColumns;
+  });
 
-    render(
-      <PivotDialog
-        columns={testColumns}
-        rowColumns={rowColumns}
-        columnColumn={columnColumn}
-        valueColumn={valueColumn}
-        aggregation={aggregation}
-        uniqueValueCount={uniqueValueCount}
-        options={options}
-        isPreviewing={isPreviewing}
-        onPreview={onPreview}
-      />
-    );
+  it('renders with default values', () => {
+    render(<PivotDialog />);
 
     expect(screen.getByText('Create a pivot table by selecting', { exact: false })).toBeDefined();
     expect(screen.getByText('Rows')).toBeDefined();
@@ -41,134 +34,58 @@ describe('PivotDialog', () => {
   });
 
   it('toggles row column selection', () => {
-    const rowColumns = signal<string[]>([]);
-    const columnColumn = signal('');
-    const valueColumn = signal('');
-    const aggregation = signal<PivotAggregation>('sum');
-    const uniqueValueCount = signal(0);
-    const options = signal({ sort: true, limit: null as number | null });
-    const isPreviewing = signal(false);
-    const onPreview = vi.fn();
-
-    render(
-      <PivotDialog
-        columns={testColumns}
-        rowColumns={rowColumns}
-        columnColumn={columnColumn}
-        valueColumn={valueColumn}
-        aggregation={aggregation}
-        uniqueValueCount={uniqueValueCount}
-        options={options}
-        isPreviewing={isPreviewing}
-        onPreview={onPreview}
-      />
-    );
+    render(<PivotDialog />);
 
     // Region appears in chip and select options. Find the one in the button (chip)
     const regionTexts = screen.getAllByText('Region');
     const chipText = regionTexts.find((el) => el.closest('button'));
     fireEvent.click(chipText!.closest('button')!);
 
-    expect(rowColumns.value).toContain('Region');
+    expect(DialogStore.pivotState.rowColumns.value).toContain('Region');
 
     // Click again to toggle off
     fireEvent.click(chipText!.closest('button')!);
-    expect(rowColumns.value).not.toContain('Region');
+    expect(DialogStore.pivotState.rowColumns.value).not.toContain('Region');
   });
 
   it('updates column options', () => {
-    const rowColumns = signal<string[]>([]);
-    const columnColumn = signal('');
-    const valueColumn = signal('');
-    const aggregation = signal<PivotAggregation>('sum');
-    const uniqueValueCount = signal(0);
-    const options = signal({ sort: true, limit: null as number | null });
-    const isPreviewing = signal(false);
-    const onPreview = vi.fn();
-
-    render(
-      <PivotDialog
-        columns={testColumns}
-        rowColumns={rowColumns}
-        columnColumn={columnColumn}
-        valueColumn={valueColumn}
-        aggregation={aggregation}
-        uniqueValueCount={uniqueValueCount}
-        options={options}
-        isPreviewing={isPreviewing}
-        onPreview={onPreview}
-      />
-    );
+    render(<PivotDialog />);
 
     // Select Columns field (first select is for Columns)
     const selects = screen.getAllByRole('combobox');
     const colSelect = selects[0];
     fireEvent.change(colSelect, { target: { value: 'Category' } });
-    expect(columnColumn.value).toBe('Category');
+    expect(DialogStore.pivotState.columnColumn.value).toBe('Category');
 
     // Select Values field (second select is for Values)
     const valSelect = selects[1];
     fireEvent.change(valSelect, { target: { value: 'Sales' } });
-    expect(valueColumn.value).toBe('Sales');
+    expect(DialogStore.pivotState.valueColumn.value).toBe('Sales');
   });
 
   it('shows summary when configured', () => {
-    const rowColumns = signal<string[]>(['Year']);
-    const columnColumn = signal('Region');
-    const valueColumn = signal('Sales');
-    const aggregation = signal<PivotAggregation>('sum');
-    const uniqueValueCount = signal(5);
-    const options = signal({ sort: true, limit: null as number | null });
-    const isPreviewing = signal(false);
-    const onPreview = vi.fn();
-
-    render(
-      <PivotDialog
-        columns={testColumns}
-        rowColumns={rowColumns}
-        columnColumn={columnColumn}
-        valueColumn={valueColumn}
-        aggregation={aggregation}
-        uniqueValueCount={uniqueValueCount}
-        options={options}
-        isPreviewing={isPreviewing}
-        onPreview={onPreview}
-      />
-    );
+    DialogStore.pivotState.rowColumns.value = ['Year'];
+    DialogStore.pivotState.columnColumn.value = 'Region';
+    DialogStore.pivotState.valueColumn.value = 'Sales';
+    DialogStore.pivotState.uniqueValueCount.value = 5;
+    render(<PivotDialog />);
 
     expect(screen.getByText('Result:')).toBeDefined();
 
     // Find the element containing "unique values" text and check it contains "5"
-    // Since "5" is in a strong tag and "unique values" is typical text, checking parent textContent is best
     const uniqueHelper = screen.getByText(/unique values/);
     expect(uniqueHelper.textContent).toContain('5 unique values');
   });
 
-  it('calls onPreview when clicked', () => {
-    const rowColumns = signal<string[]>(['Year']);
-    const columnColumn = signal('Region');
-    const valueColumn = signal('Sales');
-    const aggregation = signal<PivotAggregation>('sum');
-    const uniqueValueCount = signal(5);
-    const options = signal({ sort: true, limit: null as number | null });
-    const isPreviewing = signal(false);
-    const onPreview = vi.fn();
+  it('calls preview handler when clicked', () => {
+    vi.spyOn(PivotHandlers, 'previewPivot');
+    DialogStore.pivotState.rowColumns.value = ['Year'];
+    DialogStore.pivotState.columnColumn.value = 'Region';
+    DialogStore.pivotState.valueColumn.value = 'Sales';
 
-    render(
-      <PivotDialog
-        columns={testColumns}
-        rowColumns={rowColumns}
-        columnColumn={columnColumn}
-        valueColumn={valueColumn}
-        aggregation={aggregation}
-        uniqueValueCount={uniqueValueCount}
-        options={options}
-        isPreviewing={isPreviewing}
-        onPreview={onPreview}
-      />
-    );
+    render(<PivotDialog />);
 
     fireEvent.click(screen.getByText('Preview Result'));
-    expect(onPreview).toHaveBeenCalled();
+    expect(PivotHandlers.previewPivot).toHaveBeenCalled();
   });
 });

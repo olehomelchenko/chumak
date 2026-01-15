@@ -2,18 +2,16 @@ import { loadUXSettings, updateUXSetting } from './core/ux-settings';
 import { loadInitialData } from './core/storage';
 import { getUrlState, setUrlState } from './core/url-state';
 import { Transformation } from './app/decorators';
-import * as FilterHandlers from './app/transforms/filter-transform';
-import * as DeriveHandlers from './app/transforms/derive-transform';
-import * as AggregateHandlers from './app/transforms/aggregate-transform';
-import * as JoinHandlers from './app/transforms/join-transform';
-import * as PivotHandlers from './app/transforms/pivot-transform';
-import * as FoldHandlers from './app/transforms/fold-transform';
-import * as SplitHandlers from './app/transforms/split-transform';
-import * as DedupeHandlers from './app/transforms/dedupe-transform';
-import * as ColumnEditorHandlers from './app/transforms/column-editor';
-import * as DateHandlers from './app/transforms/date-transform';
-import * as RegexpHandlers from './app/transforms/regexp-transforms';
-import * as SimpleHandlers from './app/transforms/simple-transforms';
+import * as FilterHandlers from './app/handlers/filter-handlers';
+import * as DeriveHandlers from './app/handlers/derive-handlers';
+import * as AggregateHandlers from './app/handlers/aggregate-handlers';
+import * as JoinHandlers from './app/handlers/join-handlers';
+import * as PivotHandlers from './app/handlers/pivot-handlers';
+import * as FoldHandlers from './app/handlers/fold-handlers';
+import * as SplitHandlers from './app/handlers/split-handlers';
+import * as DedupeHandlers from './app/handlers/dedupe-handlers';
+import * as RegexpHandlers from './app/handlers/regexp-handlers';
+import * as SimpleHandlers from './app/handlers/simple-handlers';
 import * as ImportHandlers from './app/handlers/import-handlers';
 import * as StepHandlers from './app/handlers/step-handlers';
 import * as DialogHandlers from './app/handlers/dialog-handlers';
@@ -369,25 +367,11 @@ export class ChumakApp implements AppState {
     Object.assign(this.regexpExtractDialogState, val);
   }
 
-  get dateDialogState() {
-    return DialogStore.createSignalProxy(DialogStore.dateState);
-  }
-  set dateDialogState(val: any) {
-    Object.assign(this.dateDialogState, val);
-  }
-
   get dedupeDialogState() {
     return DialogStore.createSignalProxy(DialogStore.dedupeState);
   }
   set dedupeDialogState(val: any) {
     Object.assign(this.dedupeDialogState, val);
-  }
-
-  get columnEditorState() {
-    return DialogStore.createSignalProxy(DialogStore.columnEditorState);
-  }
-  set columnEditorState(val: any) {
-    Object.assign(this.columnEditorState, val);
   }
 
   get jsonEditMode() {
@@ -457,269 +441,290 @@ export class ChumakApp implements AppState {
     AppStore.viewingSchema.value = val;
   }
 
-  // Bind handlers
+  // Filter handlers
   validateFilterExpression() {
-    return FilterHandlers.validateFilterExpression.call(this);
+    return FilterHandlers.validateFilterExpression();
   }
   debouncedUpdateFilterPreview() {
-    return FilterHandlers.debouncedUpdateFilterPreview.call(this);
+    return FilterHandlers.debouncedUpdateFilterPreview();
   }
   updateFilterPreview() {
-    return FilterHandlers.updateFilterPreview.call(this);
+    return FilterHandlers.updateFilterPreview();
   }
   toggleFilterPreviewMode() {
-    return FilterHandlers.toggleFilterPreviewMode.call(this);
+    return FilterHandlers.toggleFilterPreviewMode();
   }
   applyFilterTransform() {
-    return FilterHandlers.applyFilterTransform.call(this);
+    return FilterHandlers.applyFilterTransform({
+      onTransformStart: (label: string) => this.startTransformation(label),
+      onTransformEnd: () => this.endTransformation(),
+      onError: (msg: string) => this.alert(msg),
+      updatePagination: () => this.updatePagination(),
+    });
   }
 
   // Derive handlers
   validateDeriveExpression() {
-    return DeriveHandlers.validateDeriveExpression.call(this);
+    return DeriveHandlers.validateDeriveExpression();
   }
   debouncedUpdateDerivePreview() {
-    return DeriveHandlers.debouncedUpdateDerivePreview.call(this);
+    return DeriveHandlers.debouncedUpdateDerivePreview();
   }
   updateDerivePreview() {
-    return DeriveHandlers.updateDerivePreview.call(this);
+    return DeriveHandlers.updateDerivePreview();
   }
   applyDeriveTransform() {
-    return DeriveHandlers.applyDeriveTransform.call(this);
+    return DeriveHandlers.applyDeriveTransform({
+      onTransformStart: (label: string) => this.startTransformation(label),
+      onTransformEnd: () => this.endTransformation(),
+      onError: (msg: string) => this.alert(msg),
+      updatePagination: () => this.updatePagination(),
+    });
   }
 
   // Aggregate handlers
   addAggregation() {
-    return AggregateHandlers.addAggregation.call(this);
+    return AggregateHandlers.addAggregation();
   }
   removeAggregation(index: number) {
-    return AggregateHandlers.removeAggregation.call(this, index);
+    return AggregateHandlers.removeAggregation(index);
   }
   updateAggregateOutputName(index: number) {
-    return AggregateHandlers.updateAggregateOutputName.call(this, index);
+    return AggregateHandlers.updateAggregateOutputName(index);
   }
   constructAggregateStep() {
-    return AggregateHandlers.constructAggregateStep.call(this);
+    return AggregateHandlers.constructAggregateStep();
   }
   previewAggregate() {
-    return AggregateHandlers.previewAggregate.call(this);
+    return AggregateHandlers.previewAggregate();
   }
   applyAggregateTransform() {
-    return AggregateHandlers.applyAggregateTransform.call(this);
+    return AggregateHandlers.applyAggregateTransform({
+      onTransformStart: (label: string) => this.startTransformation(label),
+      onTransformEnd: () => this.endTransformation(),
+      onError: (msg: string) => this.alert(msg),
+      updatePagination: () => this.updatePagination(),
+    });
   }
 
   // Join handlers
   initializeJoinDialog() {
-    return JoinHandlers.initializeJoinDialog.call(this);
+    return JoinHandlers.initializeJoinDialog();
   }
   getColumnsForTarget(targetId: string) {
-    return JoinHandlers.getColumnsForTarget.call(this, targetId);
+    return JoinHandlers.getColumnsForTarget(targetId);
   }
   onJoinTargetChange() {
-    return JoinHandlers.onJoinTargetChange.call(this);
+    return JoinHandlers.onJoinTargetChange();
   }
   addJoinKeyPair() {
-    return JoinHandlers.addJoinKeyPair.call(this);
+    return JoinHandlers.addJoinKeyPair();
   }
   removeJoinKeyPair(index: number) {
-    return JoinHandlers.removeJoinKeyPair.call(this, index);
+    return JoinHandlers.removeJoinKeyPair(index);
   }
   previewJoin() {
-    return JoinHandlers.previewJoin.call(this);
+    return JoinHandlers.previewJoin();
   }
   applyJoinTransform() {
-    return JoinHandlers.applyJoinTransform.call(this);
+    return JoinHandlers.applyJoinTransform({
+      onTransformStart: (label: string) => this.startTransformation(label),
+      onTransformEnd: () => this.endTransformation(),
+      onError: (msg: string) => this.alert(msg),
+      updatePagination: () => this.updatePagination(),
+    });
   }
 
   // Pivot handlers
   initializePivotDialog() {
-    return PivotHandlers.initializePivotDialog.call(this);
+    // This is a reset - can just set signals or call a handler
+    const state = DialogStore.pivotState;
+    state.rowColumns.value = [];
+    state.columnColumn.value = '';
+    state.valueColumn.value = '';
+    state.aggregation.value = 'sum';
+    state.options.value = { sort: true, limit: null };
+    state.uniqueValueCount.value = 0;
+    state.previewData.value = null;
+    state.previewError.value = null;
+    state.isPreviewing.value = false;
   }
   onPivotConfigChange() {
-    return PivotHandlers.onPivotConfigChange.call(this);
+    return PivotHandlers.onPivotConfigChange();
   }
   constructPivotStep() {
-    return PivotHandlers.constructPivotStep.call(this);
+    return PivotHandlers.constructPivotStep();
   }
   previewPivot() {
-    return PivotHandlers.previewPivot.call(this);
+    return PivotHandlers.previewPivot();
   }
   applyPivotTransform() {
-    return PivotHandlers.applyPivotTransform.call(this);
+    return PivotHandlers.applyPivotTransform({
+      onTransformStart: (label: string) => this.startTransformation(label),
+      onTransformEnd: () => this.endTransformation(),
+      onError: (msg: string) => this.alert(msg),
+      updatePagination: () => this.updatePagination(),
+    });
   }
 
   // Fold handlers
   toggleColumnForFold(index: number) {
-    return FoldHandlers.toggleColumnForFold.call(this, index);
+    return FoldHandlers.toggleColumnForFold(index);
   }
   toggleFoldMode() {
-    return FoldHandlers.toggleFoldMode.call(this);
+    return FoldHandlers.toggleFoldMode();
   }
   getColumnsToFold() {
-    return FoldHandlers.getColumnsToFold.call(this);
+    return FoldHandlers.getColumnsToFold();
   }
   selectAllForFold() {
-    return FoldHandlers.selectAllForFold.call(this);
+    return FoldHandlers.selectAllForFold();
   }
   selectNoneForFold() {
-    return FoldHandlers.selectNoneForFold.call(this);
+    return FoldHandlers.selectNoneForFold();
   }
   updateFoldPreview() {
-    return FoldHandlers.updateFoldPreview.call(this);
+    return FoldHandlers.updateFoldPreview();
   }
   applyFoldTransform() {
-    return FoldHandlers.applyFoldTransform.call(this);
+    return FoldHandlers.applyFoldTransform({
+      onTransformStart: (label: string) => this.startTransformation(label),
+      onTransformEnd: () => this.endTransformation(),
+      onError: (msg: string) => this.alert(msg),
+      updatePagination: () => this.updatePagination(),
+    });
   }
 
   // Split handlers
   detectDelimiter(column: string) {
-    return SplitHandlers.detectDelimiter.call(this, column);
+    return SplitHandlers.detectDelimiter(column);
   }
   debouncedUpdateSplitPreview() {
-    return SplitHandlers.debouncedUpdateSplitPreview.call(this);
+    return SplitHandlers.debouncedUpdateSplitPreview();
   }
   selectSplitColumn(col: string) {
-    return SplitHandlers.selectSplitColumn.call(this, col);
+    return SplitHandlers.selectSplitColumn(col);
   }
   updateSplitPreview() {
-    return SplitHandlers.updateSplitPreview.call(this);
+    return SplitHandlers.updateSplitPreview();
   }
   applySplitTransform() {
-    return SplitHandlers.applySplitTransform.call(this);
+    return SplitHandlers.applySplitTransform({
+      onTransformStart: (label: string) => this.startTransformation(label),
+      onTransformEnd: () => this.endTransformation(),
+      onError: (msg: string) => this.alert(msg),
+      updatePagination: () => this.updatePagination(),
+    });
   }
 
   // Dedupe handlers
   toggleDedupeAllColumns(useAll: boolean) {
-    return DedupeHandlers.toggleDedupeAllColumns.call(this, useAll);
+    return DedupeHandlers.toggleDedupeAllColumns(useAll);
   }
   toggleDedupeColumn(index: number) {
-    return DedupeHandlers.toggleDedupeColumn.call(this, index);
+    return DedupeHandlers.toggleDedupeColumn(index);
   }
   selectAllForDedupe() {
-    return DedupeHandlers.selectAllForDedupe.call(this);
+    return DedupeHandlers.selectAllForDedupe();
   }
   selectNoneForDedupe() {
-    return DedupeHandlers.selectNoneForDedupe.call(this);
+    return DedupeHandlers.selectNoneForDedupe();
   }
   getDedupeColumns() {
-    return DedupeHandlers.getDedupeColumns.call(this);
+    return DedupeHandlers.getDedupeColumns();
   }
   findDuplicateRows(data: any[], columns: string[]) {
-    return DedupeHandlers.findDuplicateRows.call(this, data, columns);
+    return DedupeHandlers.findDuplicateRows(data, columns);
   }
   updateDedupePreview() {
-    return DedupeHandlers.updateDedupePreview.call(this);
+    return DedupeHandlers.updateDedupePreview();
   }
   findAllDuplicateRowCount(data: any[], columns: string[]) {
-    return DedupeHandlers.findAllDuplicateRowCount.call(this, data, columns);
+    return DedupeHandlers.findAllDuplicateRowCount(data, columns);
   }
   @Transformation('Duplicates')
   applyDedupeTransform() {
-    return DedupeHandlers.applyDedupeTransform.call(this);
+    return DedupeHandlers.applyDedupeTransform({
+      onTransformStart: (label: string) => this.startTransformation(label),
+      onTransformEnd: () => this.endTransformation(),
+      onError: (msg: string) => this.alert(msg),
+      updatePagination: () => this.updatePagination(),
+    });
   }
 
   // Column Editor handlers
-  toggleColumnEditorColumn(index: number) {
-    return ColumnEditorHandlers.toggleColumnEditorColumn.call(this, index);
-  }
-  selectAllColumnEditor() {
-    return ColumnEditorHandlers.selectAllColumnEditor.call(this);
-  }
-  selectNoneColumnEditor() {
-    return ColumnEditorHandlers.selectNoneColumnEditor.call(this);
-  }
-  applyColumnEditorPattern() {
-    return ColumnEditorHandlers.applyColumnEditorPattern.call(this);
-  }
-  handleColumnEditorDragStart(index: number, event: DragEvent) {
-    return ColumnEditorHandlers.handleColumnEditorDragStart.call(this, index, event);
-  }
-  handleColumnEditorDragOver(event: DragEvent) {
-    return ColumnEditorHandlers.handleColumnEditorDragOver.call(this, event);
-  }
-  handleColumnEditorDrop(dropIndex: number) {
-    return ColumnEditorHandlers.handleColumnEditorDrop.call(this, dropIndex);
-  }
-  handleColumnEditorDragEnd() {
-    return ColumnEditorHandlers.handleColumnEditorDragEnd.call(this);
-  }
-  switchColumnEditorToText() {
-    return ColumnEditorHandlers.switchColumnEditorToText.call(this);
-  }
-  validateColumnEditorText() {
-    return ColumnEditorHandlers.validateColumnEditorText.call(this);
-  }
-  getColumnEditorChanges() {
-    return ColumnEditorHandlers.getColumnEditorChanges.call(this);
-  }
-  applyColumnEditorTransform() {
-    return ColumnEditorHandlers.applyColumnEditorTransform.call(this);
-  }
-
-  // Date handlers
-  getDateColumns() {
-    return DateHandlers.getDateColumns.call(this);
-  }
-  getExtractParts() {
-    return DateHandlers.getExtractParts.call(this);
-  }
-  getTruncateUnits() {
-    return DateHandlers.getTruncateUnits.call(this);
-  }
-  toggleDateSelection(value: string, event?: MouseEvent) {
-    return DateHandlers.toggleDateSelection.call(this, value, event);
-  }
-  getDateOutputPlaceholder() {
-    return DateHandlers.getDateOutputPlaceholder.call(this);
-  }
-  updateDatePreview() {
-    return DateHandlers.updateDatePreview.call(this);
-  }
-  applyDateTransform() {
-    return DateHandlers.applyDateTransform.call(this);
-  }
 
   // Regexp handlers
   validateRegexpPattern(pattern: string) {
-    return RegexpHandlers.validateRegexpPattern.call(this, pattern);
+    return RegexpHandlers.validateRegexpPattern(pattern);
   }
   validateRegexpMatchExpression() {
-    return RegexpHandlers.validateRegexpMatchExpression.call(this);
+    return RegexpHandlers.validateRegexpMatchExpression();
   }
   debouncedUpdateRegexpMatchPreview() {
-    return RegexpHandlers.debouncedUpdateRegexpMatchPreview.call(this);
+    return RegexpHandlers.debouncedUpdateRegexpMatchPreview();
   }
   updateRegexpMatchPreview() {
-    return RegexpHandlers.updateRegexpMatchPreview.call(this);
+    return RegexpHandlers.updateRegexpMatchPreview();
   }
   applyRegexpMatchTransform() {
-    return RegexpHandlers.applyRegexpMatchTransform.call(this);
+    return RegexpHandlers.applyRegexpMatchTransform({
+      onTransformStart: (label: string) => this.startTransformation(label),
+      onTransformEnd: () => this.endTransformation(),
+      onError: (msg: string) => this.alert(msg),
+      updatePagination: () => this.updatePagination(),
+    });
   }
   validateRegexpExtractExpression() {
-    return RegexpHandlers.validateRegexpExtractExpression.call(this);
+    return RegexpHandlers.validateRegexpExtractExpression();
   }
   debouncedUpdateRegexpExtractPreview() {
-    return RegexpHandlers.debouncedUpdateRegexpExtractPreview.call(this);
+    return RegexpHandlers.debouncedUpdateRegexpExtractPreview();
   }
   updateRegexpExtractPreview() {
-    return RegexpHandlers.updateRegexpExtractPreview.call(this);
+    return RegexpHandlers.updateRegexpExtractPreview();
   }
   applyRegexpExtractTransform() {
-    return RegexpHandlers.applyRegexpExtractTransform.call(this);
+    return RegexpHandlers.applyRegexpExtractTransform({
+      onTransformStart: (label: string) => this.startTransformation(label),
+      onTransformEnd: () => this.endTransformation(),
+      onError: (msg: string) => this.alert(msg),
+      updatePagination: () => this.updatePagination(),
+    });
   }
 
   // Simple handlers
   applyReplaceTransform() {
-    return SimpleHandlers.applyReplaceTransform.call(this);
+    return SimpleHandlers.applyReplaceTransform({
+      onTransformStart: (label: string) => this.startTransformation(label),
+      onTransformEnd: () => this.endTransformation(),
+      onError: (msg: string) => this.alert(msg),
+      updatePagination: () => this.updatePagination(),
+    });
   }
   applySortTransform() {
-    return SimpleHandlers.applySortTransform.call(this);
+    return SimpleHandlers.applySortTransform({
+      onTransformStart: (label: string) => this.startTransformation(label),
+      onTransformEnd: () => this.endTransformation(),
+      onError: (msg: string) => this.alert(msg),
+      updatePagination: () => this.updatePagination(),
+    });
   }
   applySliceRowsTransform() {
-    return SimpleHandlers.applySliceRowsTransform.call(this);
+    return SimpleHandlers.applySliceRowsTransform({
+      onTransformStart: (label: string) => this.startTransformation(label),
+      onTransformEnd: () => this.endTransformation(),
+      onError: (msg: string) => this.alert(msg),
+      updatePagination: () => this.updatePagination(),
+    });
   }
   applyIndexTransform() {
-    return SimpleHandlers.applyIndexTransform.call(this);
+    return SimpleHandlers.applyIndexTransform({
+      onTransformStart: (label: string) => this.startTransformation(label),
+      onTransformEnd: () => this.endTransformation(),
+      onError: (msg: string) => this.alert(msg),
+      updatePagination: () => this.updatePagination(),
+    });
   }
 
   // Export handlers
@@ -1075,58 +1080,77 @@ export class ChumakApp implements AppState {
   applyBrushFilter() {
     return EDAHandlers.applyBrushFilter.call(this);
   }
-
-  // Interaction handlers
   handleBodyClick(event: any) {
-    return InteractionHandlers.handleBodyClick.call(this, event);
+    return InteractionHandlers.handleBodyClick(event);
   }
   openTypeMenu(col: string, event: any) {
-    return InteractionHandlers.openTypeMenu.call(this, col, event);
+    return InteractionHandlers.openTypeMenu(col, event);
   }
   changeColumnType(col: string, newType: string) {
-    return InteractionHandlers.changeColumnType.call(this, col, newType);
+    return InteractionHandlers.changeColumnType(col, newType, {
+      updatePagination: () => this.updatePagination(),
+    });
   }
   autoDetectSchema() {
-    return InteractionHandlers.autoDetectSchema.call(this);
+    return InteractionHandlers.autoDetectSchema({
+      updatePagination: () => this.updatePagination(),
+    });
   }
   clearColumnSelection() {
-    return InteractionHandlers.clearColumnSelection.call(this);
+    return InteractionHandlers.clearColumnSelection();
   }
   calculateToolbarPosition(rect: DOMRect, toolbarWidth: number) {
-    return InteractionHandlers.calculateToolbarPosition.call(this, rect, toolbarWidth);
+    return InteractionHandlers.calculateToolbarPosition(rect, toolbarWidth);
   }
   updateToolbarPosition() {
-    return InteractionHandlers.updateToolbarPosition.call(this);
+    return InteractionHandlers.updateToolbarPosition();
   }
+
+  // Interaction handlers
   selectCell(col: string, value: any, rowIdx: number) {
-    return InteractionHandlers.selectCell.call(this, col, value, rowIdx);
+    return InteractionHandlers.selectCell(col, value, rowIdx);
   }
   applyQuickCellFilter(op: string) {
-    return InteractionHandlers.applyQuickCellFilter.call(this, op);
+    return InteractionHandlers.applyQuickCellFilter(op, {
+      onTransformStart: (label: string) => this.startTransformation(label),
+      onTransformEnd: () => this.endTransformation(),
+      onError: (msg: string) => this.alert(msg),
+      updatePagination: () => this.updatePagination(),
+    });
   }
   quickSort(order: 'asc' | 'desc') {
-    return InteractionHandlers.quickSort.call(this, order);
+    return InteractionHandlers.quickSort(order, {
+      onTransformStart: (label: string) => this.startTransformation(label),
+      onTransformEnd: () => this.endTransformation(),
+      onError: (msg: string) => this.alert(msg),
+      updatePagination: () => this.updatePagination(),
+    });
   }
   quickFilter() {
-    return InteractionHandlers.quickFilter.call(this);
+    return InteractionHandlers.quickFilter((name) => this.openDialog(name));
   }
   quickRename() {
-    return InteractionHandlers.quickRename.call(this);
+    return InteractionHandlers.quickRename((name, sec) => this.openDialog(name, sec));
   }
   quickRemove() {
-    return InteractionHandlers.quickRemove.call(this);
+    return InteractionHandlers.quickRemove({
+      onTransformStart: (label: string) => this.startTransformation(label),
+      onTransformEnd: () => this.endTransformation(),
+      onError: (msg: string) => this.alert(msg),
+      updatePagination: () => this.updatePagination(),
+    });
   }
   quickDate() {
-    return InteractionHandlers.quickDate.call(this);
+    return InteractionHandlers.quickDate((name) => this.openDialog(name));
   }
   quickSplit() {
-    return InteractionHandlers.quickSplit.call(this);
+    return InteractionHandlers.quickSplit((name) => this.openDialog(name));
   }
   quickReplace() {
-    return InteractionHandlers.quickReplace.call(this);
+    return InteractionHandlers.quickReplace((name) => this.openDialog(name));
   }
   quickDedupe() {
-    return InteractionHandlers.quickDedupe.call(this);
+    return InteractionHandlers.quickDedupe((name) => this.openDialog(name));
   }
 
   // Pagination handlers

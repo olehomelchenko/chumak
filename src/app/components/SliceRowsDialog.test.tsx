@@ -2,69 +2,62 @@
  * SliceRowsDialog Component Tests
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/preact';
-import { signal } from '@preact/signals';
-import { SliceRowsDialog, SliceMode } from './SliceRowsDialog';
+import { SliceRowsDialog } from './SliceRowsDialog';
+import { DialogStore } from '../stores/DialogStore';
+import { AppStore } from '../stores/AppStore';
 
 describe('SliceRowsDialog', () => {
-  it('renders with default values', () => {
-    const count = signal(10);
-    const mode = signal<SliceMode>('first');
+  beforeEach(() => {
+    // Reset store state before each test
+    DialogStore.sliceRowsState.count.value = 10;
+    DialogStore.sliceRowsState.mode.value = 'first';
+    AppStore.currentData.value = Array(100)
+      .fill(null)
+      .map((_, i) => ({ id: i }));
+  });
 
-    render(<SliceRowsDialog count={count} mode={mode} rowCount={100} />);
+  it('renders with default values', () => {
+    render(<SliceRowsDialog />);
 
     expect(screen.getByPlaceholderText('10')).toBeDefined();
-    // Check if the 'first' radio is checked
     const radio = screen.getByLabelText('Keep first N rows') as HTMLInputElement;
     expect(radio.checked).toBe(true);
   });
 
   it('updates count when input changes', () => {
-    const count = signal(10);
-    const mode = signal<SliceMode>('first');
-
-    render(<SliceRowsDialog count={count} mode={mode} rowCount={100} />);
+    render(<SliceRowsDialog />);
 
     const input = screen.getByPlaceholderText('10') as HTMLInputElement;
     fireEvent.input(input, { target: { value: '25' } });
 
-    expect(count.value).toBe(25);
+    expect(DialogStore.sliceRowsState.count.value).toBe(25);
   });
 
   it('updates mode when radio changes', () => {
-    const count = signal(10);
-    const mode = signal<SliceMode>('first');
-
-    render(<SliceRowsDialog count={count} mode={mode} rowCount={100} />);
+    render(<SliceRowsDialog />);
 
     const removeLastRadio = screen.getByLabelText('Remove last N rows');
     fireEvent.click(removeLastRadio);
 
-    expect(mode.value).toBe('removeLast');
+    expect(DialogStore.sliceRowsState.mode.value).toBe('removeLast');
   });
 
   it('shows correct preview for "first" mode', () => {
-    const count = signal(5);
-    const mode = signal<SliceMode>('first');
+    DialogStore.sliceRowsState.count.value = 5;
+    render(<SliceRowsDialog />);
 
-    render(<SliceRowsDialog count={count} mode={mode} rowCount={100} />);
-
-    // "Will keep rows 1 to 5"
     expect(screen.getByText('Will keep rows 1 to')).toBeDefined();
     expect(screen.getByText('5')).toBeDefined();
   });
 
   it('shows correct preview for "last" mode', () => {
-    const count = signal(10);
-    const mode = signal<SliceMode>('last');
+    DialogStore.sliceRowsState.count.value = 10;
+    DialogStore.sliceRowsState.mode.value = 'last';
+    render(<SliceRowsDialog />);
 
-    // Total 100, keep last 10 -> start at 91 (100 - 10 + 1)
-    render(<SliceRowsDialog count={count} mode={mode} rowCount={100} />);
-
-    // Use regex to match the text content
     expect(screen.getByText(/Will keep rows/)).toBeDefined();
-    // We look for '91' in a strong tag, testing library finds text anywhere
     const strong91 = screen.getByText('91');
     expect(strong91.tagName).toBe('STRONG');
   });

@@ -1,5 +1,5 @@
 import { render, screen, fireEvent } from '@testing-library/preact';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { ColumnEditorDialog } from './ColumnEditorDialog';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
@@ -75,11 +75,9 @@ describe('ColumnEditorDialog', () => {
   });
 
   it('switches to text mode', () => {
-    const onSwitchToText = vi.fn();
-    render(<ColumnEditorDialog onSwitchToText={onSwitchToText} />);
+    render(<ColumnEditorDialog />);
 
     fireEvent.click(screen.getByText('Text Mode'));
     expect(DialogStore.columnEditorState.mode.value).toBe('text');
-    expect(onSwitchToText).toHaveBeenCalled();
   });
 });

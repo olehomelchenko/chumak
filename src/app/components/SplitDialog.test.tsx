@@ -2,37 +2,30 @@
  * SplitDialog Component Tests
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/preact';
-import { signal } from '@preact/signals';
-import { SplitDialog, SplitMode } from './SplitDialog';
+import { SplitDialog } from './SplitDialog';
+import { DialogStore } from '../stores/DialogStore';
+import { AppStore } from '../stores/AppStore';
 
 describe('SplitDialog', () => {
   const testColumns = ['Product ID', 'Name', 'Category'];
 
-  it('renders with columns and default values', () => {
-    const column = signal('Product ID');
-    const delimiter = signal(',');
-    const autoDetectedDelimiter = signal<string | null>(null);
-    const isRegex = signal(false);
-    const mode = signal<SplitMode>('spread');
-    const maxColumns = signal(2);
-    const keepOriginal = signal(false);
-    const error = signal(null);
+  beforeEach(() => {
+    // Reset store state before each test
+    DialogStore.splitState.column.value = 'Product ID';
+    DialogStore.splitState.delimiter.value = ',';
+    DialogStore.splitState.autoDetectedDelimiter.value = null;
+    DialogStore.splitState.isRegex.value = false;
+    DialogStore.splitState.mode.value = 'spread';
+    DialogStore.splitState.maxColumns.value = 2;
+    DialogStore.splitState.keepOriginal.value = false;
+    DialogStore.splitState.error.value = null;
+    AppStore.columns.value = testColumns;
+  });
 
-    render(
-      <SplitDialog
-        columns={testColumns}
-        column={column}
-        delimiter={delimiter}
-        autoDetectedDelimiter={autoDetectedDelimiter}
-        isRegex={isRegex}
-        mode={mode}
-        maxColumns={maxColumns}
-        keepOriginal={keepOriginal}
-        error={error}
-      />
-    );
+  it('renders with columns and default values', () => {
+    render(<SplitDialog />);
 
     expect(screen.getByText('Product ID')).toBeDefined();
     expect(screen.getByText('Name')).toBeDefined();
@@ -41,130 +34,41 @@ describe('SplitDialog', () => {
   });
 
   it('updates delimiter via presets', () => {
-    const column = signal('Product ID');
-    const delimiter = signal(',');
-    const autoDetectedDelimiter = signal(null);
-    const isRegex = signal(false);
-    const mode = signal<SplitMode>('spread');
-    const maxColumns = signal(2);
-    const keepOriginal = signal(false);
-    const error = signal(null);
-
-    render(
-      <SplitDialog
-        columns={testColumns}
-        column={column}
-        delimiter={delimiter}
-        autoDetectedDelimiter={autoDetectedDelimiter}
-        isRegex={isRegex}
-        mode={mode}
-        maxColumns={maxColumns}
-        keepOriginal={keepOriginal}
-        error={error}
-      />
-    );
+    render(<SplitDialog />);
 
     // Click semi-colon
     fireEvent.click(screen.getByText(';'));
-    expect(delimiter.value).toBe(';');
-    expect(isRegex.value).toBe(false);
+    expect(DialogStore.splitState.delimiter.value).toBe(';');
+    expect(DialogStore.splitState.isRegex.value).toBe(false);
 
     // Click whitespace icon (title="Whitespace")
     fireEvent.click(screen.getByTitle('Whitespace'));
-    expect(delimiter.value).toBe('\\s+');
-    expect(isRegex.value).toBe(true);
+    expect(DialogStore.splitState.delimiter.value).toBe('\\s+');
+    expect(DialogStore.splitState.isRegex.value).toBe(true);
   });
 
   it('switches modes and shows max columns input', () => {
-    const column = signal('Product ID');
-    const delimiter = signal(',');
-    const autoDetectedDelimiter = signal(null);
-    const isRegex = signal(false);
-    const mode = signal<SplitMode>('spread');
-    const maxColumns = signal(2);
-    const keepOriginal = signal(false);
-    const error = signal(null);
-
-    render(
-      <SplitDialog
-        columns={testColumns}
-        column={column}
-        delimiter={delimiter}
-        autoDetectedDelimiter={autoDetectedDelimiter}
-        isRegex={isRegex}
-        mode={mode}
-        maxColumns={maxColumns}
-        keepOriginal={keepOriginal}
-        error={error}
-      />
-    );
+    render(<SplitDialog />);
 
     expect(screen.queryByPlaceholderText('e.g., 3')).toBeNull();
 
     // Click "Keep First N" which has value="firstN"
-    // We can find the radio by the span text "Keep First N - limit number of columns"
-    // Since the label wraps input and span, finding by Label Text works if the text matches the label content
     const radio = screen.getByLabelText('Keep First N - limit number of columns');
     fireEvent.click(radio);
-    expect(mode.value).toBe('firstN');
+    expect(DialogStore.splitState.mode.value).toBe('firstN');
     expect(screen.getByPlaceholderText('e.g., 3')).toBeDefined();
   });
 
   it('selects column', () => {
-    const column = signal('Product ID');
-    const delimiter = signal(',');
-    const autoDetectedDelimiter = signal(null);
-    const isRegex = signal(false);
-    const mode = signal<SplitMode>('spread');
-    const maxColumns = signal(2);
-    const keepOriginal = signal(false);
-    const error = signal(null);
-
-    render(
-      <SplitDialog
-        columns={testColumns}
-        column={column}
-        delimiter={delimiter}
-        autoDetectedDelimiter={autoDetectedDelimiter}
-        isRegex={isRegex}
-        mode={mode}
-        maxColumns={maxColumns}
-        keepOriginal={keepOriginal}
-        error={error}
-      />
-    );
+    render(<SplitDialog />);
 
     fireEvent.click(screen.getByText('Category'));
-    expect(column.value).toBe('Category');
+    expect(DialogStore.splitState.column.value).toBe('Category');
   });
 
   it('shows auto-detected delimiter', () => {
-    const column = signal('Product ID');
-    const delimiter = signal(',');
-    const autoDetectedDelimiter = signal('|');
-    const isRegex = signal(false);
-    const mode = signal<SplitMode>('spread');
-    const maxColumns = signal(2);
-    const keepOriginal = signal(false);
-    const error = signal(null);
-
-    render(
-      <SplitDialog
-        columns={testColumns}
-        column={column}
-        delimiter={delimiter}
-        autoDetectedDelimiter={autoDetectedDelimiter}
-        isRegex={isRegex}
-        mode={mode}
-        maxColumns={maxColumns}
-        keepOriginal={keepOriginal}
-        error={error}
-      />
-    );
-
-    // Check for button with |
-    const buttons = screen.getAllByRole('button', { name: '|' });
-    expect(buttons.length).toBeGreaterThan(0);
+    DialogStore.splitState.autoDetectedDelimiter.value = '|';
+    render(<SplitDialog />);
 
     // Check for auto-detected text
     const autoDiv = screen.getByText((content) => content.includes('Auto-detected'));

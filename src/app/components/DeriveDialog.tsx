@@ -1,34 +1,21 @@
-import { Signal, useSignalEffect } from '@preact/signals';
-import { JSX } from 'preact';
+import { useSignalEffect } from '@preact/signals';
+import { DialogStore } from '../stores/DialogStore';
+import { AppStore } from '../stores/AppStore';
+import * as DeriveHandlers from '../handlers/derive-handlers';
 import styles from './TransformDialog.module.css';
 
-export interface DeriveDialogProps {
-  columnName: Signal<string>;
-  expression: Signal<string>;
-  error: Signal<string | null>;
-  onOpenReference: () => void;
-  onValidate?: () => void;
-}
+export function DeriveDialog() {
+  const { columnName, expression, error } = DialogStore.deriveState;
 
-export function DeriveDialog({
-  columnName,
-  expression,
-  error,
-  onOpenReference,
-  onValidate,
-}: DeriveDialogProps) {
   useSignalEffect(() => {
     void columnName.value;
     void expression.value;
-    if (onValidate) onValidate();
+    DeriveHandlers.validateDeriveExpression();
+    DeriveHandlers.debouncedUpdateDerivePreview();
   });
 
-  const handleColumnNameInput = (e: JSX.TargetedEvent<HTMLInputElement>) => {
-    columnName.value = e.currentTarget.value;
-  };
-
-  const handleExpressionInput = (e: JSX.TargetedEvent<HTMLInputElement>) => {
-    expression.value = e.currentTarget.value;
+  const handleOpenReference = () => {
+    AppStore.activeDialog.value = 'expressions';
   };
 
   return (
@@ -38,8 +25,8 @@ export function DeriveDialog({
         <input
           type="text"
           class={styles.input}
-          value={columnName}
-          onInput={handleColumnNameInput}
+          value={columnName.value}
+          onInput={(e) => (columnName.value = (e.target as HTMLInputElement).value)}
           placeholder="e.g., profit_margin"
         />
       </div>
@@ -49,8 +36,8 @@ export function DeriveDialog({
         <input
           type="text"
           class={styles.input}
-          value={expression}
-          onInput={handleExpressionInput}
+          value={expression.value}
+          onInput={(e) => (expression.value = (e.target as HTMLInputElement).value)}
           placeholder="e.g., (profit / sales) * 100"
         />
       </div>
@@ -65,7 +52,7 @@ export function DeriveDialog({
           <button
             type="button"
             class="button button--text button--small"
-            onClick={onOpenReference}
+            onClick={handleOpenReference}
             style={{ fontWeight: 500, textDecoration: 'underline' }}
           >
             Full Reference

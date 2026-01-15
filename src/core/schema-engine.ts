@@ -57,6 +57,8 @@ export interface TransformStep {
     delimiter: string;
     isRegex?: boolean;
   };
+  sliceRows?: { count: number; mode: 'first' | 'last' | 'removeFirst' | 'removeLast' };
+  addIndex?: { columnName: string; startFrom?: number };
 }
 
 export const SchemaEngine = {

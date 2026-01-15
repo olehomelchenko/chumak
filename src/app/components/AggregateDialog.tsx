@@ -1,4 +1,6 @@
-import { Signal } from '@preact/signals';
+import * as AggregateHandlers from '../handlers/aggregate-handlers';
+import { DialogStore } from '../stores/DialogStore';
+import { AppStore } from '../stores/AppStore';
 import styles from './TransformDialog.module.css';
 
 export interface Aggregation {
@@ -7,21 +9,10 @@ export interface Aggregation {
   output: string;
 }
 
-export interface AggregateDialogProps {
-  columns: string[];
-  groupBy: Signal<string[]>;
-  aggregations: Signal<Aggregation[]>;
-  onPreview: () => void;
-  isPreviewing: Signal<boolean>;
-}
+export function AggregateDialog() {
+  const { groupBy, aggregations, isPreviewing } = DialogStore.aggregateState;
+  const columns = AppStore.columns.value;
 
-export function AggregateDialog({
-  columns,
-  groupBy,
-  aggregations,
-  onPreview,
-  isPreviewing,
-}: AggregateDialogProps) {
   const toggleColumn = (col: string) => {
     if (groupBy.value.includes(col)) {
       groupBy.value = groupBy.value.filter((c) => c !== col);
@@ -38,29 +29,11 @@ export function AggregateDialog({
     groupBy.value = [];
   };
 
-  const addAggregation = () => {
-    aggregations.value = [...aggregations.value, { col: '', func: 'count', output: 'count' }];
-  };
-
-  const removeAggregation = (index: number) => {
-    aggregations.value = aggregations.value.filter((_, i) => i !== index);
-  };
-
   const updateAggregation = (index: number, field: keyof Aggregation, value: string) => {
     const newAggs = [...aggregations.value];
-    const agg = { ...newAggs[index], [field]: value };
-
-    // Auto-update output name if not manually edited?
-    if (field === 'col' || field === 'func') {
-      if (agg.func === 'count' && !agg.col) {
-        agg.output = 'count';
-      } else if (agg.col) {
-        agg.output = `${agg.func}_${agg.col}`;
-      }
-    }
-
-    newAggs[index] = agg;
+    newAggs[index] = { ...newAggs[index], [field]: value };
     aggregations.value = newAggs;
+    AggregateHandlers.updateAggregateOutputName(index);
   };
 
   const aggFunctions = [
@@ -198,7 +171,7 @@ export function AggregateDialog({
 
               <button
                 class="button button--secondary button--small"
-                onClick={() => removeAggregation(index)}
+                onClick={() => AggregateHandlers.removeAggregation(index)}
                 title="Remove"
               >
                 ×
@@ -207,14 +180,21 @@ export function AggregateDialog({
           ))}
         </div>
 
-        <button class="button button--secondary button--small" onClick={addAggregation}>
+        <button
+          class="button button--secondary button--small"
+          onClick={AggregateHandlers.addAggregation}
+        >
           + Add Aggregation
         </button>
       </div>
 
       {/* Preview Button */}
       <div class={styles.group} style={{ marginTop: '1rem' }}>
-        <button class="button button--secondary" onClick={onPreview} disabled={isPreviewing.value}>
+        <button
+          class="button button--secondary"
+          onClick={AggregateHandlers.previewAggregate}
+          disabled={isPreviewing.value}
+        >
           {isPreviewing.value ? 'Previewing...' : 'Preview Result'}
         </button>
       </div>

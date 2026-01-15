@@ -4,6 +4,7 @@ import { html as aboutHtml } from '../../content/about.md';
 import { html as expressionsHtml } from '../../content/expressions.md';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
+import * as DateHandlers from './date-handlers';
 
 // Local signals replaced by DialogStore
 
@@ -56,7 +57,7 @@ export function getDialogState(this: ChumakApp, dialog: string) {
     case 'dedupe':
       return this.dedupeDialogState;
     case 'column-editor':
-      return this.columnEditorState;
+      return DialogStore.columnEditorState.columns.value;
     case 'settings':
       return {
         theme: this.theme,
@@ -140,25 +141,13 @@ export function initDialogState(this: ChumakApp, dialogName: string, section?: s
     state.previewHeaders.value = [...(this.importDialogState.previewHeaders || [])];
     state.previewDataRows.value = [...(this.importDialogState.previewDataRows || [])];
   } else if (dialogName === 'column-editor') {
-    this.columnEditorState = {
-      mode: 'list',
-      textSubMode: section === 'select' || section === 'reorder' ? section : 'rename',
-      columns: this.columns.map((col) => ({
-        original: col,
-        renamed: col,
-        selected: true,
-      })),
-      textValue: '',
-      textError: null,
-      patternText: '',
-      patternMode: 'include',
-      patternMatchType: 'prefix',
-      draggedIndex: null,
-    };
-
     const state = DialogStore.columnEditorState;
     state.mode.value = 'list';
-    state.columns.value = this.columnEditorState.columns.map((c: any) => ({ ...c }));
+    state.columns.value = this.columns.map((col) => ({
+      original: col,
+      renamed: col,
+      selected: true,
+    }));
     state.patternText.value = '';
     state.patternMode.value = 'include';
     state.patternMatchType.value = 'prefix';
@@ -232,7 +221,7 @@ export function initDialogState(this: ChumakApp, dialogName: string, section?: s
     state.group.value = 0;
     state.error.value = null;
   } else if (dialogName === 'date') {
-    const dateColumns = this.getDateColumns ? this.getDateColumns() : [];
+    const dateColumns = DateHandlers.getDateColumns();
     const initialColumn =
       this.selectedColumn && dateColumns.includes(this.selectedColumn)
         ? this.selectedColumn
@@ -246,9 +235,7 @@ export function initDialogState(this: ChumakApp, dialogName: string, section?: s
     state.outputColumn.value = '';
     state.error.value = null;
 
-    if (typeof this.updateDatePreview === 'function') {
-      this.updateDatePreview(); // Note: decoupling might be needed here too if it fails
-    }
+    DateHandlers.updateDatePreview();
   } else if (dialogName === 'dedupe') {
     const state = DialogStore.dedupeState;
     state.selectedColumns.value = this.columns.map(() => true);

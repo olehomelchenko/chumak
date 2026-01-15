@@ -2,92 +2,34 @@
  * DateDialog - Preact component for date extraction and truncation
  */
 
-import { Signal, useComputed, useSignalEffect } from '@preact/signals';
+import { useComputed, useSignalEffect } from '@preact/signals';
 import styles from './TransformDialog.module.css';
+import { DialogStore } from '../stores/DialogStore';
+import * as DateHandlers from '../handlers/date-handlers';
 
 export type DateOperation = 'extract' | 'truncate';
 
-export interface DateDialogProps {
-  dateColumns: string[];
-  column: Signal<string>;
-  operation: Signal<DateOperation>;
-  extractParts: Signal<string[]>;
-  truncateUnits: Signal<string[]>;
-  outputColumn: Signal<string>;
-  error: Signal<string | null>;
-  onValidate?: () => void;
-}
+export function DateDialog() {
+  const state = DialogStore.dateState;
+  const { column, operation, extractParts, truncateUnits, outputColumn, error } = state;
 
-const EXTRACT_OPTIONS = [
-  { value: 'year', label: 'Year', example: '2024' },
-  { value: 'month', label: 'Month', example: '1-12' },
-  { value: 'day', label: 'Day', example: '1-31' },
-  { value: 'quarter', label: 'Quarter', example: '1-4' },
-  { value: 'week', label: 'Week', example: '1-53' },
-  { value: 'weekday', label: 'Weekday', example: '0-6' },
-  { value: 'hour', label: 'Hour', example: '0-23' },
-  { value: 'minute', label: 'Minute', example: '0-59' },
-  { value: 'second', label: 'Second', example: '0-59' },
-];
+  const dateColumns = DateHandlers.getDateColumns();
 
-const TRUNCATE_OPTIONS = [
-  { value: 'year', label: 'Year' },
-  { value: 'quarter', label: 'Quarter' },
-  { value: 'month', label: 'Month' },
-  { value: 'week', label: 'Week' },
-  { value: 'day', label: 'Day' },
-  { value: 'hour', label: 'Hour' },
-  { value: 'minute', label: 'Minute' },
-  { value: 'second', label: 'Second' },
-];
-
-export function DateDialog({
-  dateColumns,
-  column,
-  operation,
-  extractParts,
-  truncateUnits,
-  outputColumn,
-  error,
-  onValidate,
-}: DateDialogProps) {
   useSignalEffect(() => {
     void column.value;
     void operation.value;
     void extractParts.value;
     void truncateUnits.value;
     void outputColumn.value;
-    if (onValidate) onValidate();
+    DateHandlers.updateDatePreview();
   });
-
-  const handleSelection = (value: string, currentSelection: Signal<string[]>, metaKey: boolean) => {
-    const current = [...currentSelection.value];
-    if (metaKey) {
-      if (current.includes(value)) {
-        if (current.length > 1) {
-          currentSelection.value = current.filter((v) => v !== value);
-        }
-      } else {
-        currentSelection.value = [...current, value];
-      }
-    } else {
-      currentSelection.value = [value];
-    }
-  };
 
   const activeSelectionCount = useComputed(() => {
     return operation.value === 'extract' ? extractParts.value.length : truncateUnits.value.length;
   });
 
   const placeholderText = useComputed(() => {
-    if (!column.value) return '';
-    if (operation.value === 'extract') {
-      if (extractParts.value.length > 1) return '(Multiple columns)';
-      return `${column.value}_${extractParts.value[0] || ''}`;
-    } else {
-      if (truncateUnits.value.length > 1) return '(Multiple columns)';
-      return `${column.value}_${truncateUnits.value[0] || ''}_trunc`;
-    }
+    return DateHandlers.getDateOutputPlaceholder();
   });
 
   return (
@@ -174,13 +116,13 @@ export function DateDialog({
             <div class={styles.group}>
               <label class={styles.label}>Extract:</label>
               <div class={styles.chipGrid3}>
-                {EXTRACT_OPTIONS.map((part) => (
+                {DateHandlers.getExtractParts().map((part) => (
                   <button
                     key={part.value}
                     type="button"
                     class={`${styles.chip} ${extractParts.value.includes(part.value) ? styles.active : ''}`}
                     onClick={(e) =>
-                      handleSelection(part.value, extractParts, e.metaKey || e.ctrlKey)
+                      DateHandlers.toggleDateSelection(part.value, e as unknown as MouseEvent)
                     }
                   >
                     <span>{part.label}</span>
@@ -198,13 +140,13 @@ export function DateDialog({
             <div class={styles.group}>
               <label class={styles.label}>Truncate to:</label>
               <div class={styles.chipGrid3}>
-                {TRUNCATE_OPTIONS.map((unit) => (
+                {DateHandlers.getTruncateUnits().map((unit) => (
                   <button
                     key={unit.value}
                     type="button"
                     class={`${styles.chip} ${truncateUnits.value.includes(unit.value) ? styles.active : ''}`}
                     onClick={(e) =>
-                      handleSelection(unit.value, truncateUnits, e.metaKey || e.ctrlKey)
+                      DateHandlers.toggleDateSelection(unit.value, e as unknown as MouseEvent)
                     }
                   >
                     <span>{unit.label}</span>

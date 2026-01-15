@@ -1,35 +1,22 @@
-/**
- * PivotDialog - Preact component for pivot table configuration
- */
-
-import { Signal, useComputed } from '@preact/signals';
+import { useComputed } from '@preact/signals';
+import * as PivotHandlers from '../handlers/pivot-handlers';
+import { DialogStore } from '../stores/DialogStore';
+import { AppStore } from '../stores/AppStore';
 import styles from './TransformDialog.module.css';
 
 export type PivotAggregation = 'sum' | 'mean' | 'count' | 'min' | 'max' | 'any';
 
-export interface PivotDialogProps {
-  columns: string[];
-  rowColumns: Signal<string[]>;
-  columnColumn: Signal<string>;
-  valueColumn: Signal<string>;
-  aggregation: Signal<PivotAggregation>;
-  uniqueValueCount: Signal<number>;
-  options: Signal<{ sort: boolean; limit: number | null }>;
-  isPreviewing: Signal<boolean>;
-  onPreview: () => void;
-}
-
-export function PivotDialog({
-  columns,
-  rowColumns,
-  columnColumn,
-  valueColumn,
-  aggregation,
-  uniqueValueCount,
-  options,
-  isPreviewing,
-  onPreview,
-}: PivotDialogProps) {
+export function PivotDialog() {
+  const {
+    rowColumns,
+    columnColumn,
+    valueColumn,
+    aggregation,
+    uniqueValueCount,
+    options,
+    isPreviewing,
+  } = DialogStore.pivotState;
+  const columns = AppStore.columns.value;
   // Helpers for multi-select
   const toggleRowColumn = (col: string) => {
     if (rowColumns.value.includes(col)) {
@@ -148,7 +135,10 @@ export function PivotDialog({
             <select
               class={styles.input}
               value={columnColumn.value}
-              onChange={(e) => (columnColumn.value = (e.target as HTMLSelectElement).value)}
+              onChange={(e) => {
+                columnColumn.value = (e.currentTarget as HTMLSelectElement).value;
+                PivotHandlers.onPivotConfigChange();
+              }}
               style={{ marginBottom: '0.5rem' }}
             >
               <option value="">Select column...</option>
@@ -189,7 +179,10 @@ export function PivotDialog({
             <select
               class={styles.input}
               value={valueColumn.value}
-              onChange={(e) => (valueColumn.value = (e.target as HTMLSelectElement).value)}
+              onChange={(e) => {
+                valueColumn.value = (e.currentTarget as HTMLSelectElement).value;
+                PivotHandlers.onPivotConfigChange();
+              }}
               style={{ marginBottom: '0.5rem' }}
             >
               <option value="">Select column...</option>
@@ -206,9 +199,11 @@ export function PivotDialog({
             <select
               class={styles.input}
               value={aggregation.value}
-              onChange={(e) =>
-                (aggregation.value = (e.target as HTMLSelectElement).value as PivotAggregation)
-              }
+              onChange={(e) => {
+                aggregation.value = (e.currentTarget as HTMLSelectElement)
+                  .value as PivotAggregation;
+                PivotHandlers.onPivotConfigChange();
+              }}
               disabled={!valueColumn.value}
             >
               <option value="sum">Sum</option>
@@ -274,12 +269,11 @@ export function PivotDialog({
         </div>
       </details>
 
-      {/* Preview Button */}
       <div class={styles.group} style={{ marginTop: '1rem' }}>
         <button
           type="button"
           class="button button--secondary"
-          onClick={onPreview}
+          onClick={PivotHandlers.previewPivot}
           disabled={isPreviewing.value || !columnColumn.value || !valueColumn.value}
         >
           {isPreviewing.value ? 'Previewing...' : 'Preview Result'}

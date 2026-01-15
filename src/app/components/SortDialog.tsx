@@ -1,17 +1,10 @@
-/**
- * SortDialog - Preact component for the Sort transformation dialog
- */
-
-import { Signal } from '@preact/signals';
+import { DialogStore } from '../stores/DialogStore';
+import { AppStore } from '../stores/AppStore';
 import styles from './TransformDialog.module.css';
 
-export interface SortDialogProps {
-  columns: string[];
-  field: Signal<string>;
-  order: Signal<'asc' | 'desc'>;
-}
-
-export function SortDialog({ columns, field, order }: SortDialogProps) {
+export function SortDialog() {
+  const { field, order } = DialogStore.sortState;
+  const columns = AppStore.columns.value;
   return (
     <div>
       <div class={styles.group}>

@@ -1,23 +1,22 @@
 import { render, screen, fireEvent } from '@testing-library/preact';
-import { signal } from '@preact/signals';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { DeriveDialog } from './DeriveDialog';
+import { DialogStore } from '../stores/DialogStore';
+import { AppStore } from '../stores/AppStore';
 
 describe('DeriveDialog', () => {
-  it('renders input fields with initial values', () => {
-    const columnName = signal('initial_name');
-    const expression = signal('initial + expression');
-    const error = signal<string | null>(null);
-    const onOpenReference = vi.fn();
+  beforeEach(() => {
+    // Reset store state before each test
+    DialogStore.deriveState.columnName.value = '';
+    DialogStore.deriveState.expression.value = '';
+    DialogStore.deriveState.error.value = null;
+  });
 
-    render(
-      <DeriveDialog
-        columnName={columnName}
-        expression={expression}
-        error={error}
-        onOpenReference={onOpenReference}
-      />
-    );
+  it('renders input fields with initial values', () => {
+    DialogStore.deriveState.columnName.value = 'initial_name';
+    DialogStore.deriveState.expression.value = 'initial + expression';
+
+    render(<DeriveDialog />);
 
     const nameInput = screen.getByPlaceholderText('e.g., profit_margin') as HTMLInputElement;
     const expressionInput = screen.getByPlaceholderText(
@@ -29,64 +28,29 @@ describe('DeriveDialog', () => {
   });
 
   it('updates signals on input', () => {
-    const columnName = signal('');
-    const expression = signal('');
-    const error = signal<string | null>(null);
-    const onOpenReference = vi.fn();
-
-    render(
-      <DeriveDialog
-        columnName={columnName}
-        expression={expression}
-        error={error}
-        onOpenReference={onOpenReference}
-      />
-    );
+    render(<DeriveDialog />);
 
     const nameInput = screen.getByPlaceholderText('e.g., profit_margin');
     const expressionInput = screen.getByPlaceholderText('e.g., (profit / sales) * 100');
 
     fireEvent.input(nameInput, { target: { value: 'new_name' } });
-    expect(columnName.value).toBe('new_name');
+    expect(DialogStore.deriveState.columnName.value).toBe('new_name');
 
     fireEvent.input(expressionInput, { target: { value: 'col * 2' } });
     expect((expressionInput as HTMLInputElement).value).toBe('col * 2');
   });
 
   it('displays error message when present', () => {
-    const columnName = signal('');
-    const expression = signal('');
-    const error = signal<string | null>('Syntax Error');
-    const onOpenReference = vi.fn();
-
-    render(
-      <DeriveDialog
-        columnName={columnName}
-        expression={expression}
-        error={error}
-        onOpenReference={onOpenReference}
-      />
-    );
+    DialogStore.deriveState.error.value = 'Syntax Error';
+    render(<DeriveDialog />);
 
     expect(screen.getByText('Syntax Error')).toBeDefined();
   });
 
-  it('calls onOpenReference when button is clicked', () => {
-    const columnName = signal('');
-    const expression = signal('');
-    const error = signal<string | null>(null);
-    const onOpenReference = vi.fn();
-
-    render(
-      <DeriveDialog
-        columnName={columnName}
-        expression={expression}
-        error={error}
-        onOpenReference={onOpenReference}
-      />
-    );
+  it('opens expressions dialog when reference button is clicked', () => {
+    render(<DeriveDialog />);
 
     fireEvent.click(screen.getByText('Full Reference'));
-    expect(onOpenReference).toHaveBeenCalled();
+    expect(AppStore.activeDialog.value).toBe('expressions');
   });
 });

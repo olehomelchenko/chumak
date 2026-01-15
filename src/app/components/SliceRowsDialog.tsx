@@ -1,19 +1,13 @@
-/**
- * SliceRowsDialog - Preact component for slicing (filtering) rows
- */
-
-import { Signal, computed } from '@preact/signals';
+import { computed } from '@preact/signals';
+import { DialogStore } from '../stores/DialogStore';
+import { AppStore } from '../stores/AppStore';
 import styles from './TransformDialog.module.css';
 
 export type SliceMode = 'first' | 'last' | 'removeFirst' | 'removeLast';
 
-export interface SliceRowsDialogProps {
-  count: Signal<number>;
-  mode: Signal<SliceMode>;
-  rowCount: number;
-}
-
-export function SliceRowsDialog({ count, mode, rowCount }: SliceRowsDialogProps) {
+export function SliceRowsDialog() {
+  const { count, mode } = DialogStore.sliceRowsState;
+  const rowCount = AppStore.currentData.value?.length || 0;
   // Computed values for the preview text
   const previewText = computed(() => {
     const n = count.value || 0;

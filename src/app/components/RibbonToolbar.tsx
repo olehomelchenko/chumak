@@ -114,13 +114,6 @@ export function RibbonToolbar({ onOpenDialog, onAutoDetectSchema }: RibbonToolba
                 title="Re-run type detection for all columns"
                 onClick={onAutoDetectSchema}
               />
-              <RibbonButton
-                icon="carbon:text-align-left"
-                label="Format"
-                title="Format numbers, dates, text (Coming soon)"
-                onClick={() => {}}
-                disabled
-              />
             </RibbonGroup>
           </div>
         )}
@@ -154,13 +147,6 @@ export function RibbonToolbar({ onOpenDialog, onAutoDetectSchema }: RibbonToolba
                 title="Add index/row number column"
                 onClick={() => onOpenDialog('index')}
               />
-              <RibbonButton
-                icon="carbon:decision-tree"
-                label="Conditional"
-                title="Conditional column (IF/THEN) (Coming soon)"
-                onClick={() => {}}
-                disabled
-              />
             </RibbonGroup>
 
             <RibbonDivider />
@@ -191,33 +177,12 @@ export function RibbonToolbar({ onOpenDialog, onAutoDetectSchema }: RibbonToolba
                 title="Unpivot - convert columns to key-value pairs"
                 onClick={() => onOpenDialog('fold')}
               />
-              <RibbonButton
-                icon="carbon:transpose"
-                label="Transpose"
-                title="Transpose rows and columns (Coming soon)"
-                onClick={() => {}}
-                disabled
-              />
             </RibbonGroup>
 
             <RibbonDivider />
 
             {/* Transform Values Group */}
             <RibbonGroup label="Transform Values">
-              <RibbonButton
-                icon="carbon:text-bold"
-                label="Text"
-                title="Text operations: uppercase, lowercase, trim (Coming soon)"
-                onClick={() => {}}
-                disabled
-              />
-              <RibbonButton
-                icon="carbon:calculator"
-                label="Number"
-                title="Number operations: round, absolute, math (Coming soon)"
-                onClick={() => {}}
-                disabled
-              />
               <RibbonButton
                 icon="carbon:calendar"
                 label="Date"
@@ -243,20 +208,6 @@ export function RibbonToolbar({ onOpenDialog, onAutoDetectSchema }: RibbonToolba
                 label="Join"
                 title="Join with another model or dataset"
                 onClick={() => onOpenDialog('join')}
-              />
-              <RibbonButton
-                icon="carbon:arrow-down"
-                label="Append"
-                title="Append rows from another dataset (Coming soon)"
-                onClick={() => {}}
-                disabled
-              />
-              <RibbonButton
-                icon="carbon:intersect"
-                label="Union"
-                title="Union - combine and deduplicate (Coming soon)"
-                onClick={() => {}}
-                disabled
               />
             </RibbonGroup>
           </div>

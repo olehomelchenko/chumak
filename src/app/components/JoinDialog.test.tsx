@@ -1,5 +1,5 @@
 import { render, screen, fireEvent } from '@testing-library/preact';
-import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { JoinDialog, JoinTarget } from './JoinDialog';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
@@ -90,13 +90,11 @@ describe('JoinDialog', () => {
     expect(DialogStore.joinState.keyPairs.value[0][1]).toBe('customer_id');
   });
 
-  it('calls onPreview callback when provided', () => {
-    const onPreview = vi.fn();
+  it('shows preview button when target is selected', () => {
     DialogStore.joinState.rightModel.value = 'm1';
 
-    render(<JoinDialog onPreview={onPreview} />);
+    render(<JoinDialog />);
 
-    fireEvent.click(screen.getByText('Preview Join'));
-    expect(onPreview).toHaveBeenCalled();
+    expect(screen.getByText('Preview Join')).toBeDefined();
   });
 });

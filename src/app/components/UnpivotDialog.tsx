@@ -1,49 +1,32 @@
-/**
- * UnpivotDialog (Fold) - Preact component for unpivoting (wide to long)
- */
-
-import { Signal, useComputed } from '@preact/signals';
+import { useComputed } from '@preact/signals';
 import styles from './TransformDialog.module.css';
+import * as FoldHandlers from '../handlers/fold-handlers';
+import { DialogStore } from '../stores/DialogStore';
+import { AppStore } from '../stores/AppStore';
 
 export type UnpivotMode = 'keep' | 'fold';
 
-export interface UnpivotDialogProps {
-  columns: string[];
-  keyName: Signal<string>;
-  valueName: Signal<string>;
-  mode: Signal<UnpivotMode>;
-  selectedColumns: Signal<boolean[]>;
-}
-
-export function UnpivotDialog({
-  columns,
-  keyName,
-  valueName,
-  mode,
-  selectedColumns,
-}: UnpivotDialogProps) {
-  // Helper to update selection
-  const updateSelection = (index: number, value: boolean) => {
-    const newSelection = [...selectedColumns.value];
-    newSelection[index] = value;
-    selectedColumns.value = newSelection;
-  };
-
-  const selectAll = () => {
-    selectedColumns.value = new Array(columns.length).fill(true);
-  };
-
-  const selectNone = () => {
-    selectedColumns.value = new Array(columns.length).fill(false);
-  };
-
-  const toggleColumn = (index: number) => {
-    updateSelection(index, !selectedColumns.value[index]);
-  };
-
+export function UnpivotDialog() {
+  const { keyName, valueName, mode, selectedColumns } = DialogStore.foldState;
+  const columns = AppStore.columns.value;
   const labelText = useComputed(() =>
     mode.value === 'keep' ? 'Select Columns to Keep:' : 'Select Columns to Fold:'
   );
+
+  const handleKeyNameInput = (e: any) => {
+    keyName.value = e.currentTarget.value;
+    FoldHandlers.updateFoldPreview();
+  };
+
+  const handleValueNameInput = (e: any) => {
+    valueName.value = e.currentTarget.value;
+    FoldHandlers.updateFoldPreview();
+  };
+
+  const handleModeChange = (newMode: UnpivotMode) => {
+    mode.value = newMode;
+    FoldHandlers.updateFoldPreview();
+  };
 
   return (
     <div>
@@ -65,7 +48,7 @@ export function UnpivotDialog({
             type="text"
             class={styles.input}
             value={keyName.value}
-            onInput={(e) => (keyName.value = (e.target as HTMLInputElement).value)}
+            onInput={handleKeyNameInput}
             placeholder="e.g. Year"
           />
           <p class={styles.helpText} style={{ fontSize: '0.75rem', marginTop: '0.25rem' }}>
@@ -79,7 +62,7 @@ export function UnpivotDialog({
             type="text"
             class={styles.input}
             value={valueName.value}
-            onInput={(e) => (valueName.value = (e.target as HTMLInputElement).value)}
+            onInput={handleValueNameInput}
             placeholder="e.g. Sales"
           />
           <p class={styles.helpText} style={{ fontSize: '0.75rem', marginTop: '0.25rem' }}>
@@ -94,14 +77,14 @@ export function UnpivotDialog({
           <button
             type="button"
             class={`${styles.toggleButton} ${mode.value === 'keep' ? styles.active : ''}`}
-            onClick={() => (mode.value = 'keep')}
+            onClick={() => handleModeChange('keep')}
           >
             Columns to Keep (as index)
           </button>
           <button
             type="button"
             class={`${styles.toggleButton} ${mode.value === 'fold' ? styles.active : ''}`}
-            onClick={() => (mode.value = 'fold')}
+            onClick={() => handleModeChange('fold')}
           >
             Columns to Fold
           </button>
@@ -121,10 +104,18 @@ export function UnpivotDialog({
         class={styles.actions}
         style={{ marginBottom: '0.5rem', display: 'flex', gap: '0.5rem' }}
       >
-        <button type="button" class="button button--text button--small" onClick={selectAll}>
+        <button
+          type="button"
+          class="button button--text button--small"
+          onClick={FoldHandlers.selectAllForFold}
+        >
           Select All
         </button>
-        <button type="button" class="button button--text button--small" onClick={selectNone}>
+        <button
+          type="button"
+          class="button button--text button--small"
+          onClick={FoldHandlers.selectNoneForFold}
+        >
           Select None
         </button>
       </div>
@@ -135,7 +126,7 @@ export function UnpivotDialog({
             key={col}
             type="button"
             class={`${styles.chip} ${selectedColumns.value[index] ? styles.active : ''}`}
-            onClick={() => toggleColumn(index)}
+            onClick={() => FoldHandlers.toggleColumnForFold(index)}
           >
             <span
               class={`iconify ${styles.chipIcon}`}

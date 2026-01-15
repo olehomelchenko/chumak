@@ -6,6 +6,11 @@ import { formatError } from '../../core/error-formatter';
 import { ColumnSchema } from '../../core/schema-engine';
 import { StepService, ExecutionCallbacks } from '../services/StepService';
 
+export function getPreviewRowLimit(): number {
+  // Default preview row limit (can be overridden from UX settings)
+  return 100;
+}
+
 export function getModelMeta(this: ChumakApp, model: any) {
   if (!model) return '';
   const rowCount = model.data ? model.data.length : 0;

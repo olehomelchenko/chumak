@@ -2,61 +2,64 @@
  * IndexDialog Component Tests
  */
 
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { render, screen, fireEvent } from '@testing-library/preact';
-import { signal } from '@preact/signals';
 import { IndexDialog } from './IndexDialog';
+import { DialogStore } from '../stores/DialogStore';
+import { AppStore } from '../stores/AppStore';
 
 describe('IndexDialog', () => {
-  it('renders with default values', () => {
-    const columnName = signal('row_index');
-    const startFrom = signal(1);
+  beforeEach(() => {
+    // Reset store state before each test
+    DialogStore.indexState.columnName.value = 'row_index';
+    DialogStore.indexState.startFrom.value = 1;
+    AppStore.currentData.value = Array(100)
+      .fill(null)
+      .map((_, i) => ({ id: i }));
+  });
 
-    render(<IndexDialog columnName={columnName} startFrom={startFrom} rowCount={100} />);
+  it('renders with default values', () => {
+    render(<IndexDialog />);
 
     expect(screen.getByPlaceholderText('row_index')).toBeDefined();
     expect(screen.getByPlaceholderText('1')).toBeDefined();
   });
 
   it('updates column name when typed', () => {
-    const columnName = signal('');
-    const startFrom = signal(1);
-
-    render(<IndexDialog columnName={columnName} startFrom={startFrom} rowCount={100} />);
+    render(<IndexDialog />);
 
     const input = screen.getByPlaceholderText('row_index') as HTMLInputElement;
     fireEvent.input(input, { target: { value: 'my_index' } });
 
-    expect(columnName.value).toBe('my_index');
+    expect(DialogStore.indexState.columnName.value).toBe('my_index');
   });
 
   it('updates start value when changed', () => {
-    const columnName = signal('row_index');
-    const startFrom = signal(1);
-
-    render(<IndexDialog columnName={columnName} startFrom={startFrom} rowCount={100} />);
+    render(<IndexDialog />);
 
     const input = screen.getByPlaceholderText('1') as HTMLInputElement;
     fireEvent.input(input, { target: { value: '10' } });
 
-    expect(startFrom.value).toBe(10);
+    expect(DialogStore.indexState.startFrom.value).toBe(10);
   });
 
   it('shows computed end value in preview', () => {
-    const columnName = signal('idx');
-    const startFrom = signal(0);
-
-    render(<IndexDialog columnName={columnName} startFrom={startFrom} rowCount={50} />);
+    DialogStore.indexState.startFrom.value = 0;
+    AppStore.currentData.value = Array(50)
+      .fill(null)
+      .map((_, i) => ({ id: i }));
+    render(<IndexDialog />);
 
     // Preview should show "0 to 49" for 50 rows starting at 0
     expect(screen.getByText('49')).toBeDefined();
   });
 
   it('shows column name in preview', () => {
-    const columnName = signal('my_col');
-    const startFrom = signal(1);
-
-    render(<IndexDialog columnName={columnName} startFrom={startFrom} rowCount={10} />);
+    DialogStore.indexState.columnName.value = 'my_col';
+    AppStore.currentData.value = Array(10)
+      .fill(null)
+      .map((_, i) => ({ id: i }));
+    render(<IndexDialog />);
 
     expect(screen.getByText('my_col')).toBeDefined();
   });

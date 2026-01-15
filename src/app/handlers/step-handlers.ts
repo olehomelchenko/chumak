@@ -5,6 +5,8 @@ import { ColumnSchema, TransformStep } from '../../core/schema-engine';
 import { DialogStore } from '../stores/DialogStore';
 import { StepService, ComputeResult } from '../services/StepService';
 import type { PivotAggregation } from '../components/PivotDialog';
+import * as ColumnEditorHandlers from './column-editor-handlers';
+import * as DateHandlers from './date-handlers';
 
 /**
  * Dispatches transform application based on the active dialog.
@@ -37,7 +39,15 @@ export async function applyActiveTransform(this: ChumakApp) {
       await this.applyRegexpExtractTransform();
       break;
     case 'date':
-      await this.applyDateTransform();
+      await DateHandlers.applyDateTransform({
+        onTransformStart: (label: string) => this.startTransformation(label),
+        onTransformEnd: () => this.endTransformation(),
+        onError: async (message: string) => {
+          await this.alert(message);
+        },
+        onDialogClose: (clearPreview?: boolean) => this.closeDialog(clearPreview),
+        updatePagination: () => this.updatePagination(),
+      });
       break;
     case 'fold':
       await this.applyFoldTransform();
@@ -58,7 +68,11 @@ export async function applyActiveTransform(this: ChumakApp) {
       await this.applyDedupeTransform();
       break;
     case 'column-editor':
-      await this.applyColumnEditorTransform();
+      await ColumnEditorHandlers.applyColumnEditorTransform({
+        onDialogClose: (force: boolean) => this.closeDialog(force),
+        runTransform: (name: string, config: any, callbacks: any) =>
+          this.runTransform(name, config, callbacks),
+      });
       break;
     case 'import-csv':
       this.confirmImport();
@@ -155,19 +169,16 @@ export function editStep(this: ChumakApp, stepIndex: number) {
     const state = DialogStore.columnEditorState;
     state.mode.value = 'list';
     state.textSubMode.value = 'rename';
-    const initialColumns = (step.select as string[]).map((col: string) => ({
+
+    // Build union of current columns and selected columns to preserve order but show missing ones
+    const currentCols = this.columns;
+    const allUniqueCols = Array.from(new Set([...(step.select as string[]), ...currentCols]));
+
+    state.columns.value = allUniqueCols.map((col) => ({
       original: col,
       renamed: col,
-      selected: true,
+      selected: selectedSet.has(col),
     }));
-    const remainingColumns = this.columns
-      .filter((c) => !selectedSet.has(c))
-      .map((col) => ({
-        original: col,
-        renamed: col,
-        selected: false,
-      }));
-    state.columns.value = [...initialColumns, ...remainingColumns];
     state.textValue.value = '';
     state.textError.value = null;
     state.patternText.value = '';
@@ -179,9 +190,10 @@ export function editStep(this: ChumakApp, stepIndex: number) {
     const state = DialogStore.columnEditorState;
     state.mode.value = 'list';
     state.textSubMode.value = 'rename';
+    const renames = step.rename || {};
     state.columns.value = this.columns.map((col) => ({
       original: col,
-      renamed: (step.rename && step.rename[col]) || col,
+      renamed: renames[col] || col,
       selected: true,
     }));
     state.textValue.value = '';

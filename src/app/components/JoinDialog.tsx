@@ -1,7 +1,7 @@
-import { JSX } from 'preact';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 import styles from './TransformDialog.module.css';
+import * as JoinHandlers from '../handlers/join-handlers';
 
 export type JoinType = 'inner' | 'left' | 'right' | 'full' | 'cross';
 
@@ -12,14 +12,7 @@ export interface JoinTarget {
   sourceName?: string;
 }
 
-// Props interface kept for reference/testing
-export interface JoinDialogProps {
-  targets?: JoinTarget[];
-  leftColumns?: string[];
-  onPreview?: () => void;
-}
-
-export function JoinDialog({ onPreview }: JoinDialogProps = {}) {
+export function JoinDialog() {
   const {
     rightModel,
     joinType,
@@ -34,27 +27,21 @@ export function JoinDialog({ onPreview }: JoinDialogProps = {}) {
 
   const leftColumns = AppStore.columns.value;
 
-  const handleTargetChange = (e: JSX.TargetedEvent<HTMLSelectElement>) => {
-    rightModel.value = e.currentTarget.value || null;
+  const handleTargetChange = (e: Event) => {
+    const target = e.target as HTMLSelectElement;
+    rightModel.value = target.value || null;
+    JoinHandlers.onJoinTargetChange();
   };
 
-  const handleJoinTypeChange = (e: JSX.TargetedEvent<HTMLInputElement>) => {
-    joinType.value = e.currentTarget.value as JoinType;
+  const handleJoinTypeChange = (e: Event) => {
+    const target = e.target as HTMLInputElement;
+    joinType.value = target.value as JoinType;
   };
 
   const handleSuffixChange = (index: number, value: string) => {
     const newSuffixes = [...suffixes.value];
     newSuffixes[index] = value;
     suffixes.value = newSuffixes;
-  };
-
-  const addKeyPair = () => {
-    keyPairs.value = [...keyPairs.value, [null, null]];
-  };
-
-  const removeKeyPair = (index: number) => {
-    if (keyPairs.value.length <= 1) return;
-    keyPairs.value = keyPairs.value.filter((_, i) => i !== index);
   };
 
   const updateKeyPair = (index: number, position: 0 | 1, value: string | null) => {
@@ -70,9 +57,7 @@ export function JoinDialog({ onPreview }: JoinDialogProps = {}) {
   };
 
   const handlePreview = () => {
-    if (onPreview) {
-      onPreview();
-    }
+    JoinHandlers.previewJoin();
   };
 
   return (
@@ -170,7 +155,7 @@ export function JoinDialog({ onPreview }: JoinDialogProps = {}) {
               </select>
               <button
                 class="button button--secondary button--small"
-                onClick={() => removeKeyPair(index)}
+                onClick={() => JoinHandlers.removeJoinKeyPair(index)}
                 disabled={keyPairs.value.length === 1}
                 title="Remove key pair"
               >
@@ -178,7 +163,10 @@ export function JoinDialog({ onPreview }: JoinDialogProps = {}) {
               </button>
             </div>
           ))}
-          <button class="button button--secondary button--small" onClick={addKeyPair}>
+          <button
+            class="button button--secondary button--small"
+            onClick={JoinHandlers.addJoinKeyPair}
+          >
             + Add Key Pair
           </button>
           <div class={styles.helpText}>Match rows where these columns have equal values</div>

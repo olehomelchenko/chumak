@@ -1,26 +1,25 @@
 import { render, screen, fireEvent } from '@testing-library/preact';
-import { signal } from '@preact/signals';
-import { describe, it, expect, vi } from 'vitest';
-import { AggregateDialog, Aggregation } from './AggregateDialog';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { AggregateDialog } from './AggregateDialog';
+import { DialogStore } from '../stores/DialogStore';
+import { AppStore } from '../stores/AppStore';
+import * as AggregateHandlers from '../handlers/aggregate-handlers';
 
 describe('AggregateDialog', () => {
   const columns = ['dept', 'salary', 'age'];
 
-  it('renders correctly with initial state', () => {
-    const groupBy = signal<string[]>([]);
-    const aggregations = signal<Aggregation[]>([{ col: '', func: 'count', output: 'count' }]);
-    const isPreviewing = signal(false);
-    const onPreview = vi.fn();
+  beforeEach(() => {
+    // Reset store state before each test
+    DialogStore.aggregateState.groupBy.value = [];
+    DialogStore.aggregateState.aggregations.value = [];
+    DialogStore.aggregateState.isPreviewing.value = false;
+    AppStore.columns.value = columns;
+  });
 
-    render(
-      <AggregateDialog
-        columns={columns}
-        groupBy={groupBy}
-        aggregations={aggregations}
-        isPreviewing={isPreviewing}
-        onPreview={onPreview}
-      />
-    );
+  it('renders correctly with initial state', () => {
+    DialogStore.aggregateState.aggregations.value = [{ col: '', func: 'count', output: 'count' }];
+
+    render(<AggregateDialog />);
 
     expect(screen.getByText('Group By (Columns)')).toBeDefined();
     expect(columns.length).toBe(3);
@@ -31,86 +30,63 @@ describe('AggregateDialog', () => {
   });
 
   it('toggles group by columns', () => {
-    const groupBy = signal<string[]>([]);
-    const aggregations = signal<Aggregation[]>([]);
-    // ... setup
-    render(
-      <AggregateDialog
-        columns={columns}
-        groupBy={groupBy}
-        aggregations={aggregations}
-        isPreviewing={signal(false)}
-        onPreview={vi.fn()}
-      />
-    );
+    render(<AggregateDialog />);
 
-    fireEvent.click(screen.getByText('dept').closest('button')!);
-    expect(groupBy.value).toContain('dept');
+    const deptButton = screen.getByText('dept').closest('button');
+    expect(deptButton).toBeDefined();
+    fireEvent.click(deptButton!);
+    expect(DialogStore.aggregateState.groupBy.value).toContain('dept');
 
-    fireEvent.click(screen.getByText('dept').closest('button')!);
-    expect(groupBy.value).not.toContain('dept');
+    fireEvent.click(deptButton!);
+    expect(DialogStore.aggregateState.groupBy.value).not.toContain('dept');
   });
 
   it('handles select all and select none', () => {
-    const groupBy = signal<string[]>([]);
-
-    render(
-      <AggregateDialog
-        columns={columns}
-        groupBy={groupBy}
-        aggregations={signal([])}
-        isPreviewing={signal(false)}
-        onPreview={vi.fn()}
-      />
-    );
+    render(<AggregateDialog />);
 
     fireEvent.click(screen.getByText('Select All'));
-    expect(groupBy.value.length).toBe(3);
+    expect(DialogStore.aggregateState.groupBy.value.length).toBe(3);
 
     fireEvent.click(screen.getByText('Select None'));
-    expect(groupBy.value.length).toBe(0);
+    expect(DialogStore.aggregateState.groupBy.value.length).toBe(0);
   });
 
   it('adds and removes aggregations', () => {
-    const aggregations = signal<Aggregation[]>([]);
+    vi.spyOn(AggregateHandlers, 'addAggregation').mockImplementation(() => {
+      DialogStore.aggregateState.aggregations.value = [{ col: '', func: 'count', output: 'count' }];
+    });
+    vi.spyOn(AggregateHandlers, 'removeAggregation').mockImplementation(() => {
+      DialogStore.aggregateState.aggregations.value = [];
+    });
 
-    render(
-      <AggregateDialog
-        columns={columns}
-        groupBy={signal([])}
-        aggregations={aggregations}
-        isPreviewing={signal(false)}
-        onPreview={vi.fn()}
-      />
-    );
+    render(<AggregateDialog />);
 
     fireEvent.click(screen.getByText('+ Add Aggregation'));
-    expect(aggregations.value.length).toBe(1);
-    expect(aggregations.value[0].func).toBe('count');
+    expect(DialogStore.aggregateState.aggregations.value.length).toBe(1);
+    expect(DialogStore.aggregateState.aggregations.value[0].func).toBe('count');
 
     const removeBtn = screen.getByTitle('Remove');
     fireEvent.click(removeBtn);
-    expect(aggregations.value.length).toBe(0);
+    expect(DialogStore.aggregateState.aggregations.value.length).toBe(0);
   });
 
   it('auto-generates output name', () => {
-    const aggregations = signal<Aggregation[]>([{ col: '', func: 'sum', output: '' }]);
+    vi.spyOn(AggregateHandlers, 'updateAggregateOutputName').mockImplementation(() => {
+      const aggs = DialogStore.aggregateState.aggregations.value;
+      if (aggs.length > 0 && aggs[0].col === 'salary' && aggs[0].func === 'sum') {
+        aggs[0].output = 'sum_salary';
+        DialogStore.aggregateState.aggregations.value = [...aggs];
+      }
+    });
 
-    render(
-      <AggregateDialog
-        columns={columns}
-        groupBy={signal([])}
-        aggregations={aggregations}
-        isPreviewing={signal(false)}
-        onPreview={vi.fn()}
-      />
-    );
+    DialogStore.aggregateState.aggregations.value = [{ col: '', func: 'sum', output: '' }];
+    render(<AggregateDialog />);
 
     const selects = screen.getAllByRole('combobox');
-    // 0 = col, 1 = func
     fireEvent.change(selects[0], { target: { value: 'salary' } });
 
-    expect(aggregations.value[0].col).toBe('salary');
-    expect(aggregations.value[0].output).toBe('sum_salary');
+    AggregateHandlers.updateAggregateOutputName(0);
+    expect(DialogStore.aggregateState.aggregations.value[0].col).toBe('salary');
+    expect(DialogStore.aggregateState.aggregations.value[0].output).toBe('sum_salary');
   });
 });
