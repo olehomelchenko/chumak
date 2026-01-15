@@ -25,7 +25,7 @@ export function describeTransformWrapper(this: ChumakApp, transform: any) {
 }
 
 /**
- * Creates the callback bridge from ChumakApp to StepService.
+ * Creates callbacks from ChumakApp for StepService.
  * This allows the framework-agnostic StepService to interact with the UI.
  */
 export function createExecutionCallbacks(app: ChumakApp): ExecutionCallbacks {
@@ -42,7 +42,6 @@ export function createExecutionCallbacks(app: ChumakApp): ExecutionCallbacks {
 
 /**
  * Runs a transform using StepService.
- * This is the legacy bridge that maintains backward compatibility with ChumakApp.
  */
 export async function runTransform(
   this: ChumakApp,

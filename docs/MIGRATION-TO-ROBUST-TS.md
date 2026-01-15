@@ -97,20 +97,18 @@ _Status: ✅ Complete_
 
 ~~During Phase 3, we use a "Reactive Bridge" to maintain compatibility with Alpine.js while moving the Source of Truth to Preact signals.~~
 
-**Status: Partially Removed**
+**Status: ✅ Removed**
 
-The `_rev` counter and Signal Proxies remain for `ChumakApp` compatibility but Alpine.js is no longer used. These can be further simplified in future cleanup.
+The Alpine.js reactive bridge has been fully cleaned up:
 
-### 1. The `_rev` Counter
+- ~~`_rev` counter~~ - Removed
+- ~~Reactivity bridge effect~~ - Removed
+- ~~`$nextTick`, `$watch`, `$dispatch` properties~~ - Removed
+- ~~Alpine directives in `index.html`~~ - Removed
 
-`ChumakApp` contains a `_rev` (revision) property. An `effect` in the app's constructor observes all signals in `AppStore` and `DialogStore`. When any signal changes, `_rev` is incremented.
+### Remaining Pattern: Signal Proxies
 
-### 2. Signal Proxies
-
-- **`DialogStore.createSignalProxy(state)`**: Creates a JS Proxy that maps property access/assignment to `.value` of the underlying signals.
-- **Getters/Setters**: `ChumakApp` properties are now getters/setters that depend on `_rev` and return/update these proxies or raw signal values.
-
-This architecture ensures a **Single Source of Truth** in signals.
+`DialogStore.createSignalProxy(state)` remains as it provides a convenient interface for handlers to access signal values without `.value` syntax. This is not Alpine-specific and simplifies the handler code.
 
 ## Phase 4: Final Modernization
 
@@ -170,10 +168,9 @@ _Status: ✅ Complete_
 
 ### Remaining Technical Debt
 
-1. **`ChumakApp` God Object**: Still >300 lines, but now primarily a thin coordination layer with getter/setter proxies to stores.
-2. **`_rev` Counter**: Legacy compatibility mechanism that can be simplified now that Alpine is removed.
-3. **Integration/E2E Tests**: Not yet implemented.
-4. **CI Pipeline**: Typecheck and test enforcement not yet added to build.
+1. **`ChumakApp` Coordination Layer**: Still substantial, but now a clean coordination layer with getter/setter proxies to stores.
+2. **Integration/E2E Tests**: Not yet implemented.
+3. **CI Pipeline**: Typecheck and test enforcement not yet added to build.
 
 ---
 

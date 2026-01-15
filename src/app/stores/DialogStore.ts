@@ -14,7 +14,6 @@ import {
  * DialogStore
  *
  * Centralized state management for all dialogs in the application.
- * Replaces the fragmented state logic previously found in dialog-handlers.ts and Alpine models.
  */
 export class DialogStore {
   // Sort Dialog State
@@ -207,8 +206,8 @@ export class DialogStore {
 
   /**
    * Creates a reactive proxy for a signal-based state object.
-   * Useful for Alpine.js interop where direct property access and assignment
-   * must be transparently mapped to Preact signals.
+   * Allows direct property access and assignment to be transparently
+   * mapped to Preact signals (e.g., `state.foo` instead of `state.foo.value`).
    */
   static createSignalProxy<T extends object>(state: T): any {
     return new Proxy(

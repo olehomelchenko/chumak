@@ -297,8 +297,4 @@ export class ModelService {
   ) {
     return PersistenceService.clearAllData(confirm, alert);
   }
-
-  /**
-   * Loads HTML templates for Alpine modals
-   */
 }

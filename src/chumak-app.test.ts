@@ -14,8 +14,6 @@ describe('ChumakApp URL Import', () => {
     // Mock methods called by fetchAndImportFromUrl
     app.closeDialog = vi.fn();
     app.showImportDialog = vi.fn();
-    // Mock $nextTick which is usually injected by Alpine
-    app.$nextTick = vi.fn().mockImplementation((cb) => cb?.());
   });
 
   it('should initialize with empty URL state', () => {

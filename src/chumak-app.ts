@@ -24,7 +24,6 @@ import * as PaginationHandlers from './app/handlers/pagination-handlers';
 import * as HelperHandlers from './app/handlers/helper-handlers';
 import * as JsonHandlers from './app/handlers/json-handlers';
 import { SchemaEngine, ColumnSchema } from './core/schema-engine';
-import { effect } from '@preact/signals';
 import { AppStore, ViewMode } from './app/stores/AppStore';
 import { DialogStore } from './app/stores/DialogStore';
 import { ModelService } from './app/services/ModelService';
@@ -41,10 +40,8 @@ import {
 } from './app/types';
 
 export class ChumakApp implements AppState {
-  // UI state
-  _rev = 0;
+  // UI state (proxied to AppStore signals)
   get activeStep() {
-    this._rev;
     return AppStore.activeStep.value;
   }
   set activeStep(val) {
@@ -52,7 +49,6 @@ export class ChumakApp implements AppState {
   }
 
   get editingStepIndex() {
-    this._rev;
     return AppStore.editingStepIndex.value;
   }
   set editingStepIndex(val) {
@@ -60,14 +56,13 @@ export class ChumakApp implements AppState {
   }
 
   get dialogSnapshot() {
-    this._rev;
     return AppStore.dialogSnapshot.value;
   }
   set dialogSnapshot(val) {
     AppStore.dialogSnapshot.value = val;
   }
+
   get columnToolbarPos() {
-    this._rev;
     return AppStore.columnToolbarPos.value;
   }
   set columnToolbarPos(val) {
@@ -75,7 +70,6 @@ export class ChumakApp implements AppState {
   }
 
   get selectedCell() {
-    this._rev;
     return AppStore.selectedCell.value;
   }
   set selectedCell(val) {
@@ -83,7 +77,6 @@ export class ChumakApp implements AppState {
   }
 
   get cellToolbarPos() {
-    this._rev;
     return AppStore.cellToolbarPos.value;
   }
   set cellToolbarPos(val) {
@@ -91,7 +84,6 @@ export class ChumakApp implements AppState {
   }
 
   get edaStats() {
-    this._rev;
     return AppStore.edaStats.value;
   }
   set edaStats(val) {
@@ -99,7 +91,6 @@ export class ChumakApp implements AppState {
   }
 
   get edaChartView() {
-    this._rev;
     return AppStore.edaChartView.value;
   }
   set edaChartView(val) {
@@ -107,7 +98,6 @@ export class ChumakApp implements AppState {
   }
 
   get edaBrushSelection() {
-    this._rev;
     return AppStore.edaBrushSelection.value;
   }
   set edaBrushSelection(val) {
@@ -115,14 +105,12 @@ export class ChumakApp implements AppState {
   }
 
   get edaDateTreatment() {
-    this._rev;
     return AppStore.edaDateTreatment.value;
   }
   set edaDateTreatment(val) {
     AppStore.edaDateTreatment.value = val;
   }
   get uxSettings() {
-    this._rev;
     return AppStore.uxSettings.value;
   }
   set uxSettings(val) {
@@ -131,7 +119,6 @@ export class ChumakApp implements AppState {
 
   // Type Menu State
   get typeMenuOpen() {
-    this._rev;
     return AppStore.typeMenuOpen.value;
   }
   set typeMenuOpen(val) {
@@ -139,7 +126,6 @@ export class ChumakApp implements AppState {
   }
 
   get typeMenuPos() {
-    this._rev;
     return AppStore.typeMenuPos.value;
   }
   set typeMenuPos(val) {
@@ -147,7 +133,6 @@ export class ChumakApp implements AppState {
   }
 
   get typeMenuCol() {
-    this._rev;
     return AppStore.typeMenuCol.value;
   }
   set typeMenuCol(val) {
@@ -155,7 +140,6 @@ export class ChumakApp implements AppState {
   }
 
   get currentPage() {
-    this._rev;
     return AppStore.currentPage.value;
   }
   set currentPage(val) {
@@ -163,7 +147,6 @@ export class ChumakApp implements AppState {
   }
 
   get pageSize() {
-    this._rev;
     return AppStore.pageSize.value;
   }
   set pageSize(val) {
@@ -171,7 +154,6 @@ export class ChumakApp implements AppState {
   }
 
   get totalPages() {
-    this._rev;
     return AppStore.totalPages.value;
   }
   set totalPages(val) {
@@ -180,7 +162,6 @@ export class ChumakApp implements AppState {
 
   // Import dialog state (wired to DialogStore)
   get importDialogState(): ImportDialogState {
-    this._rev;
     return DialogStore.createSignalProxy(DialogStore.importCsvState);
   }
   set importDialogState(val: ImportDialogState) {
@@ -188,7 +169,6 @@ export class ChumakApp implements AppState {
   }
 
   get importUrlDialogState(): ImportUrlDialogState {
-    this._rev;
     return DialogStore.createSignalProxy(DialogStore.importUrlState);
   }
   set importUrlDialogState(val: ImportUrlDialogState) {
@@ -196,7 +176,6 @@ export class ChumakApp implements AppState {
   }
 
   get importFileData() {
-    this._rev;
     return AppStore.importFileData.value;
   }
   set importFileData(val) {
@@ -206,7 +185,6 @@ export class ChumakApp implements AppState {
 
   // Data state (wired to AppStore)
   get sources() {
-    this._rev;
     return AppStore.sources.value;
   }
   set sources(val) {
@@ -214,7 +192,6 @@ export class ChumakApp implements AppState {
   }
 
   get models() {
-    this._rev;
     return AppStore.models.value;
   }
   set models(val) {
@@ -222,7 +199,6 @@ export class ChumakApp implements AppState {
   }
 
   get activeSource() {
-    this._rev;
     return AppStore.activeSource.value;
   }
   set activeSource(val) {
@@ -230,7 +206,6 @@ export class ChumakApp implements AppState {
   }
 
   get activeModel() {
-    this._rev;
     return AppStore.activeModel.value;
   }
   set activeModel(val) {
@@ -238,7 +213,6 @@ export class ChumakApp implements AppState {
   }
 
   get currentData() {
-    this._rev;
     return AppStore.currentData.value;
   }
   set currentData(val) {
@@ -246,7 +220,6 @@ export class ChumakApp implements AppState {
   }
 
   get columns() {
-    this._rev;
     return AppStore.columns.value;
   }
   set columns(val) {
@@ -254,7 +227,6 @@ export class ChumakApp implements AppState {
   }
 
   get viewMode() {
-    this._rev;
     return AppStore.viewMode.value;
   }
   set viewMode(val) {
@@ -262,7 +234,6 @@ export class ChumakApp implements AppState {
   }
 
   get activeStepIndex() {
-    this._rev;
     return AppStore.activeStepIndex.value;
   }
   set activeStepIndex(val) {
@@ -270,7 +241,6 @@ export class ChumakApp implements AppState {
   }
 
   get viewingIntermediate() {
-    this._rev;
     return AppStore.viewingIntermediate.value;
   }
   set viewingIntermediate(val) {
@@ -278,7 +248,6 @@ export class ChumakApp implements AppState {
   }
 
   get ribbonTab() {
-    this._rev;
     return AppStore.ribbonTab.value;
   }
   set ribbonTab(val) {
@@ -286,7 +255,6 @@ export class ChumakApp implements AppState {
   }
 
   get activeTab() {
-    this._rev;
     return AppStore.activeTab.value;
   }
   set activeTab(val) {
@@ -294,7 +262,6 @@ export class ChumakApp implements AppState {
   }
 
   get activeDialog() {
-    this._rev;
     return AppStore.activeDialog.value as any;
   }
   set activeDialog(val) {
@@ -302,7 +269,6 @@ export class ChumakApp implements AppState {
   }
 
   get isDragging() {
-    this._rev;
     return AppStore.isDragging.value;
   }
   set isDragging(val) {
@@ -310,7 +276,6 @@ export class ChumakApp implements AppState {
   }
 
   get selectedColumn() {
-    this._rev;
     return AppStore.selectedColumn.value;
   }
   set selectedColumn(val) {
@@ -318,7 +283,6 @@ export class ChumakApp implements AppState {
   }
 
   get theme() {
-    this._rev;
     return AppStore.theme.value;
   }
   set theme(val) {
@@ -326,7 +290,6 @@ export class ChumakApp implements AppState {
   }
 
   get isTransforming() {
-    this._rev;
     return AppStore.isTransforming.value;
   }
   set isTransforming(val) {
@@ -334,7 +297,6 @@ export class ChumakApp implements AppState {
   }
 
   get transformMessage() {
-    this._rev;
     return AppStore.transformMessage.value;
   }
   set transformMessage(val) {
@@ -345,7 +307,6 @@ export class ChumakApp implements AppState {
 
   // Dialog states (wired to DialogStore)
   get aggregateDialogState() {
-    this._rev;
     return DialogStore.createSignalProxy(DialogStore.aggregateState);
   }
   set aggregateDialogState(val: any) {
@@ -353,7 +314,6 @@ export class ChumakApp implements AppState {
   }
 
   get sliceRowsDialogState() {
-    this._rev;
     return DialogStore.createSignalProxy(DialogStore.sliceRowsState);
   }
   set sliceRowsDialogState(val: any) {
@@ -361,7 +321,6 @@ export class ChumakApp implements AppState {
   }
 
   get indexDialogState() {
-    this._rev;
     return DialogStore.createSignalProxy(DialogStore.indexState);
   }
   set indexDialogState(val: any) {
@@ -369,7 +328,6 @@ export class ChumakApp implements AppState {
   }
 
   get foldDialogState() {
-    this._rev;
     return DialogStore.createSignalProxy(DialogStore.foldState);
   }
   set foldDialogState(val: any) {
@@ -377,7 +335,6 @@ export class ChumakApp implements AppState {
   }
 
   get pivotDialogState() {
-    this._rev;
     return DialogStore.createSignalProxy(DialogStore.pivotState);
   }
   set pivotDialogState(val: any) {
@@ -385,7 +342,6 @@ export class ChumakApp implements AppState {
   }
 
   get replaceDialogState() {
-    this._rev;
     return DialogStore.createSignalProxy(DialogStore.replaceState);
   }
   set replaceDialogState(val: any) {
@@ -393,7 +349,6 @@ export class ChumakApp implements AppState {
   }
 
   get splitDialogState() {
-    this._rev;
     return DialogStore.createSignalProxy(DialogStore.splitState);
   }
   set splitDialogState(val: any) {
@@ -401,7 +356,6 @@ export class ChumakApp implements AppState {
   }
 
   get regexpMatchDialogState() {
-    this._rev;
     return DialogStore.createSignalProxy(DialogStore.regexpMatchState);
   }
   set regexpMatchDialogState(val: any) {
@@ -409,7 +363,6 @@ export class ChumakApp implements AppState {
   }
 
   get regexpExtractDialogState() {
-    this._rev;
     return DialogStore.createSignalProxy(DialogStore.regexpExtractState);
   }
   set regexpExtractDialogState(val: any) {
@@ -417,7 +370,6 @@ export class ChumakApp implements AppState {
   }
 
   get dateDialogState() {
-    this._rev;
     return DialogStore.createSignalProxy(DialogStore.dateState);
   }
   set dateDialogState(val: any) {
@@ -425,7 +377,6 @@ export class ChumakApp implements AppState {
   }
 
   get dedupeDialogState() {
-    this._rev;
     return DialogStore.createSignalProxy(DialogStore.dedupeState);
   }
   set dedupeDialogState(val: any) {
@@ -433,7 +384,6 @@ export class ChumakApp implements AppState {
   }
 
   get columnEditorState() {
-    this._rev;
     return DialogStore.createSignalProxy(DialogStore.columnEditorState);
   }
   set columnEditorState(val: any) {
@@ -441,7 +391,6 @@ export class ChumakApp implements AppState {
   }
 
   get jsonEditMode() {
-    this._rev;
     return AppStore.jsonEditMode.value;
   }
   set jsonEditMode(val) {
@@ -449,7 +398,6 @@ export class ChumakApp implements AppState {
   }
 
   get jsonEditContent() {
-    this._rev;
     return AppStore.jsonEditContent.value;
   }
   set jsonEditContent(val) {
@@ -457,7 +405,6 @@ export class ChumakApp implements AppState {
   }
 
   get jsonEditError() {
-    this._rev;
     return AppStore.jsonEditError.value;
   }
   set jsonEditError(val: string | null) {
@@ -465,7 +412,6 @@ export class ChumakApp implements AppState {
   }
 
   get jsonEditBackup() {
-    this._rev;
     return AppStore.jsonEditBackup.value;
   }
   set jsonEditBackup(val: any | null) {
@@ -474,7 +420,6 @@ export class ChumakApp implements AppState {
 
   // Notifications
   get notifications(): Notification[] {
-    this._rev;
     return AppStore.notifications.value;
   }
   set notifications(val: Notification[]) {
@@ -482,7 +427,6 @@ export class ChumakApp implements AppState {
   }
 
   get notificationIdCounter() {
-    this._rev;
     return AppStore.notificationIdCounter.value;
   }
   set notificationIdCounter(val) {
@@ -491,7 +435,6 @@ export class ChumakApp implements AppState {
 
   // Custom Dialogs (Alert/Confirm/Prompt)
   get messageBox() {
-    this._rev;
     return AppStore.messageBox.value;
   }
   set messageBox(val) {
@@ -500,7 +443,6 @@ export class ChumakApp implements AppState {
 
   // Step removal modal
   get stepRemovalModal() {
-    this._rev;
     return AppStore.stepRemovalModal.value;
   }
   set stepRemovalModal(val) {
@@ -509,17 +451,11 @@ export class ChumakApp implements AppState {
 
   // Intermediate viewing state
   get viewingSchema() {
-    this._rev;
     return AppStore.viewingSchema.value;
   }
   set viewingSchema(val: ColumnSchema[] | null) {
     AppStore.viewingSchema.value = val;
   }
-
-  // Alpine's injected properties
-  $nextTick: any;
-  $watch: any;
-  $dispatch: any;
 
   // Bind handlers
   validateFilterExpression() {
@@ -1291,134 +1227,7 @@ export class ChumakApp implements AppState {
   }
 
   async init() {
-    console.log('Initializing Chumak App Class...');
-
-    // Setup reactivity bridge between Preact Signals and Alpine.js
-    effect(() => {
-      // Access all signals to subscribe to changes
-      AppStore.sources.value;
-      AppStore.models.value;
-      AppStore.activeSource.value;
-      AppStore.activeModel.value;
-      AppStore.currentData.value;
-      AppStore.columns.value;
-      AppStore.viewMode.value;
-      AppStore.activeStepIndex.value;
-      AppStore.viewingIntermediate.value;
-      AppStore.ribbonTab.value;
-      AppStore.activeTab.value;
-      AppStore.activeDialog.value;
-      AppStore.isDragging.value;
-      AppStore.selectedColumn.value;
-      AppStore.activeStep.value;
-      AppStore.editingStepIndex.value;
-      AppStore.dialogSnapshot.value;
-      AppStore.importFileData.value;
-      AppStore.columnToolbarPos.value;
-      AppStore.selectedCell.value;
-      AppStore.cellToolbarPos.value;
-      AppStore.edaStats.value;
-      AppStore.edaChartView.value;
-      AppStore.edaBrushSelection.value;
-      AppStore.edaDateTreatment.value;
-      AppStore.currentPage.value;
-      AppStore.pageSize.value;
-      AppStore.totalPages.value;
-      AppStore.theme.value;
-      AppStore.isTransforming.value;
-      AppStore.transformMessage.value;
-      AppStore.uxSettings.value;
-      AppStore.typeMenuOpen.value;
-      AppStore.typeMenuPos.value;
-      AppStore.typeMenuCol.value;
-      AppStore.jsonEditMode.value;
-      AppStore.jsonEditContent.value;
-      AppStore.jsonEditError.value;
-      AppStore.jsonEditBackup.value;
-      AppStore.notifications.value;
-      AppStore.notificationIdCounter.value;
-      AppStore.messageBox.value;
-      AppStore.stepRemovalModal.value;
-      AppStore.viewingSchema.value;
-
-      // Access all dialog signals for reactivity
-      DialogStore.filterState.expression.value;
-      DialogStore.filterState.previewMode.value;
-      DialogStore.deriveState.columnName.value;
-      DialogStore.deriveState.expression.value;
-      DialogStore.sortState.field.value;
-      DialogStore.sortState.order.value;
-      DialogStore.joinState.rightModel.value;
-      DialogStore.joinState.joinType.value;
-      DialogStore.joinState.keyPairs.value;
-      DialogStore.joinState.suffixes.value;
-
-      DialogStore.aggregateState.groupBy.value;
-      DialogStore.aggregateState.aggregations.value;
-      DialogStore.aggregateState.previewData.value;
-      DialogStore.aggregateState.previewError.value;
-      DialogStore.aggregateState.isPreviewing.value;
-      DialogStore.sliceRowsState.count.value;
-      DialogStore.sliceRowsState.mode.value;
-      DialogStore.indexState.columnName.value;
-      DialogStore.indexState.startFrom.value;
-      DialogStore.foldState.keyName.value;
-      DialogStore.foldState.valueName.value;
-      DialogStore.foldState.selectedColumns.value;
-      DialogStore.foldState.mode.value;
-      DialogStore.pivotState.rowColumns.value;
-      DialogStore.pivotState.columnColumn.value;
-      DialogStore.pivotState.valueColumn.value;
-      DialogStore.pivotState.aggregation.value;
-      DialogStore.pivotState.options.value;
-      DialogStore.replaceState.column.value;
-      DialogStore.replaceState.findValue.value;
-      DialogStore.replaceState.replaceValue.value;
-      DialogStore.splitState.column.value;
-      DialogStore.splitState.delimiter.value;
-      DialogStore.splitState.isRegex.value;
-      DialogStore.splitState.mode.value;
-      DialogStore.splitState.maxColumns.value;
-      DialogStore.splitState.keepOriginal.value;
-      DialogStore.regexpMatchState.sourceColumn.value;
-      DialogStore.regexpMatchState.pattern.value;
-      DialogStore.regexpMatchState.columnName.value;
-      DialogStore.regexpExtractState.sourceColumn.value;
-      DialogStore.regexpExtractState.pattern.value;
-      DialogStore.regexpExtractState.columnName.value;
-      DialogStore.regexpExtractState.group.value;
-      DialogStore.dateState.column.value;
-      DialogStore.dateState.operation.value;
-      DialogStore.dateState.extractParts.value;
-      DialogStore.dateState.truncateUnits.value;
-      DialogStore.dateState.outputColumn.value;
-      DialogStore.dedupeState.selectedColumns.value;
-      DialogStore.dedupeState.useAllColumns.value;
-      DialogStore.columnEditorState.mode.value;
-      DialogStore.columnEditorState.columns.value;
-      DialogStore.importCsvState.fileName.value;
-      DialogStore.importCsvState.sourceName.value;
-      DialogStore.importCsvState.isJson.value;
-      DialogStore.importCsvState.jsonPath.value;
-      DialogStore.importCsvState.jsonData.value;
-      DialogStore.importUrlState.url.value;
-      DialogStore.importUrlState.isFetching.value;
-      DialogStore.importUrlState.error.value;
-      DialogStore.settingsState.theme.value;
-      DialogStore.settingsState.rowLimit.value;
-      DialogStore.previewState.title.value;
-      DialogStore.previewState.stats.value;
-      DialogStore.previewState.columns.value;
-      DialogStore.previewState.newColumns.value;
-      DialogStore.previewState.rows.value;
-      DialogStore.previewState.isLoading.value;
-
-      // Trigger Alpine re-render by incrementing version
-      // Use microtask to avoid synchronous reactivity cycles in Alpine.js
-      Promise.resolve().then(() => {
-        this._rev++;
-      });
-    });
+    console.log('Initializing Chumak App...');
 
     this.uxSettings = loadUXSettings();
     this.pageSize = this.uxSettings.pagination.pageSize;
@@ -1485,15 +1294,8 @@ export class ChumakApp implements AppState {
 
     this.updatePagination();
 
-    // Legacy: this.$nextTick(() => { ... })
-    // We are now managing state via signals in AppStore.
-    // Sync URL state initially.
-    setTimeout(() => {
-      // Watched properties are now signals in AppStore.
-      // If we need to react to them, we'd use useSignalEffect or standard effects.
-      // For now, let's just trigger initial sync.
-      this.syncUrlState();
-    }, 0);
+    // Sync URL state after initial render
+    setTimeout(() => this.syncUrlState(), 0);
 
     window.addEventListener('keydown', (e) => {
       if (e.key === 'Escape') {
@@ -1532,7 +1334,8 @@ export class ChumakApp implements AppState {
   async startTransformation(message: string) {
     this.isTransforming = true;
     this.transformMessage = message;
-    await this.$nextTick();
+    // Allow UI to update before continuing
+    await new Promise((resolve) => requestAnimationFrame(() => resolve(undefined)));
     await new Promise((resolve) => setTimeout(resolve, 50));
   }
 

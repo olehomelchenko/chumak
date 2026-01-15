@@ -113,7 +113,7 @@ export function selectCell(this: ChumakApp, col: string, value: any, rowIdx: num
     type = typeof value === 'number' ? 'number' : 'string';
   }
   this.selectedCell = { col, value, type, rowIdx };
-  this.$nextTick(() => this.updateToolbarPosition());
+  requestAnimationFrame(() => this.updateToolbarPosition());
 }
 
 export async function applyQuickCellFilter(this: ChumakApp, op: string) {
@@ -154,10 +154,6 @@ export function quickFilter(this: ChumakApp) {
 
   // 2. Open dialog via wrapper (handles side effects like clear selection, URL)
   this.openDialog('filter');
-
-  // No need for reSnapshot() here as openDialog handles it.
-  // The setTimeout for focus is currently obsolete since it uses a selector for an Alpine element
-  // that was replaced by Preact. In Phase 4 we will add proper focus management to Preact dialogs.
 }
 
 export function quickRename(this: ChumakApp) {

@@ -13,7 +13,7 @@ export function selectColumn(this: ChumakApp, col: string) {
     return;
   }
   this.selectedColumn = col;
-  this.$nextTick(() => this.updateToolbarPosition());
+  requestAnimationFrame(() => this.updateToolbarPosition());
   if (this.selectedColumn && this.currentData) {
     let colSchema = null;
     if (this.activeModel?.schema)
@@ -28,7 +28,7 @@ export function selectColumn(this: ChumakApp, col: string) {
     this.edaStats = EDAEngine.calculateStats(this.currentData, this.selectedColumn, type);
     this.edaBrushSelection = null;
     if (['integer', 'float', 'number'].includes(type)) {
-      this.$nextTick(() => {
+      requestAnimationFrame(() => {
         if (this.edaChartView === 'boxplot')
           ChartsEngine.renderBoxPlot(
             '#eda-boxplot',
@@ -46,7 +46,7 @@ export function selectColumn(this: ChumakApp, col: string) {
           );
       });
     } else if (['date', 'datetime'].includes(type) && this.edaDateTreatment === 'temporal') {
-      this.$nextTick(() =>
+      requestAnimationFrame(() =>
         ChartsEngine.renderTemporalChart(
           '#eda-temporal-chart',
           this.currentData!,
@@ -55,7 +55,7 @@ export function selectColumn(this: ChumakApp, col: string) {
         )
       );
     } else {
-      this.$nextTick(() => {
+      requestAnimationFrame(() => {
         if (this.edaStats && 'topValues' in this.edaStats) {
           ChartsEngine.renderCategoricalBar(
             '#eda-categorical-bar',
@@ -81,7 +81,7 @@ export function selectEdaStat(this: ChumakApp, label: string, rawValue: any, eve
     isEda: true,
     edaLabel: label,
   };
-  this.$nextTick(() => {
+  requestAnimationFrame(() => {
     if (!el) return;
     const rect = el.getBoundingClientRect();
     const center = rect.left + rect.width / 2;
@@ -102,7 +102,7 @@ export function setEdaChartView(this: ChumakApp, view: 'boxplot' | 'histogram') 
   if (this.selectedColumn && this.edaStats) {
     const type = this.edaStats.type;
     if (['integer', 'float', 'number'].includes(type)) {
-      this.$nextTick(() => {
+      requestAnimationFrame(() => {
         if (view === 'boxplot')
           ChartsEngine.renderBoxPlot(
             '#eda-boxplot',
@@ -126,7 +126,7 @@ export function setEdaChartView(this: ChumakApp, view: 'boxplot' | 'histogram') 
 export function setEdaDateTreatment(this: ChumakApp, treatment: 'temporal' | 'categorical') {
   this.edaDateTreatment = treatment;
   if (this.selectedColumn && this.edaStats && ['date', 'datetime'].includes(this.edaStats.type)) {
-    this.$nextTick(() => {
+    requestAnimationFrame(() => {
       if (treatment === 'temporal') {
         ChartsEngine.renderTemporalChart(
           '#eda-temporal-chart',

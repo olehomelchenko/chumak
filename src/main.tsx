@@ -16,9 +16,4 @@ if (appRoot) {
 }
 
 // Initialize the app services
-// Note: Alpine's x-data="chumakApp()" creates ANOTHER instance and initializes it via x-init usually?
-// But index.html body x-data="chumakApp()" doesn't have x-init.
-// ChumakApp constructor calls `loadUXSettings`.
-// `main.ts` previously called `appInstance.init()`.
-// We should call init on our instance to ensure services start (loading initial data etc).
 appInstance.init();
