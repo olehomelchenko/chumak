@@ -170,17 +170,13 @@ export function editStep(this: ChumakApp, stepIndex: number) {
   this.editingStepIndex = stepIndex;
 
   if (step.filter) {
-    DialogStore.openDialog('filter', {
-      expression: step.filter as string,
-    });
-    this.openDialog('filter'); // Keep legacy side effects wrapper for now
+    this.openDialog('filter');
+    DialogStore.filterState.expression.value = step.filter as string;
   } else if (step.derive) {
     const [colName, expr] = Object.entries(step.derive)[0];
-    DialogStore.openDialog('derive', {
-      columnName: colName,
-      expression: expr as string,
-    });
-    this.openDialog('derive'); // Legacy side effects wrapper
+    this.openDialog('derive');
+    DialogStore.deriveState.columnName.value = colName;
+    DialogStore.deriveState.expression.value = expr as string;
   } else if (step.select) {
     this.openDialog('column-editor');
     const selectedSet = new Set(step.select as string[]);
@@ -245,10 +241,9 @@ export function editStep(this: ChumakApp, stepIndex: number) {
       draggedIndex: null,
     };
   } else if (step.sort) {
-    DialogStore.openDialog('sort', {
-      field: step.sort.field,
-      order: step.sort.order,
-    });
+    this.openDialog('sort');
+    DialogStore.sortState.field.value = step.sort.field;
+    DialogStore.sortState.order.value = step.sort.order;
   } else if (step.aggregate) {
     this.openDialog('aggregate');
     const aggregations = Object.entries(step.aggregate.rollup).map(([output, opStr]) => {

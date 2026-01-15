@@ -3,6 +3,32 @@ import { EDAStats } from '../core/eda-engine';
 
 export type DataRow = Record<string, any>;
 
+export type DialogName =
+  | 'sort'
+  | 'index'
+  | 'replace'
+  | 'sliceRows'
+  | 'fold' // Unpivot
+  | 'filter'
+  | 'pivot'
+  | 'date'
+  | 'derive'
+  | 'split'
+  | 'join'
+  | 'aggregate'
+  | 'import-csv'
+  | 'import-url'
+  | 'column-editor'
+  | 'settings'
+  | 'download'
+  | 'regexpMatch'
+  | 'regexpExtract'
+  | 'dedupe'
+  | 'about'
+  | 'expressions'
+  | 'reference'
+  | null;
+
 export interface Source {
   id: string;
   name: string;
@@ -113,7 +139,7 @@ export interface AppState {
   activeStepIndex: number | null;
   viewingIntermediate: boolean;
   editingStepIndex: number | null;
-  activeDialog: string | null;
+  activeDialog: DialogName;
   dialogSnapshot: string | null;
   isDragging: boolean;
   selectedColumn: string | null;

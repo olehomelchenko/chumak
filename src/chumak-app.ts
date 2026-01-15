@@ -14,9 +14,7 @@ import * as ColumnEditorHandlers from './app/transforms/column-editor';
 import * as DateHandlers from './app/transforms/date-transform';
 import * as RegexpHandlers from './app/transforms/regexp-transforms';
 import * as SimpleHandlers from './app/transforms/simple-transforms';
-import * as ExportHandlers from './app/handlers/export-handlers';
 import * as ImportHandlers from './app/handlers/import-handlers';
-import * as ModelHandlers from './app/handlers/model-handlers';
 import * as StepHandlers from './app/handlers/step-handlers';
 import * as DialogHandlers from './app/handlers/dialog-handlers';
 import * as NotificationHandlers from './app/handlers/notification-handlers';
@@ -26,12 +24,15 @@ import * as PaginationHandlers from './app/handlers/pagination-handlers';
 import * as HelperHandlers from './app/handlers/helper-handlers';
 import * as JsonHandlers from './app/handlers/json-handlers';
 import { SchemaEngine, ColumnSchema, TransformStep } from './core/schema-engine';
+import { AppStore, ViewMode } from './app/stores/AppStore';
+import { ModelService } from './app/services/ModelService';
+import { ImportService } from './app/services/ImportService';
+import { ExportService } from './app/services/ExportService';
 import { EDAStats } from './core/eda-engine';
 import {
   AppState,
   Source,
   Model,
-  DataRow,
   Notification,
   AggregateDialogState,
   PivotDialogState,
@@ -43,16 +44,9 @@ import {
 
 export class ChumakApp implements AppState {
   // UI state
-  ribbonTab = 'prepare';
-  activeTab = 'steps';
   activeStep: TransformStep | null = null;
-  activeStepIndex: number | null = null;
-  viewingIntermediate = false;
   editingStepIndex: number | null = null;
-  activeDialog: string | null = null;
   dialogSnapshot: string | null = null;
-  isDragging = false;
-  selectedColumn: string | null = null;
   columnToolbarPos = { x: 0, y: 0, arrowOffset: 0 };
   selectedCell: {
     col: string;
@@ -67,16 +61,11 @@ export class ChumakApp implements AppState {
   edaChartView: 'boxplot' | 'histogram' = 'boxplot';
   edaBrushSelection: { min: number; max: number } | null = null;
   edaDateTreatment: 'temporal' | 'categorical' = 'temporal';
-  theme: 'chumak' | 'blues' = 'chumak';
   uxSettings: UXSettings = {
     pagination: { pageSize: 500 },
     preview: { rowLimit: 100 },
     theme: 'chumak',
   };
-
-  // Transformation status
-  isTransforming = false;
-  transformMessage = '';
 
   // Type Menu State
   typeMenuOpen = false;
@@ -116,14 +105,125 @@ export class ChumakApp implements AppState {
     error: null,
   };
 
-  // Data state
-  sources: Source[] = [];
-  models: Model[] = [];
-  activeSource: Source | null = null;
-  activeModel: Model | null = null;
-  currentData: DataRow[] | null = null;
-  columns: string[] = [];
-  viewMode: 'empty' | 'dataset-info' | 'model' = 'empty';
+  // Data state (wired to AppStore)
+  get sources() {
+    return AppStore.sources.value;
+  }
+  set sources(val) {
+    AppStore.sources.value = val;
+  }
+
+  get models() {
+    return AppStore.models.value;
+  }
+  set models(val) {
+    AppStore.models.value = val;
+  }
+
+  get activeSource() {
+    return AppStore.activeSource.value;
+  }
+  set activeSource(val) {
+    AppStore.activeSource.value = val;
+  }
+
+  get activeModel() {
+    return AppStore.activeModel.value;
+  }
+  set activeModel(val) {
+    AppStore.activeModel.value = val;
+  }
+
+  get currentData() {
+    return AppStore.currentData.value;
+  }
+  set currentData(val) {
+    AppStore.currentData.value = val;
+  }
+
+  get columns() {
+    return AppStore.columns.value;
+  }
+  set columns(val) {
+    AppStore.columns.value = val;
+  }
+
+  get viewMode() {
+    return AppStore.viewMode.value;
+  }
+  set viewMode(val) {
+    AppStore.viewMode.value = val as ViewMode;
+  }
+
+  get activeStepIndex() {
+    return AppStore.activeStepIndex.value;
+  }
+  set activeStepIndex(val) {
+    AppStore.activeStepIndex.value = val;
+  }
+
+  get viewingIntermediate() {
+    return AppStore.viewingIntermediate.value;
+  }
+  set viewingIntermediate(val) {
+    AppStore.viewingIntermediate.value = val;
+  }
+
+  get ribbonTab() {
+    return AppStore.ribbonTab.value;
+  }
+  set ribbonTab(val) {
+    AppStore.ribbonTab.value = val;
+  }
+
+  get activeTab() {
+    return AppStore.activeTab.value;
+  }
+  set activeTab(val) {
+    AppStore.activeTab.value = val;
+  }
+
+  get activeDialog() {
+    return AppStore.activeDialog.value as any;
+  }
+  set activeDialog(val) {
+    AppStore.activeDialog.value = val as any;
+  }
+
+  get isDragging() {
+    return AppStore.isDragging.value;
+  }
+  set isDragging(val) {
+    AppStore.isDragging.value = val;
+  }
+
+  get selectedColumn() {
+    return AppStore.selectedColumn.value;
+  }
+  set selectedColumn(val) {
+    AppStore.selectedColumn.value = val;
+  }
+
+  get theme() {
+    return AppStore.theme.value;
+  }
+  set theme(val) {
+    AppStore.theme.value = val as any;
+  }
+
+  get isTransforming() {
+    return AppStore.isTransforming.value;
+  }
+  set isTransforming(val) {
+    AppStore.isTransforming.value = val;
+  }
+
+  get transformMessage() {
+    return AppStore.transformMessage.value;
+  }
+  set transformMessage(val) {
+    AppStore.transformMessage.value = val;
+  }
 
   // Transform state
 
@@ -527,19 +627,25 @@ export class ChumakApp implements AppState {
 
   // Export handlers
   exportCSV() {
-    return ExportHandlers.exportCSV.call(this);
+    return ExportService.exportCSV((msg) => this.alert(msg));
   }
   exportWorkflowJSON() {
-    return ExportHandlers.exportWorkflowJSON.call(this);
+    return ExportService.exportWorkflowJSON((msg) => this.alert(msg));
   }
   exportDataJSON() {
-    return ExportHandlers.exportDataJSON.call(this);
+    return ExportService.exportDataJSON((msg) => this.alert(msg));
   }
   copyCSVToClipboard() {
-    return ExportHandlers.copyCSVToClipboard.call(this);
+    return ExportService.copyCSVToClipboard(
+      () => this.getPaginatedData(),
+      (msg) => this.alert(msg)
+    );
   }
   copyJSONToClipboard() {
-    return ExportHandlers.copyJSONToClipboard.call(this);
+    return ExportService.copyJSONToClipboard(
+      () => this.getPaginatedData(),
+      (msg) => this.alert(msg)
+    );
   }
 
   // Import handlers
@@ -604,8 +710,7 @@ export class ChumakApp implements AppState {
     customHeaders: string[] | null = null,
     origin = 'file'
   ) {
-    return ImportHandlers.createSource.call(
-      this,
+    return ImportService.createSource(
       file,
       sourceName,
       columns,
@@ -613,7 +718,9 @@ export class ChumakApp implements AppState {
       headerMode,
       delimiter,
       customHeaders,
-      origin
+      origin,
+      () => this.updatePagination(),
+      (force) => this.closeDialog(force)
     );
   }
   updateImportPreview() {
@@ -628,40 +735,76 @@ export class ChumakApp implements AppState {
 
   // Model & Source handlers
   getTemplateConfigs() {
-    return ModelHandlers.getTemplateConfigs.call(this);
+    return ModelService.getTemplateConfigs();
   }
   loadTemplates() {
-    return ModelHandlers.loadTemplates.call(this);
+    return ModelService.loadTemplates(() => this.getTemplateConfigs());
   }
   switchToSource(source: Source) {
-    return ModelHandlers.switchToSource.call(this, source);
+    return ModelService.switchToSource(source, () => this.clearColumnSelection());
   }
   switchToModel(model: Model) {
-    return ModelHandlers.switchToModel.call(this, model);
+    return ModelService.switchToModel(
+      model,
+      () => this.clearColumnSelection(),
+      () => this.updatePagination(),
+      this.ribbonTab,
+      (tab) => {
+        this.ribbonTab = tab;
+      }
+    );
   }
   createNewModel(source: Source) {
-    return ModelHandlers.createNewModel.call(this, source);
+    return ModelService.createNewModel(
+      source,
+      (msg, def) => this.prompt(msg, def),
+      (msg) => this.alert(msg),
+      (model) => this.switchToModel(model)
+    );
   }
   createNewModelFromActive() {
-    return ModelHandlers.createNewModelFromActive.call(this);
+    const source = this.sources.find((s) => s.id === this.activeModel?.sourceId);
+    if (!source) {
+      this.alert('Source not found for current model');
+      return;
+    }
+    return this.createNewModel(source);
   }
   copyCurrentModel() {
-    return ModelHandlers.copyCurrentModel.call(this);
+    return ModelService.copyCurrentModel(
+      (msg, def) => this.prompt(msg, def),
+      (msg) => this.alert(msg),
+      (model) => this.switchToModel(model)
+    );
   }
   renameCurrentModel() {
-    return ModelHandlers.renameCurrentModel.call(this);
+    return ModelService.renameCurrentModel(
+      (msg, def) => this.prompt(msg, def),
+      (msg) => this.alert(msg)
+    );
   }
   deleteCurrentModel() {
-    return ModelHandlers.deleteCurrentModel.call(this);
+    return ModelService.deleteCurrentModel(
+      (msg) => this.confirm(msg),
+      (msg) => this.alert(msg),
+      (model) => this.switchToModel(model)
+    );
   }
   renameSource(source: Source) {
-    return ModelHandlers.renameSource.call(this, source);
+    return ModelService.renameSource(source, (msg, def) => this.prompt(msg, def));
   }
   deleteSource(source: Source) {
-    return ModelHandlers.deleteSource.call(this, source);
+    return ModelService.deleteSource(
+      source,
+      (msg) => this.confirm(msg),
+      (msg) => this.alert(msg)
+    );
   }
   clearAllData() {
-    return ModelHandlers.clearAllData.call(this);
+    return ModelService.clearAllData(
+      (msg) => this.confirm(msg),
+      (msg) => this.alert(msg)
+    );
   }
 
   // Step handlers

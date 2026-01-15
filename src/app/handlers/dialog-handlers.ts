@@ -5,6 +5,7 @@ import { html as expressionsHtml } from '../../content/expressions.md';
 import { signal, effect } from '@preact/signals';
 import { mountComponent, unmountComponent } from '../components/PreactBridge';
 import { DialogStore } from '../stores/DialogStore';
+import { AppStore } from '../stores/AppStore';
 import { SortDialog } from '../components/SortDialog';
 import { IndexDialog } from '../components/IndexDialog';
 import { ReplaceDialog } from '../components/ReplaceDialog';
@@ -269,7 +270,7 @@ export function handleHashChange(this: ChumakApp) {
   }
 }
 
-export function initDialogState(this: ChumakApp, dialogName: string, _section?: string) {
+export function initDialogState(this: ChumakApp, dialogName: string, section?: string) {
   if (dialogName === 'filter') {
     // DialogStore.openDialog called from interaction/step handlers initializes the state
 
@@ -375,7 +376,7 @@ export function initDialogState(this: ChumakApp, dialogName: string, _section?: 
     // Initialize Store
     DialogStore.sortState.field.value = this.columns[0] || '';
     DialogStore.sortState.order.value = 'asc';
-    DialogStore.activeDialog.value = 'sort';
+    AppStore.activeDialog.value = 'sort';
 
     // Mount Preact component
     const container = document.getElementById('sort-modal-container');
@@ -605,7 +606,7 @@ export function initDialogState(this: ChumakApp, dialogName: string, _section?: 
   } else if (dialogName === 'column-editor') {
     this.columnEditorState = {
       mode: 'list',
-      textSubMode: 'rename',
+      textSubMode: section === 'select' || section === 'reorder' ? section : 'rename',
       columns: this.columns.map((col) => ({
         original: col,
         renamed: col,
@@ -627,7 +628,8 @@ export function initDialogState(this: ChumakApp, dialogName: string, _section?: 
       colEditPatternModeSignal.value = 'include';
       colEditPatternMatchTypeSignal.value = 'prefix';
       colEditDraggedIndexSignal.value = null;
-      colEditTextSubModeSignal.value = 'rename';
+      colEditTextSubModeSignal.value =
+        section === 'select' || section === 'reorder' ? section : 'rename';
       colEditTextValueSignal.value = '';
       colEditTextErrorSignal.value = null;
       colEditChangesSignal.value = {
@@ -1043,22 +1045,6 @@ export function initDialogState(this: ChumakApp, dialogName: string, _section?: 
       mode: 'remove',
     };
     this.$nextTick(() => (this as any).updateDedupePreview());
-  } else if (dialogName === 'column-editor') {
-    this.columnEditorState = {
-      mode: 'list',
-      textSubMode: 'rename',
-      columns: this.columns.map((col) => ({
-        original: col,
-        renamed: col,
-        selected: true,
-      })),
-      textValue: '',
-      textError: null,
-      patternText: '',
-      patternMode: 'include',
-      patternMatchType: 'prefix',
-      draggedIndex: null,
-    };
   }
 }
 

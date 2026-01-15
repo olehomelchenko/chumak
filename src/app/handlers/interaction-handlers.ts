@@ -146,46 +146,25 @@ export async function quickSort(this: ChumakApp, order: 'asc' | 'desc') {
 
 export function quickFilter(this: ChumakApp) {
   if (!this.selectedColumn) return;
-  DialogStore.openDialog('filter', {
-    expression: `${this.selectedColumn} == `,
-  });
-  // We call this.openDialog wrapper to handle side effects (clear selection, update URL)
+
+  const initialExpr = `[${this.selectedColumn}] == `;
+
+  // 1. Initialize DialogStore state
+  DialogStore.filterState.expression.value = initialExpr;
+  DialogStore.filterState.error.value = null;
+
+  // 2. Open dialog via wrapper (handles side effects like clear selection, URL)
   this.openDialog('filter');
 
-  // Actually openDialog in handlers sets activeDialog, which triggers initDialogState.
-  // But DialogStore.openDialog also does.
-  // Our openDialog wrapper calls DialogStore? No.
-  // handler's openDialog calls initDialogState.
-
-  // Let's stick to the pattern: update store, then allow regular flow.
-  // Or better: update store AFTER openDialog if we want to override default empty string.
-
-  this.openDialog('filter');
-  DialogStore.filterState.expression.value = `${this.selectedColumn} == `;
-
-  this.reSnapshot();
-  setTimeout(() => {
-    const input = document.querySelector(
-      '.modal input[x-model="filterExpression"]'
-    ) as HTMLInputElement;
-    if (input) {
-      input.focus();
-      input.setSelectionRange(input.value.length, input.value.length);
-    }
-  }, 50);
+  // No need for reSnapshot() here as openDialog handles it.
+  // The setTimeout for focus is currently obsolete since it uses a selector for an Alpine element
+  // that was replaced by Preact. In Phase 4 we will add proper focus management to Preact dialogs.
 }
 
 export function quickRename(this: ChumakApp) {
   if (!this.selectedColumn) return;
-  const col = this.selectedColumn;
-  this.openDialog('rename');
-  setTimeout(() => {
-    const input = document.querySelector(`.modal input[data-col="${col}"]`) as HTMLInputElement;
-    if (input) {
-      input.focus();
-      input.select();
-    }
-  }, 50);
+  // Use column-editor dialog in rename mode
+  this.openDialog('column-editor', 'rename');
 }
 
 export async function quickRemove(this: ChumakApp) {
@@ -206,10 +185,11 @@ export function quickDate(this: ChumakApp) {
 export function quickSplit(this: ChumakApp) {
   if (!this.selectedColumn) return;
   const col = this.selectedColumn;
-  this.openDialog('split');
-  this.splitDialogState.column = col;
-  this.reSnapshot();
+
+  // 1. Initialize logic-heavy fields first
   const detected = (this as any).detectDelimiter(col);
+
+  this.splitDialogState.column = col;
   if (detected) {
     this.splitDialogState.delimiter = detected.char;
     this.splitDialogState.isRegex = detected.isRegex;
@@ -217,32 +197,36 @@ export function quickSplit(this: ChumakApp) {
   } else {
     this.splitDialogState.autoDetectedDelimiter = null;
   }
-  setTimeout(() => {
-    (this as any).updateSplitPreview();
-  }, 50);
+
+  // 2. Open dialog
+  this.openDialog('split');
+
+  // 3. Trigger preview
+  (this as any).updateSplitPreview();
 }
 
 export function quickReplace(this: ChumakApp) {
   if (!this.selectedCell) return;
   const { col, value } = this.selectedCell;
-  this.openDialog('replace');
+
+  // 1. Initialize state
   this.replaceDialogState = { column: col, findValue: value, replaceValue: '' };
-  this.reSnapshot();
-  setTimeout(() => {
-    const input = document.querySelector(
-      '.slide-panel input[x-model="replaceDialogState.replaceValue"]'
-    ) as HTMLInputElement;
-    if (input) input.focus();
-  }, 50);
+
+  // 2. Open dialog (handles re-snapshotting the initialized state)
+  this.openDialog('replace');
 }
 
 export function quickDedupe(this: ChumakApp) {
   if (!this.selectedColumn) return;
   const col = this.selectedColumn;
-  this.openDialog('dedupe');
-  // Pre-select only this column, switch to specific mode
+
+  // 1. Initialize state
   this.dedupeDialogState.useAllColumns = false;
   this.dedupeDialogState.selectedColumns = this.columns.map((c) => c === col);
-  this.reSnapshot();
+
+  // 2. Open dialog
+  this.openDialog('dedupe');
+
+  // 3. Trigger preview
   (this as any).updateDedupePreview();
 }

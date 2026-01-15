@@ -2,6 +2,7 @@ import type { ChumakApp } from '../../chumak-app';
 import * as aq from 'arquero';
 import { applyTransform } from '../../core/transforms';
 import { DialogStore } from '../stores/DialogStore';
+import { AppStore } from '../stores/AppStore';
 import { JoinTarget } from '../components/JoinDialog';
 
 export function initializeJoinDialog(this: ChumakApp) {
@@ -34,13 +35,15 @@ export function initializeJoinDialog(this: ChumakApp) {
   state.joinType.value = 'left';
   state.keyPairs.value = [[null, null]];
   state.suffixes.value = ['_x', '_y'];
-  state.rightColumns.value = initialRightModel ? this.getColumnsForTarget(initialRightModel) : [];
+  state.rightColumns.value = initialRightModel
+    ? (this as any).getColumnsForTarget(initialRightModel)
+    : [];
   state.previewData.value = null;
   state.previewError.value = null;
   state.isPreviewing.value = false;
 
   // Set active dialog in store
-  DialogStore.activeDialog.value = 'join';
+  AppStore.activeDialog.value = 'join';
 }
 
 export function getColumnsForTarget(this: ChumakApp, targetId: string) {
@@ -48,7 +51,7 @@ export function getColumnsForTarget(this: ChumakApp, targetId: string) {
   const model = this.models.find((m) => m.id === targetId);
   if (model) {
     try {
-      const result = this.computeModelUpToStep(model, model.steps.length - 1);
+      const result = (this as any).computeModelUpToStep(model, model.steps.length - 1);
       return result.columns;
     } catch (error) {
       console.error('Error computing columns for target model:', error);
@@ -65,7 +68,7 @@ export function onJoinTargetChange(this: ChumakApp) {
   const rightModelId = state.rightModel.value;
 
   if (rightModelId) {
-    state.rightColumns.value = this.getColumnsForTarget(rightModelId);
+    state.rightColumns.value = (this as any).getColumnsForTarget(rightModelId);
   } else {
     state.rightColumns.value = [];
   }
@@ -113,7 +116,7 @@ export async function previewJoin(this: ChumakApp) {
   try {
     const targetModel = this.models.find((m) => m.id === rightModel);
     if (targetModel && targetModel.steps.length > 0) {
-      const result = this.computeModelUpToStep(targetModel, targetModel.steps.length - 1);
+      const result = (this as any).computeModelUpToStep(targetModel, targetModel.steps.length - 1);
       targetModel.data = result.data;
     }
     const transform = {
@@ -164,7 +167,7 @@ export async function applyJoinTransform(this: ChumakApp) {
   try {
     const targetModel = this.models.find((m) => m.id === rightModel);
     if (targetModel && targetModel.steps.length > 0) {
-      const result = this.computeModelUpToStep(targetModel, targetModel.steps.length - 1);
+      const result = (this as any).computeModelUpToStep(targetModel, targetModel.steps.length - 1);
       targetModel.data = result.data;
     }
 
