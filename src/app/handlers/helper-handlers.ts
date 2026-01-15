@@ -123,23 +123,6 @@ export function getTypeIcon(this: ChumakApp, colName: string) {
   }
 }
 
-export function getCellClass(this: ChumakApp, value: any, column: string) {
-  const type = this.getColumnType(column);
-  const classes: string[] = ['data-table__cell'];
-
-  if (['number', 'integer', 'float'].includes(type)) {
-    classes.push('data-table__cell--number');
-  }
-
-  if (value === null || value === undefined || value === '') {
-    classes.push('data-table__cell--empty');
-  } else if (value === 0 || value === '0') {
-    classes.push('data-table__cell--zero');
-  }
-
-  return classes.join(' ');
-}
-
 export function formatCellValue(this: ChumakApp, value: any) {
   if (value === null || value === undefined || value === '') return 'null';
   return value;

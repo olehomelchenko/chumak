@@ -52,7 +52,6 @@ export function MainContent(props: MainContentProps) {
             getPaginatedData={props.getPaginatedData}
             getColumnType={props.getColumnType}
             getTypeIcon={props.getTypeIcon}
-            getCellClass={props.getCellClass}
             formatCellValue={props.formatCellValue}
             onSelectColumn={props.onSelectColumn}
             onSelectCell={props.onSelectCell}

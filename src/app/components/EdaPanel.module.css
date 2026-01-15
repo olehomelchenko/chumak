@@ -1,4 +1,4 @@
-.eda-panel {
+.edaPanel {
   background: var(--color-white);
   border-top: var(--border-width) solid var(--color-midnight-blue);
   padding: 0;
@@ -53,7 +53,7 @@
   }
 }
 
-.eda-section {
+.edaSection {
   display: flex;
   flex-direction: column;
   gap: var(--space-sm);
@@ -65,6 +65,9 @@
     color: var(--color-dark-gray);
     text-transform: uppercase;
     letter-spacing: 0.5px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
   }
 
   &--wide {
@@ -73,7 +76,26 @@
   }
 }
 
-.chart-switcher {
+.chartContainer {
+  display: flex;
+  gap: var(--space-lg);
+  align-items: center;
+  position: relative;
+}
+
+.chart {
+  flex: 1;
+  min-width: 0;
+  height: 100px;
+}
+
+.categoricalLayout {
+  display: flex;
+  gap: var(--space-xl);
+  align-items: start;
+}
+
+.chartSwitcher {
   display: flex;
   background: var(--color-white);
   border: 1px solid var(--color-medium-gray);
@@ -104,7 +126,7 @@
   }
 }
 
-.eda-grid {
+.edaGrid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: var(--space-md);
@@ -114,7 +136,7 @@
   }
 }
 
-.eda-stat {
+.edaStat {
   display: flex;
   flex-direction: column;
 
@@ -136,17 +158,24 @@
   }
 }
 
-.eda-frequencies {
+.edaFrequencies {
   display: flex;
   flex-direction: column;
   gap: 4px;
+  min-width: 300px;
 }
 
-.eda-freq-item {
+.edaFreqItem {
   display: flex;
   align-items: center;
   gap: var(--space-sm);
   font-size: 11px;
+
+  &--other {
+    margin-top: 4px;
+    border-top: 1px dashed var(--border-color);
+    padding-top: 4px;
+  }
 
   &__label {
     width: 80px;
@@ -156,7 +185,7 @@
     font-family: var(--font-family-mono);
   }
 
-  &__bar-container {
+  &__barContainer {
     flex: 1;
     height: 8px;
     background: var(--color-light-gray);
@@ -178,7 +207,7 @@
   }
 }
 
-.eda-stats-flow {
+.edaStatsFlow {
   display: flex;
   align-items: center;
   background: var(--color-light-gray);
@@ -188,7 +217,7 @@
   gap: 0;
 }
 
-.eda-flow-item {
+.edaFlowItem {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -215,10 +244,15 @@
     font-family: var(--font-family-mono);
     font-size: var(--font-size-sm);
     color: var(--color-midnight-blue);
+
+    &--highlight {
+      color: var(--color-cyan);
+      font-weight: bold;
+    }
   }
 }
 
-.eda-flow-connector {
+.edaFlowConnector {
   flex: 1;
   height: 1px;
   background: var(--border-color);
@@ -227,7 +261,14 @@
   opacity: 0.3;
 }
 
-.eda-treatment-toggle {
+.edaFlowDivider {
+  width: 1px;
+  background: var(--border-color);
+  margin: 0 var(--space-md);
+  height: 24px;
+}
+
+.edaTreatmentToggle {
   display: flex;
   background: var(--color-white);
   border: 1px solid var(--color-medium-gray);
@@ -257,4 +298,11 @@
       color: var(--color-white) !important;
     }
   }
+}
+
+.brushAction {
+  position: absolute;
+  top: -10px;
+  right: 0;
+  z-index: 10;
 }

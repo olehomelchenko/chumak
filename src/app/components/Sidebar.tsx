@@ -4,6 +4,7 @@ import { useState } from 'preact/hooks';
 import { AppStore } from '../stores/AppStore';
 import { describeTransform } from '../../core/transforms';
 import type { Source, Model } from '../types';
+import styles from './Sidebar.module.css';
 
 export interface SidebarProps {
   // Import actions
@@ -77,35 +78,38 @@ export function Sidebar({
   });
 
   return (
-    <aside class="left-panel">
+    <aside class={styles.leftPanel}>
       {/* Sources & Models */}
-      <section class="panel-section">
-        <h2 class="panel-section__header">Sources & Models</h2>
-        <div class="import-actions">
-          <button class="import-action" onClick={onUploadClick} title="Upload CSV file">
+      <section class={styles.panelSection}>
+        <h2 class={styles.header}>Sources & Models</h2>
+        <div class={styles.importActions}>
+          <button class={styles.importAction} onClick={onUploadClick} title="Upload CSV file">
             <span class="iconify" data-icon="carbon:upload"></span>
             <span>Upload</span>
           </button>
-          <button class="import-action" onClick={onPasteClick} title="Paste data from clipboard">
+          <button
+            class={styles.importAction}
+            onClick={onPasteClick}
+            title="Paste data from clipboard"
+          >
             <span class="iconify" data-icon="carbon:paste"></span>
             <span>Paste</span>
           </button>
-          <button class="import-action" onClick={onUrlClick} title="Import from URL">
+          <button class={styles.importAction} onClick={onUrlClick} title="Import from URL">
             <span class="iconify" data-icon="carbon:link"></span>
             <span>URL</span>
           </button>
         </div>
-        <div class="tree-view">
+        <div class={styles.treeView}>
           {sources.value.map((source) => (
             <div key={source.id}>
               {/* Source */}
               <div
-                class={`tree-item tree-item--source${activeSource.value?.id === source.id ? ' tree-item--active' : ''}`}
+                class={`${styles.treeItem} ${styles.source} ${activeSource.value?.id === source.id ? styles.active : ''}`}
                 onClick={() => onSwitchToSource(source)}
-                style={{ cursor: 'pointer' }}
               >
-                <span class="tree-item__icon">📄</span>
-                <span class="tree-item__name">{source.name}</span>
+                <span class={styles.icon}>📄</span>
+                <span class={styles.name}>{source.name}</span>
               </div>
 
               {/* Models for this source */}
@@ -114,14 +118,13 @@ export function Sidebar({
                 .map((model) => (
                   <div
                     key={model.id}
-                    class={`tree-item tree-item--model${activeModel.value?.id === model.id ? ' tree-item--active' : ''}`}
+                    class={`${styles.treeItem} ${styles.model} ${activeModel.value?.id === model.id ? styles.active : ''}`}
                     onClick={() => onSwitchToModel(model)}
-                    style={{ cursor: 'pointer' }}
                   >
-                    <span class="tree-item__indent"></span>
-                    <span class="tree-item__icon">📊</span>
-                    <span class="tree-item__name">{model.name}</span>
-                    <span class="tree-item__meta">{getModelMeta(model)}</span>
+                    <span class={styles.indent}></span>
+                    <span class={styles.icon}>📊</span>
+                    <span class={styles.name}>{model.name}</span>
+                    <span class={styles.meta}>{getModelMeta(model)}</span>
                   </div>
                 ))}
             </div>
@@ -129,7 +132,7 @@ export function Sidebar({
 
           {/* Show message when no sources */}
           {sources.value.length === 0 && (
-            <div style={{ padding: '1rem', color: '#888', fontSize: '0.875rem' }}>
+            <div class={styles.empty}>
               No data sources imported yet. Click "Import CSV" to get started.
             </div>
           )}
@@ -137,16 +140,16 @@ export function Sidebar({
       </section>
 
       {/* Steps Panel */}
-      <section class="panel-section panel-section--flex">
-        <div class="tabs">
+      <section class={`${styles.panelSection} ${styles.flex}`}>
+        <div class={styles.tabs}>
           <button
-            class={`tab${activeTab === 'steps' ? ' tab--active' : ''}`}
+            class={`${styles.tab} ${activeTab === 'steps' ? styles.active : ''}`}
             onClick={() => setActiveTab('steps')}
           >
             Steps
           </button>
           <button
-            class={`tab${activeTab === 'json' ? ' tab--active' : ''}`}
+            class={`${styles.tab} ${activeTab === 'json' ? styles.active : ''}`}
             onClick={() => setActiveTab('json')}
           >
             JSON
@@ -155,11 +158,9 @@ export function Sidebar({
 
         {/* Steps List */}
         {activeTab === 'steps' && (
-          <div class="steps-list">
+          <div class={styles.stepsList}>
             {!hasData.value && (
-              <div style={{ padding: '1rem', color: '#888', fontSize: '0.875rem' }}>
-                Import a CSV file to begin transforming data.
-              </div>
+              <div class={styles.empty}>Import a CSV file to begin transforming data.</div>
             )}
 
             {/* Show steps if any exist */}
@@ -168,17 +169,16 @@ export function Sidebar({
                 {(activeModel.value?.steps || []).map((step, index) => (
                   <div
                     key={index}
-                    class={`step-item${activeStepIndex.value === index ? ' step-item--active' : ''}`}
+                    class={`${styles.stepItem} ${activeStepIndex.value === index ? styles.active : ''}`}
                     onClick={() => onViewStep(index)}
-                    style={{ cursor: 'pointer' }}
                   >
-                    <span class="step-item__number">{`${index + 1}.`}</span>
-                    <span class="step-item__description">{describeTransform(step)}</span>
+                    <span class={styles.number}>{`${index + 1}.`}</span>
+                    <span class={styles.description}>{describeTransform(step)}</span>
                     {!step.import &&
                       !step.types &&
                       index === (activeModel.value?.steps?.length || 0) - 1 && (
                         <button
-                          class="step-item__edit"
+                          class={styles.edit}
                           onClick={(e) => {
                             e.stopPropagation();
                             onEditStep(index);
@@ -190,7 +190,7 @@ export function Sidebar({
                       )}
                     {!step.import && (
                       <button
-                        class="step-item__delete"
+                        class={styles.delete}
                         onClick={(e) => {
                           e.stopPropagation();
                           onRemoveStep(index);
@@ -205,29 +205,9 @@ export function Sidebar({
 
                 {/* Info text when viewing intermediate step */}
                 {viewingIntermediate.value && (
-                  <div
-                    style={{
-                      padding: '0.75rem 1rem',
-                      background: 'rgba(0, 187, 206, 0.05)',
-                      borderTop: '1px solid var(--color-cyan)',
-                      marginTop: '0.5rem',
-                      fontSize: '0.875rem',
-                      color: 'var(--color-dark-gray)',
-                    }}
-                  >
+                  <div class={styles.viewingIntermediate}>
                     <span>{`Viewing step ${(activeStepIndex.value || 0) + 1} of ${activeModel.value?.steps?.length}`}</span>
-                    <button
-                      onClick={onViewFinalResult}
-                      style={{
-                        marginLeft: '1rem',
-                        color: 'var(--color-cyan)',
-                        textDecoration: 'underline',
-                        background: 'none',
-                        border: 'none',
-                        cursor: 'pointer',
-                        fontSize: '0.875rem',
-                      }}
-                    >
+                    <button onClick={onViewFinalResult} class={styles.return}>
                       View final result
                     </button>
                   </div>
@@ -237,7 +217,7 @@ export function Sidebar({
 
             {/* Show "no steps" message if data loaded but no steps */}
             {hasData.value && !hasSteps.value && (
-              <div style={{ padding: '1rem', color: '#888', fontSize: '0.875rem' }}>
+              <div class={styles.empty}>
                 No transformation steps yet. Use the toolbar above to transform your data.
               </div>
             )}
@@ -246,28 +226,24 @@ export function Sidebar({
 
         {/* JSON View */}
         {activeTab === 'json' && (
-          <div class="json-view">
+          <div class={styles.jsonView}>
             {!hasData.value && (
-              <div style={{ padding: '1rem', color: '#888', fontSize: '0.875rem' }}>
-                Import a CSV file to begin transforming data.
-              </div>
+              <div class={styles.empty}>Import a CSV file to begin transforming data.</div>
             )}
 
             {/* Show "no steps" message */}
             {hasData.value && !hasSteps.value && (
-              <div style={{ padding: '1rem', color: '#888', fontSize: '0.875rem' }}>
-                No transformation steps yet.
-              </div>
+              <div class={styles.empty}>No transformation steps yet.</div>
             )}
 
             {/* JSON View/Edit Area */}
             {hasData.value && hasSteps.value && (
-              <div class="json-editor">
+              <div class={styles.jsonEditor}>
                 {/* Read-only mode */}
                 {!jsonEditMode.value && (
-                  <div class="json-view">
+                  <div class={styles.jsonView}>
                     <button
-                      class="json-edit-toggle"
+                      class={styles.jsonEditToggle}
                       onClick={onEnterJsonEditMode}
                       title="Edit raw JSON (advanced - use with caution)"
                     >
@@ -278,17 +254,17 @@ export function Sidebar({
                       ></span>
                       Edit JSON
                     </button>
-                    <pre class="json-view__content">{onGetStepsJson()}</pre>
+                    <pre class={styles.jsonContent}>{onGetStepsJson()}</pre>
                   </div>
                 )}
 
                 {/* Edit mode (danger zone) */}
                 {jsonEditMode.value && (
-                  <div class="json-edit-danger-zone">
+                  <div class={styles.jsonEditDangerZone}>
                     {/* Warning banner */}
-                    <div class="json-edit-warning">
-                      <span class="json-edit-warning__icon">⚠️</span>
-                      <div class="json-edit-warning__text">
+                    <div class={styles.jsonEditWarning}>
+                      <span class={styles.jsonEditWarning__icon}>⚠️</span>
+                      <div class={styles.jsonEditWarning__text}>
                         <strong>Danger Zone</strong> — Direct JSON editing bypasses validation.
                         Invalid changes may break your workflow.
                       </div>
@@ -296,7 +272,7 @@ export function Sidebar({
 
                     {/* Textarea for editing */}
                     <textarea
-                      class={`json-edit-textarea${jsonEditError.value ? ' json-edit-textarea--error' : ''}`}
+                      class={`${styles.jsonEditTextarea} ${jsonEditError.value ? styles.error : ''}`}
                       value={jsonEditContent.value}
                       onInput={(e) => {
                         jsonEditContent.value = (e.target as HTMLTextAreaElement).value;
@@ -307,11 +283,11 @@ export function Sidebar({
 
                     {/* Error message */}
                     {jsonEditError.value && (
-                      <div class="json-edit-error">{jsonEditError.value}</div>
+                      <div class={styles.jsonEditError}>{jsonEditError.value}</div>
                     )}
 
                     {/* Action buttons */}
-                    <div class="json-edit-actions">
+                    <div class={styles.jsonEditActions}>
                       <button
                         class="button button--secondary button--small"
                         onClick={onCancelJsonEdit}

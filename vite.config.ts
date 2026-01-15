@@ -17,6 +17,9 @@ export default defineConfig({
     markdown({ mode: [Mode.HTML] }) as any,
   ],
   css: {
+    modules: {
+      generateScopedName: '[name]__[local]___[hash:base64:5]',
+    },
     postcss: {
       plugins: [nested(), autoprefixer()],
     },

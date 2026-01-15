@@ -1183,9 +1183,6 @@ export class ChumakApp implements AppState {
   getTypeIcon(colName: string) {
     return HelperHandlers.getTypeIcon.call(this, colName);
   }
-  getCellClass(value: any, column: string) {
-    return HelperHandlers.getCellClass.call(this, value, column);
-  }
   formatCellValue(value: any) {
     return HelperHandlers.formatCellValue.call(this, value);
   }

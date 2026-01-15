@@ -46,12 +46,10 @@ import {
   formatPreviewCell,
   activeDialogError,
 } from '../handlers/dialog-handlers';
-import {
-  getModelMeta,
-  getTypeIcon,
-  getCellClass,
-  formatCellValue,
-} from '../handlers/helper-handlers';
+import { getModelMeta, getTypeIcon, formatCellValue } from '../handlers/helper-handlers';
+import styles from './App.module.css';
+
+import tableStyles from './DataTable.module.css';
 
 interface AppProps {
   app: any; // ChumakApp instance
@@ -146,7 +144,6 @@ export function App({ app }: AppProps) {
     getPaginatedData: () => (app.getPaginatedData ? app.getPaginatedData() : []),
     getColumnType: (c: string) => app.getColumnType(c),
     getTypeIcon: (c: string) => getTypeIcon.call(app, c),
-    getCellClass: (v: any, c: string) => getCellClass.call(app, v, c),
     formatCellValue: (v: any) => formatCellValue.call(app, v),
     onSelectColumn: (c: string, e: MouseEvent) => app.selectColumn(c, e),
     onSelectCell: (c: string, _v: any, i: number, e: MouseEvent) => {
@@ -167,11 +164,11 @@ export function App({ app }: AppProps) {
   };
 
   return (
-    <div id="app-root" style={{ height: '100%', display: 'flex', flexDirection: 'column' }}>
+    <div class={styles.appContainer}>
       <input
         type="file"
         id="file-input"
-        style={{ display: 'none' }}
+        class={styles.fileInput}
         onChange={(e) => app.handleFileSelect(e)}
       />
 
@@ -184,244 +181,165 @@ export function App({ app }: AppProps) {
         onAutoDetectSchema={() => app.autoDetectSchema && app.autoDetectSchema()}
       />
 
-      <div class="main-layout-row" style={{ flex: 1, display: 'flex', overflow: 'hidden' }}>
+      <div class={styles.mainLayoutRow}>
         <Sidebar {...sidebarProps} />
 
-        <main
-          class="main-content"
-          style={{
-            flex: 1,
-            display: 'flex',
-            flexDirection: 'column',
-            minWidth: 0,
-            position: 'relative',
-          }}
-        >
+        <main class={styles.mainContent}>
           <MainContent {...mainContentProps} />
           <EdaPanel onApplyFilter={() => app.applyFilterTransform()} />
         </main>
 
         {/* Slide Panel Shell */}
         <div
-          class={`slide-panel-shell ${isSlidePanel(activeDialog) ? 'open' : ''} ${hasPreview ? 'has-preview' : ''}`}
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            bottom: 0,
-            width:
-              isSlidePanel(activeDialog) && activeDialog !== 'dedupe'
-                ? '600px'
-                : activeDialog === 'dedupe'
-                  ? '800px'
-                  : '0',
-            pointerEvents: 'none',
-            zIndex: 'var(--z-index-slide-panel)',
-          }}
+          class={`${styles.slidePanelShell} ${isSlidePanel(activeDialog) ? styles.open : ''} ${hasPreview ? styles.hasPreview : ''} ${activeDialog === 'dedupe' ? styles.dedupe : ''}`}
         >
           {/* Backdrop */}
           {isSlidePanel(activeDialog) && (
-            <div
-              class="backdrop"
-              style={{
-                position: 'fixed',
-                inset: 0,
-                background: 'rgba(0,0,0,0.3)',
-                pointerEvents: 'auto',
-                zIndex: 40,
-              }}
-              onClick={() => app.closeDialog()}
-            />
+            <div class={styles.backdrop} onClick={() => app.closeDialog()} />
           )}
 
           {/* Panel */}
-          <div
-            class="slide-panel"
-            style={{
-              position: 'absolute',
-              top: 0,
-              left: 0,
-              bottom: 0,
-              width: activeDialog === 'dedupe' ? '800px' : '600px',
-              background: 'white',
-              display: 'flex',
-              flexDirection: 'column',
-              transform: isSlidePanel(activeDialog) ? 'translateX(0)' : 'translateX(-100%)',
-              transition: 'transform 0.3s ease',
-              pointerEvents: 'auto',
-              zIndex: 50,
-              boxShadow: '4px 0 16px rgba(0,0,0,0.1)',
-            }}
-          >
-            <div
-              class="slide-panel__header"
-              style={{
-                padding: '16px',
-                borderBottom: '1px solid #e0e0e0',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-              }}
-            >
-              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 600 }}>{dialogTitle}</h3>
-              <button
-                onClick={() => app.closeDialog()}
-                style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer' }}
-              >
+          <div class={`${styles.slidePanel} ${isSlidePanel(activeDialog) ? styles.open : ''}`}>
+            <div class={styles.slidePanelHeader}>
+              <h3>{dialogTitle}</h3>
+              <button onClick={() => app.closeDialog()} class={styles.closeButton}>
                 ×
               </button>
             </div>
 
-            <div
-              class="slide-panel__content"
-              style={{ flex: 1, overflowY: 'auto', padding: '16px' }}
-            >
-              <div
-                class="slide-panel__content"
-                style={{ flex: 1, overflowY: 'auto', padding: '16px' }}
-              >
-                <div style={{ display: activeDialog === 'filter' ? 'block' : 'none' }}>
-                  <FilterDialog
-                    expression={DialogStore.filterState.expression}
-                    error={DialogStore.filterState.error}
-                    previewMode={DialogStore.filterState.previewMode}
-                    onOpenReference={() => app.openDialog('expressions')}
-                    onValidate={() => app.debouncedUpdateFilterPreview()}
-                  />
-                </div>
-                <div style={{ display: activeDialog === 'derive' ? 'block' : 'none' }}>
-                  <DeriveDialog
-                    columnName={DialogStore.deriveState.columnName}
-                    expression={DialogStore.deriveState.expression}
-                    error={DialogStore.deriveState.error}
-                    onOpenReference={() => app.openDialog('expressions')}
-                    onValidate={() => app.debouncedUpdateDerivePreview()}
-                  />
-                </div>
-                <div style={{ display: activeDialog === 'regexpMatch' ? 'block' : 'none' }}>
-                  <RegexpMatchDialog />
-                </div>
-                <div style={{ display: activeDialog === 'regexpExtract' ? 'block' : 'none' }}>
-                  <RegexpExtractDialog />
-                </div>
-                <div style={{ display: activeDialog === 'date' ? 'block' : 'none' }}>
-                  <DateDialog
-                    dateColumns={app.getDateColumns()}
-                    column={DialogStore.dateState.column}
-                    operation={DialogStore.dateState.operation}
-                    extractParts={DialogStore.dateState.extractParts}
-                    truncateUnits={DialogStore.dateState.truncateUnits}
-                    outputColumn={DialogStore.dateState.outputColumn}
-                    error={DialogStore.dateState.error}
-                    onValidate={() => app.updateDatePreview()}
-                  />
-                </div>
-                <div style={{ display: activeDialog === 'dedupe' ? 'block' : 'none' }}>
-                  <DedupeDialog />
-                </div>
-                <div style={{ display: activeDialog === 'sort' ? 'block' : 'none' }}>
-                  <SortDialog
-                    columns={app.columns}
-                    field={DialogStore.sortState.field}
-                    order={DialogStore.sortState.order}
-                  />
-                </div>
-                <div style={{ display: activeDialog === 'sliceRows' ? 'block' : 'none' }}>
-                  <SliceRowsDialog
-                    count={DialogStore.sliceRowsState.count}
-                    mode={DialogStore.sliceRowsState.mode}
-                    rowCount={app.currentData?.length || 0}
-                  />
-                </div>
-                <div style={{ display: activeDialog === 'index' ? 'block' : 'none' }}>
-                  <IndexDialog
-                    columnName={DialogStore.indexState.columnName}
-                    startFrom={DialogStore.indexState.startFrom}
-                    rowCount={app.currentData?.length || 0}
-                  />
-                </div>
-                <div style={{ display: activeDialog === 'fold' ? 'block' : 'none' }}>
-                  <UnpivotDialog
-                    columns={app.columns}
-                    keyName={DialogStore.foldState.keyName}
-                    valueName={DialogStore.foldState.valueName}
-                    mode={DialogStore.foldState.mode}
-                    selectedColumns={DialogStore.foldState.selectedColumns}
-                  />
-                </div>
-                <div style={{ display: activeDialog === 'pivot' ? 'block' : 'none' }}>
-                  <PivotDialog
-                    columns={app.columns}
-                    rowColumns={DialogStore.pivotState.rowColumns}
-                    columnColumn={DialogStore.pivotState.columnColumn}
-                    valueColumn={DialogStore.pivotState.valueColumn}
-                    aggregation={DialogStore.pivotState.aggregation}
-                    uniqueValueCount={DialogStore.pivotState.uniqueValueCount}
-                    options={DialogStore.pivotState.options}
-                    isPreviewing={DialogStore.pivotState.isPreviewing}
-                    onPreview={() => app.previewPivot()}
-                  />
-                </div>
-                <div style={{ display: activeDialog === 'replace' ? 'block' : 'none' }}>
-                  <ReplaceDialog
-                    columns={app.columns}
-                    column={DialogStore.replaceState.column}
-                    findValue={DialogStore.replaceState.findValue}
-                    replaceValue={DialogStore.replaceState.replaceValue}
-                  />
-                </div>
-                <div style={{ display: activeDialog === 'split' ? 'block' : 'none' }}>
-                  <SplitDialog
-                    columns={app.columns}
-                    column={DialogStore.splitState.column}
-                    delimiter={DialogStore.splitState.delimiter}
-                    autoDetectedDelimiter={DialogStore.splitState.autoDetectedDelimiter}
-                    isRegex={DialogStore.splitState.isRegex}
-                    mode={DialogStore.splitState.mode}
-                    maxColumns={DialogStore.splitState.maxColumns}
-                    keepOriginal={DialogStore.splitState.keepOriginal}
-                    error={DialogStore.splitState.error}
-                    onPreview={() => app.updateSplitPreview()}
-                    onDetect={(col: string) => {
-                      const detected = app.detectDelimiter(col);
-                      if (detected) {
-                        DialogStore.splitState.delimiter.value = detected.char;
-                        DialogStore.splitState.isRegex.value = detected.isRegex;
-                        DialogStore.splitState.autoDetectedDelimiter.value = detected.name;
-                      } else {
-                        DialogStore.splitState.autoDetectedDelimiter.value = null;
-                      }
-                    }}
-                  />
-                </div>
-                <div style={{ display: activeDialog === 'join' ? 'block' : 'none' }}>
-                  <JoinDialog />
-                </div>
-                <div style={{ display: activeDialog === 'aggregate' ? 'block' : 'none' }}>
-                  <AggregateDialog
-                    columns={app.columns}
-                    groupBy={DialogStore.aggregateState.groupBy}
-                    aggregations={DialogStore.aggregateState.aggregations}
-                    isPreviewing={DialogStore.aggregateState.isPreviewing}
-                    onPreview={() => app.previewAggregate()}
-                  />
-                </div>
-                <div style={{ display: activeDialog === 'column-editor' ? 'block' : 'none' }}>
-                  <ColumnEditorDialog />
-                </div>
+            <div class={styles.slidePanelContent}>
+              <div style={{ display: activeDialog === 'filter' ? 'block' : 'none' }}>
+                <FilterDialog
+                  expression={DialogStore.filterState.expression}
+                  error={DialogStore.filterState.error}
+                  previewMode={DialogStore.filterState.previewMode}
+                  onOpenReference={() => app.openDialog('expressions')}
+                  onValidate={() => app.debouncedUpdateFilterPreview()}
+                />
+              </div>
+              <div style={{ display: activeDialog === 'derive' ? 'block' : 'none' }}>
+                <DeriveDialog
+                  columnName={DialogStore.deriveState.columnName}
+                  expression={DialogStore.deriveState.expression}
+                  error={DialogStore.deriveState.error}
+                  onOpenReference={() => app.openDialog('expressions')}
+                  onValidate={() => app.debouncedUpdateDerivePreview()}
+                />
+              </div>
+              <div style={{ display: activeDialog === 'regexpMatch' ? 'block' : 'none' }}>
+                <RegexpMatchDialog />
+              </div>
+              <div style={{ display: activeDialog === 'regexpExtract' ? 'block' : 'none' }}>
+                <RegexpExtractDialog />
+              </div>
+              <div style={{ display: activeDialog === 'date' ? 'block' : 'none' }}>
+                <DateDialog
+                  dateColumns={app.getDateColumns()}
+                  column={DialogStore.dateState.column}
+                  operation={DialogStore.dateState.operation}
+                  extractParts={DialogStore.dateState.extractParts}
+                  truncateUnits={DialogStore.dateState.truncateUnits}
+                  outputColumn={DialogStore.dateState.outputColumn}
+                  error={DialogStore.dateState.error}
+                  onValidate={() => app.updateDatePreview()}
+                />
+              </div>
+              <div style={{ display: activeDialog === 'dedupe' ? 'block' : 'none' }}>
+                <DedupeDialog />
+              </div>
+              <div style={{ display: activeDialog === 'sort' ? 'block' : 'none' }}>
+                <SortDialog
+                  columns={app.columns}
+                  field={DialogStore.sortState.field}
+                  order={DialogStore.sortState.order}
+                />
+              </div>
+              <div style={{ display: activeDialog === 'sliceRows' ? 'block' : 'none' }}>
+                <SliceRowsDialog
+                  count={DialogStore.sliceRowsState.count}
+                  mode={DialogStore.sliceRowsState.mode}
+                  rowCount={app.currentData?.length || 0}
+                />
+              </div>
+              <div style={{ display: activeDialog === 'index' ? 'block' : 'none' }}>
+                <IndexDialog
+                  columnName={DialogStore.indexState.columnName}
+                  startFrom={DialogStore.indexState.startFrom}
+                  rowCount={app.currentData?.length || 0}
+                />
+              </div>
+              <div style={{ display: activeDialog === 'fold' ? 'block' : 'none' }}>
+                <UnpivotDialog
+                  columns={app.columns}
+                  keyName={DialogStore.foldState.keyName}
+                  valueName={DialogStore.foldState.valueName}
+                  mode={DialogStore.foldState.mode}
+                  selectedColumns={DialogStore.foldState.selectedColumns}
+                />
+              </div>
+              <div style={{ display: activeDialog === 'pivot' ? 'block' : 'none' }}>
+                <PivotDialog
+                  columns={app.columns}
+                  rowColumns={DialogStore.pivotState.rowColumns}
+                  columnColumn={DialogStore.pivotState.columnColumn}
+                  valueColumn={DialogStore.pivotState.valueColumn}
+                  aggregation={DialogStore.pivotState.aggregation}
+                  uniqueValueCount={DialogStore.pivotState.uniqueValueCount}
+                  options={DialogStore.pivotState.options}
+                  isPreviewing={DialogStore.pivotState.isPreviewing}
+                  onPreview={() => app.previewPivot()}
+                />
+              </div>
+              <div style={{ display: activeDialog === 'replace' ? 'block' : 'none' }}>
+                <ReplaceDialog
+                  columns={app.columns}
+                  column={DialogStore.replaceState.column}
+                  findValue={DialogStore.replaceState.findValue}
+                  replaceValue={DialogStore.replaceState.replaceValue}
+                />
+              </div>
+              <div style={{ display: activeDialog === 'split' ? 'block' : 'none' }}>
+                <SplitDialog
+                  columns={app.columns}
+                  column={DialogStore.splitState.column}
+                  delimiter={DialogStore.splitState.delimiter}
+                  autoDetectedDelimiter={DialogStore.splitState.autoDetectedDelimiter}
+                  isRegex={DialogStore.splitState.isRegex}
+                  mode={DialogStore.splitState.mode}
+                  maxColumns={DialogStore.splitState.maxColumns}
+                  keepOriginal={DialogStore.splitState.keepOriginal}
+                  error={DialogStore.splitState.error}
+                  onPreview={() => app.updateSplitPreview()}
+                  onDetect={(col: string) => {
+                    const detected = app.detectDelimiter(col);
+                    if (detected) {
+                      DialogStore.splitState.delimiter.value = detected.char;
+                      DialogStore.splitState.isRegex.value = detected.isRegex;
+                      DialogStore.splitState.autoDetectedDelimiter.value = detected.name;
+                    } else {
+                      DialogStore.splitState.autoDetectedDelimiter.value = null;
+                    }
+                  }}
+                />
+              </div>
+              <div style={{ display: activeDialog === 'join' ? 'block' : 'none' }}>
+                <JoinDialog />
+              </div>
+              <div style={{ display: activeDialog === 'aggregate' ? 'block' : 'none' }}>
+                <AggregateDialog
+                  columns={app.columns}
+                  groupBy={DialogStore.aggregateState.groupBy}
+                  aggregations={DialogStore.aggregateState.aggregations}
+                  isPreviewing={DialogStore.aggregateState.isPreviewing}
+                  onPreview={() => app.previewAggregate()}
+                />
+              </div>
+              <div style={{ display: activeDialog === 'column-editor' ? 'block' : 'none' }}>
+                <ColumnEditorDialog />
               </div>
             </div>
 
-            <div
-              class="slide-panel__footer"
-              style={{
-                padding: '16px',
-                borderTop: '1px solid #e0e0e0',
-                display: 'flex',
-                justifyContent: 'flex-end',
-                gap: '8px',
-              }}
-            >
+            <div class={styles.slidePanelFooter}>
               <button class="button button--secondary" onClick={() => app.closeDialog()}>
                 Cancel
               </button>
@@ -437,42 +355,19 @@ export function App({ app }: AppProps) {
 
           {/* Preview Panel */}
           {hasPreview && isSlidePanel(activeDialog) && (
-            <div
-              class="preview-panel"
-              style={{
-                position: 'absolute',
-                top: '16px',
-                left: activeDialog === 'dedupe' ? '816px' : '616px',
-                width: '400px',
-                background: 'white',
-                borderRadius: '8px',
-                boxShadow: '0 4px 12px rgba(0,0,0,0.1)',
-                display: 'flex',
-                flexDirection: 'column',
-                maxHeight: 'calc(100vh - 32px)',
-                zIndex: 45,
-              }}
-            >
-              <div
-                class="preview-panel__header"
-                style={{
-                  padding: '12px 16px',
-                  borderBottom: '1px solid #e0e0e0',
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                }}
-              >
-                <h4 style={{ margin: 0 }}>{previewTitle || 'Preview'}</h4>
+            <div class={`${styles.previewPanel} ${activeDialog === 'dedupe' ? styles.dedupe : ''}`}>
+              <div class={styles.previewPanelHeader}>
+                <h4>{previewTitle || 'Preview'}</h4>
                 <div dangerouslySetInnerHTML={{ __html: previewStats }}></div>
               </div>
-              <div class="preview-panel__content" style={{ overflow: 'auto' }}>
-                <table class="data-table" style={{ width: '100%' }}>
+              <div class={styles.previewPanelContent}>
+                <table class={tableStyles.dataTable} style={{ width: '100%' }}>
                   <thead>
                     <tr>
                       {getPreviewColumns.call(app).map((col: string) => (
                         <th
                           key={col}
-                          class={isNewPreviewColumn.call(app, col) ? 'preview-new-col' : ''}
+                          class={isNewPreviewColumn.call(app, col) ? styles.previewNewCol : ''}
                         >
                           {col}
                         </th>
@@ -481,11 +376,11 @@ export function App({ app }: AppProps) {
                   </thead>
                   <tbody>
                     {getPreviewRows.call(app).map((row: any, i: number) => (
-                      <tr key={i} class={row._removed ? 'row--removed' : ''}>
+                      <tr key={i} class={row._removed ? tableStyles.removed : ''}>
                         {getPreviewColumns.call(app).map((col: string) => (
                           <td
                             key={col}
-                            class={isNewPreviewColumn.call(app, col) ? 'preview-new-col' : ''}
+                            class={`${tableStyles.cell} ${isNewPreviewColumn.call(app, col) ? styles.previewNewCol : ''}`}
                           >
                             {formatPreviewCell.call(app, row, col)}
                           </td>
@@ -502,49 +397,15 @@ export function App({ app }: AppProps) {
 
       {/* Centered Modal Shell */}
       {isCenteredModal(activeDialog) && (
-        <div
-          class="centered-modal-backdrop"
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(0,0,0,0.5)',
-            zIndex: 60,
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-          }}
-          onClick={() => app.closeDialog()}
-        >
-          <div
-            class="centered-modal"
-            style={{
-              background: 'white',
-              borderRadius: '8px',
-              width: '600px',
-              maxHeight: '90vh',
-              display: 'flex',
-              flexDirection: 'column',
-            }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <div
-              class="centered-modal__header"
-              style={{
-                padding: '16px',
-                borderBottom: '1px solid #e0e0e0',
-                display: 'flex',
-                justifyContent: 'space-between',
-              }}
-            >
-              <h3 style={{ margin: 0 }}>{dialogTitle}</h3>
-              <button
-                onClick={() => app.closeDialog()}
-                style={{ background: 'none', border: 'none', fontSize: '20px' }}
-              >
+        <div class={styles.centeredModalBackdrop} onClick={() => app.closeDialog()}>
+          <div class={styles.centeredModal} onClick={(e) => e.stopPropagation()}>
+            <div class={styles.centeredModalHeader}>
+              <h3>{dialogTitle}</h3>
+              <button onClick={() => app.closeDialog()} class={styles.closeButton}>
                 ×
               </button>
             </div>
-            <div class="centered-modal__content" style={{ padding: '24px', overflowY: 'auto' }}>
+            <div class={styles.centeredModalContent}>
               <div style={{ display: activeDialog === 'import-csv' ? 'block' : 'none' }}>
                 <ImportCsvDialog />
               </div>
@@ -572,16 +433,7 @@ export function App({ app }: AppProps) {
               )}
             </div>
             {!['about', 'expressions', 'download'].includes(activeDialog || '') && (
-              <div
-                class="centered-modal__footer"
-                style={{
-                  padding: '16px',
-                  borderTop: '1px solid #e0e0e0',
-                  display: 'flex',
-                  justifyContent: 'flex-end',
-                  gap: '8px',
-                }}
-              >
+              <div class={styles.centeredModalFooter}>
                 <button class="button button--secondary" onClick={() => app.closeDialog()}>
                   Cancel
                 </button>

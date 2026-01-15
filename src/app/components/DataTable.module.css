@@ -1,0 +1,180 @@
+.tableContainer {
+  overflow: auto;
+  flex: 1;
+  background: var(--color-white);
+}
+
+.dataTable {
+  width: 100%;
+  min-width: max-content;
+  border-collapse: separate;
+  border-spacing: 0;
+  border: var(--border-width) solid var(--border-color);
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-base);
+
+  &__header {
+    background: var(--color-light-gray);
+    color: var(--color-midnight-blue);
+    font-weight: var(--font-weight-medium);
+    padding: var(--space-sm) var(--space-md);
+    text-align: left;
+    vertical-align: middle;
+    border-bottom: var(--border-width) solid var(--border-color);
+    border-right: 1px solid rgba(var(--color-midnight-blue-rgb), 0.05);
+    position: sticky;
+    top: 0;
+    white-space: nowrap;
+    transition: background var(--transition-fast);
+    cursor: pointer;
+    max-width: 250px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    z-index: 10;
+
+    &.selected {
+      background: var(--color-cyan) !important;
+      color: var(--color-white) !important;
+      border-bottom-color: var(--color-midnight-blue);
+      z-index: 101;
+
+      .typeIndicator {
+        background: rgba(var(--color-white-rgb), 0.2);
+        color: white;
+      }
+    }
+
+    &:hover:not(.selected) {
+      background: var(--color-medium-gray);
+
+      .typeIndicator {
+        border-color: var(--color-cyan);
+        background: var(--color-white);
+        color: var(--color-cyan);
+      }
+    }
+  }
+
+  &__row {
+    transition: background var(--transition-fast);
+    cursor: pointer;
+
+    &:hover {
+      background-color: rgba(var(--color-cyan-rgb), 0.03) !important;
+    }
+
+    &:nth-child(even) {
+      background-color: rgba(var(--color-midnight-blue-rgb), 0.02);
+
+      &:hover {
+        background-color: rgba(var(--color-cyan-rgb), 0.06) !important;
+      }
+    }
+
+    &.duplicate {
+      background-color: rgba(var(--color-yellow-rgb), 0.15) !important;
+
+      &:hover {
+        background-color: rgba(var(--color-yellow-rgb), 0.25) !important;
+      }
+    }
+
+    &.removed {
+      background-color: rgba(var(--color-red-rgb), 0.08) !important;
+
+      .cell {
+        text-decoration: line-through;
+        color: rgba(var(--color-midnight-blue-rgb), 0.4);
+      }
+
+      &:hover {
+        background-color: rgba(var(--color-red-rgb), 0.12) !important;
+      }
+    }
+  }
+
+  &.compact {
+    font-size: var(--font-size-sm);
+
+    th,
+    td {
+      padding: 6px var(--space-sm);
+    }
+  }
+}
+
+.cell {
+  padding: var(--space-sm) var(--space-md);
+  border-bottom: var(--border-width) solid var(--color-light-gray);
+  border-right: 1px solid rgba(var(--color-midnight-blue-rgb), 0.05);
+  color: var(--color-midnight-blue);
+  max-width: 250px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  &:hover {
+    background-color: rgba(var(--color-cyan-rgb), 0.12) !important;
+    color: var(--color-cyan);
+  }
+
+  &.number {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+
+  &.empty {
+    background-color: rgba(var(--color-red-rgb), 0.05);
+    color: rgba(var(--color-red-rgb), 0.4);
+    font-style: italic;
+  }
+
+  &.zero {
+    color: rgba(var(--color-midnight-blue-rgb), 0.3);
+  }
+
+  &.removed {
+    background-color: rgba(var(--color-red-rgb), 0.08) !important;
+    text-decoration: line-through;
+    color: rgba(var(--color-midnight-blue-rgb), 0.4);
+  }
+}
+
+.typeIndicator {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 8px;
+  width: 24px;
+  height: 24px;
+  border-radius: 4px; /* Added some polish */
+  transition: all var(--transition-fast);
+  color: var(--color-dark-gray);
+
+  .iconify {
+    width: 18px;
+    height: 18px;
+    display: block;
+  }
+
+  &:hover {
+    background: rgba(var(--color-midnight-blue-rgb), 0.08);
+  }
+
+  &.string {
+    color: var(--color-midnight-blue);
+  }
+  &.integer,
+  &.float,
+  &.number {
+    color: var(--color-cyan);
+  }
+  &.date,
+  &.datetime,
+  &.time {
+    color: #9b59b6;
+  }
+  &.boolean {
+    color: var(--color-green);
+  }
+}

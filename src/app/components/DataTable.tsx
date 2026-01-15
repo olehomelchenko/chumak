@@ -1,12 +1,11 @@
-// Note: 'h' import not needed - Vite's JSX transform handles it
 import { AppStore } from '../stores/AppStore';
 import type { DataRow } from '../types';
+import styles from './DataTable.module.css';
 
 export interface DataTableProps {
   getPaginatedData: () => DataRow[];
   getColumnType: (column: string) => string;
   getTypeIcon: (column: string) => string;
-  getCellClass: (value: any, column: string) => string;
   formatCellValue: (value: any) => string;
   onSelectColumn: (column: string, event: MouseEvent) => void;
   onSelectCell: (column: string, value: any, rowIndex: number, event: MouseEvent) => void;
@@ -19,7 +18,6 @@ export function DataTable({
   getPaginatedData,
   getColumnType,
   getTypeIcon,
-  getCellClass,
   formatCellValue,
   onSelectColumn,
   onSelectCell,
@@ -36,21 +34,42 @@ export function DataTable({
 
   const contextKey = `${activeModel.value?.id || activeSource.value?.id}-${activeStepIndex.value}-${columns.value.length}-${currentPage.value}`;
 
+  const getCellClassName = (value: any, column: string, row: DataRow) => {
+    const type = getColumnType(column);
+    const classes = [styles.cell];
+
+    if (['number', 'integer', 'float'].includes(type)) {
+      classes.push(styles.number);
+    }
+
+    if (value === null || value === undefined || value === '') {
+      classes.push(styles.empty);
+    } else if (value === 0 || value === '0') {
+      classes.push(styles.zero);
+    }
+
+    if (row._removed) {
+      classes.push(styles.removed);
+    }
+
+    return classes.join(' ');
+  };
+
   return (
-    <div class="table-container" onScroll={onScroll}>
-      <table class="data-table">
+    <div class={styles.tableContainer} onScroll={onScroll}>
+      <table class={styles.dataTable}>
         <thead>
           <tr>
             {columns.value.map((column) => (
               <th
                 key={`${contextKey}-col-${column}`}
-                class={`data-table__header${selectedColumn.value === column ? ' data-table__header--selected' : ''}`}
+                class={`${styles.dataTable__header} ${selectedColumn.value === column ? styles.selected : ''}`}
                 data-col={column}
                 onClick={(e) => onSelectColumn(column, e as unknown as MouseEvent)}
                 title={`Column: ${column}`}
               >
                 <span
-                  class={`type-indicator type-indicator--${getColumnType(column)}`}
+                  class={`${styles.typeIndicator} ${styles[getColumnType(column)] || ''}`}
                   onClick={(e) => {
                     e.stopPropagation();
                     onOpenTypeMenu(column, e as unknown as MouseEvent);
@@ -68,13 +87,13 @@ export function DataTable({
           {getPaginatedData().map((row, rowIndex) => (
             <tr
               key={`${contextKey}-${rowIndex}`}
-              class="data-table__row"
+              class={`${styles.dataTable__row} ${row._removed ? styles.removed : ''} ${row._duplicate ? styles.duplicate : ''}`}
               onClick={onClearColumnSelection}
             >
               {columns.value.map((column) => (
                 <td
                   key={column}
-                  class={getCellClass(row[column], column)}
+                  class={getCellClassName(row[column], column, row)}
                   data-col={column}
                   data-row={rowIndex}
                   title={`${column}: ${row[column]}`}

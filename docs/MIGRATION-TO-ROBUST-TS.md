@@ -158,19 +158,69 @@ _Status: ✅ Complete_
 
 ---
 
-## Current State (Phase 4 Complete)
+## Phase 5: Design Revamp & Code Hygiene (CSS Modules)
+
+_Status: ✅ Complete (Initial Migration)_
+
+**Goal**: Standardize component-scoped styling using CSS Modules, eliminating global CSS conflicts and removing brittle inline styles.
+
+- [x] **Vite Integration**: Configured `generateScopedName` for readable class names in dev.
+- [x] **Component Migration**:
+  - [x] `Sidebar`: Migrated from `sidebar.css` + heavy inline styles.
+  - [x] `EdaPanel`: Migrated from `eda-panel.css` + heavy inline styles.
+  - [x] `DataTable`: Migrated from `table.css` + automated cell styling logic.
+  - [x] `AppHeader` & `RibbonToolbar`: Migrated from global styles with better layout segregation.
+  - [x] `App Shell`: Root layout moved to `App.module.css`.
+- [x] **Global CSS Cleanup**:
+  - [x] Deleted `sidebar.css`, `eda-panel.css`, `table.css`, `header.css`, `ribbon.css`.
+  - [x] Removed imports from `index.css`.
+- [x] **Logic Cleanup**:
+  - [x] Removed `getCellClass` from `helper-handlers.ts`.
+  - [x] Integrated dynamic styling directly into components using template literals and imported `styles`.
+
+**Done when**: No component-specific styles remain in the global scope.
+
+---
+
+## Current State (Phase 5 in progress)
 
 - **Typecheck**: ✅ Passes cleanly
 - **Tests**: ✅ 354/354 passing
 - **Build**: ✅ Successful production build
 - **Alpine.js**: ✅ Removed from UI layer
 - **HTML Templates**: ✅ All removed (100% TSX)
+- **Styling**: ✅ Core components migrated to CSS Modules
 
 ### Remaining Technical Debt
 
-1. **`ChumakApp` Coordination Layer**: Still substantial, but now a clean coordination layer with getter/setter proxies to stores.
-2. **Integration/E2E Tests**: Not yet implemented.
-3. **CI Pipeline**: Typecheck and test enforcement not yet added to build.
+1. **Integration/E2E Tests**: Not yet implemented.
+2. **CI Pipeline**: Typecheck and test enforcement not yet added to build.
+3. **CSS Modules Strategy (Remaining)**:
+   - [ ] **Shared UI Components**:
+     - [ ] `PaginationBar.tsx` (migrate from `pagination.css`)
+     - [ ] `DatasetInfoView.tsx` (migrate from `dataset-info.css`)
+     - [ ] `StatusBar.tsx` (migrate from `status-bar.css`)
+     - [ ] `ToastContainer.tsx` (migrate from `toast.css`)
+     - [ ] `TypeMenu.tsx` (migrate from global BEM classes)
+   - [ ] **Contextual Toolbars**:
+     - [ ] `ColumnToolbar.tsx` (currently mix of global/inline)
+     - [ ] `CellToolbar.tsx` (currently mix of global/inline)
+   - [ ] **Dialog System**:
+     - [ ] `GlobalDialogs.tsx` & `StepRemovalDialog.tsx` (migrate from `modals.css`, `dialogs.css`, `step-removal.css`)
+     - [ ] **Transform Dialog Dialogs** (Migrate from shared `modals.css`, `dialogs.css`, `forms.css`):
+       - [ ] `AggregateDialog.tsx`
+       - [ ] `ColumnEditorDialog.tsx`
+       - [ ] `DateDialog.tsx`
+       - [ ] `DeriveDialog.tsx`
+       - [ ] `FilterDialog.tsx`
+       - [ ] `ImportCsvDialog.tsx`
+       - [ ] `JoinDialog.tsx`
+       - [ ] `PivotDialog.tsx`
+       - [ ] `RegexpExtractDialog.tsx` / `RegexpMatchDialog.tsx`
+       - [ ] `SettingsDialog.tsx`
+       - [ ] `SplitDialog.tsx`
+       - [ ] `UnpivotDialog.tsx`
+   - [ ] **Global CSS Audit**: Solidify what remains in `variables.css`, `base.css`, `typography.css`, `layout.css`, `buttons.css`, and `util.css`.
 
 ---
 

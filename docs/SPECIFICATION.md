@@ -60,16 +60,15 @@ Chumak is a browser-based data wrangling tool for cleaning and transforming tabu
 
 ### 3.2 Libraries
 
-| Library       | Purpose                                             |
-| :------------ | :-------------------------------------------------- |
-| **Iconify**   | Unified vector icon framework                       |
-| **PapaParse** | High-performance CSV parsing and export             |
-| **Arquero**   | Data transformation engine (inspired by dplyr)      |
-| **jsep**      | Lightweight Javascript Expression Parser            |
-| **Alpine.js** | Legacy declarative, reactive UI framework           |
-| **Preact**    | Lightweight React-alternative for modern components |
-| **Signals**   | High-performance reactive state management          |
-| **Vega-Lite** | Grammar of Graphics for interactive visualizations  |
+| Library       | Purpose                                            |
+| :------------ | :------------------------------------------------- |
+| **Iconify**   | Unified vector icon framework                      |
+| **PapaParse** | High-performance CSV parsing and export            |
+| **Arquero**   | Data transformation engine (inspired by dplyr)     |
+| **jsep**      | Lightweight Javascript Expression Parser           |
+| **Preact**    | Lightweight framework for all UI components        |
+| **Signals**   | High-performance reactive state management         |
+| **Vega-Lite** | Grammar of Graphics for interactive visualizations |
 
 ### 3.3 Core Components
 
@@ -162,19 +161,19 @@ Each transform is one object in an array.
 
 ### 6.1 Layout & Components
 
-- **Ribbon Toolbar**: Workflow-based navigation (Prepare | Calculate | Combine)
-- **Sources Sidebar**: Integrated source management and I/O actions
-- **Unified Modal Shell**: A reusable container for all dialogs (Slide Panels and Centered Modals) migrated to Preact/TSX.
-- **Model Toolbar**: Stats summary, navigation, and consolidated downloads/copying
-- **Step Editor**: Pipeline management with edit/delete actions and JSON toggle
-- **Signal-Based Logic extraction**: UI logic and state are extracted into standalone **Stores** (`AppStore`, `DialogStore`) and **Services** to maintain codebase hygiene.
-- **Reactivity Bridge**: A proxy-based bridge allows legacy Alpine.js templates to react to signal changes.
+- **Ribbon Toolbar**: Workflow-based navigation (Prepare | Calculate | Combine).
+- **Sources Sidebar**: Integrated source management and I/O actions.
+- **Preact/TSX Components**: 100% of the UI is built using Preact components, leveraging TSX for type-safe templating.
+- **CSS Modules**: Component-level styling for encapsulation, with global variables for design tokens.
+- **Model Toolbar**: Stats summary, navigation, and consolidated downloads/copying.
+- **Step Editor**: Pipeline management with edit/delete actions and JSON toggle.
+- **Signal-Based State**: UI logic and state are centralized in standalone **Stores** (`AppStore`, `DialogStore`) and **Services**.
 
 ### 6.2 Key Patterns
 
-- **Chips-based column selection**: Standardized multi-selection UI
-- **Contextual Toolbars**: Column and cell-level actions triggered by interaction
-- **Debounced auto-preview**: Real-time feedback for most transformations
+- **Chips-based column selection**: Standardized multi-selection UI.
+- **Contextual Toolbars**: Column and cell-level actions triggered by interaction.
+- **Debounced auto-preview**: Real-time feedback for most transformations.
 
 ### 6.3 Data Visualization (Vega-Lite)
 

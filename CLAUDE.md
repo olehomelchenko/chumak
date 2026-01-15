@@ -60,8 +60,7 @@
 
 **Core Libraries**:
 
-- **Preact / Signals**: Main reactive framework for components and state
-- **Alpine.js**: Legacy UI state management (currently being phased out)
+- **Preact / Signals**: Main reactive framework for all components and state
 - **Arquero**: High-performance data transformation engine
 - **jsep**: Expression parsing for user formulas
 - **Vega-Lite**: Declarative visualization grammar
@@ -87,11 +86,12 @@
 - **Consolidated Sidebar**: All data sources and import actions are handled in the left sidebar header
 - **Action Toolbars**: Context-aware floating toolbars for columns and cells provide rapid access to frequent operations
 
-### 3. Granular Schema Management
+### 3. Component-Scoped Styling (CSS Modules)
 
-**Engine**: `SchemaEngine` distinguishes between `integer`/`float` and `date`/`datetime` for better formatting and aggregation defaults.
+**Approach**: Use CSS Modules co-located with components to ensure encapsulation and maintainability.
 
-- **Propagation**: Schema updates are computed through the entire pipeline on every change
+- **Naming**: Use camelCase for class names to match JS/TS property access.
+- **Debugging**: Configured Vite to include component names in generated class names during development.
 
 ---
 
@@ -109,25 +109,25 @@
 
 ### Application & UI (`src/`)
 
-- **[chumak-app.ts](src/chumak-app.ts)**: Legacy orchestration shell (proxies to Stores for Alpine interop)
+- **[chumak-app.ts](src/chumak-app.ts)**: Orchestration shell (coordinating Stores and Services)
 - **[app/stores/](src/app/stores/)**: Centralized signal stores (`AppStore`, `DialogStore`)
 - **[app/services/](src/app/services/)**: Standalone business logic (`ModelService`, `StepService`, `ImportService`, `ExportService`, `PersistenceService`)
-- **[app/components/](src/app/components/)**: Standardized Preact/TSX UI components
+- **[app/components/](src/app/components/)**: Standardized Preact/TSX UI components with CSS Modules
 - **[app/handlers/](src/app/handlers/)**: Refactored functional logic calling services and stores
 - **[app/transforms/](src/app/transforms/)**: Transform-specific UI logic and previews
 - **[app/types.ts](src/app/types.ts)**: Application-wide TypeScript definitions
 
-- **100% TSX**: All modal templates have been migrated to Preact components.
-- **Slide panel**: Transform modals (filter, derive, join, etc.) with unified preview panel
-- **Centered modal**: Import modals (import-csv, import-url) and settings
-- **Chips-based column selection**: Standardized Preact components for selection
-- **Reactivity Bridge**: `ChumakApp` proxies signal changes to Alpine.js via a `_rev` counter and `Proxy` objects.
+- **100% TSX**: All UI and modal templates use Preact components.
+- **Navigation**: Ribbon tabs (Prepare, Calculate, Combine) drive the top-level UI.
+- **Slide panel**: Transform modals (filter, derive, join, etc.) with unified preview panel.
+- **Centered modal**: Import modals (import-csv, import-url) and settings.
 
 ### Styles (`styles/`)
 
-- **[variables.css](styles/variables.css)**: Design tokens (colors, spacing)
-- **[index.css](styles/index.css)**: Entry point for modular PostCSS
-- **[MIGRATION-TO-ROBUST-TS.md](docs/MIGRATION-TO-ROBUST-TS.md)**: Roadmap for Preact/TSX modernization
+- **[variables.css](styles/variables.css)**: Global design tokens (colors, spacing, typography)
+- **[base.css](styles/base.css)**: Global base styles and resets
+- **[index.css](styles/index.css)**: Main entry point (imports variables, base, typography, layout)
+- **[MIGRATION-TO-ROBUST-TS.md](docs/MIGRATION-TO-ROBUST-TS.md)**: Historical roadmap for modernization efforts
 
 ---
 
@@ -136,7 +136,6 @@
 - `npm run dev`: Start Vite development server
 - `npm run build`: Type-check and build for production
 - `npm test`: Run Vitest suite (headless, interactive)
-- `npm run test -- --run`: Run Vitest suite (non-interactive)
 - `npm run format`: Format code with Prettier
 
 ---
