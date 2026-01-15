@@ -1,4 +1,5 @@
 import { AppStore } from '../stores/AppStore';
+import { DialogStore } from '../stores/DialogStore';
 import { AppHeader } from './AppHeader';
 import { RibbonToolbar } from './RibbonToolbar';
 import { Sidebar } from './Sidebar';
@@ -8,7 +9,28 @@ import { ColumnToolbar } from './ColumnToolbar';
 import { CellToolbar } from './CellToolbar';
 import { GlobalUI } from './GlobalUI';
 import { TypeMenu } from './TypeMenu';
-import { LegacyContainer } from './LegacyContainer';
+import {
+  SortDialog,
+  IndexDialog,
+  ReplaceDialog,
+  SliceRowsDialog,
+  UnpivotDialog,
+  FilterDialog,
+  PivotDialog,
+  DateDialog,
+  SplitDialog,
+  DeriveDialog,
+  JoinDialog,
+  AggregateDialog,
+  ImportCsvDialog,
+  ImportUrlDialog,
+  DownloadDialog,
+  SettingsDialog,
+  ColumnEditorDialog,
+  RegexpMatchDialog,
+  RegexpExtractDialog,
+  DedupeDialog,
+} from './index';
 // Import handlers for helpers
 import {
   getDialogTitle,
@@ -259,52 +281,133 @@ export function App({ app }: AppProps) {
                 style={{ flex: 1, overflowY: 'auto', padding: '16px' }}
               >
                 <div style={{ display: activeDialog === 'filter' ? 'block' : 'none' }}>
-                  <LegacyContainer id="filter-modal-container" />
+                  <FilterDialog
+                    expression={DialogStore.filterState.expression}
+                    error={DialogStore.filterState.error}
+                    previewMode={DialogStore.filterState.previewMode}
+                    onOpenReference={() => app.openDialog('expressions')}
+                    onValidate={() => app.debouncedUpdateFilterPreview()}
+                  />
                 </div>
                 <div style={{ display: activeDialog === 'derive' ? 'block' : 'none' }}>
-                  <LegacyContainer id="derive-modal-container" />
+                  <DeriveDialog
+                    columnName={DialogStore.deriveState.columnName}
+                    expression={DialogStore.deriveState.expression}
+                    error={DialogStore.deriveState.error}
+                    onOpenReference={() => app.openDialog('expressions')}
+                    onValidate={() => app.debouncedUpdateDerivePreview()}
+                  />
                 </div>
                 <div style={{ display: activeDialog === 'regexpMatch' ? 'block' : 'none' }}>
-                  <LegacyContainer id="regexp-match-modal-container" />
+                  <RegexpMatchDialog />
                 </div>
                 <div style={{ display: activeDialog === 'regexpExtract' ? 'block' : 'none' }}>
-                  <LegacyContainer id="regexp-extract-modal-container" />
+                  <RegexpExtractDialog />
                 </div>
                 <div style={{ display: activeDialog === 'date' ? 'block' : 'none' }}>
-                  <LegacyContainer id="date-modal-container" />
+                  <DateDialog
+                    dateColumns={app.getDateColumns()}
+                    column={DialogStore.dateState.column}
+                    operation={DialogStore.dateState.operation}
+                    extractParts={DialogStore.dateState.extractParts}
+                    truncateUnits={DialogStore.dateState.truncateUnits}
+                    outputColumn={DialogStore.dateState.outputColumn}
+                    error={DialogStore.dateState.error}
+                    onValidate={() => app.updateDatePreview()}
+                  />
                 </div>
                 <div style={{ display: activeDialog === 'dedupe' ? 'block' : 'none' }}>
-                  <LegacyContainer id="dedupe-modal-container" />
+                  <DedupeDialog />
                 </div>
                 <div style={{ display: activeDialog === 'sort' ? 'block' : 'none' }}>
-                  <LegacyContainer id="sort-modal-container" />
+                  <SortDialog
+                    columns={app.columns}
+                    field={DialogStore.sortState.field}
+                    order={DialogStore.sortState.order}
+                  />
                 </div>
                 <div style={{ display: activeDialog === 'sliceRows' ? 'block' : 'none' }}>
-                  <LegacyContainer id="slice-rows-modal-container" />
+                  <SliceRowsDialog
+                    count={DialogStore.sliceRowsState.count}
+                    mode={DialogStore.sliceRowsState.mode}
+                    rowCount={app.currentData?.length || 0}
+                  />
                 </div>
                 <div style={{ display: activeDialog === 'index' ? 'block' : 'none' }}>
-                  <LegacyContainer id="index-modal-container" />
+                  <IndexDialog
+                    columnName={DialogStore.indexState.columnName}
+                    startFrom={DialogStore.indexState.startFrom}
+                    rowCount={app.currentData?.length || 0}
+                  />
                 </div>
                 <div style={{ display: activeDialog === 'fold' ? 'block' : 'none' }}>
-                  <LegacyContainer id="unpivot-modal-container" />
+                  <UnpivotDialog
+                    columns={app.columns}
+                    keyName={DialogStore.foldState.keyName}
+                    valueName={DialogStore.foldState.valueName}
+                    mode={DialogStore.foldState.mode}
+                    selectedColumns={DialogStore.foldState.selectedColumns}
+                  />
                 </div>
                 <div style={{ display: activeDialog === 'pivot' ? 'block' : 'none' }}>
-                  <LegacyContainer id="pivot-modal-container" />
+                  <PivotDialog
+                    columns={app.columns}
+                    rowColumns={DialogStore.pivotState.rowColumns}
+                    columnColumn={DialogStore.pivotState.columnColumn}
+                    valueColumn={DialogStore.pivotState.valueColumn}
+                    aggregation={DialogStore.pivotState.aggregation}
+                    uniqueValueCount={DialogStore.pivotState.uniqueValueCount}
+                    options={DialogStore.pivotState.options}
+                    isPreviewing={DialogStore.pivotState.isPreviewing}
+                    onPreview={() => app.previewPivot()}
+                  />
                 </div>
                 <div style={{ display: activeDialog === 'replace' ? 'block' : 'none' }}>
-                  <LegacyContainer id="replace-modal-container" />
+                  <ReplaceDialog
+                    columns={app.columns}
+                    column={DialogStore.replaceState.column}
+                    findValue={DialogStore.replaceState.findValue}
+                    replaceValue={DialogStore.replaceState.replaceValue}
+                  />
                 </div>
                 <div style={{ display: activeDialog === 'split' ? 'block' : 'none' }}>
-                  <LegacyContainer id="split-modal-container" />
+                  <SplitDialog
+                    columns={app.columns}
+                    column={DialogStore.splitState.column}
+                    delimiter={DialogStore.splitState.delimiter}
+                    autoDetectedDelimiter={DialogStore.splitState.autoDetectedDelimiter}
+                    isRegex={DialogStore.splitState.isRegex}
+                    mode={DialogStore.splitState.mode}
+                    maxColumns={DialogStore.splitState.maxColumns}
+                    keepOriginal={DialogStore.splitState.keepOriginal}
+                    error={DialogStore.splitState.error}
+                    onPreview={() => app.updateSplitPreview()}
+                    onDetect={(col: string) => {
+                      const detected = app.detectDelimiter(col);
+                      if (detected) {
+                        DialogStore.splitState.delimiter.value = detected.char;
+                        DialogStore.splitState.isRegex.value = detected.isRegex;
+                        DialogStore.splitState.autoDetectedDelimiter.value = detected.name;
+                      } else {
+                        DialogStore.splitState.autoDetectedDelimiter.value = null;
+                      }
+                    }}
+                  />
                 </div>
                 <div style={{ display: activeDialog === 'join' ? 'block' : 'none' }}>
-                  <LegacyContainer id="join-modal-container" />
+                  <JoinDialog />
                 </div>
                 <div style={{ display: activeDialog === 'aggregate' ? 'block' : 'none' }}>
-                  <LegacyContainer id="aggregate-modal-container" />
+                  <AggregateDialog
+                    columns={app.columns}
+                    groupBy={DialogStore.aggregateState.groupBy}
+                    aggregations={DialogStore.aggregateState.aggregations}
+                    isPreviewing={DialogStore.aggregateState.isPreviewing}
+                    onPreview={() => app.previewAggregate()}
+                  />
                 </div>
                 <div style={{ display: activeDialog === 'column-editor' ? 'block' : 'none' }}>
-                  <LegacyContainer id="column-editor-modal-container" />
+                  <ColumnEditorDialog />
                 </div>
               </div>
             </div>
@@ -443,16 +546,16 @@ export function App({ app }: AppProps) {
             </div>
             <div class="centered-modal__content" style={{ padding: '24px', overflowY: 'auto' }}>
               <div style={{ display: activeDialog === 'import-csv' ? 'block' : 'none' }}>
-                <LegacyContainer id="import-csv-modal-container" />
+                <ImportCsvDialog />
               </div>
               <div style={{ display: activeDialog === 'import-url' ? 'block' : 'none' }}>
-                <LegacyContainer id="import-url-modal-container" />
+                <ImportUrlDialog onImport={() => app.fetchAndImportFromUrl()} />
               </div>
               <div style={{ display: activeDialog === 'settings' ? 'block' : 'none' }}>
-                <LegacyContainer id="settings-modal-container" />
+                <SettingsDialog />
               </div>
               <div style={{ display: activeDialog === 'download' ? 'block' : 'none' }}>
-                <LegacyContainer id="download-modal-container" />
+                <DownloadDialog />
               </div>
 
               {activeDialog === 'about' && (

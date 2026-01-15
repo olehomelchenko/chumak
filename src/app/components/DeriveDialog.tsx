@@ -1,4 +1,4 @@
-import { Signal } from '@preact/signals';
+import { Signal, useSignalEffect } from '@preact/signals';
 import { JSX } from 'preact';
 
 export interface DeriveDialogProps {
@@ -6,6 +6,7 @@ export interface DeriveDialogProps {
   expression: Signal<string>;
   error: Signal<string | null>;
   onOpenReference: () => void;
+  onValidate?: () => void;
 }
 
 export function DeriveDialog({
@@ -13,7 +14,13 @@ export function DeriveDialog({
   expression,
   error,
   onOpenReference,
+  onValidate,
 }: DeriveDialogProps) {
+  useSignalEffect(() => {
+    void columnName.value;
+    void expression.value;
+    if (onValidate) onValidate();
+  });
   const handleColumnNameInput = (e: JSX.TargetedEvent<HTMLInputElement>) => {
     columnName.value = e.currentTarget.value;
   };

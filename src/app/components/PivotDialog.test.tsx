@@ -11,13 +11,12 @@ describe('PivotDialog', () => {
   const testColumns = ['Year', 'Region', 'Sales', 'Category'];
 
   it('renders with default values', () => {
-    const rowColumns = signal([]);
+    const rowColumns = signal<string[]>([]);
     const columnColumn = signal('');
     const valueColumn = signal('');
     const aggregation = signal<PivotAggregation>('sum');
     const uniqueValueCount = signal(0);
-    const sort = signal(true);
-    const limit = signal(null);
+    const options = signal({ sort: true, limit: null as number | null });
     const isPreviewing = signal(false);
     const onPreview = vi.fn();
 
@@ -29,8 +28,7 @@ describe('PivotDialog', () => {
         valueColumn={valueColumn}
         aggregation={aggregation}
         uniqueValueCount={uniqueValueCount}
-        sort={sort}
-        limit={limit}
+        options={options}
         isPreviewing={isPreviewing}
         onPreview={onPreview}
       />
@@ -43,13 +41,12 @@ describe('PivotDialog', () => {
   });
 
   it('toggles row column selection', () => {
-    const rowColumns = signal([]);
+    const rowColumns = signal<string[]>([]);
     const columnColumn = signal('');
     const valueColumn = signal('');
     const aggregation = signal<PivotAggregation>('sum');
     const uniqueValueCount = signal(0);
-    const sort = signal(true);
-    const limit = signal(null);
+    const options = signal({ sort: true, limit: null as number | null });
     const isPreviewing = signal(false);
     const onPreview = vi.fn();
 
@@ -61,8 +58,7 @@ describe('PivotDialog', () => {
         valueColumn={valueColumn}
         aggregation={aggregation}
         uniqueValueCount={uniqueValueCount}
-        sort={sort}
-        limit={limit}
+        options={options}
         isPreviewing={isPreviewing}
         onPreview={onPreview}
       />
@@ -81,13 +77,12 @@ describe('PivotDialog', () => {
   });
 
   it('updates column options', () => {
-    const rowColumns = signal([]);
+    const rowColumns = signal<string[]>([]);
     const columnColumn = signal('');
     const valueColumn = signal('');
     const aggregation = signal<PivotAggregation>('sum');
     const uniqueValueCount = signal(0);
-    const sort = signal(true);
-    const limit = signal(null);
+    const options = signal({ sort: true, limit: null as number | null });
     const isPreviewing = signal(false);
     const onPreview = vi.fn();
 
@@ -99,8 +94,7 @@ describe('PivotDialog', () => {
         valueColumn={valueColumn}
         aggregation={aggregation}
         uniqueValueCount={uniqueValueCount}
-        sort={sort}
-        limit={limit}
+        options={options}
         isPreviewing={isPreviewing}
         onPreview={onPreview}
       />
@@ -119,13 +113,12 @@ describe('PivotDialog', () => {
   });
 
   it('shows summary when configured', () => {
-    const rowColumns = signal(['Year']);
+    const rowColumns = signal<string[]>(['Year']);
     const columnColumn = signal('Region');
     const valueColumn = signal('Sales');
     const aggregation = signal<PivotAggregation>('sum');
     const uniqueValueCount = signal(5);
-    const sort = signal(true);
-    const limit = signal(null);
+    const options = signal({ sort: true, limit: null as number | null });
     const isPreviewing = signal(false);
     const onPreview = vi.fn();
 
@@ -137,8 +130,7 @@ describe('PivotDialog', () => {
         valueColumn={valueColumn}
         aggregation={aggregation}
         uniqueValueCount={uniqueValueCount}
-        sort={sort}
-        limit={limit}
+        options={options}
         isPreviewing={isPreviewing}
         onPreview={onPreview}
       />
@@ -153,13 +145,12 @@ describe('PivotDialog', () => {
   });
 
   it('calls onPreview when clicked', () => {
-    const rowColumns = signal(['Year']);
+    const rowColumns = signal<string[]>(['Year']);
     const columnColumn = signal('Region');
     const valueColumn = signal('Sales');
     const aggregation = signal<PivotAggregation>('sum');
     const uniqueValueCount = signal(5);
-    const sort = signal(true);
-    const limit = signal(null);
+    const options = signal({ sort: true, limit: null as number | null });
     const isPreviewing = signal(false);
     const onPreview = vi.fn();
 
@@ -171,8 +162,7 @@ describe('PivotDialog', () => {
         valueColumn={valueColumn}
         aggregation={aggregation}
         uniqueValueCount={uniqueValueCount}
-        sort={sort}
-        limit={limit}
+        options={options}
         isPreviewing={isPreviewing}
         onPreview={onPreview}
       />

@@ -2,7 +2,7 @@
  * SplitDialog - Preact component for splitting columns
  */
 
-import { Signal } from '@preact/signals';
+import { Signal, useSignalEffect } from '@preact/signals';
 
 export type SplitMode = 'spread' | 'left' | 'right' | 'firstN' | 'lastN';
 
@@ -16,6 +16,8 @@ export interface SplitDialogProps {
   maxColumns: Signal<number>;
   keepOriginal: Signal<boolean>;
   error: Signal<string | null>;
+  onPreview?: () => void;
+  onDetect?: (col: string) => void;
 }
 
 export function SplitDialog({
@@ -28,7 +30,25 @@ export function SplitDialog({
   maxColumns,
   keepOriginal,
   error,
+  onPreview,
+  onDetect,
 }: SplitDialogProps) {
+  useSignalEffect(() => {
+    // Detect delimiter when column changes
+    const col = column.value;
+    if (onDetect) onDetect(col);
+  });
+
+  useSignalEffect(() => {
+    // Trigger preview when params change
+    void column.value;
+    void delimiter.value;
+    void isRegex.value;
+    void mode.value;
+    void maxColumns.value;
+    void keepOriginal.value;
+    if (onPreview) onPreview();
+  });
   const setPreset = (val: string, regex: boolean) => {
     delimiter.value = val;
     isRegex.value = regex;

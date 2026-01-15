@@ -1,36 +1,32 @@
 import { render, screen, fireEvent } from '@testing-library/preact';
-import { signal } from '@preact/signals';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ImportCsvDialog } from './ImportCsvDialog';
+import { DialogStore } from '../stores/DialogStore';
 
 describe('ImportCsvDialog', () => {
-  const createProps = () => ({
-    sourceName: signal('test_source'),
-    isJson: signal(false),
-    jsonPath: signal(''),
-    jsonRawValuePreview: signal(''),
-    suggestedJsonKeys: signal<string[]>([]),
-    flattenJson: signal(false),
-    serializeNested: signal(false),
-    jsonData: signal<any>(null),
-    delimiter: signal(','),
-    headerMode: signal<'first-row' | 'auto-generate' | 'manual'>('first-row'),
-    customHeaders: signal<string[]>([]),
-    duplicateWarning: signal(''),
-    previewHeaders: signal<string[]>(['col1', 'col2']),
-    previewDataRows: signal<any[][]>([
+  beforeEach(() => {
+    // Reset store state before each test
+    DialogStore.importCsvState.sourceName.value = 'test_source';
+    DialogStore.importCsvState.isJson.value = false;
+    DialogStore.importCsvState.jsonPath.value = '';
+    DialogStore.importCsvState.jsonRawValuePreview.value = '';
+    DialogStore.importCsvState.suggestedJsonKeys.value = [];
+    DialogStore.importCsvState.flattenJson.value = false;
+    DialogStore.importCsvState.serializeNested.value = false;
+    DialogStore.importCsvState.jsonData.value = null;
+    DialogStore.importCsvState.delimiter.value = ',';
+    DialogStore.importCsvState.headerMode.value = 'first-row';
+    DialogStore.importCsvState.customHeaders.value = [];
+    DialogStore.importCsvState.duplicateWarning.value = '';
+    DialogStore.importCsvState.previewHeaders.value = ['col1', 'col2'];
+    DialogStore.importCsvState.previewDataRows.value = [
       ['a', 'b'],
       ['c', 'd'],
-    ]),
-    onJsonPathUpdate: vi.fn(),
-    onJsonPathReset: vi.fn(),
-    onJsonPathSegmentSelect: vi.fn(),
-    onParamChange: vi.fn(),
+    ];
   });
 
   it('renders CSV mode correctly', () => {
-    const props = createProps();
-    render(<ImportCsvDialog {...props} />);
+    render(<ImportCsvDialog />);
 
     expect(screen.getByText('Source Name:')).toBeDefined();
     expect(screen.getByDisplayValue('test_source')).toBeDefined();
@@ -42,13 +38,12 @@ describe('ImportCsvDialog', () => {
   });
 
   it('renders JSON mode correctly', () => {
-    const props = createProps();
-    props.isJson.value = true;
-    props.jsonPath.value = 'data.items';
-    props.suggestedJsonKeys.value = ['key1'];
-    props.jsonData.value = [{}]; // Valid data
+    DialogStore.importCsvState.isJson.value = true;
+    DialogStore.importCsvState.jsonPath.value = 'data.items';
+    DialogStore.importCsvState.suggestedJsonKeys.value = ['key1'];
+    DialogStore.importCsvState.jsonData.value = [{}]; // Valid data
 
-    render(<ImportCsvDialog {...props} />);
+    render(<ImportCsvDialog />);
 
     expect(screen.getByText('Data Path (dot notation):')).toBeDefined();
     expect(screen.getByDisplayValue('data.items')).toBeDefined();
@@ -57,69 +52,62 @@ describe('ImportCsvDialog', () => {
   });
 
   it('handles interaction in CSV mode', () => {
-    const props = createProps();
-    render(<ImportCsvDialog {...props} />);
+    const onParamChange = vi.fn();
+    render(<ImportCsvDialog onParamChange={onParamChange} />);
 
     // Change delimiter
     fireEvent.click(screen.getByLabelText('Tab'));
-    expect(props.delimiter.value).toBe('\t');
-    expect(props.onParamChange).toHaveBeenCalled();
+    expect(DialogStore.importCsvState.delimiter.value).toBe('\t');
+    expect(onParamChange).toHaveBeenCalled();
 
     // Change header mode
     fireEvent.click(screen.getByLabelText('Specify manually'));
-    expect(props.headerMode.value).toBe('manual');
-    expect(props.onParamChange).toHaveBeenCalled();
+    expect(DialogStore.importCsvState.headerMode.value).toBe('manual');
+    expect(onParamChange).toHaveBeenCalled();
   });
 
   it('handles manual headers input', () => {
-    const props = createProps();
-    props.headerMode.value = 'manual';
-    props.customHeaders.value = ['Header1', 'Header2'];
-    render(<ImportCsvDialog {...props} />);
+    DialogStore.importCsvState.headerMode.value = 'manual';
+    DialogStore.importCsvState.customHeaders.value = ['Header1', 'Header2'];
+    const onParamChange = vi.fn();
+    render(<ImportCsvDialog onParamChange={onParamChange} />);
 
     const inputs = screen.getAllByPlaceholderText(/Column \d+/);
     expect(inputs.length).toBe(2);
 
     fireEvent.input(inputs[0], { target: { value: 'NewHeader1' } });
-    expect(props.customHeaders.value[0]).toBe('NewHeader1');
-    expect(props.onParamChange).toHaveBeenCalled();
+    expect(DialogStore.importCsvState.customHeaders.value[0]).toBe('NewHeader1');
+    expect(onParamChange).toHaveBeenCalled();
   });
 
   it('handles JSON path updates', async () => {
-    const props = createProps();
-    props.isJson.value = true;
-    render(<ImportCsvDialog {...props} />);
+    DialogStore.importCsvState.isJson.value = true;
+    const onJsonPathUpdate = vi.fn();
+    const onJsonPathReset = vi.fn();
+    const onJsonPathSegmentSelect = vi.fn();
+
+    render(
+      <ImportCsvDialog
+        onJsonPathUpdate={onJsonPathUpdate}
+        onJsonPathReset={onJsonPathReset}
+        onJsonPathSegmentSelect={onJsonPathSegmentSelect}
+      />
+    );
 
     const pathInput = screen.getByPlaceholderText('e.g., results or data.items');
     fireEvent.input(pathInput, { target: { value: 'new.path' } });
-    expect(props.jsonPath.value).toBe('new.path');
-    expect(props.onJsonPathUpdate).toHaveBeenCalledWith('new.path');
+    expect(DialogStore.importCsvState.jsonPath.value).toBe('new.path');
+    expect(onJsonPathUpdate).toHaveBeenCalledWith('new.path');
 
     // Reset button
-    props.jsonPath.value = 'something';
-    // Signals trigger update, no need to re-render
+    DialogStore.importCsvState.jsonPath.value = 'something';
     fireEvent.click(screen.getByText('Reset'));
-    expect(props.onJsonPathReset).toHaveBeenCalled();
+    expect(onJsonPathReset).toHaveBeenCalled();
 
     // Segment select
-    props.suggestedJsonKeys.value = ['segment'];
-    // Need to wait for Preact to update DOM? Preact signals are usually synchronous or microtask.
-    // Testing library usually waits. But if 'segment' was not there, we might need waitFor.
-    // However, signals + Preact usually works fine.
-    // If suggestedJsonKeys is used in map:
-    // {suggestedJsonKeys.value.map(...)}
-    // It should update.
-
-    // Let's use findByText to be safe/async if needed, or just getByText if sync.
-    // But importantly, do NOT call render() again.
-
-    // Actually, for the list to update, Preact needs to re-render the component or the list part.
-    // Signal change triggers it.
-
-    // The previous error was caused by multiple renders appending to body.
-
+    DialogStore.importCsvState.suggestedJsonKeys.value = ['segment'];
     await screen.findByText('segment');
     fireEvent.click(screen.getByText('segment'));
-    expect(props.onJsonPathSegmentSelect).toHaveBeenCalledWith('segment');
+    expect(onJsonPathSegmentSelect).toHaveBeenCalledWith('segment');
   });
 });

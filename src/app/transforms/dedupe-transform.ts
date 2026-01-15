@@ -1,37 +1,40 @@
 import type { ChumakApp } from '../../chumak-app';
 import { DialogStore } from '../stores/DialogStore';
+import { AppStore } from '../stores/AppStore';
 
-export function toggleDedupeAllColumns(this: ChumakApp, useAll: boolean) {
-  this.dedupeDialogState.useAllColumns = useAll;
+export function toggleDedupeAllColumns(useAll: boolean) {
+  DialogStore.dedupeState.useAllColumns.value = useAll;
   if (useAll) {
-    this.dedupeDialogState.selectedColumns = this.columns.map(() => true);
+    DialogStore.dedupeState.selectedColumns.value = AppStore.columns.value.map(() => true);
   }
-  this.updateDedupePreview();
+  updateDedupePreview();
 }
 
-export function toggleDedupeColumn(this: ChumakApp, index: number) {
-  this.dedupeDialogState.selectedColumns[index] = !this.dedupeDialogState.selectedColumns[index];
-  this.updateDedupePreview();
+export function toggleDedupeColumn(index: number) {
+  const selected = [...DialogStore.dedupeState.selectedColumns.value];
+  selected[index] = !selected[index];
+  DialogStore.dedupeState.selectedColumns.value = selected;
+  updateDedupePreview();
 }
 
-export function selectAllForDedupe(this: ChumakApp) {
-  this.dedupeDialogState.selectedColumns = this.columns.map(() => true);
-  this.updateDedupePreview();
+export function selectAllForDedupe() {
+  DialogStore.dedupeState.selectedColumns.value = AppStore.columns.value.map(() => true);
+  updateDedupePreview();
 }
 
-export function selectNoneForDedupe(this: ChumakApp) {
-  this.dedupeDialogState.selectedColumns = this.columns.map(() => false);
-  this.updateDedupePreview();
+export function selectNoneForDedupe() {
+  DialogStore.dedupeState.selectedColumns.value = AppStore.columns.value.map(() => false);
+  updateDedupePreview();
 }
 
-export function getDedupeColumns(this: ChumakApp): string[] {
-  if (this.dedupeDialogState.useAllColumns) {
+export function getDedupeColumns(): string[] {
+  if (DialogStore.dedupeState.useAllColumns.value) {
     return [];
   }
-  return this.columns.filter((_, i) => this.dedupeDialogState.selectedColumns[i]);
+  return AppStore.columns.value.filter((_, i) => DialogStore.dedupeState.selectedColumns.value[i]);
 }
 
-export function findDuplicateRows(this: ChumakApp, data: any[], columns: string[]): Set<number> {
+export function findDuplicateRows(data: any[], columns: string[]): Set<number> {
   const seen = new Map<string, number>();
   const duplicates = new Set<number>();
   const keys = columns.length > 0 ? columns : Object.keys(data[0] || {});
@@ -53,17 +56,19 @@ export function findDuplicateRows(this: ChumakApp, data: any[], columns: string[
   return duplicates;
 }
 
-export function updateDedupePreview(this: ChumakApp) {
-  if (!this.currentData || this.currentData.length === 0) {
-    this.dedupeDialogState.duplicateCount = 0;
-    this.clearPreview();
+export function updateDedupePreview() {
+  const currentData = AppStore.currentData.value;
+  if (!currentData || currentData.length === 0) {
+    DialogStore.dedupeState.duplicateCount.value = 0;
+    // Clear preview
+    DialogStore.previewState.rows.value = [];
     return;
   }
 
-  const { mode } = this.dedupeDialogState;
-  const columns = this.getDedupeColumns();
-  const duplicates = this.findDuplicateRows(this.currentData, columns);
-  this.dedupeDialogState.duplicateCount = duplicates.size;
+  const { mode } = DialogStore.dedupeState;
+  const columns = getDedupeColumns();
+  const duplicates = findDuplicateRows(currentData, columns);
+  DialogStore.dedupeState.duplicateCount.value = duplicates.size;
 
   const colInfo =
     columns.length === 0
@@ -74,14 +79,14 @@ export function updateDedupePreview(this: ChumakApp) {
 
   // Show first few duplicates in preview
   const duplicateIndices = Array.from(duplicates).slice(0, 5);
-  const previewRows = duplicateIndices.map((i) => this.currentData![i]);
+  const previewRows = duplicateIndices.map((i) => currentData[i]);
 
   let statsText: string;
   if (duplicates.size === 0) {
     statsText = `No duplicates found by ${colInfo}`;
-  } else if (mode === 'keep') {
+  } else if (mode.value === 'keep') {
     // For 'keep' mode, show how many duplicate rows will be kept
-    const totalDuplicateRows = this.findAllDuplicateRowCount(this.currentData, columns);
+    const totalDuplicateRows = findAllDuplicateRowCount(currentData, columns);
     statsText = `${totalDuplicateRows} row${totalDuplicateRows !== 1 ? 's' : ''} are duplicates (will keep)`;
   } else {
     // For 'remove' mode, show how many will be removed
@@ -89,14 +94,15 @@ export function updateDedupePreview(this: ChumakApp) {
   }
 
   DialogStore.previewState.title.value =
-    mode === 'keep' ? 'Keep Duplicates Preview' : 'Remove Duplicates Preview';
+    mode.value === 'keep' ? 'Keep Duplicates Preview' : 'Remove Duplicates Preview';
   DialogStore.previewState.stats.value = statsText;
-  DialogStore.previewState.columns.value = columns.length > 0 ? columns : this.columns.slice(0, 5);
+  DialogStore.previewState.columns.value =
+    columns.length > 0 ? columns : AppStore.columns.value.slice(0, 5);
   DialogStore.previewState.newColumns.value = [];
   DialogStore.previewState.rows.value = previewRows;
 }
 
-export function findAllDuplicateRowCount(this: ChumakApp, data: any[], columns: string[]): number {
+export function findAllDuplicateRowCount(data: any[], columns: string[]): number {
   const seen = new Map<string, number[]>();
   const keys = columns.length > 0 ? columns : Object.keys(data[0] || {});
 
@@ -123,8 +129,8 @@ export function findAllDuplicateRowCount(this: ChumakApp, data: any[], columns: 
 }
 
 export async function applyDedupeTransform(this: ChumakApp) {
-  const { mode } = this.dedupeDialogState;
-  const columns = this.getDedupeColumns();
-  const opName = mode === 'keep' ? 'Keep Duplicates' : 'Remove Duplicates';
-  await this.runTransform(opName, { dedupe: { columns, mode } });
+  const { mode } = DialogStore.dedupeState;
+  const columns = getDedupeColumns();
+  const opName = mode.value === 'keep' ? 'Keep Duplicates' : 'Remove Duplicates';
+  await this.runTransform(opName, { dedupe: { columns, mode: mode.value } });
 }

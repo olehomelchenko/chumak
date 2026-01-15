@@ -895,12 +895,7 @@ export class ChumakApp implements AppState {
   }
 
   // Model & Source handlers
-  getTemplateConfigs() {
-    return ModelService.getTemplateConfigs();
-  }
-  loadTemplates() {
-    return ModelService.loadTemplates(() => this.getTemplateConfigs());
-  }
+
   switchToSource(source: Source) {
     return ModelService.switchToSource(source, () => this.clearColumnSelection());
   }
@@ -1522,8 +1517,9 @@ export class ChumakApp implements AppState {
     });
 
     window.addEventListener('paste', (e) => this.handlePaste(e));
+    window.addEventListener('click', (e) => this.handleBodyClick(e));
 
-    await this.loadTemplates();
+    // await this.loadTemplates(); // Templates are gone
   }
 
   syncUrlState() {

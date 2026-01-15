@@ -2,7 +2,7 @@
  * FilterDialog - Preact component for filtering rows
  */
 
-import { Signal } from '@preact/signals';
+import { Signal, useSignalEffect } from '@preact/signals';
 
 export type FilterPreviewMode = 'all' | 'matching';
 
@@ -11,6 +11,7 @@ export interface FilterDialogProps {
   error: Signal<string | null>;
   previewMode: Signal<FilterPreviewMode>;
   onOpenReference: () => void;
+  onValidate?: () => void;
 }
 
 export function FilterDialog({
@@ -18,7 +19,14 @@ export function FilterDialog({
   error,
   previewMode,
   onOpenReference,
+  onValidate,
 }: FilterDialogProps) {
+  useSignalEffect(() => {
+    // Subscribe to changes
+    void expression.value;
+    void previewMode.value;
+    if (onValidate) onValidate();
+  });
   return (
     <div class="dialog-content">
       <label class="form-label">Keep rows where:</label>

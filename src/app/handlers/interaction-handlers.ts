@@ -7,7 +7,8 @@ export function handleBodyClick(this: ChumakApp, event: any) {
     this.selectedColumn &&
     !event.target.closest('.data-table__header') &&
     !event.target.closest('.floating-toolbar') &&
-    !event.target.closest('.modal')
+    !event.target.closest('.slide-panel') &&
+    !event.target.closest('.centered-modal')
   ) {
     this.selectedColumn = null;
   }

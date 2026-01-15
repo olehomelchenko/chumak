@@ -2,7 +2,7 @@
  * DateDialog - Preact component for date extraction and truncation
  */
 
-import { Signal, useComputed } from '@preact/signals';
+import { Signal, useComputed, useSignalEffect } from '@preact/signals';
 
 export type DateOperation = 'extract' | 'truncate';
 
@@ -14,6 +14,7 @@ export interface DateDialogProps {
   truncateUnits: Signal<string[]>;
   outputColumn: Signal<string>;
   error: Signal<string | null>;
+  onValidate?: () => void;
 }
 
 const EXTRACT_OPTIONS = [
@@ -47,7 +48,16 @@ export function DateDialog({
   truncateUnits,
   outputColumn,
   error,
+  onValidate,
 }: DateDialogProps) {
+  useSignalEffect(() => {
+    void column.value;
+    void operation.value;
+    void extractParts.value;
+    void truncateUnits.value;
+    void outputColumn.value; // Maybe update on output name change?
+    if (onValidate) onValidate();
+  });
   const handleSelection = (value: string, currentSelection: Signal<string[]>, metaKey: boolean) => {
     const current = [...currentSelection.value];
     if (metaKey) {

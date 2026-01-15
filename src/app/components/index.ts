@@ -5,7 +5,8 @@
  */
 
 // Bridge utilities for Alpine ↔ Preact communication
-export { mountComponent, unmountComponent, createMounter } from './PreactBridge';
+// Bridge utilities - DEPRECATED/REMOVED
+// export { mountComponent, unmountComponent, createMounter } from './PreactBridge';
 
 // Dialog components
 export { SortDialog } from './SortDialog';
@@ -56,6 +57,12 @@ export type {
 
 export { SettingsDialog } from './SettingsDialog';
 export type { SettingsDialogProps } from './SettingsDialog';
+
+export { RegexpMatchDialog } from './RegexpMatchDialog';
+export { RegexpExtractDialog } from './RegexpExtractDialog';
+export { DedupeDialog } from './DedupeDialog';
+export { ImportUrlDialog } from './ImportUrlDialog';
+export { DownloadDialog } from './DownloadDialog';
 
 // Layout components
 export { RibbonToolbar } from './RibbonToolbar';

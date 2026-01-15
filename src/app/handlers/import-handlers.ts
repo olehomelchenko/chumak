@@ -1,6 +1,7 @@
 import type { ChumakApp } from '../../chumak-app';
 import type { DataRow } from '../types';
 import Papa from 'papaparse';
+import { DialogStore } from '../stores/DialogStore';
 
 export function handleFileSelect(this: ChumakApp, event: Event) {
   const target = event.target as HTMLInputElement;
@@ -276,17 +277,19 @@ export function showImportUrlDialog(this: ChumakApp) {
 }
 
 export async function fetchAndImportFromUrl(this: ChumakApp) {
-  const { url } = this.importUrlDialogState;
-  if (!url || url.trim() === '') {
-    this.importUrlDialogState.error = 'Please enter a valid URL';
+  const { url } = DialogStore.importUrlState;
+  const currentUrl = url.value;
+
+  if (!currentUrl || currentUrl.trim() === '') {
+    DialogStore.importUrlState.error.value = 'Please enter a valid URL';
     return;
   }
 
-  this.importUrlDialogState.isFetching = true;
-  this.importUrlDialogState.error = null;
+  DialogStore.importUrlState.isFetching.value = true;
+  DialogStore.importUrlState.error.value = null;
 
   try {
-    const response = await fetch(url);
+    const response = await fetch(currentUrl);
     if (!response.ok) {
       throw new Error(`Failed to fetch data: ${response.status} ${response.statusText}`);
     }
@@ -299,7 +302,7 @@ export async function fetchAndImportFromUrl(this: ChumakApp) {
     // Extract filename from URL or use a default
     let fileName = 'Imported Data.csv';
     try {
-      const urlObj = new URL(url);
+      const urlObj = new URL(currentUrl);
       const pathParts = urlObj.pathname.split('/');
       const lastPart = pathParts[pathParts.length - 1];
       if (lastPart) {
@@ -319,14 +322,24 @@ export async function fetchAndImportFromUrl(this: ChumakApp) {
 
     const file = new File([text], fileName, { type: 'text/csv' });
 
-    // Close URL dialog and show the standard import dialog with the fetched data
-    this.closeDialog(true);
+    // Close URL dialog and show the standard import dialog
+    this.closeDialog(true); // Close current (force close without unsaved changes prompt)
+
+    // We need to call showImportDialog.
+    // Since we are in the same module, we can call it if we make it standalone too?
+    // Or we can import usage from the class context if we weren't removing `this`.
+    // But showImportDialog is currently `export function showImportDialog(this: ChumakApp...`
+    // We need to decouple showImportDialog as well.
+    // For now, let's assume showImportDialog is refactored below or we call a refactored version.
+
+    // Calling the standalone version (assuming we refactor it next)
     this.showImportDialog(file);
   } catch (error: any) {
     console.error('URL import error:', error);
-    this.importUrlDialogState.error = error.message || 'An error occurred while fetching data';
+    DialogStore.importUrlState.error.value =
+      error.message || 'An error occurred while fetching data';
   } finally {
-    this.importUrlDialogState.isFetching = false;
+    DialogStore.importUrlState.isFetching.value = false;
   }
 }
 

@@ -1,4 +1,6 @@
-import { Signal } from '@preact/signals';
+import { DialogStore } from '../stores/DialogStore';
+import { AppStore } from '../stores/AppStore';
+import { useComputed } from '@preact/signals';
 
 export interface ColumnEditorItem {
   original: string;
@@ -13,48 +15,49 @@ export interface ColumnEditorChanges {
   hasChanges: boolean;
 }
 
+// Props interface kept for reference/testing
 export interface ColumnEditorDialogProps {
-  mode: Signal<'list' | 'text'>;
-
-  // List Mode
-  columns: Signal<ColumnEditorItem[]>;
-  patternText: Signal<string>;
-  patternMode: Signal<'include' | 'exclude'>;
-  patternMatchType: Signal<'prefix' | 'suffix' | 'exact'>;
-  draggedIndex: Signal<number | null>;
-
-  // Text Mode
-  textSubMode: Signal<'rename' | 'reorder' | 'select'>;
-  textValue: Signal<string>;
-  textError: Signal<string | null>;
-
-  // Derived / Calculated
-  changes: Signal<ColumnEditorChanges>;
-
-  // Callbacks
-  onApplyPattern: () => void;
-  onSwitchToText: () => void;
-  onValidateText: () => void; // Triggered by input in text mode
+  onApplyPattern?: () => void;
+  onSwitchToText?: () => void;
+  onValidateText?: () => void;
 }
 
 export function ColumnEditorDialog({
-  mode,
-  columns,
-  patternText,
-  patternMode,
-  patternMatchType,
-  draggedIndex,
-  textSubMode,
-  textValue,
-  textError,
-  changes,
   onApplyPattern,
   onSwitchToText,
   onValidateText,
-}: ColumnEditorDialogProps) {
+}: ColumnEditorDialogProps = {}) {
+  const {
+    mode,
+    columns,
+    patternText,
+    patternMode,
+    patternMatchType,
+    draggedIndex,
+    textSubMode,
+    textValue,
+    textError,
+  } = DialogStore.columnEditorState;
+
+  // Compute changes
+  const changes = useComputed<ColumnEditorChanges>(() => {
+    const removed = columns.value.filter((c) => !c.selected).map((c) => c.original);
+    const renamed = columns.value
+      .filter((c) => c.selected && c.renamed !== c.original)
+      .map((c) => ({ from: c.original, to: c.renamed }));
+    const originalOrder = AppStore.columns.value;
+    const currentOrder = columns.value.filter((c) => c.selected).map((c) => c.original);
+    const reordered = originalOrder.some((col, i) => col !== currentOrder[i]);
+    return {
+      removed,
+      renamed,
+      reordered,
+      hasChanges: removed.length > 0 || renamed.length > 0 || reordered,
+    };
+  });
+
   const handleDragStart = (_e: DragEvent, index: number) => {
     draggedIndex.value = index;
-    // e.dataTransfer!.effectAllowed = 'move'; // Preact TS might need loose null check
   };
 
   const handleDragOver = (e: DragEvent) => {
@@ -93,6 +96,24 @@ export function ColumnEditorDialog({
     columns.value = columns.value.map((c) => ({ ...c, selected: false }));
   };
 
+  const handleApplyPattern = () => {
+    if (onApplyPattern) {
+      onApplyPattern();
+    }
+  };
+
+  const handleSwitchToText = () => {
+    if (onSwitchToText) {
+      onSwitchToText();
+    }
+  };
+
+  const handleValidateText = () => {
+    if (onValidateText) {
+      onValidateText();
+    }
+  };
+
   return (
     <div className="dialog-content">
       {/* Mode Toggle */}
@@ -110,7 +131,7 @@ export function ColumnEditorDialog({
             className={`button button--small ${mode.value === 'text' ? 'button--primary' : ''}`}
             onClick={() => {
               mode.value = 'text';
-              onSwitchToText(); // Initializes text value
+              handleSwitchToText();
             }}
           >
             Text Mode
@@ -161,7 +182,7 @@ export function ColumnEditorDialog({
               <button
                 type="button"
                 className="button button--small button--primary"
-                onClick={onApplyPattern}
+                onClick={handleApplyPattern}
                 disabled={!patternText.value.trim()}
               >
                 Apply
@@ -306,7 +327,7 @@ export function ColumnEditorDialog({
                     checked={textSubMode.value === opt.val}
                     onChange={() => {
                       textSubMode.value = opt.val as any;
-                      onSwitchToText(); // Re-init text logic for new sub-mode
+                      handleSwitchToText();
                     }}
                   />
                   <span>{opt.label}</span>
@@ -339,7 +360,7 @@ export function ColumnEditorDialog({
             value={textValue.value}
             onInput={(e) => {
               textValue.value = e.currentTarget.value;
-              onValidateText();
+              handleValidateText();
             }}
             rows={12}
             style={{ fontFamily: 'monospace', fontSize: '0.875rem' }}

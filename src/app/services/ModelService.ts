@@ -301,39 +301,4 @@ export class ModelService {
   /**
    * Loads HTML templates for Alpine modals
    */
-  static async loadTemplates(getTemplateConfigsFn: () => any[]) {
-    const templates = getTemplateConfigsFn();
-    const baseUrl = (import.meta as any).env.BASE_URL || '/';
-
-    for (const template of templates) {
-      try {
-        const url = `${baseUrl}${template.url}`;
-        const response = await fetch(url);
-        if (!response.ok) {
-          console.error(
-            `Failed to load template from ${url}: ${response.status} ${response.statusText}`
-          );
-          continue;
-        }
-        const html = await response.text();
-        const container = document.getElementById(template.id);
-        if (container) container.innerHTML = html;
-      } catch (error) {
-        console.error(`Error loading template ${template.url}:`, error);
-      }
-    }
-  }
-
-  /**
-   * Configuration for Alpine-based modal templates
-   */
-  static getTemplateConfigs() {
-    return [
-      { id: 'regexp-match-modal-container', url: 'templates/regexp-match-modal.html' },
-      { id: 'regexp-extract-modal-container', url: 'templates/regexp-extract-modal.html' },
-      { id: 'dedupe-modal-container', url: 'templates/dedupe-modal.html' },
-      { id: 'download-modal-container', url: 'templates/download-modal.html' },
-      { id: 'import-url-modal-container', url: 'templates/import-url-modal.html' },
-    ];
-  }
 }

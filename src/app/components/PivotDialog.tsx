@@ -13,8 +13,7 @@ export interface PivotDialogProps {
   valueColumn: Signal<string>;
   aggregation: Signal<PivotAggregation>;
   uniqueValueCount: Signal<number>;
-  sort: Signal<boolean>;
-  limit: Signal<number | null>;
+  options: Signal<{ sort: boolean; limit: number | null }>;
   isPreviewing: Signal<boolean>;
   onPreview: () => void;
 }
@@ -26,8 +25,7 @@ export function PivotDialog({
   valueColumn,
   aggregation,
   uniqueValueCount,
-  sort,
-  limit,
+  options,
   isPreviewing,
   onPreview,
 }: PivotDialogProps) {
@@ -259,8 +257,10 @@ export function PivotDialog({
           <label class="checkbox-item" style={{ marginBottom: '0.5rem' }}>
             <input
               type="checkbox"
-              checked={sort.value}
-              onChange={(e) => (sort.value = (e.target as HTMLInputElement).checked)}
+              checked={options.value.sort}
+              onChange={(e) => {
+                options.value = { ...options.value, sort: (e.target as HTMLInputElement).checked };
+              }}
             />
             <span>Sort column names alphabetically</span>
           </label>
@@ -271,10 +271,11 @@ export function PivotDialog({
             <input
               type="number"
               class="form-input"
-              value={limit.value || ''}
+              value={options.value.limit || ''}
               onInput={(e) => {
                 const val = (e.target as HTMLInputElement).value;
-                limit.value = val ? parseInt(val) : null;
+                const newLimit = val ? parseInt(val) : null;
+                options.value = { ...options.value, limit: newLimit };
               }}
               placeholder="No limit"
               min="1"

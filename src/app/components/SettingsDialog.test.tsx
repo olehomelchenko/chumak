@@ -1,19 +1,17 @@
 import { render, screen, fireEvent } from '@testing-library/preact';
-import { signal } from '@preact/signals';
-import { describe, it, expect, vi } from 'vitest';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { SettingsDialog } from './SettingsDialog';
+import { DialogStore } from '../stores/DialogStore';
 
 describe('SettingsDialog', () => {
-  const createProps = () => ({
-    theme: signal<'chumak' | 'blues'>('chumak'),
-    rowLimit: signal(100),
-    onThemeChange: vi.fn(),
-    onRowLimitChange: vi.fn(),
+  beforeEach(() => {
+    // Reset store state before each test
+    DialogStore.settingsState.theme.value = 'chumak';
+    DialogStore.settingsState.rowLimit.value = 100;
   });
 
   it('renders correctly', () => {
-    const props = createProps();
-    render(<SettingsDialog {...props} />);
+    render(<SettingsDialog />);
 
     expect(screen.getByText('Color Scheme')).toBeDefined();
     expect(screen.getByText('Chumak')).toBeDefined();
@@ -22,26 +20,27 @@ describe('SettingsDialog', () => {
   });
 
   it('handles theme change', () => {
-    const props = createProps();
-    render(<SettingsDialog {...props} />);
+    const onThemeChange = vi.fn();
+    render(<SettingsDialog onThemeChange={onThemeChange} />);
 
     fireEvent.click(screen.getByText('Blues (KSE)'));
-    expect(props.onThemeChange).toHaveBeenCalledWith('blues');
+    expect(DialogStore.settingsState.theme.value).toBe('blues');
+    expect(onThemeChange).toHaveBeenCalledWith('blues');
   });
 
   it('handles row limit change', () => {
-    const props = createProps();
-    render(<SettingsDialog {...props} />);
+    const onRowLimitChange = vi.fn();
+    render(<SettingsDialog onRowLimitChange={onRowLimitChange} />);
 
     const input = screen.getByDisplayValue('100');
     fireEvent.input(input, { target: { value: '200' } });
-    expect(props.onRowLimitChange).toHaveBeenCalledWith(200);
+    expect(DialogStore.settingsState.rowLimit.value).toBe(200);
+    expect(onRowLimitChange).toHaveBeenCalledWith(200);
   });
 
   it('shows active theme correctly checkmark/dot', () => {
-    const props = createProps();
-    props.theme.value = 'blues'; // Set initial to blues
-    render(<SettingsDialog {...props} />);
+    DialogStore.settingsState.theme.value = 'blues'; // Set initial to blues
+    render(<SettingsDialog />);
     // Checking styles is hard, but we can verify structure if needed.
     // For now, functional tests are enough.
   });

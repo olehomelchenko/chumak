@@ -1,6 +1,7 @@
 import { signal } from '@preact/signals';
 import { FilterPreviewMode } from '../components/FilterDialog';
 import { JoinType, JoinTarget } from '../components/JoinDialog';
+import { PivotAggregation } from '../components/PivotDialog';
 import {
   AggregateDialogState,
   PivotDialogState,
@@ -63,7 +64,7 @@ export class DialogStore {
     rowColumns: signal<string[]>([]),
     columnColumn: signal(''),
     valueColumn: signal(''),
-    aggregation: signal('sum'),
+    aggregation: signal<PivotAggregation>('sum'),
     options: signal<PivotDialogState['options']>({ sort: true, limit: null }),
     uniqueValueCount: signal(0),
     previewData: signal<DataRow[] | null>(null),

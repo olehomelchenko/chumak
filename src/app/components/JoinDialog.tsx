@@ -1,5 +1,6 @@
-import { Signal } from '@preact/signals';
 import { JSX } from 'preact';
+import { DialogStore } from '../stores/DialogStore';
+import { AppStore } from '../stores/AppStore';
 
 export type JoinType = 'inner' | 'left' | 'right' | 'full' | 'cross';
 
@@ -10,33 +11,28 @@ export interface JoinTarget {
   sourceName?: string;
 }
 
+// Props interface kept for reference/testing
 export interface JoinDialogProps {
-  targets: JoinTarget[];
-  rightModel: Signal<string | null>;
-  joinType: Signal<JoinType>;
-  keyPairs: Signal<(string | null)[][]>;
-  suffixes: Signal<string[]>;
-  leftColumns: string[];
-  rightColumns: Signal<string[]>;
-  previewData: Signal<any | null>;
-  previewError: Signal<string | null>;
-  isPreviewing: Signal<boolean>;
-  onPreview: () => void;
+  targets?: JoinTarget[];
+  leftColumns?: string[];
+  onPreview?: () => void;
 }
 
-export function JoinDialog({
-  targets,
-  rightModel,
-  joinType,
-  keyPairs,
-  suffixes,
-  leftColumns,
-  rightColumns,
-  previewData,
-  previewError,
-  isPreviewing,
-  onPreview,
-}: JoinDialogProps) {
+export function JoinDialog({ onPreview }: JoinDialogProps = {}) {
+  const {
+    rightModel,
+    joinType,
+    keyPairs,
+    suffixes,
+    targets,
+    rightColumns,
+    previewData,
+    previewError,
+    isPreviewing,
+  } = DialogStore.joinState;
+
+  const leftColumns = AppStore.columns.value;
+
   const handleTargetChange = (e: JSX.TargetedEvent<HTMLSelectElement>) => {
     rightModel.value = e.currentTarget.value || null;
   };
@@ -72,6 +68,12 @@ export function JoinDialog({
     keyPairs.value = newPairs;
   };
 
+  const handlePreview = () => {
+    if (onPreview) {
+      onPreview();
+    }
+  };
+
   return (
     <div className="dialog-content">
       {/* Join With */}
@@ -88,7 +90,7 @@ export function JoinDialog({
           <option value="" disabled>
             Select model or source...
           </option>
-          {targets.map((target) => (
+          {targets.value.map((target) => (
             <option key={target.id} value={target.id}>
               {`${target.name} (${target.type === 'model' ? 'model' : 'source'}${
                 target.sourceName ? ` - ${target.sourceName}` : ''
@@ -96,7 +98,7 @@ export function JoinDialog({
             </option>
           ))}
         </select>
-        {targets.length === 0 && (
+        {targets.value.length === 0 && (
           <div className="form-help" style={{ color: 'var(--color-error)' }}>
             No other models or sources available. Create another model or import another dataset
             first.
@@ -223,7 +225,7 @@ export function JoinDialog({
       <div className="form-group">
         <button
           className="button button--secondary"
-          onClick={onPreview}
+          onClick={handlePreview}
           disabled={isPreviewing.value || !rightModel.value}
         >
           {isPreviewing.value ? 'Previewing...' : 'Preview Join'}

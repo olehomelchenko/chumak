@@ -1,7 +1,8 @@
 import { render, screen, fireEvent } from '@testing-library/preact';
-import { signal } from '@preact/signals';
-import { describe, it, expect, vi } from 'vitest';
-import { JoinDialog, JoinTarget, JoinType } from './JoinDialog';
+import { describe, it, expect, vi, beforeEach } from 'vitest';
+import { JoinDialog, JoinTarget } from './JoinDialog';
+import { DialogStore } from '../stores/DialogStore';
+import { AppStore } from '../stores/AppStore';
 
 describe('JoinDialog', () => {
   const dummyTargets: JoinTarget[] = [
@@ -10,33 +11,24 @@ describe('JoinDialog', () => {
   ];
 
   const leftColumns = ['id', 'amount'];
-  const rightColumns = signal(['customer_id', 'name']);
+  const rightColumns = ['customer_id', 'name'];
+
+  beforeEach(() => {
+    // Reset store state before each test
+    DialogStore.joinState.rightModel.value = null;
+    DialogStore.joinState.joinType.value = 'left';
+    DialogStore.joinState.keyPairs.value = [[null, null]];
+    DialogStore.joinState.suffixes.value = ['_x', '_y'];
+    DialogStore.joinState.targets.value = dummyTargets;
+    DialogStore.joinState.rightColumns.value = rightColumns;
+    DialogStore.joinState.previewData.value = null;
+    DialogStore.joinState.previewError.value = null;
+    DialogStore.joinState.isPreviewing.value = false;
+    AppStore.columns.value = leftColumns;
+  });
 
   it('renders correctly with initial state', () => {
-    const rightModel = signal<string | null>(null);
-    const joinType = signal<JoinType>('left');
-    const keyPairs = signal<(string | null)[][]>([[null, null]]);
-    const suffixes = signal<string[]>(['_x', '_y']);
-    const previewData = signal(null);
-    const previewError = signal(null);
-    const isPreviewing = signal(false);
-    const onPreview = vi.fn();
-
-    render(
-      <JoinDialog
-        targets={dummyTargets}
-        rightModel={rightModel}
-        joinType={joinType}
-        keyPairs={keyPairs}
-        suffixes={suffixes}
-        leftColumns={leftColumns}
-        rightColumns={rightColumns}
-        previewData={previewData}
-        previewError={previewError}
-        isPreviewing={isPreviewing}
-        onPreview={onPreview}
-      />
-    );
+    render(<JoinDialog />);
 
     expect(screen.getByText('Join With')).toBeDefined();
     expect(screen.getByText('Join Type')).toBeDefined();
@@ -47,123 +39,44 @@ describe('JoinDialog', () => {
   });
 
   it('updates target model', () => {
-    const rightModel = signal<string | null>(null);
-
-    // Minimal props for rendering
-    render(
-      <JoinDialog
-        targets={dummyTargets}
-        rightModel={rightModel}
-        joinType={signal('left')}
-        keyPairs={signal([[null, null]])}
-        suffixes={signal(['_x', '_y'])}
-        leftColumns={leftColumns}
-        rightColumns={rightColumns}
-        previewData={signal(null)}
-        previewError={signal(null)}
-        isPreviewing={signal(false)}
-        onPreview={vi.fn()}
-      />
-    );
+    render(<JoinDialog />);
 
     fireEvent.change(screen.getByRole('combobox', { name: /join with/i }), {
       target: { value: 'm1' },
     });
-    expect(rightModel.value).toBe('m1');
+    expect(DialogStore.joinState.rightModel.value).toBe('m1');
   });
 
   it('updates join type', () => {
-    const joinType = signal<JoinType>('left');
-
-    render(
-      <JoinDialog
-        targets={dummyTargets}
-        rightModel={signal(null)}
-        joinType={joinType}
-        keyPairs={signal([[null, null]])}
-        suffixes={signal(['_x', '_y'])}
-        leftColumns={leftColumns}
-        rightColumns={rightColumns}
-        previewData={signal(null)}
-        previewError={signal(null)}
-        isPreviewing={signal(false)}
-        onPreview={vi.fn()}
-      />
-    );
+    render(<JoinDialog />);
 
     fireEvent.click(screen.getByLabelText('Inner'));
-    expect(joinType.value).toBe('inner');
+    expect(DialogStore.joinState.joinType.value).toBe('inner');
   });
 
   it('hides match keys for cross join', () => {
-    const joinType = signal<JoinType>('cross');
+    DialogStore.joinState.joinType.value = 'cross';
 
-    render(
-      <JoinDialog
-        targets={dummyTargets}
-        rightModel={signal(null)}
-        joinType={joinType}
-        keyPairs={signal([[null, null]])}
-        suffixes={signal(['_x', '_y'])}
-        leftColumns={leftColumns}
-        rightColumns={rightColumns}
-        previewData={signal(null)}
-        previewError={signal(null)}
-        isPreviewing={signal(false)}
-        onPreview={vi.fn()}
-      />
-    );
+    render(<JoinDialog />);
 
     expect(screen.queryByText('Join Keys')).toBeNull();
   });
 
   it('adds and removes key pairs', () => {
-    const keyPairs = signal<(string | null)[][]>([[null, null]]);
-
-    render(
-      <JoinDialog
-        targets={dummyTargets}
-        rightModel={signal(null)}
-        joinType={signal('left')}
-        keyPairs={keyPairs}
-        suffixes={signal(['_x', '_y'])}
-        leftColumns={leftColumns}
-        rightColumns={rightColumns}
-        previewData={signal(null)}
-        previewError={signal(null)}
-        isPreviewing={signal(false)}
-        onPreview={vi.fn()}
-      />
-    );
+    render(<JoinDialog />);
 
     // Initial state: 1 pair
     const addBtn = screen.getByText('+ Add Key Pair');
     fireEvent.click(addBtn);
-    expect(keyPairs.value.length).toBe(2);
+    expect(DialogStore.joinState.keyPairs.value.length).toBe(2);
 
     const removeBtn = screen.getAllByTitle('Remove key pair')[1];
     fireEvent.click(removeBtn);
-    expect(keyPairs.value.length).toBe(1);
+    expect(DialogStore.joinState.keyPairs.value.length).toBe(1);
   });
 
   it('updates key pair values', () => {
-    const keyPairs = signal<(string | null)[][]>([[null, null]]);
-
-    render(
-      <JoinDialog
-        targets={dummyTargets}
-        rightModel={signal(null)}
-        joinType={signal('left')}
-        keyPairs={keyPairs}
-        suffixes={signal(['_x', '_y'])}
-        leftColumns={leftColumns}
-        rightColumns={rightColumns}
-        previewData={signal(null)}
-        previewError={signal(null)}
-        isPreviewing={signal(false)}
-        onPreview={vi.fn()}
-      />
-    );
+    render(<JoinDialog />);
 
     const selects = screen.getAllByRole('combobox');
     // First is Join With, next two are key pair [left, right]
@@ -171,9 +84,19 @@ describe('JoinDialog', () => {
     const rightSelect = selects[2];
 
     fireEvent.change(leftSelect, { target: { value: 'id' } });
-    expect(keyPairs.value[0][0]).toBe('id');
+    expect(DialogStore.joinState.keyPairs.value[0][0]).toBe('id');
 
     fireEvent.change(rightSelect, { target: { value: 'customer_id' } });
-    expect(keyPairs.value[0][1]).toBe('customer_id');
+    expect(DialogStore.joinState.keyPairs.value[0][1]).toBe('customer_id');
+  });
+
+  it('calls onPreview callback when provided', () => {
+    const onPreview = vi.fn();
+    DialogStore.joinState.rightModel.value = 'm1';
+
+    render(<JoinDialog onPreview={onPreview} />);
+
+    fireEvent.click(screen.getByText('Preview Join'));
+    expect(onPreview).toHaveBeenCalled();
   });
 });

@@ -13,11 +13,7 @@ This document outlines the roadmap for modernizing the Chumak codebase, moving a
 
 ## Boundary Contract: Alpine ↔ Preact
 
-During migration, both systems coexist. The contract:
-
-- **Alpine owns**: Modal shell (open/close state), top-level app routing
-- **Preact owns**: Everything inside modal body, component-local state
-- **Communication**: Props passed on mount + custom events (`dispatchEvent`) for callbacks
+~~During migration, both systems coexist.~~ **Alpine.js has been removed.** All UI is now Preact-based.
 
 ---
 
@@ -39,12 +35,12 @@ npm run typecheck  # Verify types before commits
 
 ### Remaining `any` (~200 instances)
 
-| Category                      | Reason             |
-| ----------------------------- | ------------------ |
-| Alpine.js (`$nextTick`, etc.) | Removed in Phase 4 |
-| Arquero table operations      | Library limitation |
-| JSON handling (`flattenData`) | Inherently dynamic |
-| Error catch blocks            | Runtime-determined |
+| Category                          | Reason                            |
+| --------------------------------- | --------------------------------- |
+| ~~Alpine.js (`$nextTick`, etc.)~~ | ~~Removed in Phase 4~~ ✅ Removed |
+| Arquero table operations          | Library limitation                |
+| JSON handling (`flattenData`)     | Inherently dynamic                |
+| Error catch blocks                | Runtime-determined                |
 
 ---
 
@@ -53,7 +49,7 @@ npm run typecheck  # Verify types before commits
 _Status: ✅ Complete_
 
 - [x] All dialogs migrated to Preact/TSX components.
-- [x] PreactBridge providing seamless interop with Alpine.js.
+- [x] ~~PreactBridge providing seamless interop with Alpine.js.~~ PreactBridge removed (no longer needed).
 - [x] Unit tests for all components.
 - [x] HTML Templates removed.
 
@@ -61,7 +57,7 @@ _Status: ✅ Complete_
 
 ## Phase 3: Reactive State & Decoupling
 
-_Status: 🚧 In Progress_
+_Status: ✅ Complete_
 
 **Goal**: Break the 1200+ line `ChumakApp` "God Object" into manageable execution units.
 
@@ -89,6 +85,7 @@ _Status: 🚧 In Progress_
 
 ### 3c: Testing Strategy
 
+- [x] **Unit Tests**: All dialog components have comprehensive unit tests (354 tests passing).
 - [ ] **Integration Tests**: Verify stores work correctly without the UI layer.
 - [ ] **E2E Smoke Tests**: Ensure the critical path (Import -> Transform -> Export) works.
 
@@ -98,7 +95,11 @@ _Status: 🚧 In Progress_
 
 ## Technical Debt: The Reactive Bridge
 
-During Phase 3, we use a "Reactive Bridge" to maintain compatibility with Alpine.js while moving the Source of Truth to Preact signals.
+~~During Phase 3, we use a "Reactive Bridge" to maintain compatibility with Alpine.js while moving the Source of Truth to Preact signals.~~
+
+**Status: Partially Removed**
+
+The `_rev` counter and Signal Proxies remain for `ChumakApp` compatibility but Alpine.js is no longer used. These can be further simplified in future cleanup.
 
 ### 1. The `_rev` Counter
 
@@ -106,16 +107,14 @@ During Phase 3, we use a "Reactive Bridge" to maintain compatibility with Alpine
 
 ### 2. Signal Proxies
 
-To prevent Alpine.js from attempting to wrap Preact signals (which causes recursion/performance issues), we use `Proxy` objects:
-
 - **`DialogStore.createSignalProxy(state)`**: Creates a JS Proxy that maps property access/assignment to `.value` of the underlying signals.
 - **Getters/Setters**: `ChumakApp` properties are now getters/setters that depend on `_rev` and return/update these proxies or raw signal values.
 
-This architecture ensures a **Single Source of Truth** in signals while letting legacy Alpine.js templates "see" the data as normal JS properties.
+This architecture ensures a **Single Source of Truth** in signals.
 
 ## Phase 4: Final Modernization
 
-_Status: 🚧 In Progress_
+_Status: ✅ Complete_
 
 ### 4a: Replace Top-Level Alpine (Section by Section)
 
@@ -141,14 +140,40 @@ _Status: 🚧 In Progress_
   - [x] Convert the Slide-in Panel and Centered Modal shells to a main `App.tsx` layout.
   - [x] Replace `src/main.ts` with `src/main.tsx` as the app entry point.
   - [x] Replace `index.html` body with a single `#app-root`.
-  - [ ] Remove `x-data="chumakApp()"` and Alpine dependency (Legacy compatibility layer still active).
+  - [x] Remove `x-data="chumakApp()"` and Alpine dependency.
+- [x] **Dialog Components Refactored to Store-Based**:
+  - [x] `JoinDialog` - uses `DialogStore.joinState` directly
+  - [x] `ColumnEditorDialog` - uses `DialogStore.columnEditorState` directly
+  - [x] `ImportCsvDialog` - uses `DialogStore.importCsvState` directly
+  - [x] `SettingsDialog` - uses `DialogStore.settingsState` directly
+  - [x] `RegexpMatchDialog` / `RegexpExtractDialog` - use stores directly
+  - [x] `DedupeDialog` / `DownloadDialog` / `ImportUrlDialog` - use stores directly
 
 ### 4c: Cleanup
 
-- [ ] **Template Cleanup**: Delete the `public/templates/` directory.
+- [x] **Template Cleanup**: Deleted `public/templates/` directory (dedupe-modal.html, download-modal.html, import-url-modal.html, regexp-extract-modal.html, regexp-match-modal.html).
+- [x] **PreactBridge Removed**: `LegacyContainer.tsx` and `PreactBridge.tsx` deleted.
+- [x] **Unused Imports Cleaned**: Removed `signal`, `effect`, `batch` from dialog-handlers.ts and other files.
 - [ ] **CI Enforcement**: Add `tsc --noEmit` and `vitest` to the build pipeline to ensure no regressions.
 
-**Done when**: Alpine dependency removed, all templates deleted, CI passes.
+**Done when**: ~~Alpine dependency removed, all templates deleted, CI passes.~~ ✅ Alpine removed, templates deleted. CI enforcement pending.
+
+---
+
+## Current State (Phase 4 Complete)
+
+- **Typecheck**: ✅ Passes cleanly
+- **Tests**: ✅ 354/354 passing
+- **Build**: ✅ Successful production build
+- **Alpine.js**: ✅ Removed from UI layer
+- **HTML Templates**: ✅ All removed (100% TSX)
+
+### Remaining Technical Debt
+
+1. **`ChumakApp` God Object**: Still >300 lines, but now primarily a thin coordination layer with getter/setter proxies to stores.
+2. **`_rev` Counter**: Legacy compatibility mechanism that can be simplified now that Alpine is removed.
+3. **Integration/E2E Tests**: Not yet implemented.
+4. **CI Pipeline**: Typecheck and test enforcement not yet added to build.
 
 ---
 

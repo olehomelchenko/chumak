@@ -2,25 +2,8 @@ import type { ChumakApp } from '../../chumak-app';
 import { setUrlState, getUrlState, clearUrlHash } from '../../core/url-state';
 import { html as aboutHtml } from '../../content/about.md';
 import { html as expressionsHtml } from '../../content/expressions.md';
-import { signal, effect } from '@preact/signals';
-import { mountComponent, unmountComponent } from '../components/PreactBridge';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
-import { SortDialog } from '../components/SortDialog';
-import { IndexDialog } from '../components/IndexDialog';
-import { ReplaceDialog } from '../components/ReplaceDialog';
-import { SliceRowsDialog } from '../components/SliceRowsDialog';
-import { UnpivotDialog } from '../components/UnpivotDialog';
-import { FilterDialog } from '../components/FilterDialog';
-import { PivotDialog } from '../components/PivotDialog';
-import { DateDialog } from '../components/DateDialog';
-import { SplitDialog } from '../components/SplitDialog';
-import { DeriveDialog } from '../components/DeriveDialog';
-import { JoinDialog } from '../components/JoinDialog';
-import { AggregateDialog } from '../components/AggregateDialog';
-import { ImportCsvDialog } from '../components/ImportCsvDialog';
-import { ColumnEditorDialog } from '../components/ColumnEditorDialog';
-import { SettingsDialog } from '../components/SettingsDialog';
 
 // Local signals replaced by DialogStore
 
@@ -119,256 +102,43 @@ export function handleHashChange(this: ChumakApp) {
 
 export function initDialogState(this: ChumakApp, dialogName: string, section?: string) {
   if (dialogName === 'filter') {
-    // DialogStore.openDialog called from interaction/step handlers initializes the state
-
-    // Mount Preact component
-    const container = document.getElementById('filter-modal-container');
-    if (container) {
-      const { expression, error, previewMode } = DialogStore.filterState;
-
-      mountComponent(container, FilterDialog, {
-        expression: expression,
-        error: error,
-        previewMode: previewMode,
-        onOpenReference: () => this.openDialog('expressions'),
-      });
-
-      // Reactive logic: When expression changes, validate and update preview
-      effect(() => {
-        // subscribe by reading
-        void expression.value;
-        void previewMode.value;
-
-        // Use existing transform logic adjusted to read from store
-        if (typeof this.validateFilterExpression === 'function') {
-          this.validateFilterExpression();
-        }
-        if (typeof this.debouncedUpdateFilterPreview === 'function') {
-          this.debouncedUpdateFilterPreview();
-        }
-      });
-    }
+    // State initialized by DialogStore.openDialog call or explicit reset if needed
+    // Logic moved to component or kept in store
   } else if (dialogName === 'join') {
-    this.initializeJoinDialog(); // This now populates DialogStore
-
-    // Mount Preact component
-    const container = document.getElementById('join-modal-container');
-    if (container) {
-      const {
-        rightModel,
-        joinType,
-        keyPairs,
-        suffixes,
-        targets,
-        rightColumns,
-        previewData,
-        previewError,
-        isPreviewing,
-      } = DialogStore.joinState;
-
-      mountComponent(container, JoinDialog, {
-        targets: targets.value, // Pass initial value. For dynamic updates, component would need to accept Signal<JoinTarget[]>
-        rightModel: rightModel,
-        joinType: joinType,
-        keyPairs: keyPairs,
-        suffixes: suffixes,
-        leftColumns: this.columns,
-        rightColumns: rightColumns,
-        previewData: previewData,
-        previewError: previewError,
-        isPreviewing: isPreviewing,
-        onPreview: () => this.previewJoin(),
-      });
-
-      // Watch for model changes to update columns via legacy handler
-      effect(() => {
-        const modelId = rightModel.value;
-        if (modelId && typeof this.onJoinTargetChange === 'function') {
-          this.onJoinTargetChange();
-        }
-      });
-    }
+    this.initializeJoinDialog(); // Updates DialogStore.joinState
   } else if (dialogName === 'derive') {
-    // DialogStore.openDialog called from interaction/step handlers initializes the state
-
-    // Mount Preact component
-    const container = document.getElementById('derive-modal-container');
-    if (container) {
-      const { columnName, expression, error } = DialogStore.deriveState;
-
-      mountComponent(container, DeriveDialog, {
-        columnName: columnName,
-        expression: expression,
-        error: error,
-        onOpenReference: () => this.openDialog('expressions'),
-      });
-
-      // Reactive logic
-      effect(() => {
-        // subscribe
-        void columnName.value;
-        void expression.value;
-
-        // Trigger validation and preview logic
-        if (typeof this.validateDeriveExpression === 'function') {
-          this.validateDeriveExpression();
-        }
-
-        if (typeof this.debouncedUpdateDerivePreview === 'function') {
-          this.debouncedUpdateDerivePreview();
-        }
-      });
-    }
+    // State initialized by DialogStore
   } else if (dialogName === 'sort') {
-    // Initialize Store
     DialogStore.sortState.field.value = this.columns[0] || '';
     DialogStore.sortState.order.value = 'asc';
     AppStore.activeDialog.value = 'sort';
-
-    // Mount Preact component
-    const container = document.getElementById('sort-modal-container');
-    if (container) {
-      mountComponent(container, SortDialog, {
-        columns: this.columns,
-        field: DialogStore.sortState.field,
-        order: DialogStore.sortState.order,
-      });
-    }
   } else if (dialogName === 'sliceRows') {
-    // Initialize state
     DialogStore.sliceRowsState.count.value = 10;
     DialogStore.sliceRowsState.mode.value = 'first';
-
-    const container = document.getElementById('slice-rows-modal-container');
-    if (container) {
-      mountComponent(container, SliceRowsDialog, {
-        count: DialogStore.sliceRowsState.count,
-        mode: DialogStore.sliceRowsState.mode,
-        rowCount: this.currentData?.length || 0,
-      });
-    }
   } else if (dialogName === 'index') {
-    // Initialize state
     DialogStore.indexState.columnName.value = 'row_index';
     DialogStore.indexState.startFrom.value = 1;
-
-    const container = document.getElementById('index-modal-container');
-    if (container) {
-      mountComponent(container, IndexDialog, {
-        columnName: DialogStore.indexState.columnName,
-        startFrom: DialogStore.indexState.startFrom,
-        rowCount: this.currentData?.length || 0,
-      });
-    }
   } else if (dialogName === 'aggregate') {
     DialogStore.aggregateState.groupBy.value = [];
     DialogStore.aggregateState.aggregations.value = [{ output: 'count', func: 'count', col: '' }];
     DialogStore.aggregateState.isPreviewing.value = false;
-
-    const container = document.getElementById('aggregate-modal-container');
-    if (container) {
-      mountComponent(container, AggregateDialog, {
-        columns: this.columns,
-        groupBy: DialogStore.aggregateState.groupBy,
-        aggregations: DialogStore.aggregateState.aggregations,
-        isPreviewing: DialogStore.aggregateState.isPreviewing,
-        onPreview: async () => {
-          if (typeof this.previewAggregate === 'function') {
-            await this.previewAggregate();
-          }
-        },
-      });
-    }
   } else if (dialogName === 'import-csv') {
-    const container = document.getElementById('import-csv-modal-container');
-    if (container) {
-      const state = DialogStore.importCsvState;
-      // Initialize signals from current Alpine state (populated by library-based file loader)
-      state.sourceName.value = this.importDialogState.sourceName;
-      state.isJson.value = !!this.importDialogState.isJson;
-      state.jsonPath.value = this.importDialogState.jsonPath || '';
-      state.jsonRawValuePreview.value = this.importDialogState.jsonRawValuePreview || '';
-      state.suggestedJsonKeys.value = this.importDialogState.suggestedJsonKeys || [];
-      state.flattenJson.value = !!this.importDialogState.flattenJson;
-      state.serializeNested.value = !!this.importDialogState.serializeNested;
-      state.jsonData.value = this.importDialogState.jsonData || null;
+    const state = DialogStore.importCsvState;
+    state.sourceName.value = this.importDialogState.sourceName;
+    state.isJson.value = !!this.importDialogState.isJson;
+    state.jsonPath.value = this.importDialogState.jsonPath || '';
+    state.jsonRawValuePreview.value = this.importDialogState.jsonRawValuePreview || '';
+    state.suggestedJsonKeys.value = this.importDialogState.suggestedJsonKeys || [];
+    state.flattenJson.value = !!this.importDialogState.flattenJson;
+    state.serializeNested.value = !!this.importDialogState.serializeNested;
+    state.jsonData.value = this.importDialogState.jsonData || null;
 
-      state.delimiter.value = this.importDialogState.delimiter;
-      state.headerMode.value = this.importDialogState.headerMode;
-      state.customHeaders.value = [...(this.importDialogState.customHeaders || [])];
-      state.duplicateWarning.value = this.importDialogState.duplicateWarning || '';
-      state.previewHeaders.value = [...(this.importDialogState.previewHeaders || [])];
-      state.previewDataRows.value = [...(this.importDialogState.previewDataRows || [])];
-
-      mountComponent(container, ImportCsvDialog, {
-        sourceName: state.sourceName,
-        isJson: state.isJson,
-        jsonPath: state.jsonPath,
-        jsonRawValuePreview: state.jsonRawValuePreview,
-        suggestedJsonKeys: state.suggestedJsonKeys,
-        flattenJson: state.flattenJson,
-        serializeNested: state.serializeNested,
-        jsonData: state.jsonData,
-        delimiter: state.delimiter,
-        headerMode: state.headerMode,
-        customHeaders: state.customHeaders,
-        duplicateWarning: state.duplicateWarning,
-        previewHeaders: state.previewHeaders,
-        previewDataRows: state.previewDataRows,
-
-        onJsonPathUpdate: () => {
-          if (typeof this.updateJsonPath === 'function') {
-            this.updateJsonPath();
-            state.jsonRawValuePreview.value = this.importDialogState.jsonRawValuePreview || '';
-            state.suggestedJsonKeys.value = this.importDialogState.suggestedJsonKeys || [];
-            state.jsonData.value = this.importDialogState.jsonData;
-            state.previewHeaders.value = this.importDialogState.previewHeaders;
-            state.previewDataRows.value = this.importDialogState.previewDataRows;
-            state.customHeaders.value = this.importDialogState.customHeaders;
-          }
-        },
-        onJsonPathReset: () => {
-          if (typeof this.resetJsonPath === 'function') {
-            this.resetJsonPath();
-            state.jsonPath.value = this.importDialogState.jsonPath || '';
-            state.jsonRawValuePreview.value = '';
-            state.suggestedJsonKeys.value = this.importDialogState.suggestedJsonKeys || [];
-          }
-        },
-        onJsonPathSegmentSelect: (key: string) => {
-          if (typeof this.selectJsonPathSegment === 'function') {
-            this.selectJsonPathSegment(key);
-            state.jsonPath.value = this.importDialogState.jsonPath || '';
-            if (typeof this.updateJsonPath === 'function') {
-              this.updateJsonPath();
-              state.jsonRawValuePreview.value = this.importDialogState.jsonRawValuePreview || '';
-              state.suggestedJsonKeys.value = this.importDialogState.suggestedJsonKeys || [];
-              state.jsonData.value = this.importDialogState.jsonData;
-              state.previewHeaders.value = this.importDialogState.previewHeaders;
-              state.previewDataRows.value = this.importDialogState.previewDataRows;
-              state.customHeaders.value = this.importDialogState.customHeaders;
-            }
-          }
-        },
-        onParamChange: () => {
-          if (state.isJson.value) {
-            if (typeof this.updateHeadersForPreview === 'function') {
-              this.updateHeadersForPreview();
-            }
-          } else {
-            if (typeof this.updateImportPreview === 'function') {
-              this.updateImportPreview();
-            }
-            if (typeof this.updateHeadersForPreview === 'function') {
-              this.updateHeadersForPreview();
-            }
-          }
-          state.previewHeaders.value = this.importDialogState.previewHeaders;
-          state.previewDataRows.value = this.importDialogState.previewDataRows;
-          state.duplicateWarning.value = this.importDialogState.duplicateWarning || '';
-        },
-      });
-    }
+    state.delimiter.value = this.importDialogState.delimiter;
+    state.headerMode.value = this.importDialogState.headerMode;
+    state.customHeaders.value = [...(this.importDialogState.customHeaders || [])];
+    state.duplicateWarning.value = this.importDialogState.duplicateWarning || '';
+    state.previewHeaders.value = [...(this.importDialogState.previewHeaders || [])];
+    state.previewDataRows.value = [...(this.importDialogState.previewDataRows || [])];
   } else if (dialogName === 'column-editor') {
     this.columnEditorState = {
       mode: 'list',
@@ -386,184 +156,42 @@ export function initDialogState(this: ChumakApp, dialogName: string, section?: s
       draggedIndex: null,
     };
 
-    const container = document.getElementById('column-editor-modal-container');
-    if (container) {
-      const state = DialogStore.columnEditorState;
-      state.mode.value = 'list';
-      state.columns.value = this.columnEditorState.columns.map((c: any) => ({ ...c }));
-      state.patternText.value = '';
-      state.patternMode.value = 'include';
-      state.patternMatchType.value = 'prefix';
-      state.draggedIndex.value = null;
-      state.textSubMode.value = (
-        section === 'select' || section === 'reorder' ? section : 'rename'
-      ) as any;
-      state.textValue.value = '';
-      state.textError.value = null;
-
-      const changesSignal = signal<any>({
-        removed: [],
-        renamed: [],
-        reordered: false,
-        hasChanges: false,
-      });
-
-      effect(() => {
-        this.columnEditorState.mode = state.mode.value;
-        this.columnEditorState.columns = state.columns.value.map((c) => ({ ...c }));
-        this.columnEditorState.patternText = state.patternText.value;
-        this.columnEditorState.patternMode = state.patternMode.value;
-        this.columnEditorState.patternMatchType = state.patternMatchType.value;
-        this.columnEditorState.draggedIndex = state.draggedIndex.value;
-        this.columnEditorState.textSubMode = state.textSubMode.value;
-        this.columnEditorState.textValue = state.textValue.value;
-        this.columnEditorState.textError = state.textError.value;
-
-        if (typeof this.getColumnEditorChanges === 'function') {
-          const changes = this.getColumnEditorChanges();
-          changesSignal.value = changes;
-        }
-      });
-
-      mountComponent(container, ColumnEditorDialog, {
-        mode: state.mode,
-        columns: state.columns,
-        patternText: state.patternText,
-        patternMode: state.patternMode,
-        patternMatchType: state.patternMatchType,
-        draggedIndex: state.draggedIndex,
-        textSubMode: state.textSubMode as any,
-        textValue: state.textValue,
-        textError: state.textError,
-        changes: changesSignal,
-
-        onApplyPattern: () => {
-          if (typeof this.applyColumnEditorPattern === 'function') {
-            this.applyColumnEditorPattern();
-            state.columns.value = this.columnEditorState.columns.map((c: any) => ({ ...c }));
-          }
-        },
-        onSwitchToText: () => {
-          if (typeof this.switchColumnEditorToText === 'function') {
-            this.switchColumnEditorToText();
-            state.textValue.value = this.columnEditorState.textValue;
-          }
-        },
-        onValidateText: () => {
-          if (typeof this.validateColumnEditorText === 'function') {
-            this.validateColumnEditorText();
-            state.textError.value = this.columnEditorState.textError;
-          }
-        },
-      });
-    }
+    const state = DialogStore.columnEditorState;
+    state.mode.value = 'list';
+    state.columns.value = this.columnEditorState.columns.map((c: any) => ({ ...c }));
+    state.patternText.value = '';
+    state.patternMode.value = 'include';
+    state.patternMatchType.value = 'prefix';
+    state.draggedIndex.value = null;
+    state.textSubMode.value = (
+      section === 'select' || section === 'reorder' ? section : 'rename'
+    ) as any;
+    state.textValue.value = '';
+    state.textError.value = null;
   } else if (dialogName === 'settings') {
-    const container = document.getElementById('settings-modal-container');
-    if (container) {
-      const state = DialogStore.settingsState;
-      state.theme.value = this.theme as any;
-      state.rowLimit.value = this.uxSettings.preview?.rowLimit || 100;
-
-      mountComponent(container, SettingsDialog, {
-        theme: state.theme,
-        rowLimit: state.rowLimit,
-        onThemeChange: (theme) => {
-          state.theme.value = theme;
-          if (typeof this.switchTheme === 'function') {
-            this.switchTheme(theme);
-          }
-        },
-        onRowLimitChange: (limit) => {
-          state.rowLimit.value = limit;
-          if (typeof this.updatePreviewRowLimit === 'function') {
-            this.updatePreviewRowLimit(String(limit));
-          }
-        },
-      });
-    }
+    const state = DialogStore.settingsState;
+    state.theme.value = this.theme as any;
+    state.rowLimit.value = this.uxSettings.preview?.rowLimit || 100;
   } else if (dialogName === 'fold') {
     DialogStore.foldState.keyName.value = 'key';
     DialogStore.foldState.valueName.value = 'value';
     DialogStore.foldState.selectedColumns.value = this.columns.map(() => false);
     DialogStore.foldState.mode.value = 'keep';
-
-    const container = document.getElementById('unpivot-modal-container');
-    if (container) {
-      mountComponent(container, UnpivotDialog, {
-        columns: this.columns,
-        keyName: DialogStore.foldState.keyName,
-        valueName: DialogStore.foldState.valueName,
-        mode: DialogStore.foldState.mode,
-        selectedColumns: DialogStore.foldState.selectedColumns,
-      });
-    }
   } else if (dialogName === 'pivot') {
     this.initializePivotDialog();
-
-    // Mount Preact component
-    const container = document.getElementById('pivot-modal-container');
-    if (container) {
-      const state = DialogStore.pivotState;
-      // Initialize signals from Alpine state which was just initialized
-      state.rowColumns.value = [...this.pivotDialogState.rowColumns];
-      state.columnColumn.value = this.pivotDialogState.columnColumn;
-      state.valueColumn.value = this.pivotDialogState.valueColumn;
-      state.aggregation.value = this.pivotDialogState.aggregation;
-      state.uniqueValueCount.value = this.pivotDialogState.uniqueValueCount;
-      state.options.value = { ...this.pivotDialogState.options };
-      state.isPreviewing.value = this.pivotDialogState.isPreviewing;
-
-      effect(() => {
-        // Trigger calculation in Alpine
-        if (typeof this.onPivotConfigChange === 'function') {
-          Promise.resolve(this.onPivotConfigChange()).then(() => {
-            if (state.uniqueValueCount.peek() !== this.pivotDialogState.uniqueValueCount) {
-              state.uniqueValueCount.value = this.pivotDialogState.uniqueValueCount;
-            }
-          });
-        }
-      });
-
-      mountComponent(container, PivotDialog, {
-        columns: this.columns,
-        rowColumns: state.rowColumns,
-        columnColumn: state.columnColumn,
-        valueColumn: state.valueColumn,
-        aggregation: state.aggregation as any,
-        uniqueValueCount: state.uniqueValueCount,
-        sort: signal(state.options.value.sort), // Local signal for component compatibility if needed, else wrap in computed
-        limit: signal(state.options.value.limit),
-        isPreviewing: state.isPreviewing,
-        onPreview: async () => {
-          state.isPreviewing.value = true;
-          try {
-            if (typeof this.previewPivot === 'function') {
-              await this.previewPivot();
-            }
-          } finally {
-            state.isPreviewing.value = false;
-          }
-        },
-      });
-    }
+    const state = DialogStore.pivotState;
+    state.rowColumns.value = [...this.pivotDialogState.rowColumns];
+    state.columnColumn.value = this.pivotDialogState.columnColumn;
+    state.valueColumn.value = this.pivotDialogState.valueColumn;
+    state.aggregation.value = this.pivotDialogState.aggregation;
+    state.uniqueValueCount.value = this.pivotDialogState.uniqueValueCount;
+    state.options.value = { ...this.pivotDialogState.options };
+    state.isPreviewing.value = this.pivotDialogState.isPreviewing;
   } else if (dialogName === 'replace') {
-    // Initialize state
     const state = DialogStore.replaceState;
     state.column.value = this.columns[0] || '';
     state.findValue.value = '';
     state.replaceValue.value = '';
-
-    const container = document.getElementById('replace-modal-container');
-    if (container) {
-      // No sync effect needed as signals are proxied
-
-      mountComponent(container, ReplaceDialog, {
-        columns: this.columns,
-        column: state.column,
-        findValue: state.findValue,
-        replaceValue: state.replaceValue,
-      });
-    }
   } else if (dialogName === 'split') {
     const initialColumn = this.columns[0] || '';
     const state = DialogStore.splitState;
@@ -577,52 +205,18 @@ export function initDialogState(this: ChumakApp, dialogName: string, section?: s
     state.keepOriginal.value = false;
     state.error.value = null;
 
-    // Mount Preact component
-    const container = document.getElementById('split-modal-container');
-    if (container) {
-      // Initial detection
-      if (initialColumn) {
-        const detected = this.detectDelimiter(initialColumn);
-        if (detected) {
-          state.delimiter.value = detected.char;
-          state.isRegex.value = detected.isRegex;
-          state.autoDetectedDelimiter.value = detected.name;
-        }
+    if (initialColumn) {
+      const detected = this.detectDelimiter(initialColumn);
+      if (detected) {
+        state.delimiter.value = detected.char;
+        state.isRegex.value = detected.isRegex;
+        state.autoDetectedDelimiter.value = detected.name;
       }
+    }
 
-      let lastSplitCol = initialColumn;
-
-      effect(() => {
-        // Detect logic if column changed
-        if (state.column.value !== lastSplitCol) {
-          lastSplitCol = state.column.value;
-          const detected = this.detectDelimiter(lastSplitCol);
-          if (detected) {
-            state.delimiter.value = detected.char;
-            state.isRegex.value = detected.isRegex;
-            state.autoDetectedDelimiter.value = detected.name;
-          } else {
-            state.autoDetectedDelimiter.value = null;
-          }
-        }
-
-        // Trigger preview
-        if (typeof this.debouncedUpdateSplitPreview === 'function') {
-          this.debouncedUpdateSplitPreview();
-        }
-      });
-
-      mountComponent(container, SplitDialog, {
-        columns: this.columns,
-        column: state.column,
-        delimiter: state.delimiter,
-        autoDetectedDelimiter: state.autoDetectedDelimiter,
-        isRegex: state.isRegex,
-        mode: state.mode,
-        maxColumns: state.maxColumns,
-        keepOriginal: state.keepOriginal,
-        error: state.error,
-      });
+    // We rely on component effects or explicit calls for updates
+    if (typeof this.debouncedUpdateSplitPreview === 'function') {
+      this.debouncedUpdateSplitPreview();
     }
   } else if (dialogName === 'regexpMatch') {
     const state = DialogStore.regexpMatchState;
@@ -652,24 +246,8 @@ export function initDialogState(this: ChumakApp, dialogName: string, section?: s
     state.outputColumn.value = '';
     state.error.value = null;
 
-    // Mount Preact component
-    const container = document.getElementById('date-modal-container');
-    if (container) {
-      effect(() => {
-        if (typeof this.updateDatePreview === 'function') {
-          this.updateDatePreview();
-        }
-      });
-
-      mountComponent(container, DateDialog, {
-        dateColumns: dateColumns,
-        column: state.column,
-        operation: state.operation,
-        extractParts: state.extractParts,
-        truncateUnits: state.truncateUnits,
-        outputColumn: state.outputColumn,
-        error: state.error,
-      });
+    if (typeof this.updateDatePreview === 'function') {
+      this.updateDatePreview(); // Note: decoupling might be needed here too if it fails
     }
   } else if (dialogName === 'dedupe') {
     const state = DialogStore.dedupeState;
@@ -678,11 +256,9 @@ export function initDialogState(this: ChumakApp, dialogName: string, section?: s
     state.duplicateCount.value = 0;
     state.mode.value = 'remove';
 
-    this.$nextTick(() => {
-      if (typeof this.updateDedupePreview === 'function') {
-        this.updateDedupePreview();
-      }
-    });
+    if (typeof this.updateDedupePreview === 'function') {
+      this.updateDedupePreview();
+    }
   }
 }
 
@@ -885,37 +461,6 @@ export async function closeDialog(this: ChumakApp, force = false) {
   if (!force && this.hasUnsavedChanges()) {
     if (!(await this.confirm('You have unsaved changes. Are you sure you want to discard them?')))
       return;
-  }
-
-  // Unmount Preact components if they were mounted
-  const containers = [
-    'sort',
-    'index',
-    'replace',
-    'slice-rows',
-    'unpivot',
-    'filter',
-    'pivot',
-    'aggregate',
-    'import-csv',
-    'import-url',
-    'column-editor',
-    'settings',
-    'date',
-    'split',
-    'derive',
-    'join',
-    'regexp-match',
-    'regexp-extract',
-    'dedupe',
-    'download',
-    'about',
-    'expressions',
-  ];
-
-  for (const name of containers) {
-    const container = document.getElementById(`${name}-modal-container`);
-    if (container) unmountComponent(container);
   }
 
   // Clear URL hash if closing a navigable page

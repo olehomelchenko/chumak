@@ -1,23 +1,11 @@
 import { render } from 'preact';
-import Alpine from 'alpinejs';
 import { ChumakApp } from './chumak-app';
 import { App } from './app/components/App';
 
 import '../styles/index.css';
 
-// Initialize Alpine with ChumakApp
-// Note: We create a singleton via factory for Alpine, but we also passed an instance to Preact?
-// 'Alpine.data' registers a component scope.
-(window as any).Alpine = Alpine;
-
-// Create the SINGLETON instance
+// Initialize the SINGLETON instance
 const appInstance = new ChumakApp();
-
-// Registers the Alpine data component to use the SAME instance
-Alpine.data('chumakApp', () => appInstance);
-
-// Start Alpine
-Alpine.start();
 
 // Mount the Main App Component
 const appRoot = document.getElementById('app-root');

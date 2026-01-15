@@ -1,75 +1,77 @@
-import { Signal } from '@preact/signals';
 import { JSX } from 'preact';
+import { DialogStore } from '../stores/DialogStore';
 
+// Props interface kept for reference/testing
 export interface ImportCsvDialogProps {
-  sourceName: Signal<string>;
-  isJson: Signal<boolean>;
-
-  // JSON Props
-  jsonPath: Signal<string>;
-  jsonRawValuePreview: Signal<string>;
-  suggestedJsonKeys: Signal<string[]>;
-  flattenJson: Signal<boolean>;
-  serializeNested: Signal<boolean>;
-  jsonData: Signal<any>;
-
-  // CSV Props
-  delimiter: Signal<string>;
-  headerMode: Signal<'first-row' | 'auto-generate' | 'manual'>;
-
-  // Shared / Results
-  customHeaders: Signal<string[]>;
-  duplicateWarning: Signal<string>;
-  previewHeaders: Signal<string[]>;
-  previewDataRows: Signal<string[][] | any[][]>;
-
-  // Callbacks
-  onJsonPathUpdate: (path: string) => void;
-  onJsonPathReset: () => void;
-  onJsonPathSegmentSelect: (key: string) => void;
-  onParamChange: () => void; // For debounced preview updates
+  onJsonPathUpdate?: (path: string) => void;
+  onJsonPathReset?: () => void;
+  onJsonPathSegmentSelect?: (key: string) => void;
+  onParamChange?: () => void;
 }
 
 export function ImportCsvDialog({
-  sourceName,
-  isJson,
-  jsonPath,
-  jsonRawValuePreview,
-  suggestedJsonKeys,
-  flattenJson,
-  serializeNested,
-  jsonData,
-  delimiter,
-  headerMode,
-  customHeaders,
-  duplicateWarning,
-  previewHeaders,
-  previewDataRows,
   onJsonPathUpdate,
   onJsonPathReset,
   onJsonPathSegmentSelect,
   onParamChange,
-}: ImportCsvDialogProps) {
+}: ImportCsvDialogProps = {}) {
+  const {
+    sourceName,
+    isJson,
+    jsonPath,
+    jsonRawValuePreview,
+    suggestedJsonKeys,
+    flattenJson,
+    serializeNested,
+    jsonData,
+    delimiter,
+    headerMode,
+    customHeaders,
+    duplicateWarning,
+    previewHeaders,
+    previewDataRows,
+  } = DialogStore.importCsvState;
+
   const handleJsonPathInput = (e: JSX.TargetedEvent<HTMLInputElement>) => {
     jsonPath.value = e.currentTarget.value;
-    onJsonPathUpdate(e.currentTarget.value);
+    if (onJsonPathUpdate) {
+      onJsonPathUpdate(e.currentTarget.value);
+    }
   };
 
   const handleDelimiterChange = (val: string) => {
     delimiter.value = val;
-    onParamChange();
+    if (onParamChange) {
+      onParamChange();
+    }
   };
 
   const handleHeaderModeChange = (val: 'first-row' | 'auto-generate' | 'manual') => {
     headerMode.value = val;
-    onParamChange();
+    if (onParamChange) {
+      onParamChange();
+    }
   };
 
   const handleHeaderNameChange = (index: number, val: string) => {
     const newHeaders = [...customHeaders.value];
     newHeaders[index] = val;
     customHeaders.value = newHeaders;
-    onParamChange();
+    if (onParamChange) {
+      onParamChange();
+    }
+  };
+
+  const handleJsonPathReset = () => {
+    if (onJsonPathReset) {
+      onJsonPathReset();
+    }
+  };
+
+  const handleJsonPathSegmentSelect = (key: string) => {
+    if (onJsonPathSegmentSelect) {
+      onJsonPathSegmentSelect(key);
+    }
   };
 
   return (
@@ -103,7 +105,7 @@ export function ImportCsvDialog({
               <button
                 className="button button--secondary button--compact"
                 style={{ fontSize: '11px', padding: '4px 8px' }}
-                onClick={onJsonPathReset}
+                onClick={handleJsonPathReset}
                 disabled={!jsonPath.value}
               >
                 Reset
@@ -113,7 +115,7 @@ export function ImportCsvDialog({
                   key={key}
                   className="button button--secondary button--compact"
                   style={{ fontSize: '11px', padding: '4px 8px', borderStyle: 'dashed' }}
-                  onClick={() => onJsonPathSegmentSelect(key)}
+                  onClick={() => handleJsonPathSegmentSelect(key)}
                 >
                   {key}
                 </button>
@@ -173,7 +175,9 @@ export function ImportCsvDialog({
                     checked={flattenJson.value}
                     onChange={(e) => {
                       flattenJson.value = e.currentTarget.checked;
-                      onParamChange();
+                      if (onParamChange) {
+                        onParamChange();
+                      }
                     }}
                   />
                   <span>Flatten nested objects (e.g., user.name -&gt; user_name)</span>
@@ -184,7 +188,9 @@ export function ImportCsvDialog({
                     checked={serializeNested.value}
                     onChange={(e) => {
                       serializeNested.value = e.currentTarget.checked;
-                      onParamChange();
+                      if (onParamChange) {
+                        onParamChange();
+                      }
                     }}
                   />
                   <span>Serialize nested structures to JSON strings</span>

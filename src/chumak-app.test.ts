@@ -196,7 +196,8 @@ describe('ChumakApp URL Import', () => {
 
     app.handleJsonPreview(file, data);
 
-    // Default: serializeNested = true, flattenJson = false
+    // Enable serializeNested (default is false)
+    app.importDialogState.serializeNested = true;
     app.updateHeadersForPreview();
     expect(app.importDialogState.previewHeaders).toContain('user');
     expect(typeof app.importDialogState.previewDataRows[0][1]).toBe('string'); // user is stringified

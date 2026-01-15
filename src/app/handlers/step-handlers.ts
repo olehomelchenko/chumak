@@ -4,6 +4,7 @@ import { Model } from '../types';
 import { ColumnSchema, TransformStep } from '../../core/schema-engine';
 import { DialogStore } from '../stores/DialogStore';
 import { StepService, ComputeResult } from '../services/StepService';
+import type { PivotAggregation } from '../components/PivotDialog';
 
 /**
  * Dispatches transform application based on the active dialog.
@@ -248,7 +249,7 @@ export function editStep(this: ChumakApp, stepIndex: number) {
     state.rowColumns.value = step.pivot.rows || [];
     state.columnColumn.value = step.pivot.keys;
     state.valueColumn.value = step.pivot.values;
-    state.aggregation.value = step.pivot.aggregation || 'sum';
+    state.aggregation.value = (step.pivot.aggregation || 'sum') as PivotAggregation;
     state.options.value = {
       sort: step.pivot.options?.sort ?? true,
       limit: step.pivot.options?.limit || null,

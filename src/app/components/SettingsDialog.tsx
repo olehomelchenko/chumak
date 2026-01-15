@@ -1,24 +1,28 @@
-import { Signal } from '@preact/signals';
-import { JSX } from 'preact';
+import { DialogStore } from '../stores/DialogStore';
 
+// Props interface kept for reference/testing
 export interface SettingsDialogProps {
-  theme: Signal<'chumak' | 'blues'>;
-  rowLimit: Signal<number>;
-
-  onThemeChange: (theme: 'chumak' | 'blues') => void;
-  onRowLimitChange: (limit: number) => void;
+  onThemeChange?: (theme: 'chumak' | 'blues') => void;
+  onRowLimitChange?: (limit: number) => void;
 }
 
-export function SettingsDialog({
-  theme,
-  rowLimit,
-  onThemeChange,
-  onRowLimitChange,
-}: SettingsDialogProps) {
-  const handleRowLimitChange = (e: JSX.TargetedEvent<HTMLInputElement>) => {
-    const val = parseInt(e.currentTarget.value, 10);
+export function SettingsDialog({ onThemeChange, onRowLimitChange }: SettingsDialogProps = {}) {
+  const { theme, rowLimit } = DialogStore.settingsState;
+
+  const handleThemeChange = (newTheme: 'chumak' | 'blues') => {
+    theme.value = newTheme;
+    if (onThemeChange) {
+      onThemeChange(newTheme);
+    }
+  };
+
+  const handleRowLimitChange = (e: Event) => {
+    const val = parseInt((e.target as HTMLInputElement).value, 10);
     if (!isNaN(val)) {
-      onRowLimitChange(val);
+      rowLimit.value = val;
+      if (onRowLimitChange) {
+        onRowLimitChange(val);
+      }
     }
   };
 
@@ -39,7 +43,7 @@ export function SettingsDialog({
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           {/* Chumak Theme */}
           <div
-            onClick={() => onThemeChange('chumak')}
+            onClick={() => handleThemeChange('chumak')}
             style={{
               padding: '1rem',
               border: '1px solid var(--border-color)',
@@ -98,7 +102,7 @@ export function SettingsDialog({
 
           {/* Blues Theme */}
           <div
-            onClick={() => onThemeChange('blues')}
+            onClick={() => handleThemeChange('blues')}
             style={{
               padding: '1rem',
               border: '1px solid var(--border-color)',
