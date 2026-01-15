@@ -26,6 +26,7 @@ import * as JsonHandlers from './app/handlers/json-handlers';
 import { SchemaEngine, ColumnSchema, TransformStep } from './core/schema-engine';
 import { effect } from '@preact/signals';
 import { AppStore, ViewMode } from './app/stores/AppStore';
+import { DialogStore } from './app/stores/DialogStore';
 import { ModelService } from './app/services/ModelService';
 import { ImportService } from './app/services/ImportService';
 import { ExportService } from './app/services/ExportService';
@@ -35,12 +36,8 @@ import {
   Source,
   Model,
   Notification,
-  AggregateDialogState,
-  PivotDialogState,
-  SplitDialogState,
-  RegexpMatchDialogState,
-  RegexpExtractDialogState,
-  DateDialogState,
+  ImportDialogState,
+  ImportUrlDialogState,
 } from './app/types';
 
 export class ChumakApp implements AppState {
@@ -80,7 +77,7 @@ export class ChumakApp implements AppState {
   totalPages = 1;
 
   // Import dialog state
-  importDialogState: AppState['importDialogState'] = {
+  importDialogState: ImportDialogState = {
     fileName: '',
     sourceName: '',
     rawPreviewData: [],
@@ -101,11 +98,12 @@ export class ChumakApp implements AppState {
     serializeNested: true,
   };
   importFileData: { file: File } | null = null;
-  importUrlDialogState: AppState['importUrlDialogState'] = {
+  importUrlDialogState: ImportUrlDialogState = {
     url: '',
     isFetching: false,
     error: null,
   };
+  _previewDebounceTimer: any = null;
 
   // Data state (wired to AppStore)
   get sources() {
@@ -246,100 +244,232 @@ export class ChumakApp implements AppState {
 
   // Transform state
 
-  // Dialog states
-  aggregateDialogState: AggregateDialogState = {
-    groupBy: [],
-    aggregations: [],
-    previewData: null,
-    previewError: null,
-    isPreviewing: false,
-  };
+  // Dialog states (wired to DialogStore)
+  get aggregateDialogState() {
+    this._rev;
+    return {
+      groupBy: DialogStore.aggregateState.groupBy.value,
+      aggregations: DialogStore.aggregateState.aggregations.value,
+      previewData: DialogStore.aggregateState.previewData.value,
+      previewError: DialogStore.aggregateState.previewError.value,
+      isPreviewing: DialogStore.aggregateState.isPreviewing.value,
+    };
+  }
+  set aggregateDialogState(val) {
+    DialogStore.aggregateState.groupBy.value = val.groupBy;
+    DialogStore.aggregateState.aggregations.value = val.aggregations;
+    DialogStore.aggregateState.previewData.value = val.previewData;
+    DialogStore.aggregateState.previewError.value = val.previewError;
+    DialogStore.aggregateState.isPreviewing.value = val.isPreviewing;
+  }
 
-  sliceRowsDialogState = {
-    count: 10,
-    mode: 'first' as 'first' | 'last' | 'removeFirst' | 'removeLast',
-  };
-  indexDialogState = { columnName: 'row_index', startFrom: 1 };
-  foldDialogState: AppState['foldDialogState'] = {
-    keyName: 'key',
-    valueName: 'value',
-    selectedColumns: [],
-    mode: 'keep',
-  };
-  pivotDialogState: PivotDialogState = {
-    rowColumns: [],
-    columnColumn: '',
-    valueColumn: '',
-    aggregation: 'sum',
-    options: { sort: true, limit: null },
-    uniqueValueCount: 0,
-    previewData: null,
-    previewError: null,
-    isPreviewing: false,
-  };
-  replaceDialogState = { column: '', findValue: '', replaceValue: '' };
-  splitDialogState: SplitDialogState = {
-    column: '',
-    delimiter: ',',
-    isRegex: false,
-    mode: 'spread',
-    maxColumns: 10,
-    keepOriginal: false,
-    error: null,
-    previewData: [],
-    previewColumns: [],
-    autoDetectedDelimiter: null,
-    columnRenames: {},
-  };
-  regexpMatchDialogState: RegexpMatchDialogState = {
-    sourceColumn: '',
-    pattern: '',
-    columnName: '',
-    error: null,
-  };
-  regexpExtractDialogState: RegexpExtractDialogState = {
-    sourceColumn: '',
-    pattern: '',
-    columnName: '',
-    group: 0,
-    error: null,
-  };
-  dateDialogState: DateDialogState = {
-    column: '',
-    operation: 'extract',
-    extractParts: ['year'],
-    truncateUnits: ['month'],
-    outputColumn: '',
-    error: null,
-    previewData: [],
-  };
-  dedupeDialogState: AppState['dedupeDialogState'] = {
-    selectedColumns: [],
-    useAllColumns: true,
-    duplicateCount: 0,
-    mode: 'remove',
-  };
-  columnEditorState: AppState['columnEditorState'] = {
-    mode: 'list',
-    textSubMode: 'rename',
-    columns: [],
-    textValue: '',
-    textError: null,
-    patternText: '',
-    patternMode: 'include',
-    patternMatchType: 'prefix',
-    draggedIndex: null,
-  };
+  get sliceRowsDialogState() {
+    this._rev;
+    return {
+      count: DialogStore.sliceRowsState.count.value,
+      mode: DialogStore.sliceRowsState.mode.value,
+    };
+  }
+  set sliceRowsDialogState(val) {
+    DialogStore.sliceRowsState.count.value = val.count;
+    DialogStore.sliceRowsState.mode.value = val.mode;
+  }
 
-  // Unified preview panel state (shared across all dialogs with previews)
-  previewState: AppState['previewState'] = {
-    title: '',
-    stats: '',
-    columns: [],
-    newColumns: [],
-    rows: [],
-    _debounceTimer: null,
-  };
+  get indexDialogState() {
+    this._rev;
+    return {
+      columnName: DialogStore.indexState.columnName.value,
+      startFrom: DialogStore.indexState.startFrom.value,
+    };
+  }
+  set indexDialogState(val) {
+    DialogStore.indexState.columnName.value = val.columnName;
+    DialogStore.indexState.startFrom.value = val.startFrom;
+  }
+
+  get foldDialogState() {
+    this._rev;
+    return {
+      keyName: DialogStore.foldState.keyName.value,
+      valueName: DialogStore.foldState.valueName.value,
+      selectedColumns: DialogStore.foldState.selectedColumns.value,
+      mode: DialogStore.foldState.mode.value,
+    };
+  }
+  set foldDialogState(val) {
+    DialogStore.foldState.keyName.value = val.keyName;
+    DialogStore.foldState.valueName.value = val.valueName;
+    DialogStore.foldState.selectedColumns.value = val.selectedColumns;
+    DialogStore.foldState.mode.value = val.mode;
+  }
+
+  get pivotDialogState() {
+    this._rev;
+    return {
+      rowColumns: DialogStore.pivotState.rowColumns.value,
+      columnColumn: DialogStore.pivotState.columnColumn.value,
+      valueColumn: DialogStore.pivotState.valueColumn.value,
+      aggregation: DialogStore.pivotState.aggregation.value,
+      options: DialogStore.pivotState.options.value,
+      uniqueValueCount: DialogStore.pivotState.uniqueValueCount.value,
+      previewData: DialogStore.pivotState.previewData.value,
+      previewError: DialogStore.pivotState.previewError.value,
+      isPreviewing: DialogStore.pivotState.isPreviewing.value,
+    };
+  }
+  set pivotDialogState(val) {
+    DialogStore.pivotState.rowColumns.value = val.rowColumns;
+    DialogStore.pivotState.columnColumn.value = val.columnColumn;
+    DialogStore.pivotState.valueColumn.value = val.valueColumn;
+    DialogStore.pivotState.aggregation.value = val.aggregation as any;
+    DialogStore.pivotState.options.value = val.options;
+    DialogStore.pivotState.uniqueValueCount.value = val.uniqueValueCount;
+    DialogStore.pivotState.previewData.value = val.previewData;
+    DialogStore.pivotState.previewError.value = val.previewError;
+    DialogStore.pivotState.isPreviewing.value = val.isPreviewing;
+  }
+
+  get replaceDialogState() {
+    this._rev;
+    return {
+      column: DialogStore.replaceState.column.value,
+      findValue: DialogStore.replaceState.findValue.value,
+      replaceValue: DialogStore.replaceState.replaceValue.value,
+    };
+  }
+  set replaceDialogState(val) {
+    DialogStore.replaceState.column.value = val.column;
+    DialogStore.replaceState.findValue.value = val.findValue;
+    DialogStore.replaceState.replaceValue.value = val.replaceValue;
+  }
+
+  get splitDialogState() {
+    this._rev;
+    return {
+      column: DialogStore.splitState.column.value,
+      delimiter: DialogStore.splitState.delimiter.value,
+      isRegex: DialogStore.splitState.isRegex.value,
+      mode: DialogStore.splitState.mode.value,
+      maxColumns: DialogStore.splitState.maxColumns.value,
+      keepOriginal: DialogStore.splitState.keepOriginal.value,
+      error: DialogStore.splitState.error.value,
+      previewData: DialogStore.splitState.previewData.value,
+      previewColumns: DialogStore.splitState.previewColumns.value,
+      autoDetectedDelimiter: DialogStore.splitState.autoDetectedDelimiter.value,
+      columnRenames: DialogStore.splitState.columnRenames.value,
+    };
+  }
+  set splitDialogState(val: any) {
+    DialogStore.splitState.column.value = val.column;
+    DialogStore.splitState.delimiter.value = val.delimiter;
+    DialogStore.splitState.isRegex.value = val.isRegex;
+    DialogStore.splitState.mode.value = val.mode;
+    DialogStore.splitState.maxColumns.value = val.maxColumns;
+    DialogStore.splitState.keepOriginal.value = val.keepOriginal;
+    DialogStore.splitState.error.value = val.error;
+    DialogStore.splitState.previewData.value = val.previewData;
+    DialogStore.splitState.previewColumns.value = val.previewColumns;
+    DialogStore.splitState.autoDetectedDelimiter.value = val.autoDetectedDelimiter;
+    DialogStore.splitState.columnRenames.value = val.columnRenames;
+  }
+
+  get regexpMatchDialogState() {
+    this._rev;
+    return {
+      sourceColumn: DialogStore.regexpMatchState.sourceColumn.value,
+      pattern: DialogStore.regexpMatchState.pattern.value,
+      columnName: DialogStore.regexpMatchState.columnName.value,
+      error: DialogStore.regexpMatchState.error.value,
+    };
+  }
+  set regexpMatchDialogState(val) {
+    DialogStore.regexpMatchState.sourceColumn.value = val.sourceColumn;
+    DialogStore.regexpMatchState.pattern.value = val.pattern;
+    DialogStore.regexpMatchState.columnName.value = val.columnName;
+    DialogStore.regexpMatchState.error.value = val.error;
+  }
+
+  get regexpExtractDialogState() {
+    this._rev;
+    return {
+      sourceColumn: DialogStore.regexpExtractState.sourceColumn.value,
+      pattern: DialogStore.regexpExtractState.pattern.value,
+      columnName: DialogStore.regexpExtractState.columnName.value,
+      group: DialogStore.regexpExtractState.group.value,
+      error: DialogStore.regexpExtractState.error.value,
+    };
+  }
+  set regexpExtractDialogState(val) {
+    DialogStore.regexpExtractState.sourceColumn.value = val.sourceColumn;
+    DialogStore.regexpExtractState.pattern.value = val.pattern;
+    DialogStore.regexpExtractState.columnName.value = val.columnName;
+    DialogStore.regexpExtractState.group.value = val.group;
+    DialogStore.regexpExtractState.error.value = val.error;
+  }
+
+  get dateDialogState() {
+    this._rev;
+    return {
+      column: DialogStore.dateState.column.value,
+      operation: DialogStore.dateState.operation.value,
+      extractParts: DialogStore.dateState.extractParts.value,
+      truncateUnits: DialogStore.dateState.truncateUnits.value,
+      outputColumn: DialogStore.dateState.outputColumn.value,
+      error: DialogStore.dateState.error.value,
+      previewData: DialogStore.dateState.previewData.value,
+    };
+  }
+  set dateDialogState(val: any) {
+    DialogStore.dateState.column.value = val.column;
+    DialogStore.dateState.operation.value = val.operation;
+    DialogStore.dateState.extractParts.value = val.extractParts;
+    DialogStore.dateState.truncateUnits.value = val.truncateUnits;
+    DialogStore.dateState.outputColumn.value = val.outputColumn;
+    DialogStore.dateState.error.value = val.error;
+    DialogStore.dateState.previewData.value = val.previewData;
+  }
+
+  get dedupeDialogState() {
+    this._rev;
+    return {
+      selectedColumns: DialogStore.dedupeState.selectedColumns.value,
+      useAllColumns: DialogStore.dedupeState.useAllColumns.value,
+      duplicateCount: DialogStore.dedupeState.duplicateCount.value,
+      mode: DialogStore.dedupeState.mode.value,
+    };
+  }
+  set dedupeDialogState(val: any) {
+    DialogStore.dedupeState.selectedColumns.value = val.selectedColumns;
+    DialogStore.dedupeState.useAllColumns.value = val.useAllColumns;
+    DialogStore.dedupeState.duplicateCount.value = val.duplicateCount;
+    DialogStore.dedupeState.mode.value = val.mode;
+  }
+
+  get columnEditorState() {
+    this._rev;
+    return {
+      mode: DialogStore.columnEditorState.mode.value,
+      textSubMode: DialogStore.columnEditorState.textSubMode.value,
+      columns: DialogStore.columnEditorState.columns.value,
+      textValue: DialogStore.columnEditorState.textValue.value,
+      textError: DialogStore.columnEditorState.textError.value,
+      patternText: DialogStore.columnEditorState.patternText.value,
+      patternMode: DialogStore.columnEditorState.patternMode.value,
+      patternMatchType: DialogStore.columnEditorState.patternMatchType.value,
+      draggedIndex: DialogStore.columnEditorState.draggedIndex.value,
+    };
+  }
+  set columnEditorState(val: any) {
+    DialogStore.columnEditorState.mode.value = val.mode;
+    DialogStore.columnEditorState.textSubMode.value = val.textSubMode;
+    DialogStore.columnEditorState.columns.value = val.columns;
+    DialogStore.columnEditorState.textValue.value = val.textValue;
+    DialogStore.columnEditorState.textError.value = val.textError;
+    DialogStore.columnEditorState.patternText.value = val.patternText;
+    DialogStore.columnEditorState.patternMode.value = val.patternMode;
+    DialogStore.columnEditorState.patternMatchType.value = val.patternMatchType;
+    DialogStore.columnEditorState.draggedIndex.value = val.draggedIndex;
+  }
 
   // JSON Editor
   jsonEditMode = false;
@@ -1177,8 +1307,60 @@ export class ChumakApp implements AppState {
       AppStore.isTransforming.value;
       AppStore.transformMessage.value;
 
+      // Access all dialog signals for reactivity
+      DialogStore.aggregateState.groupBy.value;
+      DialogStore.aggregateState.aggregations.value;
+      DialogStore.aggregateState.previewData.value;
+      DialogStore.aggregateState.previewError.value;
+      DialogStore.aggregateState.isPreviewing.value;
+      DialogStore.sliceRowsState.count.value;
+      DialogStore.sliceRowsState.mode.value;
+      DialogStore.indexState.columnName.value;
+      DialogStore.indexState.startFrom.value;
+      DialogStore.foldState.keyName.value;
+      DialogStore.foldState.valueName.value;
+      DialogStore.foldState.selectedColumns.value;
+      DialogStore.foldState.mode.value;
+      DialogStore.pivotState.rowColumns.value;
+      DialogStore.pivotState.columnColumn.value;
+      DialogStore.pivotState.valueColumn.value;
+      DialogStore.pivotState.aggregation.value;
+      DialogStore.pivotState.options.value;
+      DialogStore.replaceState.column.value;
+      DialogStore.replaceState.findValue.value;
+      DialogStore.replaceState.replaceValue.value;
+      DialogStore.splitState.column.value;
+      DialogStore.splitState.delimiter.value;
+      DialogStore.splitState.isRegex.value;
+      DialogStore.splitState.mode.value;
+      DialogStore.splitState.maxColumns.value;
+      DialogStore.splitState.keepOriginal.value;
+      DialogStore.regexpMatchState.sourceColumn.value;
+      DialogStore.regexpMatchState.pattern.value;
+      DialogStore.regexpMatchState.columnName.value;
+      DialogStore.regexpExtractState.sourceColumn.value;
+      DialogStore.regexpExtractState.pattern.value;
+      DialogStore.regexpExtractState.columnName.value;
+      DialogStore.regexpExtractState.group.value;
+      DialogStore.dateState.column.value;
+      DialogStore.dateState.operation.value;
+      DialogStore.dateState.extractParts.value;
+      DialogStore.dateState.truncateUnits.value;
+      DialogStore.dateState.outputColumn.value;
+      DialogStore.dedupeState.selectedColumns.value;
+      DialogStore.dedupeState.useAllColumns.value;
+      DialogStore.columnEditorState.mode.value;
+      DialogStore.columnEditorState.columns.value;
+      DialogStore.previewState.title.value;
+      DialogStore.previewState.stats.value;
+      DialogStore.previewState.columns.value;
+      DialogStore.previewState.rows.value;
+
       // Trigger Alpine re-render by incrementing version
-      this._rev++;
+      // Use microtask to avoid synchronous reactivity cycles in Alpine.js
+      Promise.resolve().then(() => {
+        this._rev++;
+      });
     });
 
     this.uxSettings = loadUXSettings();

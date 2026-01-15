@@ -9,10 +9,10 @@ export function validateDeriveExpression(this: ChumakApp) {
 }
 
 export function debouncedUpdateDerivePreview(this: ChumakApp) {
-  if (this.previewState._debounceTimer) {
-    clearTimeout(this.previewState._debounceTimer);
+  if (this._previewDebounceTimer) {
+    clearTimeout(this._previewDebounceTimer);
   }
-  this.previewState._debounceTimer = setTimeout(() => {
+  this._previewDebounceTimer = setTimeout(() => {
     this.updateDerivePreview();
   }, 150);
 }
@@ -45,14 +45,11 @@ export function updateDerivePreview(this: ChumakApp) {
     // Show first 4 source columns + new derived column
     const previewCols = [...this.columns.slice(0, 4), outputCol];
 
-    this.previewState = {
-      title: `Derive: ${outputCol}`,
-      stats: `Showing ${previewRows.length} sample rows`,
-      columns: previewCols,
-      newColumns: [outputCol],
-      rows: previewRows,
-      _debounceTimer: null,
-    };
+    DialogStore.previewState.title.value = `Derive: ${outputCol}`;
+    DialogStore.previewState.stats.value = `Showing ${previewRows.length} sample rows`;
+    DialogStore.previewState.columns.value = previewCols;
+    DialogStore.previewState.newColumns.value = [outputCol];
+    DialogStore.previewState.rows.value = previewRows;
   } catch {
     this.clearPreview();
   }

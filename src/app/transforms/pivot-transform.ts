@@ -2,6 +2,7 @@ import type { ChumakApp } from '../../chumak-app';
 import * as aq from 'arquero';
 import { applyTransform } from '../../core/transforms';
 import { SchemaEngine } from '../../core/schema-engine';
+import { DialogStore } from '../stores/DialogStore';
 
 export function initializePivotDialog(this: ChumakApp) {
   this.pivotDialogState = {
@@ -72,14 +73,11 @@ export function previewPivot(this: ChumakApp) {
     const rowCols = this.pivotDialogState.rowColumns;
     const newCols = result.columns.filter((c: string) => !rowCols.includes(c));
 
-    this.previewState = {
-      title: 'Pivot Preview',
-      stats: `Showing ${result.rows.length} rows, ${result.columns.length} columns`,
-      columns: result.columns,
-      newColumns: newCols,
-      rows: result.rows,
-      _debounceTimer: null,
-    };
+    DialogStore.previewState.title.value = 'Pivot Preview';
+    DialogStore.previewState.stats.value = `Showing ${result.rows.length} rows, ${result.columns.length} columns`;
+    DialogStore.previewState.columns.value = result.columns;
+    DialogStore.previewState.newColumns.value = newCols;
+    DialogStore.previewState.rows.value = result.rows;
   } catch (error: any) {
     this.pivotDialogState.previewError = error.message;
   } finally {

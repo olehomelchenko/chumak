@@ -1,6 +1,7 @@
 import type { ChumakApp } from '../../chumak-app';
 import { parseExpression } from '../../core/expression-parser';
 import { interpretAST } from '../../core/ast-interpreter';
+import { DialogStore } from '../stores/DialogStore';
 
 export function getDateColumns(this: ChumakApp): string[] {
   const schema = this.getActiveSchema();
@@ -129,14 +130,11 @@ export function updateDatePreview(this: ChumakApp) {
       return operation === 'extract' ? `${column}_${part}` : `${column}_${part}_trunc`;
     });
 
-    this.previewState = {
-      title: `Date: ${operation === 'extract' ? 'Extract' : 'Truncate'}`,
-      stats: `Showing ${previewRows.length} sample rows`,
-      columns: [column, ...outputCols],
-      newColumns: outputCols,
-      rows: previewRows,
-      _debounceTimer: null,
-    };
+    DialogStore.previewState.title.value = `Date: ${operation === 'extract' ? 'Extract' : 'Truncate'}`;
+    DialogStore.previewState.stats.value = `Showing ${previewRows.length} sample rows`;
+    DialogStore.previewState.columns.value = [column, ...outputCols];
+    DialogStore.previewState.newColumns.value = outputCols;
+    DialogStore.previewState.rows.value = previewRows;
   } catch (e) {
     this.clearPreview();
   }

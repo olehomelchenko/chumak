@@ -1,4 +1,5 @@
 import type { ChumakApp } from '../../chumak-app';
+import { DialogStore } from '../stores/DialogStore';
 
 export function toggleDedupeAllColumns(this: ChumakApp, useAll: boolean) {
   this.dedupeDialogState.useAllColumns = useAll;
@@ -87,14 +88,12 @@ export function updateDedupePreview(this: ChumakApp) {
     statsText = `${duplicates.size} duplicate row${duplicates.size !== 1 ? 's' : ''} will be removed`;
   }
 
-  this.previewState = {
-    title: mode === 'keep' ? 'Keep Duplicates Preview' : 'Remove Duplicates Preview',
-    stats: statsText,
-    columns: columns.length > 0 ? columns : this.columns.slice(0, 5),
-    newColumns: [],
-    rows: previewRows,
-    _debounceTimer: null,
-  };
+  DialogStore.previewState.title.value =
+    mode === 'keep' ? 'Keep Duplicates Preview' : 'Remove Duplicates Preview';
+  DialogStore.previewState.stats.value = statsText;
+  DialogStore.previewState.columns.value = columns.length > 0 ? columns : this.columns.slice(0, 5);
+  DialogStore.previewState.newColumns.value = [];
+  DialogStore.previewState.rows.value = previewRows;
 }
 
 export function findAllDuplicateRowCount(this: ChumakApp, data: any[], columns: string[]): number {

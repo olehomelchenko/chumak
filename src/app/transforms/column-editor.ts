@@ -5,11 +5,11 @@ export function toggleColumnEditorColumn(this: ChumakApp, index: number) {
 }
 
 export function selectAllColumnEditor(this: ChumakApp) {
-  this.columnEditorState.columns.forEach((c) => (c.selected = true));
+  this.columnEditorState.columns.forEach((c: any) => (c.selected = true));
 }
 
 export function selectNoneColumnEditor(this: ChumakApp) {
-  this.columnEditorState.columns.forEach((c) => (c.selected = false));
+  this.columnEditorState.columns.forEach((c: any) => (c.selected = false));
 }
 
 export function applyColumnEditorPattern(this: ChumakApp) {
@@ -32,7 +32,7 @@ export function applyColumnEditorPattern(this: ChumakApp) {
   };
 
   const shouldSelect = patternMode === 'include';
-  this.columnEditorState.columns.forEach((c) => {
+  this.columnEditorState.columns.forEach((c: any) => {
     if (matchFn(c.original)) {
       c.selected = shouldSelect;
     }
@@ -73,15 +73,15 @@ export function switchColumnEditorToText(this: ChumakApp) {
   // Populate text value based on sub-mode
   if (state.textSubMode === 'rename') {
     // Show renamed names for all columns (in current order)
-    const lines = state.columns.map((c) => c.renamed);
+    const lines = state.columns.map((c: any) => c.renamed);
     state.textValue = lines.join('\n');
   } else if (state.textSubMode === 'reorder') {
     // Show original names of selected columns (in current order)
-    const lines = state.columns.filter((c) => c.selected).map((c) => c.original);
+    const lines = state.columns.filter((c: any) => c.selected).map((c: any) => c.original);
     state.textValue = lines.join('\n');
   } else if (state.textSubMode === 'select') {
     // Show original names of selected columns
-    const lines = state.columns.filter((c) => c.selected).map((c) => c.original);
+    const lines = state.columns.filter((c: any) => c.selected).map((c: any) => c.original);
     state.textValue = lines.join('\n');
   }
   state.textError = null;
@@ -92,8 +92,8 @@ export function validateColumnEditorText(this: ChumakApp): boolean {
   const state = this.columnEditorState;
   const lines = state.textValue
     .split('\n')
-    .map((l) => l.trim())
-    .filter((l) => l.length > 0);
+    .map((l: any) => l.trim())
+    .filter((l: any) => l.length > 0);
 
   const columnCount = this.columns.length;
   const originalNameSet = new Set(this.columns);
@@ -157,8 +157,8 @@ export function getColumnEditorChanges(this: ChumakApp): {
   if (state.mode === 'text') {
     const lines = state.textValue
       .split('\n')
-      .map((l) => l.trim())
-      .filter((l) => l.length > 0);
+      .map((l: any) => l.trim())
+      .filter((l: any) => l.length > 0);
 
     if (state.textSubMode === 'rename') {
       // Compare line by line - same order
@@ -182,16 +182,18 @@ export function getColumnEditorChanges(this: ChumakApp): {
   }
 
   // List mode
-  const removed = state.columns.filter((c) => !c.selected).map((c) => c.original);
+  const removed = state.columns.filter((c: any) => !c.selected).map((c: any) => c.original);
 
   const renamed = state.columns
-    .filter((c) => c.selected && c.original !== c.renamed && c.renamed.trim() !== '')
-    .map((c) => ({ from: c.original, to: c.renamed.trim() }));
+    .filter((c: any) => c.selected && c.original !== c.renamed && c.renamed.trim() !== '')
+    .map((c: any) => ({ from: c.original, to: c.renamed.trim() }));
 
   // Check reorder by comparing selected columns order to original
-  const selectedOriginals = state.columns.filter((c) => c.selected).map((c) => c.original);
-  const originalSelectedOrder = this.columns.filter((c) =>
-    state.columns.find((sc) => sc.original === c && sc.selected)
+  const selectedOriginals = state.columns
+    .filter((c: any) => c.selected)
+    .map((c: any) => c.original);
+  const originalSelectedOrder = this.columns.filter((c: any) =>
+    state.columns.find((sc: any) => sc.original === c && sc.selected)
   );
   const reordered = JSON.stringify(selectedOriginals) !== JSON.stringify(originalSelectedOrder);
 
@@ -212,8 +214,8 @@ export async function applyColumnEditorTransform(this: ChumakApp) {
 
     const lines = state.textValue
       .split('\n')
-      .map((l) => l.trim())
-      .filter((l) => l.length > 0);
+      .map((l: any) => l.trim())
+      .filter((l: any) => l.length > 0);
 
     if (state.textSubMode === 'rename') {
       // Apply rename transform - map column[i] -> lines[i]
@@ -256,7 +258,7 @@ export async function applyColumnEditorTransform(this: ChumakApp) {
   }
 
   // Build select transform from current order of selected columns
-  const selectedInOrder = state.columns.filter((c) => c.selected).map((c) => c.original);
+  const selectedInOrder = state.columns.filter((c: any) => c.selected).map((c: any) => c.original);
 
   // Check if we need select (order changed or columns removed)
   const needsSelect =
@@ -265,7 +267,7 @@ export async function applyColumnEditorTransform(this: ChumakApp) {
 
   // Build rename map
   const renames: Record<string, string> = {};
-  state.columns.forEach((c) => {
+  state.columns.forEach((c: any) => {
     if (c.selected && c.original !== c.renamed && c.renamed.trim() !== '') {
       renames[c.original] = c.renamed.trim();
     }

@@ -2,7 +2,7 @@ import * as aq from 'arquero';
 import { applyTransform, describeTransform } from '../../core/transforms';
 import { TransformResult } from '../../core/transform-result';
 import { perfLogger } from '../../core/performance-logger';
-import { autoSave } from '../../core/storage';
+import { PersistenceService } from './PersistenceService';
 import { Model, Source } from '../types';
 import { ColumnSchema, TransformStep } from '../../core/schema-engine';
 import { AppStore } from '../stores/AppStore';
@@ -139,7 +139,7 @@ export class StepService {
       model.schema = result.schema;
 
       callbacks.onSuccess(result);
-      await autoSave(AppStore.sources.value, AppStore.models.value);
+      await PersistenceService.autoSave();
     } catch (error: any) {
       callbacks.onError(error);
     }
@@ -180,7 +180,7 @@ export class StepService {
       model.schema = result.schema;
 
       callbacks.onSuccess(result);
-      await autoSave(AppStore.sources.value, AppStore.models.value);
+      await PersistenceService.autoSave();
     } catch (error: any) {
       callbacks.onError(error, backup);
     }

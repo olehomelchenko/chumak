@@ -1,6 +1,7 @@
 import type { ChumakApp } from '../../chumak-app';
 import * as aq from 'arquero';
 import { applyTransform } from '../../core/transforms';
+import { DialogStore } from '../stores/DialogStore';
 
 export function toggleColumnForFold(this: ChumakApp, index: number) {
   // Simple toggle - works like a checkbox
@@ -59,14 +60,11 @@ export function updateFoldPreview(this: ChumakApp) {
     const resultColumns = resultTable.columnNames();
     const newCols = [keyName || 'key', valueName || 'value'];
 
-    this.previewState = {
-      title: 'Unpivot Preview',
-      stats: `Showing sample result: ${previewRows.length} rows produced`,
-      columns: resultColumns,
-      newColumns: newCols,
-      rows: previewRows,
-      _debounceTimer: null,
-    };
+    DialogStore.previewState.title.value = 'Unpivot Preview';
+    DialogStore.previewState.stats.value = `Showing sample result: ${previewRows.length} rows produced`;
+    DialogStore.previewState.columns.value = resultColumns;
+    DialogStore.previewState.newColumns.value = newCols;
+    DialogStore.previewState.rows.value = previewRows;
   } catch (e) {
     this.clearPreview();
   }

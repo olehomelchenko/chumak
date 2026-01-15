@@ -2,6 +2,7 @@ import type { ChumakApp } from '../../chumak-app';
 import * as aq from 'arquero';
 import { applyTransform } from '../../core/transforms';
 import { SchemaEngine } from '../../core/schema-engine';
+import { DialogStore } from '../stores/DialogStore';
 
 export function detectDelimiter(this: ChumakApp, column: string) {
   if (!column || !this.currentData || this.currentData.length === 0) return null;
@@ -50,11 +51,10 @@ export function detectDelimiter(this: ChumakApp, column: string) {
 }
 
 export function debouncedUpdateSplitPreview(this: ChumakApp) {
-  if (this.splitDialogState._previewDebounceTimer)
-    clearTimeout(this.splitDialogState._previewDebounceTimer);
-  this.splitDialogState._previewDebounceTimer = setTimeout(() => {
+  if (this._previewDebounceTimer) clearTimeout(this._previewDebounceTimer);
+  this._previewDebounceTimer = setTimeout(() => {
     this.updateSplitPreview();
-    this.splitDialogState._previewDebounceTimer = null;
+    this._previewDebounceTimer = null;
   }, 150);
 }
 
@@ -124,16 +124,13 @@ export function updateSplitPreview(this: ChumakApp) {
       return previewRow;
     });
 
-    this.previewState = {
-      title: 'Split Preview',
-      stats: keepOriginal
-        ? `${newCols.length} new columns created`
-        : `Original column removed, ${newCols.length} new columns created`,
-      columns: previewColumns,
-      newColumns: newCols,
-      rows: previewRows,
-      _debounceTimer: null,
-    };
+    DialogStore.previewState.title.value = 'Split Preview';
+    DialogStore.previewState.stats.value = keepOriginal
+      ? `${newCols.length} new columns created`
+      : `Original column removed, ${newCols.length} new columns created`;
+    DialogStore.previewState.columns.value = previewColumns;
+    DialogStore.previewState.newColumns.value = newCols;
+    DialogStore.previewState.rows.value = previewRows;
   } catch (error: any) {
     this.splitDialogState.error = error.message;
     this.clearPreview();

@@ -9,122 +9,20 @@ import { AppStore } from '../stores/AppStore';
 import { SortDialog } from '../components/SortDialog';
 import { IndexDialog } from '../components/IndexDialog';
 import { ReplaceDialog } from '../components/ReplaceDialog';
-import { SliceRowsDialog, SliceMode } from '../components/SliceRowsDialog';
-import { UnpivotDialog, UnpivotMode } from '../components/UnpivotDialog';
+import { SliceRowsDialog } from '../components/SliceRowsDialog';
+import { UnpivotDialog } from '../components/UnpivotDialog';
 import { FilterDialog } from '../components/FilterDialog';
-import { PivotDialog, PivotAggregation } from '../components/PivotDialog';
-import { DateDialog, DateOperation } from '../components/DateDialog';
-import { SplitDialog, SplitMode } from '../components/SplitDialog';
+import { PivotDialog } from '../components/PivotDialog';
+import { DateDialog } from '../components/DateDialog';
+import { SplitDialog } from '../components/SplitDialog';
 import { DeriveDialog } from '../components/DeriveDialog';
 import { JoinDialog } from '../components/JoinDialog';
-import { AggregateDialog, Aggregation } from '../components/AggregateDialog';
+import { AggregateDialog } from '../components/AggregateDialog';
 import { ImportCsvDialog } from '../components/ImportCsvDialog';
-import {
-  ColumnEditorDialog,
-  ColumnEditorItem,
-  ColumnEditorChanges,
-} from '../components/ColumnEditorDialog';
+import { ColumnEditorDialog } from '../components/ColumnEditorDialog';
 import { SettingsDialog } from '../components/SettingsDialog';
 
-// Preact signals for Index Dialog
-let indexColumnNameSignal = signal('row_index');
-let indexStartFromSignal = signal(1);
-let indexEffectCleanup: (() => void) | null = null;
-
-// Preact signals for Replace Dialog
-let replaceColumnSignal = signal('');
-let replaceFindSignal = signal('');
-let replaceWithSignal = signal('');
-let replaceEffectCleanup: (() => void) | null = null;
-
-// Preact signals for Slice Rows Dialog
-let sliceCountSignal = signal(10);
-let sliceModeSignal = signal<SliceMode>('first');
-let sliceEffectCleanup: (() => void) | null = null;
-
-// Preact signals for Unpivot (Fold) Dialog
-let foldKeyNameSignal = signal('key');
-let foldValueNameSignal = signal('value');
-let foldModeSignal = signal<UnpivotMode>('keep');
-let foldSelectedColumnsSignal = signal<boolean[]>([]);
-let foldEffectCleanup: (() => void) | null = null;
-
-// Preact signals for Pivot Dialog
-let pivotRowColumnsSignal = signal<string[]>([]);
-let pivotColumnColumnSignal = signal('');
-let pivotValueColumnSignal = signal('');
-let pivotAggregationSignal = signal<PivotAggregation>('sum');
-let pivotUniqueValueCountSignal = signal(0);
-let pivotSortSignal = signal(true);
-let pivotLimitSignal = signal<number | null>(null);
-let pivotIsPreviewingSignal = signal(false);
-let pivotEffectCleanup: (() => void) | null = null;
-
-// Preact signals for Date Dialog
-let dateColumnSignal = signal('');
-let dateOperationSignal = signal<DateOperation>('extract');
-let dateExtractPartsSignal = signal<string[]>(['year']);
-let dateTruncateUnitsSignal = signal<string[]>(['month']);
-let dateOutputColumnSignal = signal('');
-let dateErrorSignal = signal<string | null>(null);
-let dateEffectCleanup: (() => void) | null = null;
-
-// Preact signals for Split Dialog
-let splitColumnSignal = signal('');
-let splitDelimiterSignal = signal(',');
-let splitAutoDetectedDelimiterSignal = signal<string | null>(null);
-let splitIsRegexSignal = signal(false);
-let splitModeSignal = signal<SplitMode>('spread');
-let splitMaxColumnsSignal = signal(10);
-let splitKeepOriginalSignal = signal(false);
-let splitErrorSignal = signal<string | null>(null);
-let splitEffectCleanup: (() => void) | null = null;
-
-// Preact signals for Aggregate Dialog
-let aggGroupBySignal = signal<string[]>([]);
-let aggAggregationsSignal = signal<Aggregation[]>([{ col: '', func: 'count', output: 'count' }]);
-let aggIsPreviewingSignal = signal(false);
-let aggEffectCleanup: (() => void) | null = null;
-
-// Preact signals for Import CSV Dialog
-let importSourceNameSignal = signal('');
-let importIsJsonSignal = signal(false);
-let importJsonPathSignal = signal('');
-let importJsonRawValuePreviewSignal = signal('');
-let importSuggestedJsonKeysSignal = signal<string[]>([]);
-let importFlattenJsonSignal = signal(false);
-let importSerializeNestedSignal = signal(false);
-let importJsonDataSignal = signal<any>(null);
-let importDelimiterSignal = signal(',');
-let importHeaderModeSignal = signal<'first-row' | 'auto-generate' | 'manual'>('first-row');
-let importCustomHeadersSignal = signal<string[]>([]);
-let importDuplicateWarningSignal = signal('');
-let importPreviewHeadersSignal = signal<string[]>([]);
-let importPreviewDataRowsSignal = signal<any[][]>([]);
-let importEffectCleanup: (() => void) | null = null;
-
-// Preact signals for Column Editor Dialog
-let colEditModeSignal = signal<'list' | 'text'>('list');
-let colEditColumnsSignal = signal<ColumnEditorItem[]>([]);
-let colEditPatternTextSignal = signal('');
-let colEditPatternModeSignal = signal<'include' | 'exclude'>('include');
-let colEditPatternMatchTypeSignal = signal<'prefix' | 'suffix' | 'exact'>('prefix');
-let colEditDraggedIndexSignal = signal<number | null>(null);
-let colEditTextSubModeSignal = signal<'rename' | 'reorder' | 'select'>('rename');
-let colEditTextValueSignal = signal('');
-let colEditTextErrorSignal = signal<string | null>(null);
-let colEditChangesSignal = signal<ColumnEditorChanges>({
-  removed: [],
-  renamed: [],
-  reordered: false,
-  hasChanges: false,
-});
-let colEditEffectCleanup: (() => void) | null = null;
-
-// Preact signals for Settings Dialog
-let settingsThemeSignal = signal<'chumak' | 'blues'>('chumak');
-let settingsRowLimitSignal = signal(100);
-let settingsEffectCleanup: (() => void) | null = null;
+// Local signals replaced by DialogStore
 
 export function getDialogState(this: ChumakApp, dialog: string) {
   switch (dialog) {
@@ -143,10 +41,7 @@ export function getDialogState(this: ChumakApp, dialog: string) {
     case 'index':
       return this.indexDialogState;
     case 'aggregate':
-      return {
-        groupBy: this.aggregateDialogState.groupBy,
-        aggregations: this.aggregateDialogState.aggregations,
-      };
+      return this.aggregateDialogState;
     case 'join':
       return {
         rightModel: DialogStore.joinState.rightModel.value,
@@ -157,76 +52,28 @@ export function getDialogState(this: ChumakApp, dialog: string) {
     case 'fold':
       return this.foldDialogState;
     case 'pivot':
-      return {
-        rowColumns: this.pivotDialogState.rowColumns,
-        columnColumn: this.pivotDialogState.columnColumn,
-        valueColumn: this.pivotDialogState.valueColumn,
-        aggregation: this.pivotDialogState.aggregation,
-        options: this.pivotDialogState.options,
-      };
+      return this.pivotDialogState;
     case 'sort':
       return {
         field: DialogStore.sortState.field.value,
         order: DialogStore.sortState.order.value,
       };
     case 'replace':
-      return {
-        column: this.replaceDialogState.column,
-        findValue: this.replaceDialogState.findValue,
-        replaceValue: this.replaceDialogState.replaceValue,
-      };
+      return this.replaceDialogState;
     case 'split':
-      return {
-        column: this.splitDialogState.column,
-        delimiter: this.splitDialogState.delimiter,
-        isRegex: this.splitDialogState.isRegex,
-        mode: this.splitDialogState.mode,
-        maxColumns: this.splitDialogState.maxColumns,
-        keepOriginal: this.splitDialogState.keepOriginal,
-        columnRenames: this.splitDialogState.columnRenames,
-      };
+      return this.splitDialogState;
     case 'regexpMatch':
-      return {
-        sourceColumn: this.regexpMatchDialogState.sourceColumn,
-        pattern: this.regexpMatchDialogState.pattern,
-        columnName: this.regexpMatchDialogState.columnName,
-      };
+      return this.regexpMatchDialogState;
     case 'regexpExtract':
-      return {
-        sourceColumn: this.regexpExtractDialogState.sourceColumn,
-        pattern: this.regexpExtractDialogState.pattern,
-        columnName: this.regexpExtractDialogState.columnName,
-        group: this.regexpExtractDialogState.group,
-      };
+      return this.regexpExtractDialogState;
     case 'import-csv':
-      return {
-        sourceName: this.importDialogState.sourceName,
-        headerMode: this.importDialogState.headerMode,
-        delimiter: this.importDialogState.delimiter,
-        customHeaders: this.importDialogState.customHeaders,
-        jsonPath: this.importDialogState.jsonPath,
-        flattenJson: this.importDialogState.flattenJson,
-        serializeNested: this.importDialogState.serializeNested,
-      };
+      return this.importDialogState;
     case 'import-url':
       return { url: this.importUrlDialogState.url };
     case 'dedupe':
-      return {
-        selectedColumns: this.dedupeDialogState.selectedColumns,
-        useAllColumns: this.dedupeDialogState.useAllColumns,
-        mode: this.dedupeDialogState.mode,
-      };
+      return this.dedupeDialogState;
     case 'column-editor':
-      return {
-        mode: this.columnEditorState.mode,
-        columns: this.columnEditorState.columns.map((c) => ({
-          original: c.original,
-          renamed: c.renamed,
-          selected: c.selected,
-        })),
-        textValue: this.columnEditorState.textValue,
-      };
-
+      return this.columnEditorState;
     case 'settings':
       return {
         theme: this.theme,
@@ -388,83 +235,46 @@ export function initDialogState(this: ChumakApp, dialogName: string, section?: s
       });
     }
   } else if (dialogName === 'sliceRows') {
-    // Initialize Alpine state
-    this.sliceRowsDialogState = { count: 10, mode: 'first' };
+    // Initialize state
+    DialogStore.sliceRowsState.count.value = 10;
+    DialogStore.sliceRowsState.mode.value = 'first';
 
-    // Mount Preact component
     const container = document.getElementById('slice-rows-modal-container');
     if (container) {
-      sliceCountSignal.value = this.sliceRowsDialogState.count;
-      sliceModeSignal.value = this.sliceRowsDialogState.mode as SliceMode;
-
-      sliceEffectCleanup = effect(() => {
-        this.sliceRowsDialogState.count = sliceCountSignal.value;
-        this.sliceRowsDialogState.mode = sliceModeSignal.value;
-      });
-
       mountComponent(container, SliceRowsDialog, {
-        count: sliceCountSignal,
-        mode: sliceModeSignal,
+        count: DialogStore.sliceRowsState.count,
+        mode: DialogStore.sliceRowsState.mode,
         rowCount: this.currentData?.length || 0,
       });
     }
   } else if (dialogName === 'index') {
-    // Initialize Alpine state
-    this.indexDialogState = { columnName: 'row_index', startFrom: 1 };
+    // Initialize state
+    DialogStore.indexState.columnName.value = 'row_index';
+    DialogStore.indexState.startFrom.value = 1;
 
-    // Mount Preact component
     const container = document.getElementById('index-modal-container');
     if (container) {
-      indexColumnNameSignal.value = this.indexDialogState.columnName;
-      indexStartFromSignal.value = this.indexDialogState.startFrom;
-
-      indexEffectCleanup = effect(() => {
-        this.indexDialogState.columnName = indexColumnNameSignal.value;
-        this.indexDialogState.startFrom = indexStartFromSignal.value;
-      });
-
       mountComponent(container, IndexDialog, {
-        columnName: indexColumnNameSignal,
-        startFrom: indexStartFromSignal,
+        columnName: DialogStore.indexState.columnName,
+        startFrom: DialogStore.indexState.startFrom,
         rowCount: this.currentData?.length || 0,
       });
     }
   } else if (dialogName === 'aggregate') {
-    this.aggregateDialogState = {
-      groupBy: [],
-      aggregations: [{ output: 'count', func: 'count', col: '' }],
-      previewData: null,
-      previewError: null,
-      isPreviewing: false,
-    };
+    DialogStore.aggregateState.groupBy.value = [];
+    DialogStore.aggregateState.aggregations.value = [{ output: 'count', func: 'count', col: '' }];
+    DialogStore.aggregateState.isPreviewing.value = false;
 
-    // Mount Preact component
     const container = document.getElementById('aggregate-modal-container');
     if (container) {
-      aggGroupBySignal.value = [...this.aggregateDialogState.groupBy];
-      // Map Alpine aggregations to our typed objects
-      aggAggregationsSignal.value = this.aggregateDialogState.aggregations.map((a) => ({ ...a }));
-      aggIsPreviewingSignal.value = this.aggregateDialogState.isPreviewing;
-
-      aggEffectCleanup = effect(() => {
-        this.aggregateDialogState.groupBy = [...aggGroupBySignal.value];
-        this.aggregateDialogState.aggregations = aggAggregationsSignal.value.map((a) => ({ ...a }));
-        // isPreviewing is updated manually during async operation
-      });
-
       mountComponent(container, AggregateDialog, {
         columns: this.columns,
-        groupBy: aggGroupBySignal,
-        aggregations: aggAggregationsSignal,
-        isPreviewing: aggIsPreviewingSignal,
+        groupBy: DialogStore.aggregateState.groupBy,
+        aggregations: DialogStore.aggregateState.aggregations,
+        isPreviewing: DialogStore.aggregateState.isPreviewing,
         onPreview: async () => {
-          aggIsPreviewingSignal.value = true;
-          try {
-            if (typeof this.previewAggregate === 'function') {
-              await this.previewAggregate();
-            }
-          } finally {
-            aggIsPreviewingSignal.value = false;
+          if (typeof this.previewAggregate === 'function') {
+            await this.previewAggregate();
           }
         },
       });
@@ -472,117 +282,88 @@ export function initDialogState(this: ChumakApp, dialogName: string, section?: s
   } else if (dialogName === 'import-csv') {
     const container = document.getElementById('import-csv-modal-container');
     if (container) {
-      // Initialize signals from current Alpine state (populated by file loader)
-      // Note: isJson and other optional props might be undefined in fresh state, verify types.ts
-      importSourceNameSignal.value = this.importDialogState.sourceName;
-      importIsJsonSignal.value = !!this.importDialogState.isJson;
-      importJsonPathSignal.value = this.importDialogState.jsonPath || '';
-      importJsonRawValuePreviewSignal.value = this.importDialogState.jsonRawValuePreview || '';
-      importSuggestedJsonKeysSignal.value = this.importDialogState.suggestedJsonKeys || [];
-      importFlattenJsonSignal.value = !!this.importDialogState.flattenJson;
-      importSerializeNestedSignal.value = !!this.importDialogState.serializeNested;
-      importJsonDataSignal.value = this.importDialogState.jsonData || null;
+      const state = DialogStore.importCsvState;
+      // Initialize signals from current Alpine state (populated by library-based file loader)
+      state.sourceName.value = this.importDialogState.sourceName;
+      state.isJson.value = !!this.importDialogState.isJson;
+      state.jsonPath.value = this.importDialogState.jsonPath || '';
+      state.jsonRawValuePreview.value = this.importDialogState.jsonRawValuePreview || '';
+      state.suggestedJsonKeys.value = this.importDialogState.suggestedJsonKeys || [];
+      state.flattenJson.value = !!this.importDialogState.flattenJson;
+      state.serializeNested.value = !!this.importDialogState.serializeNested;
+      state.jsonData.value = this.importDialogState.jsonData || null;
 
-      importDelimiterSignal.value = this.importDialogState.delimiter;
-      importHeaderModeSignal.value = this.importDialogState.headerMode;
-      importCustomHeadersSignal.value = [...(this.importDialogState.customHeaders || [])];
-      importDuplicateWarningSignal.value = this.importDialogState.duplicateWarning || '';
-      importPreviewHeadersSignal.value = [...(this.importDialogState.previewHeaders || [])];
-      importPreviewDataRowsSignal.value = [...(this.importDialogState.previewDataRows || [])];
+      state.delimiter.value = this.importDialogState.delimiter;
+      state.headerMode.value = this.importDialogState.headerMode;
+      state.customHeaders.value = [...(this.importDialogState.customHeaders || [])];
+      state.duplicateWarning.value = this.importDialogState.duplicateWarning || '';
+      state.previewHeaders.value = [...(this.importDialogState.previewHeaders || [])];
+      state.previewDataRows.value = [...(this.importDialogState.previewDataRows || [])];
 
-      importEffectCleanup = effect(() => {
+      effect(() => {
         // Sync Signals -> Alpine
-        this.importDialogState.sourceName = importSourceNameSignal.value;
-        this.importDialogState.isJson = importIsJsonSignal.value;
-        this.importDialogState.jsonPath = importJsonPathSignal.value;
-        // suggestedJsonKeys is usually output from Alpine
-        this.importDialogState.flattenJson = importFlattenJsonSignal.value;
-        this.importDialogState.serializeNested = importSerializeNestedSignal.value;
-        // jsonData is output
-
-        this.importDialogState.delimiter = importDelimiterSignal.value;
-        this.importDialogState.headerMode = importHeaderModeSignal.value;
-        this.importDialogState.customHeaders = importCustomHeadersSignal.value;
-        // duplicateWarning is output
+        this.importDialogState.sourceName = state.sourceName.value;
+        this.importDialogState.isJson = state.isJson.value;
+        this.importDialogState.jsonPath = state.jsonPath.value;
+        this.importDialogState.flattenJson = state.flattenJson.value;
+        this.importDialogState.serializeNested = state.serializeNested.value;
+        this.importDialogState.delimiter = state.delimiter.value;
+        this.importDialogState.headerMode = state.headerMode.value;
+        this.importDialogState.customHeaders = state.customHeaders.value;
       });
 
       mountComponent(container, ImportCsvDialog, {
-        sourceName: importSourceNameSignal,
-        isJson: importIsJsonSignal,
-        jsonPath: importJsonPathSignal,
-        jsonRawValuePreview: importJsonRawValuePreviewSignal,
-        suggestedJsonKeys: importSuggestedJsonKeysSignal,
-        flattenJson: importFlattenJsonSignal,
-        serializeNested: importSerializeNestedSignal,
-        jsonData: importJsonDataSignal,
-        delimiter: importDelimiterSignal,
-        headerMode: importHeaderModeSignal,
-        customHeaders: importCustomHeadersSignal,
-        duplicateWarning: importDuplicateWarningSignal,
-        previewHeaders: importPreviewHeadersSignal,
-        previewDataRows: importPreviewDataRowsSignal,
+        sourceName: state.sourceName,
+        isJson: state.isJson,
+        jsonPath: state.jsonPath,
+        jsonRawValuePreview: state.jsonRawValuePreview,
+        suggestedJsonKeys: state.suggestedJsonKeys,
+        flattenJson: state.flattenJson,
+        serializeNested: state.serializeNested,
+        jsonData: state.jsonData,
+        delimiter: state.delimiter,
+        headerMode: state.headerMode,
+        customHeaders: state.customHeaders,
+        duplicateWarning: state.duplicateWarning,
+        previewHeaders: state.previewHeaders,
+        previewDataRows: state.previewDataRows,
 
         onJsonPathUpdate: () => {
-          // Logic handled in Alpine: updateJsonPath()
-          // It uses the state we synced in effect
           if (typeof this.updateJsonPath === 'function') {
             this.updateJsonPath();
-            // Sync outputs
-            importJsonRawValuePreviewSignal.value =
-              this.importDialogState.jsonRawValuePreview || '';
-            importSuggestedJsonKeysSignal.value = this.importDialogState.suggestedJsonKeys || [];
-            importJsonDataSignal.value = this.importDialogState.jsonData;
-            importPreviewHeadersSignal.value = this.importDialogState.previewHeaders;
-            importPreviewDataRowsSignal.value = this.importDialogState.previewDataRows;
-            importCustomHeadersSignal.value = this.importDialogState.customHeaders; // headers might update
+            state.jsonRawValuePreview.value = this.importDialogState.jsonRawValuePreview || '';
+            state.suggestedJsonKeys.value = this.importDialogState.suggestedJsonKeys || [];
+            state.jsonData.value = this.importDialogState.jsonData;
+            state.previewHeaders.value = this.importDialogState.previewHeaders;
+            state.previewDataRows.value = this.importDialogState.previewDataRows;
+            state.customHeaders.value = this.importDialogState.customHeaders;
           }
         },
         onJsonPathReset: () => {
           if (typeof this.resetJsonPath === 'function') {
             this.resetJsonPath();
-            // Update signals reflecting reset state
-            importJsonPathSignal.value = this.importDialogState.jsonPath || '';
-            importJsonRawValuePreviewSignal.value = '';
-            importSuggestedJsonKeysSignal.value = this.importDialogState.suggestedJsonKeys || [];
-            // ... sync other potential changes
+            state.jsonPath.value = this.importDialogState.jsonPath || '';
+            state.jsonRawValuePreview.value = '';
+            state.suggestedJsonKeys.value = this.importDialogState.suggestedJsonKeys || [];
           }
         },
         onJsonPathSegmentSelect: (key: string) => {
           if (typeof this.selectJsonPathSegment === 'function') {
             this.selectJsonPathSegment(key);
-            importJsonPathSignal.value = this.importDialogState.jsonPath || '';
-            // Trigger update flow
+            state.jsonPath.value = this.importDialogState.jsonPath || '';
             if (typeof this.updateJsonPath === 'function') {
               this.updateJsonPath();
-              importJsonRawValuePreviewSignal.value =
-                this.importDialogState.jsonRawValuePreview || '';
-              importSuggestedJsonKeysSignal.value = this.importDialogState.suggestedJsonKeys || [];
-              importJsonDataSignal.value = this.importDialogState.jsonData;
-              importPreviewHeadersSignal.value = this.importDialogState.previewHeaders;
-              importPreviewDataRowsSignal.value = this.importDialogState.previewDataRows;
-              importCustomHeadersSignal.value = this.importDialogState.customHeaders;
+              state.jsonRawValuePreview.value = this.importDialogState.jsonRawValuePreview || '';
+              state.suggestedJsonKeys.value = this.importDialogState.suggestedJsonKeys || [];
+              state.jsonData.value = this.importDialogState.jsonData;
+              state.previewHeaders.value = this.importDialogState.previewHeaders;
+              state.previewDataRows.value = this.importDialogState.previewDataRows;
+              state.customHeaders.value = this.importDialogState.customHeaders;
             }
           }
         },
         onParamChange: () => {
-          // For delimiter, headerMode, etc.
-          // Triggers updateImportPreview() or updateHeadersForPreview()
-          // In template: @change="updateHeadersForPreview()" for headers/options
-          // @change="updateImportPreview()" for delimiter
-
-          // Simplification: call updateImportPreview() which usually covers everything or chains them?
-          // Actually template calls updateHeadersForPreview() for JSON options and header mode.
-          // updateImportPreview() for delimiter.
-
-          // Let's call both or check based on what changed?
-          // Or better, just call updateImportPreview() if it refreshes data,
-          // and updateHeadersForPreview() if only headers change.
-
-          // A safe bet is calling updateImportPreview() for everything if it covers distinct cases,
-          // but checking existing logic would be best.
-          // Assuming updateImportPreview re-parses everything.
-
-          if (importIsJsonSignal.value) {
+          if (state.isJson.value) {
             if (typeof this.updateHeadersForPreview === 'function') {
               this.updateHeadersForPreview();
             }
@@ -590,16 +371,13 @@ export function initDialogState(this: ChumakApp, dialogName: string, section?: s
             if (typeof this.updateImportPreview === 'function') {
               this.updateImportPreview();
             }
-            // Headers might need updateHeadersForPreview too if mode changed
             if (typeof this.updateHeadersForPreview === 'function') {
               this.updateHeadersForPreview();
             }
           }
-
-          // Sync outputs
-          importPreviewHeadersSignal.value = this.importDialogState.previewHeaders;
-          importPreviewDataRowsSignal.value = this.importDialogState.previewDataRows;
-          importDuplicateWarningSignal.value = this.importDialogState.duplicateWarning || '';
+          state.previewHeaders.value = this.importDialogState.previewHeaders;
+          state.previewDataRows.value = this.importDialogState.previewDataRows;
+          state.duplicateWarning.value = this.importDialogState.duplicateWarning || '';
         },
       });
     }
@@ -622,86 +400,71 @@ export function initDialogState(this: ChumakApp, dialogName: string, section?: s
 
     const container = document.getElementById('column-editor-modal-container');
     if (container) {
-      colEditModeSignal.value = 'list';
-      colEditColumnsSignal.value = this.columnEditorState.columns.map((c) => ({ ...c }));
-      colEditPatternTextSignal.value = '';
-      colEditPatternModeSignal.value = 'include';
-      colEditPatternMatchTypeSignal.value = 'prefix';
-      colEditDraggedIndexSignal.value = null;
-      colEditTextSubModeSignal.value =
-        section === 'select' || section === 'reorder' ? section : 'rename';
-      colEditTextValueSignal.value = '';
-      colEditTextErrorSignal.value = null;
-      colEditChangesSignal.value = {
+      const state = DialogStore.columnEditorState;
+      state.mode.value = 'list';
+      state.columns.value = this.columnEditorState.columns.map((c: any) => ({ ...c }));
+      state.patternText.value = '';
+      state.patternMode.value = 'include';
+      state.patternMatchType.value = 'prefix';
+      state.draggedIndex.value = null;
+      state.textSubMode.value = (
+        section === 'select' || section === 'reorder' ? section : 'rename'
+      ) as any;
+      state.textValue.value = '';
+      state.textError.value = null;
+
+      const changesSignal = signal<any>({
         removed: [],
         renamed: [],
         reordered: false,
         hasChanges: false,
-      };
+      });
 
-      colEditEffectCleanup = effect(() => {
-        this.columnEditorState.mode = colEditModeSignal.value;
-        this.columnEditorState.columns = colEditColumnsSignal.value.map((c) => ({ ...c }));
-        this.columnEditorState.patternText = colEditPatternTextSignal.value;
-        this.columnEditorState.patternMode = colEditPatternModeSignal.value;
-        this.columnEditorState.patternMatchType = colEditPatternMatchTypeSignal.value;
-        this.columnEditorState.draggedIndex = colEditDraggedIndexSignal.value;
-        this.columnEditorState.textSubMode = colEditTextSubModeSignal.value;
-        this.columnEditorState.textValue = colEditTextValueSignal.value;
-        this.columnEditorState.textError = colEditTextErrorSignal.value;
+      effect(() => {
+        this.columnEditorState.mode = state.mode.value;
+        this.columnEditorState.columns = state.columns.value.map((c) => ({ ...c }));
+        this.columnEditorState.patternText = state.patternText.value;
+        this.columnEditorState.patternMode = state.patternMode.value;
+        this.columnEditorState.patternMatchType = state.patternMatchType.value;
+        this.columnEditorState.draggedIndex = state.draggedIndex.value;
+        this.columnEditorState.textSubMode = state.textSubMode.value;
+        this.columnEditorState.textValue = state.textValue.value;
+        this.columnEditorState.textError = state.textError.value;
 
-        // Calculate Changes (for preview) - Logic replicated from Alpine or synced properly?
-        // Alpine had getColumnEditorChanges() method. We should probably reuse it or replicate logic.
-        // It uses `this.columnEditorState` so by syncing signals TO state, we can just call it.
-        // However, we want to update the SIGNAL `colEditChangesSignal` so the Preact component can see it.
         if (typeof this.getColumnEditorChanges === 'function') {
           const changes = this.getColumnEditorChanges();
-          colEditChangesSignal.value = changes;
+          changesSignal.value = changes;
         }
       });
 
       mountComponent(container, ColumnEditorDialog, {
-        mode: colEditModeSignal,
-        columns: colEditColumnsSignal,
-        patternText: colEditPatternTextSignal,
-        patternMode: colEditPatternModeSignal,
-        patternMatchType: colEditPatternMatchTypeSignal,
-        draggedIndex: colEditDraggedIndexSignal,
-        textSubMode: colEditTextSubModeSignal,
-        textValue: colEditTextValueSignal,
-        textError: colEditTextErrorSignal,
-        changes: colEditChangesSignal,
+        mode: state.mode,
+        columns: state.columns,
+        patternText: state.patternText,
+        patternMode: state.patternMode,
+        patternMatchType: state.patternMatchType,
+        draggedIndex: state.draggedIndex,
+        textSubMode: state.textSubMode as any,
+        textValue: state.textValue,
+        textError: state.textError,
+        changes: changesSignal,
 
         onApplyPattern: () => {
           if (typeof this.applyColumnEditorPattern === 'function') {
             this.applyColumnEditorPattern();
-            // Sync back columns as they are modified by pattern
-            colEditColumnsSignal.value = this.columnEditorState.columns.map((c) => ({ ...c }));
+            state.columns.value = this.columnEditorState.columns.map((c: any) => ({ ...c }));
           }
         },
         onSwitchToText: () => {
           if (typeof this.switchColumnEditorToText === 'function') {
             this.switchColumnEditorToText();
-            // Sync back textValue as it is generated from columns
-            colEditTextValueSignal.value = this.columnEditorState.textValue;
+            state.textValue.value = this.columnEditorState.textValue;
           }
         },
         onValidateText: () => {
           if (typeof this.validateColumnEditorText === 'function') {
             this.validateColumnEditorText();
-            // Sync back error state
-            colEditTextErrorSignal.value = this.columnEditorState.textError;
-            // Sync back columns if valid? No, only on Apply.
-            // But changes preview uses columns for List mode. Text mode logic is different.
-            // Actually validate function also updates columns? Verify Alpine logic.
-            // Checking validate logic: it updates this.columnEditorState.columns if valid?
-            // No, usually it just checks validity.
-            // But wait, if we are in text mode, `getColumnEditorChanges` needs to know what the NEW state is.
-            // Standard Alpine implementation of `getColumnEditorChanges` looks at `mode`.
-            // If text, it parses textValue.
-            // If list, it looks at `columns` array.
-
-            // If validateColumnEditorText() ran, it might update some internal state or we rely on getColumnEditorChanges().
+            state.textError.value = this.columnEditorState.textError;
           }
         },
       });
@@ -709,82 +472,41 @@ export function initDialogState(this: ChumakApp, dialogName: string, section?: s
   } else if (dialogName === 'settings') {
     const container = document.getElementById('settings-modal-container');
     if (container) {
-      settingsThemeSignal.value = this.theme;
-      settingsRowLimitSignal.value = this.uxSettings.preview?.rowLimit || 100;
-
-      settingsEffectCleanup = effect(() => {
-        // In this case, we don't necessarily want two-way binding loop.
-        // But if `this.theme` changes from elsewhere, signal should update?
-        // Not critical as settings modal is ephemeral.
-      });
+      const state = DialogStore.settingsState;
+      state.theme.value = this.theme as any;
+      state.rowLimit.value = this.uxSettings.preview?.rowLimit || 100;
 
       mountComponent(container, SettingsDialog, {
-        theme: settingsThemeSignal,
-        rowLimit: settingsRowLimitSignal,
+        theme: state.theme,
+        rowLimit: state.rowLimit,
         onThemeChange: (theme) => {
-          settingsThemeSignal.value = theme;
+          state.theme.value = theme;
           if (typeof this.switchTheme === 'function') {
             this.switchTheme(theme);
           }
         },
         onRowLimitChange: (limit) => {
-          settingsRowLimitSignal.value = limit;
+          state.rowLimit.value = limit;
           if (typeof this.updatePreviewRowLimit === 'function') {
-            // updatePreviewRowLimit expects string in template, but accepts string and parses int.
-            // The signature in chumak-app.ts is (value: string).
-            // But let's check if we can pass string or if we should convert.
-            // Method implementation: const limit = Math.max(..., parseInt(value, 10)...)
-            // So we should pass string.
             this.updatePreviewRowLimit(String(limit));
           }
         },
       });
     }
   } else if (dialogName === 'fold') {
-    // Initialize Alpine state
-    this.foldDialogState = {
-      keyName: 'key',
-      valueName: 'value',
-      selectedColumns: this.columns.map(() => false),
-      mode: 'keep',
-    };
+    DialogStore.foldState.keyName.value = 'key';
+    DialogStore.foldState.valueName.value = 'value';
+    DialogStore.foldState.selectedColumns.value = this.columns.map(() => false);
+    DialogStore.foldState.mode.value = 'keep';
 
-    // Mount Preact component
-    // Note: handler says 'fold', but container ID is 'unpivot-modal-container'
     const container = document.getElementById('unpivot-modal-container');
     if (container) {
-      foldKeyNameSignal.value = this.foldDialogState.keyName;
-      foldValueNameSignal.value = this.foldDialogState.valueName;
-      foldModeSignal.value = this.foldDialogState.mode as UnpivotMode;
-      foldSelectedColumnsSignal.value = [...this.foldDialogState.selectedColumns];
-
-      foldEffectCleanup = effect(() => {
-        this.foldDialogState.keyName = foldKeyNameSignal.value;
-        this.foldDialogState.valueName = foldValueNameSignal.value;
-        this.foldDialogState.mode = foldModeSignal.value;
-        // Deep compare/copy to trigger reactivity if changed
-        // For array, we just assign a new reference
-        this.foldDialogState.selectedColumns = [...foldSelectedColumnsSignal.value];
-
-        // Also trigger the preview update which exists in Alpine
-        // this.updateFoldPreview();
-        // Since we can't easily call local methods from here if they rely on `this` context
-        // in a specific way, we rely on the fact that `this.foldDialogState` assignment
-        // might trigger watchers if Alpine is watching deep.
-        // However, the template logic used @click="updateFoldPreview()".
-        // The effect runs primarily on signal change.
-        // Let's explicitly call the update method if it exists on the app instance
-        if (typeof this.updateFoldPreview === 'function') {
-          this.updateFoldPreview();
-        }
-      });
-
       mountComponent(container, UnpivotDialog, {
         columns: this.columns,
-        keyName: foldKeyNameSignal,
-        valueName: foldValueNameSignal,
-        mode: foldModeSignal,
-        selectedColumns: foldSelectedColumnsSignal,
+        keyName: DialogStore.foldState.keyName,
+        valueName: DialogStore.foldState.valueName,
+        mode: DialogStore.foldState.mode,
+        selectedColumns: DialogStore.foldState.selectedColumns,
       });
     }
   } else if (dialogName === 'pivot') {
@@ -793,180 +515,149 @@ export function initDialogState(this: ChumakApp, dialogName: string, section?: s
     // Mount Preact component
     const container = document.getElementById('pivot-modal-container');
     if (container) {
+      const state = DialogStore.pivotState;
       // Initialize signals from Alpine state which was just initialized
-      pivotRowColumnsSignal.value = [...this.pivotDialogState.rowColumns];
-      pivotColumnColumnSignal.value = this.pivotDialogState.columnColumn;
-      pivotValueColumnSignal.value = this.pivotDialogState.valueColumn;
-      pivotAggregationSignal.value = this.pivotDialogState.aggregation as PivotAggregation;
-      pivotUniqueValueCountSignal.value = this.pivotDialogState.uniqueValueCount;
-      pivotSortSignal.value = this.pivotDialogState.options.sort;
-      pivotLimitSignal.value = this.pivotDialogState.options.limit;
-      pivotIsPreviewingSignal.value = this.pivotDialogState.isPreviewing;
+      state.rowColumns.value = [...this.pivotDialogState.rowColumns];
+      state.columnColumn.value = this.pivotDialogState.columnColumn;
+      state.valueColumn.value = this.pivotDialogState.valueColumn;
+      state.aggregation.value = this.pivotDialogState.aggregation;
+      state.uniqueValueCount.value = this.pivotDialogState.uniqueValueCount;
+      state.options.value = { ...this.pivotDialogState.options };
+      state.isPreviewing.value = this.pivotDialogState.isPreviewing;
 
-      pivotEffectCleanup = effect(() => {
+      effect(() => {
         // Sync Signals -> Alpine
-        this.pivotDialogState.rowColumns = [...pivotRowColumnsSignal.value];
-        this.pivotDialogState.columnColumn = pivotColumnColumnSignal.value;
-        this.pivotDialogState.valueColumn = pivotValueColumnSignal.value;
-        this.pivotDialogState.aggregation = pivotAggregationSignal.value;
-        this.pivotDialogState.options.sort = pivotSortSignal.value;
-        this.pivotDialogState.options.limit = pivotLimitSignal.value;
-        // isPreviewing and uniqueValueCount are read-only (controlled by Alpine logic) or local
+        this.pivotDialogState.rowColumns = [...state.rowColumns.value];
+        this.pivotDialogState.columnColumn = state.columnColumn.value;
+        this.pivotDialogState.valueColumn = state.valueColumn.value;
+        this.pivotDialogState.aggregation = state.aggregation.value;
+        this.pivotDialogState.options = { ...state.options.value };
 
         // Trigger calculation in Alpine
         if (typeof this.onPivotConfigChange === 'function') {
-          // We might want to avoid triggering if nothing meaningful changed, but simple is better
-          // This function calculates unique values and updates uniqueValueCount
           Promise.resolve(this.onPivotConfigChange()).then(() => {
-            // Read back calculated values
-            // Use peek() to avoid cycles if we were writing to signals that this effect reads,
-            // but here we write to signals that this effect does NOT read (unique count)
-            // actually this effect reads everything.
-            // But since we are inside an effect, updating a signal will queue another run.
-            // We only want to update if changed.
-            if (pivotUniqueValueCountSignal.peek() !== this.pivotDialogState.uniqueValueCount) {
-              pivotUniqueValueCountSignal.value = this.pivotDialogState.uniqueValueCount;
+            if (state.uniqueValueCount.peek() !== this.pivotDialogState.uniqueValueCount) {
+              state.uniqueValueCount.value = this.pivotDialogState.uniqueValueCount;
             }
           });
         }
       });
 
-      // Also need to sync isPreviewing which might change during preview execution
-      // Since isPreviewing is updated by previewPivot() which is async,
-      // and effect() is synchronous reaction to signals, we might miss updates unless we poll or hook.
-      // However, the button in Preact triggers previewPivot.
-      // We can wrap the call.
-
       mountComponent(container, PivotDialog, {
         columns: this.columns,
-        rowColumns: pivotRowColumnsSignal,
-        columnColumn: pivotColumnColumnSignal,
-        valueColumn: pivotValueColumnSignal,
-        aggregation: pivotAggregationSignal,
-        uniqueValueCount: pivotUniqueValueCountSignal,
-        sort: pivotSortSignal,
-        limit: pivotLimitSignal,
-        isPreviewing: pivotIsPreviewingSignal,
+        rowColumns: state.rowColumns,
+        columnColumn: state.columnColumn,
+        valueColumn: state.valueColumn,
+        aggregation: state.aggregation as any,
+        uniqueValueCount: state.uniqueValueCount,
+        sort: signal(state.options.value.sort), // Local signal for component compatibility if needed, else wrap in computed
+        limit: signal(state.options.value.limit),
+        isPreviewing: state.isPreviewing,
         onPreview: async () => {
-          pivotIsPreviewingSignal.value = true;
+          state.isPreviewing.value = true;
           try {
             if (typeof this.previewPivot === 'function') {
               await this.previewPivot();
             }
           } finally {
-            pivotIsPreviewingSignal.value = false;
+            state.isPreviewing.value = false;
           }
         },
       });
     }
   } else if (dialogName === 'replace') {
-    // Initialize Alpine state
-    this.replaceDialogState = { column: this.columns[0] || '', findValue: '', replaceValue: '' };
+    // Initialize state
+    const state = DialogStore.replaceState;
+    state.column.value = this.columns[0] || '';
+    state.findValue.value = '';
+    state.replaceValue.value = '';
 
-    // Mount Preact component
     const container = document.getElementById('replace-modal-container');
     if (container) {
-      replaceColumnSignal.value = this.replaceDialogState.column;
-      replaceFindSignal.value = this.replaceDialogState.findValue;
-      replaceWithSignal.value = this.replaceDialogState.replaceValue;
-
-      replaceEffectCleanup = effect(() => {
-        this.replaceDialogState.column = replaceColumnSignal.value;
-        this.replaceDialogState.findValue = replaceFindSignal.value;
-        this.replaceDialogState.replaceValue = replaceWithSignal.value;
+      effect(() => {
+        this.replaceDialogState.column = state.column.value;
+        this.replaceDialogState.findValue = state.findValue.value;
+        this.replaceDialogState.replaceValue = state.replaceValue.value;
       });
 
       mountComponent(container, ReplaceDialog, {
         columns: this.columns,
-        column: replaceColumnSignal,
-        findValue: replaceFindSignal,
-        replaceValue: replaceWithSignal,
+        column: state.column,
+        findValue: state.findValue,
+        replaceValue: state.replaceValue,
       });
     }
   } else if (dialogName === 'split') {
     const initialColumn = this.columns[0] || '';
+    const state = DialogStore.splitState;
 
-    this.splitDialogState = {
-      column: initialColumn,
-      delimiter: ',',
-      isRegex: false,
-      mode: 'spread',
-      maxColumns: 10,
-      keepOriginal: false,
-      error: null,
-      previewData: [],
-      previewColumns: [],
-      autoDetectedDelimiter: null,
-      columnRenames: {},
-    };
+    state.column.value = initialColumn;
+    state.delimiter.value = ',';
+    state.autoDetectedDelimiter.value = null;
+    state.isRegex.value = false;
+    state.mode.value = 'spread';
+    state.maxColumns.value = 10;
+    state.keepOriginal.value = false;
+    state.error.value = null;
 
     // Mount Preact component
     const container = document.getElementById('split-modal-container');
     if (container) {
-      splitColumnSignal.value = initialColumn;
-      splitDelimiterSignal.value = ',';
-      splitAutoDetectedDelimiterSignal.value = null;
-      splitIsRegexSignal.value = false;
-      splitModeSignal.value = 'spread';
-      splitMaxColumnsSignal.value = 10;
-      splitKeepOriginalSignal.value = false;
-      splitErrorSignal.value = null;
-
       // Initial detection
       if (initialColumn) {
         const detected = this.detectDelimiter(initialColumn);
         if (detected) {
-          splitDelimiterSignal.value = detected.char;
-          splitIsRegexSignal.value = detected.isRegex;
-          splitAutoDetectedDelimiterSignal.value = detected.name;
+          state.delimiter.value = detected.char;
+          state.isRegex.value = detected.isRegex;
+          state.autoDetectedDelimiter.value = detected.name;
         }
       }
 
       let lastSplitCol = initialColumn;
 
-      splitEffectCleanup = effect(() => {
+      effect(() => {
         // Detect logic if column changed
-        if (splitColumnSignal.value !== lastSplitCol) {
-          lastSplitCol = splitColumnSignal.value;
+        if (state.column.value !== lastSplitCol) {
+          lastSplitCol = state.column.value;
           const detected = this.detectDelimiter(lastSplitCol);
           if (detected) {
-            splitDelimiterSignal.value = detected.char;
-            splitIsRegexSignal.value = detected.isRegex;
-            splitAutoDetectedDelimiterSignal.value = detected.name;
+            state.delimiter.value = detected.char;
+            state.isRegex.value = detected.isRegex;
+            state.autoDetectedDelimiter.value = detected.name;
           } else {
-            splitAutoDetectedDelimiterSignal.value = null;
+            state.autoDetectedDelimiter.value = null;
           }
         }
 
         // Sync Signals -> Alpine
-        this.splitDialogState.column = splitColumnSignal.value;
-        this.splitDialogState.delimiter = splitDelimiterSignal.value;
-        this.splitDialogState.isRegex = splitIsRegexSignal.value;
-        this.splitDialogState.mode = splitModeSignal.value;
-        this.splitDialogState.maxColumns = splitMaxColumnsSignal.value;
-        this.splitDialogState.keepOriginal = splitKeepOriginalSignal.value;
-        this.splitDialogState.autoDetectedDelimiter = splitAutoDetectedDelimiterSignal.value;
+        this.splitDialogState.column = state.column.value;
+        this.splitDialogState.delimiter = state.delimiter.value;
+        this.splitDialogState.isRegex = state.isRegex.value;
+        this.splitDialogState.mode = state.mode.value;
+        this.splitDialogState.maxColumns = state.maxColumns.value;
+        this.splitDialogState.keepOriginal = state.keepOriginal.value;
+        this.splitDialogState.autoDetectedDelimiter = state.autoDetectedDelimiter.value;
 
         // Trigger preview
         if (typeof this.debouncedUpdateSplitPreview === 'function') {
           this.debouncedUpdateSplitPreview();
         }
 
-        if (splitErrorSignal.peek() !== this.splitDialogState.error) {
-          splitErrorSignal.value = this.splitDialogState.error;
+        if (state.error.peek() !== this.splitDialogState.error) {
+          state.error.value = this.splitDialogState.error;
         }
       });
 
       mountComponent(container, SplitDialog, {
         columns: this.columns,
-        column: splitColumnSignal,
-        delimiter: splitDelimiterSignal,
-        autoDetectedDelimiter: splitAutoDetectedDelimiterSignal,
-        isRegex: splitIsRegexSignal,
-        mode: splitModeSignal,
-        maxColumns: splitMaxColumnsSignal,
-        keepOriginal: splitKeepOriginalSignal,
-        error: splitErrorSignal,
+        column: state.column,
+        delimiter: state.delimiter,
+        autoDetectedDelimiter: state.autoDetectedDelimiter,
+        isRegex: state.isRegex,
+        mode: state.mode,
+        maxColumns: state.maxColumns,
+        keepOriginal: state.keepOriginal,
+        error: state.error,
       });
     }
   } else if (dialogName === 'regexpMatch') {
@@ -991,50 +682,41 @@ export function initDialogState(this: ChumakApp, dialogName: string, section?: s
         ? this.selectedColumn
         : dateColumns[0] || '';
 
-    this.dateDialogState = {
-      column: initialColumn,
-      operation: 'extract',
-      extractParts: ['year'],
-      truncateUnits: ['month'],
-      outputColumn: '',
-      error: null,
-      previewData: [],
-    };
+    const state = DialogStore.dateState;
+    state.column.value = initialColumn;
+    state.operation.value = 'extract';
+    state.extractParts.value = ['year'];
+    state.truncateUnits.value = ['month'];
+    state.outputColumn.value = '';
+    state.error.value = null;
 
     // Mount Preact component
     const container = document.getElementById('date-modal-container');
     if (container) {
-      dateColumnSignal.value = initialColumn;
-      dateOperationSignal.value = 'extract';
-      dateExtractPartsSignal.value = ['year'];
-      dateTruncateUnitsSignal.value = ['month'];
-      dateOutputColumnSignal.value = '';
-      dateErrorSignal.value = null;
-
-      dateEffectCleanup = effect(() => {
-        this.dateDialogState.column = dateColumnSignal.value;
-        this.dateDialogState.operation = dateOperationSignal.value;
-        this.dateDialogState.extractParts = [...dateExtractPartsSignal.value];
-        this.dateDialogState.truncateUnits = [...dateTruncateUnitsSignal.value];
-        this.dateDialogState.outputColumn = dateOutputColumnSignal.value;
+      effect(() => {
+        this.dateDialogState.column = state.column.value;
+        this.dateDialogState.operation = state.operation.value;
+        this.dateDialogState.extractParts = [...state.extractParts.value];
+        this.dateDialogState.truncateUnits = [...state.truncateUnits.value];
+        this.dateDialogState.outputColumn = state.outputColumn.value;
 
         if (typeof this.updateDatePreview === 'function') {
           this.updateDatePreview();
         }
 
-        if (dateErrorSignal.peek() !== this.dateDialogState.error) {
-          dateErrorSignal.value = this.dateDialogState.error;
+        if (state.error.peek() !== this.dateDialogState.error) {
+          state.error.value = this.dateDialogState.error;
         }
       });
 
       mountComponent(container, DateDialog, {
         dateColumns: dateColumns,
-        column: dateColumnSignal,
-        operation: dateOperationSignal,
-        extractParts: dateExtractPartsSignal,
-        truncateUnits: dateTruncateUnitsSignal,
-        outputColumn: dateOutputColumnSignal,
-        error: dateErrorSignal,
+        column: state.column,
+        operation: state.operation,
+        extractParts: state.extractParts,
+        truncateUnits: state.truncateUnits,
+        outputColumn: state.outputColumn,
+        error: state.error,
       });
     }
   } else if (dialogName === 'dedupe') {
@@ -1162,23 +844,23 @@ export function getExpressionsContent(this: ChumakApp): string {
 }
 
 export function hasPreviewData(this: ChumakApp): boolean {
-  return this.previewState.rows.length > 0;
+  return DialogStore.previewState.rows.value.length > 0;
 }
 
 export function getPreviewTitle(this: ChumakApp): string {
-  return this.previewState.title;
+  return DialogStore.previewState.title.value;
 }
 
 export function getPreviewStats(this: ChumakApp): string {
-  return this.previewState.stats;
+  return DialogStore.previewState.stats.value;
 }
 
 export function getPreviewColumns(this: ChumakApp): string[] {
-  return this.previewState.columns;
+  return DialogStore.previewState.columns.value;
 }
 
 export function getPreviewRows(this: ChumakApp): any[] {
-  return this.previewState.rows;
+  return DialogStore.previewState.rows.value;
 }
 
 export function formatPreviewCell(this: ChumakApp, row: any, col: string): string {
@@ -1189,21 +871,19 @@ export function formatPreviewCell(this: ChumakApp, row: any, col: string): strin
 }
 
 export function clearPreview(this: ChumakApp): void {
-  if (this.previewState._debounceTimer) {
-    clearTimeout(this.previewState._debounceTimer);
+  if (this._previewDebounceTimer) {
+    clearTimeout(this._previewDebounceTimer);
+    this._previewDebounceTimer = null;
   }
-  this.previewState = {
-    title: '',
-    stats: '',
-    columns: [],
-    newColumns: [],
-    rows: [],
-    _debounceTimer: null,
-  };
+  DialogStore.previewState.title.value = '';
+  DialogStore.previewState.stats.value = '';
+  DialogStore.previewState.columns.value = [];
+  DialogStore.previewState.newColumns.value = [];
+  DialogStore.previewState.rows.value = [];
 }
 
 export function isNewPreviewColumn(this: ChumakApp, col: string): boolean {
-  return this.previewState.newColumns.includes(col);
+  return DialogStore.previewState.newColumns.value.includes(col);
 }
 
 export function activeDialogError(this: ChumakApp): boolean {
@@ -1229,7 +909,7 @@ export function activeDialogError(this: ChumakApp): boolean {
     case 'dedupe':
       return (
         !this.dedupeDialogState.useAllColumns &&
-        !this.dedupeDialogState.selectedColumns.some((v) => v)
+        !this.dedupeDialogState.selectedColumns.some((v: any) => v)
       );
     case 'import-url':
       return !this.importUrlDialogState.url || this.importUrlDialogState.isFetching;
@@ -1261,29 +941,21 @@ export async function closeDialog(this: ChumakApp, force = false) {
   if (this.activeDialog === 'index') {
     const container = document.getElementById('index-modal-container');
     if (container) unmountComponent(container);
-    indexEffectCleanup?.();
-    indexEffectCleanup = null;
   }
 
   if (this.activeDialog === 'replace') {
     const container = document.getElementById('replace-modal-container');
     if (container) unmountComponent(container);
-    replaceEffectCleanup?.();
-    replaceEffectCleanup = null;
   }
 
   if (this.activeDialog === 'sliceRows') {
     const container = document.getElementById('slice-rows-modal-container');
     if (container) unmountComponent(container);
-    sliceEffectCleanup?.();
-    sliceEffectCleanup = null;
   }
 
   if (this.activeDialog === 'fold') {
     const container = document.getElementById('unpivot-modal-container');
     if (container) unmountComponent(container);
-    foldEffectCleanup?.();
-    foldEffectCleanup = null;
   }
 
   if (this.activeDialog === 'filter') {
@@ -1295,50 +967,36 @@ export async function closeDialog(this: ChumakApp, force = false) {
   if (this.activeDialog === 'pivot') {
     const container = document.getElementById('pivot-modal-container');
     if (container) unmountComponent(container);
-    pivotEffectCleanup?.();
-    pivotEffectCleanup = null;
   }
 
   if (this.activeDialog === 'aggregate') {
     const container = document.getElementById('aggregate-modal-container');
     if (container) unmountComponent(container);
-    aggEffectCleanup?.();
-    aggEffectCleanup = null;
   }
 
   if (this.activeDialog === 'import-csv') {
     const container = document.getElementById('import-csv-modal-container');
     if (container) unmountComponent(container);
-    importEffectCleanup?.();
-    importEffectCleanup = null;
   }
 
   if (this.activeDialog === 'column-editor') {
     const container = document.getElementById('column-editor-modal-container');
     if (container) unmountComponent(container);
-    colEditEffectCleanup?.();
-    colEditEffectCleanup = null;
   }
 
   if (this.activeDialog === 'settings') {
     const container = document.getElementById('settings-modal-container');
     if (container) unmountComponent(container);
-    settingsEffectCleanup?.();
-    settingsEffectCleanup = null;
   }
 
   if (this.activeDialog === 'date') {
     const container = document.getElementById('date-modal-container');
     if (container) unmountComponent(container);
-    dateEffectCleanup?.();
-    dateEffectCleanup = null;
   }
 
   if (this.activeDialog === 'split') {
     const container = document.getElementById('split-modal-container');
     if (container) unmountComponent(container);
-    splitEffectCleanup?.();
-    splitEffectCleanup = null;
   }
 
   if (this.activeDialog === 'derive') {

@@ -131,6 +131,34 @@ export interface DateDialogState {
   previewData: Array<{ input: string; output: any }>;
 }
 
+export interface ImportDialogState {
+  fileName: string;
+  sourceName: string;
+  rawPreviewData: any[][];
+  previewHeaders: string[];
+  previewDataRows: any[][];
+  headerMode: 'first-row' | 'auto-generate' | 'manual';
+  delimiter: string;
+  originalHeaders: string[];
+  customHeaders: string[];
+  duplicateWarning: string;
+  isJson?: boolean;
+  jsonData?: any;
+  fullJsonData?: any;
+  jsonPath?: string;
+  jsonRawValuePreview?: string;
+  suggestedJsonKeys?: string[];
+  flattenJson?: boolean;
+  serializeNested?: boolean;
+  previewError?: string | null;
+}
+
+export interface ImportUrlDialogState {
+  url: string;
+  isFetching: boolean;
+  error: string | null;
+}
+
 export interface AppState {
   // UI state
   ribbonTab: string;
@@ -173,35 +201,6 @@ export interface AppState {
   pageSize: number;
   totalPages: number;
 
-  // Import dialog state
-  importDialogState: {
-    fileName: string;
-    sourceName: string;
-    rawPreviewData: any[][];
-    previewHeaders: string[];
-    previewDataRows: any[][];
-    headerMode: 'first-row' | 'auto-generate' | 'manual';
-    delimiter: string;
-    originalHeaders: string[];
-    customHeaders: string[];
-    duplicateWarning: string;
-    isJson?: boolean;
-    jsonData?: any;
-    fullJsonData?: any;
-    jsonPath?: string;
-    jsonRawValuePreview?: string;
-    suggestedJsonKeys?: string[];
-    flattenJson?: boolean;
-    serializeNested?: boolean;
-    previewError?: string | null;
-  };
-  importFileData: { file: File } | null;
-  importUrlDialogState: {
-    url: string;
-    isFetching: boolean;
-    error: string | null;
-  };
-
   // Data state
   sources: Source[];
   models: Model[];
@@ -210,73 +209,6 @@ export interface AppState {
   currentData: DataRow[] | null;
   columns: string[];
   viewMode: 'empty' | 'dataset-info' | 'model';
-
-  // Transform state
-
-  // Dialog states
-  aggregateDialogState: AggregateDialogState;
-
-  sliceRowsDialogState: {
-    count: number;
-    mode: 'first' | 'last' | 'removeFirst' | 'removeLast';
-  };
-  indexDialogState: {
-    columnName: string;
-    startFrom: number;
-  };
-  foldDialogState: {
-    keyName: string;
-    valueName: string;
-    selectedColumns: boolean[];
-    mode: 'keep' | 'fold';
-  };
-  replaceDialogState: {
-    column: string;
-    findValue: string;
-    replaceValue: string;
-  };
-  splitDialogState: SplitDialogState;
-  pivotDialogState: PivotDialogState;
-  regexpMatchDialogState: RegexpMatchDialogState;
-  regexpExtractDialogState: RegexpExtractDialogState;
-  dateDialogState: DateDialogState;
-  dedupeDialogState: {
-    selectedColumns: boolean[];
-    useAllColumns: boolean;
-    duplicateCount: number;
-    mode: 'remove' | 'keep';
-  };
-  columnEditorState: {
-    mode: 'list' | 'text';
-    textSubMode: 'rename' | 'reorder' | 'select';
-    columns: Array<{
-      original: string;
-      renamed: string;
-      selected: boolean;
-    }>;
-    textValue: string;
-    textError: string | null;
-    patternText: string;
-    patternMode: 'include' | 'exclude';
-    patternMatchType: 'prefix' | 'suffix' | 'exact';
-    draggedIndex: number | null;
-  };
-
-  // Preview panel
-  previewState: {
-    title: string;
-    stats: string;
-    columns: string[];
-    newColumns: string[];
-    rows: DataRow[];
-    _debounceTimer: any;
-  };
-
-  // JSON Editor
-  jsonEditMode: boolean;
-  jsonEditContent: string;
-  jsonEditError: string | null;
-  jsonEditBackup: any | null;
 
   // Notifications
   notifications: Notification[];

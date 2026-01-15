@@ -1,4 +1,5 @@
 import type { ChumakApp } from '../../chumak-app';
+import { DialogStore } from '../stores/DialogStore';
 
 export function validateRegexpPattern(this: ChumakApp, pattern: string) {
   if (!pattern) return null;
@@ -16,10 +17,10 @@ export function validateRegexpMatchExpression(this: ChumakApp) {
 }
 
 export function debouncedUpdateRegexpMatchPreview(this: ChumakApp) {
-  if (this.previewState._debounceTimer) {
-    clearTimeout(this.previewState._debounceTimer);
+  if (this._previewDebounceTimer) {
+    clearTimeout(this._previewDebounceTimer);
   }
-  this.previewState._debounceTimer = setTimeout(() => {
+  this._previewDebounceTimer = setTimeout(() => {
     this.updateRegexpMatchPreview();
   }, 150);
 }
@@ -43,14 +44,11 @@ export function updateRegexpMatchPreview(this: ChumakApp) {
       return { [sourceColumn]: val, [outputCol]: matches };
     });
 
-    this.previewState = {
-      title: `Regexp Match: ${outputCol}`,
-      stats: `Testing pattern on ${samples.length} rows`,
-      columns: [sourceColumn, outputCol],
-      newColumns: [outputCol],
-      rows: previewRows,
-      _debounceTimer: null,
-    };
+    DialogStore.previewState.title.value = `Regexp Match: ${outputCol}`;
+    DialogStore.previewState.stats.value = `Testing pattern on ${samples.length} rows`;
+    DialogStore.previewState.columns.value = [sourceColumn, outputCol];
+    DialogStore.previewState.newColumns.value = [outputCol];
+    DialogStore.previewState.rows.value = previewRows;
   } catch {
     this.clearPreview();
   }
@@ -91,10 +89,10 @@ export function validateRegexpExtractExpression(this: ChumakApp) {
 }
 
 export function debouncedUpdateRegexpExtractPreview(this: ChumakApp) {
-  if (this.previewState._debounceTimer) {
-    clearTimeout(this.previewState._debounceTimer);
+  if (this._previewDebounceTimer) {
+    clearTimeout(this._previewDebounceTimer);
   }
-  this.previewState._debounceTimer = setTimeout(() => {
+  this._previewDebounceTimer = setTimeout(() => {
     this.updateRegexpExtractPreview();
   }, 150);
 }
@@ -128,14 +126,11 @@ export function updateRegexpExtractPreview(this: ChumakApp) {
       return { [sourceColumn]: val, [outputCol]: extracted ?? '(no match)' };
     });
 
-    this.previewState = {
-      title: `Regexp Extract: ${outputCol}`,
-      stats: `Extracting group ${groupNum} from ${samples.length} rows`,
-      columns: [sourceColumn, outputCol],
-      newColumns: [outputCol],
-      rows: previewRows,
-      _debounceTimer: null,
-    };
+    DialogStore.previewState.title.value = `Regexp Extract: ${outputCol}`;
+    DialogStore.previewState.stats.value = `Extracting group ${groupNum} from ${samples.length} rows`;
+    DialogStore.previewState.columns.value = [sourceColumn, outputCol];
+    DialogStore.previewState.newColumns.value = [outputCol];
+    DialogStore.previewState.rows.value = previewRows;
   } catch {
     this.clearPreview();
   }

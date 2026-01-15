@@ -1,7 +1,7 @@
 import { AppStore } from '../stores/AppStore';
 import { Source, Model } from '../types';
 import { SchemaEngine } from '../../core/schema-engine';
-import { autoSave, clearAllData as storageClearAllData } from '../../core/storage';
+import { PersistenceService } from './PersistenceService';
 
 /**
  * ModelService
@@ -118,7 +118,7 @@ export class ModelService {
     AppStore.models.value = [...AppStore.models.value, newModel];
     switchToModelFn(newModel);
 
-    await autoSave(AppStore.sources.value, AppStore.models.value);
+    await PersistenceService.autoSave();
   }
 
   /**
@@ -159,7 +159,7 @@ export class ModelService {
 
     AppStore.models.value = [...AppStore.models.value, copiedModel];
     switchToModelFn(copiedModel);
-    await autoSave(AppStore.sources.value, AppStore.models.value);
+    await PersistenceService.autoSave();
   }
 
   /**
@@ -191,7 +191,7 @@ export class ModelService {
 
     activeModel.name = name;
     AppStore.models.value = [...AppStore.models.value]; // Trigger reactivity
-    await autoSave(AppStore.sources.value, AppStore.models.value);
+    await PersistenceService.autoSave();
   }
 
   /**
@@ -230,7 +230,7 @@ export class ModelService {
       AppStore.viewMode.value = 'empty';
     }
 
-    await autoSave(AppStore.sources.value, AppStore.models.value);
+    await PersistenceService.autoSave();
   }
 
   /**
@@ -247,7 +247,7 @@ export class ModelService {
 
     source.name = name;
     AppStore.sources.value = [...AppStore.sources.value]; // Trigger reactivity
-    await autoSave(AppStore.sources.value, AppStore.models.value);
+    await PersistenceService.autoSave();
   }
 
   /**
@@ -281,7 +281,7 @@ export class ModelService {
         AppStore.viewMode.value = 'empty';
       }
 
-      await autoSave(AppStore.sources.value, AppStore.models.value);
+      await PersistenceService.autoSave();
     } catch (error: any) {
       console.error('Error deleting source:', error);
       await alert('Failed to delete source: ' + error.message);
@@ -295,16 +295,7 @@ export class ModelService {
     confirm: (msg: string) => Promise<boolean>,
     alert: (msg: string) => Promise<any>
   ) {
-    if (!(await confirm('Clear all data from IndexedDB? This cannot be undone.'))) return;
-
-    try {
-      await storageClearAllData();
-      AppStore.reset();
-      await alert('All data cleared successfully');
-    } catch (error: any) {
-      console.error('Error clearing data:', error);
-      await alert('Failed to clear data: ' + error.message);
-    }
+    return PersistenceService.clearAllData(confirm, alert);
   }
 
   /**

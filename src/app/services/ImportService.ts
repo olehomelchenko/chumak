@@ -1,7 +1,7 @@
 import { AppStore } from '../stores/AppStore';
 import { Source, Model } from '../types';
 import { SchemaEngine } from '../../core/schema-engine';
-import { autoSave } from '../../core/storage';
+import { PersistenceService } from './PersistenceService';
 
 /**
  * ImportService
@@ -90,7 +90,7 @@ export class ImportService {
     AppStore.viewingIntermediate.value = false;
 
     updatePagination();
-    await autoSave(AppStore.sources.value, AppStore.models.value);
+    await PersistenceService.autoSave();
 
     console.log(
       `⚡ Import ${origin.toUpperCase()} — ${(performance.now() - start).toFixed(1)}ms — ${

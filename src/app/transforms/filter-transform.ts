@@ -9,10 +9,10 @@ export function validateFilterExpression(this: ChumakApp) {
 }
 
 export function debouncedUpdateFilterPreview(this: ChumakApp) {
-  if (this.previewState._debounceTimer) {
-    clearTimeout(this.previewState._debounceTimer);
+  if (this._previewDebounceTimer) {
+    clearTimeout(this._previewDebounceTimer);
   }
-  this.previewState._debounceTimer = setTimeout(() => {
+  this._previewDebounceTimer = setTimeout(() => {
     this.updateFilterPreview();
   }, 150);
 }
@@ -71,14 +71,11 @@ export function updateFilterPreview(this: ChumakApp) {
       }
     }
 
-    this.previewState = {
-      title: 'Filter Preview',
-      stats: `<strong>${totalMatchCount}</strong> of ${this.currentData.length} rows match`,
-      columns: this.columns.slice(0, 8),
-      newColumns: [],
-      rows: previewRows,
-      _debounceTimer: null,
-    };
+    DialogStore.previewState.title.value = 'Filter Preview';
+    DialogStore.previewState.stats.value = `<strong>${totalMatchCount}</strong> of ${this.currentData.length} rows match`;
+    DialogStore.previewState.columns.value = this.columns.slice(0, 8);
+    DialogStore.previewState.newColumns.value = [];
+    DialogStore.previewState.rows.value = previewRows;
   } catch {
     this.clearPreview();
   }

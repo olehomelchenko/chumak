@@ -1,6 +1,7 @@
 import type { ChumakApp } from '../../chumak-app';
 import * as aq from 'arquero';
 import { applyTransform } from '../../core/transforms';
+import { DialogStore } from '../stores/DialogStore';
 
 export function addAggregation(this: ChumakApp) {
   this.aggregateDialogState.aggregations.push({ output: '', func: 'mean', col: '' });
@@ -53,14 +54,11 @@ export async function previewAggregate(this: ChumakApp) {
     const groupBy = this.aggregateDialogState.groupBy;
     const newCols = result.columns.filter((c: string) => !groupBy.includes(c));
 
-    this.previewState = {
-      title: 'Aggregate Preview',
-      stats: `Showing ${result.rows.length} rows, ${result.columns.length} columns`,
-      columns: result.columns,
-      newColumns: newCols,
-      rows: result.rows,
-      _debounceTimer: null,
-    };
+    DialogStore.previewState.title.value = 'Aggregate Preview';
+    DialogStore.previewState.stats.value = `Showing ${result.rows.length} rows, ${result.columns.length} columns`;
+    DialogStore.previewState.columns.value = result.columns;
+    DialogStore.previewState.newColumns.value = newCols;
+    DialogStore.previewState.rows.value = result.rows;
   } catch (error: any) {
     this.aggregateDialogState.previewError = error.message;
   } finally {
