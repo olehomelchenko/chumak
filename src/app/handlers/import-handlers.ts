@@ -145,8 +145,7 @@ export function handleJsonPreview(this: ChumakApp, file: File, data: any, path =
     flattenJson: this.importDialogState.flattenJson ?? false,
     serializeNested: this.importDialogState.serializeNested ?? true,
   };
-  this.activeDialog = 'import-csv';
-  this.reSnapshot();
+  this.openDialog('import-csv');
 }
 
 export function updateJsonPath(this: ChumakApp) {
@@ -260,7 +259,7 @@ export function handleCsvPreview(this: ChumakApp, file: File) {
         jsonData: null,
       };
       this.updateHeadersForPreview();
-      this.activeDialog = 'import-csv';
+      this.openDialog('import-csv');
     },
     error: async (error) => {
       console.error('CSV preview error:', error);
@@ -275,8 +274,7 @@ export function showImportUrlDialog(this: ChumakApp) {
     isFetching: false,
     error: null,
   };
-  this.activeDialog = 'import-url';
-  this.reSnapshot();
+  this.openDialog('import-url');
 }
 
 export async function fetchAndImportFromUrl(this: ChumakApp) {
