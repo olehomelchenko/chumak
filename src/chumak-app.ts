@@ -1,4 +1,4 @@
-import { loadUXSettings, updateUXSetting, UXSettings } from './core/ux-settings';
+import { loadUXSettings, updateUXSetting } from './core/ux-settings';
 import { loadInitialData } from './core/storage';
 import { getUrlState, setUrlState } from './core/url-state';
 import { Transformation } from './app/decorators';
@@ -23,14 +23,14 @@ import * as InteractionHandlers from './app/handlers/interaction-handlers';
 import * as PaginationHandlers from './app/handlers/pagination-handlers';
 import * as HelperHandlers from './app/handlers/helper-handlers';
 import * as JsonHandlers from './app/handlers/json-handlers';
-import { SchemaEngine, ColumnSchema, TransformStep } from './core/schema-engine';
+import { SchemaEngine, ColumnSchema } from './core/schema-engine';
 import { effect } from '@preact/signals';
 import { AppStore, ViewMode } from './app/stores/AppStore';
 import { DialogStore } from './app/stores/DialogStore';
 import { ModelService } from './app/services/ModelService';
 import { ImportService } from './app/services/ImportService';
 import { ExportService } from './app/services/ExportService';
-import { EDAStats } from './core/eda-engine';
+
 import {
   AppState,
   Source,
@@ -43,66 +43,165 @@ import {
 export class ChumakApp implements AppState {
   // UI state
   _rev = 0;
-  activeStep: TransformStep | null = null;
-  editingStepIndex: number | null = null;
-  dialogSnapshot: string | null = null;
-  columnToolbarPos = { x: 0, y: 0, arrowOffset: 0 };
-  selectedCell: {
-    col: string;
-    value: any;
-    type: string;
-    rowIdx?: number;
-    isEda?: boolean;
-    edaLabel?: string;
-  } | null = null;
-  cellToolbarPos = { x: 0, y: 0, arrowOffset: 0 };
-  edaStats: EDAStats | null = null;
-  edaChartView: 'boxplot' | 'histogram' = 'boxplot';
-  edaBrushSelection: { min: number; max: number } | null = null;
-  edaDateTreatment: 'temporal' | 'categorical' = 'temporal';
-  uxSettings: UXSettings = {
-    pagination: { pageSize: 500 },
-    preview: { rowLimit: 100 },
-    theme: 'chumak',
-  };
+  get activeStep() {
+    this._rev;
+    return AppStore.activeStep.value;
+  }
+  set activeStep(val) {
+    AppStore.activeStep.value = val;
+  }
+
+  get editingStepIndex() {
+    this._rev;
+    return AppStore.editingStepIndex.value;
+  }
+  set editingStepIndex(val) {
+    AppStore.editingStepIndex.value = val;
+  }
+
+  get dialogSnapshot() {
+    this._rev;
+    return AppStore.dialogSnapshot.value;
+  }
+  set dialogSnapshot(val) {
+    AppStore.dialogSnapshot.value = val;
+  }
+  get columnToolbarPos() {
+    this._rev;
+    return AppStore.columnToolbarPos.value;
+  }
+  set columnToolbarPos(val) {
+    AppStore.columnToolbarPos.value = val;
+  }
+
+  get selectedCell() {
+    this._rev;
+    return AppStore.selectedCell.value;
+  }
+  set selectedCell(val) {
+    AppStore.selectedCell.value = val;
+  }
+
+  get cellToolbarPos() {
+    this._rev;
+    return AppStore.cellToolbarPos.value;
+  }
+  set cellToolbarPos(val) {
+    AppStore.cellToolbarPos.value = val;
+  }
+
+  get edaStats() {
+    this._rev;
+    return AppStore.edaStats.value;
+  }
+  set edaStats(val) {
+    AppStore.edaStats.value = val;
+  }
+
+  get edaChartView() {
+    this._rev;
+    return AppStore.edaChartView.value;
+  }
+  set edaChartView(val) {
+    AppStore.edaChartView.value = val;
+  }
+
+  get edaBrushSelection() {
+    this._rev;
+    return AppStore.edaBrushSelection.value;
+  }
+  set edaBrushSelection(val) {
+    AppStore.edaBrushSelection.value = val;
+  }
+
+  get edaDateTreatment() {
+    this._rev;
+    return AppStore.edaDateTreatment.value;
+  }
+  set edaDateTreatment(val) {
+    AppStore.edaDateTreatment.value = val;
+  }
+  get uxSettings() {
+    this._rev;
+    return AppStore.uxSettings.value;
+  }
+  set uxSettings(val) {
+    AppStore.uxSettings.value = val;
+  }
 
   // Type Menu State
-  typeMenuOpen = false;
-  typeMenuPos = { x: 0, y: 0 };
-  typeMenuCol: string | null = null;
+  get typeMenuOpen() {
+    this._rev;
+    return AppStore.typeMenuOpen.value;
+  }
+  set typeMenuOpen(val) {
+    AppStore.typeMenuOpen.value = val;
+  }
 
-  // Pagination state
-  currentPage = 1;
-  pageSize = 500;
-  totalPages = 1;
+  get typeMenuPos() {
+    this._rev;
+    return AppStore.typeMenuPos.value;
+  }
+  set typeMenuPos(val) {
+    AppStore.typeMenuPos.value = val;
+  }
 
-  // Import dialog state
-  importDialogState: ImportDialogState = {
-    fileName: '',
-    sourceName: '',
-    rawPreviewData: [],
-    previewHeaders: [],
-    previewDataRows: [],
-    headerMode: 'first-row',
-    delimiter: ',',
-    originalHeaders: [],
-    customHeaders: [],
-    duplicateWarning: '',
-    isJson: false,
-    jsonData: null,
-    fullJsonData: null,
-    jsonPath: '',
-    jsonRawValuePreview: '',
-    suggestedJsonKeys: [],
-    flattenJson: false,
-    serializeNested: true,
-  };
-  importFileData: { file: File } | null = null;
-  importUrlDialogState: ImportUrlDialogState = {
-    url: '',
-    isFetching: false,
-    error: null,
-  };
+  get typeMenuCol() {
+    this._rev;
+    return AppStore.typeMenuCol.value;
+  }
+  set typeMenuCol(val) {
+    AppStore.typeMenuCol.value = val;
+  }
+
+  get currentPage() {
+    this._rev;
+    return AppStore.currentPage.value;
+  }
+  set currentPage(val) {
+    AppStore.currentPage.value = val;
+  }
+
+  get pageSize() {
+    this._rev;
+    return AppStore.pageSize.value;
+  }
+  set pageSize(val) {
+    AppStore.pageSize.value = val;
+  }
+
+  get totalPages() {
+    this._rev;
+    return AppStore.totalPages.value;
+  }
+  set totalPages(val) {
+    AppStore.totalPages.value = val;
+  }
+
+  // Import dialog state (wired to DialogStore)
+  get importDialogState(): ImportDialogState {
+    this._rev;
+    return DialogStore.createSignalProxy(DialogStore.importCsvState);
+  }
+  set importDialogState(val: ImportDialogState) {
+    Object.assign(this.importDialogState, val);
+  }
+
+  get importUrlDialogState(): ImportUrlDialogState {
+    this._rev;
+    return DialogStore.createSignalProxy(DialogStore.importUrlState);
+  }
+  set importUrlDialogState(val: ImportUrlDialogState) {
+    Object.assign(this.importUrlDialogState, val);
+  }
+
+  get importFileData() {
+    this._rev;
+    return AppStore.importFileData.value;
+  }
+  set importFileData(val) {
+    AppStore.importFileData.value = val;
+  }
   _previewDebounceTimer: any = null;
 
   // Data state (wired to AppStore)
@@ -247,267 +346,180 @@ export class ChumakApp implements AppState {
   // Dialog states (wired to DialogStore)
   get aggregateDialogState() {
     this._rev;
-    return {
-      groupBy: DialogStore.aggregateState.groupBy.value,
-      aggregations: DialogStore.aggregateState.aggregations.value,
-      previewData: DialogStore.aggregateState.previewData.value,
-      previewError: DialogStore.aggregateState.previewError.value,
-      isPreviewing: DialogStore.aggregateState.isPreviewing.value,
-    };
+    return DialogStore.createSignalProxy(DialogStore.aggregateState);
   }
-  set aggregateDialogState(val) {
-    DialogStore.aggregateState.groupBy.value = val.groupBy;
-    DialogStore.aggregateState.aggregations.value = val.aggregations;
-    DialogStore.aggregateState.previewData.value = val.previewData;
-    DialogStore.aggregateState.previewError.value = val.previewError;
-    DialogStore.aggregateState.isPreviewing.value = val.isPreviewing;
+  set aggregateDialogState(val: any) {
+    Object.assign(this.aggregateDialogState, val);
   }
 
   get sliceRowsDialogState() {
     this._rev;
-    return {
-      count: DialogStore.sliceRowsState.count.value,
-      mode: DialogStore.sliceRowsState.mode.value,
-    };
+    return DialogStore.createSignalProxy(DialogStore.sliceRowsState);
   }
-  set sliceRowsDialogState(val) {
-    DialogStore.sliceRowsState.count.value = val.count;
-    DialogStore.sliceRowsState.mode.value = val.mode;
+  set sliceRowsDialogState(val: any) {
+    Object.assign(this.sliceRowsDialogState, val);
   }
 
   get indexDialogState() {
     this._rev;
-    return {
-      columnName: DialogStore.indexState.columnName.value,
-      startFrom: DialogStore.indexState.startFrom.value,
-    };
+    return DialogStore.createSignalProxy(DialogStore.indexState);
   }
-  set indexDialogState(val) {
-    DialogStore.indexState.columnName.value = val.columnName;
-    DialogStore.indexState.startFrom.value = val.startFrom;
+  set indexDialogState(val: any) {
+    Object.assign(this.indexDialogState, val);
   }
 
   get foldDialogState() {
     this._rev;
-    return {
-      keyName: DialogStore.foldState.keyName.value,
-      valueName: DialogStore.foldState.valueName.value,
-      selectedColumns: DialogStore.foldState.selectedColumns.value,
-      mode: DialogStore.foldState.mode.value,
-    };
+    return DialogStore.createSignalProxy(DialogStore.foldState);
   }
-  set foldDialogState(val) {
-    DialogStore.foldState.keyName.value = val.keyName;
-    DialogStore.foldState.valueName.value = val.valueName;
-    DialogStore.foldState.selectedColumns.value = val.selectedColumns;
-    DialogStore.foldState.mode.value = val.mode;
+  set foldDialogState(val: any) {
+    Object.assign(this.foldDialogState, val);
   }
 
   get pivotDialogState() {
     this._rev;
-    return {
-      rowColumns: DialogStore.pivotState.rowColumns.value,
-      columnColumn: DialogStore.pivotState.columnColumn.value,
-      valueColumn: DialogStore.pivotState.valueColumn.value,
-      aggregation: DialogStore.pivotState.aggregation.value,
-      options: DialogStore.pivotState.options.value,
-      uniqueValueCount: DialogStore.pivotState.uniqueValueCount.value,
-      previewData: DialogStore.pivotState.previewData.value,
-      previewError: DialogStore.pivotState.previewError.value,
-      isPreviewing: DialogStore.pivotState.isPreviewing.value,
-    };
+    return DialogStore.createSignalProxy(DialogStore.pivotState);
   }
-  set pivotDialogState(val) {
-    DialogStore.pivotState.rowColumns.value = val.rowColumns;
-    DialogStore.pivotState.columnColumn.value = val.columnColumn;
-    DialogStore.pivotState.valueColumn.value = val.valueColumn;
-    DialogStore.pivotState.aggregation.value = val.aggregation as any;
-    DialogStore.pivotState.options.value = val.options;
-    DialogStore.pivotState.uniqueValueCount.value = val.uniqueValueCount;
-    DialogStore.pivotState.previewData.value = val.previewData;
-    DialogStore.pivotState.previewError.value = val.previewError;
-    DialogStore.pivotState.isPreviewing.value = val.isPreviewing;
+  set pivotDialogState(val: any) {
+    Object.assign(this.pivotDialogState, val);
   }
 
   get replaceDialogState() {
     this._rev;
-    return {
-      column: DialogStore.replaceState.column.value,
-      findValue: DialogStore.replaceState.findValue.value,
-      replaceValue: DialogStore.replaceState.replaceValue.value,
-    };
+    return DialogStore.createSignalProxy(DialogStore.replaceState);
   }
-  set replaceDialogState(val) {
-    DialogStore.replaceState.column.value = val.column;
-    DialogStore.replaceState.findValue.value = val.findValue;
-    DialogStore.replaceState.replaceValue.value = val.replaceValue;
+  set replaceDialogState(val: any) {
+    Object.assign(this.replaceDialogState, val);
   }
 
   get splitDialogState() {
     this._rev;
-    return {
-      column: DialogStore.splitState.column.value,
-      delimiter: DialogStore.splitState.delimiter.value,
-      isRegex: DialogStore.splitState.isRegex.value,
-      mode: DialogStore.splitState.mode.value,
-      maxColumns: DialogStore.splitState.maxColumns.value,
-      keepOriginal: DialogStore.splitState.keepOriginal.value,
-      error: DialogStore.splitState.error.value,
-      previewData: DialogStore.splitState.previewData.value,
-      previewColumns: DialogStore.splitState.previewColumns.value,
-      autoDetectedDelimiter: DialogStore.splitState.autoDetectedDelimiter.value,
-      columnRenames: DialogStore.splitState.columnRenames.value,
-    };
+    return DialogStore.createSignalProxy(DialogStore.splitState);
   }
   set splitDialogState(val: any) {
-    DialogStore.splitState.column.value = val.column;
-    DialogStore.splitState.delimiter.value = val.delimiter;
-    DialogStore.splitState.isRegex.value = val.isRegex;
-    DialogStore.splitState.mode.value = val.mode;
-    DialogStore.splitState.maxColumns.value = val.maxColumns;
-    DialogStore.splitState.keepOriginal.value = val.keepOriginal;
-    DialogStore.splitState.error.value = val.error;
-    DialogStore.splitState.previewData.value = val.previewData;
-    DialogStore.splitState.previewColumns.value = val.previewColumns;
-    DialogStore.splitState.autoDetectedDelimiter.value = val.autoDetectedDelimiter;
-    DialogStore.splitState.columnRenames.value = val.columnRenames;
+    Object.assign(this.splitDialogState, val);
   }
 
   get regexpMatchDialogState() {
     this._rev;
-    return {
-      sourceColumn: DialogStore.regexpMatchState.sourceColumn.value,
-      pattern: DialogStore.regexpMatchState.pattern.value,
-      columnName: DialogStore.regexpMatchState.columnName.value,
-      error: DialogStore.regexpMatchState.error.value,
-    };
+    return DialogStore.createSignalProxy(DialogStore.regexpMatchState);
   }
-  set regexpMatchDialogState(val) {
-    DialogStore.regexpMatchState.sourceColumn.value = val.sourceColumn;
-    DialogStore.regexpMatchState.pattern.value = val.pattern;
-    DialogStore.regexpMatchState.columnName.value = val.columnName;
-    DialogStore.regexpMatchState.error.value = val.error;
+  set regexpMatchDialogState(val: any) {
+    Object.assign(this.regexpMatchDialogState, val);
   }
 
   get regexpExtractDialogState() {
     this._rev;
-    return {
-      sourceColumn: DialogStore.regexpExtractState.sourceColumn.value,
-      pattern: DialogStore.regexpExtractState.pattern.value,
-      columnName: DialogStore.regexpExtractState.columnName.value,
-      group: DialogStore.regexpExtractState.group.value,
-      error: DialogStore.regexpExtractState.error.value,
-    };
+    return DialogStore.createSignalProxy(DialogStore.regexpExtractState);
   }
-  set regexpExtractDialogState(val) {
-    DialogStore.regexpExtractState.sourceColumn.value = val.sourceColumn;
-    DialogStore.regexpExtractState.pattern.value = val.pattern;
-    DialogStore.regexpExtractState.columnName.value = val.columnName;
-    DialogStore.regexpExtractState.group.value = val.group;
-    DialogStore.regexpExtractState.error.value = val.error;
+  set regexpExtractDialogState(val: any) {
+    Object.assign(this.regexpExtractDialogState, val);
   }
 
   get dateDialogState() {
     this._rev;
-    return {
-      column: DialogStore.dateState.column.value,
-      operation: DialogStore.dateState.operation.value,
-      extractParts: DialogStore.dateState.extractParts.value,
-      truncateUnits: DialogStore.dateState.truncateUnits.value,
-      outputColumn: DialogStore.dateState.outputColumn.value,
-      error: DialogStore.dateState.error.value,
-      previewData: DialogStore.dateState.previewData.value,
-    };
+    return DialogStore.createSignalProxy(DialogStore.dateState);
   }
   set dateDialogState(val: any) {
-    DialogStore.dateState.column.value = val.column;
-    DialogStore.dateState.operation.value = val.operation;
-    DialogStore.dateState.extractParts.value = val.extractParts;
-    DialogStore.dateState.truncateUnits.value = val.truncateUnits;
-    DialogStore.dateState.outputColumn.value = val.outputColumn;
-    DialogStore.dateState.error.value = val.error;
-    DialogStore.dateState.previewData.value = val.previewData;
+    Object.assign(this.dateDialogState, val);
   }
 
   get dedupeDialogState() {
     this._rev;
-    return {
-      selectedColumns: DialogStore.dedupeState.selectedColumns.value,
-      useAllColumns: DialogStore.dedupeState.useAllColumns.value,
-      duplicateCount: DialogStore.dedupeState.duplicateCount.value,
-      mode: DialogStore.dedupeState.mode.value,
-    };
+    return DialogStore.createSignalProxy(DialogStore.dedupeState);
   }
   set dedupeDialogState(val: any) {
-    DialogStore.dedupeState.selectedColumns.value = val.selectedColumns;
-    DialogStore.dedupeState.useAllColumns.value = val.useAllColumns;
-    DialogStore.dedupeState.duplicateCount.value = val.duplicateCount;
-    DialogStore.dedupeState.mode.value = val.mode;
+    Object.assign(this.dedupeDialogState, val);
   }
 
   get columnEditorState() {
     this._rev;
-    return {
-      mode: DialogStore.columnEditorState.mode.value,
-      textSubMode: DialogStore.columnEditorState.textSubMode.value,
-      columns: DialogStore.columnEditorState.columns.value,
-      textValue: DialogStore.columnEditorState.textValue.value,
-      textError: DialogStore.columnEditorState.textError.value,
-      patternText: DialogStore.columnEditorState.patternText.value,
-      patternMode: DialogStore.columnEditorState.patternMode.value,
-      patternMatchType: DialogStore.columnEditorState.patternMatchType.value,
-      draggedIndex: DialogStore.columnEditorState.draggedIndex.value,
-    };
+    return DialogStore.createSignalProxy(DialogStore.columnEditorState);
   }
   set columnEditorState(val: any) {
-    DialogStore.columnEditorState.mode.value = val.mode;
-    DialogStore.columnEditorState.textSubMode.value = val.textSubMode;
-    DialogStore.columnEditorState.columns.value = val.columns;
-    DialogStore.columnEditorState.textValue.value = val.textValue;
-    DialogStore.columnEditorState.textError.value = val.textError;
-    DialogStore.columnEditorState.patternText.value = val.patternText;
-    DialogStore.columnEditorState.patternMode.value = val.patternMode;
-    DialogStore.columnEditorState.patternMatchType.value = val.patternMatchType;
-    DialogStore.columnEditorState.draggedIndex.value = val.draggedIndex;
+    Object.assign(this.columnEditorState, val);
   }
 
-  // JSON Editor
-  jsonEditMode = false;
-  jsonEditContent = '';
-  jsonEditError: string | null = null;
-  jsonEditBackup: any | null = null;
+  get jsonEditMode() {
+    this._rev;
+    return AppStore.jsonEditMode.value;
+  }
+  set jsonEditMode(val) {
+    AppStore.jsonEditMode.value = val;
+  }
+
+  get jsonEditContent() {
+    this._rev;
+    return AppStore.jsonEditContent.value;
+  }
+  set jsonEditContent(val) {
+    AppStore.jsonEditContent.value = val;
+  }
+
+  get jsonEditError() {
+    this._rev;
+    return AppStore.jsonEditError.value;
+  }
+  set jsonEditError(val: string | null) {
+    AppStore.jsonEditError.value = val;
+  }
+
+  get jsonEditBackup() {
+    this._rev;
+    return AppStore.jsonEditBackup.value;
+  }
+  set jsonEditBackup(val: any | null) {
+    AppStore.jsonEditBackup.value = val;
+  }
 
   // Notifications
-  notifications: Notification[] = [];
-  notificationIdCounter = 0;
+  get notifications(): Notification[] {
+    this._rev;
+    return AppStore.notifications.value;
+  }
+  set notifications(val: Notification[]) {
+    AppStore.notifications.value = val;
+  }
+
+  get notificationIdCounter() {
+    this._rev;
+    return AppStore.notificationIdCounter.value;
+  }
+  set notificationIdCounter(val) {
+    AppStore.notificationIdCounter.value = val;
+  }
 
   // Custom Dialogs (Alert/Confirm/Prompt)
-  messageBox: AppState['messageBox'] = {
-    visible: false,
-    title: '',
-    message: '',
-    type: 'alert',
-    inputValue: '',
-    resolve: null,
-  };
+  get messageBox() {
+    this._rev;
+    return AppStore.messageBox.value;
+  }
+  set messageBox(val) {
+    AppStore.messageBox.value = val;
+  }
 
   // Step removal modal
-  stepRemovalModal: AppState['stepRemovalModal'] = {
-    visible: false,
-    stepIndex: -1,
-    stepName: '',
-    affectedSteps: [],
-    removeMode: 'all',
-    resolve: null,
-  };
+  get stepRemovalModal() {
+    this._rev;
+    return AppStore.stepRemovalModal.value;
+  }
+  set stepRemovalModal(val) {
+    AppStore.stepRemovalModal.value = val;
+  }
+
+  // Intermediate viewing state
+  get viewingSchema() {
+    this._rev;
+    return AppStore.viewingSchema.value;
+  }
+  set viewingSchema(val: ColumnSchema[] | null) {
+    AppStore.viewingSchema.value = val;
+  }
 
   // Alpine's injected properties
   $nextTick: any;
   $watch: any;
   $dispatch: any;
-
-  // Intermediate viewing state
-  viewingSchema: ColumnSchema[] | null = null;
 
   // Bind handlers
   validateFilterExpression() {
@@ -1303,11 +1315,49 @@ export class ChumakApp implements AppState {
       AppStore.activeDialog.value;
       AppStore.isDragging.value;
       AppStore.selectedColumn.value;
+      AppStore.activeStep.value;
+      AppStore.editingStepIndex.value;
+      AppStore.dialogSnapshot.value;
+      AppStore.importFileData.value;
+      AppStore.columnToolbarPos.value;
+      AppStore.selectedCell.value;
+      AppStore.cellToolbarPos.value;
+      AppStore.edaStats.value;
+      AppStore.edaChartView.value;
+      AppStore.edaBrushSelection.value;
+      AppStore.edaDateTreatment.value;
+      AppStore.currentPage.value;
+      AppStore.pageSize.value;
+      AppStore.totalPages.value;
       AppStore.theme.value;
       AppStore.isTransforming.value;
       AppStore.transformMessage.value;
+      AppStore.uxSettings.value;
+      AppStore.typeMenuOpen.value;
+      AppStore.typeMenuPos.value;
+      AppStore.typeMenuCol.value;
+      AppStore.jsonEditMode.value;
+      AppStore.jsonEditContent.value;
+      AppStore.jsonEditError.value;
+      AppStore.jsonEditBackup.value;
+      AppStore.notifications.value;
+      AppStore.notificationIdCounter.value;
+      AppStore.messageBox.value;
+      AppStore.stepRemovalModal.value;
+      AppStore.viewingSchema.value;
 
       // Access all dialog signals for reactivity
+      DialogStore.filterState.expression.value;
+      DialogStore.filterState.previewMode.value;
+      DialogStore.deriveState.columnName.value;
+      DialogStore.deriveState.expression.value;
+      DialogStore.sortState.field.value;
+      DialogStore.sortState.order.value;
+      DialogStore.joinState.rightModel.value;
+      DialogStore.joinState.joinType.value;
+      DialogStore.joinState.keyPairs.value;
+      DialogStore.joinState.suffixes.value;
+
       DialogStore.aggregateState.groupBy.value;
       DialogStore.aggregateState.aggregations.value;
       DialogStore.aggregateState.previewData.value;
@@ -1351,10 +1401,22 @@ export class ChumakApp implements AppState {
       DialogStore.dedupeState.useAllColumns.value;
       DialogStore.columnEditorState.mode.value;
       DialogStore.columnEditorState.columns.value;
+      DialogStore.importCsvState.fileName.value;
+      DialogStore.importCsvState.sourceName.value;
+      DialogStore.importCsvState.isJson.value;
+      DialogStore.importCsvState.jsonPath.value;
+      DialogStore.importCsvState.jsonData.value;
+      DialogStore.importUrlState.url.value;
+      DialogStore.importUrlState.isFetching.value;
+      DialogStore.importUrlState.error.value;
+      DialogStore.settingsState.theme.value;
+      DialogStore.settingsState.rowLimit.value;
       DialogStore.previewState.title.value;
       DialogStore.previewState.stats.value;
       DialogStore.previewState.columns.value;
+      DialogStore.previewState.newColumns.value;
       DialogStore.previewState.rows.value;
+      DialogStore.previewState.isLoading.value;
 
       // Trigger Alpine re-render by incrementing version
       // Use microtask to avoid synchronous reactivity cycles in Alpine.js

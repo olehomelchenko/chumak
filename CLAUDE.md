@@ -60,7 +60,8 @@
 
 **Core Libraries**:
 
-- **Alpine.js**: Reactive UI state management
+- **Preact / Signals**: Main reactive framework for components and state
+- **Alpine.js**: Legacy UI state management (currently being phased out)
 - **Arquero**: High-performance data transformation engine
 - **jsep**: Expression parsing for user formulas
 - **Vega-Lite**: Declarative visualization grammar
@@ -108,19 +109,19 @@
 
 ### Application & UI (`src/`)
 
-- **[chumak-app.ts](src/chumak-app.ts)**: Main orchestration class (Alpine.js state)
-- **[main.ts](src/main.ts)**: Application bootstrap
-- **[app/handlers/](src/app/handlers/)**: Modularized functional logic (Export, Import, Model, Step, Dialog, Notification, EDA, Interaction, Pagination, Helpers, JSON)
-- **[app/transforms/](src/app/transforms/)**: Transform-specific UI logic (Filter, Derive, Aggregate, Join, Pivot, Fold, Split, Dedupe, Date, Column Editor, etc.)
+- **[chumak-app.ts](src/chumak-app.ts)**: Legacy orchestration shell (proxies to Stores for Alpine interop)
+- **[app/stores/](src/app/stores/)**: Centralized signal stores (`AppStore`, `DialogStore`)
+- **[app/services/](src/app/services/)**: Standalone business logic (`ModelService`, `StepService`, `ImportService`, `ExportService`, `PersistenceService`)
+- **[app/components/](src/app/components/)**: Standardized Preact/TSX UI components
+- **[app/handlers/](src/app/handlers/)**: Refactored functional logic calling services and stores
+- **[app/transforms/](src/app/transforms/)**: Transform-specific UI logic and previews
 - **[app/types.ts](src/app/types.ts)**: Application-wide TypeScript definitions
 
-### Modal Templates (`public/templates/`)
-
-- **21 modal templates** for transforms, imports, and settings
+- **100% TSX**: All modal templates have been migrated to Preact components.
 - **Slide panel**: Transform modals (filter, derive, join, etc.) with unified preview panel
 - **Centered modal**: Import modals (import-csv, import-url) and settings
-- **Chips-based column selection**: Single-select and multi-select variants
-- **Preview system**: Unified `previewState` with debounced auto-updating for expressions
+- **Chips-based column selection**: Standardized Preact components for selection
+- **Reactivity Bridge**: `ChumakApp` proxies signal changes to Alpine.js via a `_rev` counter and `Proxy` objects.
 
 ### Styles (`styles/`)
 

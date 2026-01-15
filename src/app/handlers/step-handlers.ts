@@ -151,66 +151,61 @@ export function editStep(this: ChumakApp, stepIndex: number) {
   } else if (step.select) {
     this.openDialog('column-editor');
     const selectedSet = new Set(step.select as string[]);
-    this.columnEditorState = {
-      mode: 'list',
-      textSubMode: 'rename',
-      columns: (step.select as string[])
-        .map((col: string) => ({
-          original: col,
-          renamed: col,
-          selected: true,
-        }))
-        .concat(
-          this.columns
-            .filter((c) => !selectedSet.has(c))
-            .map((col) => ({
-              original: col,
-              renamed: col,
-              selected: false,
-            }))
-        ),
-      textValue: '',
-      textError: null,
-      patternText: '',
-      patternMode: 'include',
-      patternMatchType: 'prefix',
-      draggedIndex: null,
-    };
+    const state = DialogStore.columnEditorState;
+    state.mode.value = 'list';
+    state.textSubMode.value = 'rename';
+    const initialColumns = (step.select as string[]).map((col: string) => ({
+      original: col,
+      renamed: col,
+      selected: true,
+    }));
+    const remainingColumns = this.columns
+      .filter((c) => !selectedSet.has(c))
+      .map((col) => ({
+        original: col,
+        renamed: col,
+        selected: false,
+      }));
+    state.columns.value = [...initialColumns, ...remainingColumns];
+    state.textValue.value = '';
+    state.textError.value = null;
+    state.patternText.value = '';
+    state.patternMode.value = 'include';
+    state.patternMatchType.value = 'prefix';
+    state.draggedIndex.value = null;
   } else if (step.rename) {
     this.openDialog('column-editor');
-    this.columnEditorState = {
-      mode: 'list',
-      textSubMode: 'rename',
-      columns: this.columns.map((col) => ({
-        original: col,
-        renamed: (step.rename && step.rename[col]) || col,
-        selected: true,
-      })),
-      textValue: '',
-      textError: null,
-      patternText: '',
-      patternMode: 'include',
-      patternMatchType: 'prefix',
-      draggedIndex: null,
-    };
+    const state = DialogStore.columnEditorState;
+    state.mode.value = 'list';
+    state.textSubMode.value = 'rename';
+    state.columns.value = this.columns.map((col) => ({
+      original: col,
+      renamed: (step.rename && step.rename[col]) || col,
+      selected: true,
+    }));
+    state.textValue.value = '';
+    state.textError.value = null;
+    state.patternText.value = '';
+    state.patternMode.value = 'include';
+    state.patternMatchType.value = 'prefix';
+    state.draggedIndex.value = null;
   } else if (step.remove) {
     this.openDialog('column-editor');
     const removedSet = new Set(step.remove as string[]);
-    this.columnEditorState = {
-      mode: 'list',
-      textSubMode: 'rename',
-      columns: this.columns.map((col) => ({
-        original: col,
-        renamed: col,
-        selected: !removedSet.has(col),
-      })),
-      textValue: '',
-      textError: null,
-      patternText: '',
-      patternMode: 'include',
-      patternMatchType: 'prefix',
-      draggedIndex: null,
-    };
+    const state = DialogStore.columnEditorState;
+    state.mode.value = 'list';
+    state.textSubMode.value = 'rename';
+    state.columns.value = this.columns.map((col) => ({
+      original: col,
+      renamed: col,
+      selected: !removedSet.has(col),
+    }));
+    state.textValue.value = '';
+    state.textError.value = null;
+    state.patternText.value = '';
+    state.patternMode.value = 'include';
+    state.patternMatchType.value = 'prefix';
+    state.draggedIndex.value = null;
   } else if (step.sort) {
     this.openDialog('sort');
     DialogStore.sortState.field.value = step.sort.field;
@@ -227,13 +222,10 @@ export function editStep(this: ChumakApp, stepIndex: number) {
       }
       return { output, func: 'custom', col: '' };
     });
-    this.aggregateDialogState = {
-      groupBy: [...step.aggregate.groupby],
-      aggregations,
-      previewData: null,
-      previewError: null,
-      isPreviewing: false,
-    };
+    const state = DialogStore.aggregateState;
+    state.groupBy.value = [...step.aggregate.groupby];
+    state.aggregations.value = aggregations;
+    state.isPreviewing.value = false;
   } else if (step.join) {
     this.openDialog('join');
     DialogStore.joinState.rightModel.value = step.join.right;
@@ -243,62 +235,59 @@ export function editStep(this: ChumakApp, stepIndex: number) {
     this.onJoinTargetChange();
   } else if (step.fold) {
     this.openDialog('fold');
-    this.foldDialogState = {
-      keyName: step.fold.as[0],
-      valueName: step.fold.as[1],
-      selectedColumns: this.columns.map((c) => (step.fold ? step.fold.columns.includes(c) : false)),
-      mode: 'fold',
-    };
+    const state = DialogStore.foldState;
+    state.keyName.value = step.fold.as[0];
+    state.valueName.value = step.fold.as[1];
+    state.selectedColumns.value = this.columns.map((c) =>
+      step.fold ? step.fold.columns.includes(c) : false
+    );
+    state.mode.value = 'fold';
   } else if (step.pivot) {
     this.openDialog('pivot');
-    this.pivotDialogState = {
-      rowColumns: step.pivot.rows || [],
-      columnColumn: step.pivot.keys,
-      valueColumn: step.pivot.values,
-      aggregation: step.pivot.aggregation || 'sum',
-      options: {
-        sort: step.pivot.options?.sort ?? true,
-        limit: step.pivot.options?.limit || null,
-      },
-      uniqueValueCount: 0,
-      previewData: null,
-      previewError: null,
-      isPreviewing: false,
+    const state = DialogStore.pivotState;
+    state.rowColumns.value = step.pivot.rows || [];
+    state.columnColumn.value = step.pivot.keys;
+    state.valueColumn.value = step.pivot.values;
+    state.aggregation.value = step.pivot.aggregation || 'sum';
+    state.options.value = {
+      sort: step.pivot.options?.sort ?? true,
+      limit: step.pivot.options?.limit || null,
     };
+    state.uniqueValueCount.value = 0;
+    state.isPreviewing.value = false;
     this.onPivotConfigChange();
   } else if (step.replace) {
     this.openDialog('replace');
-    this.replaceDialogState = {
-      column: step.replace.column,
-      findValue: step.replace.find,
-      replaceValue: step.replace.replace,
-    };
+    const state = DialogStore.replaceState;
+    state.column.value = step.replace.column;
+    state.findValue.value = step.replace.find;
+    state.replaceValue.value = step.replace.replace;
   } else if (step.split) {
     this.openDialog('split');
-    this.splitDialogState = {
-      column: step.split.column,
-      delimiter: step.split.delimiter,
-      isRegex: !!step.split.isRegex,
-      mode: step.split.mode || 'spread',
-      maxColumns: step.split.maxColumns || 10,
-      keepOriginal: !!step.split.keepOriginal,
-      error: null,
-      previewData: [],
-      previewColumns: [],
-      autoDetectedDelimiter: null,
-      columnRenames: {},
-    };
-    this.updateSplitPreview();
+    const state = DialogStore.splitState;
+    state.column.value = step.split.column;
+    state.delimiter.value = step.split.delimiter;
+    state.isRegex.value = !!step.split.isRegex;
+    state.mode.value = step.split.mode || 'spread';
+    state.maxColumns.value = step.split.maxColumns || 10;
+    state.keepOriginal.value = !!step.split.keepOriginal;
+    state.error.value = null;
+
+    if (typeof this.updateSplitPreview === 'function') {
+      this.updateSplitPreview();
+    }
   } else if (step.dedupe) {
     this.openDialog('dedupe');
     const dedupeColumns = step.dedupe.columns || [];
-    this.dedupeDialogState = {
-      useAllColumns: dedupeColumns.length === 0,
-      selectedColumns: this.columns.map((c) => dedupeColumns.includes(c)),
-      duplicateCount: 0,
-      mode: step.dedupe.mode || 'remove',
-    };
-    this.updateDedupePreview();
+    const state = DialogStore.dedupeState;
+    state.useAllColumns.value = dedupeColumns.length === 0;
+    state.selectedColumns.value = this.columns.map((c) => dedupeColumns.includes(c));
+    state.duplicateCount.value = 0;
+    state.mode.value = step.dedupe.mode || 'remove';
+
+    if (typeof this.updateDedupePreview === 'function') {
+      this.updateDedupePreview();
+    }
   }
 }
 

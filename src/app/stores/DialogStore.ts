@@ -166,10 +166,12 @@ export class DialogStore {
     columns: signal<string[]>([]),
     newColumns: signal<string[]>([]),
     rows: signal<DataRow[]>([]),
+    isLoading: signal(false),
   };
 
   // Import CSV Dialog State
   static importCsvState = {
+    fileName: signal(''),
     sourceName: signal(''),
     isJson: signal(false),
     jsonPath: signal(''),
@@ -178,12 +180,22 @@ export class DialogStore {
     flattenJson: signal(false),
     serializeNested: signal(false),
     jsonData: signal<any>(null),
+    fullJsonData: signal<any>(null),
     delimiter: signal(','),
     headerMode: signal<'first-row' | 'auto-generate' | 'manual'>('first-row'),
+    originalHeaders: signal<string[]>([]),
     customHeaders: signal<string[]>([]),
     duplicateWarning: signal(''),
+    rawPreviewData: signal<any[][]>([]),
     previewHeaders: signal<string[]>([]),
     previewDataRows: signal<any[][]>([]),
+  };
+
+  // Import URL Dialog State
+  static importUrlState = {
+    url: signal(''),
+    isFetching: signal(false),
+    error: signal<string | null>(null),
   };
 
   // Settings Dialog State
@@ -191,4 +203,112 @@ export class DialogStore {
     theme: signal<'chumak' | 'blues'>('chumak'),
     rowLimit: signal(100),
   };
+
+  /**
+   * Creates a reactive proxy for a signal-based state object.
+   * Useful for Alpine.js interop where direct property access and assignment
+   * must be transparently mapped to Preact signals.
+   */
+  static createSignalProxy<T extends object>(state: T): any {
+    return new Proxy(
+      {},
+      {
+        get(_, prop) {
+          const s = (state as any)[prop];
+          return s && typeof s === 'object' && 'value' in s ? s.value : s;
+        },
+        set(_, prop, value) {
+          const s = (state as any)[prop];
+          if (s && typeof s === 'object' && 'value' in s) {
+            s.value = value;
+            return true;
+          }
+          return false;
+        },
+      }
+    );
+  }
+
+  /**
+   * Resets all dialog states to their initial values.
+   */
+  static resetAll() {
+    this.filterState.expression.value = '';
+    this.filterState.previewMode.value = 'all';
+
+    this.deriveState.columnName.value = '';
+    this.deriveState.expression.value = '';
+
+    this.sortState.field.value = '';
+    this.sortState.order.value = 'asc';
+
+    this.sliceRowsState.count.value = 10;
+    this.sliceRowsState.mode.value = 'first';
+
+    this.indexState.columnName.value = 'index';
+    this.indexState.startFrom.value = 1;
+
+    this.foldState.keyName.value = 'key';
+    this.foldState.valueName.value = 'value';
+    this.foldState.selectedColumns.value = [];
+    this.foldState.mode.value = 'keep';
+
+    this.pivotState.rowColumns.value = [];
+    this.pivotState.columnColumn.value = '';
+    this.pivotState.valueColumn.value = '';
+    this.pivotState.aggregation.value = 'sum';
+    this.pivotState.options.value = { sort: true, limit: null };
+    this.pivotState.uniqueValueCount.value = 0;
+    this.pivotState.isPreviewing.value = false;
+
+    this.aggregateState.groupBy.value = [];
+    this.aggregateState.aggregations.value = [];
+    this.aggregateState.isPreviewing.value = false;
+
+    this.replaceState.column.value = '';
+    this.replaceState.findValue.value = '';
+    this.replaceState.replaceValue.value = '';
+
+    this.splitState.column.value = '';
+    this.splitState.delimiter.value = ',';
+    this.splitState.isRegex.value = false;
+    this.splitState.mode.value = 'spread';
+    this.splitState.maxColumns.value = 10;
+    this.splitState.keepOriginal.value = false;
+
+    this.regexpMatchState.columnName.value = '';
+    this.regexpMatchState.sourceColumn.value = '';
+    this.regexpMatchState.pattern.value = '';
+
+    this.regexpExtractState.columnName.value = '';
+    this.regexpExtractState.sourceColumn.value = '';
+    this.regexpExtractState.pattern.value = '';
+    this.regexpExtractState.group.value = 0;
+
+    this.dateState.column.value = '';
+    this.dateState.operation.value = 'extract';
+    this.dateState.extractParts.value = ['year'];
+    this.dateState.truncateUnits.value = ['month'];
+    this.dateState.outputColumn.value = '';
+
+    this.dedupeState.selectedColumns.value = [];
+    this.dedupeState.useAllColumns.value = true;
+    this.dedupeState.duplicateCount.value = 0;
+    this.dedupeState.mode.value = 'remove';
+
+    this.columnEditorState.mode.value = 'list';
+    this.columnEditorState.columns.value = [];
+    this.columnEditorState.textValue.value = '';
+
+    this.importCsvState.fileName.value = '';
+    this.importCsvState.sourceName.value = '';
+    this.importCsvState.jsonData.value = null;
+
+    this.importUrlState.url.value = '';
+    this.importUrlState.isFetching.value = false;
+    this.importUrlState.error.value = null;
+
+    this.settingsState.theme.value = 'chumak';
+    this.settingsState.rowLimit.value = 100;
+  }
 }

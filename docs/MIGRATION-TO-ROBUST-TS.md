@@ -68,24 +68,17 @@ _Status: 🚧 In Progress_
 ### 3a: Logic Extraction (Store & Service Pattern)
 
 - [x] **Global Signal Store**: Centralize global app state (`sources`, `models`, `activeModel`) into `AppStore` using Preact signals.
-- [x] **Dialog State Stores**: Move logic from `dialog-handlers.ts` into dedicated stores.
-  - [x] SortDialog, JoinDialog, FilterDialog, DeriveDialog.
-  - [ ] Other dialogs (Aggregate, Pivot, etc. - pending full store migration).
-- [x] **Service Extraction**: Move business logic into standalone services.
+- [x] **Dialog State Stores**: Moved all dialog logic and state from `ChumakApp` into `DialogStore`.
+  - [x] All dialogs (Sort, Join, Filter, Derive, Aggregate, Pivot, replacement, split, dedupe, etc.) are now signal-based.
+- [x] **Service Extraction**: Business logic moved into standalone services.
   - [x] **ModelService**: Source/Model lifecycle management.
   - [x] **ExportService**: CSV/JSON/Workflow exports.
   - [x] **ImportService**: Core source creation logic (JSON/CSV).
   - [x] **StepService**: Step computation, removal, and update logic.
-  - [ ] **PersistenceService**: Strategy for auto-save and IndexedDB (currently in `core/storage.ts`).
-- [x] **Remove Mix-ins**: replace the `(this as any)` and `.call(this)` patterns.
-  - [x] Model handlers replaced by `ModelService`.
-  - [x] Export handlers replaced by `ExportService`.
-  - [x] Step handlers replaced by `StepService` (29 `(this as any)` removed).
-  - [x] Helper handlers refactored (6 `(this as any)` removed).
-  - [x] Interaction handlers refactored (10 `(this as any)` removed).
-  - [x] Dialog handlers refactored (50+ `(this as any)` removed).
-  - [x] EDA handlers refactored (2 `(this as any)` removed).
-  - [x] Notification handlers refactored (3 `(this as any)` removed).
+  - [x] **PersistenceService**: Strategy for auto-save and IndexedDB (migrated from `core/storage.ts`).
+- [x] **Remove Mix-ins**: Replaced the `(this as any)` and `.call(this)` patterns.
+  - [x] All handlers refactored to use services and stores.
+  - [x] Removed 100+ legacy `this` context issues.
 
 ### 3b: Core Separation
 
@@ -98,6 +91,25 @@ _Status: 🚧 In Progress_
 - [ ] **E2E Smoke Tests**: Ensure the critical path (Import -> Transform -> Export) works.
 
 **Done when**: `ChumakApp` is a thin shell (< 300 lines) coordinating stores and services.
+
+---
+
+## Technical Debt: The Reactive Bridge
+
+During Phase 3, we use a "Reactive Bridge" to maintain compatibility with Alpine.js while moving the Source of Truth to Preact signals.
+
+### 1. The `_rev` Counter
+
+`ChumakApp` contains a `_rev` (revision) property. An `effect` in the app's constructor observes all signals in `AppStore` and `DialogStore`. When any signal changes, `_rev` is incremented.
+
+### 2. Signal Proxies
+
+To prevent Alpine.js from attempting to wrap Preact signals (which causes recursion/performance issues), we use `Proxy` objects:
+
+- **`DialogStore.createSignalProxy(state)`**: Creates a JS Proxy that maps property access/assignment to `.value` of the underlying signals.
+- **Getters/Setters**: `ChumakApp` properties are now getters/setters that depend on `_rev` and return/update these proxies or raw signal values.
+
+This architecture ensures a **Single Source of Truth** in signals while letting legacy Alpine.js templates "see" the data as normal JS properties.
 
 ## Phase 4: Final Modernization
 

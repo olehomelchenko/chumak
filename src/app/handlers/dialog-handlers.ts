@@ -300,18 +300,6 @@ export function initDialogState(this: ChumakApp, dialogName: string, section?: s
       state.previewHeaders.value = [...(this.importDialogState.previewHeaders || [])];
       state.previewDataRows.value = [...(this.importDialogState.previewDataRows || [])];
 
-      effect(() => {
-        // Sync Signals -> Alpine
-        this.importDialogState.sourceName = state.sourceName.value;
-        this.importDialogState.isJson = state.isJson.value;
-        this.importDialogState.jsonPath = state.jsonPath.value;
-        this.importDialogState.flattenJson = state.flattenJson.value;
-        this.importDialogState.serializeNested = state.serializeNested.value;
-        this.importDialogState.delimiter = state.delimiter.value;
-        this.importDialogState.headerMode = state.headerMode.value;
-        this.importDialogState.customHeaders = state.customHeaders.value;
-      });
-
       mountComponent(container, ImportCsvDialog, {
         sourceName: state.sourceName,
         isJson: state.isJson,
@@ -526,13 +514,6 @@ export function initDialogState(this: ChumakApp, dialogName: string, section?: s
       state.isPreviewing.value = this.pivotDialogState.isPreviewing;
 
       effect(() => {
-        // Sync Signals -> Alpine
-        this.pivotDialogState.rowColumns = [...state.rowColumns.value];
-        this.pivotDialogState.columnColumn = state.columnColumn.value;
-        this.pivotDialogState.valueColumn = state.valueColumn.value;
-        this.pivotDialogState.aggregation = state.aggregation.value;
-        this.pivotDialogState.options = { ...state.options.value };
-
         // Trigger calculation in Alpine
         if (typeof this.onPivotConfigChange === 'function') {
           Promise.resolve(this.onPivotConfigChange()).then(() => {
@@ -574,11 +555,7 @@ export function initDialogState(this: ChumakApp, dialogName: string, section?: s
 
     const container = document.getElementById('replace-modal-container');
     if (container) {
-      effect(() => {
-        this.replaceDialogState.column = state.column.value;
-        this.replaceDialogState.findValue = state.findValue.value;
-        this.replaceDialogState.replaceValue = state.replaceValue.value;
-      });
+      // No sync effect needed as signals are proxied
 
       mountComponent(container, ReplaceDialog, {
         columns: this.columns,
@@ -629,22 +606,9 @@ export function initDialogState(this: ChumakApp, dialogName: string, section?: s
           }
         }
 
-        // Sync Signals -> Alpine
-        this.splitDialogState.column = state.column.value;
-        this.splitDialogState.delimiter = state.delimiter.value;
-        this.splitDialogState.isRegex = state.isRegex.value;
-        this.splitDialogState.mode = state.mode.value;
-        this.splitDialogState.maxColumns = state.maxColumns.value;
-        this.splitDialogState.keepOriginal = state.keepOriginal.value;
-        this.splitDialogState.autoDetectedDelimiter = state.autoDetectedDelimiter.value;
-
         // Trigger preview
         if (typeof this.debouncedUpdateSplitPreview === 'function') {
           this.debouncedUpdateSplitPreview();
-        }
-
-        if (state.error.peek() !== this.splitDialogState.error) {
-          state.error.value = this.splitDialogState.error;
         }
       });
 
@@ -661,20 +625,18 @@ export function initDialogState(this: ChumakApp, dialogName: string, section?: s
       });
     }
   } else if (dialogName === 'regexpMatch') {
-    this.regexpMatchDialogState = {
-      columnName: '',
-      sourceColumn: this.columns[0] || '',
-      pattern: '',
-      error: null,
-    };
+    const state = DialogStore.regexpMatchState;
+    state.sourceColumn.value = this.columns[0] || '';
+    state.pattern.value = '';
+    state.columnName.value = '';
+    state.error.value = null;
   } else if (dialogName === 'regexpExtract') {
-    this.regexpExtractDialogState = {
-      columnName: '',
-      sourceColumn: this.columns[0] || '',
-      pattern: '',
-      group: 0,
-      error: null,
-    };
+    const state = DialogStore.regexpExtractState;
+    state.sourceColumn.value = this.columns[0] || '';
+    state.pattern.value = '';
+    state.columnName.value = '';
+    state.group.value = 0;
+    state.error.value = null;
   } else if (dialogName === 'date') {
     const dateColumns = this.getDateColumns ? this.getDateColumns() : [];
     const initialColumn =
@@ -694,18 +656,8 @@ export function initDialogState(this: ChumakApp, dialogName: string, section?: s
     const container = document.getElementById('date-modal-container');
     if (container) {
       effect(() => {
-        this.dateDialogState.column = state.column.value;
-        this.dateDialogState.operation = state.operation.value;
-        this.dateDialogState.extractParts = [...state.extractParts.value];
-        this.dateDialogState.truncateUnits = [...state.truncateUnits.value];
-        this.dateDialogState.outputColumn = state.outputColumn.value;
-
         if (typeof this.updateDatePreview === 'function') {
           this.updateDatePreview();
-        }
-
-        if (state.error.peek() !== this.dateDialogState.error) {
-          state.error.value = this.dateDialogState.error;
         }
       });
 
@@ -720,13 +672,17 @@ export function initDialogState(this: ChumakApp, dialogName: string, section?: s
       });
     }
   } else if (dialogName === 'dedupe') {
-    this.dedupeDialogState = {
-      selectedColumns: this.columns.map(() => true),
-      useAllColumns: true,
-      duplicateCount: 0,
-      mode: 'remove',
-    };
-    this.$nextTick(() => this.updateDedupePreview());
+    const state = DialogStore.dedupeState;
+    state.selectedColumns.value = this.columns.map(() => true);
+    state.useAllColumns.value = true;
+    state.duplicateCount.value = 0;
+    state.mode.value = 'remove';
+
+    this.$nextTick(() => {
+      if (typeof this.updateDedupePreview === 'function') {
+        this.updateDedupePreview();
+      }
+    });
   }
 }
 
@@ -932,83 +888,34 @@ export async function closeDialog(this: ChumakApp, force = false) {
   }
 
   // Unmount Preact components if they were mounted
-  if (this.activeDialog === 'sort') {
-    const container = document.getElementById('sort-modal-container');
-    if (container) unmountComponent(container);
-    // No effect cleanup needed as we use global store signals
-  }
+  const containers = [
+    'sort',
+    'index',
+    'replace',
+    'slice-rows',
+    'unpivot',
+    'filter',
+    'pivot',
+    'aggregate',
+    'import-csv',
+    'import-url',
+    'column-editor',
+    'settings',
+    'date',
+    'split',
+    'derive',
+    'join',
+    'regexp-match',
+    'regexp-extract',
+    'dedupe',
+    'download',
+    'about',
+    'expressions',
+  ];
 
-  if (this.activeDialog === 'index') {
-    const container = document.getElementById('index-modal-container');
+  for (const name of containers) {
+    const container = document.getElementById(`${name}-modal-container`);
     if (container) unmountComponent(container);
-  }
-
-  if (this.activeDialog === 'replace') {
-    const container = document.getElementById('replace-modal-container');
-    if (container) unmountComponent(container);
-  }
-
-  if (this.activeDialog === 'sliceRows') {
-    const container = document.getElementById('slice-rows-modal-container');
-    if (container) unmountComponent(container);
-  }
-
-  if (this.activeDialog === 'fold') {
-    const container = document.getElementById('unpivot-modal-container');
-    if (container) unmountComponent(container);
-  }
-
-  if (this.activeDialog === 'filter') {
-    const container = document.getElementById('filter-modal-container');
-    if (container) unmountComponent(container);
-    // Cleanup not required for store signals
-  }
-
-  if (this.activeDialog === 'pivot') {
-    const container = document.getElementById('pivot-modal-container');
-    if (container) unmountComponent(container);
-  }
-
-  if (this.activeDialog === 'aggregate') {
-    const container = document.getElementById('aggregate-modal-container');
-    if (container) unmountComponent(container);
-  }
-
-  if (this.activeDialog === 'import-csv') {
-    const container = document.getElementById('import-csv-modal-container');
-    if (container) unmountComponent(container);
-  }
-
-  if (this.activeDialog === 'column-editor') {
-    const container = document.getElementById('column-editor-modal-container');
-    if (container) unmountComponent(container);
-  }
-
-  if (this.activeDialog === 'settings') {
-    const container = document.getElementById('settings-modal-container');
-    if (container) unmountComponent(container);
-  }
-
-  if (this.activeDialog === 'date') {
-    const container = document.getElementById('date-modal-container');
-    if (container) unmountComponent(container);
-  }
-
-  if (this.activeDialog === 'split') {
-    const container = document.getElementById('split-modal-container');
-    if (container) unmountComponent(container);
-  }
-
-  if (this.activeDialog === 'derive') {
-    const container = document.getElementById('derive-modal-container');
-    if (container) unmountComponent(container);
-    // Cleanup not required for store signals
-  }
-
-  if (this.activeDialog === 'join') {
-    const container = document.getElementById('join-modal-container');
-    if (container) unmountComponent(container);
-    // Cleanup not required for store signals
   }
 
   // Clear URL hash if closing a navigable page
@@ -1026,78 +933,6 @@ export async function closeDialog(this: ChumakApp, force = false) {
 }
 
 export function resetDialogStates(this: ChumakApp) {
-  this.aggregateDialogState = {
-    groupBy: [],
-    aggregations: [],
-    previewData: null,
-    previewError: null,
-    isPreviewing: false,
-  };
-
-  this.importDialogState = {
-    fileName: '',
-    sourceName: '',
-    rawPreviewData: [],
-    previewHeaders: [],
-    previewDataRows: [],
-    headerMode: 'first-row',
-    delimiter: ',',
-    originalHeaders: [],
-    customHeaders: [],
-    duplicateWarning: '',
-  };
+  DialogStore.resetAll();
   this.importFileData = null;
-  this.foldDialogState = {
-    keyName: 'key',
-    valueName: 'value',
-    selectedColumns: this.columns ? this.columns.map(() => false) : [],
-    mode: 'keep',
-  };
-  this.pivotDialogState = {
-    rowColumns: [],
-    columnColumn: '',
-    valueColumn: '',
-    aggregation: 'sum',
-    options: { sort: true, limit: null },
-    uniqueValueCount: 0,
-    previewData: null,
-    previewError: null,
-    isPreviewing: false,
-  };
-  this.splitDialogState = {
-    column: '',
-    delimiter: ',',
-    isRegex: false,
-    mode: 'spread',
-    maxColumns: 10,
-    keepOriginal: false,
-    error: null,
-    previewData: [],
-    previewColumns: [],
-    autoDetectedDelimiter: null,
-    columnRenames: {},
-  };
-  this.regexpMatchDialogState = { columnName: '', sourceColumn: '', pattern: '', error: null };
-  this.regexpExtractDialogState = {
-    columnName: '',
-    sourceColumn: '',
-    pattern: '',
-    group: 0,
-    error: null,
-  };
-  this.dateDialogState = {
-    column: '',
-    operation: 'extract',
-    extractParts: ['year'],
-    truncateUnits: ['month'],
-    outputColumn: '',
-    error: null,
-    previewData: [],
-  };
-  this.dedupeDialogState = {
-    selectedColumns: [],
-    useAllColumns: true,
-    duplicateCount: 0,
-    mode: 'remove',
-  };
 }

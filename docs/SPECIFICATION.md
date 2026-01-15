@@ -60,14 +60,16 @@ Chumak is a browser-based data wrangling tool for cleaning and transforming tabu
 
 ### 3.2 Libraries
 
-| Library       | Purpose                                            |
-| :------------ | :------------------------------------------------- |
-| **Iconify**   | Unified vector icon framework                      |
-| **PapaParse** | High-performance CSV parsing and export            |
-| **Arquero**   | Data transformation engine (inspired by dplyr)     |
-| **jsep**      | Lightweight Javascript Expression Parser           |
-| **Alpine.js** | Declarative, reactive UI framework                 |
-| **Vega-Lite** | Grammar of Graphics for interactive visualizations |
+| Library       | Purpose                                             |
+| :------------ | :-------------------------------------------------- |
+| **Iconify**   | Unified vector icon framework                       |
+| **PapaParse** | High-performance CSV parsing and export             |
+| **Arquero**   | Data transformation engine (inspired by dplyr)      |
+| **jsep**      | Lightweight Javascript Expression Parser            |
+| **Alpine.js** | Legacy declarative, reactive UI framework           |
+| **Preact**    | Lightweight React-alternative for modern components |
+| **Signals**   | High-performance reactive state management          |
+| **Vega-Lite** | Grammar of Graphics for interactive visualizations  |
 
 ### 3.3 Core Components
 
@@ -162,10 +164,11 @@ Each transform is one object in an array.
 
 - **Ribbon Toolbar**: Workflow-based navigation (Prepare | Calculate | Combine)
 - **Sources Sidebar**: Integrated source management and I/O actions
-- **Unified Modal Shell**: A reusable container for all dialogs (Slide Panels and Centered Modals)
+- **Unified Modal Shell**: A reusable container for all dialogs (Slide Panels and Centered Modals) migrated to Preact/TSX.
 - **Model Toolbar**: Stats summary, navigation, and consolidated downloads/copying
 - **Step Editor**: Pipeline management with edit/delete actions and JSON toggle
-- **Modular Delegation Pattern**: UI logic is decoupled from the main class into specialized `Handlers` and `Transforms` modules to maintain codebase hygiene.
+- **Signal-Based Logic extraction**: UI logic and state are extracted into standalone **Stores** (`AppStore`, `DialogStore`) and **Services** to maintain codebase hygiene.
+- **Reactivity Bridge**: A proxy-based bridge allows legacy Alpine.js templates to react to signal changes.
 
 ### 6.2 Key Patterns
 
