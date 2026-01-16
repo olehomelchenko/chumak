@@ -426,7 +426,12 @@ export function activeDialogError(this: ChumakApp): boolean {
     case 'filter':
       return !!DialogStore.filterState.error.value;
     case 'derive':
-      return !!DialogStore.deriveState.error.value;
+      const deriveState = DialogStore.deriveState;
+      return (
+        !!deriveState.error.value ||
+        !deriveState.columnName.value?.trim() ||
+        !deriveState.expression.value?.trim()
+      );
     case 'sliceRows':
       return !this.sliceRowsDialogState.count || this.sliceRowsDialogState.count <= 0;
     case 'index':

@@ -7,6 +7,7 @@ import { StepService, ComputeResult } from '../services/StepService';
 import type { PivotAggregation } from '../components/PivotDialog';
 import * as ColumnEditorHandlers from './column-editor-handlers';
 import * as DateHandlers from './date-handlers';
+import * as HelperHandlers from './helper-handlers';
 
 /**
  * Dispatches transform application based on the active dialog.
@@ -39,15 +40,7 @@ export async function applyActiveTransform(this: ChumakApp) {
       await this.applyRegexpExtractTransform();
       break;
     case 'date':
-      await DateHandlers.applyDateTransform({
-        onTransformStart: (label: string) => this.startTransformation(label),
-        onTransformEnd: () => this.endTransformation(),
-        onError: async (message: string) => {
-          await this.alert(message);
-        },
-        onDialogClose: (clearPreview?: boolean) => this.closeDialog(clearPreview),
-        updatePagination: () => this.updatePagination(),
-      });
+      await DateHandlers.applyDateTransform(HelperHandlers.createExecutionCallbacks(this));
       break;
     case 'fold':
       await this.applyFoldTransform();

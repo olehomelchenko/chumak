@@ -455,12 +455,7 @@ export class ChumakApp implements AppState {
     return FilterHandlers.toggleFilterPreviewMode();
   }
   applyFilterTransform() {
-    return FilterHandlers.applyFilterTransform({
-      onTransformStart: (label: string) => this.startTransformation(label),
-      onTransformEnd: () => this.endTransformation(),
-      onError: (msg: string) => this.alert(msg),
-      updatePagination: () => this.updatePagination(),
-    });
+    return FilterHandlers.applyFilterTransform(HelperHandlers.createExecutionCallbacks(this));
   }
 
   // Derive handlers
@@ -474,12 +469,7 @@ export class ChumakApp implements AppState {
     return DeriveHandlers.updateDerivePreview();
   }
   applyDeriveTransform() {
-    return DeriveHandlers.applyDeriveTransform({
-      onTransformStart: (label: string) => this.startTransformation(label),
-      onTransformEnd: () => this.endTransformation(),
-      onError: (msg: string) => this.alert(msg),
-      updatePagination: () => this.updatePagination(),
-    });
+    return DeriveHandlers.applyDeriveTransform(HelperHandlers.createExecutionCallbacks(this));
   }
 
   // Aggregate handlers
@@ -499,12 +489,7 @@ export class ChumakApp implements AppState {
     return AggregateHandlers.previewAggregate();
   }
   applyAggregateTransform() {
-    return AggregateHandlers.applyAggregateTransform({
-      onTransformStart: (label: string) => this.startTransformation(label),
-      onTransformEnd: () => this.endTransformation(),
-      onError: (msg: string) => this.alert(msg),
-      updatePagination: () => this.updatePagination(),
-    });
+    return AggregateHandlers.applyAggregateTransform(HelperHandlers.createExecutionCallbacks(this));
   }
 
   // Join handlers
@@ -527,12 +512,7 @@ export class ChumakApp implements AppState {
     return JoinHandlers.previewJoin();
   }
   applyJoinTransform() {
-    return JoinHandlers.applyJoinTransform({
-      onTransformStart: (label: string) => this.startTransformation(label),
-      onTransformEnd: () => this.endTransformation(),
-      onError: (msg: string) => this.alert(msg),
-      updatePagination: () => this.updatePagination(),
-    });
+    return JoinHandlers.applyJoinTransform(HelperHandlers.createExecutionCallbacks(this));
   }
 
   // Pivot handlers
@@ -559,12 +539,7 @@ export class ChumakApp implements AppState {
     return PivotHandlers.previewPivot();
   }
   applyPivotTransform() {
-    return PivotHandlers.applyPivotTransform({
-      onTransformStart: (label: string) => this.startTransformation(label),
-      onTransformEnd: () => this.endTransformation(),
-      onError: (msg: string) => this.alert(msg),
-      updatePagination: () => this.updatePagination(),
-    });
+    return PivotHandlers.applyPivotTransform(HelperHandlers.createExecutionCallbacks(this));
   }
 
   // Fold handlers
@@ -587,12 +562,7 @@ export class ChumakApp implements AppState {
     return FoldHandlers.updateFoldPreview();
   }
   applyFoldTransform() {
-    return FoldHandlers.applyFoldTransform({
-      onTransformStart: (label: string) => this.startTransformation(label),
-      onTransformEnd: () => this.endTransformation(),
-      onError: (msg: string) => this.alert(msg),
-      updatePagination: () => this.updatePagination(),
-    });
+    return FoldHandlers.applyFoldTransform(HelperHandlers.createExecutionCallbacks(this));
   }
 
   // Split handlers
@@ -609,12 +579,7 @@ export class ChumakApp implements AppState {
     return SplitHandlers.updateSplitPreview();
   }
   applySplitTransform() {
-    return SplitHandlers.applySplitTransform({
-      onTransformStart: (label: string) => this.startTransformation(label),
-      onTransformEnd: () => this.endTransformation(),
-      onError: (msg: string) => this.alert(msg),
-      updatePagination: () => this.updatePagination(),
-    });
+    return SplitHandlers.applySplitTransform(HelperHandlers.createExecutionCallbacks(this));
   }
 
   // Dedupe handlers
@@ -644,12 +609,7 @@ export class ChumakApp implements AppState {
   }
   @Transformation('Duplicates')
   applyDedupeTransform() {
-    return DedupeHandlers.applyDedupeTransform({
-      onTransformStart: (label: string) => this.startTransformation(label),
-      onTransformEnd: () => this.endTransformation(),
-      onError: (msg: string) => this.alert(msg),
-      updatePagination: () => this.updatePagination(),
-    });
+    return DedupeHandlers.applyDedupeTransform(HelperHandlers.createExecutionCallbacks(this));
   }
 
   // Column Editor handlers
@@ -668,12 +628,7 @@ export class ChumakApp implements AppState {
     return RegexpHandlers.updateRegexpMatchPreview();
   }
   applyRegexpMatchTransform() {
-    return RegexpHandlers.applyRegexpMatchTransform({
-      onTransformStart: (label: string) => this.startTransformation(label),
-      onTransformEnd: () => this.endTransformation(),
-      onError: (msg: string) => this.alert(msg),
-      updatePagination: () => this.updatePagination(),
-    });
+    return RegexpHandlers.applyRegexpMatchTransform(HelperHandlers.createExecutionCallbacks(this));
   }
   validateRegexpExtractExpression() {
     return RegexpHandlers.validateRegexpExtractExpression();
@@ -685,46 +640,23 @@ export class ChumakApp implements AppState {
     return RegexpHandlers.updateRegexpExtractPreview();
   }
   applyRegexpExtractTransform() {
-    return RegexpHandlers.applyRegexpExtractTransform({
-      onTransformStart: (label: string) => this.startTransformation(label),
-      onTransformEnd: () => this.endTransformation(),
-      onError: (msg: string) => this.alert(msg),
-      updatePagination: () => this.updatePagination(),
-    });
+    return RegexpHandlers.applyRegexpExtractTransform(
+      HelperHandlers.createExecutionCallbacks(this)
+    );
   }
 
   // Simple handlers
   applyReplaceTransform() {
-    return SimpleHandlers.applyReplaceTransform({
-      onTransformStart: (label: string) => this.startTransformation(label),
-      onTransformEnd: () => this.endTransformation(),
-      onError: (msg: string) => this.alert(msg),
-      updatePagination: () => this.updatePagination(),
-    });
+    return SimpleHandlers.applyReplaceTransform(HelperHandlers.createExecutionCallbacks(this));
   }
   applySortTransform() {
-    return SimpleHandlers.applySortTransform({
-      onTransformStart: (label: string) => this.startTransformation(label),
-      onTransformEnd: () => this.endTransformation(),
-      onError: (msg: string) => this.alert(msg),
-      updatePagination: () => this.updatePagination(),
-    });
+    return SimpleHandlers.applySortTransform(HelperHandlers.createExecutionCallbacks(this));
   }
   applySliceRowsTransform() {
-    return SimpleHandlers.applySliceRowsTransform({
-      onTransformStart: (label: string) => this.startTransformation(label),
-      onTransformEnd: () => this.endTransformation(),
-      onError: (msg: string) => this.alert(msg),
-      updatePagination: () => this.updatePagination(),
-    });
+    return SimpleHandlers.applySliceRowsTransform(HelperHandlers.createExecutionCallbacks(this));
   }
   applyIndexTransform() {
-    return SimpleHandlers.applyIndexTransform({
-      onTransformStart: (label: string) => this.startTransformation(label),
-      onTransformEnd: () => this.endTransformation(),
-      onError: (msg: string) => this.alert(msg),
-      updatePagination: () => this.updatePagination(),
-    });
+    return SimpleHandlers.applyIndexTransform(HelperHandlers.createExecutionCallbacks(this));
   }
 
   // Export handlers
