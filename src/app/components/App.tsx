@@ -347,7 +347,10 @@ export function App({ app }: AppProps) {
                 <ImportUrlDialog onImport={() => app.fetchAndImportFromUrl()} />
               </div>
               <div style={{ display: activeDialog === 'settings' ? 'block' : 'none' }}>
-                <SettingsDialog />
+                <SettingsDialog
+                  onThemeChange={(theme) => app.switchTheme(theme)}
+                  onRowLimitChange={(limit) => app.updatePreviewRowLimit(String(limit))}
+                />
               </div>
               <div style={{ display: activeDialog === 'download' ? 'block' : 'none' }}>
                 <DownloadDialog />

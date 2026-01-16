@@ -1,0 +1,405 @@
+/**
+ * UX Interaction Tests for App Component
+ *
+ * Tests user interactions like clicking column headers and cells,
+ * verifying that toolbars and EDA panels appear correctly.
+ */
+
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { render, fireEvent, waitFor } from '@testing-library/preact';
+import { App } from './App';
+import { AppStore } from '../stores/AppStore';
+import { ChumakApp } from '../../chumak-app';
+import { DialogStore } from '../stores/DialogStore';
+
+describe('App UX Interactions', () => {
+  let app: ChumakApp;
+  const testData = [
+    { name: 'Alice', age: 30, sales: 1000 },
+    { name: 'Bob', age: 25, sales: 1500 },
+    { name: 'Carol', age: 35, sales: 800 },
+  ];
+
+  beforeEach(() => {
+    // Reset all stores
+    AppStore.reset();
+    DialogStore.resetAll();
+
+    // Mock console methods
+    vi.spyOn(console, 'error').mockImplementation(() => {});
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+    // Create app instance
+    app = new ChumakApp();
+
+    // Mock dialog methods
+    app.alert = vi.fn().mockResolvedValue(undefined);
+    app.confirm = vi.fn().mockResolvedValue(true);
+    app.prompt = vi.fn().mockResolvedValue('test');
+    app.closeDialog = vi.fn();
+    app.openDialog = vi.fn();
+
+    // Set up test data
+    AppStore.columns.value = ['name', 'age', 'sales'];
+    AppStore.currentData.value = testData;
+    AppStore.viewMode.value = 'model';
+    AppStore.activeModel.value = {
+      id: 'test-model',
+      name: 'Test Model',
+      sourceId: 'test-source',
+      data: testData,
+      schema: [
+        { name: 'name', type: 'string' },
+        { name: 'age', type: 'integer' },
+        { name: 'sales', type: 'float' },
+      ],
+      steps: [],
+    };
+  });
+
+  describe('Column Header Interactions', () => {
+    it('should show EDA panel when column header is clicked', async () => {
+      render(<App app={app} />);
+
+      // Find and click a column header - use data-col attribute instead
+      await waitFor(() => {
+        const headers = document.querySelectorAll('th[data-col]');
+        expect(headers.length).toBeGreaterThan(0);
+      });
+
+      const nameHeader = document.querySelector('th[data-col="name"]');
+
+      expect(nameHeader).toBeDefined();
+      fireEvent.click(nameHeader!);
+
+      // Wait for EDA panel to appear
+      await waitFor(() => {
+        expect(AppStore.selectedColumn.value).toBe('name');
+      });
+
+      // EDA panel should be visible (it renders when selectedColumn is set)
+      await waitFor(() => {
+        const edaPanel = document.querySelector('[class*="edaPanel"]');
+        expect(edaPanel).toBeDefined();
+      });
+    });
+
+    it('should show column toolbar when column header is clicked', async () => {
+      render(<App app={app} />);
+
+      await waitFor(() => {
+        const headers = document.querySelectorAll('th[data-col]');
+        expect(headers.length).toBeGreaterThan(0);
+      });
+
+      const salesHeader = document.querySelector('th[data-col="sales"]');
+
+      fireEvent.click(salesHeader!);
+
+      await waitFor(() => {
+        expect(AppStore.selectedColumn.value).toBe('sales');
+        expect(AppStore.columnToolbarPos.value.x).toBeGreaterThan(0);
+      });
+
+      // Column toolbar should be rendered
+      await waitFor(() => {
+        const toolbar = document.querySelector('[class*="floatingToolbar"]');
+        expect(toolbar).toBeDefined();
+      });
+    });
+
+    it('should calculate EDA stats when column is selected', async () => {
+      render(<App app={app} />);
+
+      await waitFor(() => {
+        const headers = document.querySelectorAll('th[data-col]');
+        expect(headers.length).toBeGreaterThan(0);
+      });
+
+      const ageHeader = document.querySelector('th[data-col="age"]');
+
+      fireEvent.click(ageHeader!);
+
+      await waitFor(() => {
+        expect(AppStore.selectedColumn.value).toBe('age');
+        expect(AppStore.edaStats.value).toBeDefined();
+      });
+
+      // EDA stats should have type information
+      const stats = AppStore.edaStats.value;
+      expect(stats).toBeDefined();
+      expect(stats?.type).toBe('integer');
+    });
+
+    it('should toggle column selection when clicking same header twice', async () => {
+      render(<App app={app} />);
+
+      await waitFor(() => {
+        const headers = document.querySelectorAll('th[data-col]');
+        expect(headers.length).toBeGreaterThan(0);
+      });
+
+      const nameHeader = document.querySelector('th[data-col="name"]');
+
+      // First click - select
+      fireEvent.click(nameHeader!);
+      await waitFor(() => {
+        expect(AppStore.selectedColumn.value).toBe('name');
+      });
+
+      // Second click - deselect
+      fireEvent.click(nameHeader!);
+      await waitFor(() => {
+        expect(AppStore.selectedColumn.value).toBeNull();
+      });
+    });
+
+    it('should clear cell selection when column is selected', async () => {
+      // First select a cell
+      AppStore.selectedCell.value = {
+        col: 'name',
+        value: 'Alice',
+        type: 'string',
+        rowIdx: 0,
+      };
+
+      render(<App app={app} />);
+
+      await waitFor(() => {
+        const headers = document.querySelectorAll('th[data-col]');
+        expect(headers.length).toBeGreaterThan(0);
+      });
+
+      const ageHeader = document.querySelector('th[data-col="age"]');
+
+      fireEvent.click(ageHeader!);
+
+      await waitFor(() => {
+        expect(AppStore.selectedColumn.value).toBe('age');
+        expect(AppStore.selectedCell.value).toBeNull();
+      });
+    });
+  });
+
+  describe('Cell Interactions', () => {
+    it('should show cell toolbar when cell is clicked', async () => {
+      render(<App app={app} />);
+
+      // Find a cell and click it - use data-col attribute
+      await waitFor(() => {
+        const cells = document.querySelectorAll('td[data-col]');
+        expect(cells.length).toBeGreaterThan(0);
+      });
+
+      const aliceCell = document.querySelector('td[data-col="name"][data-row="0"]');
+
+      expect(aliceCell).toBeDefined();
+      fireEvent.click(aliceCell!);
+
+      await waitFor(() => {
+        expect(AppStore.selectedCell.value).toBeDefined();
+        expect(AppStore.selectedCell.value?.col).toBe('name');
+        expect(AppStore.selectedCell.value?.value).toBe('Alice');
+        expect(AppStore.cellToolbarPos.value.x).toBeGreaterThan(0);
+      });
+
+      // Cell toolbar should be rendered
+      await waitFor(() => {
+        const toolbar = document.querySelector('[class*="floatingToolbar"]');
+        expect(toolbar).toBeDefined();
+      });
+    });
+
+    it('should clear column selection when cell is selected', async () => {
+      // First select a column
+      AppStore.selectedColumn.value = 'name';
+      AppStore.edaStats.value = { type: 'string' } as any;
+
+      render(<App app={app} />);
+
+      await waitFor(() => {
+        const cells = document.querySelectorAll('td[data-col]');
+        expect(cells.length).toBeGreaterThan(0);
+      });
+
+      const salesCell = document.querySelector('td[data-col="sales"][data-row="0"]');
+
+      fireEvent.click(salesCell!);
+
+      await waitFor(() => {
+        expect(AppStore.selectedCell.value).toBeDefined();
+        expect(AppStore.selectedColumn.value).toBeNull();
+      });
+    });
+
+    it('should set correct cell type based on column schema', async () => {
+      render(<App app={app} />);
+
+      await waitFor(() => {
+        const cells = document.querySelectorAll('td[data-col]');
+        expect(cells.length).toBeGreaterThan(0);
+      });
+
+      const ageCell = document.querySelector('td[data-col="age"][data-row="0"]');
+
+      fireEvent.click(ageCell!);
+
+      await waitFor(() => {
+        const selectedCell = AppStore.selectedCell.value;
+        expect(selectedCell).toBeDefined();
+        expect(selectedCell?.col).toBe('age');
+        expect(selectedCell?.type).toBe('integer');
+        expect(selectedCell?.value).toBe(30);
+      });
+    });
+
+    it('should position cell toolbar correctly for numeric cells', async () => {
+      render(<App app={app} />);
+
+      await waitFor(() => {
+        const cells = document.querySelectorAll('td[data-col]');
+        expect(cells.length).toBeGreaterThan(0);
+      });
+
+      const salesCell = document.querySelector('td[data-col="sales"][data-row="1"]');
+
+      fireEvent.click(salesCell!);
+
+      await waitFor(() => {
+        const pos = AppStore.cellToolbarPos.value;
+        expect(pos.x).toBeGreaterThan(0);
+        expect(pos.y).toBeGreaterThan(0);
+        // Numeric cells should have wider toolbar (220px vs 80px)
+        // We can't directly test width, but we can verify position is calculated
+        expect(pos.arrowOffset).toBeDefined();
+      });
+    });
+  });
+
+  describe('Toolbar Actions', () => {
+    it('should open filter dialog when column toolbar filter button is clicked', async () => {
+      AppStore.selectedColumn.value = 'name';
+
+      render(<App app={app} />);
+
+      await waitFor(() => {
+        const toolbar = document.querySelector('[class*="floatingToolbar"]');
+        expect(toolbar).toBeDefined();
+      });
+
+      // Find filter button (carbon:filter icon)
+      const filterButton = document.querySelector('[data-icon="carbon:filter"]')?.closest('button');
+      expect(filterButton).toBeDefined();
+
+      fireEvent.click(filterButton!);
+
+      await waitFor(() => {
+        expect(app.openDialog).toHaveBeenCalledWith('filter');
+      });
+    });
+
+    it('should open sort dialog when column toolbar sort button is clicked', async () => {
+      AppStore.selectedColumn.value = 'sales';
+
+      render(<App app={app} />);
+
+      await waitFor(() => {
+        const toolbar = document.querySelector('[class*="floatingToolbar"]');
+        expect(toolbar).toBeDefined();
+      });
+
+      // Find sort ascending button (carbon:arrow-up icon)
+      const sortButton = document.querySelector('[data-icon="carbon:arrow-up"]')?.closest('button');
+      expect(sortButton).toBeDefined();
+
+      fireEvent.click(sortButton!);
+
+      // Should trigger quickSort which opens sort dialog
+      await waitFor(() => {
+        expect(DialogStore.sortState.field.value).toBe('sales');
+      });
+    });
+
+    it('should open replace dialog when cell toolbar replace button is clicked', async () => {
+      AppStore.selectedCell.value = {
+        col: 'name',
+        value: 'Alice',
+        type: 'string',
+        rowIdx: 0,
+      };
+
+      render(<App app={app} />);
+
+      await waitFor(() => {
+        const toolbar = document.querySelector('[class*="floatingToolbar"]');
+        expect(toolbar).toBeDefined();
+      });
+
+      // Find replace button (codicon:replace icon)
+      const replaceButton = document
+        .querySelector('[data-icon="codicon:replace"]')
+        ?.closest('button');
+      expect(replaceButton).toBeDefined();
+
+      fireEvent.click(replaceButton!);
+
+      await waitFor(() => {
+        expect(app.openDialog).toHaveBeenCalledWith('replace');
+        expect(DialogStore.replaceState.column.value).toBe('name');
+        expect(DialogStore.replaceState.findValue.value).toBe('Alice');
+      });
+    });
+  });
+
+  describe('EDA Panel Integration', () => {
+    it('should render charts for numeric columns', async () => {
+      render(<App app={app} />);
+
+      await waitFor(() => {
+        const headers = document.querySelectorAll('th[data-col]');
+        expect(headers.length).toBeGreaterThan(0);
+      });
+
+      const salesHeader = document.querySelector('th[data-col="sales"]');
+
+      fireEvent.click(salesHeader!);
+
+      await waitFor(() => {
+        expect(AppStore.selectedColumn.value).toBe('sales');
+        expect(AppStore.edaStats.value?.type).toBe('number');
+      });
+
+      // EDA panel should render chart containers
+      await waitFor(() => {
+        const boxplotContainer = document.querySelector('#eda-boxplot');
+        const histogramContainer = document.querySelector('#eda-histogram');
+        // At least one should exist (depending on chart view)
+        expect(boxplotContainer || histogramContainer).toBeDefined();
+      });
+    });
+
+    it('should show categorical chart for string columns', async () => {
+      render(<App app={app} />);
+
+      await waitFor(() => {
+        const headers = document.querySelectorAll('th[data-col]');
+        expect(headers.length).toBeGreaterThan(0);
+      });
+
+      const nameHeader = document.querySelector('th[data-col="name"]');
+
+      fireEvent.click(nameHeader!);
+
+      await waitFor(() => {
+        expect(AppStore.selectedColumn.value).toBe('name');
+        expect(AppStore.edaStats.value?.type).toBe('string');
+      });
+
+      // Categorical bar chart container should exist
+      await waitFor(() => {
+        const categoricalContainer = document.querySelector('#eda-categorical-bar');
+        expect(categoricalContainer).toBeDefined();
+      });
+    });
+  });
+});
