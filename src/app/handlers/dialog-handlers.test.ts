@@ -232,4 +232,61 @@ describe('Dialog Handlers', () => {
       expect(DialogHandlers.formatPreviewCell.call(app, row, 'col1')).toBe('test value');
     });
   });
+
+  describe('initDialogState - replace dialog', () => {
+    beforeEach(() => {
+      app.columns = ['col1', 'col2', 'col3'];
+    });
+
+    it('should initialize replace dialog state when findValue is empty', () => {
+      DialogStore.replaceState.findValue.value = '';
+      DialogStore.replaceState.column.value = '';
+      DialogStore.replaceState.replaceValue.value = '';
+
+      DialogHandlers.initDialogState.call(app, 'replace');
+
+      expect(DialogStore.replaceState.column.value).toBe('col1');
+      expect(DialogStore.replaceState.findValue.value).toBe('');
+      expect(DialogStore.replaceState.replaceValue.value).toBe('');
+    });
+
+    it('should preserve values when findValue is already set (quickReplace scenario)', () => {
+      // Simulate quickReplace setting values
+      DialogStore.replaceState.column.value = 'col2';
+      DialogStore.replaceState.findValue.value = 'Alice';
+      DialogStore.replaceState.replaceValue.value = '';
+
+      DialogHandlers.initDialogState.call(app, 'replace');
+
+      // Values should be preserved
+      expect(DialogStore.replaceState.column.value).toBe('col2');
+      expect(DialogStore.replaceState.findValue.value).toBe('Alice');
+      expect(DialogStore.replaceState.replaceValue.value).toBe('');
+    });
+
+    it('should set column to first column if findValue is set but column is empty', () => {
+      DialogStore.replaceState.column.value = '';
+      DialogStore.replaceState.findValue.value = 'some value';
+      DialogStore.replaceState.replaceValue.value = '';
+
+      DialogHandlers.initDialogState.call(app, 'replace');
+
+      expect(DialogStore.replaceState.column.value).toBe('col1');
+      expect(DialogStore.replaceState.findValue.value).toBe('some value');
+      expect(DialogStore.replaceState.replaceValue.value).toBe('');
+    });
+
+    it('should handle empty columns array gracefully', () => {
+      app.columns = [];
+      DialogStore.replaceState.findValue.value = '';
+      DialogStore.replaceState.column.value = '';
+      DialogStore.replaceState.replaceValue.value = '';
+
+      DialogHandlers.initDialogState.call(app, 'replace');
+
+      expect(DialogStore.replaceState.column.value).toBe('');
+      expect(DialogStore.replaceState.findValue.value).toBe('');
+      expect(DialogStore.replaceState.replaceValue.value).toBe('');
+    });
+  });
 });

@@ -193,9 +193,15 @@ export function initDialogState(this: ChumakApp, dialogName: string, section?: s
     state.isPreviewing.value = this.pivotDialogState.isPreviewing;
   } else if (dialogName === 'replace') {
     const state = DialogStore.replaceState;
-    state.column.value = this.columns[0] || '';
-    state.findValue.value = '';
-    state.replaceValue.value = '';
+    // Only initialize if not already set by quickReplace
+    if (!state.findValue.value) {
+      state.column.value = this.columns[0] || '';
+      state.findValue.value = '';
+      state.replaceValue.value = '';
+    } else if (!state.column.value) {
+      // If findValue is set but column isn't, set column to first column
+      state.column.value = this.columns[0] || '';
+    }
   } else if (dialogName === 'split') {
     const initialColumn = this.columns[0] || '';
     const state = DialogStore.splitState;
