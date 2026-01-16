@@ -3,34 +3,58 @@ import preact from '@preact/preset-vite';
 import nested from 'postcss-nested';
 import autoprefixer from 'autoprefixer';
 import { plugin as markdown, Mode } from 'vite-plugin-markdown';
+import path from 'path';
 
-export default defineConfig({
-  // For GitHub Pages: set base to repo name
-  // Change '/chumak/' to '/' for custom domain or local dev
-  base: '/chumak/',
-  plugins: [
-    preact({
-      // Only process JSX/TSX files, not regular TS (which may use decorators)
-      include: ['**/*.tsx', '**/*.jsx'],
-    }),
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    markdown({ mode: [Mode.HTML] }) as any,
-  ],
-  css: {
-    modules: {
-      generateScopedName: '[name]__[local]___[hash:base64:5]',
+export default defineConfig(({ mode }) => {
+  const isDev = mode === 'development';
+
+  return {
+    // For GitHub Pages: set base to repo name
+    // Change '/chumak/' to '/' for custom domain or local dev
+    base: '/chumak/',
+    plugins: [
+      preact({
+        // Only process JSX/TSX files, not regular TS (which may use decorators)
+        include: ['**/*.tsx', '**/*.jsx'],
+      }),
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      markdown({ mode: [Mode.HTML] }) as any,
+    ],
+    css: {
+      modules: {
+        // Enhanced class names in dev for better debugging
+        // Dev: includes file name and local class name, e.g., "DataTable__cell___abc12"
+        // Prod: shorter hash-only names for smaller bundle size
+        generateScopedName: isDev
+          ? (name: string, filename: string) => {
+              // Extract just the filename (without path and extension)
+              const basename = path.basename(filename, '.module.css');
+              // Generate a short hash from filename + name for uniqueness
+              const hashInput = `${filename}${name}`;
+              const hash = Buffer.from(hashInput)
+                .toString('base64')
+                .substring(0, 5)
+                .replace(/[^a-zA-Z0-9]/g, '');
+              return `${basename}__${name}___${hash}`;
+            }
+          : '[hash:base64:8]', // Production: short hash only
+      },
+      // Enable source maps in dev for CSS debugging
+      devSourcemap: isDev,
+      postcss: {
+        plugins: [nested(), autoprefixer()],
+      },
     },
-    postcss: {
-      plugins: [nested(), autoprefixer()],
+    test: {
+      globals: true,
+      environment: 'happy-dom',
+      include: ['src/**/*.test.{js,ts,tsx}'],
     },
-  },
-  test: {
-    globals: true,
-    environment: 'happy-dom',
-    include: ['src/**/*.test.{js,ts,tsx}'],
-  },
-  build: {
-    target: 'esnext',
-    sourcemap: true,
-  },
+    build: {
+      target: 'esnext',
+      sourcemap: true,
+      // Optimize CSS in production
+      cssMinify: !isDev,
+    },
+  };
 });
