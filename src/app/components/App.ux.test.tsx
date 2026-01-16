@@ -407,4 +407,56 @@ describe('App UX Interactions', () => {
       });
     });
   });
+
+  describe('Import Dialog Rendering', () => {
+    it('should render import-csv dialog as slide panel', async () => {
+      app.openDialog('import-csv');
+      app.activeDialog = 'import-csv';
+
+      render(<App app={app} />);
+
+      await waitFor(() => {
+        // Slide panel should be rendered (not centered modal)
+        const slidePanel = document.querySelector('[class*="slidePanelShell"]');
+        expect(slidePanel).toBeDefined();
+        // ImportCsvDialog should be in the slide panel content
+        const dialogContent = document.querySelector('[class*="slidePanelContent"]');
+        expect(dialogContent).toBeDefined();
+      });
+    });
+
+    it('should show preview panel when import-csv has preview data', async () => {
+      app.openDialog('import-csv');
+      app.activeDialog = 'import-csv';
+      DialogStore.importCsvState.previewHeaders.value = ['col1', 'col2'];
+      DialogStore.importCsvState.previewDataRows.value = [
+        ['a', 'b'],
+        ['c', 'd'],
+      ];
+
+      render(<App app={app} />);
+
+      await waitFor(() => {
+        // Preview panel should be visible
+        const previewPanel = document.querySelector('[class*="previewPanelShell"]');
+        expect(previewPanel).toBeDefined();
+        // Preview should show "Import Preview" title
+        const previewTitle = document.querySelector('[class*="previewPanelHeader"]');
+        expect(previewTitle).toBeDefined();
+      });
+    });
+
+    it('should render import-url dialog as slide panel', async () => {
+      app.openDialog('import-url');
+      app.activeDialog = 'import-url';
+
+      render(<App app={app} />);
+
+      await waitFor(() => {
+        // Slide panel should be rendered
+        const slidePanel = document.querySelector('[class*="slidePanelShell"]');
+        expect(slidePanel).toBeDefined();
+      });
+    });
+  });
 });

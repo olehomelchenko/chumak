@@ -287,20 +287,15 @@ export function isSlidePanel(this: ChumakApp, dialog: string | null): boolean {
     'join',
     'replace',
     'column-editor',
+    'import-csv',
+    'import-url',
   ];
   return slidePanels.includes(dialog);
 }
 
 export function isCenteredModal(this: ChumakApp, dialog: string | null): boolean {
   if (!dialog) return false;
-  const centeredModals = [
-    'import-csv',
-    'import-url',
-    'settings',
-    'download',
-    'about',
-    'expressions',
-  ];
+  const centeredModals = ['import-url', 'settings', 'download', 'about', 'expressions'];
   return centeredModals.includes(dialog);
 }
 
@@ -379,29 +374,57 @@ export function getExpressionsContent(this: ChumakApp): string {
 }
 
 export function hasPreviewData(this: ChumakApp): boolean {
+  if (this.activeDialog === 'import-csv') {
+    return DialogStore.importCsvState.previewDataRows.value.length > 0;
+  }
   return DialogStore.previewState.rows.value.length > 0;
 }
 
 export function getPreviewTitle(this: ChumakApp): string {
+  if (this.activeDialog === 'import-csv') {
+    return 'Import Preview';
+  }
   return DialogStore.previewState.title.value;
 }
 
 export function getPreviewStats(this: ChumakApp): string {
+  if (this.activeDialog === 'import-csv') {
+    const rows = DialogStore.importCsvState.previewDataRows.value.length;
+    const cols = DialogStore.importCsvState.previewHeaders.value.length;
+    const limit = AppStore.uxSettings.value.preview.rowLimit;
+    return `${rows} rows, ${cols} columns (first ${Math.min(rows, limit)} rows shown)`;
+  }
   return DialogStore.previewState.stats.value;
 }
 
 export function getPreviewColumns(this: ChumakApp): string[] {
+  if (this.activeDialog === 'import-csv') {
+    return DialogStore.importCsvState.previewHeaders.value;
+  }
   return DialogStore.previewState.columns.value;
 }
 
 export function getPreviewRows(this: ChumakApp): any[] {
+  if (this.activeDialog === 'import-csv') {
+    const headers = DialogStore.importCsvState.previewHeaders.value;
+    const rows = DialogStore.importCsvState.previewDataRows.value;
+    // Convert array rows to object rows to match expected format
+    return rows.map((row: any[]) => {
+      const obj: any = {};
+      headers.forEach((header, i) => {
+        obj[header] = row[i];
+      });
+      return obj;
+    });
+  }
   return DialogStore.previewState.rows.value;
 }
 
 export function formatPreviewCell(this: ChumakApp, row: any, col: string): string {
   const val = row[col];
-  if (val == null) return '—';
+  if (val == null || val === '') return '—';
   if (typeof val === 'boolean') return val ? '✓' : '✗';
+  if (typeof val === 'object') return JSON.stringify(val);
   return String(val);
 }
 

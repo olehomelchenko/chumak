@@ -29,8 +29,6 @@ export function ImportCsvDialog({
     headerMode,
     customHeaders,
     duplicateWarning,
-    previewHeaders,
-    previewDataRows,
   } = DialogStore.importCsvState;
 
   const handleJsonPathInput = (e: JSX.TargetedEvent<HTMLInputElement>) => {
@@ -298,35 +296,6 @@ export function ImportCsvDialog({
           </div>
         </div>
       )}
-
-      {/* Preview Section */}
-      <div style={{ marginTop: '1.5rem' }}>
-        <label class={styles.label}>Preview (first 5 rows):</label>
-        <div class={styles.previewTableContainer}>
-          <table class={styles.previewTable}>
-            <thead>
-              <tr>
-                {previewHeaders.value.map((header, index) => (
-                  <th key={index}>{header}</th>
-                ))}
-              </tr>
-            </thead>
-            <tbody>
-              {previewDataRows.value.map((row, rowIndex) => (
-                <tr key={rowIndex}>
-                  {row.map((cell: any, cellIndex: number) => (
-                    <td key={cellIndex}>
-                      {typeof cell === 'object' && cell !== null
-                        ? JSON.stringify(cell)
-                        : String(cell)}
-                    </td>
-                  ))}
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
     </div>
   );
 }

@@ -88,11 +88,15 @@ Located above the data preview table, this toolbar provides status and model-spe
 - **Cell Toolbar**: Clicking a cell allows for rapid "Keep only this" or "Exclude this" filtering based on that specific value.
 - **Type Badges**: Visual indicators for data types (Abc, #, 📅), synced with the granular schema engine.
 
-- **Centered Modal**: Used for imports, settings, and downloads.
+### 3.5 Dialog System
 
-**Unified Modal Shell**: Both types use a shared component architecture that handles the backdrop, header (title + close button), and footer (actions). This ensures visual consistency and reduces code duplication across all dialogs.
+**Slide Panel Dialogs**: Transform operations (filter, derive, sort, join, etc.) and import dialogs (CSV/URL) use slide panels that open from the right side, occupying approximately 1/3 of the screen width. These panels support a preview pane that appears to the left when preview data is available.
 
-**Preview Panel**: Appears in the remaining 2/3 of screen space when preview data exists. Supports highlighting of new/derived columns.
+**Centered Modal Dialogs**: Settings, downloads, and informational dialogs (about, expressions) use centered modals that overlay the main content.
+
+**Unified Modal Shell**: Both dialog types use a shared component architecture that handles the backdrop, header (title + close button), and footer (actions). This ensures visual consistency and reduces code duplication across all dialogs.
+
+**Preview Panel**: Appears in the remaining 2/3 of screen space when preview data exists for slide panel dialogs. Supports highlighting of new/derived columns and shows import previews with configurable row limits via UX settings.
 
 **Column Selection Patterns**:
 

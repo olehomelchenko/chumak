@@ -32,9 +32,8 @@ describe('ImportCsvDialog', () => {
     expect(screen.getByDisplayValue('test_source')).toBeDefined();
     expect(screen.getByText('Delimiter:')).toBeDefined();
     expect(screen.getAllByRole('radio').length).toBe(6); // 3 delimiter + 3 header mode
-    expect(screen.getByText('Preview (first 5 rows):')).toBeDefined();
-    expect(screen.getByText('col1')).toBeDefined();
-    expect(screen.getByText('a')).toBeDefined();
+    // Preview is now shown in the preview panel, not in the dialog
+    expect(screen.queryByText('Preview (first 5 rows):')).toBeNull();
   });
 
   it('renders JSON mode correctly', () => {

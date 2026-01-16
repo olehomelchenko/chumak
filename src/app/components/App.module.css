@@ -37,10 +37,6 @@
     width: 600px;
     pointer-events: auto;
   }
-
-  &.open.dedupe {
-    width: 800px;
-  }
 }
 
 .backdrop {
@@ -55,11 +51,6 @@
 
   &.blurred {
     backdrop-filter: blur(4px);
-  }
-
-  /* Adjust for dedupe panel width */
-  &.dedupe {
-    left: 800px;
   }
 }
 
@@ -136,10 +127,6 @@
   align-items: center;
   justify-content: center;
   padding: 16px;
-
-  &.dedupe {
-    left: 816px; /* 800px panel + 16px spacing */
-  }
 }
 
 /* Preview Panel */

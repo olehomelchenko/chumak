@@ -77,12 +77,14 @@ export function App({ app }: AppProps) {
       'join',
       'replace',
       'column-editor',
+      'import-csv',
+      'import-url',
     ].includes(d);
   };
 
   const isCenteredModal = (d: string | null) => {
     if (!d) return false;
-    return ['import-csv', 'import-url', 'settings', 'download', 'about', 'expressions'].includes(d);
+    return ['settings', 'download', 'about', 'expressions'].includes(d);
   };
 
   // Helper Wrappers
@@ -193,11 +195,11 @@ export function App({ app }: AppProps) {
         {/* Slide Panel Shell */}
         {isSlidePanel(activeDialog) && (
           <div
-            class={`${styles.slidePanelShell} ${styles.open} ${hasPreview ? styles.hasPreview : ''} ${activeDialog === 'dedupe' ? styles.dedupe : ''}`}
+            class={`${styles.slidePanelShell} ${styles.open} ${hasPreview ? styles.hasPreview : ''}`}
           >
             {/* Backdrop */}
             <div
-              class={`${styles.backdrop} ${hasPreview ? styles.blurred : ''} ${activeDialog === 'dedupe' ? styles.dedupe : ''}`}
+              class={`${styles.backdrop} ${hasPreview ? styles.blurred : ''}`}
               onClick={() => app.closeDialog()}
             />
 
@@ -211,54 +213,26 @@ export function App({ app }: AppProps) {
               </div>
 
               <div class={styles.slidePanelContent}>
-                <div style={{ display: activeDialog === 'filter' ? 'block' : 'none' }}>
-                  <FilterDialog />
-                </div>
-                <div style={{ display: activeDialog === 'derive' ? 'block' : 'none' }}>
-                  <DeriveDialog />
-                </div>
-                <div style={{ display: activeDialog === 'regexpMatch' ? 'block' : 'none' }}>
-                  <RegexpMatchDialog />
-                </div>
-                <div style={{ display: activeDialog === 'regexpExtract' ? 'block' : 'none' }}>
-                  <RegexpExtractDialog />
-                </div>
-                <div style={{ display: activeDialog === 'date' ? 'block' : 'none' }}>
-                  <DateDialog />
-                </div>
-                <div style={{ display: activeDialog === 'dedupe' ? 'block' : 'none' }}>
-                  <DedupeDialog />
-                </div>
-                <div style={{ display: activeDialog === 'sort' ? 'block' : 'none' }}>
-                  <SortDialog />
-                </div>
-                <div style={{ display: activeDialog === 'sliceRows' ? 'block' : 'none' }}>
-                  <SliceRowsDialog />
-                </div>
-                <div style={{ display: activeDialog === 'index' ? 'block' : 'none' }}>
-                  <IndexDialog />
-                </div>
-                <div style={{ display: activeDialog === 'fold' ? 'block' : 'none' }}>
-                  <UnpivotDialog />
-                </div>
-                <div style={{ display: activeDialog === 'pivot' ? 'block' : 'none' }}>
-                  <PivotDialog />
-                </div>
-                <div style={{ display: activeDialog === 'replace' ? 'block' : 'none' }}>
-                  <ReplaceDialog />
-                </div>
-                <div style={{ display: activeDialog === 'split' ? 'block' : 'none' }}>
-                  <SplitDialog />
-                </div>
-                <div style={{ display: activeDialog === 'join' ? 'block' : 'none' }}>
-                  <JoinDialog />
-                </div>
-                <div style={{ display: activeDialog === 'aggregate' ? 'block' : 'none' }}>
-                  <AggregateDialog />
-                </div>
-                <div style={{ display: activeDialog === 'column-editor' ? 'block' : 'none' }}>
-                  <ColumnEditorDialog />
-                </div>
+                {activeDialog === 'filter' && <FilterDialog />}
+                {activeDialog === 'derive' && <DeriveDialog />}
+                {activeDialog === 'regexpMatch' && <RegexpMatchDialog />}
+                {activeDialog === 'regexpExtract' && <RegexpExtractDialog />}
+                {activeDialog === 'date' && <DateDialog />}
+                {activeDialog === 'dedupe' && <DedupeDialog />}
+                {activeDialog === 'sort' && <SortDialog />}
+                {activeDialog === 'sliceRows' && <SliceRowsDialog />}
+                {activeDialog === 'index' && <IndexDialog />}
+                {activeDialog === 'fold' && <UnpivotDialog />}
+                {activeDialog === 'pivot' && <PivotDialog />}
+                {activeDialog === 'replace' && <ReplaceDialog />}
+                {activeDialog === 'split' && <SplitDialog />}
+                {activeDialog === 'join' && <JoinDialog />}
+                {activeDialog === 'aggregate' && <AggregateDialog />}
+                {activeDialog === 'column-editor' && <ColumnEditorDialog />}
+                {activeDialog === 'import-csv' && <ImportCsvDialog />}
+                {activeDialog === 'import-url' && (
+                  <ImportUrlDialog onImport={() => app.fetchAndImportFromUrl()} />
+                )}
               </div>
 
               <div class={styles.slidePanelFooter}>
@@ -279,50 +253,50 @@ export function App({ app }: AppProps) {
 
         {/* Preview Panel Shell */}
         {hasPreview && isSlidePanel(activeDialog) && (
-          <div
-            class={`${styles.previewPanelShell} ${activeDialog === 'dedupe' ? styles.dedupe : ''}`}
-          >
+          <div class={styles.previewPanelShell}>
             <div class={styles.previewPanel}>
               <div class={styles.previewPanelHeader}>
                 <h4>{previewTitle || 'Preview'}</h4>
                 <div dangerouslySetInnerHTML={{ __html: previewStats }}></div>
               </div>
               <div class={styles.previewPanelContent}>
-                <table class={tableStyles.dataTable} style={{ width: '100%' }}>
-                  <thead>
-                    <tr>
-                      {getPreviewColumns.call(app).map((col: string) => (
-                        <th
-                          key={col}
-                          class={isNewPreviewColumn.call(app, col) ? styles.previewNewCol : ''}
-                        >
-                          {col}
-                        </th>
-                      ))}
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {getPreviewRows.call(app).map((row: any, i: number) => (
-                      <tr
-                        key={i}
-                        class={`${tableStyles.dataTable__row} ${row._removed ? tableStyles.removed : ''}`}
-                      >
-                        {getPreviewColumns.call(app).map((col: string) => {
-                          const isRemovedColumn =
-                            row._removedColumns && row._removedColumns.includes(col);
-                          return (
-                            <td
-                              key={col}
-                              class={`${tableStyles.cell} ${row._removed || isRemovedColumn ? tableStyles.removed : ''} ${isNewPreviewColumn.call(app, col) ? styles.previewNewCol : ''}`}
-                            >
-                              {formatPreviewCell.call(app, row, col)}
-                            </td>
-                          );
-                        })}
+                <div class={tableStyles.tableContainer}>
+                  <table class={tableStyles.dataTable}>
+                    <thead>
+                      <tr>
+                        {getPreviewColumns.call(app).map((col: string) => (
+                          <th
+                            key={col}
+                            class={`${tableStyles.dataTable__header} ${isNewPreviewColumn.call(app, col) ? styles.previewNewCol : ''}`}
+                          >
+                            {col}
+                          </th>
+                        ))}
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
+                    </thead>
+                    <tbody>
+                      {getPreviewRows.call(app).map((row: any, i: number) => (
+                        <tr
+                          key={i}
+                          class={`${tableStyles.dataTable__row} ${row._removed ? tableStyles.removed : ''}`}
+                        >
+                          {getPreviewColumns.call(app).map((col: string) => {
+                            const isRemovedColumn =
+                              row._removedColumns && row._removedColumns.includes(col);
+                            return (
+                              <td
+                                key={col}
+                                class={`${tableStyles.cell} ${row._removed || isRemovedColumn ? tableStyles.removed : ''} ${isNewPreviewColumn.call(app, col) ? styles.previewNewCol : ''}`}
+                              >
+                                {formatPreviewCell.call(app, row, col)}
+                              </td>
+                            );
+                          })}
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
             </div>
           </div>
@@ -340,12 +314,6 @@ export function App({ app }: AppProps) {
               </button>
             </div>
             <div class={styles.centeredModalContent}>
-              <div style={{ display: activeDialog === 'import-csv' ? 'block' : 'none' }}>
-                <ImportCsvDialog />
-              </div>
-              <div style={{ display: activeDialog === 'import-url' ? 'block' : 'none' }}>
-                <ImportUrlDialog onImport={() => app.fetchAndImportFromUrl()} />
-              </div>
               <div style={{ display: activeDialog === 'settings' ? 'block' : 'none' }}>
                 <SettingsDialog
                   onThemeChange={(theme) => app.switchTheme(theme)}

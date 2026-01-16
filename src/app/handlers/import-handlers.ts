@@ -2,6 +2,7 @@ import type { ChumakApp } from '../../chumak-app';
 import type { DataRow } from '../types';
 import Papa from 'papaparse';
 import { DialogStore } from '../stores/DialogStore';
+import { AppStore } from '../stores/AppStore';
 
 export function handleFileSelect(this: ChumakApp, event: Event) {
   const target = event.target as HTMLInputElement;
@@ -121,7 +122,8 @@ export function handleJsonPreview(this: ChumakApp, file: File, data: any, path =
     typeof resolvedData[0] === 'object' &&
     resolvedData[0] !== null;
 
-  const previewData = isValidArray ? resolvedData.slice(0, 5) : [];
+  const previewLimit = AppStore.uxSettings.value.preview.rowLimit;
+  const previewData = isValidArray ? resolvedData.slice(0, previewLimit) : [];
   const headers = isValidArray ? Object.keys(previewData[0]) : [];
 
   this.importDialogState = {
@@ -234,8 +236,9 @@ export function serializeNestedData(this: ChumakApp, data: any[]): any[] {
 }
 
 export function handleCsvPreview(this: ChumakApp, file: File) {
+  const previewLimit = AppStore.uxSettings.value.preview.rowLimit;
   Papa.parse(file, {
-    preview: 5,
+    preview: previewLimit,
     header: false,
     skipEmptyLines: true,
     complete: (previewResult) => {
@@ -493,7 +496,8 @@ export function updateHeadersForPreview(this: ChumakApp) {
   } = this.importDialogState;
 
   if (isJson && jsonData) {
-    let processedData = jsonData.slice(0, 5);
+    const previewLimit = AppStore.uxSettings.value.preview.rowLimit;
+    let processedData = jsonData.slice(0, previewLimit);
 
     if (flattenJson) {
       processedData = this.flattenData(processedData);

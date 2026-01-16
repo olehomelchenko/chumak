@@ -1,6 +1,7 @@
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 import styles from './TransformDialog.module.css';
+import tableStyles from './DataTable.module.css';
 import * as JoinHandlers from '../handlers/join-handlers';
 
 export type JoinType = 'inner' | 'left' | 'right' | 'full' | 'cross';
@@ -230,24 +231,30 @@ export function JoinDialog() {
           </div>
 
           <div class={styles.previewScroll}>
-            <table class={styles.previewTable}>
-              <thead>
-                <tr>
-                  {previewData.value.columns?.map((col: string) => (
-                    <th key={col}>{col}</th>
-                  ))}
-                </tr>
-              </thead>
-              <tbody>
-                {previewData.value.rows?.map((row: any, idx: number) => (
-                  <tr key={idx}>
+            <div class={tableStyles.tableContainer}>
+              <table class={tableStyles.dataTable}>
+                <thead>
+                  <tr>
                     {previewData.value.columns?.map((col: string) => (
-                      <td key={col}>{row[col]}</td>
+                      <th key={col} class={tableStyles.dataTable__header}>
+                        {col}
+                      </th>
                     ))}
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {previewData.value.rows?.map((row: any, idx: number) => (
+                    <tr key={idx} class={tableStyles.dataTable__row}>
+                      {previewData.value.columns?.map((col: string) => (
+                        <td key={col} class={tableStyles.cell}>
+                          {String(row[col] ?? '')}
+                        </td>
+                      ))}
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}
