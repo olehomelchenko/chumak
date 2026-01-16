@@ -10,11 +10,62 @@ export function CellToolbar({ onFilter, onReplace }: CellToolbarProps) {
   const selectedCell = AppStore.selectedCell.value;
   const pos = AppStore.cellToolbarPos.value;
 
-  if (!selectedCell || selectedCell.isEda) return null;
+  if (!selectedCell) return null;
 
-  const { type } = selectedCell;
+  const { type, isEda } = selectedCell;
   const isComparable = ['number', 'integer', 'float', 'date', 'datetime'].includes(type);
 
+  // For EDA stats, only show comparison operators (gt, gte, lt, lte)
+  if (isEda) {
+    if (!isComparable) return null;
+
+    return (
+      <div
+        class={styles.floatingToolbar}
+        style={
+          {
+            left: `${pos.x}px`,
+            top: `${pos.y}px`,
+            '--arrow-offset': `${pos.arrowOffset}px`,
+          } as any
+        }
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div class={styles.floatingToolbar__comparableGroup}>
+          <button
+            class={styles.floatingToolbar__button}
+            onClick={() => onFilter('gt')}
+            title="Keep values greater than (>)"
+          >
+            <span class={styles.floatingToolbar__textOp}>&gt;</span>
+          </button>
+          <button
+            class={styles.floatingToolbar__button}
+            onClick={() => onFilter('gte')}
+            title="Keep values greater than or equal (≥)"
+          >
+            <span class={styles.floatingToolbar__textOp}>&ge;</span>
+          </button>
+          <button
+            class={styles.floatingToolbar__button}
+            onClick={() => onFilter('lt')}
+            title="Keep values less than (<)"
+          >
+            <span class={styles.floatingToolbar__textOp}>&lt;</span>
+          </button>
+          <button
+            class={styles.floatingToolbar__button}
+            onClick={() => onFilter('lte')}
+            title="Keep values less than or equal (≤)"
+          >
+            <span class={styles.floatingToolbar__textOp}>&le;</span>
+          </button>
+        </div>
+      </div>
+    );
+  }
+
+  // Regular cell toolbar (non-EDA)
   return (
     <div
       class={styles.floatingToolbar}

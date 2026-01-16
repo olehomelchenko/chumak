@@ -162,6 +162,21 @@ export function EdaPanel({ onApplyFilter }: { onApplyFilter?: () => void }) {
     e.stopPropagation();
     AppStore.selectedCell.value = null;
 
+    // Capture element reference before setTimeout (event object gets nullified)
+    const el = e.currentTarget as HTMLElement;
+    if (!el) return;
+
+    const rect = el.getBoundingClientRect();
+    const center = rect.left + rect.width / 2;
+    const toolbarWidth = 220;
+    const windowWidth = window.innerWidth;
+    const margin = 12;
+    let x = Math.max(
+      toolbarWidth / 2 + margin,
+      Math.min(windowWidth - toolbarWidth / 2 - margin, center)
+    );
+    const toolbarPos = { x: x, y: rect.top - 8, arrowOffset: center - x };
+
     // Must yield to signal update?
     setTimeout(() => {
       AppStore.selectedCell.value = {
@@ -171,18 +186,7 @@ export function EdaPanel({ onApplyFilter }: { onApplyFilter?: () => void }) {
         isEda: true,
         edaLabel: label,
       };
-
-      const el = e.currentTarget as HTMLElement;
-      const rect = el.getBoundingClientRect();
-      const center = rect.left + rect.width / 2;
-      const toolbarWidth = 220;
-      const windowWidth = window.innerWidth;
-      const margin = 12;
-      let x = Math.max(
-        toolbarWidth / 2 + margin,
-        Math.min(windowWidth - toolbarWidth / 2 - margin, center)
-      );
-      AppStore.cellToolbarPos.value = { x: x, y: rect.top - 8, arrowOffset: center - x };
+      AppStore.cellToolbarPos.value = toolbarPos;
     }, 0);
   };
 
@@ -222,10 +226,10 @@ export function EdaPanel({ onApplyFilter }: { onApplyFilter?: () => void }) {
       </div>
 
       <div class={styles.edaPanel__content}>
-        {/* Common Stats */}
-        <div class={styles.edaSection}>
+        {/* Common Stats - Left Column */}
+        <div class={styles.edaOverview}>
           <div class={styles.edaSection__title}>Overview</div>
-          <div class={styles.edaGrid}>
+          <div class={styles.edaStatsList}>
             <div class={styles.edaStat}>
               <div class={styles.edaStat__label}>Total Rows</div>
               <div class={styles.edaStat__value}>{edaStats.totalCount?.toLocaleString()}</div>
@@ -248,39 +252,51 @@ export function EdaPanel({ onApplyFilter }: { onApplyFilter?: () => void }) {
           </div>
         </div>
 
-        {/* Numeric Stats */}
+        {/* Numeric Stats - Right Column Grid */}
         {isNumeric && (
-          <div class={`${styles.edaSection} ${styles['edaSection--wide']}`}>
-            <div class={styles.edaSection__title}>
-              <span>Distribution & Outliers</span>
-              <div class={styles.chartSwitcher}>
-                <button
-                  class={`${styles.chartSwitcher__btn} ${view === 'boxplot' ? styles['chartSwitcher__btn--active'] : ''}`}
-                  onClick={() => setView('boxplot')}
-                >
-                  Box Plot
-                </button>
-                <button
-                  class={`${styles.chartSwitcher__btn} ${view === 'histogram' ? styles['chartSwitcher__btn--active'] : ''}`}
-                  onClick={() => setView('histogram')}
-                >
-                  Histogram
-                </button>
-              </div>
-            </div>
-            <div class={styles.chartContainer}>
-              {view === 'boxplot' && <div ref={boxPlotRef} class={styles.chart} />}
-              {view === 'histogram' && <div ref={histogramRef} class={styles.chart} />}
-
-              {/* Brushing Action Button */}
-              {view === 'histogram' && brushSelection && (
-                <div class={styles.brushAction}>
-                  <button class="button button--primary button--small" onClick={applyBrush}>
-                    Keep Only Selection
+          <div class={styles.edaChartGrid}>
+            {/* Container 1: Title/Controls (ccc) + Chart (CCC) */}
+            <div class={styles.edaChartSection}>
+              <div class={styles.edaSection__title}>
+                <span>Distribution & Outliers</span>
+                <div class={styles.chartSwitcher}>
+                  <button
+                    class={`${styles.chartSwitcher__btn} ${view === 'boxplot' ? styles['chartSwitcher__btn--active'] : ''}`}
+                    onClick={() => setView('boxplot')}
+                  >
+                    Box Plot
+                  </button>
+                  <button
+                    class={`${styles.chartSwitcher__btn} ${view === 'histogram' ? styles['chartSwitcher__btn--active'] : ''}`}
+                    onClick={() => setView('histogram')}
+                  >
+                    Histogram
                   </button>
                 </div>
-              )}
+              </div>
+              <div class={styles.chartContainer}>
+                {view === 'boxplot' && <div ref={boxPlotRef} class={styles.chart} />}
+                {view === 'histogram' && <div ref={histogramRef} class={styles.chart} />}
+              </div>
+            </div>
 
+            {/* Container 2: Selection Preview (jjj) + Stats Flow (ttt) */}
+            <div class={styles.edaStatsSection}>
+              <div class={styles.selectionPreview}>
+                {view === 'histogram' && brushSelection ? (
+                  <>
+                    <button class="button button--primary button--small" onClick={applyBrush}>
+                      Keep Only Selection
+                    </button>
+                    <span class={styles.brushBounds}>
+                      [{Number(brushSelection.min).toFixed(3)} -{' '}
+                      {Number(brushSelection.max).toFixed(3)}]
+                    </span>
+                  </>
+                ) : (
+                  <span class={styles.selectionPlaceholder}></span>
+                )}
+              </div>
               <div class={styles.edaStatsFlow}>
                 <div
                   class={styles.edaFlowItem}
@@ -288,6 +304,14 @@ export function EdaPanel({ onApplyFilter }: { onApplyFilter?: () => void }) {
                 >
                   <div class={styles.edaFlowItem__label}>Min</div>
                   <div class={styles.edaFlowItem__value}>{edaStats.min}</div>
+                </div>
+                <div class={styles.edaFlowConnector}></div>
+                <div
+                  class={styles.edaFlowItem}
+                  onClick={(e) => selectStat('Mean - 3σ', edaStats.raw.meanMinus3Sigma, e)}
+                >
+                  <div class={styles.edaFlowItem__label}>μ-3σ</div>
+                  <div class={styles.edaFlowItem__value}>{edaStats.meanMinus3Sigma}</div>
                 </div>
                 <div class={styles.edaFlowConnector}></div>
                 <div
@@ -320,6 +344,14 @@ export function EdaPanel({ onApplyFilter }: { onApplyFilter?: () => void }) {
                 <div class={styles.edaFlowConnector}></div>
                 <div
                   class={styles.edaFlowItem}
+                  onClick={(e) => selectStat('Mean + 3σ', edaStats.raw.meanPlus3Sigma, e)}
+                >
+                  <div class={styles.edaFlowItem__label}>μ+3σ</div>
+                  <div class={styles.edaFlowItem__value}>{edaStats.meanPlus3Sigma}</div>
+                </div>
+                <div class={styles.edaFlowConnector}></div>
+                <div
+                  class={styles.edaFlowItem}
                   onClick={(e) => selectStat('Max', edaStats.raw.max, e)}
                 >
                   <div class={styles.edaFlowItem__label}>Max</div>
@@ -328,7 +360,10 @@ export function EdaPanel({ onApplyFilter }: { onApplyFilter?: () => void }) {
 
                 <div class={styles.edaFlowDivider}></div>
 
-                <div class={styles.edaFlowItem}>
+                <div
+                  class={styles.edaFlowItem}
+                  onClick={(e) => selectStat('Mean', edaStats.raw.mean, e)}
+                >
                   <div class={styles.edaFlowItem__label}>Mean</div>
                   <div class={styles.edaFlowItem__value}>{edaStats.mean}</div>
                 </div>
@@ -358,7 +393,7 @@ export function EdaPanel({ onApplyFilter }: { onApplyFilter?: () => void }) {
               <div class={styles.edaFrequencies}>
                 {edaStats.topValues?.map((item: any) => (
                   <div
-                    class={`${styles.edaFreqItem} ${item.isOther ? styles['edaFreqItem--other'] : ''}`}
+                    class={`${styles.edaFreqItem} ${item.isOther ? styles['edaFreqItem--other'] : ''} ${item.isNull ? styles['edaFreqItem--null'] : ''}`}
                     key={item.value}
                   >
                     <div class={styles.edaFreqItem__label} title={item.value}>
@@ -369,9 +404,11 @@ export function EdaPanel({ onApplyFilter }: { onApplyFilter?: () => void }) {
                         class={styles.edaFreqItem__bar}
                         style={{
                           width: `${item.percentage}%`,
-                          backgroundColor: item.isOther
-                            ? 'var(--color-medium-gray)'
-                            : 'var(--color-cyan)',
+                          backgroundColor: item.isNull
+                            ? '#666666'
+                            : item.isOther
+                              ? 'var(--color-medium-gray)'
+                              : 'var(--color-cyan)',
                         }}
                       ></div>
                     </div>

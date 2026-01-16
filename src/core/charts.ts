@@ -105,7 +105,12 @@ export const ChartsEngine = {
   ): Promise<void> {
     if (!aggregatedData || aggregatedData.length === 0) return;
 
-    const chartData = aggregatedData.map((d, i) => ({ ...d, index: i }));
+    // Map data with index, ensuring nulls are at the end (highest index)
+    // Nulls should already be last in the array, but we use a high index to guarantee ordering
+    const chartData = aggregatedData.map((d, i) => ({
+      ...d,
+      index: d.isNull ? 10000 + i : i,
+    }));
 
     const spec: any = {
       $schema: 'https://vega.github.io/schema/vega-lite/v6.json',
@@ -127,7 +132,8 @@ export const ChartsEngine = {
           scale: {
             domain: aggregatedData.map((d) => d.value),
             range: aggregatedData.map((d, i) => {
-              if (d.isOther) return '#C8C8C8';
+              if (d.isNull) return '#666666'; // Darker grey for nulls
+              if (d.isOther) return '#C8C8C8'; // Light grey for others
               // Mix of Chumak and KSE colors that look good in both
               const colors = ['#1789fc', '#fdb833', '#a7c539', '#00bbce', '#f15b43'];
               return colors[i] || '#C8C8C8';

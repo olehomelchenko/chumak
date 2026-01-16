@@ -10,6 +10,7 @@ export interface CategoricalStat {
   percentage: string;
   rawPercentage: number;
   isOther?: boolean;
+  isNull?: boolean;
 }
 
 export interface NumericStats {
@@ -19,6 +20,9 @@ export interface NumericStats {
   median: string;
   p25: string;
   p75: string;
+  std: string;
+  meanMinus3Sigma: string;
+  meanPlus3Sigma: string;
   raw: {
     min: number;
     max: number;
@@ -26,6 +30,9 @@ export interface NumericStats {
     median: number;
     p25: number;
     p75: number;
+    std: number;
+    meanMinus3Sigma: number;
+    meanPlus3Sigma: number;
   };
 }
 
@@ -70,7 +77,10 @@ export const EDAEngine = {
     if (type === 'number' || type === 'integer' || type === 'float') {
       return { ...baseStats, ...this.calculateNumericStats(nonNullValues) } as EDAStats;
     } else {
-      return { ...baseStats, ...this.calculateCategoricalStats(nonNullValues) } as EDAStats;
+      return {
+        ...baseStats,
+        ...this.calculateCategoricalStats(nonNullValues, totalCount, nullCount),
+      } as EDAStats;
     }
   },
 
@@ -90,6 +100,14 @@ export const EDAEngine = {
     const p25 = this.getPercentile(sorted, 0.25);
     const p75 = this.getPercentile(sorted, 0.75);
 
+    // Calculate standard deviation
+    const variance = sorted.reduce((acc, val) => acc + Math.pow(val - mean, 2), 0) / sorted.length;
+    const std = Math.sqrt(variance);
+
+    // Calculate 3-sigma bounds
+    const meanMinus3Sigma = mean - 3 * std;
+    const meanPlus3Sigma = mean + 3 * std;
+
     return {
       min: this.formatNumber(min),
       max: this.formatNumber(max),
@@ -97,15 +115,22 @@ export const EDAEngine = {
       median: this.formatNumber(median),
       p25: this.formatNumber(p25),
       p75: this.formatNumber(p75),
-      raw: { min, max, mean, median, p25, p75 },
+      std: this.formatNumber(std),
+      meanMinus3Sigma: this.formatNumber(meanMinus3Sigma),
+      meanPlus3Sigma: this.formatNumber(meanPlus3Sigma),
+      raw: { min, max, mean, median, p25, p75, std, meanMinus3Sigma, meanPlus3Sigma },
     };
   },
 
   /**
    * Calculate categorical statistics (frequencies)
    */
-  calculateCategoricalStats(values: any[]): { topValues: CategoricalStat[] } {
-    if (values.length === 0) return { topValues: [] };
+  calculateCategoricalStats(
+    values: any[],
+    totalCount: number,
+    nullCount: number
+  ): { topValues: CategoricalStat[] } {
+    if (values.length === 0 && nullCount === 0) return { topValues: [] };
 
     const frequencies: Record<string, number> = {};
     values.forEach((v) => {
@@ -117,8 +142,8 @@ export const EDAEngine = {
       .map(([value, count]) => ({
         value,
         count,
-        percentage: ((count / values.length) * 100).toFixed(1),
-        rawPercentage: (count / values.length) * 100,
+        percentage: ((count / totalCount) * 100).toFixed(1),
+        rawPercentage: (count / totalCount) * 100,
       }))
       .sort((a, b) => b.count - a.count);
 
@@ -127,13 +152,24 @@ export const EDAEngine = {
 
     if (remaining.length > 0) {
       const otherCount = remaining.reduce((sum, item) => sum + item.count, 0);
-      const otherPercentage = ((otherCount / values.length) * 100).toFixed(1);
+      const otherPercentage = ((otherCount / totalCount) * 100).toFixed(1);
       top5.push({
         value: `Other (${remaining.length})`,
         count: otherCount,
         percentage: otherPercentage,
-        rawPercentage: (otherCount / values.length) * 100,
+        rawPercentage: (otherCount / totalCount) * 100,
         isOther: true,
+      });
+    }
+
+    // Add nulls as a separate category at the end (darkest grey, last position)
+    if (nullCount > 0) {
+      top5.push({
+        value: '(null)',
+        count: nullCount,
+        percentage: ((nullCount / totalCount) * 100).toFixed(1),
+        rawPercentage: (nullCount / totalCount) * 100,
+        isNull: true,
       });
     }
 

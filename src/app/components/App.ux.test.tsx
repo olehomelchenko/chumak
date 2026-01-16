@@ -354,6 +354,83 @@ describe('App UX Interactions', () => {
         expect(DialogStore.replaceState.findValue.value).toBe('Alice');
       });
     });
+
+    it('should show EDA toolbar when clicking on numeric stat in EDA panel', async () => {
+      // First select a column to show EDA panel
+      AppStore.selectedColumn.value = 'sales';
+      AppStore.edaStats.value = {
+        column: 'sales',
+        type: 'number',
+        totalCount: 5,
+        nullCount: 0,
+        nullPercentage: '0.0',
+        uniqueCount: 5,
+        uniquePercentage: '100.0',
+        min: '100',
+        max: '500',
+        mean: '300',
+        median: '300',
+        p25: '200',
+        p75: '400',
+        std: '158.1',
+        meanMinus3Sigma: '-174.3',
+        meanPlus3Sigma: '774.3',
+        raw: {
+          min: 100,
+          max: 500,
+          mean: 300,
+          median: 300,
+          p25: 200,
+          p75: 400,
+          std: 158.1,
+          meanMinus3Sigma: -174.3,
+          meanPlus3Sigma: 774.3,
+        },
+      };
+
+      render(<App app={app} />);
+
+      await waitFor(() => {
+        const edaPanel = document.querySelector('[class*="edaPanel"]');
+        expect(edaPanel).toBeDefined();
+      });
+
+      // Find a stat value (e.g., Mean)
+      const meanStat = Array.from(document.querySelectorAll('[class*="edaFlowItem"]')).find((el) =>
+        el.textContent?.includes('Mean')
+      );
+      expect(meanStat).toBeDefined();
+
+      if (meanStat) {
+        fireEvent.click(meanStat);
+
+        await waitFor(() => {
+          expect(AppStore.selectedCell.value).toBeDefined();
+          expect(AppStore.selectedCell.value?.isEda).toBe(true);
+          expect(AppStore.selectedCell.value?.edaLabel).toBe('Mean');
+        });
+
+        // Toolbar should appear
+        await waitFor(() => {
+          const toolbar = document.querySelector('[class*="floatingToolbar"]');
+          expect(toolbar).toBeDefined();
+        });
+
+        // Should show comparison operators only (no exact/not/replace)
+        // Find the toolbar that contains comparison operators (EDA toolbar)
+        const toolbars = document.querySelectorAll('[class*="floatingToolbar"]');
+        const edaToolbar = Array.from(toolbars).find((toolbar) => {
+          const buttons = toolbar.querySelectorAll('button');
+          // EDA toolbar should have exactly 4 buttons (gt, gte, lt, lte)
+          // and no replace button
+          const hasReplace = Array.from(buttons).some((btn) =>
+            btn.querySelector('[data-icon="codicon:replace"]')
+          );
+          return buttons.length === 4 && !hasReplace;
+        });
+        expect(edaToolbar).toBeDefined();
+      }
+    });
   });
 
   describe('EDA Panel Integration', () => {

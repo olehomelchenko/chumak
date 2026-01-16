@@ -46,11 +46,52 @@
   }
 
   &__content {
-    display: flex;
+    display: grid;
+    grid-template-columns: auto 1fr;
     padding: var(--space-md);
     gap: var(--space-xl);
     overflow-x: auto;
   }
+}
+
+.edaOverview {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  min-width: 200px;
+}
+
+.edaChartGrid {
+  display: grid;
+  grid-template-columns: 1fr auto;
+  gap: var(--space-md);
+  min-width: 400px;
+  align-items: start;
+}
+
+.edaChartSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+}
+
+.edaStatsSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
+  min-width: 200px;
+}
+
+.selectionPreview {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  min-width: 200px;
+  justify-content: flex-end;
+}
+
+.selectionPlaceholder {
+  min-height: 28px; /* Match button height */
 }
 
 .edaSection {
@@ -63,7 +104,7 @@
     font-size: var(--font-size-xs);
     font-weight: var(--font-weight-medium);
     color: var(--color-dark-gray);
-    text-transform: uppercase;
+    text-transform: capitalize;
     letter-spacing: 0.5px;
     display: flex;
     justify-content: space-between;
@@ -81,6 +122,7 @@
   gap: var(--space-lg);
   align-items: center;
   position: relative;
+  min-height: 100px;
 }
 
 .chart {
@@ -102,6 +144,7 @@
   border-radius: 4px;
   overflow: hidden;
   padding: 1px;
+  margin-left: var(--space-sm);
 
   &__btn {
     padding: 2px 8px;
@@ -134,6 +177,12 @@
   &--cols-4 {
     grid-template-columns: repeat(4, 1fr);
   }
+}
+
+.edaStatsList {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-sm);
 }
 
 .edaStat {
@@ -236,7 +285,7 @@
   &__label {
     font-size: 10px;
     color: var(--color-dark-gray);
-    text-transform: uppercase;
+    text-transform: capitalize;
     margin-bottom: 2px;
   }
 
@@ -305,4 +354,10 @@
   top: -10px;
   right: 0;
   z-index: 10;
+}
+
+.brushBounds {
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-xs);
+  color: var(--color-dark-gray);
 }
