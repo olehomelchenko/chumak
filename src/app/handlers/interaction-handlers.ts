@@ -15,7 +15,8 @@ export function handleBodyClick(event: any) {
     !event.target.closest('.data-table__header') &&
     !event.target.closest('.floating-toolbar') &&
     !event.target.closest('.slide-panel') &&
-    !event.target.closest('.centered-modal')
+    !event.target.closest('.centered-modal') &&
+    !event.target.closest('[class*="edaPanel"]')
   ) {
     AppStore.selectedColumn.value = null;
   }

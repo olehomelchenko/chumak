@@ -53,39 +53,63 @@ export function EdaPanel({ onApplyFilter }: { onApplyFilter?: () => void }) {
     if (!selectedColumn || !currentData || !edaStats) return;
 
     const renderCharts = async () => {
+      // Small delay to ensure DOM elements are mounted
+      await new Promise((resolve) => setTimeout(resolve, 10));
+
+      // Helper to check if element is in DOM
+      const isInDOM = (el: HTMLElement | null): el is HTMLElement => {
+        return el !== null && document.body.contains(el);
+      };
+
       // Box Plot
-      if (isNumeric && view === 'boxplot' && boxPlotRef.current) {
-        await ChartsEngine.renderBoxPlot(boxPlotRef.current, currentData, selectedColumn, theme);
+      if (isNumeric && view === 'boxplot' && isInDOM(boxPlotRef.current)) {
+        try {
+          await ChartsEngine.renderBoxPlot(boxPlotRef.current, currentData, selectedColumn, theme);
+        } catch (error) {
+          console.error('Error rendering box plot:', error);
+        }
       }
 
       // Histogram
-      if (isNumeric && view === 'histogram' && histogramRef.current) {
-        await ChartsEngine.renderHistogram(
-          histogramRef.current,
-          currentData,
-          selectedColumn,
-          theme,
-          (sel) => (AppStore.edaBrushSelection.value = sel)
-        );
+      if (isNumeric && view === 'histogram' && isInDOM(histogramRef.current)) {
+        try {
+          await ChartsEngine.renderHistogram(
+            histogramRef.current,
+            currentData,
+            selectedColumn,
+            theme,
+            (sel) => (AppStore.edaBrushSelection.value = sel)
+          );
+        } catch (error) {
+          console.error('Error rendering histogram:', error);
+        }
       }
 
       // Temporal Chart
-      if (isDate && dateTreatment === 'temporal' && temporalChartRef.current) {
-        await ChartsEngine.renderTemporalChart(
-          temporalChartRef.current,
-          currentData,
-          selectedColumn,
-          theme
-        );
+      if (isDate && dateTreatment === 'temporal' && isInDOM(temporalChartRef.current)) {
+        try {
+          await ChartsEngine.renderTemporalChart(
+            temporalChartRef.current,
+            currentData,
+            selectedColumn,
+            theme
+          );
+        } catch (error) {
+          console.error('Error rendering temporal chart:', error);
+        }
       }
 
       // Categorical Bar
-      if (isCategorical && categoricalBarRef.current && edaStats.topValues) {
-        await ChartsEngine.renderCategoricalBar(
-          categoricalBarRef.current,
-          edaStats.topValues,
-          theme
-        );
+      if (isCategorical && isInDOM(categoricalBarRef.current) && edaStats.topValues) {
+        try {
+          await ChartsEngine.renderCategoricalBar(
+            categoricalBarRef.current,
+            edaStats.topValues,
+            theme
+          );
+        } catch (error) {
+          console.error('Error rendering categorical bar:', error);
+        }
       }
     };
 
