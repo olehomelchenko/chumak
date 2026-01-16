@@ -1,5 +1,11 @@
 # Chumak — UX Specification
 
+> **Related Documentation**:
+>
+> - **[SPECIFICATION.md](SPECIFICATION.md)**: Product specification and technical architecture
+> - **[CLAUDE.md](../CLAUDE.md)**: Development onboarding and codebase map
+> - **[DEBUGGING.md](DEBUGGING.md)**: CSS Module debugging and component identification
+
 ## 1. Design Foundation
 
 ### 1.1 Design Philosophy
@@ -125,6 +131,10 @@ The project follows a **Modular Token-Based Architecture** designed for high mod
 
 Styles are divided into component-specific files (e.g., `ribbon.css`, `table.css`, `step-removal.css`), preventing side-effects and ensuring localized maintenance. This styling modularity is mirrored in the TypeScript architecture, where UI logic is delegated to specialized handler modules.
 
+- **Global Styles**: `styles/variables.css`, `styles/base.css`, `styles/layout.css`
+- **Component Styles**: CSS Modules co-located with components in `src/app/components/`
+- **Debugging**: See [DEBUGGING.md](DEBUGGING.md) for CSS Module class name patterns and DevTools tips
+
 ### 6.2 Theming Logic
 
 A two-tier variable system separates static palettes from functional tokens:
@@ -137,6 +147,18 @@ A two-tier variable system separates static palettes from functional tokens:
 - **Elevations**: Unified shadow system (`--shadow-sm` to `--shadow-xl`) applied across all overlays.
 - **Overlays**: Shared backdrop and blur tokens provide a consistent "glassmorphism" feel for both Slide Panels and Centered Dialogs.
 - **Aesthetic Consistency**: Modals and Dialogs share standardized header/footer padding and styling, ensuring a contiguous visual language regardless of the interaction type.
+
+---
+
+---
+
+## Implementation Reference
+
+- **Component Library**: `src/app/components/` (54 TSX files with CSS Modules)
+- **State Management**: `src/app/stores/AppStore.ts`, `src/app/stores/DialogStore.ts`
+- **Handlers**: `src/app/handlers/` (transform-specific and interaction handlers)
+- **Global Styles**: `styles/` directory (see [CLAUDE.md](../CLAUDE.md) §Codebase Map → Styles)
+- **Theme Engine**: `src/core/vega-themes.ts` (Vega-Lite integration)
 
 ---
 

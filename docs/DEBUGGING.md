@@ -1,5 +1,10 @@
 # Debugging Guide
 
+> **Related Documentation**:
+>
+> - **[CLAUDE.md](../CLAUDE.md)**: Codebase map and development context
+> - **[UX-SPECIFICATION.md](UX-SPECIFICATION.md)**: CSS architecture and component patterns
+
 This document describes the debugging features available during development.
 
 ## CSS Module Class Names

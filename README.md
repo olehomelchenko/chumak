@@ -25,9 +25,22 @@
   - Implementation roadmap
   - Testing strategy
 
+- **[UX-SPECIFICATION.md](docs/UX-SPECIFICATION.md)** - UI/UX design guidelines
+  - Layout structure and grid system
+  - Component patterns and interaction design
+  - Theme system and CSS architecture
+  - Typography and visual standards
+
+### Development Guides
+
+- **[DEBUGGING.md](docs/DEBUGGING.md)** - Debugging and development tools
+  - CSS Module debugging techniques
+  - Component identification helpers
+  - DevTools tips and tricks
+
 ### Design Decisions
 
-- **[PARSER-DESIGN-DECISION.md](docs/PARSER-DESIGN-DECISION.md)** - Expression parser design
+- **[PARSER-DESIGN-DECISION.md](docs/archive/PARSER-DESIGN-DECISION.md)** - Expression parser design
   - Comprehensive analysis of parser options
   - Architecture (jsep + AST validation + interpretation)
   - Security model and validation strategy

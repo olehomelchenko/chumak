@@ -1,5 +1,10 @@
 # Chumak - Specification
 
+> **Related Documentation**:
+>
+> - **[CLAUDE.md](../CLAUDE.md)**: Development onboarding and codebase map
+> - **[UX-SPECIFICATION.md](UX-SPECIFICATION.md)**: UI/UX design guidelines and component patterns
+
 ## 1. Overview
 
 ### 1.1 Name & Tagline
@@ -72,9 +77,14 @@ Chumak is a browser-based data wrangling tool for cleaning and transforming tabu
 
 ### 3.3 Core Components
 
+> **Implementation**: See [CLAUDE.md](../CLAUDE.md) §Codebase Map for file locations.
+
 #### Schema Engine
 
 The Schema Engine is responsible for granular type inference and schema propagation. It maintains a list of `ColumnSchema` objects, ensuring that data types (integer, float, date, etc.) are correctly tracked and available for downstream transformations and UI components.
+
+- **Implementation**: `src/core/schema-engine.ts`
+- **Tests**: `src/core/schema-engine.test.ts`
 
 #### Expression Engine
 
@@ -84,9 +94,17 @@ A three-stage pipeline for safe execution of user-defined formulas:
 2. **Validation**: Checks the AST against the current schema for security and correctness.
 3. **Interpretation**: Executes the validated AST against row data in a sandboxed environment.
 
+- **Implementation**: `src/core/expression-parser.ts`, `src/core/ast-validator.ts`, `src/core/ast-interpreter.ts`
+- **Tests**: `src/core/expression-parser.test.ts`, `src/core/ast-validator.test.ts`, `src/core/ast-interpreter.test.ts`
+- **Design**: See [docs/archive/PARSER-DESIGN-DECISION.md](archive/PARSER-DESIGN-DECISION.md) for architecture rationale
+
 #### Transformation Engine
 
 Wraps **Arquero** to provide a consistent interface for applying declarative transformations. It handles both standard Arquero verbs and custom logic for complex operations like delimiter-based splitting and regex extraction.
+
+- **Implementation**: `src/core/transforms.ts`
+- **Tests**: `src/core/transforms.test.ts`
+- **Reference**: See [docs/arquero/](arquero/) for Arquero usage patterns
 
 ### 3.4 Storage
 
@@ -159,6 +177,8 @@ Each transform is one object in an array.
 
 ## 6. UI Architecture
 
+> **Detailed Design**: See [UX-SPECIFICATION.md](UX-SPECIFICATION.md) for comprehensive UI guidelines, layout structure, and component patterns.
+
 ### 6.1 Layout & Components
 
 - **Ribbon Toolbar**: Workflow-based navigation (Prepare | Calculate | Combine).
@@ -168,17 +188,21 @@ Each transform is one object in an array.
 - **Model Toolbar**: Stats summary, navigation, and consolidated downloads/copying.
 - **Step Editor**: Pipeline management with edit/delete actions and JSON toggle.
 - **Signal-Based State**: UI logic and state are centralized in standalone **Stores** (`AppStore`, `DialogStore`) and **Services**.
+- **Implementation**: See [CLAUDE.md](../CLAUDE.md) §Codebase Map → Application Architecture
 
 ### 6.2 Key Patterns
 
 - **Chips-based column selection**: Standardized multi-selection UI.
 - **Contextual Toolbars**: Column and cell-level actions triggered by interaction.
 - **Debounced auto-preview**: Real-time feedback for most transformations.
+- **Details**: See [UX-SPECIFICATION.md](UX-SPECIFICATION.md) §3.4 for interaction patterns
 
 ### 6.3 Data Visualization (Vega-Lite)
 
 - **Themed Visuals**: Charts automatically adopt the active application theme.
 - **Chart Types**: Boxplots, Histograms, and Categorical Bar charts for Exploratory Data Analysis (EDA).
+- **Implementation**: `src/core/charts.ts`, `src/core/vega-themes.ts`
+- **Theming**: See [UX-SPECIFICATION.md](UX-SPECIFICATION.md) §1.2 for theme system details
 
 ---
 
@@ -190,11 +214,15 @@ Tests are written in **TypeScript** using **Vitest** for native runner support a
 
 ### 7.2 Core Coverage
 
-- **Expression Parsing**: `expression-parser.test.ts`
-- **Security & Arity**: `ast-validator.test.ts`
-- **Execution**: `ast-interpreter.test.ts`
-- **Transformation Engine**: `transforms.test.ts`
-- **Propagation**: `schema-engine.test.ts`
+- **Expression Parsing**: `src/core/expression-parser.test.ts`
+- **Security & Arity**: `src/core/ast-validator.test.ts`
+- **Execution**: `src/core/ast-interpreter.test.ts`
+- **Transformation Engine**: `src/core/transforms.test.ts`
+- **Propagation**: `src/core/schema-engine.test.ts`
+- **Integration**: `src/core/integration.test.ts` (end-to-end pipelines)
+- **UI Testing**: `src/app/components/App.ux.test.tsx` (interaction tests)
+
+> **Testing Guide**: See [CLAUDE.md](../CLAUDE.md) §Testing Philosophy for testing approach and file locations.
 
 ---
 
