@@ -92,12 +92,27 @@ export function handleHashChange(this: ChumakApp) {
     if (this.activeDialog !== urlState.page) {
       this.openDialog(urlState.page, urlState.section);
     }
-  } else if (
-    this.activeDialog &&
-    ['about', 'reference', 'expressions', 'settings'].includes(this.activeDialog)
-  ) {
-    // Hash cleared or changed to non-page route, close dialog
-    this.activeDialog = null;
+  } else {
+    // Handle model/source routes
+    if (urlState.modelId) {
+      const model = this.models.find((m) => m.id === urlState.modelId);
+      if (model && this.activeModel?.id !== model.id) {
+        this.switchToModel(model);
+      }
+    } else if (urlState.sourceId) {
+      const source = this.sources.find((s) => s.id === urlState.sourceId);
+      if (source && this.activeSource?.id !== source.id) {
+        this.switchToSource(source);
+      }
+    }
+
+    // Close dialog if hash changed to non-page route
+    if (
+      this.activeDialog &&
+      ['about', 'reference', 'expressions', 'settings'].includes(this.activeDialog)
+    ) {
+      this.activeDialog = null;
+    }
   }
 }
 

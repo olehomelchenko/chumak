@@ -847,10 +847,12 @@ export class ChumakApp implements AppState {
   // Model & Source handlers
 
   switchToSource(source: Source) {
-    return ModelService.switchToSource(source, () => this.clearColumnSelection());
+    ModelService.switchToSource(source, () => this.clearColumnSelection());
+    // Update URL when switching to a source
+    setUrlState({ sourceId: source.id });
   }
   switchToModel(model: Model) {
-    return ModelService.switchToModel(
+    ModelService.switchToModel(
       model,
       () => this.clearColumnSelection(),
       () => this.updatePagination(),
@@ -859,6 +861,8 @@ export class ChumakApp implements AppState {
         this.ribbonTab = tab;
       }
     );
+    // Update URL when switching to a model
+    setUrlState({ sourceId: model.sourceId, modelId: model.id });
   }
   createNewModel(source: Source) {
     return ModelService.createNewModel(
@@ -1274,6 +1278,8 @@ export class ChumakApp implements AppState {
     // Handle page routes (about, reference, expressions, settings)
     if (urlState.page) {
       this.openDialog(urlState.page, urlState.section);
+      // Ensure URL is set after restoration (in case it was cleared)
+      setUrlState({ page: urlState.page, section: urlState.section });
       restored = true;
     } else if (urlState.modelId) {
       const model = models.find((m) => m.id === urlState.modelId);
@@ -1281,6 +1287,8 @@ export class ChumakApp implements AppState {
         this.activeModel = model;
         this.currentData = model.data;
         this.viewMode = 'model';
+        // Ensure URL is set after restoration
+        setUrlState({ sourceId: model.sourceId, modelId: model.id });
         restored = true;
       }
     } else if (urlState.sourceId) {
@@ -1289,6 +1297,8 @@ export class ChumakApp implements AppState {
         this.activeSource = source;
         this.currentData = source.data;
         this.viewMode = 'dataset-info';
+        // Ensure URL is set after restoration
+        setUrlState({ sourceId: source.id });
         restored = true;
       }
     }
@@ -1300,6 +1310,8 @@ export class ChumakApp implements AppState {
       this.activeModel = models[0];
       this.currentData = models[0].data;
       this.viewMode = 'model';
+      // Set URL for default model
+      setUrlState({ sourceId: models[0].sourceId, modelId: models[0].id });
     }
 
     if (this.activeModel) {
