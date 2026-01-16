@@ -133,10 +133,10 @@ export function App({ app }: AppProps) {
     onOpenDialog: (d: any) => app.openDialog(d),
     onCopyCSV: () => app.copyCSVToClipboard(),
     onCopyJSON: () => app.copyJSONToClipboard(),
-    onFirstPage: () => app.firstPage(),
-    onPrevPage: () => app.prevPage(),
+    onFirstPage: () => app.goToFirstPage(),
+    onPrevPage: () => app.previousPage(),
     onNextPage: () => app.nextPage(),
-    onLastPage: () => app.lastPage(),
+    onLastPage: () => app.goToLastPage(),
     onPageSizeChange: (s: any) => app.setPageSize(s),
     getPaginationInfo: () => (app.getPaginationInfo ? app.getPaginationInfo() : ''),
     // DataTable
