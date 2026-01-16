@@ -144,11 +144,13 @@ export function App({ app }: AppProps) {
     getColumnType: (c: string) => app.getColumnType(c),
     getTypeIcon: (c: string) => getTypeIcon.call(app, c),
     formatCellValue: (v: any) => formatCellValue.call(app, v),
-    onSelectColumn: (c: string, e: MouseEvent) => app.selectColumn(c, e),
-    onSelectCell: (c: string, _v: any, i: number, e: MouseEvent) => {
-      const rows = app.getPaginatedData ? app.getPaginatedData() : [];
-      const row = rows[i];
-      app.selectCell(row, c, e);
+    onSelectColumn: (c: string, e: MouseEvent) => {
+      e.stopPropagation();
+      app.selectColumn(c);
+    },
+    onSelectCell: (c: string, value: any, i: number, e: MouseEvent) => {
+      e.stopPropagation();
+      app.selectCell(c, value, i);
     },
     onOpenTypeMenu: (c: string, pos: { x: number; y: number }) => app.openTypeMenu(c, pos),
     onClearColumnSelection: () => app.clearColumnSelection(),

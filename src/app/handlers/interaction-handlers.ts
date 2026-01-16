@@ -91,7 +91,8 @@ export function updateToolbarPosition() {
   const selectedCell = AppStore.selectedCell.value;
 
   if (selectedColumn) {
-    const header = document.querySelector(`.data-table__header[data-col="${selectedColumn}"]`);
+    // Use data-col attribute selector which is more reliable than CSS class
+    const header = document.querySelector(`th[data-col="${selectedColumn}"]`);
     if (header) {
       const rect = header.getBoundingClientRect();
       AppStore.columnToolbarPos.value = calculateToolbarPosition(rect, 200);
@@ -99,8 +100,9 @@ export function updateToolbarPosition() {
   }
   if (selectedCell) {
     if (selectedCell.isEda) return;
+    // Use data-col and data-row attributes which are more reliable than CSS classes
     const cell = document.querySelector(
-      `.data-table__cell[data-col="${selectedCell.col}"][data-row="${selectedCell.rowIdx}"]`
+      `td[data-col="${selectedCell.col}"][data-row="${selectedCell.rowIdx}"]`
     );
     if (cell) {
       const rect = cell.getBoundingClientRect();
