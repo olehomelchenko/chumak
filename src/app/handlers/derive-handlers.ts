@@ -1,5 +1,7 @@
 import { parseExpression } from '../../core/expression-parser';
 import { interpretAST } from '../../core/ast-interpreter';
+import { validateAST } from '../../core/ast-validator';
+import { formatError } from '../../core/error-formatter';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 import * as HelperHandlers from './helper-handlers';
@@ -10,7 +12,21 @@ let previewDebounceTimer: ReturnType<typeof setTimeout> | null = null;
 
 export function validateDeriveExpression() {
   const expr = DialogStore.deriveState.expression.value;
-  DialogStore.deriveState.error.value = HelperHandlers.validateExpression.call(null as any, expr);
+  const trimmed = expr.trim();
+  if (!trimmed) {
+    DialogStore.deriveState.error.value = null;
+    return;
+  }
+  try {
+    const ast = parseExpression(trimmed);
+    const columns = AppStore.columns.value;
+    const validation = validateAST(ast, columns);
+    DialogStore.deriveState.error.value = validation.error
+      ? formatError(validation.error, trimmed)
+      : null;
+  } catch (error: any) {
+    DialogStore.deriveState.error.value = formatError(error, trimmed);
+  }
 }
 
 export function debouncedUpdateDerivePreview() {

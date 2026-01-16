@@ -194,7 +194,10 @@ export function App({ app }: AppProps) {
         >
           {/* Backdrop */}
           {isSlidePanel(activeDialog) && (
-            <div class={styles.backdrop} onClick={() => app.closeDialog()} />
+            <div
+              class={`${styles.backdrop} ${hasPreview ? styles.blurred : ''} ${activeDialog === 'dedupe' ? styles.dedupe : ''}`}
+              onClick={() => app.closeDialog()}
+            />
           )}
 
           {/* Panel */}
@@ -270,10 +273,14 @@ export function App({ app }: AppProps) {
               </button>
             </div>
           </div>
+        </div>
 
-          {/* Preview Panel */}
-          {hasPreview && isSlidePanel(activeDialog) && (
-            <div class={`${styles.previewPanel} ${activeDialog === 'dedupe' ? styles.dedupe : ''}`}>
+        {/* Preview Panel Shell */}
+        {hasPreview && isSlidePanel(activeDialog) && (
+          <div
+            class={`${styles.previewPanelShell} ${activeDialog === 'dedupe' ? styles.dedupe : ''}`}
+          >
+            <div class={styles.previewPanel}>
               <div class={styles.previewPanelHeader}>
                 <h4>{previewTitle || 'Preview'}</h4>
                 <div dangerouslySetInnerHTML={{ __html: previewStats }}></div>
@@ -294,23 +301,30 @@ export function App({ app }: AppProps) {
                   </thead>
                   <tbody>
                     {getPreviewRows.call(app).map((row: any, i: number) => (
-                      <tr key={i} class={row._removed ? tableStyles.removed : ''}>
-                        {getPreviewColumns.call(app).map((col: string) => (
-                          <td
-                            key={col}
-                            class={`${tableStyles.cell} ${isNewPreviewColumn.call(app, col) ? styles.previewNewCol : ''}`}
-                          >
-                            {formatPreviewCell.call(app, row, col)}
-                          </td>
-                        ))}
+                      <tr
+                        key={i}
+                        class={`${tableStyles.dataTable__row} ${row._removed ? tableStyles.removed : ''}`}
+                      >
+                        {getPreviewColumns.call(app).map((col: string) => {
+                          const isRemovedColumn =
+                            row._removedColumns && row._removedColumns.includes(col);
+                          return (
+                            <td
+                              key={col}
+                              class={`${tableStyles.cell} ${row._removed || isRemovedColumn ? tableStyles.removed : ''} ${isNewPreviewColumn.call(app, col) ? styles.previewNewCol : ''}`}
+                            >
+                              {formatPreviewCell.call(app, row, col)}
+                            </td>
+                          );
+                        })}
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
             </div>
-          )}
-        </div>
+          </div>
+        )}
       </div>
 
       {/* Centered Modal Shell */}

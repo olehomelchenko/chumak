@@ -45,10 +45,23 @@
 
 .backdrop {
   position: fixed;
-  inset: 0;
+  top: 0;
+  left: 600px; /* Start after slide panel */
+  right: 0;
+  bottom: 0;
   background: rgba(0, 0, 0, 0.3);
   pointer-events: auto;
-  z-index: 40;
+  z-index: var(--z-index-slide-panel-backdrop);
+  transition: left 0.3s ease;
+
+  &.blurred {
+    backdrop-filter: blur(4px);
+  }
+
+  /* Adjust for dedupe panel width */
+  &.dedupe {
+    left: 800px;
+  }
 }
 
 .slidePanel {
@@ -112,23 +125,37 @@
   gap: 8px;
 }
 
+/* Preview Panel Shell */
+.previewPanelShell {
+  position: absolute;
+  top: 0;
+  left: 616px; /* 600px panel + 16px spacing */
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+  z-index: var(--z-index-slide-panel); /* Same level as slide panel, above backdrop */
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+
+  &.dedupe {
+    left: 816px; /* 800px panel + 16px spacing */
+  }
+}
+
 /* Preview Panel */
 .previewPanel {
-  position: absolute;
-  top: 16px;
-  left: 616px; /* Offset from 600px panel */
-  width: 400px;
+  width: 100%;
+  max-width: min(80%, 1200px);
+  min-width: 400px;
   background: white;
   border-radius: 8px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
   max-height: calc(100vh - 32px);
-  z-index: 45;
-
-  &.dedupe {
-    left: 816px;
-  }
+  pointer-events: auto;
 }
 
 .previewPanelHeader {
