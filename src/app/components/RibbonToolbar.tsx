@@ -19,7 +19,7 @@ function RibbonButton({ icon, label, title, onClick, disabled }: RibbonButtonPro
       title={title}
       disabled={disabled}
     >
-      <span class="iconify" data-icon={icon}></span>
+      <span class="iconify" data-icon={icon} style="width: 32px; height: 32px;"></span>
       <span>{label}</span>
     </button>
   );

@@ -83,7 +83,13 @@ export function calculateToolbarPosition(rect: DOMRect, toolbarWidth: number) {
     toolbarWidth / 2 + margin,
     Math.min(windowWidth - toolbarWidth / 2 - margin, center)
   );
-  return { x: x, y: rect.top - 8, arrowOffset: center - x };
+  // Position toolbar above the element (top of toolbar at top of element minus spacing)
+  // Account for toolbar height (~40px) plus arrow height (6px) plus spacing (8px)
+  const toolbarHeight = 40;
+  const arrowHeight = 6;
+  const spacing = 8;
+  const y = rect.top - toolbarHeight - arrowHeight - spacing;
+  return { x: x, y: y, arrowOffset: center - x };
 }
 
 export function updateToolbarPosition() {

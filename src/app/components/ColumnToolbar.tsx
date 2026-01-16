@@ -47,14 +47,18 @@ export function ColumnToolbar({
         onClick={() => onSort('asc')}
         title="Sort Ascending"
       >
-        <span class="iconify" data-icon="carbon:arrow-up"></span>
+        <span class="iconify" data-icon="carbon:arrow-up" style="width: 24px; height: 24px;"></span>
       </button>
       <button
         class={styles.floatingToolbar__button}
         onClick={() => onSort('desc')}
         title="Sort Descending"
       >
-        <span class="iconify" data-icon="carbon:arrow-down"></span>
+        <span
+          class="iconify"
+          data-icon="carbon:arrow-down"
+          style="width: 24px; height: 24px;"
+        ></span>
       </button>
       <div class={styles.floatingToolbar__divider}></div>
       <button
@@ -62,17 +66,25 @@ export function ColumnToolbar({
         onClick={onFilter}
         title="Filter by this column"
       >
-        <span class="iconify" data-icon="carbon:filter"></span>
+        <span class="iconify" data-icon="carbon:filter" style="width: 24px; height: 24px;"></span>
       </button>
       <button class={styles.floatingToolbar__button} onClick={onRename} title="Rename this column">
-        <span class="iconify" data-icon="carbon:edit"></span>
+        <span class="iconify" data-icon="carbon:edit" style="width: 24px; height: 24px;"></span>
       </button>
       <button class={styles.floatingToolbar__button} onClick={onSplit} title="Split this column">
-        <span class="iconify" data-icon="carbon:split-screen"></span>
+        <span
+          class="iconify"
+          data-icon="carbon:split-screen"
+          style="width: 24px; height: 24px;"
+        ></span>
       </button>
       {isDate && (
         <button class={styles.floatingToolbar__button} onClick={onDate} title="Date transformation">
-          <span class="iconify" data-icon="carbon:calendar"></span>
+          <span
+            class="iconify"
+            data-icon="carbon:calendar"
+            style="width: 24px; height: 24px;"
+          ></span>
         </button>
       )}
       <button
@@ -80,14 +92,22 @@ export function ColumnToolbar({
         onClick={onDedupe}
         title="Dedupe by this column"
       >
-        <span class="iconify" data-icon="carbon:checkbox-checked"></span>
+        <span
+          class="iconify"
+          data-icon="carbon:checkbox-checked"
+          style="width: 24px; height: 24px;"
+        ></span>
       </button>
       <button
         class={`${styles.floatingToolbar__button} ${styles.danger}`}
         onClick={onRemove}
         title="Remove this column"
       >
-        <span class="iconify" data-icon="carbon:trash-can"></span>
+        <span
+          class="iconify"
+          data-icon="carbon:trash-can"
+          style="width: 24px; height: 24px;"
+        ></span>
       </button>
     </div>
   );

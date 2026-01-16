@@ -32,7 +32,7 @@ export function CellToolbar({ onFilter, onReplace }: CellToolbarProps) {
         onClick={() => onFilter('exact')}
         title={isComparable ? 'Keep only this value (=)' : 'Keep only this value'}
       >
-        <span class="iconify" data-icon="carbon:filter"></span>
+        <span class="iconify" data-icon="carbon:filter" style="width: 24px; height: 24px;"></span>
         {isComparable && <span class={styles.floatingToolbar__operatorLabel}>=</span>}
       </button>
 
@@ -41,13 +41,17 @@ export function CellToolbar({ onFilter, onReplace }: CellToolbarProps) {
         onClick={() => onFilter('not')}
         title={isComparable ? 'Exclude this value (≠)' : 'Exclude this value'}
       >
-        <span class="iconify" data-icon="carbon:filter-remove"></span>
+        <span
+          class="iconify"
+          data-icon="carbon:filter-remove"
+          style="width: 24px; height: 24px;"
+        ></span>
       </button>
 
       <div class={styles.floatingToolbar__divider}></div>
 
       <button class={styles.floatingToolbar__button} onClick={onReplace} title="Replace this value">
-        <span class="iconify" data-icon="codicon:replace"></span>
+        <span class="iconify" data-icon="codicon:replace" style="width: 24px; height: 24px;"></span>
       </button>
 
       {isComparable && (
