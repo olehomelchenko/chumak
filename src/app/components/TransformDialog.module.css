@@ -513,3 +513,53 @@
     opacity: 0.7;
   }
 }
+
+.dateOptionsTable {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  background: var(--color-white);
+
+  thead {
+    background: var(--color-soft-bg);
+  }
+
+  th {
+    padding: 0.5rem 0.75rem;
+    text-align: left;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-midnight-blue);
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  tbody {
+    tr {
+      border-bottom: 1px solid var(--border-color);
+
+      &:last-child {
+        border-bottom: none;
+      }
+    }
+  }
+}
+
+.dateOptionRow {
+  transition: background-color var(--transition-fast);
+
+  &:hover {
+    background: var(--color-soft-bg);
+  }
+
+  &.unselected {
+    background: var(--color-soft-bg);
+    opacity: 0.7;
+  }
+
+  td {
+    padding: 0.5rem 0.75rem;
+    font-size: var(--font-size-sm);
+  }
+}

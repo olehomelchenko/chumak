@@ -230,12 +230,13 @@ export function initDialogState(this: ChumakApp, dialogName: string, section?: s
     const state = DialogStore.dateState;
     state.column.value = initialColumn;
     state.operation.value = 'extract';
-    state.extractParts.value = ['year'];
-    state.truncateUnits.value = ['month'];
+    state.extractParts.value = [];
+    state.truncateUnits.value = [];
     state.outputColumn.value = '';
     state.error.value = null;
 
-    DateHandlers.updateDatePreview();
+    // Don't update preview on init - wait for user to select parts
+    DateHandlers.clearDatePreview();
   } else if (dialogName === 'dedupe') {
     const state = DialogStore.dedupeState;
     state.selectedColumns.value = this.columns.map(() => true);

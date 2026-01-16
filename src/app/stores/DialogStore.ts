@@ -107,9 +107,10 @@ export class DialogStore {
   static dateState = {
     column: signal(''),
     operation: signal<DateDialogState['operation']>('extract'),
-    extractParts: signal<string[]>(['year']),
-    truncateUnits: signal<string[]>(['month']),
+    extractParts: signal<string[]>([]),
+    truncateUnits: signal<string[]>([]),
     outputColumn: signal(''),
+    removeOrigin: signal(false),
     error: signal<string | null>(null),
     previewData: signal<DateDialogState['previewData']>([]),
   };

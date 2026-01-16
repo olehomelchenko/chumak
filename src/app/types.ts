@@ -127,6 +127,7 @@ export interface DateDialogState {
   extractParts: string[];
   truncateUnits: string[];
   outputColumn: string;
+  removeOrigin: boolean;
   error: string | null;
   previewData: Array<{ input: string; output: any }>;
 }

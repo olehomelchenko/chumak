@@ -74,6 +74,38 @@ export function toggleDateSelection(value: string, event?: MouseEvent) {
   updateDatePreview();
 }
 
+export function toggleExtractSelection(value: string) {
+  const state = DialogStore.dateState;
+  const current = [...state.extractParts.value];
+
+  // Always toggle for checkbox clicks
+  if (current.includes(value)) {
+    const index = current.indexOf(value);
+    current.splice(index, 1);
+  } else {
+    current.push(value);
+  }
+
+  state.extractParts.value = current;
+  updateDatePreview();
+}
+
+export function toggleTruncateSelection(value: string) {
+  const state = DialogStore.dateState;
+  const current = [...state.truncateUnits.value];
+
+  // Always toggle for checkbox clicks
+  if (current.includes(value)) {
+    const index = current.indexOf(value);
+    current.splice(index, 1);
+  } else {
+    current.push(value);
+  }
+
+  state.truncateUnits.value = current;
+  updateDatePreview();
+}
+
 export function getDateOutputPlaceholder(): string {
   const { column, operation, extractParts, truncateUnits } = DialogStore.dateState;
   const colVal = column.value;
@@ -92,7 +124,7 @@ export function getDateOutputPlaceholder(): string {
 
 export function updateDatePreview() {
   const state = DialogStore.dateState;
-  const { column, operation, extractParts, truncateUnits, outputColumn } = state;
+  const { column, extractParts, truncateUnits } = state;
   const colVal = column.value;
   const data = AppStore.currentData.value;
 
@@ -101,53 +133,72 @@ export function updateDatePreview() {
     return;
   }
 
-  try {
-    const samples = data.slice(0, 20);
-    const colRef = HelperHandlers.quoteColumnRef.call(null as any, colVal);
-    const activeParts = operation.value === 'extract' ? extractParts.value : truncateUnits.value;
+  const extractPartsList = extractParts.value;
+  const truncateUnitsList = truncateUnits.value;
 
-    if (activeParts.length === 0) {
-      clearDatePreview();
-      return;
-    }
+  if (extractPartsList.length === 0 && truncateUnitsList.length === 0) {
+    clearDatePreview();
+    return;
+  }
+
+  try {
+    // Use preview row limit setting
+    const previewLimit = AppStore.uxSettings.value.preview.rowLimit;
+    const samples = data.slice(0, previewLimit);
+    const colRef = HelperHandlers.quoteColumnRef.call(null as any, colVal);
+    const outputCols: string[] = [];
 
     const previewRows = samples.map((row) => {
       const previewRow: any = { [colVal]: row[colVal] };
-      for (const part of activeParts) {
-        let outputName: string;
-        const outColVal = outputColumn.value;
-        if (activeParts.length === 1 && outColVal) {
-          outputName = outColVal;
-        } else {
-          outputName =
-            operation.value === 'extract' ? `${colVal}_${part}` : `${colVal}_${part}_trunc`;
-        }
 
-        let expression: string;
-        if (operation.value === 'extract') {
-          expression = `${part}(${colRef})`;
-        } else {
-          expression = `date_trunc(${colRef}, "${part}")`;
-        }
+      // Process extract parts
+      for (const part of extractPartsList) {
+        const outputName = `${colVal}_${part}`;
+        const expression = `${part}(${colRef})`;
 
         try {
           const ast = parseExpression(expression);
           const result = interpretAST(ast, row);
           previewRow[outputName] = result != null ? String(result) : '—';
+          if (!outputCols.includes(outputName)) outputCols.push(outputName);
         } catch {
           previewRow[outputName] = '(error)';
+          if (!outputCols.includes(outputName)) outputCols.push(outputName);
         }
       }
+
+      // Process truncate units
+      for (const unit of truncateUnitsList) {
+        const outputName = `${colVal}_${unit}_trunc`;
+        const expression = `date_trunc(${colRef}, "${unit}")`;
+
+        try {
+          const ast = parseExpression(expression);
+          const result = interpretAST(ast, row);
+          previewRow[outputName] = result != null ? String(result) : '—';
+          if (!outputCols.includes(outputName)) outputCols.push(outputName);
+        } catch {
+          previewRow[outputName] = '(error)';
+          if (!outputCols.includes(outputName)) outputCols.push(outputName);
+        }
+      }
+
       return previewRow;
     });
 
-    const outputCols = activeParts.map((part: string) => {
-      const outColVal = outputColumn.value;
-      if (activeParts.length === 1 && outColVal) return outColVal;
-      return operation.value === 'extract' ? `${colVal}_${part}` : `${colVal}_${part}_trunc`;
-    });
+    const operationNames: string[] = [];
+    if (extractPartsList.length > 0) {
+      operationNames.push(
+        `Extract ${extractPartsList.length} part${extractPartsList.length > 1 ? 's' : ''}`
+      );
+    }
+    if (truncateUnitsList.length > 0) {
+      operationNames.push(
+        `Truncate ${truncateUnitsList.length} unit${truncateUnitsList.length > 1 ? 's' : ''}`
+      );
+    }
 
-    DialogStore.previewState.title.value = `Date: ${operation.value === 'extract' ? 'Extract' : 'Truncate'}`;
+    DialogStore.previewState.title.value = `Date: ${operationNames.join(' + ')}`;
     DialogStore.previewState.stats.value = `Showing ${previewRows.length} sample rows`;
     DialogStore.previewState.columns.value = [colVal, ...outputCols];
     DialogStore.previewState.newColumns.value = outputCols;
@@ -165,9 +216,57 @@ export function clearDatePreview() {
   DialogStore.previewState.rows.value = [];
 }
 
+export function getDatePartPreview(
+  partValue: string,
+  operationType: 'extract' | 'truncate'
+): string {
+  const state = DialogStore.dateState;
+  const { column } = state;
+  const colVal = column.value;
+  const data = AppStore.currentData.value;
+
+  if (!colVal || !data?.length) {
+    return '—';
+  }
+
+  try {
+    // Use preview row limit setting
+    const previewLimit = AppStore.uxSettings.value.preview.rowLimit;
+    const searchData = data.slice(0, previewLimit);
+
+    // Find first non-null value in the column within preview limit
+    let sampleRow: any = null;
+    for (const row of searchData) {
+      if (row[colVal] != null) {
+        sampleRow = row;
+        break;
+      }
+    }
+
+    if (!sampleRow) {
+      return '—';
+    }
+
+    const colRef = HelperHandlers.quoteColumnRef.call(null as any, colVal);
+    let expression: string;
+
+    if (operationType === 'extract') {
+      expression = `${partValue}(${colRef})`;
+    } else {
+      expression = `date_trunc(${colRef}, "${partValue}")`;
+    }
+
+    const ast = parseExpression(expression);
+    const result = interpretAST(ast, sampleRow);
+    return result != null ? String(result) : '—';
+  } catch {
+    return '(error)';
+  }
+}
+
 export async function applyDateTransform(callbacks: any) {
   const state = DialogStore.dateState;
-  const { column, operation, extractParts, truncateUnits, outputColumn } = state;
+  const { column, extractParts, truncateUnits, removeOrigin } = state;
   const colVal = column.value;
 
   if (!colVal) {
@@ -175,48 +274,67 @@ export async function applyDateTransform(callbacks: any) {
     return;
   }
 
+  const extractPartsList = extractParts.value;
+  const truncateUnitsList = truncateUnits.value;
+
+  if (extractPartsList.length === 0 && truncateUnitsList.length === 0) {
+    await NotificationHandlers.alert.call(
+      null as any,
+      'Please select at least one date part or unit to extract/truncate'
+    );
+    return;
+  }
+
   const colRef = HelperHandlers.quoteColumnRef.call(null as any, colVal);
-  const activeParts = operation.value === 'extract' ? extractParts.value : truncateUnits.value;
   const deriveSpecs: Record<string, string> = {};
-
   const appCols = AppStore.columns.value;
+  const columnsToCheck: string[] = [];
 
-  for (const part of activeParts) {
-    let partOutputName: string;
-    const outColVal = outputColumn.value;
-    if (activeParts.length === 1 && outColVal) {
-      partOutputName = outColVal;
-    } else {
-      partOutputName =
-        operation.value === 'extract' ? `${colVal}_${part}` : `${colVal}_${part}_trunc`;
-    }
+  // Process extract parts
+  for (const part of extractPartsList) {
+    const partOutputName = `${colVal}_${part}`;
+    columnsToCheck.push(partOutputName);
+    deriveSpecs[partOutputName] = `${part}(${colRef})`;
+  }
 
-    // Check for existence
-    if (appCols.includes(partOutputName) && partOutputName !== colVal) {
-      if (
-        !(await NotificationHandlers.confirm.call(
-          null as any,
-          `Column "${partOutputName}" already exists. It will be overwritten. Continue?`
-        ))
-      )
-        return;
-    }
+  // Process truncate units
+  for (const unit of truncateUnitsList) {
+    const unitOutputName = `${colVal}_${unit}_trunc`;
+    columnsToCheck.push(unitOutputName);
+    deriveSpecs[unitOutputName] = `date_trunc(${colRef}, "${unit}")`;
+  }
 
-    if (operation.value === 'extract') {
-      deriveSpecs[partOutputName] = `${part}(${colRef})`;
-    } else {
-      deriveSpecs[partOutputName] = `date_trunc(${colRef}, "${part}")`;
+  // Check for existing columns
+  const existingCols = columnsToCheck.filter((name) => appCols.includes(name) && name !== colVal);
+  if (existingCols.length > 0) {
+    const message =
+      existingCols.length === 1
+        ? `Column "${existingCols[0]}" already exists. It will be overwritten. Continue?`
+        : `Columns ${existingCols.map((c) => `"${c}"`).join(', ')} already exist. They will be overwritten. Continue?`;
+    if (!(await NotificationHandlers.confirm.call(null as any, message))) {
+      return;
     }
   }
 
-  const opName =
-    activeParts.length === 1
-      ? operation.value === 'extract'
-        ? `Extract ${activeParts[0]}`
-        : `Truncate to ${activeParts[0]}`
-      : operation.value === 'extract'
-        ? `Extract ${activeParts.length} parts`
-        : `Truncate ${activeParts.length} units`;
+  // Build operation name
+  const operationNames: string[] = [];
+  if (extractPartsList.length > 0) {
+    operationNames.push(
+      `Extract ${extractPartsList.length} part${extractPartsList.length > 1 ? 's' : ''}`
+    );
+  }
+  if (truncateUnitsList.length > 0) {
+    operationNames.push(
+      `Truncate ${truncateUnitsList.length} unit${truncateUnitsList.length > 1 ? 's' : ''}`
+    );
+  }
+  const opName = operationNames.join(' + ');
 
+  // Apply the transform
   await StepService.runTransform(opName, { derive: deriveSpecs }, callbacks);
+
+  // If removeOrigin is checked, apply a separate remove step
+  if (removeOrigin.value) {
+    await StepService.runTransform(`Remove column "${colVal}"`, { remove: [colVal] }, callbacks);
+  }
 }
