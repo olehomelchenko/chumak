@@ -54,9 +54,12 @@ export const EDAEngine = {
     const nonNullValues = values.filter((v) => v !== null && v !== undefined && v !== '');
     const uniqueValues = new Set(nonNullValues);
 
+    // Normalize numeric types: 'float' and 'integer' -> 'number' for EDA stats
+    const normalizedType = type === 'float' || type === 'integer' ? 'number' : type;
+
     const baseStats: BaseStats = {
       column,
-      type,
+      type: normalizedType,
       totalCount,
       nullCount,
       nullPercentage: ((nullCount / totalCount) * 100).toFixed(1),

@@ -10,12 +10,13 @@ import Papa from 'papaparse';
 export class ExportService {
   /**
    * Exports the current data as a CSV file
+   * @returns The CSV string (for testing purposes), or undefined if no data
    */
-  static async exportCSV(alert: (msg: string) => Promise<any>) {
+  static async exportCSV(alert: (msg: string) => Promise<any>): Promise<string | undefined> {
     const data = AppStore.currentData.value;
     if (!data || data.length === 0) {
       await alert('No data to export');
-      return;
+      return undefined;
     }
 
     const start = performance.now();
@@ -36,9 +37,11 @@ export class ExportService {
       document.body.removeChild(link);
 
       console.log(`⚡ Export CSV — ${(performance.now() - start).toFixed(1)}ms — ${filename}`);
+      return csv;
     } catch (error: any) {
       console.error('CSV export error:', error);
       await alert('Failed to export CSV: ' + error.message);
+      return undefined;
     }
   }
 

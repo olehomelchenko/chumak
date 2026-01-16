@@ -129,10 +129,11 @@ David,2000,9000,5000`;
     expect(firstRow.profit).toBe(firstRow.revenue - firstRow.cost);
 
     // Step 4: Export CSV
-    const exportedCsv = ExportService.exportCSV((msg) => app.alert(msg));
+    const exportedCsv = await ExportService.exportCSV((msg) => app.alert(msg));
 
     // Verify export format
     expect(exportedCsv).toBeTruthy();
+    expect(typeof exportedCsv).toBe('string');
     const exportedLines = exportedCsv.split('\n');
     expect(exportedLines.length).toBeGreaterThan(1); // Header + data rows
 

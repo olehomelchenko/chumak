@@ -86,7 +86,8 @@ describe('Interaction Handlers UX', () => {
 
       expect(AppStore.selectedColumn.value).toBe('age');
       expect(AppStore.edaStats.value).toBeDefined();
-      expect(AppStore.edaStats.value?.type).toBe('integer');
+      // Note: integer and float types are normalized to 'number' in EDA stats
+      expect(AppStore.edaStats.value?.type).toBe('number');
     });
 
     it('should toggle column selection when same column is clicked twice', () => {
