@@ -31,7 +31,7 @@
   width: 0;
   pointer-events: none;
   z-index: var(--z-index-slide-panel);
-  transition: width 0.3s ease;
+  overflow: hidden;
 
   &.open {
     width: 600px;
@@ -52,7 +52,6 @@
   background: rgba(0, 0, 0, 0.3);
   pointer-events: auto;
   z-index: var(--z-index-slide-panel-backdrop);
-  transition: left 0.3s ease;
 
   &.blurred {
     backdrop-filter: blur(4px);
@@ -74,7 +73,6 @@
   display: flex;
   flex-direction: column;
   transform: translateX(-100%);
-  transition: transform 0.3s ease;
   pointer-events: auto;
   z-index: 50;
   box-shadow: 4px 0 16px rgba(0, 0, 0, 0.1);

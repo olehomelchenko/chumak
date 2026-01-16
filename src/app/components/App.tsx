@@ -191,91 +191,91 @@ export function App({ app }: AppProps) {
         </main>
 
         {/* Slide Panel Shell */}
-        <div
-          class={`${styles.slidePanelShell} ${isSlidePanel(activeDialog) ? styles.open : ''} ${hasPreview ? styles.hasPreview : ''} ${activeDialog === 'dedupe' ? styles.dedupe : ''}`}
-        >
-          {/* Backdrop */}
-          {isSlidePanel(activeDialog) && (
+        {isSlidePanel(activeDialog) && (
+          <div
+            class={`${styles.slidePanelShell} ${styles.open} ${hasPreview ? styles.hasPreview : ''} ${activeDialog === 'dedupe' ? styles.dedupe : ''}`}
+          >
+            {/* Backdrop */}
             <div
               class={`${styles.backdrop} ${hasPreview ? styles.blurred : ''} ${activeDialog === 'dedupe' ? styles.dedupe : ''}`}
               onClick={() => app.closeDialog()}
             />
-          )}
 
-          {/* Panel */}
-          <div class={`${styles.slidePanel} ${isSlidePanel(activeDialog) ? styles.open : ''}`}>
-            <div class={styles.slidePanelHeader}>
-              <h3>{dialogTitle}</h3>
-              <button onClick={() => app.closeDialog()} class={styles.closeButton}>
-                ×
-              </button>
-            </div>
+            {/* Panel */}
+            <div class={`${styles.slidePanel} ${styles.open}`}>
+              <div class={styles.slidePanelHeader}>
+                <h3>{dialogTitle}</h3>
+                <button onClick={() => app.closeDialog()} class={styles.closeButton}>
+                  ×
+                </button>
+              </div>
 
-            <div class={styles.slidePanelContent}>
-              <div style={{ display: activeDialog === 'filter' ? 'block' : 'none' }}>
-                <FilterDialog />
+              <div class={styles.slidePanelContent}>
+                <div style={{ display: activeDialog === 'filter' ? 'block' : 'none' }}>
+                  <FilterDialog />
+                </div>
+                <div style={{ display: activeDialog === 'derive' ? 'block' : 'none' }}>
+                  <DeriveDialog />
+                </div>
+                <div style={{ display: activeDialog === 'regexpMatch' ? 'block' : 'none' }}>
+                  <RegexpMatchDialog />
+                </div>
+                <div style={{ display: activeDialog === 'regexpExtract' ? 'block' : 'none' }}>
+                  <RegexpExtractDialog />
+                </div>
+                <div style={{ display: activeDialog === 'date' ? 'block' : 'none' }}>
+                  <DateDialog />
+                </div>
+                <div style={{ display: activeDialog === 'dedupe' ? 'block' : 'none' }}>
+                  <DedupeDialog />
+                </div>
+                <div style={{ display: activeDialog === 'sort' ? 'block' : 'none' }}>
+                  <SortDialog />
+                </div>
+                <div style={{ display: activeDialog === 'sliceRows' ? 'block' : 'none' }}>
+                  <SliceRowsDialog />
+                </div>
+                <div style={{ display: activeDialog === 'index' ? 'block' : 'none' }}>
+                  <IndexDialog />
+                </div>
+                <div style={{ display: activeDialog === 'fold' ? 'block' : 'none' }}>
+                  <UnpivotDialog />
+                </div>
+                <div style={{ display: activeDialog === 'pivot' ? 'block' : 'none' }}>
+                  <PivotDialog />
+                </div>
+                <div style={{ display: activeDialog === 'replace' ? 'block' : 'none' }}>
+                  <ReplaceDialog />
+                </div>
+                <div style={{ display: activeDialog === 'split' ? 'block' : 'none' }}>
+                  <SplitDialog />
+                </div>
+                <div style={{ display: activeDialog === 'join' ? 'block' : 'none' }}>
+                  <JoinDialog />
+                </div>
+                <div style={{ display: activeDialog === 'aggregate' ? 'block' : 'none' }}>
+                  <AggregateDialog />
+                </div>
+                <div style={{ display: activeDialog === 'column-editor' ? 'block' : 'none' }}>
+                  <ColumnEditorDialog />
+                </div>
               </div>
-              <div style={{ display: activeDialog === 'derive' ? 'block' : 'none' }}>
-                <DeriveDialog />
-              </div>
-              <div style={{ display: activeDialog === 'regexpMatch' ? 'block' : 'none' }}>
-                <RegexpMatchDialog />
-              </div>
-              <div style={{ display: activeDialog === 'regexpExtract' ? 'block' : 'none' }}>
-                <RegexpExtractDialog />
-              </div>
-              <div style={{ display: activeDialog === 'date' ? 'block' : 'none' }}>
-                <DateDialog />
-              </div>
-              <div style={{ display: activeDialog === 'dedupe' ? 'block' : 'none' }}>
-                <DedupeDialog />
-              </div>
-              <div style={{ display: activeDialog === 'sort' ? 'block' : 'none' }}>
-                <SortDialog />
-              </div>
-              <div style={{ display: activeDialog === 'sliceRows' ? 'block' : 'none' }}>
-                <SliceRowsDialog />
-              </div>
-              <div style={{ display: activeDialog === 'index' ? 'block' : 'none' }}>
-                <IndexDialog />
-              </div>
-              <div style={{ display: activeDialog === 'fold' ? 'block' : 'none' }}>
-                <UnpivotDialog />
-              </div>
-              <div style={{ display: activeDialog === 'pivot' ? 'block' : 'none' }}>
-                <PivotDialog />
-              </div>
-              <div style={{ display: activeDialog === 'replace' ? 'block' : 'none' }}>
-                <ReplaceDialog />
-              </div>
-              <div style={{ display: activeDialog === 'split' ? 'block' : 'none' }}>
-                <SplitDialog />
-              </div>
-              <div style={{ display: activeDialog === 'join' ? 'block' : 'none' }}>
-                <JoinDialog />
-              </div>
-              <div style={{ display: activeDialog === 'aggregate' ? 'block' : 'none' }}>
-                <AggregateDialog />
-              </div>
-              <div style={{ display: activeDialog === 'column-editor' ? 'block' : 'none' }}>
-                <ColumnEditorDialog />
-              </div>
-            </div>
 
-            <div class={styles.slidePanelFooter}>
-              <button class="button button--secondary" onClick={() => app.closeDialog()}>
-                Cancel
-              </button>
-              <button
-                class="button button--primary"
-                onClick={() => app.applyActiveTransform()}
-                disabled={dialogError}
-              >
-                {buttonText}
-              </button>
+              <div class={styles.slidePanelFooter}>
+                <button class="button button--secondary" onClick={() => app.closeDialog()}>
+                  Cancel
+                </button>
+                <button
+                  class="button button--primary"
+                  onClick={() => app.applyActiveTransform()}
+                  disabled={dialogError}
+                >
+                  {buttonText}
+                </button>
+              </div>
             </div>
           </div>
-        </div>
+        )}
 
         {/* Preview Panel Shell */}
         {hasPreview && isSlidePanel(activeDialog) && (
