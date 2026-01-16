@@ -763,6 +763,15 @@ export class ChumakApp implements AppState {
   promptPaste() {
     return ImportHandlers.promptPaste.call(this);
   }
+  handleUploadClick() {
+    const fileInput = document.getElementById('file-input') as HTMLInputElement;
+    if (fileInput) {
+      fileInput.click();
+    }
+  }
+  handlePasteClick() {
+    return this.promptPaste();
+  }
   showImportDialog(file: File) {
     return ImportHandlers.showImportDialog.call(this, file);
   }
