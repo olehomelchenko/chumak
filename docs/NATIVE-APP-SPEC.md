@@ -976,7 +976,559 @@ SET enable_progress_bar = true;
 
 ---
 
-## 14. Future Considerations
+## 14. Electron Development Path
+
+> **Purpose**: Implementation guide for transforming Chumak browser app into an Electron desktop application with DuckDB + Parquet backend.
+
+### 14.1 Overview
+
+The Electron path allows reusing the existing TypeScript/Preact codebase while adding native desktop capabilities. All data transformation logic remains in JavaScript/TypeScript, making it the most straightforward migration path from the browser version.
+
+**Key Advantage**: Single language (TypeScript), minimal code rewrites, faster development iteration.
+
+**Architecture Changes**:
+
+- Add Electron main/renderer process structure
+- Replace Arquero with DuckDB (SQL generation instead of JS operations)
+- Replace IndexedDB with Parquet file-based storage
+- Add native file dialogs and OS integration
+
+---
+
+### 14.2 Development Phases
+
+#### Phase 1: Electron Infrastructure Setup
+
+**Objective**: Create Electron shell that loads existing Preact app.
+
+**Tasks**:
+
+1. **Install Electron Dependencies**
+   - Add `electron` and `electron-builder` to `package.json`
+   - Configure Vite to build for Electron (separate config for main/renderer)
+
+2. **Create Main Process** (`electron/main.js`)
+   - Window management (create, close, minimize)
+   - Menu bar with File/Edit/Help menus
+   - Native file dialogs (open project, save project)
+   - IPC handlers for file system operations
+   - Application lifecycle (quit on all windows closed)
+
+3. **Create Preload Script** (`electron/preload.js`)
+   - Expose safe IPC APIs to renderer
+   - Bridge between main process (Node.js) and renderer (Preact app)
+
+4. **Update Build Configuration**
+   - Configure `electron-builder` for cross-platform builds (macOS, Windows, Linux)
+   - Set up code signing and notarization for macOS
+   - Configure app icons and metadata
+
+5. **Development Workflow**
+   - `npm run dev` starts Electron with hot reload
+   - Main process restart on changes
+   - Renderer hot module replacement (existing Vite HMR)
+
+**Files to Create**:
+
+- `electron/main.js` - Main process entry point
+- `electron/preload.js` - Preload script for IPC bridge
+- `electron-builder.yml` - Build configuration
+- Update `vite.config.ts` - Add Electron build targets
+
+---
+
+#### Phase 2: DuckDB Integration
+
+**Objective**: Replace Arquero transformation engine with DuckDB SQL execution.
+
+**Tasks**:
+
+1. **Install DuckDB Bindings**
+   - Add `duckdb` npm package (Node.js bindings)
+   - Initialize DuckDB connection in main process
+   - Manage database connections per project/model
+
+2. **Create SQL Generation Layer** (`src/core/sql-generator.ts`)
+   - Translate each transform type to DuckDB SQL
+   - Handle all 13+ transform types (select, filter, derive, join, etc.)
+   - Generate optimized SQL with proper escaping and type casting
+
+3. **Implement Expression-to-SQL Translator** (`src/core/expression-to-sql.ts`)
+   - Convert validated AST (from `jsep`) to SQL expressions
+   - Map Chumak functions to DuckDB functions (see §9)
+   - Handle operators, null coalescing, ternary conditionals
+   - Escape column names and handle special characters
+
+4. **Rewrite Transform Execution** (`src/core/transforms.ts`)
+   - Replace `applyTransform()` to generate SQL instead of Arquero calls
+   - Send SQL to main process via IPC
+   - Receive results and convert to application data format
+   - Maintain transform result structure for UI compatibility
+
+5. **Update Step Service** (`src/app/services/StepService.ts`)
+   - Execute SQL queries instead of Arquero operations
+   - Handle async query execution with progress callbacks
+   - Error handling and validation before SQL execution
+
+**Key Changes**:
+
+**Before (Arquero)**:
+
+```typescript
+const table = aq.from(currentData);
+const resultTable = table.filter((row) => row.sales > 1000);
+const data = resultTable.objects();
+```
+
+**After (DuckDB)**:
+
+```typescript
+const sql = generateFilterSQL('sales > 1000', columns, schema);
+const data = await invoke('execute_query', { sql, tableId });
+```
+
+**Expression System**:
+
+- ✅ Keep `jsep` parser (frontend)
+- ✅ Keep `ast-validator.ts` (frontend validation)
+- ⚠️ Replace `ast-interpreter.ts` → `expression-to-sql.ts` (generate SQL, don't execute JS)
+
+**Files to Modify**:
+
+- `src/core/transforms.ts` - Complete rewrite (SQL generation)
+- `src/app/services/StepService.ts` - IPC calls instead of direct execution
+- `src/core/schema-engine.ts` - Infer types from SQL result metadata
+
+**Files to Create**:
+
+- `src/core/sql-generator.ts` - Transform → SQL translation
+- `src/core/expression-to-sql.ts` - AST → SQL conversion
+- `electron/duckdb-handler.js` - DuckDB connection management in main process
+
+---
+
+#### Phase 3: Parquet Storage Layer
+
+**Objective**: Replace IndexedDB with file-based Parquet storage for projects.
+
+**Tasks**:
+
+1. **Project File Structure**
+   - Implement `.chumak` directory format (see §10.1)
+   - Create `manifest.json` for project metadata
+   - Store sources as `sources/*.parquet` files
+   - Store model definitions as `models/*.json` files
+   - Optional: Cache intermediate pipeline results as Parquet
+
+2. **Create Project Manager** (`src/core/project-manager.ts`)
+   - `createProject(name, path)` - Initialize new project directory
+   - `openProject(path)` - Load manifest and metadata
+   - `saveProject()` - Write all changes to disk
+   - `exportProject(path)` - Copy project to new location
+
+3. **Rewrite Storage Layer** (`src/core/storage.ts`)
+   - Replace IndexedDB operations with file system operations
+   - Use Electron's `fs` API (Node.js) or IPC to main process
+   - Read/write Parquet via DuckDB (`CREATE TABLE FROM 'file.parquet'`)
+   - Handle file locking and concurrent access
+
+4. **Implement Parquet I/O** (`src/core/parquet-io.ts`)
+   - `writeSourceToParquet(source, path)` - Convert source data to Parquet
+   - `readParquetToSource(path)` - Load Parquet file as source
+   - `exportResultToParquet(data, schema, path)` - Export pipeline results
+   - Handle type preservation and schema metadata
+
+5. **Update Import/Export Services**
+   - `ImportService` - Save imported CSV/JSON as Parquet in project
+   - `ExportService` - Export to CSV/JSON/Parquet formats
+   - Native file dialogs via Electron APIs
+
+6. **Project Lifecycle Management**
+   - New Project (creates `.chumak` directory)
+   - Open Project (file picker → load manifest)
+   - Save Project (write all changes)
+   - Save As (copy project to new location)
+   - Recent Projects (track in user preferences)
+
+**Files to Modify**:
+
+- `src/core/storage.ts` - File system instead of IndexedDB
+- `src/app/services/PersistenceService.ts` - Project-based operations
+- `src/app/services/ImportService.ts` - Write to Parquet
+- `src/app/services/ExportService.ts` - Export from Parquet
+
+**Files to Create**:
+
+- `src/core/project-manager.ts` - Project file system management
+- `src/core/parquet-io.ts` - Parquet read/write utilities
+
+---
+
+#### Phase 4: Expression System Migration
+
+**Objective**: Translate user expressions to SQL while maintaining security and validation.
+
+**Tasks**:
+
+1. **AST-to-SQL Translation** (`src/core/expression-to-sql.ts`)
+   - Traverse validated AST and generate SQL fragments
+   - Map operators: `==` → `=`, `&&` → `AND`, `??` → `COALESCE`, etc.
+   - Map functions: `upper()` → `UPPER()`, `len()` → `LENGTH()`, etc.
+   - Handle ternary: `a ? b : c` → `CASE WHEN a THEN b ELSE c END`
+   - Column name escaping and special characters
+
+2. **Function Mapping Implementation**
+   - Create lookup table for all 31 functions (see §4.3)
+   - Handle type-specific translations (date functions, regex, etc.)
+   - DuckDB-specific syntax differences (1-indexed `SUBSTRING`, etc.)
+
+3. **Expression Validation Updates**
+   - Keep `ast-validator.ts` as-is (still validates in frontend)
+   - Add SQL validation (syntax check before execution)
+   - Test expressions against DuckDB before applying transform
+
+4. **Error Handling**
+   - Translate DuckDB SQL errors back to user-friendly messages
+   - Preserve error position for UI highlighting
+   - Handle type mismatches and invalid expressions gracefully
+
+**Translation Examples** (from §9.1):
+
+| Chumak Expression                   | DuckDB SQL                                  |
+| ----------------------------------- | ------------------------------------------- |
+| `sales > 1000 && region == "North"` | `sales > 1000 AND region = 'North'`         |
+| `revenue - cost`                    | `revenue - cost`                            |
+| `status ?? "unknown"`               | `COALESCE(status, 'unknown')`               |
+| `active ? "Yes" : "No"`             | `CASE WHEN active THEN 'Yes' ELSE 'No' END` |
+| `upper(trim(name))`                 | `UPPER(TRIM(name))`                         |
+| `substring(s, 0, 5)`                | `SUBSTRING(s, 1, 5)` (1-indexed)            |
+
+**Files to Modify**:
+
+- `src/core/ast-validator.ts` - Add SQL compatibility checks (optional)
+
+**Files to Create**:
+
+- `src/core/expression-to-sql.ts` - Complete AST-to-SQL translator
+- `src/core/sql-error-formatter.ts` - User-friendly SQL error messages
+
+---
+
+#### Phase 5: Large Dataset Handling
+
+**Objective**: Optimize for datasets larger than browser memory limits (100M+ rows).
+
+**Tasks**:
+
+1. **Lazy Loading Implementation**
+   - Don't load full dataset into memory initially
+   - Query only visible rows (pagination with `LIMIT`/`OFFSET`)
+   - Virtual scrolling in data table component
+
+2. **Pagination Strategy**
+   - Server-side pagination via DuckDB queries
+   - Cache current page in application state
+   - Update pagination when filters/transforms change
+
+3. **Result Streaming** (for large exports)
+   - Stream query results in chunks via IPC
+   - Process chunks incrementally in renderer
+   - Progress indicators for long-running queries
+
+4. **Performance Optimizations**
+   - Column pruning (only query visible columns)
+   - Incremental computation (recompute from changed step only)
+   - Result caching (cache computed steps as Parquet files)
+   - DuckDB configuration tuning (memory limit, threads)
+
+5. **Update Data Table Component** (`src/app/components/DataTable.tsx`)
+   - Virtual scrolling for large row counts
+   - Lazy column rendering
+   - Progressive data loading
+
+**DuckDB Configuration**:
+
+```typescript
+await connection.query(`
+  SET memory_limit = '4GB';
+  SET threads = 4;
+  SET enable_progress_bar = true;
+`);
+```
+
+**Files to Modify**:
+
+- `src/app/components/DataTable.tsx` - Virtual scrolling
+- `src/app/services/StepService.ts` - Pagination-aware queries
+- `src/app/stores/AppStore.ts` - Lazy data loading state
+
+**Files to Create**:
+
+- `src/core/query-optimizer.ts` - Column pruning and query optimization
+- `src/core/result-cache.ts` - Pipeline result caching strategy
+
+---
+
+#### Phase 6: Native UI Integration
+
+**Objective**: Add native desktop features and polish.
+
+**Tasks**:
+
+1. **Application Menu**
+   - File menu: New Project, Open, Save, Save As, Recent Projects, Exit
+   - Edit menu: Undo/Redo (if implemented), Preferences
+   - View menu: Zoom, Fullscreen
+   - Help menu: Documentation, About
+
+2. **Native Dialogs**
+   - File picker for opening projects (`dialog.showOpenDialog`)
+   - Save dialog for exporting (`dialog.showSaveDialog`)
+   - Replace browser file input with native dialogs
+
+3. **Keyboard Shortcuts**
+   - `Cmd/Ctrl+S` - Save project
+   - `Cmd/Ctrl+O` - Open project
+   - `Cmd/Ctrl+N` - New project
+   - `Cmd/Ctrl+W` - Close window
+   - Standard cut/copy/paste
+
+4. **Window Management**
+   - Window controls (native on macOS/Linux, custom on Windows if desired)
+   - Window state persistence (size, position, maximized)
+   - Multiple windows support (if needed for multi-project)
+
+5. **System Integration**
+   - Dock/menu bar icons
+   - Notification system (optional)
+   - Recent files in system menu
+   - File associations (`.chumak` file extension)
+
+6. **Settings Storage**
+   - Use Electron's `app.getPath('userData')` for settings
+   - Store user preferences (theme, performance settings)
+   - Persistent window state
+
+**Files to Modify**:
+
+- `src/app/handlers/import-handlers.ts` - Use Electron dialog APIs
+- `src/app/handlers/export-handlers.ts` - Use Electron save dialog
+- `src/chumak-app.ts` - Add menu handlers and keyboard shortcuts
+
+**Files to Create**:
+
+- `electron/menu.js` - Application menu definition
+- `electron/shortcuts.js` - Global keyboard shortcuts
+- `src/core/electron-bridge.ts` - Type-safe IPC wrapper
+
+---
+
+#### Phase 7: Type System & Schema Inference
+
+**Objective**: Leverage DuckDB's native type system while maintaining Chumak's schema abstraction.
+
+**Tasks**:
+
+1. **Type Inference via DuckDB**
+   - Use DuckDB `DESCRIBE` or result metadata for type detection
+   - Map DuckDB types to Chumak types (see §2.1)
+   - Handle type inference on import (CSV → Parquet)
+
+2. **Schema Propagation**
+   - Extract schema from SQL query results
+   - Update schema metadata through pipeline
+   - Maintain backward compatibility with existing schema format
+
+3. **Type Casting**
+   - Use DuckDB `CAST` functions for type conversion
+   - Handle conversion errors (set to `NULL`)
+   - Preserve type information in model definitions
+
+4. **Update Schema Engine** (`src/core/schema-engine.ts`)
+   - Query DuckDB for column types instead of inferring from JS arrays
+   - Maintain existing `ColumnSchema` interface for UI compatibility
+
+**Files to Modify**:
+
+- `src/core/schema-engine.ts` - DuckDB-based type inference
+
+---
+
+#### Phase 8: Testing & Quality Assurance
+
+**Objective**: Ensure Electron app maintains feature parity and reliability.
+
+**Tasks**:
+
+1. **Testing Infrastructure**
+   - Adapt Vitest tests for Electron environment
+   - Test SQL generation (unit tests for `sql-generator.ts`)
+   - Integration tests with real DuckDB queries
+   - Mock Electron APIs for unit tests
+
+2. **Cross-Platform Testing**
+   - Test on macOS, Windows, Linux
+   - Verify file path handling across platforms
+   - Test native dialogs on each OS
+   - Verify Parquet file compatibility
+
+3. **Performance Testing**
+   - Large dataset benchmarks (1M, 10M, 100M rows)
+   - Memory usage profiling
+   - Query execution time measurements
+   - UI responsiveness with large datasets
+
+4. **User Experience Testing**
+   - Project file workflow (create, open, save, save as)
+   - Import/export functionality
+   - Transform execution and error handling
+   - UI responsiveness and virtual scrolling
+
+**Test Files**:
+
+- `src/core/sql-generator.test.ts` - SQL generation tests
+- `src/core/expression-to-sql.test.ts` - Expression translation tests
+- `src/core/project-manager.test.ts` - Project file operations
+- `src/app/e2e.test.ts` - End-to-end Electron app tests
+
+---
+
+### 14.3 What Stays the Same
+
+**Reusable Components** (minimal or no changes):
+
+- ✅ All Preact UI components (`src/app/components/`)
+- ✅ CSS modules and styling (`src/app/components/*.module.css`)
+- ✅ State management (Preact Signals, AppStore)
+- ✅ Dialog components and layouts
+- ✅ Vega-Lite charts and EDA panels
+- ✅ Theme system (Chumak, Blues themes)
+- ✅ Expression parser (`jsep` - `src/core/expression-parser.ts`)
+- ✅ AST validator (`src/core/ast-validator.ts` - security checks)
+- ✅ Transform JSON specifications (no changes)
+- ✅ Error formatting and user feedback systems
+
+**Requires Adaptation**:
+
+- ⚠️ Transform execution (Arquero → DuckDB SQL)
+- ⚠️ Storage layer (IndexedDB → Parquet files)
+- ⚠️ Expression interpreter (JS execution → SQL generation)
+- ⚠️ Import/export dialogs (browser file API → Electron dialogs)
+
+---
+
+### 14.4 Technical Dependencies
+
+**New Dependencies to Add**:
+
+```json
+{
+  "dependencies": {
+    "electron": "^latest",
+    "duckdb": "^latest"
+  },
+  "devDependencies": {
+    "electron-builder": "^latest"
+  }
+}
+```
+
+**Optional Dependencies**:
+
+- `parquet-wasm` or native Parquet libraries (alternative to DuckDB Parquet support)
+- `@electron/remote` (if remote module needed, though discouraged)
+
+---
+
+### 14.5 Project Structure
+
+**Directory Layout**:
+
+```
+chumak/
+├── electron/
+│   ├── main.js              # Main process
+│   ├── preload.js           # Preload script
+│   ├── menu.js              # Menu definitions
+│   └── duckdb-handler.js    # DuckDB connection management
+├── src/
+│   ├── core/
+│   │   ├── transforms.ts        # SQL generation (rewrite)
+│   │   ├── sql-generator.ts     # NEW: Transform → SQL
+│   │   ├── expression-to-sql.ts # NEW: AST → SQL
+│   │   ├── project-manager.ts   # NEW: Project file system
+│   │   ├── parquet-io.ts        # NEW: Parquet I/O
+│   │   └── storage.ts           # Rewrite: File system
+│   └── app/                    # Existing Preact app (mostly unchanged)
+├── electron-builder.yml     # Build configuration
+└── package.json
+```
+
+---
+
+### 14.6 Key Implementation Challenges
+
+1. **SQL Generation Complexity**
+   - Some transforms require complex SQL (pivot, window functions)
+   - Expression-to-SQL translation for all function types
+   - Handling edge cases and DuckDB-specific syntax
+
+2. **Large Dataset Performance**
+   - IPC overhead for large result sets (mitigate with streaming)
+   - Virtual scrolling implementation in data table
+   - Memory management for long-running queries
+
+3. **Type System Mapping**
+   - Ensuring Chumak types map correctly to DuckDB types
+   - Type inference from SQL results vs. JavaScript arrays
+   - Handling type conversion errors gracefully
+
+4. **Project File Format**
+   - Defining `.chumak` project structure and manifest schema
+   - Handling project migration/versioning
+   - Concurrent access and file locking (if multiple windows)
+
+5. **Error Handling**
+   - Translating DuckDB SQL errors to user-friendly messages
+   - Maintaining error position information for UI highlighting
+   - Graceful degradation when queries fail
+
+---
+
+### 14.7 Development Workflow
+
+**Development Mode**:
+
+```bash
+npm run dev          # Start Vite dev server + Electron
+```
+
+**Main Process Changes**:
+
+- Restart required (manual or via nodemon/watch)
+
+**Renderer Changes**:
+
+- Hot module replacement (Vite HMR works as-is)
+
+**Build for Production**:
+
+```bash
+npm run build        # Build renderer (Vite)
+npm run build:electron  # Build Electron app (electron-builder)
+```
+
+**Platform-Specific Builds**:
+
+```bash
+npm run build:mac    # macOS .app bundle
+npm run build:win    # Windows .exe installer
+npm run build:linux  # Linux AppImage/deb/rpm
+```
+
+---
+
+## 15. Future Considerations
 
 ### 14.1 Potential Extensions
 
@@ -1002,7 +1554,7 @@ SET enable_progress_bar = true;
 
 ---
 
-## Appendix A: Complete Transform Reference
+## 16. Appendix A: Complete Transform Reference
 
 | Transform   | Category    | Key Params              |
 | ----------- | ----------- | ----------------------- |
@@ -1025,7 +1577,7 @@ SET enable_progress_bar = true;
 
 ---
 
-## Appendix B: Complete Function Reference
+## 17. Appendix B: Complete Function Reference
 
 | Category        | Functions                                                                        |
 | --------------- | -------------------------------------------------------------------------------- |
@@ -1043,3 +1595,4 @@ SET enable_progress_bar = true;
 
 _Document generated: 2026-01-14_
 _Based on Chumak browser version analysis_
+_Updated: Added Electron development path (Section 14)_
