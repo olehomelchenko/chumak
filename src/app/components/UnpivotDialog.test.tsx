@@ -25,7 +25,9 @@ describe('UnpivotDialog', () => {
 
     expect(screen.getByDisplayValue('Year')).toBeDefined();
     expect(screen.getByDisplayValue('Sales')).toBeDefined();
-    expect(screen.getByText('Columns to Keep (as index)').className).toContain('button--primary');
+    // Check that the button has the active class (CSS module class contains "active")
+    const keepButton = screen.getByText('Columns to Keep (as index)').closest('button');
+    expect(keepButton?.className).toContain('active');
   });
 
   it('updates names when input changes', () => {

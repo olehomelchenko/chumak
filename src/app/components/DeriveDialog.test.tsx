@@ -1,4 +1,4 @@
-import { render, screen, fireEvent } from '@testing-library/preact';
+import { render, screen, fireEvent, waitFor } from '@testing-library/preact';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { DeriveDialog } from './DeriveDialog';
 import { DialogStore } from '../stores/DialogStore';
@@ -40,11 +40,16 @@ describe('DeriveDialog', () => {
     expect((expressionInput as HTMLInputElement).value).toBe('col * 2');
   });
 
-  it('displays error message when present', () => {
-    DialogStore.deriveState.error.value = 'Syntax Error';
+  it('displays error message when present', async () => {
     render(<DeriveDialog />);
 
-    expect(screen.getByText('Syntax Error')).toBeDefined();
+    // Set error after rendering (validation runs on mount and may clear it)
+    DialogStore.deriveState.error.value = 'Syntax Error';
+
+    // Wait for error message to appear (Preact signals trigger async updates)
+    const errorElement = await waitFor(() => screen.getByText('Syntax Error'));
+    expect(errorElement).toBeDefined();
+    expect(errorElement.tagName).toBe('DIV');
   });
 
   it('opens expressions dialog when reference button is clicked', () => {

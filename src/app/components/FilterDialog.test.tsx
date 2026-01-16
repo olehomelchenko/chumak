@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/preact';
+import { render, screen, fireEvent, waitFor } from '@testing-library/preact';
 import { FilterDialog } from './FilterDialog';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
@@ -42,11 +42,16 @@ describe('FilterDialog', () => {
     expect(DialogStore.filterState.previewMode.value).toBe('matching');
   });
 
-  it('shows error message when present', () => {
-    DialogStore.filterState.error.value = 'Syntax error';
+  it('shows error message when present', async () => {
     render(<FilterDialog />);
 
-    expect(screen.getByText('Syntax error')).toBeDefined();
+    // Set error after rendering (validation runs on mount and may clear it)
+    DialogStore.filterState.error.value = 'Syntax error';
+
+    // Wait for error message to appear (Preact signals trigger async updates)
+    const errorElement = await waitFor(() => screen.getByText('Syntax error'));
+    expect(errorElement).toBeDefined();
+    expect(errorElement.tagName).toBe('DIV');
   });
 
   it('opens expressions dialog when reference button is clicked', () => {
