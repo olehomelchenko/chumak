@@ -249,6 +249,16 @@ export function EdaPanel({ onApplyFilter }: { onApplyFilter?: () => void }) {
               <div class={styles.edaStat__value}>{edaStats.uniqueCount?.toLocaleString()}</div>
               <div class={styles.edaStat__sub}>{edaStats.uniquePercentage}%</div>
             </div>
+            <div class={styles.edaStat} title={`${edaStats.errorPercentage}% errors`}>
+              <div class={styles.edaStat__label}>Errors</div>
+              <div class={styles.edaStat__value}>{edaStats.errorCount?.toLocaleString()}</div>
+              <div
+                class={styles.edaStat__sub}
+                style={{ color: edaStats.errorCount > 0 ? 'var(--color-red)' : 'inherit' }}
+              >
+                {edaStats.errorPercentage}%
+              </div>
+            </div>
           </div>
         </div>
 

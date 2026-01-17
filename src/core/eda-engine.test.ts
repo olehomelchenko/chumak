@@ -73,7 +73,7 @@ describe('EDA Engine', () => {
       const totalCount = 8; // 5 non-null + 3 nulls
       const nullCount = 3;
 
-      const result = EDAEngine.calculateCategoricalStats(values, totalCount, nullCount);
+      const result = EDAEngine.calculateCategoricalStats(values, totalCount, nullCount, 0);
 
       expect(result.topValues).toBeDefined();
       const nullItem = result.topValues.find((item) => item.isNull);
@@ -88,7 +88,7 @@ describe('EDA Engine', () => {
       const totalCount = 5; // 3 non-null + 2 nulls
       const nullCount = 2;
 
-      const result = EDAEngine.calculateCategoricalStats(values, totalCount, nullCount);
+      const result = EDAEngine.calculateCategoricalStats(values, totalCount, nullCount, 0);
 
       const lastItem = result.topValues[result.topValues.length - 1];
       expect(lastItem.isNull).toBe(true);
@@ -99,7 +99,7 @@ describe('EDA Engine', () => {
       const totalCount = 5; // 3 non-null + 2 nulls
       const nullCount = 2;
 
-      const result = EDAEngine.calculateCategoricalStats(values, totalCount, nullCount);
+      const result = EDAEngine.calculateCategoricalStats(values, totalCount, nullCount, 0);
 
       // 'a' appears 2 times out of 5 total
       const aItem = result.topValues.find((item) => item.value === 'a');
@@ -115,7 +115,7 @@ describe('EDA Engine', () => {
       const totalCount = 3;
       const nullCount = 0;
 
-      const result = EDAEngine.calculateCategoricalStats(values, totalCount, nullCount);
+      const result = EDAEngine.calculateCategoricalStats(values, totalCount, nullCount, 0);
 
       const nullItem = result.topValues.find((item) => item.isNull);
       expect(nullItem).toBeUndefined();
@@ -126,7 +126,7 @@ describe('EDA Engine', () => {
       const totalCount = 5;
       const nullCount = 5;
 
-      const result = EDAEngine.calculateCategoricalStats(values, totalCount, nullCount);
+      const result = EDAEngine.calculateCategoricalStats(values, totalCount, nullCount, 0);
 
       expect(result.topValues.length).toBe(1);
       expect(result.topValues[0].isNull).toBe(true);
@@ -138,7 +138,7 @@ describe('EDA Engine', () => {
       const totalCount = 0;
       const nullCount = 0;
 
-      const result = EDAEngine.calculateCategoricalStats(values, totalCount, nullCount);
+      const result = EDAEngine.calculateCategoricalStats(values, totalCount, nullCount, 0);
 
       expect(result.topValues).toEqual([]);
     });
@@ -155,6 +155,75 @@ describe('EDA Engine', () => {
         const nullItem = stats.topValues.find((item) => item.isNull);
         expect(nullItem).toBeDefined();
         expect(nullItem?.count).toBe(2);
+      }
+    });
+
+    it('should count errors separately from nulls', () => {
+      const errorObj = { type: 'error', message: 'Cannot convert "abc" to integer' };
+      const data = [
+        { col: 'a' },
+        { col: 'b' },
+        { col: null },
+        { col: errorObj },
+        { col: 'a' },
+        { col: errorObj },
+      ];
+
+      const stats = EDAEngine.calculateStats(data, 'col', 'string');
+
+      expect(stats).toBeDefined();
+      expect(stats?.errorCount).toBe(2);
+      expect(stats?.errorPercentage).toBe('33.3'); // 2/6 * 100
+      expect(stats?.nullCount).toBe(1);
+      expect(stats?.nullPercentage).toBe('16.7'); // 1/6 * 100
+    });
+
+    it('should include errors in categorical stats topValues', () => {
+      const errorObj = { type: 'error', message: 'Cannot convert "abc" to integer' };
+      const data = [{ col: 'a' }, { col: 'b' }, { col: errorObj }, { col: errorObj }];
+
+      const stats = EDAEngine.calculateStats(data, 'col', 'string');
+
+      expect(stats).toBeDefined();
+      if (stats && 'topValues' in stats) {
+        const errorItem = stats.topValues.find((item) => item.isError);
+        expect(errorItem).toBeDefined();
+        expect(errorItem?.value).toBe('Error');
+        expect(errorItem?.count).toBe(2);
+        expect(errorItem?.percentage).toBe('50.0'); // 2/4 * 100
+        // Errors should be at the end
+        expect(stats.topValues[stats.topValues.length - 1].isError).toBe(true);
+      }
+    });
+
+    it('should place errors after nulls in categorical stats', () => {
+      const errorObj = { type: 'error', message: 'Cannot convert "abc" to integer' };
+      const data = [{ col: 'a' }, { col: null }, { col: errorObj }];
+
+      const stats = EDAEngine.calculateStats(data, 'col', 'string');
+
+      expect(stats).toBeDefined();
+      if (stats && 'topValues' in stats) {
+        const nullIndex = stats.topValues.findIndex((item) => item.isNull);
+        const errorIndex = stats.topValues.findIndex((item) => item.isError);
+        expect(nullIndex).toBeGreaterThan(-1);
+        expect(errorIndex).toBeGreaterThan(-1);
+        expect(errorIndex).toBeGreaterThan(nullIndex);
+      }
+    });
+
+    it('should exclude errors from numeric calculations', () => {
+      const errorObj = { type: 'error', message: 'Cannot convert "abc" to integer' };
+      const data = [{ col: 10 }, { col: 20 }, { col: errorObj }, { col: 30 }, { col: errorObj }];
+
+      const stats = EDAEngine.calculateStats(data, 'col', 'number');
+
+      expect(stats).toBeDefined();
+      expect(stats?.errorCount).toBe(2);
+      if (stats && 'mean' in stats) {
+        // Mean should be calculated only from valid numbers: (10 + 20 + 30) / 3 = 20
+        expect(parseFloat(stats.mean)).toBe(20);
+        expect(stats.raw?.mean).toBe(20);
       }
     });
 

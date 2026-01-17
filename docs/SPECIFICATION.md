@@ -106,6 +106,17 @@ Wraps **Arquero** to provide a consistent interface for applying declarative tra
 - **Tests**: `src/core/transforms.test.ts`
 - **Reference**: See [docs/arquero/](arquero/) for Arquero usage patterns
 
+#### Type Converter
+
+Handles type conversion between column types with Power Query-style error cells. When a type conversion fails (e.g., converting "abc" to integer), the cell displays an error object with a descriptive message rather than silently failing or setting the value to null.
+
+- **Implementation**: `src/core/type-converter.ts`
+- **Tests**: `src/core/type-converter.test.ts`
+- **Features**:
+  - Converts between all supported types (string, integer, float, boolean, date, datetime)
+  - Returns error objects for invalid conversions
+  - Handles edge cases (null, empty strings, whitespace)
+
 ### 3.4 Storage
 
 | Storage Type     | Purpose                                                                  |
@@ -153,25 +164,25 @@ Each transform is one object in an array.
 
 ### 5.2 Core Transformations
 
-| Transform      | Description                                                           |
-| :------------- | :-------------------------------------------------------------------- |
-| **Filter**     | Keep rows matching expression (`filter: "expr"`)                      |
-| **Select**     | Keep listed columns (`select: ["col1"]`)                              |
-| **Remove**     | Drop listed columns (`remove: ["col1"]`)                              |
-| **Rename**     | Rename one or more columns (`rename: { "old": "new" }`)               |
-| **Sort**       | Order by single field (`sort: { field: "col", order: "asc" }`)        |
-| **Derive**     | Add/Update calculated columns (`derive: { new: "expr" }`)             |
-| **Types**      | Explicitly set column types (`types: { col: "type" }`)                |
-| **Aggregate**  | Group and rollup (`aggregate: { groupby: [], rollup: {} }`)           |
-| **Fold**       | Unpivot/Melt wide to long (`fold: { columns: [], as: [] }`)           |
-| **Pivot**      | Long to wide transformation (`pivot: { ... }`)                        |
-| **Split**      | Delimiter-based splitting (`split: { column: "col", ... }`)           |
-| **Replace**    | Value replacement (`replace: { column: "col", find: x, replace: y }`) |
-| **Dedupe**     | Remove or keep duplicate rows based on column subset                  |
-| **Slice Rows** | Keep or remove top/bottom N rows                                      |
-| **Add Index**  | Generate a row index column                                           |
-| **Date Ops**   | Extract or truncate date parts                                        |
-| **Regexp**     | Pattern matching and extraction (`regexp_match`, `regexp_extract`)    |
+| Transform      | Description                                                                                                                             |
+| :------------- | :-------------------------------------------------------------------------------------------------------------------------------------- |
+| **Filter**     | Keep rows matching expression (`filter: "expr"`)                                                                                        |
+| **Select**     | Keep listed columns (`select: ["col1"]`)                                                                                                |
+| **Remove**     | Drop listed columns (`remove: ["col1"]`)                                                                                                |
+| **Rename**     | Rename one or more columns (`rename: { "old": "new" }`)                                                                                 |
+| **Sort**       | Order by single field (`sort: { field: "col", order: "asc" }`)                                                                          |
+| **Derive**     | Add/Update calculated columns (`derive: { new: "expr" }`)                                                                               |
+| **Types**      | Convert column types with value transformation (`types: { col: "type" }`). Invalid conversions produce error cells (Power Query-style). |
+| **Aggregate**  | Group and rollup (`aggregate: { groupby: [], rollup: {} }`)                                                                             |
+| **Fold**       | Unpivot/Melt wide to long (`fold: { columns: [], as: [] }`)                                                                             |
+| **Pivot**      | Long to wide transformation (`pivot: { ... }`)                                                                                          |
+| **Split**      | Delimiter-based splitting (`split: { column: "col", ... }`)                                                                             |
+| **Replace**    | Value replacement (`replace: { column: "col", find: x, replace: y }`)                                                                   |
+| **Dedupe**     | Remove or keep duplicate rows based on column subset                                                                                    |
+| **Slice Rows** | Keep or remove top/bottom N rows                                                                                                        |
+| **Add Index**  | Generate a row index column                                                                                                             |
+| **Date Ops**   | Extract or truncate date parts                                                                                                          |
+| **Regexp**     | Pattern matching and extraction (`regexp_match`, `regexp_extract`)                                                                      |
 
 ---
 
@@ -203,6 +214,16 @@ Each transform is one object in an array.
 - **Chart Types**: Boxplots, Histograms, and Categorical Bar charts for Exploratory Data Analysis (EDA).
 - **Implementation**: `src/core/charts.ts`, `src/core/vega-themes.ts`
 - **Theming**: See [UX-SPECIFICATION.md](UX-SPECIFICATION.md) §1.2 for theme system details
+
+### 6.4 Error Handling & Display
+
+- **Error Cells**: Type conversion failures produce error objects (Power Query-style) displayed as "Error" with a warning icon in table cells.
+- **Error Visibility**: Clicking an error cell shows the full error message in an alert dialog.
+- **EDA Integration**: Errors are tracked separately from nulls in EDA statistics:
+  - EDA panel displays error count and percentage in a 2x2 grid (Total Rows | Missing | Unique Values | Errors)
+  - Categorical bar charts display errors as a separate category with dark red color (#8B0000) at the end of the stack
+  - Errors are excluded from numeric calculations (mean, median, etc.)
+- **String Representation**: Error objects implement custom `toString()` and `valueOf()` methods, displaying as "Error" instead of "[object Object]" throughout the application.
 
 ---
 

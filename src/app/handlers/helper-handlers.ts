@@ -130,7 +130,68 @@ export function getTypeIcon(this: ChumakApp, colName: string) {
 
 export function formatCellValue(this: ChumakApp, value: any) {
   if (value === null || value === undefined || value === '') return 'null';
+
+  // Handle error objects (Power Query-style error cells)
+  // Return just "Error" for display - full message shown on click
+  if (value && typeof value === 'object' && value.type === 'error') {
+    return 'Error';
+  }
+
+  // Handle boolean values - format as checkmark/X like column editor
+  if (typeof value === 'boolean') {
+    return value ? '✓' : '✗';
+  }
+
+  // Handle Date objects
+  if (value instanceof Date) {
+    if (isNaN(value.getTime())) return 'Invalid Date';
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${value.getFullYear()}-${pad(value.getMonth() + 1)}-${pad(value.getDate())}`;
+  }
+
+  // Ensure we return a renderable primitive value
+  // Preact can render: string, number, boolean, null, undefined
+  // Preact cannot render: objects, arrays (as children), etc.
+  if (typeof value === 'object' && value !== null) {
+    // If it's an unexpected object, stringify it to avoid rendering errors
+    return String(value);
+  }
+
+  // Return primitives as-is (string, number)
   return value;
+}
+
+/**
+ * Formats a cell value for tooltip display.
+ * Returns "Error" for error objects instead of "[Object object]".
+ */
+export function formatCellValueForTooltip(this: ChumakApp, value: any): string {
+  if (value === null || value === undefined || value === '') return 'null';
+
+  // Handle error objects - return "Error" instead of "[Object object]"
+  if (value && typeof value === 'object' && value.type === 'error') {
+    return 'Error';
+  }
+
+  // Handle boolean values
+  if (typeof value === 'boolean') {
+    return value ? 'true' : 'false';
+  }
+
+  // Handle Date objects
+  if (value instanceof Date) {
+    if (isNaN(value.getTime())) return 'Invalid Date';
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${value.getFullYear()}-${pad(value.getMonth() + 1)}-${pad(value.getDate())}`;
+  }
+
+  // For other objects, return a readable string representation
+  if (typeof value === 'object' && value !== null) {
+    return 'Error'; // Default for unexpected objects
+  }
+
+  // Return primitives as string
+  return String(value);
 }
 
 export function getTypeIndicator(this: ChumakApp, colName: string) {

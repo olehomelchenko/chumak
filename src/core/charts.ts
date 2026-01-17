@@ -105,11 +105,11 @@ export const ChartsEngine = {
   ): Promise<void> {
     if (!aggregatedData || aggregatedData.length === 0) return;
 
-    // Map data with index, ensuring nulls are at the end (highest index)
-    // Nulls should already be last in the array, but we use a high index to guarantee ordering
+    // Map data with index, ensuring proper ordering: [Top values] - (others) - null - error
+    // Order: regular values (0-9999), others (10000-19999), null (20000-29999), error (30000+)
     const chartData = aggregatedData.map((d, i) => ({
       ...d,
-      index: d.isNull ? 10000 + i : i,
+      index: d.isError ? 30000 + i : d.isNull ? 20000 + i : d.isOther ? 10000 + i : i,
     }));
 
     const spec: any = {
@@ -132,6 +132,7 @@ export const ChartsEngine = {
           scale: {
             domain: aggregatedData.map((d) => d.value),
             range: aggregatedData.map((d, i) => {
+              if (d.isError) return '#8B0000'; // Dark red for errors
               if (d.isNull) return '#666666'; // Darker grey for nulls
               if (d.isOther) return '#C8C8C8'; // Light grey for others
               // Mix of Chumak and KSE colors that look good in both

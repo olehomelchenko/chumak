@@ -11,6 +11,7 @@ export interface CategoricalStat {
   rawPercentage: number;
   isOther?: boolean;
   isNull?: boolean;
+  isError?: boolean;
 }
 
 export interface NumericStats {
@@ -42,6 +43,8 @@ export interface BaseStats {
   totalCount: number;
   nullCount: number;
   nullPercentage: string;
+  errorCount: number;
+  errorPercentage: string;
   uniqueCount: number;
   uniquePercentage: string;
 }
@@ -57,8 +60,13 @@ export const EDAEngine = {
 
     const values = data.map((row) => row[column]);
     const totalCount = values.length;
+    // Separate error objects from nulls
+    const isError = (v: any) => v && typeof v === 'object' && v.type === 'error';
+    const errorCount = values.filter((v) => isError(v)).length;
     const nullCount = values.filter((v) => v === null || v === undefined || v === '').length;
-    const nonNullValues = values.filter((v) => v !== null && v !== undefined && v !== '');
+    const nonNullValues = values.filter(
+      (v) => v !== null && v !== undefined && v !== '' && !isError(v)
+    );
     const uniqueValues = new Set(nonNullValues);
 
     // Normalize numeric types: 'float' and 'integer' -> 'number' for EDA stats
@@ -70,6 +78,8 @@ export const EDAEngine = {
       totalCount,
       nullCount,
       nullPercentage: ((nullCount / totalCount) * 100).toFixed(1),
+      errorCount,
+      errorPercentage: ((errorCount / totalCount) * 100).toFixed(1),
       uniqueCount: uniqueValues.size,
       uniquePercentage: ((uniqueValues.size / totalCount) * 100).toFixed(1),
     };
@@ -79,7 +89,7 @@ export const EDAEngine = {
     } else {
       return {
         ...baseStats,
-        ...this.calculateCategoricalStats(nonNullValues, totalCount, nullCount),
+        ...this.calculateCategoricalStats(nonNullValues, totalCount, nullCount, errorCount),
       } as EDAStats;
     }
   },
@@ -87,10 +97,23 @@ export const EDAEngine = {
   /**
    * Calculate numeric statistics
    */
-  calculateNumericStats(values: number[]): Partial<NumericStats> {
+  calculateNumericStats(values: any[]): Partial<NumericStats> {
     if (values.length === 0) return {};
 
-    const sorted = [...values].sort((a, b) => a - b);
+    // Filter out error objects and convert to numbers, filtering out NaN
+    const numericValues = values
+      .filter((v) => {
+        // Skip error objects
+        if (v && typeof v === 'object' && v.type === 'error') return false;
+        // Convert to number and check if valid
+        const num = Number(v);
+        return !isNaN(num) && isFinite(num);
+      })
+      .map((v) => Number(v));
+
+    if (numericValues.length === 0) return {};
+
+    const sorted = [...numericValues].sort((a, b) => a - b);
     const min = sorted[0];
     const max = sorted[sorted.length - 1];
     const sum = sorted.reduce((a, b) => a + b, 0);
@@ -128,7 +151,8 @@ export const EDAEngine = {
   calculateCategoricalStats(
     values: any[],
     totalCount: number,
-    nullCount: number
+    nullCount: number,
+    errorCount: number
   ): { topValues: CategoricalStat[] } {
     if (values.length === 0 && nullCount === 0) return { topValues: [] };
 
@@ -162,7 +186,7 @@ export const EDAEngine = {
       });
     }
 
-    // Add nulls as a separate category at the end (darkest grey, last position)
+    // Add nulls as a separate category before errors
     if (nullCount > 0) {
       top5.push({
         value: '(null)',
@@ -170,6 +194,17 @@ export const EDAEngine = {
         percentage: ((nullCount / totalCount) * 100).toFixed(1),
         rawPercentage: (nullCount / totalCount) * 100,
         isNull: true,
+      });
+    }
+
+    // Add errors as a separate category at the very end (dark error color, last position)
+    if (errorCount > 0) {
+      top5.push({
+        value: 'Error',
+        count: errorCount,
+        percentage: ((errorCount / totalCount) * 100).toFixed(1),
+        rawPercentage: (errorCount / totalCount) * 100,
+        isError: true,
       });
     }
 
@@ -197,6 +232,10 @@ export const EDAEngine = {
    */
   formatNumber(val: number | null | undefined): string {
     if (val === null || val === undefined) return '-';
+    // Handle NaN and Infinity uniformly
+    if (isNaN(val) || !isFinite(val)) {
+      return 'NaN';
+    }
     if (Number.isInteger(val)) return val.toLocaleString();
     return val.toLocaleString(undefined, { minimumFractionDigits: 1, maximumFractionDigits: 2 });
   },

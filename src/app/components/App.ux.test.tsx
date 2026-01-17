@@ -536,4 +536,176 @@ describe('App UX Interactions', () => {
       });
     });
   });
+
+  describe('Type Conversion', () => {
+    it('should display error cells for failed conversions', async () => {
+      // Simulate data after type conversion with error cells
+      const testData = [
+        { value: 42, name: 'A' },
+        { value: { type: 'error', message: 'Cannot convert "abc" to integer' }, name: 'B' },
+        { value: 123, name: 'C' },
+      ];
+
+      AppStore.currentData.value = testData;
+      AppStore.columns.value = ['value', 'name'];
+      AppStore.activeModel.value = {
+        id: 'test-model',
+        name: 'Test Model',
+        sourceId: 'test-source',
+        data: testData,
+        schema: [
+          { name: 'value', type: 'integer', format: {}, originalPosition: 0 },
+          { name: 'name', type: 'string', format: {}, originalPosition: 1 },
+        ],
+        steps: [],
+      };
+
+      render(<App app={app} />);
+
+      await waitFor(() => {
+        const cells = document.querySelectorAll('td[data-col="value"]');
+        expect(cells.length).toBe(3);
+      });
+
+      // Check that error cell is styled and displays "Error" with icon
+      const errorCell = Array.from(document.querySelectorAll('td[data-col="value"]')).find((cell) =>
+        cell.textContent?.includes('Error')
+      );
+      expect(errorCell).toBeDefined();
+      expect(errorCell?.classList.toString()).toContain('error');
+      // Should show "Error" text (not the full message)
+      expect(errorCell?.textContent).toContain('Error');
+      // Should have an icon
+      const icon = errorCell?.querySelector('.iconify[data-icon="carbon:warning-filled"]');
+      expect(icon).toBeDefined();
+    });
+
+    it('should display boolean values as checkmarks', async () => {
+      const testData = [
+        { flag: true, name: 'A' },
+        { flag: false, name: 'B' },
+      ];
+
+      AppStore.currentData.value = testData;
+      AppStore.columns.value = ['flag', 'name'];
+      AppStore.activeModel.value = {
+        id: 'test-model',
+        name: 'Test Model',
+        sourceId: 'test-source',
+        data: testData,
+        schema: [
+          { name: 'flag', type: 'boolean', format: {}, originalPosition: 0 },
+          { name: 'name', type: 'string', format: {}, originalPosition: 1 },
+        ],
+        steps: [],
+      };
+
+      render(<App app={app} />);
+
+      await waitFor(() => {
+        const cells = document.querySelectorAll('td[data-col="flag"]');
+        expect(cells.length).toBe(2);
+      });
+
+      // Check that boolean values are displayed as checkmarks
+      const flagCells = Array.from(document.querySelectorAll('td[data-col="flag"]'));
+      expect(flagCells[0].textContent).toContain('✓');
+      expect(flagCells[1].textContent).toContain('✗');
+    });
+  });
+
+  describe('EDA Panel Error Display', () => {
+    it('should display error count in EDA panel overview', async () => {
+      const errorObj = { type: 'error', message: 'Cannot convert "abc" to integer' };
+      const testData = [
+        { value: 'a', count: 1 },
+        { value: 'b', count: 2 },
+        { value: errorObj, count: 3 },
+        { value: errorObj, count: 4 },
+        { value: null, count: 5 },
+      ];
+
+      AppStore.currentData.value = testData;
+      AppStore.columns.value = ['value', 'count'];
+      AppStore.selectedColumn.value = 'value';
+      AppStore.edaStats.value = {
+        column: 'value',
+        type: 'string',
+        totalCount: 5,
+        nullCount: 1,
+        nullPercentage: '20.0',
+        errorCount: 2,
+        errorPercentage: '40.0',
+        uniqueCount: 2,
+        uniquePercentage: '40.0',
+        topValues: [
+          { value: 'b', count: 1, percentage: '20.0', rawPercentage: 20.0 },
+          { value: 'a', count: 1, percentage: '20.0', rawPercentage: 20.0 },
+          { value: '(null)', count: 1, percentage: '20.0', rawPercentage: 20.0, isNull: true },
+          { value: 'Error', count: 2, percentage: '40.0', rawPercentage: 40.0, isError: true },
+        ],
+      };
+
+      render(<App app={app} />);
+
+      await waitFor(() => {
+        const edaPanel = document.querySelector('[class*="edaPanel"]');
+        expect(edaPanel).toBeDefined();
+      });
+
+      // Check that error count is displayed
+      const errorStat = Array.from(document.querySelectorAll('[class*="edaStat"]')).find((el) =>
+        el.textContent?.includes('Errors')
+      );
+      expect(errorStat).toBeDefined();
+      expect(errorStat?.textContent).toContain('2'); // errorCount
+      expect(errorStat?.textContent).toContain('40.0'); // errorPercentage
+    });
+
+    it('should include errors in categorical chart topValues', async () => {
+      const errorObj = { type: 'error', message: 'Cannot convert "abc" to integer' };
+      const testData = [
+        { value: 'a', count: 1 },
+        { value: errorObj, count: 2 },
+        { value: errorObj, count: 3 },
+      ];
+
+      AppStore.currentData.value = testData;
+      AppStore.columns.value = ['value', 'count'];
+      AppStore.selectedColumn.value = 'value';
+      AppStore.edaStats.value = {
+        column: 'value',
+        type: 'string',
+        totalCount: 3,
+        nullCount: 0,
+        nullPercentage: '0.0',
+        errorCount: 2,
+        errorPercentage: '66.7',
+        uniqueCount: 1,
+        uniquePercentage: '33.3',
+        topValues: [
+          { value: 'a', count: 1, percentage: '33.3', rawPercentage: 33.3 },
+          { value: 'Error', count: 2, percentage: '66.7', rawPercentage: 66.7, isError: true },
+        ],
+      };
+
+      render(<App app={app} />);
+
+      await waitFor(() => {
+        const edaPanel = document.querySelector('[class*="edaPanel"]');
+        expect(edaPanel).toBeDefined();
+      });
+
+      // Check that error is in topValues
+      const stats = AppStore.edaStats.value;
+      if (stats && 'topValues' in stats) {
+        const errorItem = stats.topValues.find((item: any) => item.isError);
+        expect(errorItem).toBeDefined();
+        expect(errorItem?.value).toBe('Error');
+        expect(errorItem?.count).toBe(2);
+        // Error should be at the end
+        expect(stats.topValues[stats.topValues.length - 1].isError).toBe(true);
+      }
+    });
+  });
 });

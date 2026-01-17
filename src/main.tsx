@@ -1,6 +1,7 @@
 import { render } from 'preact';
 import { ChumakApp } from './chumak-app';
 import { App } from './app/components/App';
+import { setupDebugHelpers } from './app/utils/debug-helpers';
 
 import '../styles/index.css';
 
@@ -17,3 +18,6 @@ if (appRoot) {
 
 // Initialize the app services
 appInstance.init();
+
+// Setup debug helpers for development
+setupDebugHelpers();

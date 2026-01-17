@@ -45,7 +45,12 @@ import {
   formatPreviewCell,
   activeDialogError,
 } from '../handlers/dialog-handlers';
-import { getModelMeta, getTypeIcon, formatCellValue } from '../handlers/helper-handlers';
+import {
+  getModelMeta,
+  getTypeIcon,
+  formatCellValue,
+  formatCellValueForTooltip,
+} from '../handlers/helper-handlers';
 import styles from './App.module.css';
 
 import tableStyles from './DataTable.module.css';
@@ -146,6 +151,7 @@ export function App({ app }: AppProps) {
     getColumnType: (c: string) => app.getColumnType(c),
     getTypeIcon: (c: string) => getTypeIcon.call(app, c),
     formatCellValue: (v: any) => formatCellValue.call(app, v),
+    formatCellValueForTooltip: (v: any) => formatCellValueForTooltip.call(app, v),
     onSelectColumn: (c: string, e: MouseEvent) => {
       e.stopPropagation();
       app.selectColumn(c);
@@ -157,6 +163,9 @@ export function App({ app }: AppProps) {
     onOpenTypeMenu: (c: string, pos: { x: number; y: number }) => app.openTypeMenu(c, pos),
     onClearColumnSelection: () => app.clearColumnSelection(),
     onScroll: (e?: Event) => app.handleTableScroll && app.handleTableScroll(e!),
+    onErrorCellClick: (message: string) => {
+      app.alert(message, 'Conversion Error');
+    },
   };
 
   const typeMenuProps = {

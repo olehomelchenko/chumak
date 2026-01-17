@@ -144,6 +144,29 @@
     text-decoration: line-through;
     color: rgba(var(--color-midnight-blue-rgb), 0.4);
   }
+
+  &.error {
+    background-color: rgba(var(--color-red-rgb), 0.1) !important;
+    color: var(--color-red);
+    font-weight: var(--font-weight-medium);
+    cursor: pointer;
+
+    &:hover {
+      background-color: rgba(var(--color-red-rgb), 0.15) !important;
+    }
+  }
+}
+
+.errorCell {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+
+  .iconify {
+    width: 16px;
+    height: 16px;
+    flex-shrink: 0;
+  }
 }
 
 .typeIndicator {

@@ -53,11 +53,13 @@ export function MainContent(props: MainContentProps) {
             getColumnType={props.getColumnType}
             getTypeIcon={props.getTypeIcon}
             formatCellValue={props.formatCellValue}
+            formatCellValueForTooltip={props.formatCellValueForTooltip}
             onSelectColumn={props.onSelectColumn}
             onSelectCell={props.onSelectCell}
             onOpenTypeMenu={props.onOpenTypeMenu}
             onClearColumnSelection={props.onClearColumnSelection}
             onScroll={props.onScroll}
+            onErrorCellClick={props.onErrorCellClick}
           />
         </>
       )}
