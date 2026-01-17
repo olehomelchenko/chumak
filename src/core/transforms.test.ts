@@ -1,4 +1,4 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import * as aq from 'arquero';
 import { applyTransform, describeTransform, matchColumnPattern } from './transforms';
 import { SchemaEngine, ColumnType } from './schema-engine';
@@ -888,6 +888,70 @@ describe('Transform Engine', () => {
       expect(rows[0].flag).toBe(true);
       expect(rows[1].count).toBe(123);
       expect(rows[1].flag).toBe(false);
+    });
+  });
+
+  describe('applyTransform() - Unknown Transform Keys (Future-proofing)', () => {
+    it('should skip unknown transform keys and return table unchanged', () => {
+      const table = createTestTable();
+      const originalColumns = table.columnNames();
+      const originalRowCount = table.numRows();
+
+      // Simulate a future transform that doesn't exist yet
+      const transform = { futureTransform: { someParam: 'value' } } as any;
+
+      const spy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+      const result = applyTransform(table, transform, originalColumns, null);
+
+      // Table should be unchanged
+      expect(result.columnNames()).toEqual(originalColumns);
+      expect(result.numRows()).toBe(originalRowCount);
+      expect(result.objects()).toEqual(table.objects());
+
+      // Warning should be logged
+      expect(spy).toHaveBeenCalledWith(
+        expect.stringContaining('Unknown transform key "futureTransform"')
+      );
+
+      spy.mockRestore();
+    });
+
+    it('should skip unknown transform keys and continue with remaining transforms', () => {
+      const table = createTestTable();
+      const transform1 = { futureTransform: { param: 'value' } } as any;
+      const transform2 = { select: ['sales', 'region'] };
+
+      const spy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+      // First apply unknown transform (should be skipped)
+      const afterUnknown = applyTransform(table, transform1, ['sales', 'revenue', 'region'], null);
+      expect(afterUnknown.columnNames()).toEqual(['sales', 'revenue', 'cost', 'region', 'status']);
+
+      // Then apply known transform (should work normally)
+      const result = applyTransform(afterUnknown, transform2, ['sales', 'region'], null);
+      expect(result.columnNames()).toEqual(['sales', 'region']);
+
+      expect(spy).toHaveBeenCalledWith(
+        expect.stringContaining('Unknown transform key "futureTransform"')
+      );
+
+      spy.mockRestore();
+    });
+
+    it('should ignore __v version field when checking for unknown keys', () => {
+      const table = createTestTable();
+      const transform = { select: ['sales'], __v: 1 } as any;
+
+      const spy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+      const result = applyTransform(table, transform, ['sales', 'revenue'], null);
+
+      // Transform should work normally (__v is ignored)
+      expect(result.columnNames()).toEqual(['sales']);
+      expect(spy).not.toHaveBeenCalled();
+
+      spy.mockRestore();
     });
   });
 });

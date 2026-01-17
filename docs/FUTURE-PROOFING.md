@@ -1,8 +1,10 @@
 # Future-Proofing: Persistence & Schema Evolution
 
-> **Purpose:** Document realistic scenarios where stored user data (IndexedDB, workflow JSON) could cause friction as Chumak evolves.
+> **Purpose:** Guidelines for implementing new features while maintaining compatibility with existing stored data (IndexedDB, workflow JSON).
 
-This is not a theoretical "what if we rename everything" document. It focuses on **realistic changes** you might want to make and how they interact with data users have already saved.
+**Use this document when:** Adding new column types, transforms, functions, or modifying data structures that get persisted.
+
+This is not a theoretical "what if we rename everything" document. It focuses on **realistic scenarios** you'll encounter when evolving Chumak and how to handle them gracefully.
 
 ---
 
@@ -15,128 +17,140 @@ This is not a theoretical "what if we rename everything" document. It focuses on
 | Exported workflow JSON | Portable pipeline definition           | `{ formatVersion, chumakVersion, source, model }` |
 | URL hash               | Current view state                     | `/#/sourceId/modelId`                             |
 
-Key insight: **IndexedDB stores the full objects**, including computed `data` arrays. Workflow JSON stores just the pipeline definition.
+**Key insight:** IndexedDB stores the full objects, including computed `data` arrays. Workflow JSON stores just the pipeline definition.
 
 ---
 
-## Realistic Scenarios & Their Impact
+## Guidelines for Adding New Features
 
-### 1. Adding New Column Types
+### ✅ When Adding a New Column Type
 
-**Scenario:** Add `decimal`, `duration`, `json`, or `array` types.
+**What to do:**
 
-**What's stored:**
+1. Add the new type to `KNOWN_COLUMN_TYPES` in `src/core/schema-engine.ts`
+2. Update `ColumnType` union type
+3. Add type inference logic in `SchemaEngine.inferType()` if needed
+4. Add conversion logic in `type-converter.ts` for all supported conversions
+5. ✅ Unknown types are already handled: `normalizeSchema()` converts unknown types to `string` with warnings
 
-```json
-{ "types": { "price": "float", "metadata": "json" } }
+**Example:** Adding `decimal` type:
+
+```typescript
+// src/core/schema-engine.ts
+const KNOWN_COLUMN_TYPES: readonly ColumnType[] = [
+  'string', 'integer', 'float', 'boolean', 'date', 'datetime', 'decimal' // ← add here
+] as const;
+
+export type ColumnType = ... | 'decimal'; // ← update union type
 ```
 
-**Impact:** Old app versions won't recognize `"json"` type.
-
-**Mitigation:**
-
-- On load, treat unknown types as `string` with a console warning
-- This is purely additive - old workflows continue to work
-
-**Difficulty:** Low
+**Why it's safe:** Old app versions will treat `decimal` as `string` automatically. No migration needed.
 
 ---
 
-### 2. Extending Function Signatures
+### ✅ When Adding a New Transform
 
-**Scenario:** Add optional timezone argument to `date_add(date, amount, unit)`.
+**What to do:**
 
-**What's stored:**
+1. Add the transform key to `KNOWN_TRANSFORM_KEYS` in `src/core/transforms.ts`
+2. Add the transform key to the known keys list in `deriveNextSchema()` (if schema-changing)
+3. Implement transform logic in `applyTransform()`
+4. Implement schema propagation in `deriveNextSchema()` (if schema-changing)
+5. ✅ Unknown transforms are already handled: they're skipped with warnings
 
-```
-date_add([StartDate], 30, 'days')
-```
+**Example:** Adding a `resample` transform:
 
-**Impact:** None for old expressions. New 4-arg expressions won't work on old app versions.
+```typescript
+// src/core/transforms.ts
+const KNOWN_TRANSFORM_KEYS: readonly string[] = [
+  'select', 'remove', ..., 'resample' // ← add here
+] as const;
 
-**Mitigation:**
-
-- Bump `maxArgs` from 3 to 4 in `ast-validator.ts`
-- Old 3-arg calls continue to work unchanged
-
-**Difficulty:** Low
-
-**Real constraint:** You cannot _change_ existing function behavior. If `round(2.5)` currently returns `3`, it must always return `3` for old workflows.
-
----
-
-### 3. Improving Aggregate/Rollup Format
-
-**Scenario:** Replace Arquero-specific strings with structured objects.
-
-**Current format:**
-
-```json
-{
-  "aggregate": {
-    "groupby": ["region"],
-    "rollup": { "avg_sales": "op.mean('sales')" }
-  }
+// Then implement in applyTransform()
+if (transform.resample) {
+  // ... implementation
+  return result;
 }
 ```
 
-**Desired format:**
+**Why it's safe:** Old app versions will skip the transform with a warning. The workflow continues with remaining transforms.
 
-```json
-{
-  "aggregate": {
-    "groupby": ["region"],
-    "rollup": [{ "output": "avg_sales", "func": "mean", "column": "sales" }]
-  }
+---
+
+### ✅ When Extending Function Signatures
+
+**What to do:**
+
+1. Update `maxArgs` in `ast-validator.ts` if adding arguments
+2. Keep old argument counts working (backward compatible)
+3. ✅ Never change existing function behavior - old workflows depend on it
+
+**Example:** Adding optional `timezone` argument to `date_add()`:
+
+```typescript
+// src/core/ast-validator.ts
+const FUNCTION_SIGNATURES: Record<string, { minArgs: number; maxArgs: number }> = {
+  date_add: { minArgs: 3, maxArgs: 4 }, // ← bump maxArgs from 3 to 4
+  // ...
+};
+```
+
+**Critical constraint:** You cannot _change_ existing function behavior. If `round(2.5)` currently returns `3`, it must always return `3` for old workflows.
+
+---
+
+### ✅ When Extending Transform Parameters
+
+**What to do:**
+
+Handle both old and new formats with runtime checks. Convert old format to new format in-memory if needed.
+
+**Example:** Making `pivot.values` accept both `string` and `string[]`:
+
+```typescript
+// src/core/transforms.ts
+if (transform.pivot) {
+  const { values } = transform.pivot;
+  // Handle both formats
+  const valueColumns = Array.isArray(values) ? values : [values];
+  // ... use valueColumns
 }
 ```
 
-**Impact:** Must support both formats forever, or migrate on load.
+**For format migrations:** If you want to improve a format (e.g., rollup syntax), you'll need migration code that:
 
-**Mitigation:**
-
-- Detect old format: `typeof rollup[key] === 'string' && rollup[key].startsWith('op.')`
-- Convert to new format in-memory on load
-- Save in new format going forward
-
-**Difficulty:** Medium - conversion code must be maintained
+1. Detects the old format
+2. Converts it in-memory on load
+3. Saves in new format going forward
+4. Maintains this conversion code forever (or until all old workflows are migrated)
 
 ---
 
-### 4. Multi-Column Operations
+### ✅ When Adding New Expression Syntax
 
-**Scenario:** Pivot currently takes `values: string`. You want `values: string | string[]`.
+**What to do:**
 
-**What's stored:**
+1. Configure `jsep` parser with new features (if needed)
+2. Update `ast-interpreter.ts` to handle new AST node types
+3. ✅ Old expressions continue to work - new syntax is additive
 
-```json
-{ "pivot": { "values": "sales", ... } }
-```
-
-**Impact:** Code must handle both string and array.
-
-**Mitigation:**
-
-```typescript
-const valueColumns = Array.isArray(pivot.values) ? pivot.values : [pivot.values];
-```
-
-**Difficulty:** Low - just runtime checks
+**Risk:** If new syntax accidentally matches old patterns, could cause subtle bugs. Test thoroughly.
 
 ---
 
-### 5. Adding Undo/History
+### ✅ When Adding IndexedDB Object Stores
 
-**Scenario:** Track step-level history for undo or version comparison.
+**What to do:**
 
-**What's stored:** Currently nothing - no history object store exists.
+1. Bump `DB_VERSION` in `src/core/storage.ts`
+2. Add object store creation in `onupgradeneeded` handler
+3. ✅ Adding stores doesn't affect existing data
 
-**Impact:** Requires IndexedDB schema change (new object store).
-
-**Mitigation:**
+**Example:**
 
 ```typescript
-const DB_VERSION = 2; // Bump from 1
+// src/core/storage.ts
+const DB_VERSION = 2; // ← bump from 1
 
 request.onupgradeneeded = (event) => {
   const db = event.target.result;
@@ -146,163 +160,110 @@ request.onupgradeneeded = (event) => {
 };
 ```
 
-**Difficulty:** Low - adding stores doesn't affect existing data
-
 ---
 
-### 6. New Expression Syntax
+### ✅ When Adding Optional Fields to Source/Model
 
-**Scenario:** Add string interpolation, array literals, or object property access.
+**What to do:**
 
-**What's stored:**
+1. Add field as optional (`?:`) to TypeScript interfaces
+2. Default to `undefined` or sensible default in creation functions
+3. ✅ Old data just lacks the field - handle gracefully with optional chaining
 
+**Example:**
+
+```typescript
+// src/app/types.ts
+export interface Model {
+  id: string;
+  name: string;
+  // ... existing fields
+  newOptionalField?: string; // ← optional
+}
 ```
-upper([Name]) + ' - ' + [Category]
-```
-
-**Impact:** Old expressions parse fine. New syntax only available in new versions.
-
-**Mitigation:**
-
-- Configure jsep with new features
-- Add interpreter support
-- Old expressions continue to work
-
-**Difficulty:** Low for additions
-
-**Risk:** If new syntax accidentally matches old patterns, could cause subtle bugs. Test thoroughly.
 
 ---
 
-## Known Issues to Fix Now
+### ⚠️ When Renaming Existing Features
 
-_None currently. Previously identified issues have been resolved._
+**Don't do this.** Instead:
 
----
+- Add new name as alias (if possible)
+- Or create migration path with version checking
+- Or accept that old workflows will break (document clearly)
 
-## Fixed Issues
-
-### ✅ Join References Use ID Only (Fixed)
-
-**Previous behavior:** Join handler looked up by both ID and name, causing breaks when model names changed.
-
-**Solution implemented:** Join handler now uses ID only (`model.id`). See `src/core/transforms.ts:106`.
-
-**Status:** ✅ Fixed - joins are now future-proof against name changes.
+**Why:** Renaming breaks stored expressions/workflows. If `derive` → `compute`, all old `{ derive: {...} }` transforms break.
 
 ---
 
-### Column Renames Don't Update Downstream Steps
+## Reference: What's Safe vs. Unsafe
 
-**Scenario:**
+### ✅ Safe to Add (Backward Compatible)
 
-1. Step 1: Rename `sales` → `revenue`
-2. Step 2: Filter on `sales > 1000` ← breaks
+| Change Type                        | Implementation Notes                 |
+| ---------------------------------- | ------------------------------------ |
+| Add new function                   | Add to `ast-validator.ts` whitelist  |
+| Add optional function arg          | Bump `maxArgs`, old calls still work |
+| Add new column type                | Add to `KNOWN_COLUMN_TYPES`          |
+| Add new transform type             | Add to `KNOWN_TRANSFORM_KEYS`        |
+| Add new DB object store            | Bump `DB_VERSION`, add in upgrade    |
+| Add optional field to Source/Model | Use optional (`?:`) in TypeScript    |
 
-**Current behavior:** Step 2 fails with "column not found" error.
+### ❌ Not Safe to Change (Breaks Existing Data)
 
-**This is acceptable** - the error message is clear. Full dependency tracking would be complex and probably not worth it for the target audience.
+| Change Type                            | Why It Breaks                         |
+| -------------------------------------- | ------------------------------------- |
+| Rename function                        | Stored expressions reference old name |
+| Change function behavior               | Old workflows expect old results      |
+| Rename transform key                   | `derive` → `compute` breaks workflows |
+| Remove column type                     | Old data references the removed type  |
+| Change field from optional to required | Old data lacks the required field     |
 
-**Optional improvement:** When applying a rename step, warn if downstream steps reference the old column name.
-
----
-
-## Recommended Additions
-
-### ✅ 1. Schema Version on Stored Objects (Implemented)
-
-**Status:** ✅ Implemented - `Source` and `Model` interfaces now include `__v?: number` field.
-
-**Implementation:**
-
-- New sources/models default to `__v: 1`
-- Optional field ensures backward compatibility
-- See `src/app/types.ts` for interface definitions
-- Set automatically in `ImportService.createSource()` and `ModelService.createNewModel()`
-
-**Benefit:** Enables future migrations without guessing data format.
-
-### ✅ 2. Graceful Unknown Type/Transform Handling (Implemented)
-
-**Status:** ✅ Implemented - unknown column types are normalized to `'string'` with warnings.
-
-**Implementation:**
-
-- `SchemaEngine.normalizeSchema()` handles unknown types during data load
-- Applied in `loadInitialData()` when loading from IndexedDB
-- Unknown types in `types` transform are also handled gracefully
-- See `src/core/schema-engine.ts` for `KNOWN_COLUMN_TYPES` and normalization logic
-
-### ✅ 3. Workflow Format Version (Implemented)
-
-**Status:** ✅ Implemented - workflow export now uses `formatVersion` (integer) and `chumakVersion`.
-
-**Implementation:**
-
-- Changed from `version: '1.0'` (string) to `formatVersion: 1` (integer)
-- Added `chumakVersion: '0.1.0'` field for app version tracking
-- See `src/app/services/ExportService.ts:exportWorkflowJSON()`
-- Documented in `docs/DATA-SPECIFICATION.md` §6
-
----
-
-## What's Safe to Change
-
-| Change Type                        | Safe?  | Notes                      |
-| ---------------------------------- | ------ | -------------------------- |
-| Add new function                   | ✅ Yes | Old workflows don't use it |
-| Add optional function arg          | ✅ Yes | Old calls still valid      |
-| Add new column type                | ✅ Yes | With fallback handling     |
-| Add new transform type             | ✅ Yes | Old workflows don't use it |
-| Add new DB object store            | ✅ Yes | Bump DB_VERSION            |
-| Add optional field to Source/Model | ✅ Yes | Old data just lacks it     |
-
-## What's Not Safe to Change
-
-| Change Type                            | Safe? | Notes                                 |
-| -------------------------------------- | ----- | ------------------------------------- |
-| Rename function                        | ❌ No | Breaks stored expressions             |
-| Change function behavior               | ❌ No | Old workflows expect old results      |
-| Rename transform key                   | ❌ No | `derive` → `compute` breaks workflows |
-| Remove column type                     | ❌ No | Old data references it                |
-| Change field from optional to required | ❌ No | Old data lacks it                     |
-
-## What Requires Migration Code
+### 🔄 Requires Migration Code
 
 | Change Type                | Migration Approach                     |
 | -------------------------- | -------------------------------------- |
-| New rollup format          | Detect + convert on load               |
+| New rollup format          | Detect old format, convert on load     |
 | Change ID format           | Map old→new IDs, update all references |
-| Restructure nested objects | Version check + transform              |
+| Restructure nested objects | Version check (`__v`), transform       |
 
 ---
 
-## Summary
+## Current Implementation Status
 
-The realistic risks are:
+**Already implemented (you don't need to add these):**
 
-1. **Forward compatibility** - Can old Chumak versions open new workflows? ✅ Handled via graceful fallbacks (unknown types → string, version fields).
+- ✅ Schema version fields (`__v`) on Source and Model - enables version-based migrations
+- ✅ Graceful unknown type handling (`normalizeSchema()`) - converts unknown types to `string`
+- ✅ Graceful unknown transform handling - skips unknown transforms with warnings
+- ✅ Workflow format versioning (`formatVersion`, `chumakVersion`) - enables format detection
+- ✅ Join references use ID only (not names) - prevents breaks when names change
 
-2. **Format evolution** - When you improve a format (like rollup syntax), you carry conversion code forever.
+**You should use these patterns when adding new features.**
 
-3. **Reference integrity** - ✅ Fixed: Join references now use IDs only, preventing breaks when names change.
+---
 
-### Implementation Status
-
-**Completed:**
-
-- ✅ Schema version fields (`__v`) on Source and Model
-- ✅ Graceful unknown type handling (normalizeSchema)
-- ✅ Workflow format versioning (formatVersion, chumakVersion)
-- ✅ Join references use ID only (not names)
-
-**Future considerations:**
-
-- Unknown transform key handling (when new transforms are added)
-- Migration code for format evolution (e.g., rollup format changes)
+## Design Principles
 
 Most changes are **additive** and safe. The constraints are:
 
-- Don't rename existing things
-- Don't change existing behavior
-- Version fields enable future migrations (✅ implemented)
+1. **Don't rename existing things** - breaks stored references
+2. **Don't change existing behavior** - old workflows depend on it
+3. **Version fields enable migrations** - use `__v` to detect old formats
+4. **Graceful degradation** - unknown types/transforms should be handled gracefully
+5. **Forward compatibility** - old app versions should be able to load new data (even if some features are skipped)
+
+---
+
+## Quick Checklist for New Features
+
+When adding a new feature that affects persisted data:
+
+- [ ] Is it additive? (Not renaming or changing existing behavior)
+- [ ] If adding a column type: Added to `KNOWN_COLUMN_TYPES`?
+- [ ] If adding a transform: Added to `KNOWN_TRANSFORM_KEYS`?
+- [ ] If adding function args: Updated `maxArgs` in validator?
+- [ ] If changing format: Added migration code with version check?
+- [ ] If adding DB store: Bumped `DB_VERSION`?
+- [ ] Tested with old workflow JSON from previous versions?
+- [ ] Console warnings for graceful degradation?

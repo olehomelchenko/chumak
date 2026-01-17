@@ -485,6 +485,39 @@ export const SchemaEngine = {
       return newSchema;
     }
 
+    // Future-proofing: Check for unknown transform keys
+    // Note: 'import', 'replace', 'sliceRows', 'addIndex', 'dedupe' don't change schema,
+    // so they may not have explicit handlers above
+    const knownKeys = [
+      'select',
+      'remove',
+      'rename',
+      'derive',
+      'filter',
+      'sort',
+      'replace',
+      'dedupe',
+      'join',
+      'import',
+      'types',
+      'aggregate',
+      'fold',
+      'pivot',
+      'split',
+      'sliceRows',
+      'addIndex',
+    ];
+    const transformKeys = Object.keys(transform).filter((k) => k !== '__v'); // Ignore version field
+    const unknownKey = transformKeys.find((k) => !knownKeys.includes(k));
+
+    if (unknownKey) {
+      console.warn(
+        `SchemaEngine: Unknown transform key "${unknownKey}" encountered in deriveNextSchema. ` +
+          `Schema will remain unchanged. This may be from a newer version of Chumak.`
+      );
+    }
+
+    // Return schema unchanged (for transforms that don't modify schema or unknown transforms)
     return currentSchema.map((c) => ({ ...c }));
   },
 

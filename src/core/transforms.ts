@@ -55,6 +55,39 @@ export interface FullTransformStep extends TransformStep {
 }
 
 /**
+ * List of known transform keys (future-proofing: unknown transforms are skipped with warning)
+ */
+const KNOWN_TRANSFORM_KEYS: readonly string[] = [
+  'select',
+  'remove',
+  'rename',
+  'derive',
+  'filter',
+  'sort',
+  'replace',
+  'dedupe',
+  'join',
+  'import',
+  'types',
+  'aggregate',
+  'fold',
+  'pivot',
+  'split',
+  'sliceRows',
+  'addIndex',
+] as const;
+
+/**
+ * Check if a transform step has any unknown transform keys
+ * @returns The unknown key if found, null otherwise
+ */
+function getUnknownTransformKey(transform: any): string | null {
+  const keys = Object.keys(transform).filter((k) => k !== '__v'); // Ignore version field
+  const unknownKey = keys.find((k) => !KNOWN_TRANSFORM_KEYS.includes(k as any));
+  return unknownKey || null;
+}
+
+/**
  * Apply a single transform to an Arquero table
  * Note: We use 'any' for the table type because arquero's ColumnTable type is complex
  * and doesn't play well with TypeScript's structural typing in some cases.
@@ -65,6 +98,16 @@ export function applyTransform(
   schema: string[],
   context: TransformContext | null = null
 ): any {
+  // Future-proofing: Check for unknown transform keys
+  const unknownKey = getUnknownTransformKey(transform);
+  if (unknownKey) {
+    console.warn(
+      `Unknown transform key "${unknownKey}" encountered. Skipping this transform. ` +
+        `This may be from a newer version of Chumak. The workflow will continue with remaining transforms.`
+    );
+    return table; // Return table unchanged
+  }
+
   // Since we're in the process of migrating, we'll keep the logic mostly the same
   // but use the imported engines.
 
@@ -445,7 +488,20 @@ export function applyTransform(
     }
   }
 
-  throw new Error(`Transform not implemented: ${Object.keys(transform)[0]}`);
+  // If we reach here, the transform object exists but none of the known keys matched
+  // This should not happen if getUnknownTransformKey() catches it above, but as a safety fallback:
+  const transformKeys = Object.keys(transform).filter((k) => k !== '__v');
+  if (transformKeys.length > 0) {
+    const key = transformKeys[0];
+    console.warn(
+      `Transform key "${key}" not recognized. Skipping this transform. ` +
+        `This may be from a newer version of Chumak. The workflow will continue with remaining transforms.`
+    );
+    return table; // Return table unchanged
+  }
+
+  // Empty transform object - return table unchanged
+  return table;
 }
 
 /**

@@ -104,4 +104,49 @@ describe('Schema Engine', () => {
       expect(normalized[0].originalPosition).toBe(0);
     });
   });
+
+  describe('deriveNextSchema() - Unknown Transform Keys (Future-proofing)', () => {
+    it('should skip unknown transform keys and return schema unchanged', () => {
+      const currentSchema = [
+        { name: 'sales', type: 'integer' as const, format: {}, originalPosition: 0 },
+        { name: 'region', type: 'string' as const, format: {}, originalPosition: 1 },
+      ];
+
+      // Simulate a future transform that doesn't exist yet
+      const transform = { futureTransform: { someParam: 'value' } } as any;
+
+      const spy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+      const result = SchemaEngine.deriveNextSchema(currentSchema, transform, []);
+
+      // Schema should be unchanged
+      expect(result).toEqual(currentSchema);
+
+      // Warning should be logged
+      expect(spy).toHaveBeenCalledWith(
+        expect.stringContaining('Unknown transform key "futureTransform"')
+      );
+
+      spy.mockRestore();
+    });
+
+    it('should ignore __v version field when checking for unknown keys', () => {
+      const currentSchema = [
+        { name: 'sales', type: 'integer' as const, format: {}, originalPosition: 0 },
+      ];
+
+      const transform = { select: ['sales'], __v: 1 } as any;
+
+      const spy = vi.spyOn(console, 'warn').mockImplementation(() => {});
+
+      const result = SchemaEngine.deriveNextSchema(currentSchema, transform, []);
+
+      // Transform should work normally (__v is ignored)
+      expect(result).toHaveLength(1);
+      expect(result[0].name).toBe('sales');
+      expect(spy).not.toHaveBeenCalled();
+
+      spy.mockRestore();
+    });
+  });
 });
