@@ -3,7 +3,7 @@
 > **Related Documentation**:
 >
 > - **[SPECIFICATION.md](SPECIFICATION.md)**: Product specification and technical architecture
-> - **[CLAUDE.md](../CLAUDE.md)**: Development onboarding and codebase map
+> - **[CLAUDE.md](../CLAUDE.md)**: Development onboarding and quick reference
 > - **[DEBUGGING.md](DEBUGGING.md)**: CSS Module debugging and component identification
 
 ## 1. Design Foundation
@@ -154,15 +154,81 @@ A two-tier variable system separates static palettes from functional tokens:
 
 ---
 
+## 7. Component Catalog
+
+All UI components are Preact/TSX with co-located CSS Modules in `src/app/components/`.
+
+### 7.1 Layout Components
+
+| Component          | Purpose                                 |
+| ------------------ | --------------------------------------- |
+| `App.tsx`          | Root component, orchestrates layout     |
+| `Ribbon.tsx`       | Workflow tabs and transform actions     |
+| `Sidebar.tsx`      | Sources/models tree and import actions  |
+| `DataTable.tsx`    | Paginated data preview with type badges |
+| `ModelToolbar.tsx` | Stats, download, copy actions           |
+
+### 7.2 Dialog Components
+
+**Shell Components**:
+
+- `DialogShell.tsx` — Shared backdrop, header, footer
+- `SlidePanel.tsx` — Right-side panel for transforms
+- `CenteredModal.tsx` — Overlay modal for settings/info
+
+**Transform Dialogs**:
+
+- `FilterDialog.tsx`, `DeriveDialog.tsx`, `SortDialog.tsx`
+- `AggregateDialog.tsx`, `PivotDialog.tsx`, `JoinDialog.tsx`
+- `SplitDialog.tsx`, `ReplaceDialog.tsx`, `FoldDialog.tsx`
+- `RegexpMatchDialog.tsx`, `RegexpExtractDialog.tsx`
+- `TypeConversionDialog.tsx`, `DedupeDialog.tsx`
+
+**Other Dialogs**:
+
+- `ImportCsvDialog.tsx`, `ImportUrlDialog.tsx`
+- `ExportDialog.tsx`, `SettingsDialog.tsx`
+- `AboutDialog.tsx`, `ExpressionsDialog.tsx`
+
+### 7.3 EDA Components
+
+| Component          | Purpose                               |
+| ------------------ | ------------------------------------- |
+| `EdaPanel.tsx`     | Column statistics and distribution    |
+| `ChartPreview.tsx` | Vega-Lite chart rendering             |
+| `EdaToolbar.tsx`   | Chart type and date treatment toggles |
+
+### 7.4 Pipeline Components
+
+| Component        | Purpose                             |
+| ---------------- | ----------------------------------- |
+| `StepList.tsx`   | Transform pipeline with edit/delete |
+| `StepEditor.tsx` | Individual step display             |
+| `JsonEditor.tsx` | Raw JSON workflow editing           |
+
+### 7.5 Shared Components
+
+| Component           | Purpose                           |
+| ------------------- | --------------------------------- |
+| `ColumnChips.tsx`   | Multi-select column picker        |
+| `ColumnToolbar.tsx` | Floating actions on column header |
+| `CellToolbar.tsx`   | Floating actions on cell click    |
+| `TypeBadge.tsx`     | Column type indicator             |
+
 ---
 
-## Implementation Reference
+## 8. Global Styles
 
-- **Component Library**: `src/app/components/` (54 TSX files with CSS Modules)
-- **State Management**: `src/app/stores/AppStore.ts`, `src/app/stores/DialogStore.ts`
-- **Handlers**: `src/app/handlers/` (transform-specific and interaction handlers)
-- **Global Styles**: `styles/` directory (see [CLAUDE.md](../CLAUDE.md) §Codebase Map → Styles)
-- **Theme Engine**: `src/core/vega-themes.ts` (Vega-Lite integration)
+Located in `styles/` directory:
+
+| File             | Purpose                                           |
+| ---------------- | ------------------------------------------------- |
+| `variables.css`  | Design tokens (colors, spacing, shadows, z-index) |
+| `base.css`       | Resets and global defaults                        |
+| `typography.css` | Font definitions and text styles                  |
+| `layout.css`     | Grid system and structural layout                 |
+| `buttons.css`    | Button variants and states                        |
+| `util.css`       | Utility classes                                   |
 
 ---
 

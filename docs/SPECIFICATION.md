@@ -2,8 +2,9 @@
 
 > **Related Documentation**:
 >
-> - **[CLAUDE.md](../CLAUDE.md)**: Development onboarding and codebase map
+> - **[CLAUDE.md](../CLAUDE.md)**: Development onboarding and quick reference
 > - **[UX-SPECIFICATION.md](UX-SPECIFICATION.md)**: UI/UX design guidelines and component patterns
+> - **[FUTURE-PROOFING.md](FUTURE-PROOFING.md)**: Schema evolution and persistence compatibility
 
 ## 1. Overview
 
@@ -77,8 +78,6 @@ Chumak is a browser-based data wrangling tool for cleaning and transforming tabu
 
 ### 3.3 Core Components
 
-> **Implementation**: See [CLAUDE.md](../CLAUDE.md) §Codebase Map for file locations.
-
 #### Schema Engine
 
 The Schema Engine is responsible for granular type inference and schema propagation. It maintains a list of `ColumnSchema` objects, ensuring that data types (integer, float, date, etc.) are correctly tracked and available for downstream transformations and UI components.
@@ -124,6 +123,68 @@ Handles type conversion between column types with Power Query-style error cells.
 | **localStorage** | User preferences, active theme selection                                 |
 | **IndexedDB**    | Datasets (raw + cached previews), workflows, step snapshots              |
 | **URL Hash**     | Active Source and Model state (for shareability and refresh persistence) |
+
+### 3.5 Codebase Map
+
+#### Directory Structure
+
+```
+src/
+├── core/           # Data engine (transforms, expressions, schema, storage)
+├── app/
+│   ├── components/ # Preact UI components with co-located CSS Modules
+│   ├── stores/     # Signal-based state management
+│   ├── services/   # Business logic (import, export, persistence)
+│   ├── handlers/   # Event handlers and UI interaction logic
+│   ├── transforms/ # Transform-specific UI logic (preview, validation)
+│   └── types.ts    # Application-wide TypeScript definitions
+├── content/        # Markdown content (about, expressions help)
+styles/             # Global CSS (variables, base, layout, buttons)
+docs/               # Project documentation
+```
+
+#### Core Engine (`src/core/`)
+
+| File                   | Purpose                                             |
+| ---------------------- | --------------------------------------------------- |
+| `expression-parser.ts` | jsep wrapper, converts expression strings to AST    |
+| `ast-validator.ts`     | Security whitelist, arity checks, schema validation |
+| `ast-interpreter.ts`   | Safe AST execution against row data                 |
+| `transforms.ts`        | Transform implementations wrapping Arquero          |
+| `schema-engine.ts`     | Type inference and schema propagation               |
+| `type-converter.ts`    | Column type conversion with error cells             |
+| `eda-engine.ts`        | Statistical profiling and column analysis           |
+| `charts.ts`            | Vega-Lite specification generator                   |
+| `vega-themes.ts`       | Theme configurations for visualizations             |
+| `storage.ts`           | IndexedDB persistence layer                         |
+| `url-state.ts`         | URL hash state management                           |
+| `ux-settings.ts`       | User preferences (theme, performance)               |
+
+#### Application Layer (`src/app/`)
+
+**State Management** (`stores/`):
+
+- `AppStore.ts` — Centralized application state (sources, models, UI state)
+- `DialogStore.ts` — Dialog/modal state management
+
+**Services** (`services/`):
+
+- `ModelService.ts` — Model CRUD, step management
+- `StepService.ts` — Transform step execution and validation
+- `ImportService.ts` — CSV/URL/clipboard import logic
+- `ExportService.ts` — CSV/JSON/workflow export
+- `PersistenceService.ts` — IndexedDB coordination
+
+**Handlers** (`handlers/`):
+
+- Transform-specific: `filter-handlers.ts`, `derive-handlers.ts`, `join-handlers.ts`, etc.
+- UI interaction: `interaction-handlers.ts`, `column-editor-handlers.ts`
+- Import/export: `import-handlers.ts`, `json-handlers.ts`
+
+**Types** (`types.ts`):
+
+- Core interfaces: `Source`, `Model`, `DataRow`
+- Dialog states: `AggregateDialogState`, `PivotDialogState`, etc.
 
 ---
 
@@ -199,7 +260,6 @@ Each transform is one object in an array.
 - **Model Toolbar**: Stats summary, navigation, and consolidated downloads/copying.
 - **Step Editor**: Pipeline management with edit/delete actions and JSON toggle.
 - **Signal-Based State**: UI logic and state are centralized in standalone **Stores** (`AppStore`, `DialogStore`) and **Services**.
-- **Implementation**: See [CLAUDE.md](../CLAUDE.md) §Codebase Map → Application Architecture
 
 ### 6.2 Key Patterns
 
@@ -242,8 +302,6 @@ Tests are written in **TypeScript** using **Vitest** for native runner support a
 - **Propagation**: `src/core/schema-engine.test.ts`
 - **Integration**: `src/core/integration.test.ts` (end-to-end pipelines)
 - **UI Testing**: `src/app/components/App.ux.test.tsx` (interaction tests)
-
-> **Testing Guide**: See [CLAUDE.md](../CLAUDE.md) §Testing Philosophy for testing approach and file locations.
 
 ---
 
