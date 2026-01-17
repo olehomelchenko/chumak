@@ -11,6 +11,7 @@ import { App } from './App';
 import { AppStore } from '../stores/AppStore';
 import { ChumakApp } from '../../chumak-app';
 import { DialogStore } from '../stores/DialogStore';
+import { previewTypeConversion } from '../handlers/interaction-handlers';
 
 describe('App UX Interactions', () => {
   let app: ChumakApp;
@@ -758,8 +759,7 @@ describe('App UX Interactions', () => {
       DialogStore.typeConversionState.column.value = 'status';
       DialogStore.typeConversionState.targetType.value = 'boolean';
 
-      // Import and call preview function
-      const { previewTypeConversion } = require('../handlers/interaction-handlers');
+      // Call preview function
       previewTypeConversion('status', 'boolean');
 
       const preview = DialogStore.previewState;

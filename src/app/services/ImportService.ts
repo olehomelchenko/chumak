@@ -47,6 +47,7 @@ export class ImportService {
       columns: SchemaEngine.createInitialSchema(cleanData),
       createdAt: new Date().toISOString(),
       data: cleanData,
+      __v: 1,
     };
 
     AppStore.sources.value = [...AppStore.sources.value, source];
@@ -58,6 +59,7 @@ export class ImportService {
       steps: [],
       schema: JSON.parse(JSON.stringify(source.columns)),
       data: cleanData,
+      __v: 1,
     };
 
     // Initial Import Step

@@ -121,4 +121,48 @@ describe('Join Transforms', () => {
     expect(objects.length).toBe(1);
     expect(objects[0].extra).toBe('info');
   });
+
+  it('should join using ID only, not name (future-proofing)', () => {
+    const leftTable = (aq as any).from([{ id: 1, val: 'left' }]);
+
+    const models = [
+      {
+        id: 'mdl_target',
+        name: 'Target Model', // Different name, but should use ID
+        data: [{ id: 1, extra: 'found' }],
+      },
+    ];
+
+    const context = {
+      sources: [],
+      models: models,
+    };
+
+    // Join using ID (should work)
+    const transform = {
+      join: {
+        right: 'mdl_target', // ID
+        on: [['id', 'id']],
+        how: 'inner',
+      },
+    };
+
+    const result = applyTransform(leftTable, transform, ['id', 'val'], context);
+    const objects = result.objects();
+    expect(objects.length).toBe(1);
+    expect(objects[0].extra).toBe('found');
+
+    // Join using name (should fail - ID only)
+    const transformByName = {
+      join: {
+        right: 'Target Model', // Name instead of ID
+        on: [['id', 'id']],
+        how: 'inner',
+      },
+    };
+
+    expect(() => {
+      applyTransform(leftTable, transformByName, ['id', 'val'], context);
+    }).toThrow("Join target with ID 'Target Model' not found");
+  });
 });

@@ -44,6 +44,7 @@ export interface Source {
   rawSize?: number;
   rowCount?: number;
   createdAt?: string;
+  __v?: number; // Schema version for future migrations (defaults to 1)
 }
 
 export interface Model {
@@ -54,6 +55,7 @@ export interface Model {
   schema: ColumnSchema[];
   data: DataRow[];
   stats?: EDAStats | null;
+  __v?: number; // Schema version for future migrations (defaults to 1)
 }
 
 export interface Notification {

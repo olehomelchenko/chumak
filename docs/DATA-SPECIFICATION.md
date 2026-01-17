@@ -307,7 +307,8 @@ Exported workflow JSON for sharing and replay:
 
 ```json
 {
-  "version": "1.0",
+  "formatVersion": 1,
+  "chumakVersion": "0.1.0",
   "name": "Sales Analysis",
   "exportedAt": "2024-01-15T10:30:00.000Z",
   "source": {

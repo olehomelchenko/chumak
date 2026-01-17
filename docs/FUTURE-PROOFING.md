@@ -8,12 +8,12 @@ This is not a theoretical "what if we rename everything" document. It focuses on
 
 ## How Data is Persisted
 
-| Location               | What's Stored                          | Format                                 |
-| ---------------------- | -------------------------------------- | -------------------------------------- |
-| IndexedDB `sources`    | Raw imported data + metadata           | `Source` objects                       |
-| IndexedDB `models`     | Transform pipelines + computed results | `Model` objects with `TransformStep[]` |
-| Exported workflow JSON | Portable pipeline definition           | `{ version, source, model }`           |
-| URL hash               | Current view state                     | `/#/sourceId/modelId`                  |
+| Location               | What's Stored                          | Format                                            |
+| ---------------------- | -------------------------------------- | ------------------------------------------------- |
+| IndexedDB `sources`    | Raw imported data + metadata           | `Source` objects                                  |
+| IndexedDB `models`     | Transform pipelines + computed results | `Model` objects with `TransformStep[]`            |
+| Exported workflow JSON | Portable pipeline definition           | `{ formatVersion, chumakVersion, source, model }` |
+| URL hash               | Current view state                     | `/#/sourceId/modelId`                             |
 
 Key insight: **IndexedDB stores the full objects**, including computed `data` arrays. Workflow JSON stores just the pipeline definition.
 
@@ -176,19 +176,19 @@ upper([Name]) + ' - ' + [Category]
 
 ## Known Issues to Fix Now
 
-### Join References Use Name Instead of ID
+_None currently. Previously identified issues have been resolved._
 
-**Current behavior:** Join handler looks up by both ID and name:
+---
 
-```typescript
-find((m) => m.id === right || m.name === right);
-```
+## Fixed Issues
 
-**Problem:** If user renames a model, joins referencing the old name break.
+### ✅ Join References Use ID Only (Fixed)
 
-**Fix:** Always store `model.id` in join config. Validate on load that referenced ID exists.
+**Previous behavior:** Join handler looked up by both ID and name, causing breaks when model names changed.
 
-**Priority:** Fix before users create complex multi-model workflows.
+**Solution implemented:** Join handler now uses ID only (`model.id`). See `src/core/transforms.ts:106`.
+
+**Status:** ✅ Fixed - joins are now future-proof against name changes.
 
 ---
 
@@ -209,56 +209,40 @@ find((m) => m.id === right || m.name === right);
 
 ## Recommended Additions
 
-### 1. Schema Version on Stored Objects
+### ✅ 1. Schema Version on Stored Objects (Implemented)
 
-Add a version field to detect old data:
+**Status:** ✅ Implemented - `Source` and `Model` interfaces now include `__v?: number` field.
 
-```typescript
-interface Source {
-  __v?: number; // Defaults to 1 if missing
-  // ...existing fields
-}
+**Implementation:**
 
-interface Model {
-  __v?: number;
-  // ...existing fields
-}
-```
+- New sources/models default to `__v: 1`
+- Optional field ensures backward compatibility
+- See `src/app/types.ts` for interface definitions
+- Set automatically in `ImportService.createSource()` and `ModelService.createNewModel()`
 
-**Cost:** One field, checked on load.
 **Benefit:** Enables future migrations without guessing data format.
 
-### 2. Graceful Unknown Type/Transform Handling
+### ✅ 2. Graceful Unknown Type/Transform Handling (Implemented)
 
-When loading data, don't crash on unknown values:
+**Status:** ✅ Implemented - unknown column types are normalized to `'string'` with warnings.
 
-```typescript
-// Unknown column type
-if (!KNOWN_TYPES.includes(schema.type)) {
-  console.warn(`Unknown type "${schema.type}", treating as string`);
-  schema.type = 'string';
-}
+**Implementation:**
 
-// Unknown transform key
-const knownTransforms = ['select', 'filter', 'derive', ...];
-for (const key of Object.keys(step)) {
-  if (!knownTransforms.includes(key) && !key.startsWith('_')) {
-    console.warn(`Unknown transform "${key}", ignoring`);
-  }
-}
-```
+- `SchemaEngine.normalizeSchema()` handles unknown types during data load
+- Applied in `loadInitialData()` when loading from IndexedDB
+- Unknown types in `types` transform are also handled gracefully
+- See `src/core/schema-engine.ts` for `KNOWN_COLUMN_TYPES` and normalization logic
 
-### 3. Workflow Format Version
+### ✅ 3. Workflow Format Version (Implemented)
 
-Current export uses `version: '1.0'` as a string. Make it machine-comparable:
+**Status:** ✅ Implemented - workflow export now uses `formatVersion` (integer) and `chumakVersion`.
 
-```typescript
-const workflow = {
-  formatVersion: 1, // Integer, bump on breaking changes
-  chumakVersion: '1.2.0', // App version that created it
-  // ...
-};
-```
+**Implementation:**
+
+- Changed from `version: '1.0'` (string) to `formatVersion: 1` (integer)
+- Added `chumakVersion: '0.1.0'` field for app version tracking
+- See `src/app/services/ExportService.ts:exportWorkflowJSON()`
+- Documented in `docs/DATA-SPECIFICATION.md` §6
 
 ---
 
@@ -297,14 +281,28 @@ const workflow = {
 
 The realistic risks are:
 
-1. **Forward compatibility** - Can old Chumak versions open new workflows? Handle gracefully with fallbacks.
+1. **Forward compatibility** - Can old Chumak versions open new workflows? ✅ Handled via graceful fallbacks (unknown types → string, version fields).
 
 2. **Format evolution** - When you improve a format (like rollup syntax), you carry conversion code forever.
 
-3. **Reference integrity** - Joins and column references can break when things are renamed. Fix join ID issue now.
+3. **Reference integrity** - ✅ Fixed: Join references now use IDs only, preventing breaks when names change.
+
+### Implementation Status
+
+**Completed:**
+
+- ✅ Schema version fields (`__v`) on Source and Model
+- ✅ Graceful unknown type handling (normalizeSchema)
+- ✅ Workflow format versioning (formatVersion, chumakVersion)
+- ✅ Join references use ID only (not names)
+
+**Future considerations:**
+
+- Unknown transform key handling (when new transforms are added)
+- Migration code for format evolution (e.g., rollup format changes)
 
 Most changes are **additive** and safe. The constraints are:
 
 - Don't rename existing things
 - Don't change existing behavior
-- Add version fields now to enable future migrations
+- Version fields enable future migrations (✅ implemented)

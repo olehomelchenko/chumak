@@ -102,18 +102,19 @@ export function applyTransform(
     const { right, on, how, suffixes } = transform.join;
     let rightTable = null;
 
-    const rightModel = context?.models.find((m: any) => m.id === right || m.name === right);
+    // Always use ID for join references (future-proofing: names can change)
+    const rightModel = context?.models.find((m: any) => m.id === right);
     if (rightModel) {
       rightTable = (aq as any).from(rightModel.data);
     } else {
-      const rightSource = context?.sources.find((s: any) => s.id === right || s.name === right);
+      const rightSource = context?.sources.find((s: any) => s.id === right);
       if (rightSource) {
         rightTable = (aq as any).from(rightSource.data);
       }
     }
 
     if (!rightTable) {
-      throw new Error(`Join target '${right}' not found`);
+      throw new Error(`Join target with ID '${right}' not found`);
     }
 
     const leftKeys = on.map((pair: any) => pair[0]);

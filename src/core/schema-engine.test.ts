@@ -59,4 +59,49 @@ describe('Schema Engine', () => {
       expect(SchemaEngine.inferType(null)).toBe('string');
     });
   });
+
+  describe('normalizeSchema()', () => {
+    it('should preserve valid column types', () => {
+      const schema = [
+        { name: 'col1', type: 'string' as const },
+        { name: 'col2', type: 'integer' as const },
+        { name: 'col3', type: 'float' as const },
+      ];
+      const normalized = SchemaEngine.normalizeSchema(schema);
+      expect(normalized).toEqual(schema);
+    });
+
+    it('should convert unknown types to string', () => {
+      const schema = [
+        { name: 'col1', type: 'string' as const },
+        { name: 'col2', type: 'json' as any }, // Unknown type
+        { name: 'col3', type: 'decimal' as any }, // Unknown type
+      ];
+      const normalized = SchemaEngine.normalizeSchema(schema);
+      expect(normalized[0].type).toBe('string');
+      expect(normalized[1].type).toBe('string'); // Converted
+      expect(normalized[2].type).toBe('string'); // Converted
+      expect(normalized[1].name).toBe('col2'); // Preserves other properties
+    });
+
+    it('should handle empty schema', () => {
+      const normalized = SchemaEngine.normalizeSchema([]);
+      expect(normalized).toEqual([]);
+    });
+
+    it('should preserve all column properties when normalizing', () => {
+      const schema = [
+        {
+          name: 'col1',
+          type: 'unknown' as any,
+          format: { currency: 'USD' },
+          originalPosition: 0,
+        },
+      ];
+      const normalized = SchemaEngine.normalizeSchema(schema);
+      expect(normalized[0].type).toBe('string');
+      expect(normalized[0].format).toEqual({ currency: 'USD' });
+      expect(normalized[0].originalPosition).toBe(0);
+    });
+  });
 });

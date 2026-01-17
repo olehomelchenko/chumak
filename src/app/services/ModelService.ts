@@ -95,6 +95,7 @@ export class ModelService {
       steps: [],
       schema: JSON.parse(JSON.stringify(source.columns)),
       data: JSON.parse(JSON.stringify(source.data)),
+      __v: 1,
     };
 
     // Add initial steps
@@ -155,6 +156,7 @@ export class ModelService {
       steps: JSON.parse(JSON.stringify(activeModel.steps)),
       schema: activeModel.schema ? JSON.parse(JSON.stringify(activeModel.schema)) : [],
       data: JSON.parse(JSON.stringify(activeModel.data)),
+      __v: activeModel.__v ?? 1, // Preserve version from original, default to 1
     };
 
     AppStore.models.value = [...AppStore.models.value, copiedModel];

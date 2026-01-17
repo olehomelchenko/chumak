@@ -6,6 +6,16 @@
 
 export type ColumnType = 'string' | 'integer' | 'float' | 'boolean' | 'date' | 'datetime';
 
+// Known column types for validation (future-proofing: handle unknown types gracefully)
+const KNOWN_COLUMN_TYPES: readonly ColumnType[] = [
+  'string',
+  'integer',
+  'float',
+  'boolean',
+  'date',
+  'datetime',
+] as const;
+
 export interface ColumnSchema {
   name: string;
   type: ColumnType;
@@ -245,7 +255,15 @@ export const SchemaEngine = {
       const typesMap = transform.types;
       return currentSchema.map((c) => {
         if (typesMap[c.name]) {
-          return { ...c, type: typesMap[c.name] };
+          const newType = typesMap[c.name];
+          // Future-proofing: handle unknown types gracefully
+          if (!KNOWN_COLUMN_TYPES.includes(newType as ColumnType)) {
+            console.warn(
+              `Unknown column type "${newType}" for column "${c.name}", treating as string`
+            );
+            return { ...c, type: 'string' as ColumnType };
+          }
+          return { ...c, type: newType as ColumnType };
         }
         return { ...c };
       });
@@ -468,5 +486,21 @@ export const SchemaEngine = {
     }
 
     return currentSchema.map((c) => ({ ...c }));
+  },
+
+  /**
+   * Normalize schema columns by converting unknown types to 'string' (future-proofing)
+   * Called when loading data from IndexedDB to handle potentially unknown types
+   */
+  normalizeSchema(schema: ColumnSchema[]): ColumnSchema[] {
+    return schema.map((col) => {
+      if (!KNOWN_COLUMN_TYPES.includes(col.type)) {
+        console.warn(
+          `Unknown column type "${col.type}" for column "${col.name}", treating as string`
+        );
+        return { ...col, type: 'string' as ColumnType };
+      }
+      return col;
+    });
   },
 };

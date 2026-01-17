@@ -2,6 +2,8 @@
  * Chumak Storage Layer - IndexedDB Persistence
  */
 
+import { SchemaEngine } from './schema-engine';
+
 const DB_NAME = 'chumak-db';
 const DB_VERSION = 1;
 
@@ -186,12 +188,35 @@ export async function clearAllData(): Promise<void> {
 
 /**
  * Load initial data on app startup
+ * Normalizes schemas to handle unknown types gracefully (future-proofing)
  */
 export async function loadInitialData(): Promise<{ sources: any[]; models: any[] }> {
   try {
     const [sources, models] = await Promise.all([loadSources(), loadModels()]);
-    console.log('Loaded from IndexedDB:', sources.length, 'sources,', models.length, 'models');
-    return { sources, models };
+
+    // Normalize schemas to handle unknown types (future-proofing)
+    const normalizedSources = sources.map((source) => {
+      if (source.columns && Array.isArray(source.columns)) {
+        return { ...source, columns: SchemaEngine.normalizeSchema(source.columns) };
+      }
+      return source;
+    });
+
+    const normalizedModels = models.map((model) => {
+      if (model.schema && Array.isArray(model.schema)) {
+        return { ...model, schema: SchemaEngine.normalizeSchema(model.schema) };
+      }
+      return model;
+    });
+
+    console.log(
+      'Loaded from IndexedDB:',
+      normalizedSources.length,
+      'sources,',
+      normalizedModels.length,
+      'models'
+    );
+    return { sources: normalizedSources, models: normalizedModels };
   } catch (error) {
     console.error('Failed to load initial data:', error);
     return { sources: [], models: [] };

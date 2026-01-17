@@ -352,6 +352,11 @@ describe('Interaction Handlers UX', () => {
         { col: 'value1' },
       ];
       AppStore.columns.value = ['col'];
+      // Update model schema so fromType is different from toType
+      AppStore.activeModel.value = {
+        ...AppStore.activeModel.value,
+        schema: [{ name: 'col', type: 'integer' }],
+      } as any;
 
       InteractionHandlers.previewTypeConversion('col', 'string');
 
@@ -380,6 +385,11 @@ describe('Interaction Handlers UX', () => {
         { order: 'second' },
       ];
       AppStore.columns.value = ['order'];
+      // Update model schema so fromType is different from toType
+      AppStore.activeModel.value = {
+        ...AppStore.activeModel.value,
+        schema: [{ name: 'order', type: 'integer' }],
+      } as any;
 
       InteractionHandlers.previewTypeConversion('order', 'string');
 
@@ -399,6 +409,11 @@ describe('Interaction Handlers UX', () => {
         { col: errorObj },
       ];
       AppStore.columns.value = ['col'];
+      // Update model schema so fromType is different from toType
+      AppStore.activeModel.value = {
+        ...AppStore.activeModel.value,
+        schema: [{ name: 'col', type: 'integer' }],
+      } as any;
 
       InteractionHandlers.previewTypeConversion('col', 'string');
 
