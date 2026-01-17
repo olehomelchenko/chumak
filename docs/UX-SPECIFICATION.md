@@ -2,7 +2,8 @@
 
 > **Related Documentation**:
 >
-> - **[SPECIFICATION.md](SPECIFICATION.md)**: Product specification and technical architecture
+> - **[SPECIFICATION.md](SPECIFICATION.md)**: Technical architecture and codebase map
+> - **[DATA-SPECIFICATION.md](DATA-SPECIFICATION.md)**: Data structures, transform format, and persistence
 > - **[CLAUDE.md](../CLAUDE.md)**: Development onboarding and quick reference
 > - **[DEBUGGING.md](DEBUGGING.md)**: CSS Module debugging and component identification
 

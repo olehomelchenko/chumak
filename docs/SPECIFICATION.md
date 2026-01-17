@@ -3,6 +3,7 @@
 > **Related Documentation**:
 >
 > - **[CLAUDE.md](../CLAUDE.md)**: Development onboarding and quick reference
+> - **[DATA-SPECIFICATION.md](DATA-SPECIFICATION.md)**: Data structures, transform format, and persistence
 > - **[UX-SPECIFICATION.md](UX-SPECIFICATION.md)**: UI/UX design guidelines and component patterns
 > - **[FUTURE-PROOFING.md](FUTURE-PROOFING.md)**: Schema evolution and persistence compatibility
 

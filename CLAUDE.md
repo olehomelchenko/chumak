@@ -12,7 +12,8 @@
 
 ### Core Specifications
 
-- **[SPECIFICATION.md](docs/SPECIFICATION.md)**: Technical architecture, data model, codebase map, and implementation details
+- **[SPECIFICATION.md](docs/SPECIFICATION.md)**: Technical architecture, codebase map, and implementation details
+- **[DATA-SPECIFICATION.md](docs/DATA-SPECIFICATION.md)**: Data structures, transform format, expression syntax, and persistence
 - **[UX-SPECIFICATION.md](docs/UX-SPECIFICATION.md)**: UI/UX design guidelines, component patterns, and theming system
 - **[FUTURE-PROOFING.md](docs/FUTURE-PROOFING.md)**: Schema evolution constraints and persistence compatibility
 
@@ -114,14 +115,15 @@ npm run format   # Prettier
 
 ## Quick Reference
 
-| Topic                 | Where to Look                                                                           |
-| --------------------- | --------------------------------------------------------------------------------------- |
-| How transforms work   | [SPECIFICATION.md](docs/SPECIFICATION.md) §3, §5                                        |
-| UI component patterns | [UX-SPECIFICATION.md](docs/UX-SPECIFICATION.md) §3                                      |
-| Expression syntax     | [docs/arquero/expressions.md](docs/arquero/expressions.md), `src/core/ast-validator.ts` |
-| What's safe to change | [FUTURE-PROOFING.md](docs/FUTURE-PROOFING.md)                                           |
-| CSS debugging         | [DEBUGGING.md](docs/DEBUGGING.md)                                                       |
-| Project philosophy    | [SOUL.md](SOUL.md)                                                                      |
+| Topic                 | Where to Look                                            |
+| --------------------- | -------------------------------------------------------- |
+| Data structures       | [DATA-SPECIFICATION.md](docs/DATA-SPECIFICATION.md) §1-3 |
+| Expression syntax     | [DATA-SPECIFICATION.md](docs/DATA-SPECIFICATION.md) §4   |
+| How transforms work   | [SPECIFICATION.md](docs/SPECIFICATION.md) §3, §5         |
+| UI component patterns | [UX-SPECIFICATION.md](docs/UX-SPECIFICATION.md) §3       |
+| What's safe to change | [FUTURE-PROOFING.md](docs/FUTURE-PROOFING.md)            |
+| CSS debugging         | [DEBUGGING.md](docs/DEBUGGING.md)                        |
+| Project philosophy    | [SOUL.md](SOUL.md)                                       |
 
 ---
 
@@ -133,6 +135,7 @@ When editing project documentation:
 
 - **CLAUDE.md**: High-level orientation only. No specific file counts, component lists, or implementation details.
 - **SPECIFICATION.md**: Technical architecture, codebase structure, implementation details.
+- **DATA-SPECIFICATION.md**: Data structures, transform schemas, expression syntax, persistence format.
 - **UX-SPECIFICATION.md**: UI patterns, component catalog, styling details.
 
 ---
