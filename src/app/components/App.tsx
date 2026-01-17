@@ -337,7 +337,7 @@ export function App({ app }: AppProps) {
                 ></div>
               )}
             </div>
-            {!['about', 'expressions', 'download'].includes(activeDialog || '') && (
+            {!['about', 'expressions', 'download', 'settings'].includes(activeDialog || '') && (
               <div class={styles.centeredModalFooter}>
                 <button class="button button--secondary" onClick={() => app.closeDialog()}>
                   Cancel
