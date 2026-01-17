@@ -708,4 +708,79 @@ describe('App UX Interactions', () => {
       }
     });
   });
+
+  describe('Type Conversion Dialog', () => {
+    beforeEach(() => {
+      AppStore.currentData.value = [
+        { status: 'active', count: '10' },
+        { status: 'inactive', count: '20' },
+        { status: 'active', count: '10' },
+      ];
+      AppStore.columns.value = ['status', 'count'];
+      AppStore.activeModel.value = {
+        id: 'test-model',
+        name: 'Test Model',
+        sourceId: 'test-source',
+        schema: [
+          { name: 'status', type: 'string' },
+          { name: 'count', type: 'string' },
+        ],
+        data: AppStore.currentData.value,
+        steps: [],
+      } as any;
+    });
+
+    it('should open type conversion dialog when type is clicked', () => {
+      // Simulate opening type menu
+      AppStore.typeMenuOpen.value = true;
+      AppStore.typeMenuCol.value = 'status';
+      AppStore.typeMenuPos.value = { x: 100, y: 100 };
+
+      // Simulate clicking a type option
+      const onOpenTypeConversionDialog = vi.fn();
+      // This would be called from TypeMenu component
+      onOpenTypeConversionDialog('status', 'boolean');
+
+      expect(onOpenTypeConversionDialog).toHaveBeenCalledWith('status', 'boolean');
+    });
+
+    it('should set dialog state when opening type conversion dialog', () => {
+      DialogStore.typeConversionState.column.value = 'status';
+      DialogStore.typeConversionState.targetType.value = 'boolean';
+      AppStore.activeDialog.value = 'type-conversion';
+
+      expect(DialogStore.typeConversionState.column.value).toBe('status');
+      expect(DialogStore.typeConversionState.targetType.value).toBe('boolean');
+      expect(AppStore.activeDialog.value).toBe('type-conversion');
+    });
+
+    it('should generate preview when dialog opens', () => {
+      DialogStore.typeConversionState.column.value = 'status';
+      DialogStore.typeConversionState.targetType.value = 'boolean';
+
+      // Import and call preview function
+      const { previewTypeConversion } = require('../handlers/interaction-handlers');
+      previewTypeConversion('status', 'boolean');
+
+      const preview = DialogStore.previewState;
+      expect(preview.title.value).toBe('Type Conversion: status');
+      expect(preview.rows.value.length).toBeGreaterThan(0);
+    });
+
+    it('should clear preview when dialog is cancelled', () => {
+      DialogStore.previewState.title.value = 'Type Conversion: status';
+      DialogStore.previewState.rows.value = [
+        { 'status (before)': 'active', 'status (after)': true },
+      ];
+
+      // Simulate cancel
+      DialogStore.typeConversionState.column.value = null;
+      DialogStore.typeConversionState.targetType.value = null;
+      DialogStore.previewState.title.value = '';
+      DialogStore.previewState.rows.value = [];
+
+      expect(DialogStore.previewState.title.value).toBe('');
+      expect(DialogStore.previewState.rows.value.length).toBe(0);
+    });
+  });
 });

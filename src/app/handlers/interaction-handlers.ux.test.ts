@@ -46,14 +46,15 @@ describe('Interaction Handlers UX', () => {
     AppStore.activeModel.value = {
       id: 'test-model',
       name: 'Test Model',
+      sourceId: 'test-source',
       data: testData,
       schema: [
         { name: 'name', type: 'string' },
         { name: 'age', type: 'integer' },
-        { name: 'sales', type: 'number' },
+        { name: 'sales', type: 'float' },
       ],
       steps: [],
-    };
+    } as any;
 
     // Mock DOM elements for toolbar positioning
     const mockElement = {
@@ -259,6 +260,151 @@ describe('Interaction Handlers UX', () => {
       expect(AppStore.selectedColumn.value).toBeNull();
       // Note: edaStats might still be set until next selection, which is fine
       // The important thing is that selectedColumn is cleared
+    });
+  });
+
+  describe('Type Conversion Preview', () => {
+    beforeEach(() => {
+      AppStore.currentData.value = [
+        { id: 1, status: 'active', count: '10', price: '99.99', enabled: 'true' },
+        { id: 2, status: 'inactive', count: '20', price: '149.50', enabled: 'false' },
+        { id: 3, status: 'active', count: '10', price: '99.99', enabled: 'true' }, // duplicate
+        { id: 4, status: 'pending', count: '30', price: '200.00', enabled: 'yes' },
+      ];
+      AppStore.columns.value = ['id', 'status', 'count', 'price', 'enabled'];
+      AppStore.activeModel.value = {
+        id: 'test-model',
+        name: 'Test Model',
+        sourceId: 'test-source',
+        schema: [
+          { name: 'id', type: 'integer' },
+          { name: 'status', type: 'string' },
+          { name: 'count', type: 'string' },
+          { name: 'price', type: 'string' },
+          { name: 'enabled', type: 'string' },
+        ],
+        data: AppStore.currentData.value,
+        steps: [],
+      } as any;
+    });
+
+    it('should generate preview with unique values only', () => {
+      InteractionHandlers.previewTypeConversion('status', 'boolean');
+
+      const preview = DialogStore.previewState;
+      expect(preview.title.value).toBe('Type Conversion: status');
+      expect(preview.rows.value.length).toBe(3); // Only 3 unique values: 'active', 'inactive', 'pending'
+      expect(preview.columns.value).toEqual(['status (before)', 'status (after)']);
+      expect(preview.newColumns.value).toEqual(['status (after)']);
+    });
+
+    it('should show before and after columns in preview', () => {
+      InteractionHandlers.previewTypeConversion('count', 'integer');
+
+      const preview = DialogStore.previewState;
+      expect(preview.rows.value.length).toBeGreaterThan(0);
+      const firstRow = preview.rows.value[0];
+      expect(firstRow).toHaveProperty('count (before)');
+      expect(firstRow).toHaveProperty('count (after)');
+    });
+
+    it('should mark rows with conversion errors', () => {
+      InteractionHandlers.previewTypeConversion('status', 'integer');
+
+      const preview = DialogStore.previewState;
+      const errorRows = preview.rows.value.filter((r: any) => r._hasError);
+      expect(errorRows.length).toBeGreaterThan(0);
+    });
+
+    it('should calculate statistics correctly', () => {
+      InteractionHandlers.previewTypeConversion('count', 'integer');
+
+      const preview = DialogStore.previewState;
+      const stats = preview.stats.value;
+      expect(stats).toContain('unique values');
+      expect(stats).toContain('total rows');
+      expect(stats).toContain('convert successfully');
+    });
+
+    it('should clear preview when converting to same type', () => {
+      InteractionHandlers.previewTypeConversion('status', 'string');
+
+      const preview = DialogStore.previewState;
+      expect(preview.title.value).toBe('');
+      expect(preview.rows.value.length).toBe(0);
+    });
+
+    it('should handle empty data gracefully', () => {
+      AppStore.currentData.value = [];
+      InteractionHandlers.previewTypeConversion('status', 'boolean');
+
+      const preview = DialogStore.previewState;
+      expect(preview.title.value).toBe('');
+      expect(preview.rows.value.length).toBe(0);
+    });
+
+    it('should handle null values in unique value calculation', () => {
+      AppStore.currentData.value = [
+        { col: 'value1' },
+        { col: null },
+        { col: 'value2' },
+        { col: null },
+        { col: 'value1' },
+      ];
+      AppStore.columns.value = ['col'];
+
+      InteractionHandlers.previewTypeConversion('col', 'string');
+
+      const preview = DialogStore.previewState;
+      // Should have 3 unique values: 'value1', null, 'value2'
+      expect(preview.rows.value.length).toBe(3);
+    });
+
+    it('should handle auto type detection', () => {
+      AppStore.currentData.value = [{ numeric: '42' }, { numeric: '100' }, { numeric: '50' }];
+      AppStore.columns.value = ['numeric'];
+
+      InteractionHandlers.previewTypeConversion('numeric', 'auto');
+
+      const preview = DialogStore.previewState;
+      // Should detect integer type and show preview
+      expect(preview.title.value).toBe('Type Conversion: numeric');
+    });
+
+    it('should preserve insertion order of unique values', () => {
+      AppStore.currentData.value = [
+        { order: 'first' },
+        { order: 'second' },
+        { order: 'first' },
+        { order: 'third' },
+        { order: 'second' },
+      ];
+      AppStore.columns.value = ['order'];
+
+      InteractionHandlers.previewTypeConversion('order', 'string');
+
+      const preview = DialogStore.previewState;
+      const rows = preview.rows.value;
+      expect(rows[0]['order (before)']).toBe('first');
+      expect(rows[1]['order (before)']).toBe('second');
+      expect(rows[2]['order (before)']).toBe('third');
+    });
+
+    it('should handle error objects in data', () => {
+      const errorObj = { type: 'error', message: 'Test error' };
+      AppStore.currentData.value = [
+        { col: 'value1' },
+        { col: errorObj },
+        { col: 'value2' },
+        { col: errorObj },
+      ];
+      AppStore.columns.value = ['col'];
+
+      InteractionHandlers.previewTypeConversion('col', 'string');
+
+      const preview = DialogStore.previewState;
+      // Should handle error objects as unique values
+      expect(preview.rows.value.length).toBeGreaterThan(0);
     });
   });
 });

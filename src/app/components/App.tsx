@@ -1,4 +1,5 @@
 import { AppStore } from '../stores/AppStore';
+import { DialogStore } from '../stores/DialogStore';
 import { AppHeader } from './AppHeader';
 import { RibbonToolbar } from './RibbonToolbar';
 import { Sidebar } from './Sidebar';
@@ -29,6 +30,7 @@ import {
   RegexpMatchDialog,
   RegexpExtractDialog,
   DedupeDialog,
+  TypeConversionDialog,
 } from './index';
 // Import handlers for helpers
 import {
@@ -89,7 +91,7 @@ export function App({ app }: AppProps) {
 
   const isCenteredModal = (d: string | null) => {
     if (!d) return false;
-    return ['settings', 'download', 'about', 'expressions'].includes(d);
+    return ['settings', 'download', 'about', 'expressions', 'type-conversion'].includes(d);
   };
 
   // Helper Wrappers
@@ -172,6 +174,11 @@ export function App({ app }: AppProps) {
     onChangeType: (c: string, t: string) => app.changeColumnType(c, t),
     onClose: () => {
       AppStore.typeMenuOpen.value = false;
+    },
+    onOpenTypeConversionDialog: (col: string, type: string) => {
+      DialogStore.typeConversionState.column.value = col;
+      DialogStore.typeConversionState.targetType.value = type;
+      AppStore.activeDialog.value = 'type-conversion';
     },
   };
 
@@ -287,15 +294,22 @@ export function App({ app }: AppProps) {
                       {getPreviewRows.call(app).map((row: any, i: number) => (
                         <tr
                           key={i}
-                          class={`${tableStyles.dataTable__row} ${row._removed ? tableStyles.removed : ''}`}
+                          class={`${tableStyles.dataTable__row} ${row._removed ? tableStyles.removed : ''} ${row._hasError ? tableStyles.error : ''}`}
                         >
                           {getPreviewColumns.call(app).map((col: string) => {
                             const isRemovedColumn =
                               row._removedColumns && row._removedColumns.includes(col);
+                            const cellValue = row[col];
+                            const isError =
+                              cellValue &&
+                              typeof cellValue === 'object' &&
+                              'type' in cellValue &&
+                              cellValue.type === 'error';
                             return (
                               <td
                                 key={col}
-                                class={`${tableStyles.cell} ${row._removed || isRemovedColumn ? tableStyles.removed : ''} ${isNewPreviewColumn.call(app, col) ? styles.previewNewCol : ''}`}
+                                class={`${tableStyles.cell} ${row._removed || isRemovedColumn ? tableStyles.removed : ''} ${isNewPreviewColumn.call(app, col) ? styles.previewNewCol : ''} ${isError ? tableStyles.error : ''}`}
+                                title={isError ? cellValue.message : undefined}
                               >
                                 {formatPreviewCell.call(app, row, col)}
                               </td>
@@ -316,49 +330,82 @@ export function App({ app }: AppProps) {
       {isCenteredModal(activeDialog) && (
         <div class={styles.centeredModalBackdrop} onClick={() => app.closeDialog()}>
           <div class={styles.centeredModal} onClick={(e) => e.stopPropagation()}>
-            <div class={styles.centeredModalHeader}>
-              <h3>{dialogTitle}</h3>
-              <button onClick={() => app.closeDialog()} class={styles.closeButton}>
-                ×
-              </button>
-            </div>
-            <div class={styles.centeredModalContent}>
-              <div style={{ display: activeDialog === 'settings' ? 'block' : 'none' }}>
-                <SettingsDialog
-                  onThemeChange={(theme) => app.switchTheme(theme)}
-                  onRowLimitChange={(limit) => app.updatePreviewRowLimit(String(limit))}
-                />
-              </div>
-              <div style={{ display: activeDialog === 'download' ? 'block' : 'none' }}>
-                <DownloadDialog />
-              </div>
+            {activeDialog === 'type-conversion' ? (
+              <TypeConversionDialog
+                app={app}
+                onCancel={() => {
+                  app.closeDialog();
+                  DialogStore.typeConversionState.column.value = null;
+                  DialogStore.typeConversionState.targetType.value = null;
+                  DialogStore.previewState.title.value = '';
+                  DialogStore.previewState.stats.value = '';
+                  DialogStore.previewState.columns.value = [];
+                  DialogStore.previewState.newColumns.value = [];
+                  DialogStore.previewState.rows.value = [];
+                }}
+                onApply={async () => {
+                  const col = DialogStore.typeConversionState.column.value;
+                  const type = DialogStore.typeConversionState.targetType.value;
+                  if (col && type) {
+                    await app.changeColumnType(col, type);
+                  }
+                  app.closeDialog();
+                  DialogStore.typeConversionState.column.value = null;
+                  DialogStore.typeConversionState.targetType.value = null;
+                  DialogStore.previewState.title.value = '';
+                  DialogStore.previewState.stats.value = '';
+                  DialogStore.previewState.columns.value = [];
+                  DialogStore.previewState.newColumns.value = [];
+                  DialogStore.previewState.rows.value = [];
+                }}
+              />
+            ) : (
+              <>
+                <div class={styles.centeredModalHeader}>
+                  <h3>{dialogTitle}</h3>
+                  <button onClick={() => app.closeDialog()} class={styles.closeButton}>
+                    ×
+                  </button>
+                </div>
+                <div class={styles.centeredModalContent}>
+                  <div style={{ display: activeDialog === 'settings' ? 'block' : 'none' }}>
+                    <SettingsDialog
+                      onThemeChange={(theme) => app.switchTheme(theme)}
+                      onRowLimitChange={(limit) => app.updatePreviewRowLimit(String(limit))}
+                    />
+                  </div>
+                  <div style={{ display: activeDialog === 'download' ? 'block' : 'none' }}>
+                    <DownloadDialog />
+                  </div>
 
-              {activeDialog === 'about' && (
-                <div
-                  id="about-modal-container"
-                  dangerouslySetInnerHTML={{ __html: aboutHtml }}
-                ></div>
-              )}
-              {activeDialog === 'expressions' && (
-                <div
-                  id="expressions-modal-container"
-                  dangerouslySetInnerHTML={{ __html: expressionsHtml }}
-                ></div>
-              )}
-            </div>
-            {!['about', 'expressions', 'download', 'settings'].includes(activeDialog || '') && (
-              <div class={styles.centeredModalFooter}>
-                <button class="button button--secondary" onClick={() => app.closeDialog()}>
-                  Cancel
-                </button>
-                <button
-                  class="button button--primary"
-                  onClick={() => app.applyActiveTransform()}
-                  disabled={dialogError}
-                >
-                  {buttonText}
-                </button>
-              </div>
+                  {activeDialog === 'about' && (
+                    <div
+                      id="about-modal-container"
+                      dangerouslySetInnerHTML={{ __html: aboutHtml }}
+                    ></div>
+                  )}
+                  {activeDialog === 'expressions' && (
+                    <div
+                      id="expressions-modal-container"
+                      dangerouslySetInnerHTML={{ __html: expressionsHtml }}
+                    ></div>
+                  )}
+                </div>
+                {!['about', 'expressions', 'download', 'settings'].includes(activeDialog || '') && (
+                  <div class={styles.centeredModalFooter}>
+                    <button class="button button--secondary" onClick={() => app.closeDialog()}>
+                      Cancel
+                    </button>
+                    <button
+                      class="button button--primary"
+                      onClick={() => app.applyActiveTransform()}
+                      disabled={dialogError}
+                    >
+                      {buttonText}
+                    </button>
+                  </div>
+                )}
+              </>
             )}
           </div>
         </div>

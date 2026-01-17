@@ -430,6 +430,17 @@ export function formatPreviewCell(this: ChumakApp, row: any, col: string): strin
   const val = row[col];
   if (val == null || val === '') return '—';
   if (typeof val === 'boolean') return val ? '✓' : '✗';
+  // Handle conversion errors
+  if (typeof val === 'object' && val !== null && 'type' in val && val.type === 'error') {
+    return 'Error';
+  }
+  if (val instanceof Date) {
+    // Format dates nicely
+    if (col.includes('(after)') && col.includes('date')) {
+      return val.toISOString().split('T')[0]; // YYYY-MM-DD for date
+    }
+    return val.toISOString();
+  }
   if (typeof val === 'object') return JSON.stringify(val);
   return String(val);
 }

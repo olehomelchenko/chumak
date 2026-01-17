@@ -4,19 +4,23 @@ import styles from './TypeMenu.module.css';
 export interface TypeMenuProps {
   onChangeType: (column: string, type: string) => void;
   onClose: () => void;
+  onOpenTypeConversionDialog: (column: string, type: string) => void;
 }
 
-export function TypeMenu({ onChangeType, onClose }: TypeMenuProps) {
+export function TypeMenu({ onClose, onOpenTypeConversionDialog }: TypeMenuProps) {
   const isOpen = AppStore.typeMenuOpen;
   const position = AppStore.typeMenuPos;
   const column = AppStore.typeMenuCol;
 
   if (!isOpen.value || !column.value) return null;
 
-  const handleCreateTypeClick = (type: string) => (e: MouseEvent) => {
+  const handleTypeClick = (type: string) => (e: MouseEvent) => {
     e.stopPropagation();
-    onChangeType(column.value!, type);
-    onClose();
+    // Close the type menu and open the conversion dialog
+    AppStore.typeMenuOpen.value = false;
+    if (column.value) {
+      onOpenTypeConversionDialog(column.value, type);
+    }
   };
 
   return (
@@ -30,32 +34,32 @@ export function TypeMenu({ onChangeType, onClose }: TypeMenuProps) {
         }}
       >
         <div class={styles.header}>Change Type</div>
-        <button class={styles.item} onClick={handleCreateTypeClick('string')}>
+        <button class={styles.item} onClick={handleTypeClick('string')}>
           <span class={`${styles.indicator} ${styles.string}`}>Aa</span> String
         </button>
-        <button class={styles.item} onClick={handleCreateTypeClick('integer')}>
+        <button class={styles.item} onClick={handleTypeClick('integer')}>
           <span class={`${styles.indicator} ${styles.integer}`}>#</span> Integer
         </button>
-        <button class={styles.item} onClick={handleCreateTypeClick('float')}>
+        <button class={styles.item} onClick={handleTypeClick('float')}>
           <span class={`${styles.indicator} ${styles.float}`}>0.0</span> Float
         </button>
-        <button class={styles.item} onClick={handleCreateTypeClick('boolean')}>
+        <button class={styles.item} onClick={handleTypeClick('boolean')}>
           <span class={`${styles.indicator} ${styles.boolean}`}>✓</span> Boolean
         </button>
-        <button class={styles.item} onClick={handleCreateTypeClick('date')}>
+        <button class={styles.item} onClick={handleTypeClick('date')}>
           <span class={`${styles.indicator} ${styles.date}`}>
             <span class="iconify" data-icon="carbon:calendar"></span>
           </span>
           Date
         </button>
-        <button class={styles.item} onClick={handleCreateTypeClick('datetime')}>
+        <button class={styles.item} onClick={handleTypeClick('datetime')}>
           <span class={`${styles.indicator} ${styles.datetime}`}>
             <span class="iconify" data-icon="ix:calendar"></span>
           </span>
           DateTime
         </button>
         <div class={styles.divider}></div>
-        <button class={styles.item} onClick={handleCreateTypeClick('auto')}>
+        <button class={styles.item} onClick={handleTypeClick('auto')}>
           <span class="iconify" data-icon="carbon:flash"></span>
           Auto-Detect
         </button>

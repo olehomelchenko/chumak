@@ -170,6 +170,12 @@ export class DialogStore {
     isLoading: signal(false),
   };
 
+  // Type Conversion Dialog State
+  static typeConversionState = {
+    column: signal<string | null>(null),
+    targetType: signal<string | null>(null),
+  };
+
   // Import CSV Dialog State
   static importCsvState = {
     fileName: signal(''),

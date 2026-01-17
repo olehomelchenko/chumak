@@ -8,6 +8,7 @@ import * as SimpleHandlers from './simple-handlers';
 import * as SplitHandlers from './split-handlers';
 import * as DedupeHandlers from './dedupe-handlers';
 import { StepService } from '../services/StepService';
+import { convertType } from '../../core/type-converter';
 
 export function handleBodyClick(event: any) {
   if (
@@ -27,6 +28,12 @@ export function handleBodyClick(event: any) {
   ) {
     AppStore.typeMenuOpen.value = false;
     AppStore.typeMenuCol.value = null;
+    // Clear preview when type menu closes
+    DialogStore.previewState.title.value = '';
+    DialogStore.previewState.stats.value = '';
+    DialogStore.previewState.columns.value = [];
+    DialogStore.previewState.newColumns.value = [];
+    DialogStore.previewState.rows.value = [];
   }
 }
 
@@ -44,8 +51,116 @@ export function openTypeMenu(col: string, event: any) {
   AppStore.typeMenuPos.value = { x, y: rect.bottom + 4 };
 }
 
+export function previewTypeConversion(col: string, newType: string) {
+  const data = AppStore.currentData.value;
+  if (!data || data.length === 0) {
+    DialogStore.previewState.title.value = '';
+    DialogStore.previewState.stats.value = '';
+    DialogStore.previewState.columns.value = [];
+    DialogStore.previewState.newColumns.value = [];
+    DialogStore.previewState.rows.value = [];
+    return;
+  }
+
+  // Get current column type
+  const model = AppStore.activeModel.value;
+  const source = AppStore.activeSource.value;
+  let fromType: ColumnType = 'string';
+
+  if (model?.schema) {
+    const colInfo = model.schema.find((c: any) => c.name === col);
+    if (colInfo) fromType = colInfo.type;
+  } else if (source) {
+    const colInfo = source.columns.find((c: any) => c.name === col);
+    if (colInfo) fromType = colInfo.type;
+  }
+
+  // Determine target type
+  let toType: ColumnType = newType as ColumnType;
+  if (newType === 'auto' && data) {
+    const sample = data.slice(0, 50).map((row) => row[col]);
+    toType = SchemaEngine.inferType(sample);
+  }
+
+  // If same type, clear preview
+  if (fromType === toType) {
+    DialogStore.previewState.title.value = '';
+    DialogStore.previewState.stats.value = '';
+    DialogStore.previewState.columns.value = [];
+    DialogStore.previewState.newColumns.value = [];
+    DialogStore.previewState.rows.value = [];
+    return;
+  }
+
+  // Get unique values from the column
+  // Use a Map to preserve insertion order and track original values
+  const uniqueValuesMap = new Map<any, any>();
+  for (const row of data) {
+    const value = row[col];
+    // Use a key that handles objects/errors properly
+    const key =
+      value === null || value === undefined
+        ? '__null__'
+        : typeof value === 'object' && value !== null && 'type' in value && value.type === 'error'
+          ? `__error__${value.message}`
+          : JSON.stringify(value);
+
+    if (!uniqueValuesMap.has(key)) {
+      uniqueValuesMap.set(key, value);
+    }
+  }
+
+  const uniqueValues = Array.from(uniqueValuesMap.values());
+  const totalRows = data.length;
+  const uniqueCount = uniqueValues.length;
+
+  // Convert each unique value
+  const previewRows = uniqueValues.map((originalValue) => {
+    const convertedValue = convertType(originalValue, fromType, toType);
+
+    // Format the preview row with before and after columns
+    const row: any = {
+      [`${col} (before)`]: originalValue,
+      [`${col} (after)`]: convertedValue,
+    };
+
+    // Mark errors
+    if (
+      convertedValue &&
+      typeof convertedValue === 'object' &&
+      'type' in convertedValue &&
+      convertedValue.type === 'error'
+    ) {
+      row._hasError = true;
+    }
+
+    return row;
+  });
+
+  // Count errors
+  const errorCount = previewRows.filter((r) => r._hasError).length;
+  const successCount = uniqueCount - errorCount;
+
+  // Set preview state
+  DialogStore.previewState.title.value = `Type Conversion: ${col}`;
+  DialogStore.previewState.stats.value =
+    `<strong>${uniqueCount}</strong> unique values (from ${totalRows} total rows). ` +
+    `${successCount} convert successfully, ${errorCount} will produce errors.`;
+  DialogStore.previewState.columns.value = [`${col} (before)`, `${col} (after)`];
+  DialogStore.previewState.newColumns.value = [`${col} (after)`];
+  DialogStore.previewState.rows.value = previewRows;
+}
+
 export async function changeColumnType(col: string, newType: string, callbacks: any) {
   AppStore.typeMenuOpen.value = false;
+
+  // Clear preview when applying
+  DialogStore.previewState.title.value = '';
+  DialogStore.previewState.stats.value = '';
+  DialogStore.previewState.columns.value = [];
+  DialogStore.previewState.newColumns.value = [];
+  DialogStore.previewState.rows.value = [];
+
   let typeToSet = newType;
   const data = AppStore.currentData.value;
   if (newType === 'auto' && data) {

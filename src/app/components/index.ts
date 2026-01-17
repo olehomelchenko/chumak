@@ -76,3 +76,5 @@ export type { MainContentProps } from './MainContent';
 
 export { TypeMenu } from './TypeMenu';
 export type { TypeMenuProps } from './TypeMenu';
+
+export { TypeConversionDialog } from './TypeConversionDialog';
