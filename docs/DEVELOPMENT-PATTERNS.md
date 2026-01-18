@@ -578,6 +578,29 @@ User expressions go through three stages for security:
 Result (boolean for filter, value for derive)
 ```
 
+### 7.1 Adding a New Dialog
+
+Adding a new dialog (especially transform dialogs) requires updates across multiple files. Use this checklist:
+
+| Step | File                                   | What to Add                            | Notes                                |
+| ---- | -------------------------------------- | -------------------------------------- | ------------------------------------ |
+| 1    | `src/app/types.ts`                     | Add to `DialogName` type union         | Required for type safety             |
+| 2    | `src/app/stores/DialogStore.ts`        | Add dialog state signals               | If dialog needs form state           |
+| 3    | `src/app/components/*Dialog.tsx`       | Create dialog component                | UI implementation                    |
+| 4    | `src/app/components/index.ts`          | Export dialog component                | Component library export             |
+| 5    | `src/app/components/App.tsx`           | Render dialog in component tree        | Add to slide panel or centered modal |
+| 6    | `src/app/components/App.tsx`           | Add to `isSlidePanel` array (if slide) | **⚠️ Don't forget this!**            |
+| 7    | `src/app/handlers/dialog-handlers.ts`  | Add to `initDialogState()`             | Initialize state when dialog opens   |
+| 8    | `src/app/handlers/dialog-handlers.ts`  | Add to `isSlidePanel()` array          | Register dialog type                 |
+| 9    | `src/app/handlers/dialog-handlers.ts`  | Add to `getDialogTitle()` switch       | Dialog title for header              |
+| 10   | `src/app/handlers/step-handlers.ts`    | Add to `applyActiveTransform()` switch | Handler for "Apply" button           |
+| 11   | `src/app/handlers/*-handlers.ts`       | Create `apply*Transform()` handler     | Implementation of transform logic    |
+| 12   | `src/app/components/RibbonToolbar.tsx` | Add ribbon button (if needed)          | UI entry point                       |
+
+**Common Gotcha**: The `isSlidePanel` function is **duplicated** in `App.tsx` (hardcoded array) and `dialog-handlers.ts` (function implementation). Both must be updated when adding a new slide panel dialog.
+
+**Future Improvement**: Consider consolidating dialog metadata (name, title, type) into a single registry to avoid scattered updates.
+
 ### 7.2 Adding a New Function
 
 To add a whitelisted function:

@@ -253,6 +253,41 @@ The transformation JSON format needs to be stable enough that:
 
 ---
 
+### Dialog Registration Centralization
+
+**Status**: Future refactor
+**Effort**: Medium (~150 lines)
+
+Currently, adding a new dialog requires updates across ~12 files (see [DEVELOPMENT-PATTERNS.md](DEVELOPMENT-PATTERNS.md) §7.1). This is error-prone and has caused bugs (missing entries in `isSlidePanel` arrays, etc.).
+
+**Proposed Solution**: Create a centralized dialog registry that defines dialog metadata once:
+
+```typescript
+const DIALOG_REGISTRY = {
+  impute: {
+    name: 'impute',
+    title: 'Impute Missing Values',
+    type: 'slide-panel', // or 'centered-modal'
+    component: ImputeDialog,
+    initState: (app) => {
+      /* ... */
+    },
+  },
+  // ... other dialogs
+};
+```
+
+**Benefits**:
+
+- Single source of truth for dialog configuration
+- Automatic generation of `isSlidePanel()`, `getDialogTitle()`, etc.
+- Type-safe dialog names
+- Reduced risk of missed updates
+
+**Files to refactor**: `dialog-handlers.ts`, `App.tsx`, create new `dialog-registry.ts`
+
+---
+
 ## Not Planned (Out of Scope)
 
 These have been considered and explicitly excluded:
