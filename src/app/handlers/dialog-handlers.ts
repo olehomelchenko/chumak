@@ -456,11 +456,11 @@ export function formatPreviewCell(this: ChumakApp, row: any, col: string): strin
     return 'Error';
   }
   if (val instanceof Date) {
-    // Format dates nicely
-    if (col.includes('(after)') && col.includes('date')) {
-      return val.toISOString().split('T')[0]; // YYYY-MM-DD for date
-    }
-    return val.toISOString();
+    // Format dates using local time to avoid timezone shifts
+    // (toISOString() converts to UTC which shifts dates for non-UTC timezones)
+    if (isNaN(val.getTime())) return 'Invalid Date';
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${val.getFullYear()}-${pad(val.getMonth() + 1)}-${pad(val.getDate())}`;
   }
   if (typeof val === 'object') return JSON.stringify(val);
   return String(val);
