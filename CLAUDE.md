@@ -19,6 +19,7 @@
 
 ### Development Guides
 
+- **[DEVELOPMENT-PATTERNS.md](docs/DEVELOPMENT-PATTERNS.md)**: How to add transforms, testing patterns, state management conventions
 - **[DEBUGGING.md](docs/DEBUGGING.md)**: CSS Module debugging and DevTools tips
 - **[BACKLOG.md](docs/BACKLOG.md)**: Feature backlog and future enhancements
 
@@ -115,15 +116,18 @@ npm run format   # Prettier
 
 ## Quick Reference
 
-| Topic                 | Where to Look                                            |
-| --------------------- | -------------------------------------------------------- |
-| Data structures       | [DATA-SPECIFICATION.md](docs/DATA-SPECIFICATION.md) §1-3 |
-| Expression syntax     | [DATA-SPECIFICATION.md](docs/DATA-SPECIFICATION.md) §4   |
-| How transforms work   | [SPECIFICATION.md](docs/SPECIFICATION.md) §3, §5         |
-| UI component patterns | [UX-SPECIFICATION.md](docs/UX-SPECIFICATION.md) §3       |
-| What's safe to change | [FUTURE-PROOFING.md](docs/FUTURE-PROOFING.md)            |
-| CSS debugging         | [DEBUGGING.md](docs/DEBUGGING.md)                        |
-| Project philosophy    | [SOUL.md](SOUL.md)                                       |
+| Topic                 | Where to Look                                              |
+| --------------------- | ---------------------------------------------------------- |
+| Data structures       | [DATA-SPECIFICATION.md](docs/DATA-SPECIFICATION.md) §1-3   |
+| Expression syntax     | [DATA-SPECIFICATION.md](docs/DATA-SPECIFICATION.md) §4     |
+| How transforms work   | [SPECIFICATION.md](docs/SPECIFICATION.md) §3, §5           |
+| Adding new transforms | [DEVELOPMENT-PATTERNS.md](docs/DEVELOPMENT-PATTERNS.md) §1 |
+| Testing patterns      | [DEVELOPMENT-PATTERNS.md](docs/DEVELOPMENT-PATTERNS.md) §3 |
+| State management      | [DEVELOPMENT-PATTERNS.md](docs/DEVELOPMENT-PATTERNS.md) §2 |
+| UI component patterns | [UX-SPECIFICATION.md](docs/UX-SPECIFICATION.md) §3         |
+| What's safe to change | [FUTURE-PROOFING.md](docs/FUTURE-PROOFING.md)              |
+| CSS debugging         | [DEBUGGING.md](docs/DEBUGGING.md)                          |
+| Project philosophy    | [SOUL.md](SOUL.md)                                         |
 
 ---
 
