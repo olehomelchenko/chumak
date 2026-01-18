@@ -52,6 +52,70 @@ See `src/content/expressions.md` for full documentation with examples.
 
 ## Transform Gaps
 
+> **See also**: [TRANSFORM-ARCHITECTURE-REVIEW.md](TRANSFORM-ARCHITECTURE-REVIEW.md) for comprehensive analysis of transform architecture, identified gaps, and prioritized improvements based on Power Query M limitations research.
+
+### Pattern-Based Column Operations
+
+**Status**: Planned (High Priority)
+**Effort**: Low-Medium
+**Reference**: [TRANSFORM-ARCHITECTURE-REVIEW.md §2.1](TRANSFORM-ARCHITECTURE-REVIEW.md#21-pattern-based-column-operations-high-priority)
+
+Expose existing `matchColumnPattern()` as user-facing transforms for schema-drift resilience:
+
+```json
+{ "selectPattern": { "pattern": "sales_", "matchType": "prefix" } }
+{ "removePattern": { "pattern": "_backup$", "matchType": "regex" } }
+```
+
+---
+
+### Conditional Transform
+
+**Status**: Planned (High Priority)
+**Effort**: Medium
+**Reference**: [TRANSFORM-ARCHITECTURE-REVIEW.md §2.2](TRANSFORM-ARCHITECTURE-REVIEW.md#22-multi-condition-logic-high-priority)
+
+Declarative multi-condition logic as alternative to nested ternaries:
+
+```json
+{
+  "conditional": {
+    "column": "tier",
+    "conditions": [
+      { "when": "sales > 10000", "then": "'platinum'" },
+      { "when": "sales > 5000", "then": "'gold'" }
+    ],
+    "else": "'bronze'"
+  }
+}
+```
+
+---
+
+### Case-Insensitive Comparison Functions
+
+**Status**: Planned (Medium Priority)
+**Effort**: Low
+**Reference**: [TRANSFORM-ARCHITECTURE-REVIEW.md §2.3](TRANSFORM-ARCHITECTURE-REVIEW.md#23-case-insensitive-comparisons-medium-priority)
+
+Add `equals_ci()`, `contains_ci()`, `starts_with_ci()`, `ends_with_ci()` expression functions.
+
+---
+
+### Split Expression Function
+
+**Status**: Planned (Medium Priority)
+**Effort**: Low
+**Reference**: [TRANSFORM-ARCHITECTURE-REVIEW.md §2.4](TRANSFORM-ARCHITECTURE-REVIEW.md#24-split-transform-overload-medium-priority)
+
+Add `split(value, delimiter, index)` for extracting segments without creating multiple columns:
+
+```json
+{ "derive": { "first_name": "split(full_name, ' ', 0)" } }
+```
+
+---
+
 ### Impute (Fill Missing Values)
 
 **Status**: Completed (January 2025)
@@ -299,20 +363,24 @@ These have been considered and explicitly excluded:
 1. ~~Word-form boolean operators (`and`/`or`/`not`)~~ — Completed ✓
 2. ~~Expression functions — Phase 1 (string, math, type basics)~~ — Already implemented ✓
 3. ~~Impute — Phase 1 (constants)~~ — Completed ✓
+4. **Pattern-based column operations** (`selectPattern`, `removePattern`) — Planned
+5. **Conditional transform** (multi-condition column creation) — Planned
 
 ### Medium Priority (Useful Additions)
 
-4. Set operations (concat, union)
-5. Expression functions — Phase 2 (date, extended string/math)
-6. Keyboard shortcuts
-7. Impute — Phase 2 (expression-based)
+6. Case-insensitive comparison functions (`equals_ci`, etc.)
+7. `split()` expression function for segment extraction
+8. Set operations (concat, union)
+9. Keyboard shortcuts
 
 ### Lower Priority (Nice to Have)
 
-8. Step reordering
-9. Sample transform
-10. Advanced joins (semi, anti, lookup)
-11. Spread/unroll transforms
+10. Step reordering
+11. Column reordering (`reorder`, `moveColumn`)
+12. Sample transform
+13. Advanced joins (semi, anti, lookup)
+14. Spread/unroll transforms
+15. Window functions (`cumsum`, `lag`, `rank`) — Future
 
 ---
 

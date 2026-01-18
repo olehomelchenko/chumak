@@ -5,6 +5,7 @@
 > - **[SPECIFICATION.md](SPECIFICATION.md)**: Technical architecture and codebase map
 > - **[DEVELOPMENT-PATTERNS.md](DEVELOPMENT-PATTERNS.md)**: How to add transforms, testing, state management
 > - **[FUTURE-PROOFING.md](FUTURE-PROOFING.md)**: Schema evolution and compatibility constraints
+> - **[TRANSFORM-ARCHITECTURE-REVIEW.md](TRANSFORM-ARCHITECTURE-REVIEW.md)**: Transform design analysis, gaps, and proposed additions
 
 This document describes how data is structured, stored, and serialized in Chumak.
 
