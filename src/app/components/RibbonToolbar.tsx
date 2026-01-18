@@ -195,6 +195,12 @@ export function RibbonToolbar({ onOpenDialog, onAutoDetectSchema }: RibbonToolba
                 title="Replace values in a column"
                 onClick={() => onOpenDialog('replace')}
               />
+              <RibbonButton
+                icon="material-symbols-light:edit-arrow-down-outline-rounded"
+                label="Impute"
+                title="Fill missing values (null, undefined, NaN)"
+                onClick={() => onOpenDialog('impute')}
+              />
             </RibbonGroup>
           </div>
         )}

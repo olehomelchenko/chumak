@@ -13,6 +13,7 @@ export { IndexDialog } from './IndexDialog';
 export { ReplaceDialog } from './ReplaceDialog';
 export { SliceRowsDialog } from './SliceRowsDialog';
 export { UnpivotDialog } from './UnpivotDialog';
+export { ImputeDialog } from './ImputeDialog';
 
 export { FilterDialog } from './FilterDialog';
 export type { FilterPreviewMode } from './FilterDialog';

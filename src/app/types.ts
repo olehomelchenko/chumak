@@ -28,6 +28,7 @@ export type DialogName =
   | 'expressions'
   | 'reference'
   | 'type-conversion'
+  | 'impute'
   | null;
 
 export interface Source {

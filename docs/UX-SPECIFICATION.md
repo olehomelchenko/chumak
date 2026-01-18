@@ -107,7 +107,7 @@ Located above the data preview table, this toolbar provides status and model-spe
 
 **Preview Triggers**:
 
-- **Auto-updating (debounced)**: filter, derive, regexp-match, regexp-extract, date, select-columns
+- **Auto-updating (debounced)**: filter, derive, regexp-match, regexp-extract, date, select-columns, impute
 - **Button-triggered**: aggregate, join, pivot (expensive operations)
 
 ---
@@ -184,7 +184,7 @@ All UI components are Preact/TSX with co-located CSS Modules in `src/app/compone
 - `AggregateDialog.tsx`, `PivotDialog.tsx`, `JoinDialog.tsx`
 - `SplitDialog.tsx`, `ReplaceDialog.tsx`, `FoldDialog.tsx`
 - `RegexpMatchDialog.tsx`, `RegexpExtractDialog.tsx`
-- `TypeConversionDialog.tsx`, `DedupeDialog.tsx`
+- `TypeConversionDialog.tsx`, `DedupeDialog.tsx`, `ImputeDialog.tsx`
 
 **Other Dialogs**:
 

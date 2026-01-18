@@ -31,6 +31,7 @@ import {
   RegexpExtractDialog,
   DedupeDialog,
   TypeConversionDialog,
+  ImputeDialog,
 } from './index';
 // Import handlers for helpers
 import {
@@ -86,6 +87,7 @@ export function App({ app }: AppProps) {
       'column-editor',
       'import-csv',
       'import-url',
+      'impute',
     ].includes(d);
   };
 
@@ -249,6 +251,7 @@ export function App({ app }: AppProps) {
                 {activeDialog === 'import-url' && (
                   <ImportUrlDialog onImport={() => app.fetchAndImportFromUrl()} />
                 )}
+                {activeDialog === 'impute' && <ImputeDialog />}
               </div>
 
               <div class={styles.slidePanelFooter}>
@@ -419,6 +422,7 @@ export function App({ app }: AppProps) {
         onSplit={() => app.quickSplit()}
         onDate={() => app.quickDate()}
         onDedupe={() => app.quickDedupe()}
+        onImpute={() => app.openDialog('impute')}
         onRemove={() => app.quickRemove()}
         getColumnType={(col: string) => app.getColumnType(col)}
       />

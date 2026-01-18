@@ -304,6 +304,30 @@ describe('App UX Interactions', () => {
       });
     });
 
+    it('should open impute dialog when column toolbar impute button is clicked', async () => {
+      AppStore.selectedColumn.value = 'sales';
+
+      render(<App app={app} />);
+
+      await waitFor(() => {
+        const toolbar = document.querySelector('[class*="floatingToolbar"]');
+        expect(toolbar).toBeDefined();
+      });
+
+      // Find impute button (material-symbols-light:edit-arrow-down-outline-rounded icon)
+      // Note: ColumnToolbar uses data-icon based on what we set in implementation
+      const imputeButton = document
+        .querySelector('[data-icon="material-symbols-light:edit-arrow-down-outline-rounded"]')
+        ?.closest('button');
+      expect(imputeButton).toBeDefined();
+
+      fireEvent.click(imputeButton!);
+
+      await waitFor(() => {
+        expect(app.openDialog).toHaveBeenCalledWith('impute');
+      });
+    });
+
     it('should open sort dialog when column toolbar sort button is clicked', async () => {
       AppStore.selectedColumn.value = 'sales';
 

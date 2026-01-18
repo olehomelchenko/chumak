@@ -58,6 +58,12 @@ export function getDialogState(this: ChumakApp, dialog: string) {
       return this.dedupeDialogState;
     case 'column-editor':
       return DialogStore.columnEditorState.columns.value;
+    case 'impute':
+      return {
+        column: DialogStore.imputeState.column.value,
+        strategy: DialogStore.imputeState.strategy.value,
+        value: DialogStore.imputeState.value.value,
+      };
     case 'settings':
       return {
         theme: this.theme,
@@ -268,6 +274,18 @@ export function initDialogState(this: ChumakApp, dialogName: string, section?: s
     if (typeof this.updateDedupePreview === 'function') {
       this.updateDedupePreview();
     }
+  } else if (dialogName === 'impute') {
+    const state = DialogStore.imputeState;
+    state.column.value = this.selectedColumn || this.columns[0] || '';
+    state.strategy.value = 'constant';
+    state.value.value = '';
+    state.includeEmptyString.value = false;
+    state.previewRows.value = null;
+    state.error.value = null;
+
+    if (typeof (this as any).updateImputePreview === 'function') {
+      (this as any).updateImputePreview();
+    }
   }
 }
 
@@ -295,6 +313,7 @@ export function isSlidePanel(this: ChumakApp, dialog: string | null): boolean {
     'column-editor',
     'import-csv',
     'import-url',
+    'impute',
   ];
   return slidePanels.includes(dialog);
 }
@@ -351,6 +370,8 @@ export function getDialogTitle(this: ChumakApp): string {
       return 'Expression Reference';
     case 'column-editor':
       return 'Edit Columns';
+    case 'impute':
+      return 'Impute Missing Values';
     default:
       return '';
   }
@@ -493,6 +514,12 @@ export function activeDialogError(this: ChumakApp): boolean {
       );
     case 'import-url':
       return !this.importUrlDialogState.url || this.importUrlDialogState.isFetching;
+    case 'impute':
+      const imputeState = DialogStore.imputeState;
+      return (
+        !imputeState.column.value ||
+        (imputeState.strategy.value === 'constant' && !imputeState.value.value?.trim())
+      );
     default:
       return false;
   }

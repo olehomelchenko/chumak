@@ -658,6 +658,9 @@ export class ChumakApp implements AppState {
   applyIndexTransform() {
     return SimpleHandlers.applyIndexTransform(HelperHandlers.createExecutionCallbacks(this));
   }
+  applyImputeTransform() {
+    return SimpleHandlers.applyImputeTransform(HelperHandlers.createExecutionCallbacks(this));
+  }
 
   // Export handlers
   exportCSV() {

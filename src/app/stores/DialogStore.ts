@@ -211,6 +211,25 @@ export class DialogStore {
     rowLimit: signal(100),
   };
 
+  // Impute Dialog State
+  static imputeState = {
+    column: signal(''),
+    strategy: signal<
+      | 'constant'
+      | 'mean'
+      | 'median'
+      | 'min'
+      | 'max'
+      | 'forwardFill'
+      | 'backwardFill'
+      | 'linearInterpolation'
+    >('constant'),
+    value: signal(''),
+    includeEmptyString: signal(false),
+    previewRows: signal<any[] | null>(null),
+    error: signal<string | null>(null),
+  };
+
   /**
    * Creates a reactive proxy for a signal-based state object.
    * Allows direct property access and assignment to be transparently
@@ -317,5 +336,12 @@ export class DialogStore {
 
     this.settingsState.theme.value = 'chumak';
     this.settingsState.rowLimit.value = 100;
+
+    this.imputeState.column.value = '';
+    this.imputeState.strategy.value = 'constant';
+    this.imputeState.value.value = '';
+    this.imputeState.includeEmptyString.value = false;
+    this.imputeState.previewRows.value = null;
+    this.imputeState.error.value = null;
   }
 }

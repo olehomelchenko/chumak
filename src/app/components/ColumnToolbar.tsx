@@ -8,6 +8,7 @@ interface ColumnToolbarProps {
   onSplit: () => void;
   onDate: () => void;
   onDedupe: () => void;
+  onImpute: () => void;
   onRemove: () => void;
   getColumnType: (col: string) => string;
 }
@@ -19,6 +20,7 @@ export function ColumnToolbar({
   onSplit,
   onDate,
   onDedupe,
+  onImpute,
   onRemove,
   getColumnType,
 }: ColumnToolbarProps) {
@@ -95,6 +97,17 @@ export function ColumnToolbar({
         <span
           class="iconify"
           data-icon="carbon:checkbox-checked"
+          style="width: 24px; height: 24px;"
+        ></span>
+      </button>
+      <button
+        class={styles.floatingToolbar__button}
+        onClick={onImpute}
+        title="Impute missing values"
+      >
+        <span
+          class="iconify"
+          data-icon="material-symbols-light:edit-arrow-down-outline-rounded"
           style="width: 24px; height: 24px;"
         ></span>
       </button>

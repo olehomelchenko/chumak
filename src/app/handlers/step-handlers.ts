@@ -60,6 +60,9 @@ export async function applyActiveTransform(this: ChumakApp) {
     case 'dedupe':
       await this.applyDedupeTransform();
       break;
+    case 'impute':
+      await this.applyImputeTransform();
+      break;
     case 'column-editor':
       await ColumnEditorHandlers.applyColumnEditorTransform({
         onDialogClose: (force: boolean) => this.closeDialog(force),
@@ -294,6 +297,12 @@ export function editStep(this: ChumakApp, stepIndex: number) {
     if (typeof this.updateDedupePreview === 'function') {
       this.updateDedupePreview();
     }
+  } else if (step.impute) {
+    this.openDialog('impute');
+    const state = DialogStore.imputeState;
+    state.column.value = step.impute.column;
+    state.strategy.value = step.impute.strategy;
+    state.value.value = step.impute.value || '';
   }
 }
 

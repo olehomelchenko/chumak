@@ -954,4 +954,110 @@ describe('Transform Engine', () => {
       spy.mockRestore();
     });
   });
+
+  describe('applyTransform() - IMPUTE', () => {
+    function createImputeTable() {
+      return (aq as any).from([
+        { id: 1, val: 10, category: 'A' },
+        { id: 2, val: null, category: null },
+        { id: 3, val: 30, category: 'B' },
+        { id: 4, val: null, category: 'A' },
+        { id: 5, val: 50, category: null },
+      ]);
+    }
+
+    it('should impute with constant', () => {
+      const table = createImputeTable();
+      const transform = { impute: { column: 'val', strategy: 'constant' as const, value: 0 } };
+      const result = applyTransform(table, transform, ['id', 'val', 'category']);
+      const rows = result.objects();
+      expect(rows[1].val).toBe(0);
+      expect(rows[3].val).toBe(0);
+    });
+
+    it('should impute with mean', () => {
+      const table = createImputeTable();
+      const transform = { impute: { column: 'val', strategy: 'mean' as const } };
+      const result = applyTransform(table, transform, ['id', 'val', 'category']);
+      const rows = result.objects();
+      // (10 + 30 + 50) / 3 = 30
+      expect(rows[1].val).toBe(30);
+      expect(rows[3].val).toBe(30);
+    });
+
+    it('should impute with forward fill', () => {
+      const table = createImputeTable();
+      const transform = { impute: { column: 'val', strategy: 'forwardFill' as const } };
+      const result = applyTransform(table, transform, ['id', 'val', 'category']);
+      const rows = result.objects();
+      expect(rows[1].val).toBe(10);
+      expect(rows[3].val).toBe(30);
+    });
+
+    it('should impute with backward fill', () => {
+      const table = createImputeTable();
+      const transform = { impute: { column: 'val', strategy: 'backwardFill' as const } };
+      const result = applyTransform(table, transform, ['id', 'val', 'category']);
+      const rows = result.objects();
+      expect(rows[1].val).toBe(30);
+      expect(rows[3].val).toBe(50);
+    });
+
+    it('should impute with linear interpolation', () => {
+      const table = createImputeTable();
+      const transform = { impute: { column: 'id', strategy: 'linearInterpolation' as const } };
+      // id has no nulls, let's create a table with nulls in id
+      const tableWithNulls = (aq as any).from([{ id: 10 }, { id: null }, { id: null }, { id: 40 }]);
+      const result = applyTransform(
+        tableWithNulls,
+        {
+          impute: { column: 'id', strategy: 'linearInterpolation' as const },
+        },
+        ['id']
+      );
+      const rows = result.objects();
+      // 10, 20, 30, 40
+      expect(rows[2].id).toBe(30);
+    });
+
+    it('should impute empty strings when includeEmptyString is true', () => {
+      const table = (aq as any).from([
+        { id: 1, name: 'Alice' },
+        { id: 2, name: '' },
+        { id: 3, name: null },
+      ]);
+      const transform = {
+        impute: {
+          column: 'name',
+          strategy: 'constant' as const,
+          value: 'Unknown',
+          includeEmptyString: true,
+        },
+      };
+      const result = applyTransform(table, transform, ['id', 'name']);
+      const rows = result.objects();
+      expect(rows[1].name).toBe('Unknown');
+      expect(rows[2].name).toBe('Unknown');
+    });
+
+    it('should NOT impute empty strings when includeEmptyString is false', () => {
+      const table = (aq as any).from([
+        { id: 1, name: 'Alice' },
+        { id: 2, name: '' },
+        { id: 3, name: null },
+      ]);
+      const transform = {
+        impute: {
+          column: 'name',
+          strategy: 'constant' as const,
+          value: 'Unknown',
+          includeEmptyString: false,
+        },
+      };
+      const result = applyTransform(table, transform, ['id', 'name']);
+      const rows = result.objects();
+      expect(rows[1].name).toBe('');
+      expect(rows[2].name).toBe('Unknown');
+    });
+  });
 });

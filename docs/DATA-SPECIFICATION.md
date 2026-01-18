@@ -137,6 +137,9 @@ interface TransformStep {
 
   // Multi-model operations
   join?: { right: string; on: [string, string][]; how: string; suffixes?: [string, string] };
+
+  // Advanced operations
+  impute?: { column: string; strategy: string; value?: any };
 }
 ```
 
@@ -202,6 +205,17 @@ interface TransformStep {
   "fold": {
     "columns": ["jan", "feb", "mar"],
     "as": ["month", "sales"]
+  }
+}
+```
+
+**Impute** — Fill missing values:
+
+```json
+{
+  "impute": {
+    "column": "sales",
+    "strategy": "mean"
   }
 }
 ```

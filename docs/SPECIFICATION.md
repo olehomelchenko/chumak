@@ -246,6 +246,7 @@ Each transform is one object in an array.
 | **Add Index**  | Generate a row index column                                                                                                             |
 | **Date Ops**   | Extract or truncate date parts                                                                                                          |
 | **Regexp**     | Pattern matching and extraction (`regexp_match`, `regexp_extract`)                                                                      |
+| **Impute**     | Fill missing values (constant, mean, median, min, max, forward/backward fill, linear interpolation)                                     |
 
 ---
 
@@ -311,10 +312,9 @@ Tests are written in **TypeScript** using **Vitest** for native runner support a
 
 ### 8.1 Future Direction
 
-- **Set Operations**: `Union`, `Intersect`, and `Except` for advanced multi-model workflows (joining models with same schema).
-- **Advanced Joins**: Support for `Semijoin` (filtering left by right), `Antijoin` (filtering left by lack of right), and `Lookup` (fast left-joins).
-- **Advanced Data Manipulation**: `Spread` (array to columns), `Unroll` (array to rows), and random `Sampling`.
-- **Impute**: Advanced missing value handling using both constants and expressions (e.g., `sales ?? 0`).
+- **Advanced Multi-model Operations**: `Union`, `Intersect`, and `Except` for advanced multi-model workflows.
+- **Advanced Joins**: Support for `Semijoin`, `Antijoin`, and `Lookup`.
+- **Sampling**: `Sample` random rows for quick exploration.
 
 ---
 

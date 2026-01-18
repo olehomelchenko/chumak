@@ -63,7 +63,7 @@ Add whitelisted functions for common operations. Arquero provides these via `op.
 
 ### Impute (Fill Missing Values)
 
-**Status**: Planned
+**Status**: Completed (January 2025)
 **Effort**: Small-Medium (~50-120 lines depending on scope)
 **Arquero**: `table.impute(values, options)`
 

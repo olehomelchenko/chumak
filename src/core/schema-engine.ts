@@ -69,6 +69,20 @@ export interface TransformStep {
   };
   sliceRows?: { count: number; mode: 'first' | 'last' | 'removeFirst' | 'removeLast' };
   addIndex?: { columnName: string; startFrom?: number };
+  impute?: {
+    column: string;
+    strategy:
+      | 'constant'
+      | 'mean'
+      | 'median'
+      | 'min'
+      | 'max'
+      | 'forwardFill'
+      | 'backwardFill'
+      | 'linearInterpolation';
+    value?: any;
+    includeEmptyString?: boolean;
+  };
 }
 
 export const SchemaEngine = {
@@ -506,6 +520,7 @@ export const SchemaEngine = {
       'split',
       'sliceRows',
       'addIndex',
+      'impute',
     ];
     const transformKeys = Object.keys(transform).filter((k) => k !== '__v'); // Ignore version field
     const unknownKey = transformKeys.find((k) => !knownKeys.includes(k));
