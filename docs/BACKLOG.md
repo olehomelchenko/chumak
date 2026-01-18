@@ -4,175 +4,9 @@ This document tracks planned features and enhancements, organized by scope and e
 
 ---
 
-## Expression System Enhancements
-
-### Word-Form Boolean Operators
-
-**Status**: Completed (January 2025)
-**Effort**: Medium (~100 lines)
-**Files**: `ast-validator.ts`, `ast-interpreter.ts`, `expression-parser.ts`
-
-Added `and`/`or`/`not` as beginner-friendly alternatives to `&&`/`||`/`!`. Both syntaxes are supported for compatibility.
-
-**What was implemented**:
-
-- Configured jsep to recognize `and`, `or` as binary operators with same precedence as `&&`/`||`
-- Added `not` as unary operator equivalent to `!`
-- Updated AST validator to accept word-form operators
-- Updated interpreter with short-circuit evaluation for `and`/`or`
-- Updated expression documentation with examples
-- Added comprehensive tests
-
-**Why it matters**: Non-programmers find `and`/`or` more readable than `&&`/`||`. This aligns with the beginner-friendly goal.
-
----
-
-### Expression Functions (String, Date, Math)
-
-**Status**: Completed (January 2025)
-**Effort**: Large (~230 lines)
-**Files**: `ast-validator.ts`, `ast-interpreter.ts`, documentation
-
-Implemented whitelisted functions for common operations. Functions are evaluated in the custom interpreter (not via Arquero `op.*`).
-
-**Implemented Functions**:
-
-| Category | Functions                                                                        |
-| -------- | -------------------------------------------------------------------------------- |
-| String   | `upper`, `lower`, `trim`, `substring`, `len`                                     |
-| Math     | `abs`, `round`, `floor`, `ceil`, `min`, `max`                                    |
-| Type     | `parse_int`, `parse_float`, `is_nan`                                             |
-| Date     | `year`, `month`, `day`, `hour`, `minute`, `second`, `weekday`, `week`, `quarter` |
-| Date     | `today`, `now`, `days_between`, `date_add`, `date_trunc`, `format_date`          |
-| Regex    | `regexp_match`, `regexp_extract`                                                 |
-
-See `src/content/expressions.md` for full documentation with examples.
-
----
-
 ## Transform Gaps
 
 > **See also**: [TRANSFORM-ARCHITECTURE-REVIEW.md](TRANSFORM-ARCHITECTURE-REVIEW.md) for comprehensive analysis of transform architecture, identified gaps, and prioritized improvements based on Power Query M limitations research.
-
-### Pattern-Based Column Operations
-
-**Status**: Completed (January 2025)
-**Effort**: Low-Medium
-**Reference**: [TRANSFORM-ARCHITECTURE-REVIEW.md §2.1](TRANSFORM-ARCHITECTURE-REVIEW.md#21-pattern-based-column-operations-high-priority)
-
-Expose existing `matchColumnPattern()` as user-facing transforms for schema-drift resilience:
-
-```json
-{ "selectPattern": { "pattern": "sales_", "matchType": "prefix" } }
-{ "removePattern": { "pattern": "_backup$", "matchType": "regex" } }
-{ "renamePattern": { "find": "_old$", "replace": "_new", "regex": true } }
-```
-
-**What was implemented**:
-
-- Extended `matchColumnPattern()` to support `contains` and `regex` match types
-- Added `selectPattern` transform for pattern-based column selection
-- Added `removePattern` transform for pattern-based column removal
-- Added `renamePattern` transform for bulk rename by pattern (text or regex)
-- Full UI integration with dialog components and toolbar buttons
-- Comprehensive test coverage
-
----
-
-### Conditional Transform
-
-**Status**: Completed (January 2025)
-**Effort**: Medium
-**Reference**: [TRANSFORM-ARCHITECTURE-REVIEW.md §2.2](TRANSFORM-ARCHITECTURE-REVIEW.md#22-multi-condition-logic-high-priority)
-
-Declarative multi-condition logic as alternative to nested ternaries:
-
-```json
-{
-  "conditional": {
-    "column": "tier",
-    "conditions": [
-      { "when": "sales > 10000", "then": "'platinum'" },
-      { "when": "sales > 5000", "then": "'gold'" }
-    ],
-    "else": "'bronze'"
-  }
-}
-```
-
-**What was implemented**:
-
-- Added `conditional` transform with sequential condition evaluation
-- Supports multiple `when`/`then` pairs and an `else` clause
-- All expressions validated before execution
-- UI with dynamic condition list (add/remove conditions)
-- Comprehensive test coverage
-
----
-
-### Case-Insensitive Comparison Functions
-
-**Status**: Completed (January 2025)
-**Effort**: Low
-**Reference**: [TRANSFORM-ARCHITECTURE-REVIEW.md §2.3](TRANSFORM-ARCHITECTURE-REVIEW.md#23-case-insensitive-comparisons-medium-priority)
-
-Add `equals_ci()`, `contains_ci()`, `starts_with_ci()`, `ends_with_ci()` expression functions.
-
-**What was implemented**:
-
-- Added `equals_ci()` for case-insensitive string equality
-- Added `contains_ci()` for case-insensitive substring matching
-- Added `starts_with_ci()` for case-insensitive prefix checking
-- Added `ends_with_ci()` for case-insensitive suffix checking
-- All functions registered in AST validator and interpreter
-- Comprehensive test coverage
-
----
-
-### Split Expression Function
-
-**Status**: Completed (January 2025)
-**Effort**: Low
-**Reference**: [TRANSFORM-ARCHITECTURE-REVIEW.md §2.4](TRANSFORM-ARCHITECTURE-REVIEW.md#24-split-transform-overload-medium-priority)
-
-Add `split(value, delimiter, index)` for extracting segments without creating multiple columns:
-
-```json
-{ "derive": { "first_name": "split(full_name, ' ', 0)" } }
-```
-
-**What was implemented**:
-
-- Added `split(value, delimiter, index)` expression function
-- Supports positive indices (0-based) and negative indices (from end: -1 = last)
-- Returns `null` for out-of-bounds indices
-- Default index is 0 if not specified
-- Registered in AST validator and interpreter
-- Comprehensive test coverage
-
----
-
-### Impute (Fill Missing Values)
-
-**Status**: Completed (January 2025)
-**Effort**: Small-Medium (~50-120 lines depending on scope)
-**Arquero**: `table.impute(values, options)`
-
-Fill null/missing values with constants or calculated values.
-
-**Phase 1 — Constants only**:
-
-```json
-{ "impute": { "sales": 0, "region": "Unknown" } }
-```
-
-**Phase 2 — Expression-based** (requires function support):
-
-```json
-{ "impute": { "sales": "mean(sales)", "price": "median(price)" } }
-```
-
-**UI**: Column selection + value input, with dropdown for common patterns (zero, empty string, mean, median).
 
 ---
 
@@ -265,6 +99,40 @@ Current join implementation covers most needs; these are edge cases.
 ---
 
 ## UI/UX Enhancements
+
+### Custom Icon Library
+
+**Status**: Planned
+**Effort**: Medium-Large
+**Reference**: [custom-icons-setup.md](custom-icons-setup.md)
+
+Migrate from Iconify CDN to custom hand-drawn SVG icons for better brand consistency and offline support.
+
+**Current State**: Chumak uses Iconify via CDN script (`iconify.min.js`) with icons from Carbon Design (`carbon:*`), Material Symbols Light (`material-symbols-light:*`), Codicon (`codicon:*`), and Iconify Extended (`ix:*`).
+
+**Proposed Solution**:
+
+- Generate Preact components from hand-drawn SVGs using SVGR
+- Create icon wrapper component for gradual migration
+- Build icon registry for programmatic access (e.g., `getTypeIcon`)
+- Phase-based migration: infrastructure → high-visibility icons → dialogs → complete
+
+**Benefits**:
+
+- Offline support (no CDN dependency)
+- Consistent visual style with hand-drawn aesthetic
+- Better tree-shaking (only used icons in bundle)
+- Brand identity through custom iconography
+
+**Challenges**:
+
+- ~100+ icons currently in use across components
+- Need to maintain backward compatibility during migration
+- Icon functions (`getTypeIcon`, `getNotificationIcon`) need updates
+
+See [custom-icons-setup.md](custom-icons-setup.md) for detailed setup guide and migration strategy.
+
+---
 
 ### Keyboard Shortcuts
 
@@ -396,27 +264,20 @@ These have been considered and explicitly excluded:
 
 ### High Priority (Core Gaps)
 
-1. ~~Word-form boolean operators (`and`/`or`/`not`)~~ — Completed ✓
-2. ~~Expression functions — Phase 1 (string, math, type basics)~~ — Already implemented ✓
-3. ~~Impute — Phase 1 (constants)~~ — Completed ✓
-4. ~~Pattern-based column operations~~ (`selectPattern`, `removePattern`, `renamePattern`) — Completed ✓
-5. ~~Conditional transform~~ (multi-condition column creation) — Completed ✓
+1. Set operations (concat, union)
 
 ### Medium Priority (Useful Additions)
 
-6. ~~Case-insensitive comparison functions~~ (`equals_ci`, etc.) — Completed ✓
-7. ~~`split()` expression function~~ for segment extraction — Completed ✓
-8. Set operations (concat, union)
-9. Keyboard shortcuts
+2. Keyboard shortcuts
 
 ### Lower Priority (Nice to Have)
 
-10. Step reordering
-11. Column reordering (`reorder`, `moveColumn`)
-12. Sample transform
-13. Advanced joins (semi, anti, lookup)
-14. Spread/unroll transforms
-15. Window functions (`cumsum`, `lag`, `rank`) — Future
+3. Step reordering
+4. Column reordering (`reorder`, `moveColumn`)
+5. Sample transform
+6. Advanced joins (semi, anti, lookup)
+7. Spread/unroll transforms
+8. Window functions (`cumsum`, `lag`, `rank`) — Future
 
 ---
 
@@ -436,6 +297,20 @@ Most planned transforms are thin wrappers around existing Arquero verbs:
 | Antijoin  | `table.antijoin()` | ~30 lines          |
 
 The heavy lifting is in expression functions, which require AST validator/interpreter updates rather than new Arquero integration.
+
+---
+
+## Completed Features (Historical Record)
+
+Completed features are documented here for posterity:
+
+- **Word-form boolean operators** (`and`/`or`/`not`) — January 2025. Added as beginner-friendly alternatives to `&&`/`||`/`!`.
+- **Expression functions** — January 2025. Implemented whitelisted functions for string, math, date, type, and regex operations. See `src/content/expressions.md`.
+- **Pattern-based column operations** (`selectPattern`, `removePattern`, `renamePattern`) — January 2025. Schema-drift resilient column operations with prefix/contains/regex matching.
+- **Conditional transform** — January 2025. Multi-condition column creation with sequential `when`/`then` evaluation and `else` clause.
+- **Case-insensitive comparison functions** (`equals_ci`, `contains_ci`, `starts_with_ci`, `ends_with_ci`) — January 2025.
+- **Split expression function** (`split(value, delimiter, index)`) — January 2025. Extract segments from delimited strings without creating columns.
+- **Impute transform** — January 2025. Fill missing values with constants via `impute` transform with UI integration.
 
 ---
 
