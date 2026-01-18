@@ -32,9 +32,12 @@ const ALLOWED_OPS = {
     '&&',
     '||',
     '??',
+    // Word-form boolean operators (beginner-friendly alternatives)
+    'and',
+    'or',
   ]),
-  logical: new Set(['&&', '||', '??']),
-  unary: new Set(['!', '-', '+']),
+  logical: new Set(['&&', '||', '??', 'and', 'or']),
+  unary: new Set(['!', '-', '+', 'not']),
 };
 
 interface FunctionSpec {

@@ -76,8 +76,6 @@ The core is solid: 13+ transformation types, expression parsing with security va
 
 What's still evolving:
 
-- Expression functions (string manipulation, date operations)
-- Word-form operators (`and`/`or` instead of `&&`/`||`)
 - Performance limits with larger datasets
 - Set operations for combining multiple data sources
 

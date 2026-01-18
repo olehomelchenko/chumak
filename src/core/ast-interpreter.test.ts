@@ -37,6 +37,42 @@ describe('AST Interpreter', () => {
     expect(interpretAST(parseExpression('!active'), row)).toBe(false);
   });
 
+  // Word-form boolean operators (beginner-friendly syntax)
+  it('should evaluate word-form "and" operator', () => {
+    expect(interpretAST(parseExpression('active and sales > 1000'), row)).toBe(true);
+    expect(interpretAST(parseExpression('active and sales < 1000'), row)).toBe(false);
+  });
+
+  it('should evaluate word-form "or" operator', () => {
+    expect(interpretAST(parseExpression('active or sales < 1000'), row)).toBe(true);
+    expect(interpretAST(parseExpression('sales < 1000 or revenue < 1000'), row)).toBe(false);
+  });
+
+  it('should evaluate word-form "not" operator', () => {
+    expect(interpretAST(parseExpression('not active'), row)).toBe(false);
+    expect(interpretAST(parseExpression('not (sales < 1000)'), row)).toBe(true);
+  });
+
+  it('should short-circuit "and" operator', () => {
+    // When left is false, right should not be evaluated
+    expect(interpretAST(parseExpression('sales < 1000 and region'), row)).toBe(false);
+  });
+
+  it('should short-circuit "or" operator', () => {
+    // When left is true, right should not be evaluated
+    expect(interpretAST(parseExpression('active or nullVal'), row)).toBe(true);
+  });
+
+  it('should handle complex word-form expressions', () => {
+    expect(
+      interpretAST(parseExpression('(sales > 1000 and active) or region == "South"'), row)
+    ).toBe(true);
+    expect(interpretAST(parseExpression('not active or sales > 1000'), row)).toBe(true);
+    expect(interpretAST(parseExpression('not (sales < 1000) and region == "North"'), row)).toBe(
+      true
+    );
+  });
+
   it('should handle nullish coalescing', () => {
     expect(interpretAST(parseExpression('nullVal ?? 0'), row)).toBe(0);
     expect(interpretAST(parseExpression('sales ?? 0'), row)).toBe(1500);

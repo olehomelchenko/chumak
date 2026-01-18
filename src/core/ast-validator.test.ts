@@ -54,6 +54,37 @@ describe('AST Validator', () => {
       expect(result.valid).toBe(true);
     });
 
+    // Word-form boolean operators (beginner-friendly syntax)
+    it('should validate word-form "and" operator', () => {
+      const ast = parseExpression('sales > 1000 and region == "North"');
+      const result = validateAST(ast, testSchema);
+      expect(result.valid).toBe(true);
+    });
+
+    it('should validate word-form "or" operator', () => {
+      const ast = parseExpression('status == "active" or status == "pending"');
+      const result = validateAST(ast, testSchema);
+      expect(result.valid).toBe(true);
+    });
+
+    it('should validate word-form "not" operator', () => {
+      const ast = parseExpression('not active');
+      const result = validateAST(ast, testSchema);
+      expect(result.valid).toBe(true);
+    });
+
+    it('should validate mixed word-form and symbolic operators', () => {
+      const ast = parseExpression('(sales > 1000 and region == "North") or !active');
+      const result = validateAST(ast, testSchema);
+      expect(result.valid).toBe(true);
+    });
+
+    it('should validate complex nested word-form expression', () => {
+      const ast = parseExpression('(sales > 1000 or revenue > 500) and not active');
+      const result = validateAST(ast, testSchema);
+      expect(result.valid).toBe(true);
+    });
+
     it('should validate arithmetic operators', () => {
       const ast = parseExpression('revenue - cost');
       const result = validateAST(ast, testSchema);

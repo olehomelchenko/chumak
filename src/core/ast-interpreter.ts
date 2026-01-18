@@ -22,6 +22,7 @@ const BINARY_OPS: Record<string, (l: any, r: any) => any> = {
 
 const UNARY_OPS: Record<string, (a: any) => any> = {
   '!': (a) => !a,
+  not: (a) => !a, // Word-form alternative to !
   '-': (a) => -a,
   '+': (a) => +a,
 };
@@ -402,11 +403,13 @@ function evaluateNode(node: ASTNode, rowData: Record<string, any>): any {
 
     case 'BinaryExpression':
     case 'LogicalExpression': {
-      if (node.operator === '&&') {
+      // Short-circuit evaluation for && and 'and'
+      if (node.operator === '&&' || node.operator === 'and') {
         const left = evaluateNode(node.left!, rowData);
         return left ? evaluateNode(node.right!, rowData) : left;
       }
-      if (node.operator === '||') {
+      // Short-circuit evaluation for || and 'or'
+      if (node.operator === '||' || node.operator === 'or') {
         const left = evaluateNode(node.left!, rowData);
         return left ? left : evaluateNode(node.right!, rowData);
       }

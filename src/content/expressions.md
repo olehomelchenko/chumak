@@ -36,11 +36,13 @@ price * quantity
 
 ### Logical
 
-| Operator | Description | Example                                       |
-| -------- | ----------- | --------------------------------------------- |
-| `&&`     | AND         | `sales > 1000 && region == "North"`           |
-| `\|\|`   | OR          | `status == "pending" \|\| status == "review"` |
-| `!`      | NOT         | `!is_deleted`                                 |
+| Operator       | Description | Example                                     |
+| -------------- | ----------- | ------------------------------------------- |
+| `and` or `&&`  | AND         | `sales > 1000 and region == "North"`        |
+| `or` or `\|\|` | OR          | `status == "pending" or status == "review"` |
+| `not` or `!`   | NOT         | `not is_deleted`                            |
+
+> **Tip:** The word-form operators (`and`, `or`, `not`) are recommended for readability, but the symbolic operators (`&&`, `||`, `!`) also work.
 
 ### Special Operators
 
@@ -172,7 +174,7 @@ regexp_extract(text, "(\\d+)", 1)  → Extract first capture group
 ```
 // Numeric comparisons
 sales > 10000
-price >= 50 && price <= 100
+price >= 50 and price <= 100
 
 // Text matching
 region == "North"
@@ -180,7 +182,7 @@ status != "cancelled"
 
 // Null handling
 email != null
-discount != null && discount > 0
+discount != null and discount > 0
 
 // Date filtering
 year(order_date) == 2024
@@ -189,6 +191,9 @@ days_between(created_at, today()) <= 30
 // Regex patterns
 regexp_match(email, "@company\\.com$")
 regexp_match(sku, "^PRD-\\d{4}$")
+
+// Complex conditions
+(status == "active" or status == "pending") and not is_archived
 ```
 
 ### Deriving New Columns

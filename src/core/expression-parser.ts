@@ -7,6 +7,12 @@ import jsep from 'jsep';
 // Configure jsep for nullish coalescing operator
 jsep.addBinaryOp('??', 1);
 
+// Configure jsep for word-form boolean operators (beginner-friendly syntax)
+// Same precedence as their symbolic equivalents: or=1 (like ||), and=2 (like &&)
+jsep.addBinaryOp('or', 1);
+jsep.addBinaryOp('and', 2);
+jsep.addUnaryOp('not');
+
 export interface ASTNode {
   type: string;
   name?: string;

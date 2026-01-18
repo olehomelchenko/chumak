@@ -237,9 +237,11 @@ Expressions are used in `filter` and `derive` transforms.
 | --------------- | ---------------------------------------------- |
 | Arithmetic      | `+`, `-`, `*`, `/`, `%`                        |
 | Comparison      | `>`, `<`, `>=`, `<=`, `==`, `===`, `!=`, `!==` |
-| Logical         | `&&`, `\|\|`, `!`                              |
+| Logical         | `and` / `&&`, `or` / `\|\|`, `not` / `!`       |
 | Null coalescing | `??`                                           |
 | Conditional     | `condition ? trueValue : falseValue`           |
+
+> **Note:** Word-form operators (`and`, `or`, `not`) are beginner-friendly alternatives to the symbolic operators (`&&`, `||`, `!`). Both syntaxes are fully supported.
 
 ### 4.3 Functions
 

@@ -8,19 +8,20 @@ This document tracks planned features and enhancements, organized by scope and e
 
 ### Word-Form Boolean Operators
 
-**Status**: Planned (breaking change)
+**Status**: Completed (January 2025)
 **Effort**: Medium (~100 lines)
-**Files**: `ast-validator.ts`, `ast-interpreter.ts`, jsep plugin configuration
+**Files**: `ast-validator.ts`, `ast-interpreter.ts`, `expression-parser.ts`
 
-Replace `&&`/`||`/`!` with `and`/`or`/`not` as the primary syntax. Since the app isn't released yet, this can be a clean replacement rather than an addition.
+Added `and`/`or`/`not` as beginner-friendly alternatives to `&&`/`||`/`!`. Both syntaxes are supported for compatibility.
 
-**What's needed**:
+**What was implemented**:
 
-- Configure jsep to recognize `and`, `or`, `not` as binary/unary operators
-- Update AST validator to accept these operators
-- Update interpreter to handle them
-- Update expression documentation and UI hints
-- Update all existing tests that use `&&`/`||`
+- Configured jsep to recognize `and`, `or` as binary operators with same precedence as `&&`/`||`
+- Added `not` as unary operator equivalent to `!`
+- Updated AST validator to accept word-form operators
+- Updated interpreter with short-circuit evaluation for `and`/`or`
+- Updated expression documentation with examples
+- Added comprehensive tests
 
 **Why it matters**: Non-programmers find `and`/`or` more readable than `&&`/`||`. This aligns with the beginner-friendly goal.
 
@@ -28,34 +29,24 @@ Replace `&&`/`||`/`!` with `and`/`or`/`not` as the primary syntax. Since the app
 
 ### Expression Functions (String, Date, Math)
 
-**Status**: Planned
+**Status**: Completed (January 2025)
 **Effort**: Large (~230 lines)
 **Files**: `ast-validator.ts`, `ast-interpreter.ts`, documentation
 
-Add whitelisted functions for common operations. Arquero provides these via `op.*`, so the work is mapping user syntax to Arquero operations.
+Implemented whitelisted functions for common operations. Functions are evaluated in the custom interpreter (not via Arquero `op.*`).
 
-**Phase 1 — Core Functions**:
+**Implemented Functions**:
 
-| Category | Functions                               | Example           |
-| -------- | --------------------------------------- | ----------------- |
-| String   | `upper`, `lower`, `trim`, `length`      | `upper(name)`     |
-| Math     | `abs`, `round`, `floor`, `ceil`, `sqrt` | `round(price, 2)` |
-| Type     | `parse_int`, `parse_float`, `is_null`   | `is_null(value)`  |
+| Category | Functions                                                                        |
+| -------- | -------------------------------------------------------------------------------- |
+| String   | `upper`, `lower`, `trim`, `substring`, `len`                                     |
+| Math     | `abs`, `round`, `floor`, `ceil`, `min`, `max`                                    |
+| Type     | `parse_int`, `parse_float`, `is_nan`                                             |
+| Date     | `year`, `month`, `day`, `hour`, `minute`, `second`, `weekday`, `week`, `quarter` |
+| Date     | `today`, `now`, `days_between`, `date_add`, `date_trunc`, `format_date`          |
+| Regex    | `regexp_match`, `regexp_extract`                                                 |
 
-**Phase 2 — Extended Functions**:
-
-| Category | Functions                                 | Example                 |
-| -------- | ----------------------------------------- | ----------------------- |
-| String   | `substring`, `replace`, `split`, `concat` | `substring(code, 0, 3)` |
-| Date     | `year`, `month`, `day`, `parse_date`      | `year(date_col)`        |
-| Math     | `min`, `max`, `log`, `exp`, `power`       | `power(base, 2)`        |
-
-**Implementation approach**:
-
-1. Update AST validator to allow `CallExpression` nodes
-2. Whitelist specific function names with arity checks
-3. Map function calls to Arquero `op.*` equivalents during interpretation
-4. Comprehensive tests for each function
+See `src/content/expressions.md` for full documentation with examples.
 
 ---
 
@@ -305,9 +296,9 @@ These have been considered and explicitly excluded:
 
 ### High Priority (Core Gaps)
 
-1. Word-form boolean operators (`and`/`or`/`not`)
-2. Expression functions — Phase 1 (string, math, type basics)
-3. Impute — Phase 1 (constants)
+1. ~~Word-form boolean operators (`and`/`or`/`not`)~~ — Completed ✓
+2. ~~Expression functions — Phase 1 (string, math, type basics)~~ — Already implemented ✓
+3. ~~Impute — Phase 1 (constants)~~ — Completed ✓
 
 ### Medium Priority (Useful Additions)
 
