@@ -6,7 +6,7 @@ Review staged or uncommitted code to ensure quality, test coverage, and alignmen
 
 ## General Instructions
 
-1. **Code Cleanup**: Remove leftover code and simplify over-engineered solutions from iterative development. Proceed with caution; ask for clarification if unsure.
+1. **Code Cleanup**: Remove leftover code, unnecessary defensive programming, and simplify over-engineered solutions from iterative development. Proceed with caution; ask for clarification if unsure.
 
 2. **Verification**: After changes, run `npm run typecheck` and/or `npm run build` to catch errors.
 
