@@ -32,6 +32,10 @@ import {
   DedupeDialog,
   TypeConversionDialog,
   ImputeDialog,
+  SelectPatternDialog,
+  RemovePatternDialog,
+  ConditionalDialog,
+  RenamePatternDialog,
 } from './index';
 // Import handlers for helpers
 import {
@@ -88,6 +92,10 @@ export function App({ app }: AppProps) {
       'import-csv',
       'import-url',
       'impute',
+      'selectPattern',
+      'removePattern',
+      'conditional',
+      'renamePattern',
     ].includes(d);
   };
 
@@ -252,6 +260,10 @@ export function App({ app }: AppProps) {
                   <ImportUrlDialog onImport={() => app.fetchAndImportFromUrl()} />
                 )}
                 {activeDialog === 'impute' && <ImputeDialog />}
+                {activeDialog === 'selectPattern' && <SelectPatternDialog />}
+                {activeDialog === 'removePattern' && <RemovePatternDialog />}
+                {activeDialog === 'conditional' && <ConditionalDialog />}
+                {activeDialog === 'renamePattern' && <RenamePatternDialog />}
               </div>
 
               <div class={styles.slidePanelFooter}>

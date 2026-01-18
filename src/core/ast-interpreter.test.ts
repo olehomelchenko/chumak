@@ -673,3 +673,161 @@ describe('Type Conversion Functions', () => {
     });
   });
 });
+
+describe('String Functions - split()', () => {
+  const row = {
+    fullName: 'Alice Smith',
+    filename: 'document.backup.csv',
+    tags: 'red,green,blue',
+    single: 'word',
+    empty: '',
+    nullVal: null,
+  };
+
+  it('should split string and return segment at index', () => {
+    expect(interpretAST(parseExpression("split(fullName, ' ', 0)"), row)).toBe('Alice');
+    expect(interpretAST(parseExpression("split(fullName, ' ', 1)"), row)).toBe('Smith');
+  });
+
+  it('should handle negative index (from end)', () => {
+    expect(interpretAST(parseExpression("split(filename, '.', -1)"), row)).toBe('csv');
+    expect(interpretAST(parseExpression("split(filename, '.', -2)"), row)).toBe('backup');
+  });
+
+  it('should return null for out-of-bounds index', () => {
+    expect(interpretAST(parseExpression("split(fullName, ' ', 5)"), row)).toBe(null);
+    expect(interpretAST(parseExpression("split(fullName, ' ', -5)"), row)).toBe(null);
+  });
+
+  it('should return null for null input', () => {
+    expect(interpretAST(parseExpression("split(nullVal, ',', 0)"), row)).toBe(null);
+  });
+
+  it('should handle default index (0)', () => {
+    expect(interpretAST(parseExpression("split(tags, ',')"), row)).toBe('red');
+  });
+
+  it('should handle empty delimiter', () => {
+    expect(interpretAST(parseExpression("split('abc', '', 0)"), {})).toBe('a');
+    expect(interpretAST(parseExpression("split('abc', '', 1)"), {})).toBe('b');
+  });
+});
+
+describe('String Comparison Functions (Case-Sensitive)', () => {
+  const row = {
+    name: 'Alice',
+    code: 'ABC123',
+    filename: 'Document.csv',
+    nullVal: null,
+  };
+
+  describe('equals()', () => {
+    it('should compare strings case-sensitively', () => {
+      expect(interpretAST(parseExpression('equals(name, "Alice")'), row)).toBe(true);
+      expect(interpretAST(parseExpression('equals(name, "alice")'), row)).toBe(false);
+      expect(interpretAST(parseExpression('equals(name, "ALICE")'), row)).toBe(false);
+      expect(interpretAST(parseExpression('equals(name, "Bob")'), row)).toBe(false);
+    });
+
+    it('should return false for null input', () => {
+      expect(interpretAST(parseExpression('equals(nullVal, "test")'), row)).toBe(false);
+    });
+  });
+
+  describe('contains()', () => {
+    it('should check substring case-sensitively', () => {
+      expect(interpretAST(parseExpression('contains(code, "ABC")'), row)).toBe(true);
+      expect(interpretAST(parseExpression('contains(code, "abc")'), row)).toBe(false);
+      expect(interpretAST(parseExpression('contains(code, "123")'), row)).toBe(true);
+      expect(interpretAST(parseExpression('contains(code, "xyz")'), row)).toBe(false);
+    });
+
+    it('should return false for null input', () => {
+      expect(interpretAST(parseExpression('contains(nullVal, "test")'), row)).toBe(false);
+    });
+  });
+
+  describe('starts_with()', () => {
+    it('should check prefix case-sensitively', () => {
+      expect(interpretAST(parseExpression('starts_with(code, "ABC")'), row)).toBe(true);
+      expect(interpretAST(parseExpression('starts_with(code, "abc")'), row)).toBe(false);
+      expect(interpretAST(parseExpression('starts_with(code, "AB")'), row)).toBe(true);
+      expect(interpretAST(parseExpression('starts_with(code, "xyz")'), row)).toBe(false);
+    });
+
+    it('should return false for null input', () => {
+      expect(interpretAST(parseExpression('starts_with(nullVal, "test")'), row)).toBe(false);
+    });
+  });
+
+  describe('ends_with()', () => {
+    it('should check suffix case-sensitively', () => {
+      expect(interpretAST(parseExpression('ends_with(filename, ".csv")'), row)).toBe(true);
+      expect(interpretAST(parseExpression('ends_with(filename, ".CSV")'), row)).toBe(false);
+      expect(interpretAST(parseExpression('ends_with(filename, "csv")'), row)).toBe(true);
+      expect(interpretAST(parseExpression('ends_with(filename, ".txt")'), row)).toBe(false);
+    });
+
+    it('should return false for null input', () => {
+      expect(interpretAST(parseExpression('ends_with(nullVal, "test")'), row)).toBe(false);
+    });
+  });
+});
+
+describe('Case-Insensitive Comparison Functions', () => {
+  const row = {
+    name: 'Alice',
+    code: 'ABC123',
+    filename: 'Document.csv',
+    nullVal: null,
+  };
+
+  describe('equals_ci()', () => {
+    it('should compare strings case-insensitively', () => {
+      expect(interpretAST(parseExpression('equals_ci(name, "alice")'), row)).toBe(true);
+      expect(interpretAST(parseExpression('equals_ci(name, "ALICE")'), row)).toBe(true);
+      expect(interpretAST(parseExpression('equals_ci(name, "Alice")'), row)).toBe(true);
+      expect(interpretAST(parseExpression('equals_ci(name, "Bob")'), row)).toBe(false);
+    });
+
+    it('should return false for null input', () => {
+      expect(interpretAST(parseExpression('equals_ci(nullVal, "test")'), row)).toBe(false);
+    });
+  });
+
+  describe('contains_ci()', () => {
+    it('should check substring case-insensitively', () => {
+      expect(interpretAST(parseExpression('contains_ci(code, "abc")'), row)).toBe(true);
+      expect(interpretAST(parseExpression('contains_ci(code, "ABC")'), row)).toBe(true);
+      expect(interpretAST(parseExpression('contains_ci(code, "xyz")'), row)).toBe(false);
+    });
+
+    it('should return false for null input', () => {
+      expect(interpretAST(parseExpression('contains_ci(nullVal, "test")'), row)).toBe(false);
+    });
+  });
+
+  describe('starts_with_ci()', () => {
+    it('should check prefix case-insensitively', () => {
+      expect(interpretAST(parseExpression('starts_with_ci(code, "abc")'), row)).toBe(true);
+      expect(interpretAST(parseExpression('starts_with_ci(code, "ABC")'), row)).toBe(true);
+      expect(interpretAST(parseExpression('starts_with_ci(code, "xyz")'), row)).toBe(false);
+    });
+
+    it('should return false for null input', () => {
+      expect(interpretAST(parseExpression('starts_with_ci(nullVal, "test")'), row)).toBe(false);
+    });
+  });
+
+  describe('ends_with_ci()', () => {
+    it('should check suffix case-insensitively', () => {
+      expect(interpretAST(parseExpression('ends_with_ci(filename, ".csv")'), row)).toBe(true);
+      expect(interpretAST(parseExpression('ends_with_ci(filename, ".CSV")'), row)).toBe(true);
+      expect(interpretAST(parseExpression('ends_with_ci(filename, ".txt")'), row)).toBe(false);
+    });
+
+    it('should return false for null input', () => {
+      expect(interpretAST(parseExpression('ends_with_ci(nullVal, "test")'), row)).toBe(false);
+    });
+  });
+});

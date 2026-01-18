@@ -83,6 +83,25 @@ export interface TransformStep {
     value?: any;
     includeEmptyString?: boolean;
   };
+  selectPattern?: {
+    pattern: string;
+    matchType: 'prefix' | 'suffix' | 'contains' | 'regex';
+    include?: string[];
+  };
+  removePattern?: {
+    pattern: string;
+    matchType: 'prefix' | 'suffix' | 'contains' | 'regex';
+  };
+  conditional?: {
+    column: string;
+    conditions: Array<{ when: string; then: string }>;
+    else: string;
+  };
+  renamePattern?: {
+    find: string;
+    replace: string;
+    regex?: boolean;
+  };
 }
 
 export const SchemaEngine = {
@@ -209,6 +228,135 @@ export const SchemaEngine = {
           return { ...c, name: newName };
         }
         return { ...c };
+      });
+    }
+
+    // 3a. SELECT_PATTERN: Keep only columns matching pattern
+    if (transform.selectPattern) {
+      if (sampleData && sampleData.length > 0) {
+        const names = Object.keys(sampleData[0]);
+        return names.map((name, i) => {
+          const existing = currentSchema.find((c) => c.name === name);
+          if (existing) return { ...existing, originalPosition: i };
+          const sample = sampleData.slice(0, 20).map((row) => row[name]);
+          return {
+            name,
+            type: this.inferType(sample),
+            format: {},
+            originalPosition: i,
+          };
+        });
+      }
+      // Fallback: use current schema (pattern matching will be done at runtime)
+      return currentSchema;
+    }
+
+    // 3b. REMOVE_PATTERN: Drop columns matching pattern
+    if (transform.removePattern) {
+      if (sampleData && sampleData.length > 0) {
+        const names = Object.keys(sampleData[0]);
+        return names.map((name, i) => {
+          const existing = currentSchema.find((c) => c.name === name);
+          if (existing) return { ...existing, originalPosition: i };
+          const sample = sampleData.slice(0, 20).map((row) => row[name]);
+          return {
+            name,
+            type: this.inferType(sample),
+            format: {},
+            originalPosition: i,
+          };
+        });
+      }
+      // Fallback: use current schema
+      return currentSchema;
+    }
+
+    // 3c. CONDITIONAL: Add/modify column based on conditions
+    if (transform.conditional) {
+      const { column } = transform.conditional;
+      const nextSchema = [...currentSchema];
+      const existingIndex = nextSchema.findIndex((c) => c.name === column);
+
+      if (sampleData && sampleData.length > 0) {
+        const sampleValues = sampleData.map((row) => row[column]);
+        const type = this.inferType(sampleValues);
+        const newColSchema: ColumnSchema = {
+          name: column,
+          type: type,
+          format: {},
+          originalPosition:
+            existingIndex !== -1 ? nextSchema[existingIndex].originalPosition : nextSchema.length,
+        };
+
+        if (existingIndex !== -1) {
+          nextSchema[existingIndex] = newColSchema;
+        } else {
+          nextSchema.push(newColSchema);
+        }
+        return nextSchema;
+      }
+
+      // Fallback: add as string type
+      if (existingIndex === -1) {
+        nextSchema.push({
+          name: column,
+          type: 'string',
+          format: {},
+          originalPosition: nextSchema.length,
+        });
+      }
+      return nextSchema;
+    }
+
+    // 3d. RENAME_PATTERN: Bulk rename by pattern
+    if (transform.renamePattern) {
+      if (sampleData && sampleData.length > 0) {
+        const names = Object.keys(sampleData[0]);
+        return names.map((name, i) => {
+          const existing = currentSchema.find((c) => c.name === name);
+          if (existing) {
+            // Check if this column was renamed
+            const originalName = currentSchema.find((c) => {
+              const { find, replace: replacement, regex } = transform.renamePattern!;
+              if (regex) {
+                try {
+                  const regexObj = new RegExp(find);
+                  return regexObj.test(c.name) && c.name.replace(regexObj, replacement) === name;
+                } catch {
+                  return false;
+                }
+              }
+              return c.name.includes(find) && c.name.replace(find, replacement) === name;
+            });
+            if (originalName) {
+              return { ...originalName, name, originalPosition: i };
+            }
+            return { ...existing, originalPosition: i };
+          }
+          const sample = sampleData.slice(0, 20).map((row) => row[name]);
+          return {
+            name,
+            type: this.inferType(sample),
+            format: {},
+            originalPosition: i,
+          };
+        });
+      }
+      // Fallback: try to match pattern against current schema
+      const { find, replace: replacement, regex } = transform.renamePattern;
+      return currentSchema.map((c) => {
+        let newName: string;
+        if (regex) {
+          try {
+            const regexObj = new RegExp(find);
+            newName = c.name.replace(regexObj, replacement);
+          } catch {
+            return c;
+          }
+        } else {
+          newName = c.name.replace(find, replacement);
+        }
+        return newName !== c.name ? { ...c, name: newName } : c;
       });
     }
 

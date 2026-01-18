@@ -102,6 +102,24 @@ export function RibbonToolbar({ onOpenDialog, onAutoDetectSchema }: RibbonToolba
                 title="Split column by delimiter"
                 onClick={() => onOpenDialog('split')}
               />
+              <RibbonButton
+                icon="carbon:select"
+                label="Select Pattern"
+                title="Select columns matching a pattern"
+                onClick={() => onOpenDialog('selectPattern')}
+              />
+              <RibbonButton
+                icon="carbon:close"
+                label="Remove Pattern"
+                title="Remove columns matching a pattern"
+                onClick={() => onOpenDialog('removePattern')}
+              />
+              <RibbonButton
+                icon="carbon:text-annotation-toggle"
+                label="Rename Pattern"
+                title="Rename columns by pattern"
+                onClick={() => onOpenDialog('renamePattern')}
+              />
             </RibbonGroup>
 
             <RibbonDivider />
@@ -128,6 +146,12 @@ export function RibbonToolbar({ onOpenDialog, onAutoDetectSchema }: RibbonToolba
                 label="Derive"
                 title="Create new column from expression"
                 onClick={() => onOpenDialog('derive')}
+              />
+              <RibbonButton
+                icon="carbon:flow"
+                label="Conditional"
+                title="Create column based on multiple conditions"
+                onClick={() => onOpenDialog('conditional')}
               />
               <RibbonButton
                 icon="carbon:text-link-analysis"

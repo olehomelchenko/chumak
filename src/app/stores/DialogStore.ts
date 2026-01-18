@@ -230,6 +230,37 @@ export class DialogStore {
     error: signal<string | null>(null),
   };
 
+  // Select Pattern Dialog State
+  static selectPatternState = {
+    pattern: signal(''),
+    matchType: signal<'prefix' | 'suffix' | 'contains' | 'regex'>('prefix'),
+    include: signal<string[]>([]),
+    error: signal<string | null>(null),
+  };
+
+  // Remove Pattern Dialog State
+  static removePatternState = {
+    pattern: signal(''),
+    matchType: signal<'prefix' | 'suffix' | 'contains' | 'regex'>('prefix'),
+    error: signal<string | null>(null),
+  };
+
+  // Conditional Dialog State
+  static conditionalState = {
+    column: signal(''),
+    conditions: signal<Array<{ when: string; then: string }>>([{ when: '', then: '' }]),
+    else: signal(''),
+    error: signal<string | null>(null),
+  };
+
+  // Rename Pattern Dialog State
+  static renamePatternState = {
+    find: signal(''),
+    replace: signal(''),
+    regex: signal(false),
+    error: signal<string | null>(null),
+  };
+
   /**
    * Creates a reactive proxy for a signal-based state object.
    * Allows direct property access and assignment to be transparently
@@ -343,5 +374,24 @@ export class DialogStore {
     this.imputeState.includeEmptyString.value = false;
     this.imputeState.previewRows.value = null;
     this.imputeState.error.value = null;
+
+    this.selectPatternState.pattern.value = '';
+    this.selectPatternState.matchType.value = 'prefix';
+    this.selectPatternState.include.value = [];
+    this.selectPatternState.error.value = null;
+
+    this.removePatternState.pattern.value = '';
+    this.removePatternState.matchType.value = 'prefix';
+    this.removePatternState.error.value = null;
+
+    this.conditionalState.column.value = '';
+    this.conditionalState.conditions.value = [{ when: '', then: '' }];
+    this.conditionalState.else.value = '';
+    this.conditionalState.error.value = null;
+
+    this.renamePatternState.find.value = '';
+    this.renamePatternState.replace.value = '';
+    this.renamePatternState.regex.value = false;
+    this.renamePatternState.error.value = null;
   }
 }

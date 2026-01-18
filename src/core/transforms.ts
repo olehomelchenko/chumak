@@ -12,7 +12,7 @@ import type { Source, Model } from '../app/types';
 
 export interface MatchOptions {
   pattern: string;
-  matchType: 'prefix' | 'suffix' | 'exact';
+  matchType: 'prefix' | 'suffix' | 'exact' | 'contains' | 'regex';
   mode: 'include' | 'exclude';
 }
 
@@ -22,7 +22,7 @@ export interface TransformContext {
 }
 
 /**
- * Match columns based on pattern (prefix/suffix/exact)
+ * Match columns based on pattern (prefix/suffix/exact/contains/regex)
  */
 export function matchColumnPattern(columns: string[], options: MatchOptions): string[] {
   const { pattern, matchType, mode } = options;
@@ -39,6 +39,16 @@ export function matchColumnPattern(columns: string[], options: MatchOptions): st
     matched = columns.filter((col) => col.endsWith(pattern));
   } else if (matchType === 'exact') {
     matched = columns.filter((col) => col === pattern);
+  } else if (matchType === 'contains') {
+    matched = columns.filter((col) => col.includes(pattern));
+  } else if (matchType === 'regex') {
+    try {
+      const regex = new RegExp(pattern);
+      matched = columns.filter((col) => regex.test(col));
+    } catch (e) {
+      // Invalid regex - return empty array
+      return mode === 'include' ? [] : [...columns];
+    }
   }
 
   if (mode === 'include') {
@@ -66,6 +76,25 @@ export interface FullTransformStep extends TransformStep {
     value?: any;
     includeEmptyString?: boolean;
   };
+  selectPattern?: {
+    pattern: string;
+    matchType: 'prefix' | 'suffix' | 'contains' | 'regex';
+    include?: string[];
+  };
+  removePattern?: {
+    pattern: string;
+    matchType: 'prefix' | 'suffix' | 'contains' | 'regex';
+  };
+  conditional?: {
+    column: string;
+    conditions: Array<{ when: string; then: string }>;
+    else: string;
+  };
+  renamePattern?: {
+    find: string;
+    replace: string;
+    regex?: boolean;
+  };
 }
 
 /**
@@ -90,6 +119,10 @@ const KNOWN_TRANSFORM_KEYS: readonly string[] = [
   'sliceRows',
   'addIndex',
   'impute',
+  'selectPattern',
+  'removePattern',
+  'conditional',
+  'renamePattern',
 ] as const;
 
 /**
@@ -226,6 +259,112 @@ export function applyTransform(
 
   if (transform.remove) {
     return table.select((aq as any).not(...transform.remove));
+  }
+
+  if (transform.selectPattern) {
+    const { pattern, matchType, include } = transform.selectPattern;
+    const columns = table.columnNames();
+    const matched = matchColumnPattern(columns, { pattern, matchType, mode: 'include' });
+    const finalColumns = include ? [...new Set([...matched, ...include])] : matched;
+    return finalColumns.length > 0 ? table.select(...finalColumns) : table;
+  }
+
+  if (transform.removePattern) {
+    const { pattern, matchType } = transform.removePattern;
+    const columns = table.columnNames();
+    const matched = matchColumnPattern(columns, { pattern, matchType, mode: 'include' });
+    return matched.length > 0 ? table.select((aq as any).not(...matched)) : table;
+  }
+
+  if (transform.conditional) {
+    const { column, conditions, else: elseValue } = transform.conditional;
+    let resultRows = table.objects();
+
+    // Validate all expressions first
+    for (const cond of conditions) {
+      const whenAST = parseExpression(cond.when);
+      const whenValidation = validateAST(whenAST, schema);
+      if (!whenValidation.valid) {
+        throw new Error(
+          `Conditional validation failed for 'when': ${whenValidation.error?.message}`
+        );
+      }
+
+      const thenAST = parseExpression(cond.then);
+      const thenValidation = validateAST(thenAST, schema);
+      if (!thenValidation.valid) {
+        throw new Error(
+          `Conditional validation failed for 'then': ${thenValidation.error?.message}`
+        );
+      }
+    }
+
+    const elseAST = parseExpression(elseValue);
+    const elseValidation = validateAST(elseAST, schema);
+    if (!elseValidation.valid) {
+      throw new Error(`Conditional validation failed for 'else': ${elseValidation.error?.message}`);
+    }
+
+    // Evaluate conditions sequentially
+    resultRows = resultRows.map((row: any) => {
+      let result: any = null;
+      let matched = false;
+
+      for (const cond of conditions) {
+        if (!matched) {
+          try {
+            const whenAST = parseExpression(cond.when);
+            const whenValue = interpretAST(whenAST, row);
+            if (whenValue === true) {
+              const thenAST = parseExpression(cond.then);
+              result = interpretAST(thenAST, row);
+              matched = true;
+            }
+          } catch (error: any) {
+            // Skip this condition on error
+          }
+        }
+      }
+
+      if (!matched) {
+        try {
+          result = interpretAST(elseAST, row);
+        } catch (error: any) {
+          result = { type: 'error', message: error.message };
+        }
+      }
+
+      return { ...row, [column]: result };
+    });
+
+    return (aq as any).from(resultRows);
+  }
+
+  if (transform.renamePattern) {
+    const { find, replace: replacement, regex } = transform.renamePattern;
+    const columns = table.columnNames();
+    const renameMap: Record<string, string> = {};
+
+    for (const col of columns) {
+      let newName: string;
+      if (regex) {
+        try {
+          const regexObj = new RegExp(find);
+          newName = col.replace(regexObj, replacement);
+        } catch (e) {
+          // Invalid regex - skip this column
+          continue;
+        }
+      } else {
+        newName = col.replace(find, replacement);
+      }
+
+      if (newName !== col) {
+        renameMap[col] = newName;
+      }
+    }
+
+    return Object.keys(renameMap).length > 0 ? table.rename(renameMap) : table;
   }
 
   if (transform.aggregate) {
@@ -721,6 +860,28 @@ export function describeTransform(transform: any, rightName: string | null = nul
   if (transform.remove) {
     const count = transform.remove.length;
     return `Remove: ${count} column${count !== 1 ? 's' : ''}`;
+  }
+
+  if (transform.selectPattern) {
+    const { pattern, matchType } = transform.selectPattern;
+    return `Select pattern: ${matchType} "${pattern}"`;
+  }
+
+  if (transform.removePattern) {
+    const { pattern, matchType } = transform.removePattern;
+    return `Remove pattern: ${matchType} "${pattern}"`;
+  }
+
+  if (transform.conditional) {
+    const { column, conditions } = transform.conditional;
+    const count = conditions.length;
+    return `Conditional: ${column} (${count} condition${count !== 1 ? 's' : ''})`;
+  }
+
+  if (transform.renamePattern) {
+    const { find, replace: replacement, regex } = transform.renamePattern;
+    const mode = regex ? 'regex' : 'text';
+    return `Rename pattern: ${mode} "${find}" -> "${replacement}"`;
   }
 
   if (transform.replace) {

@@ -146,6 +146,26 @@ regexp_extract(text, "(\\d+)", 1)  → Extract first capture group
 | `trim(text)`              | Trimmed string        | `trim(padded)` → removes spaces  |
 | `substring(text, start)`  | Substring from start  | `substring(name, 5)` → "Doe"     |
 | `substring(text, s, len)` | Substring with length | `substring(name, 0, 4)` → "John" |
+| `len(text)`               | String length         | `len(name)` → 8                  |
+| `split(text, delim)`      | Segment at index 0    | `split("a,b,c", ",")` → "a"      |
+| `split(text, delim, idx)` | Segment at index      | `split("a,b,c", ",", 2)` → "c"   |
+
+**Negative indices:** `split(text, delim, -1)` returns the last segment.
+
+### String Comparison
+
+| Function                       | Returns          | Example                                                      |
+| ------------------------------ | ---------------- | ------------------------------------------------------------ |
+| `equals(text1, text2)`         | Case-sensitive   | `equals(name, "Alice")` → true only if exact match           |
+| `contains(text, substring)`    | Case-sensitive   | `contains(code, "ABC")` → true if code contains "ABC"        |
+| `starts_with(text, prefix)`    | Case-sensitive   | `starts_with(code, "AB")` → true if code starts with "AB"    |
+| `ends_with(text, suffix)`      | Case-sensitive   | `ends_with(file, ".csv")` → true if file ends with ".csv"    |
+| `equals_ci(text1, text2)`      | Case-insensitive | `equals_ci(name, "alice")` → true for "Alice", "ALICE", etc. |
+| `contains_ci(text, substring)` | Case-insensitive | `contains_ci(code, "abc")` → true for any case               |
+| `starts_with_ci(text, prefix)` | Case-insensitive | `starts_with_ci(code, "ab")` → true for any case             |
+| `ends_with_ci(text, suffix)`   | Case-insensitive | `ends_with_ci(file, ".CSV")` → true for any case             |
+
+> **Tip:** For equality checks, you can also use the `==` operator: `name == "Alice"` is equivalent to `equals(name, "Alice")`. The functions are useful when you need substring/prefix/suffix checks.
 
 ## Math Functions
 

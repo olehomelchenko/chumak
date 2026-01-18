@@ -56,7 +56,7 @@ See `src/content/expressions.md` for full documentation with examples.
 
 ### Pattern-Based Column Operations
 
-**Status**: Planned (High Priority)
+**Status**: Completed (January 2025)
 **Effort**: Low-Medium
 **Reference**: [TRANSFORM-ARCHITECTURE-REVIEW.md §2.1](TRANSFORM-ARCHITECTURE-REVIEW.md#21-pattern-based-column-operations-high-priority)
 
@@ -65,13 +65,23 @@ Expose existing `matchColumnPattern()` as user-facing transforms for schema-drif
 ```json
 { "selectPattern": { "pattern": "sales_", "matchType": "prefix" } }
 { "removePattern": { "pattern": "_backup$", "matchType": "regex" } }
+{ "renamePattern": { "find": "_old$", "replace": "_new", "regex": true } }
 ```
+
+**What was implemented**:
+
+- Extended `matchColumnPattern()` to support `contains` and `regex` match types
+- Added `selectPattern` transform for pattern-based column selection
+- Added `removePattern` transform for pattern-based column removal
+- Added `renamePattern` transform for bulk rename by pattern (text or regex)
+- Full UI integration with dialog components and toolbar buttons
+- Comprehensive test coverage
 
 ---
 
 ### Conditional Transform
 
-**Status**: Planned (High Priority)
+**Status**: Completed (January 2025)
 **Effort**: Medium
 **Reference**: [TRANSFORM-ARCHITECTURE-REVIEW.md §2.2](TRANSFORM-ARCHITECTURE-REVIEW.md#22-multi-condition-logic-high-priority)
 
@@ -90,21 +100,38 @@ Declarative multi-condition logic as alternative to nested ternaries:
 }
 ```
 
+**What was implemented**:
+
+- Added `conditional` transform with sequential condition evaluation
+- Supports multiple `when`/`then` pairs and an `else` clause
+- All expressions validated before execution
+- UI with dynamic condition list (add/remove conditions)
+- Comprehensive test coverage
+
 ---
 
 ### Case-Insensitive Comparison Functions
 
-**Status**: Planned (Medium Priority)
+**Status**: Completed (January 2025)
 **Effort**: Low
 **Reference**: [TRANSFORM-ARCHITECTURE-REVIEW.md §2.3](TRANSFORM-ARCHITECTURE-REVIEW.md#23-case-insensitive-comparisons-medium-priority)
 
 Add `equals_ci()`, `contains_ci()`, `starts_with_ci()`, `ends_with_ci()` expression functions.
 
+**What was implemented**:
+
+- Added `equals_ci()` for case-insensitive string equality
+- Added `contains_ci()` for case-insensitive substring matching
+- Added `starts_with_ci()` for case-insensitive prefix checking
+- Added `ends_with_ci()` for case-insensitive suffix checking
+- All functions registered in AST validator and interpreter
+- Comprehensive test coverage
+
 ---
 
 ### Split Expression Function
 
-**Status**: Planned (Medium Priority)
+**Status**: Completed (January 2025)
 **Effort**: Low
 **Reference**: [TRANSFORM-ARCHITECTURE-REVIEW.md §2.4](TRANSFORM-ARCHITECTURE-REVIEW.md#24-split-transform-overload-medium-priority)
 
@@ -113,6 +140,15 @@ Add `split(value, delimiter, index)` for extracting segments without creating mu
 ```json
 { "derive": { "first_name": "split(full_name, ' ', 0)" } }
 ```
+
+**What was implemented**:
+
+- Added `split(value, delimiter, index)` expression function
+- Supports positive indices (0-based) and negative indices (from end: -1 = last)
+- Returns `null` for out-of-bounds indices
+- Default index is 0 if not specified
+- Registered in AST validator and interpreter
+- Comprehensive test coverage
 
 ---
 
@@ -363,13 +399,13 @@ These have been considered and explicitly excluded:
 1. ~~Word-form boolean operators (`and`/`or`/`not`)~~ — Completed ✓
 2. ~~Expression functions — Phase 1 (string, math, type basics)~~ — Already implemented ✓
 3. ~~Impute — Phase 1 (constants)~~ — Completed ✓
-4. **Pattern-based column operations** (`selectPattern`, `removePattern`) — Planned
-5. **Conditional transform** (multi-condition column creation) — Planned
+4. ~~Pattern-based column operations~~ (`selectPattern`, `removePattern`, `renamePattern`) — Completed ✓
+5. ~~Conditional transform~~ (multi-condition column creation) — Completed ✓
 
 ### Medium Priority (Useful Additions)
 
-6. Case-insensitive comparison functions (`equals_ci`, etc.)
-7. `split()` expression function for segment extraction
+6. ~~Case-insensitive comparison functions~~ (`equals_ci`, etc.) — Completed ✓
+7. ~~`split()` expression function~~ for segment extraction — Completed ✓
 8. Set operations (concat, union)
 9. Keyboard shortcuts
 

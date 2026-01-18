@@ -29,6 +29,10 @@ export type DialogName =
   | 'reference'
   | 'type-conversion'
   | 'impute'
+  | 'selectPattern'
+  | 'removePattern'
+  | 'conditional'
+  | 'renamePattern'
   | null;
 
 export interface Source {

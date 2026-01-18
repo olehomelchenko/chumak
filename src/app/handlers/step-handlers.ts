@@ -8,6 +8,7 @@ import type { PivotAggregation } from '../components/PivotDialog';
 import * as ColumnEditorHandlers from './column-editor-handlers';
 import * as DateHandlers from './date-handlers';
 import * as HelperHandlers from './helper-handlers';
+import * as PatternHandlers from './pattern-handlers';
 
 /**
  * Dispatches transform application based on the active dialog.
@@ -62,6 +63,26 @@ export async function applyActiveTransform(this: ChumakApp) {
       break;
     case 'impute':
       await this.applyImputeTransform();
+      break;
+    case 'selectPattern':
+      await PatternHandlers.applySelectPatternTransform(
+        HelperHandlers.createExecutionCallbacks(this)
+      );
+      break;
+    case 'removePattern':
+      await PatternHandlers.applyRemovePatternTransform(
+        HelperHandlers.createExecutionCallbacks(this)
+      );
+      break;
+    case 'conditional':
+      await PatternHandlers.applyConditionalTransform(
+        HelperHandlers.createExecutionCallbacks(this)
+      );
+      break;
+    case 'renamePattern':
+      await PatternHandlers.applyRenamePatternTransform(
+        HelperHandlers.createExecutionCallbacks(this)
+      );
       break;
     case 'column-editor':
       await ColumnEditorHandlers.applyColumnEditorTransform({

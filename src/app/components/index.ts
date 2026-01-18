@@ -49,6 +49,10 @@ export { RegexpExtractDialog } from './RegexpExtractDialog';
 export { DedupeDialog } from './DedupeDialog';
 export { ImportUrlDialog } from './ImportUrlDialog';
 export { DownloadDialog } from './DownloadDialog';
+export { SelectPatternDialog } from './SelectPatternDialog';
+export { RemovePatternDialog } from './RemovePatternDialog';
+export { ConditionalDialog } from './ConditionalDialog';
+export { RenamePatternDialog } from './RenamePatternDialog';
 
 // Layout components
 export { RibbonToolbar } from './RibbonToolbar';

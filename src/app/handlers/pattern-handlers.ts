@@ -1,0 +1,127 @@
+import { DialogStore } from '../stores/DialogStore';
+import { StepService } from '../services/StepService';
+import * as NotificationHandlers from './notification-handlers';
+
+export async function applySelectPatternTransform(callbacks: any) {
+  const { pattern, matchType, include } = DialogStore.selectPatternState;
+
+  if (!pattern.value || pattern.value.trim() === '') {
+    await NotificationHandlers.alert.call(null as any, 'Please enter a pattern');
+    return;
+  }
+
+  // Validate regex if matchType is regex
+  if (matchType.value === 'regex') {
+    try {
+      new RegExp(pattern.value);
+    } catch (e: any) {
+      DialogStore.selectPatternState.error.value = `Invalid regex pattern: ${e.message}`;
+      return;
+    }
+  }
+
+  const transform = {
+    selectPattern: {
+      pattern: pattern.value.trim(),
+      matchType: matchType.value,
+      include: include.value.length > 0 ? include.value : undefined,
+    },
+  };
+
+  DialogStore.selectPatternState.error.value = null;
+  await StepService.runTransform('Select Pattern', transform, callbacks);
+}
+
+export async function applyRemovePatternTransform(callbacks: any) {
+  const { pattern, matchType } = DialogStore.removePatternState;
+
+  if (!pattern.value || pattern.value.trim() === '') {
+    await NotificationHandlers.alert.call(null as any, 'Please enter a pattern');
+    return;
+  }
+
+  // Validate regex if matchType is regex
+  if (matchType.value === 'regex') {
+    try {
+      new RegExp(pattern.value);
+    } catch (e: any) {
+      DialogStore.removePatternState.error.value = `Invalid regex pattern: ${e.message}`;
+      return;
+    }
+  }
+
+  const transform = {
+    removePattern: {
+      pattern: pattern.value.trim(),
+      matchType: matchType.value,
+    },
+  };
+
+  DialogStore.removePatternState.error.value = null;
+  await StepService.runTransform('Remove Pattern', transform, callbacks);
+}
+
+export async function applyConditionalTransform(callbacks: any) {
+  const { column, conditions, else: elseValue } = DialogStore.conditionalState;
+
+  if (!column.value || column.value.trim() === '') {
+    await NotificationHandlers.alert.call(null as any, 'Please enter a column name');
+    return;
+  }
+
+  // Validate conditions
+  const validConditions = conditions.value.filter((c) => c.when.trim() && c.then.trim());
+  if (validConditions.length === 0) {
+    await NotificationHandlers.alert.call(null as any, 'Please add at least one valid condition');
+    return;
+  }
+
+  if (!elseValue.value || elseValue.value.trim() === '') {
+    await NotificationHandlers.alert.call(null as any, 'Please enter an else value');
+    return;
+  }
+
+  const transform = {
+    conditional: {
+      column: column.value.trim(),
+      conditions: validConditions.map((c) => ({
+        when: c.when.trim(),
+        then: c.then.trim(),
+      })),
+      else: elseValue.value.trim(),
+    },
+  };
+
+  DialogStore.conditionalState.error.value = null;
+  await StepService.runTransform('Conditional', transform, callbacks);
+}
+
+export async function applyRenamePatternTransform(callbacks: any) {
+  const { find, replace: replaceValue, regex } = DialogStore.renamePatternState;
+
+  if (!find.value || find.value.trim() === '') {
+    await NotificationHandlers.alert.call(null as any, 'Please enter a find pattern');
+    return;
+  }
+
+  // Validate regex if enabled
+  if (regex.value) {
+    try {
+      new RegExp(find.value);
+    } catch (e: any) {
+      DialogStore.renamePatternState.error.value = `Invalid regex pattern: ${e.message}`;
+      return;
+    }
+  }
+
+  const transform = {
+    renamePattern: {
+      find: find.value.trim(),
+      replace: replaceValue.value.trim(),
+      regex: regex.value,
+    },
+  };
+
+  DialogStore.renamePatternState.error.value = null;
+  await StepService.runTransform('Rename Pattern', transform, callbacks);
+}

@@ -79,6 +79,19 @@ const ALLOWED_FUNCTIONS: Record<string, FunctionSpec> = {
   trim: { minArgs: 1, maxArgs: 1 },
   substring: { minArgs: 2, maxArgs: 3 },
   len: { minArgs: 1, maxArgs: 1 },
+  split: { minArgs: 2, maxArgs: 3 },
+
+  // String comparison functions
+  equals: { minArgs: 2, maxArgs: 2 },
+  contains: { minArgs: 2, maxArgs: 2 },
+  starts_with: { minArgs: 2, maxArgs: 2 },
+  ends_with: { minArgs: 2, maxArgs: 2 },
+
+  // Case-insensitive comparison functions
+  equals_ci: { minArgs: 2, maxArgs: 2 },
+  contains_ci: { minArgs: 2, maxArgs: 2 },
+  starts_with_ci: { minArgs: 2, maxArgs: 2 },
+  ends_with_ci: { minArgs: 2, maxArgs: 2 },
 
   // Math functions
   abs: { minArgs: 1, maxArgs: 1 },

@@ -295,6 +295,10 @@ export function isSlidePanel(this: ChumakApp, dialog: string | null): boolean {
     'filter',
     'sort',
     'sliceRows',
+    'selectPattern',
+    'removePattern',
+    'conditional',
+    'renamePattern',
     'index',
     'select',
     'remove',
@@ -372,6 +376,14 @@ export function getDialogTitle(this: ChumakApp): string {
       return 'Edit Columns';
     case 'impute':
       return 'Impute Missing Values';
+    case 'selectPattern':
+      return 'Select Pattern';
+    case 'removePattern':
+      return 'Remove Pattern';
+    case 'conditional':
+      return 'Conditional Column';
+    case 'renamePattern':
+      return 'Rename Pattern';
     default:
       return '';
   }

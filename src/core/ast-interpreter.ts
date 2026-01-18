@@ -330,6 +330,52 @@ const FUNCTION_IMPLS: Record<string, (...args: any[]) => any> = {
     // This means surrogate pairs (emojis, etc.) count as 2
     return String(value).length;
   },
+  split: (value, delimiter, index = 0) => {
+    if (value == null) return null;
+    const str = String(value);
+    const delim = delimiter != null ? String(delimiter) : '';
+    const parts = str.split(delim);
+    // Handle negative index (count from end: -1 = last, -2 = second-to-last, etc.)
+    const idx = index < 0 ? parts.length + index : index;
+    if (idx < 0 || idx >= parts.length) return null;
+    return parts[idx];
+  },
+
+  // String comparison functions (case-sensitive)
+  equals: (value1, value2) => {
+    if (value1 == null || value2 == null) return false;
+    return String(value1) === String(value2);
+  },
+  contains: (value, substring) => {
+    if (value == null || substring == null) return false;
+    return String(value).includes(String(substring));
+  },
+  starts_with: (value, prefix) => {
+    if (value == null || prefix == null) return false;
+    return String(value).startsWith(String(prefix));
+  },
+  ends_with: (value, suffix) => {
+    if (value == null || suffix == null) return false;
+    return String(value).endsWith(String(suffix));
+  },
+
+  // Case-insensitive comparison functions
+  equals_ci: (value1, value2) => {
+    if (value1 == null || value2 == null) return false;
+    return String(value1).toLowerCase() === String(value2).toLowerCase();
+  },
+  contains_ci: (value, substring) => {
+    if (value == null || substring == null) return false;
+    return String(value).toLowerCase().includes(String(substring).toLowerCase());
+  },
+  starts_with_ci: (value, prefix) => {
+    if (value == null || prefix == null) return false;
+    return String(value).toLowerCase().startsWith(String(prefix).toLowerCase());
+  },
+  ends_with_ci: (value, suffix) => {
+    if (value == null || suffix == null) return false;
+    return String(value).toLowerCase().endsWith(String(suffix).toLowerCase());
+  },
 
   // Math functions
   abs: (value) => {
