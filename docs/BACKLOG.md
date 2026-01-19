@@ -12,9 +12,10 @@ This document tracks planned features and enhancements, organized by scope and e
 
 ### Set Operations (Concat, Union)
 
-**Status**: Planned
-**Effort**: Small (~40 lines total)
+**Status**: Planned (pending dependency graph)
+**Effort**: Small (~40 lines total for transforms)
 **Arquero**: `table.concat()`, `table.union()`
+**Prerequisite**: [Multi-Model Dependency Graph](#multi-model-dependency-graph)
 
 Combine multiple models/sources.
 
@@ -22,6 +23,13 @@ Combine multiple models/sources.
 | ---------- | ------------------------------- | --------------------- |
 | **Concat** | Stack rows (keeps duplicates)   | `table.concat(other)` |
 | **Union**  | Stack rows (removes duplicates) | `table.union(other)`  |
+
+**Transform schema** (follows existing `join` pattern):
+
+```json
+{ "concat": { "with": "mdl_xyz" } }
+{ "union": { "with": "mdl_xyz" } }
+```
 
 **Why useful**: Common need when data comes in multiple files (monthly reports, split exports).
 
@@ -173,6 +181,34 @@ Drag columns in the data table to reorder. Would generate a `select` step with t
 
 ## Infrastructure
 
+### Multi-Model Dependency Graph
+
+**Status**: Designed, awaiting implementation
+**Effort**: Medium (~450 lines total across 3 phases)
+**Reference**: [MULTI-MODEL-ARCHITECTURE.md](MULTI-MODEL-ARCHITECTURE.md)
+
+Enable reliable multi-model workflows by tracking dependencies between models.
+
+**Problem**: Currently, when Model A changes, Model B (that joins A) doesn't know it needs to recompute. No warnings when deleting a model that others depend on.
+
+**Solution**: Introduce a `DependencyService` that builds a DAG of model relationships.
+
+| Phase       | Scope                                           | Effort          |
+| ----------- | ----------------------------------------------- | --------------- |
+| **Phase 1** | Dependency tracking, cascade warnings on delete | ~200 lines      |
+| **Phase 2** | Staleness tracking, auto-recompute on view      | ~150 lines      |
+| **Phase 3** | New operations (concat, union)                  | ~100 lines each |
+
+**Key design decisions**:
+
+- Models (not steps) as DAG nodes — matches user mental model
+- Graph computed on load, not persisted — single source of truth
+- Lazy recomputation — mark stale, compute when viewed
+
+**Prerequisite for**: Set operations (concat, union), advanced joins, any future multi-model features.
+
+---
+
 ### Performance Profiling & Limits
 
 **Status**: Ongoing
@@ -264,20 +300,21 @@ These have been considered and explicitly excluded:
 
 ### High Priority (Core Gaps)
 
-1. Set operations (concat, union)
+1. **Multi-model dependency graph** — prerequisite for reliable multi-model workflows
+2. Set operations (concat, union) — requires dependency graph
 
 ### Medium Priority (Useful Additions)
 
-2. Keyboard shortcuts
+3. Keyboard shortcuts
 
 ### Lower Priority (Nice to Have)
 
-3. Step reordering
-4. Column reordering (`reorder`, `moveColumn`)
-5. Sample transform
-6. Advanced joins (semi, anti, lookup)
-7. Spread/unroll transforms
-8. Window functions (`cumsum`, `lag`, `rank`) — Future
+4. Step reordering
+5. Column reordering (`reorder`, `moveColumn`)
+6. Sample transform
+7. Advanced joins (semi, anti, lookup)
+8. Spread/unroll transforms
+9. Window functions (`cumsum`, `lag`, `rank`) — Future
 
 ---
 
