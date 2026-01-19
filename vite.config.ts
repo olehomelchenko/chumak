@@ -128,6 +128,41 @@ export default defineConfig(({ mode }) => {
       sourcemap: true,
       // Optimize CSS in production
       cssMinify: !isDev,
+      // Increase chunk size warning limit - Vega is legitimately large
+      chunkSizeWarningLimit: 700,
+      rollupOptions: {
+        output: {
+          manualChunks: (id) => {
+            // Split Vega libraries (large visualization libraries)
+            if (id.includes('vega') || id.includes('vega-lite') || id.includes('vega-embed')) {
+              return 'vega';
+            }
+            // Split Arquero (data processing library)
+            if (id.includes('arquero')) {
+              return 'arquero';
+            }
+            // Split Preact and related libraries
+            if (id.includes('preact') || id.includes('@preact')) {
+              return 'preact';
+            }
+            // Split parsing libraries
+            if (id.includes('papaparse')) {
+              return 'parsers';
+            }
+            if (id.includes('jsep')) {
+              return 'parsers';
+            }
+            // Split PWA/workbox
+            if (id.includes('workbox') || id.includes('vite-plugin-pwa')) {
+              return 'pwa';
+            }
+            // Keep other node_modules vendor code separate
+            if (id.includes('node_modules')) {
+              return 'vendor';
+            }
+          },
+        },
+      },
     },
   };
 });
