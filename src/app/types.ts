@@ -15,6 +15,8 @@ export type DialogName =
   | 'derive'
   | 'split'
   | 'join'
+  | 'concat'
+  | 'union'
   | 'aggregate'
   | 'import-csv'
   | 'import-url'

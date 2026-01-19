@@ -31,8 +31,7 @@ export interface DependencyCheckResult {
 
 /**
  * Extracts all model/source IDs referenced by a transform step.
- * Currently checks: join.right
- * Future: concat.with, union.with, etc.
+ * Checks: join.right, concat.with, union.with
  */
 function extractReferencedIds(step: TransformStep): string[] {
   const ids: string[] = [];
@@ -42,9 +41,15 @@ function extractReferencedIds(step: TransformStep): string[] {
     ids.push(step.join.right);
   }
 
-  // Future: concat, union, semijoin, antijoin, lookup
-  // if (step.concat?.with) ids.push(step.concat.with);
-  // if (step.union?.with) ids.push(step.union.with);
+  // Concat transform references another model/source
+  if (step.concat?.with) {
+    ids.push(step.concat.with);
+  }
+
+  // Union transform references another model/source
+  if (step.union?.with) {
+    ids.push(step.union.with);
+  }
 
   return ids;
 }

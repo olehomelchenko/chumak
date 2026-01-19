@@ -55,6 +55,12 @@ export async function applyActiveTransform(this: SytoApp) {
     case 'join':
       await this.applyJoinTransform();
       break;
+    case 'concat':
+      await this.applyConcatTransform();
+      break;
+    case 'union':
+      await this.applyUnionTransform();
+      break;
     case 'replace':
       await this.applyReplaceTransform();
       break;

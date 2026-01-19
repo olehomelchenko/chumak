@@ -102,6 +102,8 @@ export interface TransformStep {
     replace: string;
     regex?: boolean;
   };
+  concat?: { with: string };
+  union?: { with: string };
 }
 
 export const SchemaEngine = {

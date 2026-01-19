@@ -418,5 +418,129 @@ describe('DependencyService', () => {
       const orphaned = DependencyService.findOrphanedReferences(models, sources);
       expect(orphaned).toEqual([]);
     });
+
+    it('finds concat references to deleted models', () => {
+      const sources = [createSource('src_1', 'Source')];
+      const models = [
+        createModel('mdl_orphan', 'Orphan Model', 'src_1', [
+          { import: { source: 'Source' } },
+          { concat: { with: 'mdl_deleted' } }, // Target doesn't exist
+        ]),
+      ];
+
+      const orphaned = DependencyService.findOrphanedReferences(models, sources);
+      expect(orphaned).toHaveLength(1);
+      expect(orphaned[0].modelId).toBe('mdl_orphan');
+      expect(orphaned[0].stepIndex).toBe(1);
+      expect(orphaned[0].targetId).toBe('mdl_deleted');
+    });
+
+    it('finds union references to deleted models', () => {
+      const sources = [createSource('src_1', 'Source')];
+      const models = [
+        createModel('mdl_orphan', 'Orphan Model', 'src_1', [
+          { import: { source: 'Source' } },
+          { union: { with: 'mdl_deleted' } }, // Target doesn't exist
+        ]),
+      ];
+
+      const orphaned = DependencyService.findOrphanedReferences(models, sources);
+      expect(orphaned).toHaveLength(1);
+      expect(orphaned[0].modelId).toBe('mdl_orphan');
+      expect(orphaned[0].stepIndex).toBe(1);
+      expect(orphaned[0].targetId).toBe('mdl_deleted');
+    });
+
+    it('tracks concat dependencies in graph', () => {
+      const sources = [createSource('src_1', 'Source')];
+      const models = [
+        createModel('mdl_a', 'Model A', 'src_1'),
+        createModel('mdl_b', 'Model B', 'src_1', [{ concat: { with: 'mdl_a' } }]),
+      ];
+
+      const graph = DependencyService.buildGraph(sources, models);
+
+      const deps = DependencyService.getDependencies(graph, 'mdl_b');
+      expect(deps).toContain('src_1'); // Source dependency
+      expect(deps).toContain('mdl_a'); // Concat dependency
+
+      const dependents = DependencyService.getDependents(graph, 'mdl_a');
+      expect(dependents).toContain('mdl_b');
+    });
+
+    it('tracks union dependencies in graph', () => {
+      const sources = [createSource('src_1', 'Source')];
+      const models = [
+        createModel('mdl_a', 'Model A', 'src_1'),
+        createModel('mdl_b', 'Model B', 'src_1', [{ union: { with: 'mdl_a' } }]),
+      ];
+
+      const graph = DependencyService.buildGraph(sources, models);
+
+      const deps = DependencyService.getDependencies(graph, 'mdl_b');
+      expect(deps).toContain('src_1'); // Source dependency
+      expect(deps).toContain('mdl_a'); // Union dependency
+
+      const dependents = DependencyService.getDependents(graph, 'mdl_a');
+      expect(dependents).toContain('mdl_b');
+    });
+
+    it('marks dependents stale when concat source changes', () => {
+      const sources = [createSource('src_1', 'Source')];
+      const models = [
+        createModel('mdl_a', 'Model A', 'src_1'),
+        createModel('mdl_b', 'Model B', 'src_1', [{ concat: { with: 'mdl_a' } }]),
+      ];
+
+      const staleIds = DependencyService.markDependentsStale(models, sources, 'mdl_a');
+
+      expect(staleIds).toContain('mdl_b');
+      expect(models.find((m) => m.id === 'mdl_b')?.isStale).toBe(true);
+      expect(models.find((m) => m.id === 'mdl_a')?.isStale).toBeUndefined();
+    });
+
+    it('marks dependents stale when union source changes', () => {
+      const sources = [createSource('src_1', 'Source')];
+      const models = [
+        createModel('mdl_a', 'Model A', 'src_1'),
+        createModel('mdl_b', 'Model B', 'src_1', [{ union: { with: 'mdl_a' } }]),
+      ];
+
+      const staleIds = DependencyService.markDependentsStale(models, sources, 'mdl_a');
+
+      expect(staleIds).toContain('mdl_b');
+      expect(models.find((m) => m.id === 'mdl_b')?.isStale).toBe(true);
+      expect(models.find((m) => m.id === 'mdl_a')?.isStale).toBeUndefined();
+    });
+
+    it('prevents deletion of model referenced by concat', () => {
+      const sources = [createSource('src_1', 'Source')];
+      const models = [
+        createModel('mdl_a', 'Model A', 'src_1'),
+        createModel('mdl_b', 'Model B', 'src_1', [{ concat: { with: 'mdl_a' } }]),
+      ];
+
+      const result = DependencyService.canDeleteModel(models, sources, 'mdl_a');
+
+      expect(result.canDelete).toBe(false);
+      expect(result.dependentModels).toHaveLength(1);
+      expect(result.dependentModels[0].id).toBe('mdl_b');
+      expect(result.message).toContain('model is referenced by');
+    });
+
+    it('prevents deletion of model referenced by union', () => {
+      const sources = [createSource('src_1', 'Source')];
+      const models = [
+        createModel('mdl_a', 'Model A', 'src_1'),
+        createModel('mdl_b', 'Model B', 'src_1', [{ union: { with: 'mdl_a' } }]),
+      ];
+
+      const result = DependencyService.canDeleteModel(models, sources, 'mdl_a');
+
+      expect(result.canDelete).toBe(false);
+      expect(result.dependentModels).toHaveLength(1);
+      expect(result.dependentModels[0].id).toBe('mdl_b');
+      expect(result.message).toContain('model is referenced by');
+    });
   });
 });

@@ -6,6 +6,8 @@ import * as FilterHandlers from './app/handlers/filter-handlers';
 import * as DeriveHandlers from './app/handlers/derive-handlers';
 import * as AggregateHandlers from './app/handlers/aggregate-handlers';
 import * as JoinHandlers from './app/handlers/join-handlers';
+import * as ConcatHandlers from './app/handlers/concat-handlers';
+import * as UnionHandlers from './app/handlers/union-handlers';
 import * as PivotHandlers from './app/handlers/pivot-handlers';
 import * as FoldHandlers from './app/handlers/fold-handlers';
 import * as SplitHandlers from './app/handlers/split-handlers';
@@ -513,6 +515,34 @@ export class SytoApp implements AppState {
   }
   applyJoinTransform() {
     return JoinHandlers.applyJoinTransform(HelperHandlers.createExecutionCallbacks(this));
+  }
+
+  // Concat handlers
+  initializeConcatDialog() {
+    return ConcatHandlers.initializeConcatDialog();
+  }
+  onConcatTargetChange() {
+    return ConcatHandlers.onConcatTargetChange();
+  }
+  previewConcat() {
+    return ConcatHandlers.previewConcat();
+  }
+  applyConcatTransform() {
+    return ConcatHandlers.applyConcatTransform(HelperHandlers.createExecutionCallbacks(this));
+  }
+
+  // Union handlers
+  initializeUnionDialog() {
+    return UnionHandlers.initializeUnionDialog();
+  }
+  onUnionTargetChange() {
+    return UnionHandlers.onUnionTargetChange();
+  }
+  previewUnion() {
+    return UnionHandlers.previewUnion();
+  }
+  applyUnionTransform() {
+    return UnionHandlers.applyUnionTransform(HelperHandlers.createExecutionCallbacks(this));
   }
 
   // Pivot handlers

@@ -110,6 +110,8 @@ const KNOWN_TRANSFORM_KEYS: readonly string[] = [
   'replace',
   'dedupe',
   'join',
+  'concat',
+  'union',
   'import',
   'types',
   'aggregate',
@@ -222,6 +224,50 @@ export function applyTransform(
     if (how === 'cross') return table.cross(rightTable, null, joinOptions);
 
     throw new Error(`Unknown join type: ${how}`);
+  }
+
+  if (transform.concat) {
+    const { with: targetId } = transform.concat;
+    let targetTable = null;
+
+    // Always use ID for concat references (future-proofing: names can change)
+    const targetModel = context?.models.find((m: any) => m.id === targetId);
+    if (targetModel) {
+      targetTable = (aq as any).from(targetModel.data);
+    } else {
+      const targetSource = context?.sources.find((s: any) => s.id === targetId);
+      if (targetSource) {
+        targetTable = (aq as any).from(targetSource.data);
+      }
+    }
+
+    if (!targetTable) {
+      throw new Error(`Concat target with ID '${targetId}' not found`);
+    }
+
+    return table.concat(targetTable);
+  }
+
+  if (transform.union) {
+    const { with: targetId } = transform.union;
+    let targetTable = null;
+
+    // Always use ID for union references (future-proofing: names can change)
+    const targetModel = context?.models.find((m: any) => m.id === targetId);
+    if (targetModel) {
+      targetTable = (aq as any).from(targetModel.data);
+    } else {
+      const targetSource = context?.sources.find((s: any) => s.id === targetId);
+      if (targetSource) {
+        targetTable = (aq as any).from(targetSource.data);
+      }
+    }
+
+    if (!targetTable) {
+      throw new Error(`Union target with ID '${targetId}' not found`);
+    }
+
+    return table.union(targetTable);
   }
 
   if (transform.derive) {
@@ -832,6 +878,16 @@ export function describeTransform(transform: any, rightName: string | null = nul
     const how = transform.join.how || 'inner';
     const name = rightName || (transform.join.right.startsWith('mdl_') ? 'model' : 'source');
     return `Join (${how}): ${name}`;
+  }
+
+  if (transform.concat) {
+    const name = rightName || (transform.concat.with.startsWith('mdl_') ? 'model' : 'source');
+    return `Concat: ${name}`;
+  }
+
+  if (transform.union) {
+    const name = rightName || (transform.union.with.startsWith('mdl_') ? 'model' : 'source');
+    return `Union: ${name}`;
   }
 
   if (transform.derive) {

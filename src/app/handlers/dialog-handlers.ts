@@ -129,6 +129,10 @@ export function initDialogState(this: SytoApp, dialogName: string, section?: str
     // Logic moved to component or kept in store
   } else if (dialogName === 'join') {
     this.initializeJoinDialog(); // Updates DialogStore.joinState
+  } else if (dialogName === 'concat') {
+    this.initializeConcatDialog();
+  } else if (dialogName === 'union') {
+    this.initializeUnionDialog();
   } else if (dialogName === 'derive') {
     // State initialized by DialogStore
   } else if (dialogName === 'sort') {
@@ -360,6 +364,10 @@ export function getDialogTitle(this: SytoApp): string {
       return 'Group By';
     case 'join':
       return 'Join Data';
+    case 'concat':
+      return 'Concat Data';
+    case 'union':
+      return 'Union Data';
     case 'replace':
       return 'Replace Values';
     case 'import-csv':
@@ -399,6 +407,10 @@ export function getDialogButtonText(this: SytoApp): string {
       return 'Fetch Data';
     case 'join':
       return 'Apply Join';
+    case 'concat':
+      return 'Apply Concat';
+    case 'union':
+      return 'Apply Union';
     case 'download':
       return 'Download';
     default:
@@ -519,6 +531,10 @@ export function activeDialogError(this: SytoApp): boolean {
       return !!this.splitDialogState.error;
     case 'join':
       return !DialogStore.joinState.rightModel.value;
+    case 'concat':
+      return !DialogStore.concatState.targetModel.value;
+    case 'union':
+      return !DialogStore.unionState.targetModel.value;
     case 'pivot':
       return !this.pivotDialogState.columnColumn || !this.pivotDialogState.valueColumn;
     case 'dedupe':

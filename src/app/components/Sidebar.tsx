@@ -3,6 +3,7 @@ import { useComputed } from '@preact/signals';
 import { useState } from 'preact/hooks';
 import { AppStore } from '../stores/AppStore';
 import { describeTransform } from '../../core/transforms';
+import { getDependencyTooltip } from '../handlers/helper-handlers';
 import type { Source, Model } from '../types';
 import styles from './Sidebar.module.css';
 
@@ -118,12 +119,22 @@ export function Sidebar({
                 .map((model) => (
                   <div
                     key={model.id}
-                    class={`${styles.treeItem} ${styles.model} ${activeModel.value?.id === model.id ? styles.active : ''}`}
+                    class={`${styles.treeItem} ${styles.model} ${activeModel.value?.id === model.id ? styles.active : ''} ${model.isStale ? styles.stale : ''}`}
                     onClick={() => onSwitchToModel(model)}
                   >
                     <span class={styles.indent}></span>
                     <span class={styles.icon}>📊</span>
-                    <span class={styles.name}>{model.name}</span>
+                    <span class={styles.name} title={getDependencyTooltip(model)}>
+                      {model.name}
+                    </span>
+                    {model.isStale && (
+                      <span
+                        class={styles.staleBadge}
+                        title="This model is outdated and will be recomputed when viewed"
+                      >
+                        ⚠️
+                      </span>
+                    )}
                     <span class={styles.meta}>{getModelMeta(model)}</span>
                   </div>
                 ))}

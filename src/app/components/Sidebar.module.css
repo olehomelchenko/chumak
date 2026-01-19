@@ -116,6 +116,10 @@
     font-size: var(--font-size-base);
   }
 
+  &.model.stale {
+    opacity: 0.7;
+  }
+
   .indent {
     width: var(--space-md);
   }
@@ -127,6 +131,11 @@
   .name {
     font-size: var(--font-size-base);
     color: var(--color-midnight-blue);
+  }
+
+  .staleBadge {
+    margin-left: 0.25rem;
+    font-size: 0.875rem;
   }
 
   .meta {

@@ -5,6 +5,9 @@ import { validateAST } from '../../core/ast-validator';
 import { formatError } from '../../core/error-formatter';
 import { ColumnSchema } from '../../core/schema-engine';
 import { StepService, ExecutionCallbacks } from '../services/StepService';
+import { DependencyService } from '../services/DependencyService';
+import { AppStore } from '../stores/AppStore';
+import type { Model } from '../types';
 
 export function getPreviewRowLimit(): number {
   // Default preview row limit (can be overridden from UX settings)
@@ -259,4 +262,29 @@ export function preparePreviewData(this: SytoApp, table: any, limit = 100) {
     columns: table.columnNames(),
     totalRows: table.numRows(),
   };
+}
+
+/**
+ * Gets dependency tooltip text for a model showing dependency relationships.
+ */
+export function getDependencyTooltip(model: Model): string {
+  const graph = DependencyService.buildGraph(AppStore.sources.value, AppStore.models.value);
+  const deps = DependencyService.getDependencies(graph, model.id);
+  const dependents = DependencyService.getDependents(graph, model.id);
+
+  // Filter out the source dependency (model.sourceId) from deps count
+  const modelDeps = deps.filter((id) => id !== model.sourceId);
+  const modelDependents = dependents.filter((id) => AppStore.models.value.some((m) => m.id === id));
+
+  const parts: string[] = [];
+  if (modelDeps.length > 0) {
+    parts.push(`Depends on: ${modelDeps.length} model${modelDeps.length !== 1 ? 's' : ''}`);
+  }
+  if (modelDependents.length > 0) {
+    parts.push(
+      `Used by: ${modelDependents.length} model${modelDependents.length !== 1 ? 's' : ''}`
+    );
+  }
+
+  return parts.join(' • ') || 'No dependencies';
 }

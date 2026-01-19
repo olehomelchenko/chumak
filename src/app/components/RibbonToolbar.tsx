@@ -232,12 +232,24 @@ export function RibbonToolbar({ onOpenDialog, onAutoDetectSchema }: RibbonToolba
         {/* Combine Tab */}
         {ribbonTab.value === 'combine' && (
           <div class={styles.panel}>
-            <RibbonGroup label="&nbsp;">
+            <RibbonGroup label="Combine Data">
               <RibbonButton
                 icon="carbon:branch"
                 label="Join"
                 title="Join with another model or dataset"
                 onClick={() => onOpenDialog('join')}
+              />
+              <RibbonButton
+                icon="carbon:join-left"
+                label="Concat"
+                title="Stack rows from another model/source (keeps duplicates)"
+                onClick={() => onOpenDialog('concat')}
+              />
+              <RibbonButton
+                icon="carbon:join-inner"
+                label="Union"
+                title="Stack rows from another model/source (removes duplicates)"
+                onClick={() => onOpenDialog('union')}
               />
             </RibbonGroup>
           </div>

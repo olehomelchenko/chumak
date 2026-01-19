@@ -35,6 +35,24 @@ export class DialogStore {
     isPreviewing: signal(false),
   };
 
+  // Concat Dialog State
+  static concatState = {
+    targets: signal<JoinTarget[]>([]),
+    targetModel: signal<string | null>(null),
+    previewData: signal<any | null>(null),
+    previewError: signal<string | null>(null),
+    isPreviewing: signal(false),
+  };
+
+  // Union Dialog State
+  static unionState = {
+    targets: signal<JoinTarget[]>([]),
+    targetModel: signal<string | null>(null),
+    previewData: signal<any | null>(null),
+    previewError: signal<string | null>(null),
+    isPreviewing: signal(false),
+  };
+
   // Filter Dialog State
   static filterState = {
     expression: signal(''),

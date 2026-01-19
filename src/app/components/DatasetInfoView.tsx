@@ -1,4 +1,5 @@
 import { AppStore } from '../stores/AppStore';
+import { getDependencyTooltip } from '../handlers/helper-handlers';
 import type { Source, Model } from '../types';
 import styles from './DatasetInfoView.module.css';
 
@@ -89,7 +90,14 @@ export function DatasetInfoView({
               <div key={model.id} class={styles.modelCard} onClick={() => onSwitchToModel(model)}>
                 <div class={styles.modelCard__icon}>📊</div>
                 <div class={styles.modelCard__content}>
-                  <div class={styles.modelCard__name}>{model.name}</div>
+                  <div class={styles.modelCard__name} title={getDependencyTooltip(model)}>
+                    {model.name}
+                    {model.isStale && (
+                      <span class={styles.staleBadge} title="This model is outdated">
+                        ⚠️
+                      </span>
+                    )}
+                  </div>
                   <div class={styles.modelCard__meta}>
                     <span>{`${(model.steps?.length || 1) - 1} step${(model.steps?.length || 1) - 1 !== 1 ? 's' : ''}`}</span>
                     <span>•</span>

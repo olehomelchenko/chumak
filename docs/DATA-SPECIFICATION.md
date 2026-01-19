@@ -139,6 +139,8 @@ interface TransformStep {
 
   // Multi-model operations
   join?: { right: string; on: [string, string][]; how: string; suffixes?: [string, string] };
+  concat?: { with: string };
+  union?: { with: string };
 
   // Advanced operations
   impute?: { column: string; strategy: string; value?: any };
@@ -183,6 +185,26 @@ interface TransformStep {
     "on": [["customer_id", "id"]],
     "how": "left",
     "suffixes": ["", "_customer"]
+  }
+}
+```
+
+**Concat** — Stack rows from another model/source (keeps duplicates):
+
+```json
+{
+  "concat": {
+    "with": "mdl_monthly_data"
+  }
+}
+```
+
+**Union** — Stack rows from another model/source (removes duplicates):
+
+```json
+{
+  "union": {
+    "with": "mdl_other_table"
   }
 }
 ```

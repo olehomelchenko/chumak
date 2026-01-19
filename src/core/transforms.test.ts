@@ -1290,4 +1290,201 @@ describe('Transform Engine', () => {
       expect(result).toEqual([]);
     });
   });
+
+  describe('applyTransform() - CONCAT', () => {
+    it('should concat with another model', () => {
+      const table1 = (aq as any).from([
+        { id: 1, name: 'Alice' },
+        { id: 2, name: 'Bob' },
+      ]);
+
+      const models = [
+        {
+          id: 'mdl_other',
+          name: 'Other Model',
+          data: [
+            { id: 3, name: 'Charlie' },
+            { id: 4, name: 'Diana' },
+          ],
+        },
+      ];
+
+      const context = {
+        sources: [],
+        models: models,
+      };
+
+      const transform = { concat: { with: 'mdl_other' } };
+      const result = applyTransform(table1, transform, ['id', 'name'], context);
+      const rows = result.objects();
+
+      expect(rows.length).toBe(4);
+      expect(rows.map((r) => r.id)).toEqual([1, 2, 3, 4]);
+      expect(rows.map((r) => r.name)).toEqual(['Alice', 'Bob', 'Charlie', 'Diana']);
+    });
+
+    it('should concat with a source', () => {
+      const table1 = (aq as any).from([{ id: 1, name: 'A' }]);
+
+      const sources = [
+        {
+          id: 'src_1',
+          name: 'Source',
+          data: [
+            { id: 2, name: 'B' },
+            { id: 3, name: 'C' },
+          ],
+        },
+      ];
+
+      const context = {
+        sources: sources,
+        models: [],
+      };
+
+      const transform = { concat: { with: 'src_1' } };
+      const result = applyTransform(table1, transform, ['id', 'name'], context);
+      const rows = result.objects();
+
+      expect(rows.length).toBe(3);
+      expect(rows.map((r) => r.id)).toEqual([1, 2, 3]);
+    });
+
+    it('should throw error when concat target not found', () => {
+      const table = createTestTable();
+      const transform = { concat: { with: 'nonexistent' } };
+
+      expect(() => {
+        applyTransform(table, transform, ['sales'], { sources: [], models: [] });
+      }).toThrow("Concat target with ID 'nonexistent' not found");
+    });
+
+    it('should handle concat with mismatched columns', () => {
+      const table1 = (aq as any).from([{ a: 1, b: 2 }]);
+
+      const models = [
+        {
+          id: 'mdl_other',
+          name: 'Other',
+          data: [{ c: 3 }], // Different columns
+        },
+      ];
+
+      const context = {
+        sources: [],
+        models: models,
+      };
+
+      const transform = { concat: { with: 'mdl_other' } };
+      const result = applyTransform(table1, transform, ['a', 'b'], context);
+      const rows = result.objects();
+      const columns = result.columnNames();
+
+      // Concat stacks rows - columns depend on Arquero's behavior
+      // At minimum, should have rows from both tables
+      expect(rows.length).toBe(2);
+      expect(columns.length).toBeGreaterThan(0);
+    });
+  });
+
+  describe('applyTransform() - UNION', () => {
+    it('should union with another model (removes duplicates)', () => {
+      const table1 = (aq as any).from([
+        { id: 1, name: 'Alice' },
+        { id: 2, name: 'Bob' },
+      ]);
+
+      const models = [
+        {
+          id: 'mdl_other',
+          name: 'Other Model',
+          data: [
+            { id: 2, name: 'Bob' }, // Duplicate
+            { id: 3, name: 'Charlie' },
+          ],
+        },
+      ];
+
+      const context = {
+        sources: [],
+        models: models,
+      };
+
+      const transform = { union: { with: 'mdl_other' } };
+      const result = applyTransform(table1, transform, ['id', 'name'], context);
+      const rows = result.objects();
+
+      expect(rows.length).toBe(3); // Duplicate removed
+      expect(rows.map((r) => r.id).sort()).toEqual([1, 2, 3]);
+    });
+
+    it('should union with a source', () => {
+      const table1 = (aq as any).from([
+        { id: 1, name: 'A' },
+        { id: 2, name: 'B' },
+      ]);
+
+      const sources = [
+        {
+          id: 'src_1',
+          name: 'Source',
+          data: [
+            { id: 3, name: 'C' },
+            { id: 4, name: 'D' },
+          ],
+        },
+      ];
+
+      const context = {
+        sources: sources,
+        models: [],
+      };
+
+      const transform = { union: { with: 'src_1' } };
+      const result = applyTransform(table1, transform, ['id', 'name'], context);
+      const rows = result.objects();
+
+      expect(rows.length).toBe(4);
+      expect(rows.map((r) => r.id).sort()).toEqual([1, 2, 3, 4]);
+    });
+
+    it('should throw error when union target not found', () => {
+      const table = createTestTable();
+      const transform = { union: { with: 'nonexistent' } };
+
+      expect(() => {
+        applyTransform(table, transform, ['sales'], { sources: [], models: [] });
+      }).toThrow("Union target with ID 'nonexistent' not found");
+    });
+
+    it('should handle union with all duplicate rows', () => {
+      const table1 = (aq as any).from([
+        { id: 1, name: 'A' },
+        { id: 2, name: 'B' },
+      ]);
+
+      const models = [
+        {
+          id: 'mdl_other',
+          name: 'Other',
+          data: [
+            { id: 1, name: 'A' },
+            { id: 2, name: 'B' },
+          ],
+        },
+      ];
+
+      const context = {
+        sources: [],
+        models: models,
+      };
+
+      const transform = { union: { with: 'mdl_other' } };
+      const result = applyTransform(table1, transform, ['id', 'name'], context);
+      const rows = result.objects();
+
+      expect(rows.length).toBe(2); // All duplicates removed
+      expect(rows.map((r) => r.id).sort()).toEqual([1, 2]);
+    });
+  });
 });

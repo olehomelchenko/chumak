@@ -21,6 +21,8 @@ import {
   SplitDialog,
   DeriveDialog,
   JoinDialog,
+  ConcatDialog,
+  UnionDialog,
   AggregateDialog,
   ImportCsvDialog,
   ImportUrlDialog,
@@ -87,6 +89,8 @@ export function App({ app }: AppProps) {
       'pivot',
       'aggregate',
       'join',
+      'concat',
+      'union',
       'replace',
       'column-editor',
       'import-csv',
@@ -253,6 +257,8 @@ export function App({ app }: AppProps) {
                 {activeDialog === 'replace' && <ReplaceDialog />}
                 {activeDialog === 'split' && <SplitDialog />}
                 {activeDialog === 'join' && <JoinDialog />}
+                {activeDialog === 'concat' && <ConcatDialog />}
+                {activeDialog === 'union' && <UnionDialog />}
                 {activeDialog === 'aggregate' && <AggregateDialog />}
                 {activeDialog === 'column-editor' && <ColumnEditorDialog />}
                 {activeDialog === 'import-csv' && <ImportCsvDialog />}

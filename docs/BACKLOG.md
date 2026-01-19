@@ -12,10 +12,9 @@ This document tracks planned features and enhancements, organized by scope and e
 
 ### Set Operations (Concat, Union)
 
-**Status**: Planned (pending dependency graph)
+**Status**: ✅ Complete (January 2025)
 **Effort**: Small (~40 lines total for transforms)
 **Arquero**: `table.concat()`, `table.union()`
-**Prerequisite**: [Multi-Model Dependency Graph](#multi-model-dependency-graph)
 
 Combine multiple models/sources.
 
@@ -183,7 +182,7 @@ Drag columns in the data table to reorder. Would generate a `select` step with t
 
 ### Multi-Model Dependency Graph
 
-**Status**: Phase 1 & 2 complete ✅, Phase 3 pending
+**Status**: ✅ Complete (January 2025)
 **Effort**: Medium (~450 lines total across 3 phases)
 **Reference**: [MULTI-MODEL-ARCHITECTURE.md](MULTI-MODEL-ARCHITECTURE.md)
 
@@ -197,7 +196,7 @@ Enable reliable multi-model workflows by tracking dependencies between models.
 | ----------- | ----------------------------------------------- | ----------- |
 | **Phase 1** | Dependency tracking, cascade warnings on delete | ✅ Complete |
 | **Phase 2** | Staleness tracking, auto-recompute on view      | ✅ Complete |
-| **Phase 3** | New operations (concat, union)                  | Pending     |
+| **Phase 3** | New operations (concat, union)                  | ✅ Complete |
 
 **Implemented** (January 2025):
 
@@ -205,8 +204,9 @@ Enable reliable multi-model workflows by tracking dependencies between models.
 - Delete protection: blocks deletion of models referenced by others
 - Staleness tracking: dependent models marked stale when source changes
 - Lazy recomputation: stale models auto-recompute when viewed
-
-**Remaining**: Concat/union transforms (Phase 3) — infrastructure ready.
+- Concat and union transforms with full dependency tracking
+- Stale model indicators in UI (Sidebar and DatasetInfoView)
+- Dependency tooltips showing relationship counts
 
 ---
 
@@ -301,8 +301,8 @@ These have been considered and explicitly excluded:
 
 ### High Priority (Core Gaps)
 
-1. ~~**Multi-model dependency graph**~~ — ✅ Phase 1 & 2 complete
-2. Set operations (concat, union) — infrastructure ready, needs transforms
+1. ~~**Multi-model dependency graph**~~ — ✅ Complete
+2. ~~**Set operations (concat, union)**~~ — ✅ Complete
 
 ### Medium Priority (Useful Additions)
 
@@ -349,6 +349,8 @@ Completed features are documented here for posterity:
 - **Case-insensitive comparison functions** (`equals_ci`, `contains_ci`, `starts_with_ci`, `ends_with_ci`) — January 2025.
 - **Split expression function** (`split(value, delimiter, index)`) — January 2025. Extract segments from delimited strings without creating columns.
 - **Impute transform** — January 2025. Fill missing values with constants via `impute` transform with UI integration.
+- **Concat and Union transforms** — January 2025. Stack rows from multiple models/sources. Concat keeps duplicates, union removes them. Full dependency tracking and staleness support.
+- **Multi-model dependency graph** (Phase 3) — January 2025. Complete dependency tracking for all multi-model operations (join, concat, union) with UI indicators for stale models and dependency relationships.
 
 ---
 

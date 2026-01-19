@@ -295,11 +295,14 @@ These informed the consolidated design above but are not canonical documentation
 - Auto-recompute in `ModelService.switchToModel()` for stale models
 - UI indicators deferred (logic layer complete)
 
-**Phase 3: New Operations** — Pending
+**Phase 3: New Operations** — ✅ Complete (January 2025)
 
-- Concat and union transforms not yet implemented
-- Infrastructure ready: just need to add to `extractReferencedIds()` and transforms.ts
+- Concat and union transforms implemented with full UI integration
+- Added to `extractReferencedIds()` and transforms.ts
+- Dependency tracking, staleness marking, and delete protection working
+- Stale model indicators in Sidebar and DatasetInfoView
+- Dependency tooltips showing relationship counts
 
 ---
 
-**Status**: Phase 1 & 2 complete, Phase 3 pending
+**Status**: All phases complete ✅
