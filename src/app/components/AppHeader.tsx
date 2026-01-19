@@ -32,7 +32,7 @@ export function AppHeader({ onOpenDialog, onClearAllData }: AppHeaderProps) {
       <div class={styles.content}>
         {/* Logo */}
         <div class={styles.logo}>
-          <span class={styles.logoIcon}>☆</span>
+          <img src={`${import.meta.env.BASE_URL}logo.svg`} alt="Syto" class={styles.logoImage} />
           <span class={styles.logoText}>Syto</span>
         </div>
 

@@ -22,9 +22,10 @@
   gap: var(--space-sm);
 }
 
-.logoIcon {
-  font-size: var(--font-size-xl);
-  color: var(--color-midnight-blue);
+.logoImage {
+  height: 32px;
+  width: auto;
+  display: block;
 }
 
 .logoText {
