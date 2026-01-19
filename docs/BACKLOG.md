@@ -183,29 +183,30 @@ Drag columns in the data table to reorder. Would generate a `select` step with t
 
 ### Multi-Model Dependency Graph
 
-**Status**: Designed, awaiting implementation
+**Status**: Phase 1 & 2 complete ✅, Phase 3 pending
 **Effort**: Medium (~450 lines total across 3 phases)
 **Reference**: [MULTI-MODEL-ARCHITECTURE.md](MULTI-MODEL-ARCHITECTURE.md)
 
 Enable reliable multi-model workflows by tracking dependencies between models.
 
-**Problem**: Currently, when Model A changes, Model B (that joins A) doesn't know it needs to recompute. No warnings when deleting a model that others depend on.
+**Problem**: When Model A changes, Model B (that joins A) needs to recompute. Need warnings when deleting a model that others depend on.
 
-**Solution**: Introduce a `DependencyService` that builds a DAG of model relationships.
+**Solution**: `DependencyService` builds a DAG of model relationships.
 
-| Phase       | Scope                                           | Effort          |
-| ----------- | ----------------------------------------------- | --------------- |
-| **Phase 1** | Dependency tracking, cascade warnings on delete | ~200 lines      |
-| **Phase 2** | Staleness tracking, auto-recompute on view      | ~150 lines      |
-| **Phase 3** | New operations (concat, union)                  | ~100 lines each |
+| Phase       | Scope                                           | Status      |
+| ----------- | ----------------------------------------------- | ----------- |
+| **Phase 1** | Dependency tracking, cascade warnings on delete | ✅ Complete |
+| **Phase 2** | Staleness tracking, auto-recompute on view      | ✅ Complete |
+| **Phase 3** | New operations (concat, union)                  | Pending     |
 
-**Key design decisions**:
+**Implemented** (January 2025):
 
-- Models (not steps) as DAG nodes — matches user mental model
-- Graph computed on load, not persisted — single source of truth
-- Lazy recomputation — mark stale, compute when viewed
+- `DependencyService.ts` with graph building, querying, cycle detection
+- Delete protection: blocks deletion of models referenced by others
+- Staleness tracking: dependent models marked stale when source changes
+- Lazy recomputation: stale models auto-recompute when viewed
 
-**Prerequisite for**: Set operations (concat, union), advanced joins, any future multi-model features.
+**Remaining**: Concat/union transforms (Phase 3) — infrastructure ready.
 
 ---
 
@@ -300,8 +301,8 @@ These have been considered and explicitly excluded:
 
 ### High Priority (Core Gaps)
 
-1. **Multi-model dependency graph** — prerequisite for reliable multi-model workflows
-2. Set operations (concat, union) — requires dependency graph
+1. ~~**Multi-model dependency graph**~~ — ✅ Phase 1 & 2 complete
+2. Set operations (concat, union) — infrastructure ready, needs transforms
 
 ### Medium Priority (Useful Additions)
 

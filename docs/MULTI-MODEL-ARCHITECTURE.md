@@ -279,4 +279,27 @@ These informed the consolidated design above but are not canonical documentation
 
 ---
 
-**Status**: Design complete, awaiting implementation
+## Implementation Status
+
+**Phase 1: Dependency Tracking** — ✅ Complete (January 2025)
+
+- Created `DependencyService.ts` with full graph building and querying
+- 24 unit tests covering all graph operations
+- Integrated into `ModelService.deleteCurrentModel()` and `deleteSource()`
+- Users now get warnings when trying to delete models referenced by others
+
+**Phase 2: Staleness Tracking** — ✅ Complete (January 2025)
+
+- Added `isStale` field to Model interface
+- `markDependentsStale()` called automatically when model data changes
+- Auto-recompute in `ModelService.switchToModel()` for stale models
+- UI indicators deferred (logic layer complete)
+
+**Phase 3: New Operations** — Pending
+
+- Concat and union transforms not yet implemented
+- Infrastructure ready: just need to add to `extractReferencedIds()` and transforms.ts
+
+---
+
+**Status**: Phase 1 & 2 complete, Phase 3 pending

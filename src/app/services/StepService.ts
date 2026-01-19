@@ -3,6 +3,7 @@ import { applyTransform, describeTransform } from '../../core/transforms';
 import { TransformResult } from '../../core/transform-result';
 import { perfLogger } from '../../core/performance-logger';
 import { PersistenceService } from './PersistenceService';
+import { DependencyService } from './DependencyService';
 import { Model, Source } from '../types';
 import { ColumnSchema, TransformStep } from '../../core/schema-engine';
 import { AppStore } from '../stores/AppStore';
@@ -138,6 +139,10 @@ export class StepService {
     AppStore.viewingSchema.value = null;
 
     callbacks.updatePagination?.();
+
+    // Mark dependent models as stale since this model's data changed
+    StepService.markDependentsStale(model.id);
+
     await PersistenceService.autoSave();
 
     if (closeDialogAfter) {
@@ -259,6 +264,10 @@ export class StepService {
       model.schema = result.schema;
 
       callbacks.onSuccess(result);
+
+      // Mark dependent models as stale since this model's data changed
+      StepService.markDependentsStale(model.id);
+
       await PersistenceService.autoSave();
     } catch (error: any) {
       callbacks.onError(error);
@@ -300,6 +309,10 @@ export class StepService {
       model.schema = result.schema;
 
       callbacks.onSuccess(result);
+
+      // Mark dependent models as stale since this model's data changed
+      StepService.markDependentsStale(model.id);
+
       await PersistenceService.autoSave();
     } catch (error: any) {
       callbacks.onError(error, backup);
@@ -320,5 +333,21 @@ export class StepService {
       stepName: describeTransform(step),
       affectedSteps,
     };
+  }
+
+  /**
+   * Marks all models that depend on the given model as stale.
+   * Should be called after any change to model data/steps.
+   */
+  static markDependentsStale(modelId: string): void {
+    const models = AppStore.models.value;
+    const sources = AppStore.sources.value;
+
+    const staleIds = DependencyService.markDependentsStale(models, sources, modelId);
+
+    if (staleIds.length > 0) {
+      // Trigger reactivity to update any UI showing stale state
+      AppStore.models.value = [...models];
+    }
   }
 }

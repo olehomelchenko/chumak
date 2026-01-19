@@ -2,6 +2,8 @@ import { AppStore } from '../stores/AppStore';
 import { Source, Model } from '../types';
 import { SchemaEngine } from '../../core/schema-engine';
 import { PersistenceService } from './PersistenceService';
+import { DependencyService } from './DependencyService';
+import { StepService } from './StepService';
 
 /**
  * ModelService
@@ -25,7 +27,8 @@ export class ModelService {
   }
 
   /**
-   * Switches the active view to a specific model
+   * Switches the active view to a specific model.
+   * If the model is stale (dependency changed), auto-recomputes it.
    */
   static switchToModel(
     model: Model,
@@ -36,6 +39,25 @@ export class ModelService {
   ) {
     AppStore.activeSource.value = null;
     AppStore.activeModel.value = model;
+
+    // Auto-recompute if model is stale (a dependency changed)
+    if (model.isStale && model.steps.length > 0) {
+      try {
+        const context = StepService.getContext();
+        const result = StepService.computeModelUpToStep(model, model.steps.length - 1, context);
+
+        model.data = JSON.parse(JSON.stringify(result.data));
+        model.schema = result.schema;
+        DependencyService.clearStaleFlag(model);
+
+        // Trigger reactivity for models list
+        AppStore.models.value = [...AppStore.models.value];
+        PersistenceService.autoSave();
+      } catch (error: any) {
+        console.error('Failed to recompute stale model:', error);
+        // Keep stale flag, user will see outdated data
+      }
+    }
 
     // Ensure schema exists
     if (model.data && model.data.length > 0 && (!model.schema || model.schema.length === 0)) {
@@ -216,6 +238,18 @@ export class ModelService {
       return;
     }
 
+    // Check for dependent models that reference this model
+    const dependencyCheck = DependencyService.canDeleteModel(
+      AppStore.models.value,
+      AppStore.sources.value,
+      activeModel.id
+    );
+
+    if (!dependencyCheck.canDelete) {
+      await alert(dependencyCheck.message || 'Cannot delete: model is referenced by other models.');
+      return;
+    }
+
     if (!(await confirm(`Delete model "${activeModel.name}"?\n\nThis cannot be undone.`))) return;
 
     const deletedModelId = activeModel.id;
@@ -260,6 +294,20 @@ export class ModelService {
     confirm: (msg: string) => Promise<boolean>,
     alert: (msg: string) => Promise<any>
   ) {
+    // Check if source's models are referenced by models in other sources
+    const dependencyCheck = DependencyService.canDeleteSource(
+      AppStore.models.value,
+      AppStore.sources.value,
+      source.id
+    );
+
+    if (!dependencyCheck.canDelete) {
+      await alert(
+        dependencyCheck.message || 'Cannot delete: source models are referenced by other models.'
+      );
+      return;
+    }
+
     const modelsCount = AppStore.models.value.filter((m) => m.sourceId === source.id).length;
     const message =
       modelsCount > 0

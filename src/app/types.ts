@@ -60,6 +60,7 @@ export interface Model {
   schema: ColumnSchema[];
   data: DataRow[];
   stats?: EDAStats | null;
+  isStale?: boolean; // True if a dependency changed but model not yet recomputed
   __v?: number; // Schema version for future migrations (defaults to 1)
 }
 

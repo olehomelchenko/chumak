@@ -48,6 +48,7 @@ interface Model {
   schema: ColumnSchema[]; // Current column definitions (after transforms)
   data: DataRow[]; // Computed result data
   stats?: EDAStats | null; // Cached EDA statistics for selected column
+  isStale?: boolean; // True if a dependency changed but model not yet recomputed
 }
 ```
 
