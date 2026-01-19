@@ -10,9 +10,9 @@ export default defineConfig(({ mode }) => {
   const isDev = mode === 'development';
 
   return {
-    // For GitHub Pages: set base to repo name
-    // Change '/syto/' to '/' for custom domain or local dev
-    base: '/syto/',
+    // For Cloudflare Pages: use root path
+    // Change '/' to '/syto/' for GitHub Pages subdirectory
+    base: '/',
     plugins: [
       preact({
         // Only process JSX/TSX files, not regular TS (which may use decorators)
@@ -25,7 +25,7 @@ export default defineConfig(({ mode }) => {
         workbox: {
           globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
           // Ensure navigation requests (page loads) use cache
-          navigateFallback: '/syto/index.html',
+          navigateFallback: '/index.html',
           navigateFallbackDenylist: [/^\/_/, /\/[^/?]+\.[^/]+$/],
           runtimeCaching: [
             // Cache external fonts (Google Fonts)
@@ -85,7 +85,7 @@ export default defineConfig(({ mode }) => {
           display: 'standalone',
           icons: [
             {
-              src: '/syto/favicon.svg',
+              src: '/favicon.svg',
               sizes: 'any',
               type: 'image/svg+xml',
             },
