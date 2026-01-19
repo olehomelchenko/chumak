@@ -3,6 +3,7 @@ import preact from '@preact/preset-vite';
 import nested from 'postcss-nested';
 import autoprefixer from 'autoprefixer';
 import { plugin as markdown, Mode } from 'vite-plugin-markdown';
+import { VitePWA } from 'vite-plugin-pwa';
 import path from 'path';
 
 export default defineConfig(({ mode }) => {
@@ -19,6 +20,78 @@ export default defineConfig(({ mode }) => {
       }),
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       markdown({ mode: [Mode.HTML] }) as any,
+      VitePWA({
+        registerType: 'autoUpdate',
+        workbox: {
+          globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
+          // Ensure navigation requests (page loads) use cache
+          navigateFallback: '/chumak/index.html',
+          navigateFallbackDenylist: [/^\/_/, /\/[^/?]+\.[^/]+$/],
+          runtimeCaching: [
+            // Cache external fonts (Google Fonts)
+            {
+              urlPattern: /^https:\/\/fonts\.(googleapis|gstatic)\.com\/.*/i,
+              handler: 'CacheFirst',
+              options: {
+                cacheName: 'google-fonts-cache',
+                expiration: {
+                  maxEntries: 50,
+                  maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
+                },
+                cacheableResponse: {
+                  statuses: [0, 200],
+                },
+              },
+            },
+            // Cache iconify icons
+            {
+              urlPattern: /^https:\/\/code\.iconify\.design\/.*/i,
+              handler: 'CacheFirst',
+              options: {
+                cacheName: 'iconify-cache',
+                expiration: {
+                  maxEntries: 100,
+                  maxAgeSeconds: 60 * 60 * 24 * 365, // 1 year
+                },
+                cacheableResponse: {
+                  statuses: [0, 200],
+                },
+              },
+            },
+            // Cache normalize.css from unpkg
+            {
+              urlPattern: /^https:\/\/unpkg\.com\/.*/i,
+              handler: 'CacheFirst',
+              options: {
+                cacheName: 'unpkg-cache',
+                expiration: {
+                  maxEntries: 10,
+                  maxAgeSeconds: 60 * 60 * 24 * 30, // 30 days
+                },
+                cacheableResponse: {
+                  statuses: [0, 200],
+                },
+              },
+            },
+          ],
+        },
+        manifest: {
+          name: 'Chumak — Data Wrangling in the Browser',
+          short_name: 'Chumak',
+          description:
+            'Browser-based data wrangling tool for cleaning and transforming tabular data',
+          theme_color: '#ffffff',
+          background_color: '#ffffff',
+          display: 'standalone',
+          icons: [
+            {
+              src: '/chumak/favicon.svg',
+              sizes: 'any',
+              type: 'image/svg+xml',
+            },
+          ],
+        },
+      }),
     ],
     css: {
       modules: {

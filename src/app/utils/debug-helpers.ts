@@ -86,6 +86,64 @@ export function debugLogAllData() {
 }
 
 /**
+ * Check service worker status and cache information
+ */
+export async function debugLogServiceWorkerStatus() {
+  if (typeof navigator === 'undefined' || !('serviceWorker' in navigator)) {
+    console.warn('Service Workers are not supported in this browser');
+    return;
+  }
+
+  console.group('🔍 Chumak Debug: Service Worker Status');
+
+  try {
+    const registrations = await navigator.serviceWorker.getRegistrations();
+    console.log('Registered service workers:', registrations.length);
+
+    if (registrations.length === 0) {
+      console.warn('⚠️ No service worker registered!');
+      console.log('Make sure:');
+      console.log('1. You are using a production build (npm run preview, not npm run dev)');
+      console.log('2. You have visited the page with internet connection first');
+    } else {
+      registrations.forEach((registration, idx) => {
+        console.log(`Service Worker ${idx + 1}:`);
+        console.log('  URL:', registration.scope);
+        console.log('  State:', registration.active?.state || 'Not active');
+        console.log('  Installing:', registration.installing?.state || 'None');
+        console.log('  Waiting:', registration.waiting?.state || 'None');
+      });
+    }
+
+    // Check caches
+    if ('caches' in window) {
+      const cacheNames = await caches.keys();
+      console.log('');
+      console.log('Cache Storage:', cacheNames.length, 'cache(s)');
+      if (cacheNames.length === 0) {
+        console.warn('⚠️ No caches found!');
+        console.log('Visit the page with internet first to populate caches.');
+      } else {
+        // Use Promise.all to properly await all cache inspections
+        await Promise.all(
+          cacheNames.map(async (cacheName) => {
+            const cache = await caches.open(cacheName);
+            const keys = await cache.keys();
+            console.log(`  ${cacheName}: ${keys.length} entries`);
+          })
+        );
+      }
+    }
+  } catch (error) {
+    console.error('Error checking service worker status:', error);
+  }
+
+  console.log('');
+  console.log('Current online status:', navigator.onLine ? '✅ Online' : '❌ Offline');
+  console.groupEnd();
+}
+
+/**
  * Set up debug helpers on window object for console access
  */
 export function setupDebugHelpers() {
@@ -93,6 +151,7 @@ export function setupDebugHelpers() {
     (window as any).chumakDebug = {
       page: debugLogCurrentPage,
       all: debugLogAllData,
+      sw: debugLogServiceWorkerStatus,
       store: AppStore, // Expose AppStore for inspection
     };
     console.log(
@@ -102,6 +161,7 @@ export function setupDebugHelpers() {
     console.log('Use in console:');
     console.log('  chumakDebug.page() - Log current page data');
     console.log('  chumakDebug.all() - Log all data');
+    console.log('  chumakDebug.sw() - Check service worker status');
     console.log('  chumakDebug.store - Access AppStore');
   }
 }
