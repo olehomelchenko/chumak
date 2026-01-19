@@ -514,7 +514,7 @@ export class SytoApp implements AppState {
     return JoinHandlers.previewJoin();
   }
   applyJoinTransform() {
-    return JoinHandlers.applyJoinTransform(HelperHandlers.createExecutionCallbacks(this));
+    return JoinHandlers.applyJoinTransform(HelperHandlers.createExecutionCallbacks(this), this);
   }
 
   // Concat handlers

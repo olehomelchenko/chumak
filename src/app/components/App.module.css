@@ -37,6 +37,10 @@
     width: 600px;
     pointer-events: auto;
   }
+
+  &.open.joinDialog {
+    width: 800px;
+  }
 }
 
 .backdrop {
@@ -52,6 +56,10 @@
   &.blurred {
     backdrop-filter: blur(4px);
   }
+}
+
+.slidePanelShell.joinDialog .backdrop {
+  left: 800px; /* Start after wider join panel */
 }
 
 .slidePanel {
@@ -127,6 +135,10 @@
   align-items: center;
   justify-content: center;
   padding: 16px;
+}
+
+.previewPanelShell.joinDialog {
+  left: 816px; /* 800px panel + 16px spacing */
 }
 
 /* Preview Panel */

@@ -1,7 +1,9 @@
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 import styles from './TransformDialog.module.css';
-import tableStyles from './DataTable.module.css';
+import joinStyles from './JoinDialog.module.css';
+import { JoinTreeSelector } from './JoinTreeSelector';
+import { TablePreviewModal } from './TablePreviewModal';
 import * as JoinHandlers from '../handlers/join-handlers';
 
 export type JoinType = 'inner' | 'left' | 'right' | 'full' | 'cross';
@@ -13,36 +15,58 @@ export interface JoinTarget {
   sourceName?: string;
 }
 
+// Icon mapping for join types
+const joinTypeIcons: Record<JoinType, string> = {
+  inner: 'carbon:join-inner',
+  left: 'carbon:join-left',
+  right: 'carbon:join-right',
+  full: 'carbon:join-full',
+  cross: 'carbon:join',
+};
+
 export function JoinDialog() {
   const {
+    leftModel,
     rightModel,
     joinType,
     keyPairs,
     suffixes,
-    targets,
+    leftColumns,
     rightColumns,
-    previewData,
+    selectedLeftColumns,
+    selectedRightColumns,
+    saveAsNewModel,
     previewError,
     isPreviewing,
+    keyPairAnalysis,
   } = DialogStore.joinState;
 
-  const leftColumns = AppStore.columns.value;
+  const activeModel = AppStore.activeModel.value;
+  const activeSource = AppStore.activeSource.value;
 
-  const handleTargetChange = (e: Event) => {
-    const target = e.target as HTMLSelectElement;
-    rightModel.value = target.value || null;
+  const handleLeftModelChange = (id: string) => {
+    DialogStore.joinState.leftModel.value = id;
+    JoinHandlers.onJoinLeftModelChange();
+  };
+
+  const handleRightModelChange = (id: string) => {
+    DialogStore.joinState.rightModel.value = id;
     JoinHandlers.onJoinTargetChange();
   };
 
   const handleJoinTypeChange = (e: Event) => {
     const target = e.target as HTMLInputElement;
-    joinType.value = target.value as JoinType;
+    DialogStore.joinState.joinType.value = target.value as JoinType;
+    // Re-analyze if not cross join
+    if (target.value !== 'cross') {
+      JoinHandlers.analyzeJoinKeys();
+    }
   };
 
   const handleSuffixChange = (index: number, value: string) => {
     const newSuffixes = [...suffixes.value];
     newSuffixes[index] = value;
-    suffixes.value = newSuffixes;
+    DialogStore.joinState.suffixes.value = newSuffixes;
   };
 
   const updateKeyPair = (index: number, position: 0 | 1, value: string | null) => {
@@ -54,49 +78,107 @@ export function JoinDialog() {
       }
       return pair;
     });
-    keyPairs.value = newPairs;
+    DialogStore.joinState.keyPairs.value = newPairs;
+    // Analyze keys after update
+    JoinHandlers.analyzeJoinKeys();
   };
 
   const handlePreview = () => {
     JoinHandlers.previewJoin();
   };
 
+  const toggleLeftColumn = (col: string) => {
+    const selected = selectedLeftColumns.value;
+    if (selected.includes(col)) {
+      DialogStore.joinState.selectedLeftColumns.value = selected.filter((c) => c !== col);
+    } else {
+      DialogStore.joinState.selectedLeftColumns.value = [...selected, col];
+    }
+  };
+
+  const toggleRightColumn = (col: string) => {
+    const selected = selectedRightColumns.value;
+    if (selected.includes(col)) {
+      DialogStore.joinState.selectedRightColumns.value = selected.filter((c) => c !== col);
+    } else {
+      DialogStore.joinState.selectedRightColumns.value = [...selected, col];
+    }
+  };
+
+  const selectAllLeftColumns = () => {
+    DialogStore.joinState.selectedLeftColumns.value = [...leftColumns.value];
+  };
+
+  const selectNoneLeftColumns = () => {
+    DialogStore.joinState.selectedLeftColumns.value = [];
+  };
+
+  const selectAllRightColumns = () => {
+    DialogStore.joinState.selectedRightColumns.value = [...rightColumns.value];
+  };
+
+  const selectNoneRightColumns = () => {
+    DialogStore.joinState.selectedRightColumns.value = [];
+  };
+
+  // Get current left model ID (from active model or source)
+  const currentLeftId = activeModel?.id || activeSource?.id || null;
+  const effectiveLeftId = leftModel.value || currentLeftId;
+
   return (
-    <div>
-      {/* Join With */}
-      <div class={styles.group}>
-        <label class={styles.label} for="join-target-select">
-          Join With
-        </label>
-        <select
-          id="join-target-select"
-          class={styles.input}
-          value={rightModel.value || ''}
-          onChange={handleTargetChange}
-        >
-          <option value="" disabled>
-            Select model or source...
-          </option>
-          {targets.value.map((target) => (
-            <option key={target.id} value={target.id}>
-              {`${target.name} (${target.type === 'model' ? 'model' : 'source'}${
-                target.sourceName ? ` - ${target.sourceName}` : ''
-              })`}
-            </option>
-          ))}
-        </select>
-        {targets.value.length === 0 && (
-          <div class={styles.error}>
-            No other models or sources available. Create another model or import another dataset
-            first.
+    <div class={joinStyles.joinDialog}>
+      {/* Two-column layout for source/model selection */}
+      <div class={joinStyles.sourceSelectorGrid}>
+        {/* Left Side */}
+        <div class={joinStyles.sourceSelector}>
+          <label class={styles.label}>Left Table</label>
+          <div class={joinStyles.currentSelection}>
+            {effectiveLeftId && (
+              <div class={joinStyles.currentSelectionItem}>
+                {activeModel && effectiveLeftId === activeModel.id ? (
+                  <>
+                    <span class={joinStyles.icon}>📊</span>
+                    <span class={joinStyles.name}>{activeModel.name}</span>
+                  </>
+                ) : activeSource && effectiveLeftId === activeSource.id ? (
+                  <>
+                    <span class={joinStyles.icon}>📄</span>
+                    <span class={joinStyles.name}>{activeSource.name}</span>
+                  </>
+                ) : (
+                  <span class={joinStyles.name}>Selected</span>
+                )}
+              </div>
+            )}
           </div>
-        )}
+          <JoinTreeSelector
+            selectedId={effectiveLeftId}
+            onSelect={handleLeftModelChange}
+            excludeId={rightModel.value}
+            onPreview={(id) => {
+              DialogStore.joinState.previewTableId.value = id;
+            }}
+          />
+        </div>
+
+        {/* Right Side */}
+        <div class={joinStyles.sourceSelector}>
+          <label class={styles.label}>Right Table</label>
+          <JoinTreeSelector
+            selectedId={rightModel.value}
+            onSelect={handleRightModelChange}
+            excludeId={effectiveLeftId}
+            onPreview={(id) => {
+              DialogStore.joinState.previewTableId.value = id;
+            }}
+          />
+        </div>
       </div>
 
       {/* Join Type */}
       <div class={styles.group}>
         <label class={styles.label}>Join Type</label>
-        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+        <div class={joinStyles.joinTypeGrid}>
           {(['inner', 'left', 'right', 'full', 'cross'] as JoinType[]).map((type) => (
             <label key={type} class={styles.radioLabel}>
               <input
@@ -106,6 +188,11 @@ export function JoinDialog() {
                 checked={joinType.value === type}
                 onChange={handleJoinTypeChange}
               />
+              <span
+                class="iconify"
+                data-icon={joinTypeIcons[type]}
+                style={{ fontSize: '16px' }}
+              ></span>
               <span style={{ textTransform: 'capitalize' }}>
                 {type.charAt(0).toUpperCase() + type.slice(1)}
               </span>
@@ -125,45 +212,154 @@ export function JoinDialog() {
       {joinType.value !== 'cross' && (
         <div class={styles.group}>
           <label class={styles.label}>Join Keys</label>
-          {keyPairs.value.map((pair, index) => (
-            <div key={index} class={styles.keyGrid}>
-              <select
-                class={styles.input}
-                style={{ flex: 1 }}
-                value={pair[0] || ''}
-                onChange={(e) => updateKeyPair(index, 0, e.currentTarget.value || null)}
-              >
-                <option value="">Select left column...</option>
-                {leftColumns.map((col) => (
-                  <option key={col} value={col}>
-                    {col}
-                  </option>
-                ))}
-              </select>
-              <span>=</span>
-              <select
-                class={styles.input}
-                style={{ flex: 1 }}
-                value={pair[1] || ''}
-                onChange={(e) => updateKeyPair(index, 1, e.currentTarget.value || null)}
-              >
-                <option value="">Select right column...</option>
-                {rightColumns.value.map((col) => (
-                  <option key={col} value={col}>
-                    {col}
-                  </option>
-                ))}
-              </select>
-              <button
-                class="button button--secondary button--small"
-                onClick={() => JoinHandlers.removeJoinKeyPair(index)}
-                disabled={keyPairs.value.length === 1}
-                title="Remove key pair"
-              >
-                ×
-              </button>
-            </div>
-          ))}
+          {keyPairs.value.map((pair, index) => {
+            const analysis = keyPairAnalysis.value[index];
+            const hasLeftError = !pair[0];
+            const hasRightError = !pair[1];
+            const hasError = hasLeftError || hasRightError;
+
+            return (
+              <div key={index} class={joinStyles.keyPairContainer}>
+                <div class={styles.keyGrid}>
+                  <select
+                    class={`${styles.input} ${hasLeftError ? joinStyles.inputError : ''}`}
+                    style={{ flex: 1 }}
+                    value={pair[0] || ''}
+                    onChange={(e) => updateKeyPair(index, 0, e.currentTarget.value || null)}
+                  >
+                    <option value="">Select left column...</option>
+                    {leftColumns.value.map((col) => (
+                      <option key={col} value={col}>
+                        {col}
+                      </option>
+                    ))}
+                  </select>
+                  <span>=</span>
+                  <select
+                    class={`${styles.input} ${hasRightError ? joinStyles.inputError : ''}`}
+                    style={{ flex: 1 }}
+                    value={pair[1] || ''}
+                    onChange={(e) => updateKeyPair(index, 1, e.currentTarget.value || null)}
+                  >
+                    <option value="">Select right column...</option>
+                    {rightColumns.value.map((col) => (
+                      <option key={col} value={col}>
+                        {col}
+                      </option>
+                    ))}
+                  </select>
+                  <button
+                    class="button button--secondary button--small"
+                    onClick={() => JoinHandlers.removeJoinKeyPair(index)}
+                    disabled={keyPairs.value.length === 1}
+                    title="Remove key pair"
+                  >
+                    ×
+                  </button>
+                </div>
+
+                {/* Validation Errors */}
+                {hasError && (
+                  <div class={joinStyles.validationError}>
+                    {hasLeftError && <span>Left column is required</span>}
+                    {hasLeftError && hasRightError && <span> • </span>}
+                    {hasRightError && <span>Right column is required</span>}
+                  </div>
+                )}
+
+                {/* Analysis Results */}
+                {!hasError && analysis && pair[0] && pair[1] && (
+                  <div class={joinStyles.analysisBox}>
+                    <div class={joinStyles.analysisRow}>
+                      <span class={joinStyles.analysisLabel}>Left:</span>
+                      <span>{analysis.leftUnique} unique values</span>
+                      {analysis.leftHasDuplicates && (
+                        <span
+                          class={joinStyles.warningBadge}
+                          title="This column contains duplicate values"
+                        >
+                          ⚠️ Duplicates
+                        </span>
+                      )}
+                    </div>
+                    <div class={joinStyles.analysisRow}>
+                      <span class={joinStyles.analysisLabel}>Right:</span>
+                      <span>{analysis.rightUnique} unique values</span>
+                      {analysis.rightHasDuplicates && (
+                        <span
+                          class={joinStyles.warningBadge}
+                          title="This column contains duplicate values"
+                        >
+                          ⚠️ Duplicates
+                        </span>
+                      )}
+                    </div>
+                    <div class={joinStyles.analysisDivider}></div>
+                    <div class={joinStyles.analysisRow}>
+                      <span class={joinStyles.analysisLabel}>Matches:</span>
+                      <span class={joinStyles.matchCount}>{analysis.matches}</span>
+                      <span class={joinStyles.analysisLabel}>values</span>
+                    </div>
+                    <div class={joinStyles.analysisRow}>
+                      <span class={joinStyles.analysisLabel}>Left match:</span>
+                      <span class={joinStyles.matchPercent}>{analysis.leftMatchPercent}%</span>
+                      <span class={joinStyles.analysisLabel}>of left rows will match</span>
+                    </div>
+                    <div class={joinStyles.analysisRow}>
+                      <span class={joinStyles.analysisLabel}>Right match:</span>
+                      <span class={joinStyles.matchPercent}>{analysis.rightMatchPercent}%</span>
+                      <span class={joinStyles.analysisLabel}>of right rows will match</span>
+                    </div>
+                    <div class={joinStyles.analysisDivider}></div>
+                    <div class={joinStyles.analysisRow}>
+                      <span class={joinStyles.analysisLabel}>Left only:</span>
+                      <button
+                        class={joinStyles.clickableCount}
+                        onClick={() => {
+                          if (analysis.leftOnlyValues.length > 0) {
+                            DialogStore.joinState.previewMismatchValues.value = {
+                              values: analysis.leftOnlyValues,
+                              column: analysis.leftCol || '',
+                              side: 'left',
+                            };
+                          }
+                        }}
+                        disabled={analysis.leftOnly === 0}
+                        title="Click to view values"
+                      >
+                        {analysis.leftOnly}
+                      </button>
+                      <span class={joinStyles.analysisLabel}>
+                        ({analysis.leftOnlyPercent}% of left rows)
+                      </span>
+                    </div>
+                    <div class={joinStyles.analysisRow}>
+                      <span class={joinStyles.analysisLabel}>Right only:</span>
+                      <button
+                        class={joinStyles.clickableCount}
+                        onClick={() => {
+                          if (analysis.rightOnlyValues.length > 0) {
+                            DialogStore.joinState.previewMismatchValues.value = {
+                              values: analysis.rightOnlyValues,
+                              column: analysis.rightCol || '',
+                              side: 'right',
+                            };
+                          }
+                        }}
+                        disabled={analysis.rightOnly === 0}
+                        title="Click to view values"
+                      >
+                        {analysis.rightOnly}
+                      </button>
+                      <span class={joinStyles.analysisLabel}>
+                        ({analysis.rightOnlyPercent}% of right rows)
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            );
+          })}
           <button
             class="button button--secondary button--small"
             onClick={JoinHandlers.addJoinKeyPair}
@@ -173,6 +369,125 @@ export function JoinDialog() {
           <div class={styles.helpText}>Match rows where these columns have equal values</div>
         </div>
       )}
+
+      {/* Column Selection */}
+      <div class={joinStyles.columnSelectionGrid}>
+        {/* Left Columns */}
+        <div class={styles.group}>
+          <label class={styles.label}>Left Columns to Include</label>
+          <div class={styles.actions} style={{ marginBottom: '0.5rem', marginTop: 0 }}>
+            <button
+              type="button"
+              class="button button--text button--small"
+              onClick={selectAllLeftColumns}
+            >
+              Select All
+            </button>
+            <button
+              type="button"
+              class="button button--text button--small"
+              onClick={selectNoneLeftColumns}
+            >
+              Select None
+            </button>
+          </div>
+          <div class={styles.columnEditorList}>
+            {leftColumns.value.map((col) => {
+              const isSelected = selectedLeftColumns.value.includes(col);
+              return (
+                <div
+                  key={col}
+                  class={`${styles.columnEditorItem} ${!isSelected ? styles.unselected : ''}`}
+                >
+                  {/* Checkbox */}
+                  <button
+                    type="button"
+                    class={styles.itemCheckbox}
+                    onClick={() => toggleLeftColumn(col)}
+                  >
+                    <span
+                      style={{
+                        color: isSelected ? 'var(--color-green)' : 'var(--color-red)',
+                      }}
+                    >
+                      {isSelected ? '✓' : '✗'}
+                    </span>
+                  </button>
+
+                  {/* Column Name */}
+                  <span
+                    class={styles.originalName}
+                    style={{
+                      textDecoration: !isSelected ? 'line-through' : 'none',
+                      opacity: !isSelected ? 0.6 : 1,
+                    }}
+                  >
+                    {col}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Right Columns */}
+        <div class={styles.group}>
+          <label class={styles.label}>Right Columns to Include</label>
+          <div class={styles.actions} style={{ marginBottom: '0.5rem', marginTop: 0 }}>
+            <button
+              type="button"
+              class="button button--text button--small"
+              onClick={selectAllRightColumns}
+            >
+              Select All
+            </button>
+            <button
+              type="button"
+              class="button button--text button--small"
+              onClick={selectNoneRightColumns}
+            >
+              Select None
+            </button>
+          </div>
+          <div class={styles.columnEditorList}>
+            {rightColumns.value.map((col) => {
+              const isSelected = selectedRightColumns.value.includes(col);
+              return (
+                <div
+                  key={col}
+                  class={`${styles.columnEditorItem} ${!isSelected ? styles.unselected : ''}`}
+                >
+                  {/* Checkbox */}
+                  <button
+                    type="button"
+                    class={styles.itemCheckbox}
+                    onClick={() => toggleRightColumn(col)}
+                  >
+                    <span
+                      style={{
+                        color: isSelected ? 'var(--color-green)' : 'var(--color-red)',
+                      }}
+                    >
+                      {isSelected ? '✓' : '✗'}
+                    </span>
+                  </button>
+
+                  {/* Column Name */}
+                  <span
+                    class={styles.originalName}
+                    style={{
+                      textDecoration: !isSelected ? 'line-through' : 'none',
+                      opacity: !isSelected ? 0.6 : 1,
+                    }}
+                  >
+                    {col}
+                  </span>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      </div>
 
       {/* Column Suffixes */}
       <div class={styles.group}>
@@ -199,6 +514,20 @@ export function JoinDialog() {
         <div class={styles.helpText}>Applied to left/right columns when names conflict</div>
       </div>
 
+      {/* Save as New Model */}
+      <div class={styles.group}>
+        <label class={styles.checkboxLabel}>
+          <input
+            type="checkbox"
+            checked={saveAsNewModel.value}
+            onChange={(e) => {
+              DialogStore.joinState.saveAsNewModel.value = e.currentTarget.checked;
+            }}
+          />
+          <span>Save result as a new model</span>
+        </label>
+      </div>
+
       {/* Preview Button */}
       <div class={styles.group}>
         <button
@@ -213,51 +542,8 @@ export function JoinDialog() {
       {/* Preview Error */}
       {previewError.value && <div class={styles.error}>{previewError.value}</div>}
 
-      {/* Preview Results */}
-      {previewData.value && (
-        <div class={styles.group}>
-          <div class={styles.previewContainer}>
-            <strong>Preview Result:</strong>
-            <div>
-              {`${previewData.value.totalRows || 0} rows, ${
-                previewData.value.columns?.length || 0
-              } columns`}
-            </div>
-            <div
-              style={{ fontSize: '0.875rem', color: 'var(--color-dark-gray)', marginTop: '0.5rem' }}
-            >
-              Showing first 100 rows
-            </div>
-          </div>
-
-          <div class={styles.previewScroll}>
-            <div class={tableStyles.tableContainer}>
-              <table class={tableStyles.dataTable}>
-                <thead>
-                  <tr>
-                    {previewData.value.columns?.map((col: string) => (
-                      <th key={col} class={tableStyles.dataTable__header}>
-                        {col}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {previewData.value.rows?.map((row: any, idx: number) => (
-                    <tr key={idx} class={tableStyles.dataTable__row}>
-                      {previewData.value.columns?.map((col: string) => (
-                        <td key={col} class={tableStyles.cell}>
-                          {String(row[col] ?? '')}
-                        </td>
-                      ))}
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </div>
-      )}
+      {/* Table Preview Modal */}
+      <TablePreviewModal />
     </div>
   );
 }

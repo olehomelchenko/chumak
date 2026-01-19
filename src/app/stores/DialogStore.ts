@@ -24,15 +24,49 @@ export class DialogStore {
 
   // Join Dialog State
   static joinState = {
+    leftModel: signal<string | null>(null), // ID of left source/model
     rightModel: signal<string | null>(null),
     joinType: signal<JoinType>('left'),
     keyPairs: signal<(string | null)[][]>([[null, null]]),
     suffixes: signal<string[]>(['_x', '_y']),
     targets: signal<JoinTarget[]>([]),
+    leftColumns: signal<string[]>([]),
     rightColumns: signal<string[]>([]),
+    selectedLeftColumns: signal<string[]>([]), // Columns to include from left
+    selectedRightColumns: signal<string[]>([]), // Columns to include from right
+    saveAsNewModel: signal(false),
     previewData: signal<any | null>(null),
     previewError: signal<string | null>(null),
     isPreviewing: signal(false),
+    keyPairAnalysis: signal<
+      Array<{
+        leftCol: string | null;
+        rightCol: string | null;
+        leftUnique: number;
+        rightUnique: number;
+        leftHasDuplicates: boolean;
+        rightHasDuplicates: boolean;
+        leftOnly: number; // Values in left not in right
+        rightOnly: number; // Values in right not in left
+        matches: number; // Values that match
+        leftTotalRows: number;
+        rightTotalRows: number;
+        leftNonNullRows: number;
+        rightNonNullRows: number;
+        leftMatchPercent: number; // Percentage of left rows that match
+        rightMatchPercent: number; // Percentage of right rows that match
+        leftOnlyPercent: number; // Percentage of left rows that don't match
+        rightOnlyPercent: number; // Percentage of right rows that don't match
+        leftOnlyValues: any[]; // Actual values in left not in right
+        rightOnlyValues: any[]; // Actual values in right not in left
+      }>
+    >([]),
+    previewTableId: signal<string | null>(null), // ID of table to preview in modal
+    previewMismatchValues: signal<{
+      values: any[];
+      column: string;
+      side: 'left' | 'right';
+    } | null>(null), // Values to preview in mismatch modal
   };
 
   // Concat Dialog State
@@ -412,5 +446,24 @@ export class DialogStore {
     this.renamePatternState.replace.value = '';
     this.renamePatternState.regex.value = false;
     this.renamePatternState.error.value = null;
+
+    // Join Dialog State
+    this.joinState.leftModel.value = null;
+    this.joinState.rightModel.value = null;
+    this.joinState.joinType.value = 'left';
+    this.joinState.keyPairs.value = [[null, null]];
+    this.joinState.suffixes.value = ['_x', '_y'];
+    this.joinState.targets.value = [];
+    this.joinState.leftColumns.value = [];
+    this.joinState.rightColumns.value = [];
+    this.joinState.selectedLeftColumns.value = [];
+    this.joinState.selectedRightColumns.value = [];
+    this.joinState.saveAsNewModel.value = false;
+    this.joinState.previewData.value = null;
+    this.joinState.previewError.value = null;
+    this.joinState.isPreviewing.value = false;
+    this.joinState.keyPairAnalysis.value = [];
+    this.joinState.previewTableId.value = null;
+    this.joinState.previewMismatchValues.value = null;
   }
 }

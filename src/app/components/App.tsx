@@ -225,7 +225,7 @@ export function App({ app }: AppProps) {
         {/* Slide Panel Shell */}
         {isSlidePanel(activeDialog) && (
           <div
-            class={`${styles.slidePanelShell} ${styles.open} ${hasPreview ? styles.hasPreview : ''}`}
+            class={`${styles.slidePanelShell} ${styles.open} ${hasPreview ? styles.hasPreview : ''} ${activeDialog === 'join' ? styles.joinDialog : ''}`}
           >
             {/* Backdrop */}
             <div
@@ -290,7 +290,9 @@ export function App({ app }: AppProps) {
 
         {/* Preview Panel Shell */}
         {hasPreview && isSlidePanel(activeDialog) && (
-          <div class={styles.previewPanelShell}>
+          <div
+            class={`${styles.previewPanelShell} ${activeDialog === 'join' ? styles.joinDialog : ''}`}
+          >
             <div class={styles.previewPanel}>
               <div class={styles.previewPanelHeader}>
                 <h4>{previewTitle || 'Preview'}</h4>
