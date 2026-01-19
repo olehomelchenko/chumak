@@ -12,6 +12,7 @@ export interface UXSettings {
     rowLimit: number;
   };
   theme: 'blues' | 'syto';
+  analyticsOptOut: boolean;
 }
 
 // Default settings
@@ -23,6 +24,7 @@ const DEFAULT_SETTINGS: UXSettings = {
     rowLimit: 100,
   },
   theme: 'syto',
+  analyticsOptOut: false, // Analytics enabled by default
 };
 
 /**
@@ -43,6 +45,7 @@ export function loadUXSettings(): UXSettings {
           ...parsed.preview,
         },
         theme: parsed.theme || DEFAULT_SETTINGS.theme,
+        analyticsOptOut: parsed.analyticsOptOut ?? DEFAULT_SETTINGS.analyticsOptOut,
       };
     }
   } catch (error) {
@@ -58,7 +61,6 @@ export function loadUXSettings(): UXSettings {
 export function saveUXSettings(settings: UXSettings): void {
   try {
     localStorage.setItem(UX_SETTINGS_KEY, JSON.stringify(settings));
-    console.log('UX settings saved:', settings);
   } catch (error) {
     console.error('Failed to save UX settings:', error);
   }

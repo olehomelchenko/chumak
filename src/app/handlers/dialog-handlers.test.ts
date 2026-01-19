@@ -38,6 +38,10 @@ describe('Dialog Handlers', () => {
       preview: {
         rowLimit: 10,
       },
+      pagination: {
+        pageSize: 500,
+      },
+      analyticsOptOut: false,
     };
   });
 

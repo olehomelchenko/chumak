@@ -387,6 +387,7 @@ export function App({ app }: AppProps) {
                     <SettingsDialog
                       onThemeChange={(theme) => app.switchTheme(theme)}
                       onRowLimitChange={(limit) => app.updatePreviewRowLimit(String(limit))}
+                      onAnalyticsOptOutChange={(optOut) => app.updateAnalyticsOptOut(optOut)}
                     />
                   </div>
                   <div style={{ display: activeDialog === 'download' ? 'block' : 'none' }}>

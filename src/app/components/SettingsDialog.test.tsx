@@ -8,6 +8,7 @@ describe('SettingsDialog', () => {
     // Reset store state before each test
     DialogStore.settingsState.theme.value = 'syto';
     DialogStore.settingsState.rowLimit.value = 100;
+    DialogStore.settingsState.analyticsOptOut.value = false;
   });
 
   it('renders correctly', () => {
@@ -43,5 +44,18 @@ describe('SettingsDialog', () => {
     render(<SettingsDialog />);
     // Checking styles is hard, but we can verify structure if needed.
     // For now, functional tests are enough.
+  });
+
+  it('handles analytics opt-out change', () => {
+    const onAnalyticsOptOutChange = vi.fn();
+    render(<SettingsDialog onAnalyticsOptOutChange={onAnalyticsOptOutChange} />);
+
+    const checkbox = screen.getByLabelText(/opt out of analytics/i);
+    expect(checkbox).toBeDefined();
+    expect((checkbox as HTMLInputElement).checked).toBe(false);
+
+    fireEvent.change(checkbox, { target: { checked: true } });
+    expect(DialogStore.settingsState.analyticsOptOut.value).toBe(true);
+    expect(onAnalyticsOptOutChange).toHaveBeenCalledWith(true);
   });
 });

@@ -19,6 +19,38 @@
     <!-- Core Infrastructure -->
     <script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
     <script type="module" src="src/main.tsx"></script>
+
+    <!-- GoatCounter Analytics - Privacy-respecting, GDPR-compliant (production only) -->
+    <script type="module">
+      // Only load in production builds and if user hasn't opted out
+      // IMPORTANT: This check happens BEFORE the script is created/loaded.
+      // If user has opted out, the script is never appended to the page.
+      if (import.meta.env.PROD) {
+        // Check localStorage for opt-out preference BEFORE loading
+        let shouldLoad = true;
+        try {
+          const settings = localStorage.getItem('syto-ux-settings');
+          if (settings) {
+            const parsed = JSON.parse(settings);
+            if (parsed.analyticsOptOut === true) {
+              // User has opted out, don't load analytics
+              shouldLoad = false;
+            }
+          }
+        } catch (e) {
+          // If we can't read settings, proceed with loading analytics (default behavior)
+        }
+
+        // Only create and append script if user hasn't opted out
+        if (shouldLoad) {
+          const script = document.createElement('script');
+          script.setAttribute('data-goatcounter', 'https://syto.goatcounter.com/count');
+          script.async = true;
+          script.src = '//gc.zgo.at/count.js';
+          document.head.appendChild(script);
+        }
+      }
+    </script>
   </head>
 
   <body>

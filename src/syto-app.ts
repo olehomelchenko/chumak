@@ -1341,6 +1341,22 @@ export class SytoApp implements AppState {
     return this.uxSettings.preview?.rowLimit || 100;
   }
 
+  updateAnalyticsOptOut(optOut: boolean) {
+    this.uxSettings.analyticsOptOut = optOut;
+    updateUXSetting('analyticsOptOut', '', optOut);
+    // If opting out, remove any existing GoatCounter script and stop tracking
+    if (optOut) {
+      const existingScript = document.querySelector('script[data-goatcounter]');
+      if (existingScript) {
+        existingScript.remove();
+      }
+      // Also disable GoatCounter if it's already loaded (stops any pending requests)
+      if (typeof (window as any).goatcounter !== 'undefined') {
+        (window as any).goatcounter = { count: () => {} }; // Replace with no-op function
+      }
+    }
+  }
+
   // ============================================================
   // Model & Source Management
   // ============================================================

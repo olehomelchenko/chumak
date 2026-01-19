@@ -209,6 +209,7 @@ export class DialogStore {
   static settingsState = {
     theme: signal<'syto' | 'blues'>('syto'),
     rowLimit: signal(100),
+    analyticsOptOut: signal(false),
   };
 
   // Impute Dialog State

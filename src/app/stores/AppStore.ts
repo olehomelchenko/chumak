@@ -1,6 +1,7 @@
 import { signal, computed } from '@preact/signals';
 import { Source, Model, DataRow, DialogName, Notification } from '../types';
 import { ColumnSchema } from '../../core/schema-engine';
+import { UXSettings } from '../../core/ux-settings';
 
 export type ViewMode = 'empty' | 'dataset-info' | 'model';
 
@@ -96,14 +97,11 @@ export class AppStore {
   static viewingSchema = signal<ColumnSchema[] | null>(null);
 
   // UX Settings
-  static uxSettings = signal<{
-    pagination: { pageSize: number };
-    preview: { rowLimit: number };
-    theme: 'blues' | 'syto';
-  }>({
+  static uxSettings = signal<UXSettings>({
     pagination: { pageSize: 500 },
     preview: { rowLimit: 100 },
     theme: 'syto',
+    analyticsOptOut: false,
   });
 
   // Type Menu State

@@ -68,6 +68,7 @@ export function getDialogState(this: SytoApp, dialog: string) {
       return {
         theme: this.theme,
         rowLimit: this.uxSettings.preview?.rowLimit || 100,
+        analyticsOptOut: this.uxSettings.analyticsOptOut ?? false,
       };
     default:
       return null;
@@ -182,6 +183,7 @@ export function initDialogState(this: SytoApp, dialogName: string, section?: str
     const state = DialogStore.settingsState;
     state.theme.value = this.theme as any;
     state.rowLimit.value = this.uxSettings.preview?.rowLimit || 100;
+    state.analyticsOptOut.value = this.uxSettings.analyticsOptOut ?? false;
   } else if (dialogName === 'fold') {
     DialogStore.foldState.keyName.value = 'key';
     DialogStore.foldState.valueName.value = 'value';

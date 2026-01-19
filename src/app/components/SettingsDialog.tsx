@@ -5,10 +5,15 @@ import styles from './TransformDialog.module.css';
 export interface SettingsDialogProps {
   onThemeChange?: (theme: 'syto' | 'blues') => void;
   onRowLimitChange?: (limit: number) => void;
+  onAnalyticsOptOutChange?: (optOut: boolean) => void;
 }
 
-export function SettingsDialog({ onThemeChange, onRowLimitChange }: SettingsDialogProps = {}) {
-  const { theme, rowLimit } = DialogStore.settingsState;
+export function SettingsDialog({
+  onThemeChange,
+  onRowLimitChange,
+  onAnalyticsOptOutChange,
+}: SettingsDialogProps = {}) {
+  const { theme, rowLimit, analyticsOptOut } = DialogStore.settingsState;
 
   const handleThemeChange = (newTheme: 'syto' | 'blues') => {
     theme.value = newTheme;
@@ -24,6 +29,14 @@ export function SettingsDialog({ onThemeChange, onRowLimitChange }: SettingsDial
       if (onRowLimitChange) {
         onRowLimitChange(val);
       }
+    }
+  };
+
+  const handleAnalyticsOptOutChange = (e: Event) => {
+    const optOut = (e.target as HTMLInputElement).checked;
+    analyticsOptOut.value = optOut;
+    if (onAnalyticsOptOutChange) {
+      onAnalyticsOptOutChange(optOut);
     }
   };
 
@@ -103,6 +116,33 @@ export function SettingsDialog({ onThemeChange, onRowLimitChange }: SettingsDial
           />
           <span style={{ fontSize: '13px', color: 'var(--color-dark-gray)' }}>rows (10-10000)</span>
         </div>
+      </div>
+
+      {/* Analytics Opt-Out */}
+      <div style={{ marginBottom: '2rem' }}>
+        <label
+          style={{
+            display: 'flex',
+            alignItems: 'flex-start',
+            gap: '0.75rem',
+            cursor: 'pointer',
+          }}
+        >
+          <input
+            type="checkbox"
+            checked={analyticsOptOut.value}
+            onChange={handleAnalyticsOptOutChange}
+            style={{ marginTop: '0.25rem', cursor: 'pointer' }}
+          />
+          <div>
+            <div style={{ fontWeight: 500, marginBottom: '0.25rem' }}>Opt out of analytics</div>
+            <div class={styles.helpText} style={{ fontSize: '0.875rem' }}>
+              Syto uses GoatCounter, a privacy-respecting analytics service (no cookies,
+              GDPR-compliant). You can opt out at any time. Your preference is stored locally in
+              your browser.
+            </div>
+          </div>
+        </label>
       </div>
 
       <div class={styles.noteBox}>
