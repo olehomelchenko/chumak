@@ -1,4 +1,4 @@
-# Chumak - Specification
+# Syto - Specification
 
 > **Related Documentation**:
 >
@@ -13,13 +13,13 @@
 
 ### 1.1 Name & Tagline
 
-**Chumak** — Data Wrangling in the Browser
+**Syto** — Data Wrangling in the Browser
 
 _Named after the Ukrainian star-navigating traders who transformed raw goods into traded wealth, guided by the Milky Way (Chumatskyi Shliakh)._
 
 ### 1.2 Description
 
-Chumak is a browser-based data wrangling tool for cleaning and transforming tabular data. It provides a visual interface for building transformation pipelines, inspired by Microsoft Power Query, with transformations stored as a declarative JSON specification. The tool runs entirely in the browser with no server dependencies.
+Syto is a browser-based data wrangling tool for cleaning and transforming tabular data. It provides a visual interface for building transformation pipelines, inspired by Microsoft Power Query, with transformations stored as a declarative JSON specification. The tool runs entirely in the browser with no server dependencies.
 
 ### 1.3 Design Principles
 
@@ -63,7 +63,7 @@ Chumak is a browser-based data wrangling tool for cleaning and transforming tabu
 | Build Tool      | **Vite**                                                      |
 | Language        | **TypeScript (TS)**                                           |
 | Deployment      | Static hosting (GitHub Pages compatible)                      |
-| Theme Engine    | Custom themes (Chumak, Blues) with Vega integration           |
+| Theme Engine    | Custom themes (Syto, Blues) with Vega integration             |
 | Browser support | Chrome and Safari (latest 2 versions)                         |
 | Offline         | Core functionality works offline; URL imports require network |
 

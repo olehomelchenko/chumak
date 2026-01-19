@@ -1,4 +1,4 @@
-# Chumak — What This Project Is About
+# Syto — What This Project Is About
 
 ## The Problem
 
@@ -6,7 +6,7 @@ There's a gap in data tools. On one side, you have spreadsheets — familiar but
 
 Power Query in Excel hits a sweet spot: visual pipeline building, no code required, good enough for real work. But it's locked inside Microsoft's ecosystem.
 
-Chumak fills this gap: **a browser-based data wrangling tool that's as capable as Power Query but runs anywhere, stores nothing on servers, and doesn't require installation.**
+Syto fills this gap: **a browser-based data wrangling tool that's as capable as Power Query but runs anywhere, stores nothing on servers, and doesn't require installation.**
 
 ## Core Values
 
@@ -41,7 +41,7 @@ Users who need more can write expressions (`revenue - cost > 1000`), use regex e
 
 ### 5. Do One Thing Well
 
-Chumak handles tabular data transformation: import, clean, reshape, export. It's not trying to become a spreadsheet, a statistical package, a visualization tool, or a database. The EDA features (histograms, boxplots, statistics) exist to help users understand their data before transforming it — not to replace dedicated analysis tools.
+Syto handles tabular data transformation: import, clean, reshape, export. It's not trying to become a spreadsheet, a statistical package, a visualization tool, or a database. The EDA features (histograms, boxplots, statistics) exist to help users understand their data before transforming it — not to replace dedicated analysis tools.
 
 ## What We're Not
 
@@ -52,7 +52,9 @@ Chumak handles tabular data transformation: import, clean, reshape, export. It's
 
 ## The Name
 
-"Chumak" refers to Ukrainian salt traders, whose name gave the name to how Milky Way galaxy is called in Ukrainian - Chumatskyi Shliakh.
+"Syto" refers to Ukrainian word for "Sieve" - to reflect the tool's purpose of "sieving" data, while maintaining the connection to Ukrainian heritage.
+
+**Historical Note**: The project was originally named "Chumak" (Чумак), which also refers to these Ukrainian salt traders. The name was changed to "Syto" (Сито, meaning "sieve")
 
 ## Technical Philosophy
 
@@ -60,7 +62,7 @@ Chumak handles tabular data transformation: import, clean, reshape, export. It's
 
 Arquero handles data operations. jsep handles expression parsing. Vega-Lite handles charts. Preact handles UI. The project wraps these with thin integration layers rather than reimplementing functionality.
 
-The custom code focuses on what's unique to Chumak: the expression validation/interpretation pipeline, the workflow specification format, the UI that ties it together.
+The custom code focuses on what's unique to Syto: the expression validation/interpretation pipeline, the workflow specification format, the UI that ties it together.
 
 ### Test the Core, Trust the UI
 

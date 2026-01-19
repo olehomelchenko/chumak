@@ -1,10 +1,10 @@
-# Chumak
+# Syto
 
 **Data wrangling in the browser** — clean, transform, and prepare your data without installing anything.
 
-## What is Chumak?
+## What is Syto?
 
-Chumak is a browser-based tool for working with tabular data. Think of it as a simpler alternative to Excel's Power Query or OpenRefine, designed for students, analysts, and anyone who needs to prepare data quickly.
+Syto is a browser-based tool for working with tabular data. Think of it as a simpler alternative to Excel's Power Query or OpenRefine, designed for students, analysts, and anyone who needs to prepare data quickly.
 
 ## Key Features
 
@@ -16,7 +16,7 @@ Chumak is a browser-based tool for working with tabular data. Think of it as a s
 
 ## Local-First & Private
 
-**Your data never leaves your browser.** Chumak runs entirely client-side — there's no server, no uploads, no accounts. Everything stays on your machine.
+**Your data never leaves your browser.** Syto runs entirely client-side — there's no server, no uploads, no accounts. Everything stays on your machine.
 
 - Works offline after initial load
 - No installation required
@@ -30,16 +30,16 @@ Chumak is a browser-based tool for working with tabular data. Think of it as a s
 
 ## About the Name
 
-_Chumak_ (Ukrainian: чумак) were historic traders who transported goods across the steppes of Ukraine. They navigated by the Milky Way, known in Ukrainian as _Chumatskyi Shliakh_ (the Chumak's Path).
+_Syto_ (Ukrainian: чумак) were historic traders who transported goods across the steppes of Ukraine. They navigated by the Milky Way, known in Ukrainian as _Chumatskyi Shliakh_ (the Syto's Path).
 
 ## Open Source
 
-Chumak is open-source software. Contributions, bug reports, and feature requests are welcome.
+Syto is open-source software. Contributions, bug reports, and feature requests are welcome.
 
 ## AI Assistance
 
-Chumak's code base was written almost in its entirety by Claude Code and Google Antigravity, with Oleh Omelchenko having the role of a product owner and an architect.
+Syto's code base was written almost in its entirety by Claude Code and Google Antigravity, with Oleh Omelchenko having the role of a product owner and an architect.
 
 ## License
 
-Chumak is licensed under the MIT License.
+Syto is licensed under the MIT License.

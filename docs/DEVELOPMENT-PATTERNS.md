@@ -1,4 +1,4 @@
-# Chumak — Development Patterns
+# Syto — Development Patterns
 
 > **Related Documentation**:
 >
@@ -6,7 +6,7 @@
 > - **[DATA-SPECIFICATION.md](DATA-SPECIFICATION.md)**: Data structures and transform format
 > - **[UX-SPECIFICATION.md](UX-SPECIFICATION.md)**: UI/UX design guidelines
 
-This document describes established patterns for developing Chumak. Follow these conventions when adding features or modifying existing code.
+This document describes established patterns for developing Syto. Follow these conventions when adding features or modifying existing code.
 
 ---
 
@@ -198,7 +198,7 @@ export function applyTransform() {
 
 ### 2.1 Two-Store Architecture
 
-Chumak uses two signal-based stores with distinct responsibilities:
+Syto uses two signal-based stores with distinct responsibilities:
 
 | Store         | Purpose                                       | Lifetime         |
 | ------------- | --------------------------------------------- | ---------------- |

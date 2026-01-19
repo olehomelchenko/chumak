@@ -278,7 +278,7 @@ Exception = [JavaScript error object]
 
 ### 1. Simplicity for trusted environments
 
-**When applicable**: If Chumak operated in fully trusted environments (local-only, no user uploads)
+**When applicable**: If Syto operated in fully trusted environments (local-only, no user uploads)
 
 **Benefit**:
 
@@ -287,7 +287,7 @@ Exception = [JavaScript error object]
 - Instant compatibility with JavaScript syntax
 - No learning curve for developers
 
-**Trade-off**: Security risk unacceptable for Chumak's browser-based, untrusted environment.
+**Trade-off**: Security risk unacceptable for Syto's browser-based, untrusted environment.
 
 ### 2. Caching strategy
 
@@ -301,7 +301,7 @@ if (expressionToFunctionCache[expression]) {
 }
 ```
 
-**Adoptable for Chumak**: Cache compiled expressions after parsing to avoid re-parsing identical transforms.
+**Adoptable for Syto**: Cache compiled expressions after parsing to avoid re-parsing identical transforms.
 
 ### 3. Dual input types
 
@@ -312,7 +312,7 @@ valueGetter: 'data.a + data.b'; // String
 valueGetter: (params) => params.data.a + params.data.b; // Function
 ```
 
-**Adoptable for Chumak**: Consider accepting both declarative transforms AND function escape hatches for power users.
+**Adoptable for Syto**: Consider accepting both declarative transforms AND function escape hatches for power users.
 
 ---
 
@@ -335,7 +335,7 @@ valueGetter: (params) => params.data.a + params.data.b; // Function
 - Expressions typically hard-coded in applications
 - Not user-facing (usually)
 
-**Why it won't work for Chumak**:
+**Why it won't work for Syto**:
 
 - Browser-based tool for arbitrary users
 - Users load CSV from unknown sources
@@ -352,7 +352,7 @@ valueGetter: (params) => params.data.a + params.data.b; // Function
 - No suggestions for common mistakes
 - Requires opening browser console to see errors
 
-**Contrast with Chumak goals**:
+**Contrast with Syto goals**:
 
 - Target audience: students and analysts (not programmers)
 - Need user-friendly error messages
@@ -387,7 +387,7 @@ valueGetter: (params) => params.data.a + params.data.b; // Function
 **Why it's risky**:
 
 - For ag-Grid: Relying on JavaScript's stability (reasonable)
-- For Chumak: Parser bugs would break user workflows (unacceptable)
+- For Syto: Parser bugs would break user workflows (unacceptable)
 
 ---
 
@@ -492,25 +492,25 @@ export function _isExpressionString(value: unknown): value is `=${string}` {
 
 ---
 
-## Applicability to Chumak
+## Applicability to Syto
 
 ### What can be directly reused?
 
-**Nothing.** ag-Grid's approach is fundamentally incompatible with Chumak's requirements.
+**Nothing.** ag-Grid's approach is fundamentally incompatible with Syto's requirements.
 
 **Reasons**:
 
-1. **Security**: Chumak must sandbox untrusted user input
-2. **Target audience**: Chumak targets non-programmers; JavaScript syntax too complex
-3. **Error handling**: Chumak needs user-friendly messages with suggestions
-4. **Validation**: Chumak needs parse-time validation, not runtime failures
+1. **Security**: Syto must sandbox untrusted user input
+2. **Target audience**: Syto targets non-programmers; JavaScript syntax too complex
+3. **Error handling**: Syto needs user-friendly messages with suggestions
+4. **Validation**: Syto needs parse-time validation, not runtime failures
 
 ### What needs adaptation?
 
 **Caching strategy**: The simple object-based cache pattern is useful
 
 ```javascript
-// Adapted for Chumak
+// Adapted for Syto
 const expressionCache = {};
 function getCompiledExpression(exprString) {
   if (!expressionCache[exprString]) {
@@ -539,15 +539,15 @@ ag-Grid's expression handling is **deliberately minimal** for a specific use cas
 - Expression code written once, reused many times
 - Users comfortable with browser console
 
-This approach **does not transfer** to Chumak:
+This approach **does not transfer** to Syto:
 
 - Students and analysts (non-programmers)
 - Untrusted browser environment
 - Expressions written ad-hoc by end users
 - Must work without developer tools
 
-**Key lesson**: The simplest possible implementation (direct eval) has fatal flaws for Chumak's context. A proper parser with validation and sandboxing is essential.
+**Key lesson**: The simplest possible implementation (direct eval) has fatal flaws for Syto's context. A proper parser with validation and sandboxing is essential.
 
-**Code quality**: The implementation is clean and well-structured for what it does, but what it does is insufficient for Chumak's needs.
+**Code quality**: The implementation is clean and well-structured for what it does, but what it does is insufficient for Syto's needs.
 
 **Documentation quality**: Minimal inline comments, but code is self-explanatory due to simplicity.

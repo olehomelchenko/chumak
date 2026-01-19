@@ -1,6 +1,6 @@
-# Migration Plan: Modernizing the Chumak Foundation
+# Migration Plan: Modernizing the Syto Foundation
 
-This document outlines the strategy for migrating **Chumak** from a "No-Build" CDN-based architecture to a modern, robust, and "agent-friendly" web project foundation.
+This document outlines the strategy for migrating **Syto** from a "No-Build" CDN-based architecture to a modern, robust, and "agent-friendly" web project foundation.
 
 ## 1. Objectives
 
@@ -28,10 +28,10 @@ The primary goals of this migration are:
 
 ## 3. The "Agent-Friendly" Architecture
 
-To make Chumak easier for AI agents (and developers) to interact with via CLI:
+To make Syto easier for AI agents (and developers) to interact with via CLI:
 
 1. **Headless Engine**: Extract `expression-parser`, `transforms`, and `schema-engine` into a pure `src/core` library with **zero** browser dependencies.
-2. **CLI Runner**: Create a terminal utility (`npm run chumak-cli`) that can:
+2. **CLI Runner**: Create a terminal utility (`npm run syto-cli`) that can:
    - Load a local CSV.
    - Apply a JSON workflow.
    - Output results as Markdown or JSON.
@@ -42,7 +42,7 @@ To make Chumak easier for AI agents (and developers) to interact with via CLI:
 ## 4. Proposed Directory Structure
 
 ```text
-chumak/
+syto/
 ├── src/
 │   ├── core/           # HEADLESS: Parser, Engines, Transforms (TS)
 │   ├── ui/             # UI: Alpine components, Dialogs, Interaction (TS)
@@ -80,12 +80,12 @@ chumak/
 
 ### Phase 4: UI Refactoring & Decorators ✅ DONE
 
-- Convert `chumak-app.js` and its handlers to TS modules.
-- Refactor application logic into `src/chumak-app.ts`.
+- Convert `syto-app.js` and its handlers to TS modules.
+- Refactor application logic into `src/syto-app.ts`.
 
 ### Phase 5: CSS Modularization ✅ DONE
 
-- Split the 1,400-line `chumak.css` into logical modules (e.g., `ribbon.css`, `table.css`, `dialogs.css`).
+- Split the 1,400-line `syto.css` into logical modules (e.g., `ribbon.css`, `table.css`, `dialogs.css`).
 - Use PostCSS nesting to tighten the selectors.
 
 ---

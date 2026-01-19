@@ -59,7 +59,7 @@ export class ExportService {
       const source = AppStore.sources.value.find((s) => s.id === activeModel.sourceId);
       const workflow = {
         formatVersion: 1,
-        chumakVersion: '0.1.0', // TODO: Import from package.json in build
+        sytoVersion: '0.1.0', // TODO: Import from package.json in build
         name: activeModel.name,
         exportedAt: new Date().toISOString(),
         source: {

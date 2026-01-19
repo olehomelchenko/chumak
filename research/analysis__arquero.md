@@ -212,7 +212,7 @@ From `test/expression/parse-test.js` (650+ lines):
 
 10. **Heavy parenthesization** - Generated code has excessive parens: `((data.a.at(row) + 1) * (data.b.at(row) - 2))`. Readable but verbose.
 
-## Applicability to Chumak
+## Applicability to Syto
 
 ### What can be directly reused?
 
@@ -223,7 +223,7 @@ From `test/expression/parse-test.js` (650+ lines):
 - High-performance requirements
 - Complex expressions with aggregates, windows, etc.
 
-Chumak targets:
+Syto targets:
 
 - Non-programmers
 - Visual UI-driven transformation
@@ -249,7 +249,7 @@ Chumak targets:
    - Or auto-prefix: user types `sales > 1000`, becomes `d.sales > 1000`
 
 4. **Function calls** - Arquero's `op.sum()` requires knowing it's available:
-   - In Chumak UI, functions could be autocompleted
+   - In Syto UI, functions could be autocompleted
    - Or use plain names: `sum(sales)` - simpler
    - Limit function set to essentials for Phase 1
 
@@ -261,7 +261,7 @@ Chumak targets:
 
 ### What should be explicitly avoided?
 
-1. **AST rewriting complexity** - Unnecessary for Chumak's simpler needs
+1. **AST rewriting complexity** - Unnecessary for Syto's simpler needs
 
 2. **Function() constructor** - While Arquero validates, consider safer alternatives:
    - Interpret AST directly (slower but safer)
@@ -269,14 +269,14 @@ Chumak targets:
 
 3. **Requiring arrow functions** - Don't force users to write `d => ...`
 
-4. **Aggregate/window operation complexity** - Chumak delegates these to Arquero. Expression parser should just handle simple row-level expressions.
+4. **Aggregate/window operation complexity** - Syto delegates these to Arquero. Expression parser should just handle simple row-level expressions.
 
-5. **No default column prefix** - Arquero requires `d.col`. For Chumak, could:
+5. **No default column prefix** - Arquero requires `d.col`. For Syto, could:
    - Auto-detect column names from schema
    - Auto-prefix: `sales > 1000` → `d.sales > 1000`
    - This makes expressions more natural for non-programmers
 
-### Recommended approach for Chumak
+### Recommended approach for Syto
 
 **Option A: Lightweight parser (jsep or similar)**
 
@@ -301,7 +301,7 @@ Chumak targets:
 
 **Recommendation: Start with Option A (jsep or filtrex-style parser)**
 
-Arquero is the **execution engine** for Chumak, not the expression parser model to copy.
+Arquero is the **execution engine** for Syto, not the expression parser model to copy.
 
 ## Code Snippets of Interest
 

@@ -1,10 +1,10 @@
 import { describe, it, expect, vi } from 'vitest';
 import { formatCellValue, formatCellValueForTooltip } from './helper-handlers';
-import type { ChumakApp } from '../../chumak-app';
+import type { SytoApp } from '../../syto-app';
 
 describe('helper-handlers', () => {
   describe('formatCellValue', () => {
-    const mockApp = {} as ChumakApp;
+    const mockApp = {} as SytoApp;
 
     it('should format null/undefined/empty as "null"', () => {
       expect(formatCellValue.call(mockApp, null)).toBe('null');
@@ -57,7 +57,7 @@ describe('helper-handlers', () => {
   });
 
   describe('formatCellValueForTooltip', () => {
-    const mockApp = {} as ChumakApp;
+    const mockApp = {} as SytoApp;
 
     it('should format error objects as "Error"', () => {
       const errorObj = { type: 'error', message: 'Cannot convert "abc" to integer' };

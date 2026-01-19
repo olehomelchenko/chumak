@@ -1,4 +1,4 @@
-import type { ChumakApp } from '../../chumak-app';
+import type { SytoApp } from '../../syto-app';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 
@@ -61,7 +61,7 @@ export function updateRegexpMatchPreview() {
   }
 }
 
-export async function applyRegexpMatchTransform(this: ChumakApp) {
+export async function applyRegexpMatchTransform(this: SytoApp) {
   const { columnName, sourceColumn, pattern, error } = DialogStore.regexpMatchState;
 
   // Use signal values
@@ -144,7 +144,7 @@ export function updateRegexpExtractPreview() {
   }
 }
 
-export async function applyRegexpExtractTransform(this: ChumakApp) {
+export async function applyRegexpExtractTransform(this: SytoApp) {
   const { columnName, sourceColumn, pattern, group, error } = DialogStore.regexpExtractState;
 
   const colName = columnName.value;

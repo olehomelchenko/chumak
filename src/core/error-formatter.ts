@@ -1,5 +1,5 @@
 /**
- * Chumak Error Formatter - User-friendly error messages
+ * Syto Error Formatter - User-friendly error messages
  */
 
 export interface FormattableError {

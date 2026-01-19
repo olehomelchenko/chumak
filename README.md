@@ -1,6 +1,6 @@
-# Chumak - Data Wrangling in the Browser
+# Syto - Data Wrangling in the Browser
 
-> Named after Ukrainian star-navigating traders, Chumak transforms raw data into insights—guided by clarity and precision.
+> Named after Ukrainian star-navigating traders, Syto transforms raw data into insights—guided by clarity and precision.
 
 **Status**: ✅ Production-Ready Data Wrangling Application
 
@@ -18,7 +18,7 @@
 ### Core Specification
 
 - **[SPECIFICATION.md](docs/SPECIFICATION.md)** - Complete product specification
-  - What Chumak is and who it's for
+  - What Syto is and who it's for
   - Technical architecture and constraints
   - Data model and transform operations
   - UI design and user workflows

@@ -3,14 +3,14 @@ import styles from './TransformDialog.module.css';
 
 // Props interface kept for reference/testing
 export interface SettingsDialogProps {
-  onThemeChange?: (theme: 'chumak' | 'blues') => void;
+  onThemeChange?: (theme: 'syto' | 'blues') => void;
   onRowLimitChange?: (limit: number) => void;
 }
 
 export function SettingsDialog({ onThemeChange, onRowLimitChange }: SettingsDialogProps = {}) {
   const { theme, rowLimit } = DialogStore.settingsState;
 
-  const handleThemeChange = (newTheme: 'chumak' | 'blues') => {
+  const handleThemeChange = (newTheme: 'syto' | 'blues') => {
     theme.value = newTheme;
     if (onThemeChange) {
       onThemeChange(newTheme);
@@ -35,16 +35,16 @@ export function SettingsDialog({ onThemeChange, onRowLimitChange }: SettingsDial
           Color Scheme
         </label>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-          {/* Chumak Theme */}
+          {/* Syto Theme */}
           <div
-            onClick={() => handleThemeChange('chumak')}
-            class={`${styles.themeOption} ${theme.value === 'chumak' ? styles.active : ''}`}
+            onClick={() => handleThemeChange('syto')}
+            class={`${styles.themeOption} ${theme.value === 'syto' ? styles.active : ''}`}
           >
             <div class={styles.radioCircle}>
-              {theme.value === 'chumak' && <div class={styles.radioDot} />}
+              {theme.value === 'syto' && <div class={styles.radioDot} />}
             </div>
             <div>
-              <div class={styles.themeName}>Chumak</div>
+              <div class={styles.themeName}>Syto</div>
               <div class={styles.themeDesc}>Modern vibrant custom palette</div>
             </div>
             <div class={styles.swatchGrid}>
@@ -106,8 +106,8 @@ export function SettingsDialog({ onThemeChange, onRowLimitChange }: SettingsDial
       </div>
 
       <div class={styles.noteBox}>
-        <strong>Note:</strong> Some interface elements use the primary theme color. The "Chumak"
-        theme also uses custom typography and removes border radiuses for a sharper look.
+        <strong>Note:</strong> Some interface elements use the primary theme color. The "Syto" theme
+        also uses custom typography and removes border radiuses for a sharper look.
       </div>
     </div>
   );

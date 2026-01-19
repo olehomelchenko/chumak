@@ -1,4 +1,4 @@
-# Chumak — UX Specification
+# Syto — UX Specification
 
 > **Related Documentation**:
 >
@@ -17,13 +17,13 @@
 | **Styling**            | Custom CSS with PostCSS nesting and CSS variables        |
 | **Design Inspiration** | KSE Visual Identity (rigorous, clean, information-dense) |
 | **Environment**        | Desktop-first, 13"+ screens, Chrome & Safari             |
-| **Theme System**       | Dynamic themes (**Chumak** and **Blues**) with Vega sync |
+| **Theme System**       | Dynamic themes (**Syto** and **Blues**) with Vega sync   |
 
 ### 1.2 Theme System
 
-Chumak supports high-fidelity theme switching, accessible via the **Settings** dialog. Themes control both the application UI and all embedded visualizations.
+Syto supports high-fidelity theme switching, accessible via the **Settings** dialog. Themes control both the application UI and all embedded visualizations.
 
-- **Chumak (Classic)**: Heritage-focused Midnight Blue primaries with Cyan accents.
+- **Syto (Classic)**: Heritage-focused Midnight Blue primaries with Cyan accents.
 - **Blues (KSE)**: Rigorous Navy palette, optimized for academic and business environments.
 
 **Integration**: Vega-Lite charts automatically inherit the active theme's color palette, axis styling, and typography for a seamless visual experience.
@@ -145,7 +145,7 @@ Styles are divided into component-specific files (e.g., `ribbon.css`, `table.css
 
 A two-tier variable system separates static palettes from functional tokens:
 
-1.  **Palettes**: Raw hex codes grouped by brand (Chumak, KSE).
+1.  **Palettes**: Raw hex codes grouped by brand (Syto, KSE).
 2.  **Functional Tokens**: Logic-based variables (e.g., `--color-primary`, `--shadow-md`) that map to palettes based on the active theme.
 
 ### 6.3 Unified Component Patterns

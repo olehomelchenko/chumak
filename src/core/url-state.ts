@@ -1,5 +1,5 @@
 /**
- * Chumak URL State - manages application state in the URL
+ * Syto URL State - manages application state in the URL
  */
 
 export interface URLState {

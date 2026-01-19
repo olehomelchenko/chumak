@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { ChumakApp } from '../chumak-app';
+import { SytoApp } from '../syto-app';
 import { AppStore } from './stores/AppStore';
 import { ImportService } from './services/ImportService';
 import { ExportService } from './services/ExportService';
@@ -15,7 +15,7 @@ import Papa from 'papaparse';
  * a full browser environment, using Vitest with HappyDOM.
  */
 describe('E2E Critical Path', () => {
-  let app: ChumakApp;
+  let app: SytoApp;
 
   beforeEach(() => {
     // Reset store state before each test
@@ -26,7 +26,7 @@ describe('E2E Critical Path', () => {
     vi.spyOn(console, 'warn').mockImplementation(() => {});
 
     // Create app instance
-    app = new ChumakApp();
+    app = new SytoApp();
 
     // Mock dialog methods
     app.alert = vi.fn().mockResolvedValue(undefined);

@@ -1,5 +1,5 @@
 /**
- * Chumak EDA Engine
+ * Syto EDA Engine
  *
  * Provides statistical analysis and data profiling for columns.
  */

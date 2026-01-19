@@ -8,7 +8,7 @@ export type ViewMode = 'empty' | 'dataset-info' | 'model';
  * AppStore
  *
  * Centralized signal-based store for global application state.
- * This is the "Source of Truth" that replaces individual properties in ChumakApp.
+ * This is the "Source of Truth" that replaces individual properties in SytoApp.
  */
 export class AppStore {
   // Data State
@@ -30,7 +30,7 @@ export class AppStore {
   static activeDialog = signal<DialogName>(null);
   static isDragging = signal(false);
   static selectedColumn = signal<string | null>(null);
-  static theme = signal<'chumak' | 'blues'>('chumak');
+  static theme = signal<'syto' | 'blues'>('syto');
   static isTransforming = signal(false);
   static transformMessage = signal('');
   static columnToolbarPos = signal({ x: 0, y: 0, arrowOffset: 0 });
@@ -99,11 +99,11 @@ export class AppStore {
   static uxSettings = signal<{
     pagination: { pageSize: number };
     preview: { rowLimit: number };
-    theme: 'blues' | 'chumak';
+    theme: 'blues' | 'syto';
   }>({
     pagination: { pageSize: 500 },
     preview: { rowLimit: 100 },
-    theme: 'chumak',
+    theme: 'syto',
   });
 
   // Type Menu State

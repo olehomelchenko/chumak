@@ -1,7 +1,7 @@
 /**
  * Component Library Index
  *
- * Exports all Preact components and utilities for the Chumak app.
+ * Exports all Preact components and utilities for the Syto app.
  */
 
 // Dialog components

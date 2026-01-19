@@ -16,7 +16,7 @@ export function debugLogCurrentPage() {
   const end = start + pageSize;
   const pageData = data ? data.slice(start, end) : [];
 
-  console.group('🔍 Chumak Debug: Current Page Data');
+  console.group('🔍 Syto Debug: Current Page Data');
   console.log('Page:', currentPage + 1);
   console.log('Page size:', pageSize);
   console.log('Total rows:', data?.length || 0);
@@ -71,7 +71,7 @@ export function debugLogAllData() {
   const columns = AppStore.columns.value;
   const schema = AppStore.activeModel.value?.schema || AppStore.activeSource.value?.columns || [];
 
-  console.group('🔍 Chumak Debug: All Data');
+  console.group('🔍 Syto Debug: All Data');
   console.log('Total rows:', data?.length || 0);
   console.log('Columns:', columns);
   console.log('Schema:', schema);
@@ -94,7 +94,7 @@ export async function debugLogServiceWorkerStatus() {
     return;
   }
 
-  console.group('🔍 Chumak Debug: Service Worker Status');
+  console.group('🔍 Syto Debug: Service Worker Status');
 
   try {
     const registrations = await navigator.serviceWorker.getRegistrations();
@@ -148,20 +148,20 @@ export async function debugLogServiceWorkerStatus() {
  */
 export function setupDebugHelpers() {
   if (typeof window !== 'undefined') {
-    (window as any).chumakDebug = {
+    (window as any).sytoDebug = {
       page: debugLogCurrentPage,
       all: debugLogAllData,
       sw: debugLogServiceWorkerStatus,
       store: AppStore, // Expose AppStore for inspection
     };
     console.log(
-      '%c🔍 Chumak Debug Helpers Available',
+      '%c🔍 Syto Debug Helpers Available',
       'color: #4CAF50; font-weight: bold; font-size: 14px;'
     );
     console.log('Use in console:');
-    console.log('  chumakDebug.page() - Log current page data');
-    console.log('  chumakDebug.all() - Log all data');
-    console.log('  chumakDebug.sw() - Check service worker status');
-    console.log('  chumakDebug.store - Access AppStore');
+    console.log('  sytoDebug.page() - Log current page data');
+    console.log('  sytoDebug.all() - Log all data');
+    console.log('  sytoDebug.sw() - Check service worker status');
+    console.log('  sytoDebug.store - Access AppStore');
   }
 }

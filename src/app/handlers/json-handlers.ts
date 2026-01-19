@@ -1,11 +1,11 @@
-import type { ChumakApp } from '../../chumak-app';
+import type { SytoApp } from '../../syto-app';
 
-export function getStepsJson(this: ChumakApp): string {
+export function getStepsJson(this: SytoApp): string {
   if (!this.activeModel?.steps) return '';
   return JSON.stringify({ transforms: this.activeModel.steps }, null, 2);
 }
 
-export function enterJsonEditMode(this: ChumakApp) {
+export function enterJsonEditMode(this: SytoApp) {
   if (!this.activeModel?.steps) return;
   this.jsonEditBackup = JSON.parse(JSON.stringify(this.activeModel.steps));
   this.jsonEditContent = this.getStepsJson();
@@ -13,7 +13,7 @@ export function enterJsonEditMode(this: ChumakApp) {
   this.jsonEditMode = true;
 }
 
-export function cancelJsonEdit(this: ChumakApp) {
+export function cancelJsonEdit(this: SytoApp) {
   if (this.activeModel) {
     this.activeModel.steps = this.jsonEditBackup;
   }
@@ -21,7 +21,7 @@ export function cancelJsonEdit(this: ChumakApp) {
   this.jsonEditError = null;
 }
 
-export async function applyJsonChanges(this: ChumakApp) {
+export async function applyJsonChanges(this: SytoApp) {
   if (!this.activeModel) return;
 
   try {

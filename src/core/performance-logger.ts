@@ -1,5 +1,5 @@
 /**
- * Chumak Performance Logger
+ * Syto Performance Logger
  */
 
 export interface DataShape {

@@ -1,13 +1,13 @@
 # Architectural Migration: From "JS Drag" to Robust TypeScript
 
-This document outlines the roadmap for modernizing the Chumak codebase, moving away from legacy JavaScript patterns (Alpine.js, `any` types, and untyped HTML templates) toward a statically verified, component-based architecture using **Preact**, **TSX**, and **Signals**.
+This document outlines the roadmap for modernizing the Syto codebase, moving away from legacy JavaScript patterns (Alpine.js, `any` types, and untyped HTML templates) toward a statically verified, component-based architecture using **Preact**, **TSX**, and **Signals**.
 
 ## The Goal
 
 - **100% Type Safety**: Eliminate all `any` types in Core and UI logic.
 - **Verified UI**: Use TSX to ensure templates are verified by the compiler.
 - **UX Flow Testing**: Implement headless testing for all user interactions.
-- **Decoupled Architecture**: Move away from the 1200+ line "God Object" (`ChumakApp`), target < 300 lines.
+- **Decoupled Architecture**: Move away from the 1200+ line "God Object" (`SytoApp`), target < 300 lines.
 
 ---
 
@@ -59,12 +59,12 @@ _Status: ✅ Complete_
 
 _Status: ✅ Complete_
 
-**Goal**: Break the 1200+ line `ChumakApp` "God Object" into manageable execution units.
+**Goal**: Break the 1200+ line `SytoApp` "God Object" into manageable execution units.
 
 ### 3a: Logic Extraction (Store & Service Pattern)
 
 - [x] **Global Signal Store**: Centralize global app state (`sources`, `models`, `activeModel`) into `AppStore` using Preact signals.
-- [x] **Dialog State Stores**: Moved all dialog logic and state from `ChumakApp` into `DialogStore`.
+- [x] **Dialog State Stores**: Moved all dialog logic and state from `SytoApp` into `DialogStore`.
   - [x] All dialogs (Sort, Join, Filter, Derive, Aggregate, Pivot, replacement, split, dedupe, etc.) are now signal-based.
 - [x] **Service Extraction**: Business logic moved into standalone services.
   - [x] **ModelService**: Source/Model lifecycle management.
@@ -80,7 +80,7 @@ _Status: ✅ Complete_
 
 - [x] **Pure Transforms**: `src/core` remains framework-agnostic (only type imports from `src/app/types.ts`).
 - [x] **Execution Engine**: `StepService.runTransform()` and `StepService.applyStepResult()` now handle all transform execution.
-  - [x] `ExecutionCallbacks` interface bridges UI callbacks without coupling to `ChumakApp`.
+  - [x] `ExecutionCallbacks` interface bridges UI callbacks without coupling to `SytoApp`.
   - [x] `helper-handlers.ts` provides `createExecutionCallbacks(app)` for legacy compatibility.
 
 ### 3c: Testing Strategy
@@ -89,7 +89,7 @@ _Status: ✅ Complete_
 - [ ] **Integration Tests**: Verify stores work correctly without the UI layer.
 - [ ] **E2E Smoke Tests**: Ensure the critical path (Import -> Transform -> Export) works.
 
-**Done when**: `ChumakApp` is a thin shell (< 300 lines) coordinating stores and services.
+**Done when**: `SytoApp` is a thin shell (< 300 lines) coordinating stores and services.
 
 ---
 
@@ -138,7 +138,7 @@ _Status: ✅ Complete_
   - [x] Convert the Slide-in Panel and Centered Modal shells to a main `App.tsx` layout.
   - [x] Replace `src/main.ts` with `src/main.tsx` as the app entry point.
   - [x] Replace `index.html` body with a single `#app-root`.
-  - [x] Remove `x-data="chumakApp()"` and Alpine dependency.
+  - [x] Remove `x-data="sytoApp()"` and Alpine dependency.
 - [x] **Dialog Components Refactored to Store-Based**:
   - [x] `JoinDialog` - uses `DialogStore.joinState` directly
   - [x] `ColumnEditorDialog` - uses `DialogStore.columnEditorState` directly

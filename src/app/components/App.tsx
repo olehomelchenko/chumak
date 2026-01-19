@@ -63,7 +63,7 @@ import styles from './App.module.css';
 import tableStyles from './DataTable.module.css';
 
 interface AppProps {
-  app: any; // ChumakApp instance
+  app: any; // SytoApp instance
 }
 
 export function App({ app }: AppProps) {

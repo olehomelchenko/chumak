@@ -8,10 +8,10 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { AppStore } from '../stores/AppStore';
 import { DialogStore } from '../stores/DialogStore';
 import * as DialogHandlers from './dialog-handlers';
-import { ChumakApp } from '../../chumak-app';
+import { SytoApp } from '../../syto-app';
 
 describe('Dialog Handlers', () => {
-  let app: ChumakApp;
+  let app: SytoApp;
 
   beforeEach(() => {
     // Reset all stores
@@ -23,7 +23,7 @@ describe('Dialog Handlers', () => {
     vi.spyOn(console, 'warn').mockImplementation(() => {});
 
     // Create app instance
-    app = new ChumakApp();
+    app = new SytoApp();
 
     // Mock dialog methods
     app.alert = vi.fn().mockResolvedValue(undefined);
@@ -34,7 +34,7 @@ describe('Dialog Handlers', () => {
 
     // Set up default UX settings
     AppStore.uxSettings.value = {
-      theme: 'chumak',
+      theme: 'syto',
       preview: {
         rowLimit: 10,
       },

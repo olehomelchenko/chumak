@@ -37,7 +37,7 @@ import {
   ImportUrlDialogState,
 } from './app/types';
 
-export class ChumakApp implements AppState {
+export class SytoApp implements AppState {
   // UI state (proxied to AppStore signals)
   get activeStep() {
     return AppStore.activeStep.value;
@@ -1196,7 +1196,7 @@ export class ChumakApp implements AppState {
   }
 
   async init() {
-    console.log('Initializing Chumak App...');
+    console.log('Initializing Syto App...');
 
     this.uxSettings = loadUXSettings();
     this.pageSize = this.uxSettings.pagination.pageSize;
@@ -1325,7 +1325,7 @@ export class ChumakApp implements AppState {
     document.documentElement.setAttribute('data-theme', this.theme);
   }
 
-  switchTheme(theme: 'blues' | 'chumak') {
+  switchTheme(theme: 'blues' | 'syto') {
     this.theme = theme;
     this.applyTheme();
     updateUXSetting('theme', '', theme); // updateUXSetting in current impl takes category, key, value. Category is 'theme'? No, category is main property.

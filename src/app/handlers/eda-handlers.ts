@@ -1,10 +1,10 @@
-import type { ChumakApp } from '../../chumak-app';
+import type { SytoApp } from '../../syto-app';
 import { SchemaEngine } from '../../core/schema-engine';
 import { EDAEngine } from '../../core/eda-engine';
 import { ChartsEngine } from '../../core/charts';
 import { DialogStore } from '../stores/DialogStore';
 
-export function selectColumn(this: ChumakApp, col: string) {
+export function selectColumn(this: SytoApp, col: string) {
   this.selectedCell = null;
   this.typeMenuOpen = false;
 
@@ -71,7 +71,7 @@ export function selectColumn(this: ChumakApp, col: string) {
   }
 }
 
-export function selectEdaStat(this: ChumakApp, label: string, rawValue: any, event: any) {
+export function selectEdaStat(this: SytoApp, label: string, rawValue: any, event: any) {
   const el = event.currentTarget;
   this.selectedCell = null;
   this.selectedCell = {
@@ -96,7 +96,7 @@ export function selectEdaStat(this: ChumakApp, label: string, rawValue: any, eve
   });
 }
 
-export function setEdaChartView(this: ChumakApp, view: 'boxplot' | 'histogram') {
+export function setEdaChartView(this: SytoApp, view: 'boxplot' | 'histogram') {
   this.edaChartView = view;
   this.edaBrushSelection = null;
   if (this.selectedColumn && this.edaStats) {
@@ -123,7 +123,7 @@ export function setEdaChartView(this: ChumakApp, view: 'boxplot' | 'histogram') 
   }
 }
 
-export function setEdaDateTreatment(this: ChumakApp, treatment: 'temporal' | 'categorical') {
+export function setEdaDateTreatment(this: SytoApp, treatment: 'temporal' | 'categorical') {
   this.edaDateTreatment = treatment;
   if (this.selectedColumn && this.edaStats && ['date', 'datetime'].includes(this.edaStats.type)) {
     requestAnimationFrame(() => {
@@ -147,11 +147,11 @@ export function setEdaDateTreatment(this: ChumakApp, treatment: 'temporal' | 'ca
   }
 }
 
-export function handleBrushSelection(this: ChumakApp, selection: any) {
+export function handleBrushSelection(this: SytoApp, selection: any) {
   this.edaBrushSelection = selection;
 }
 
-export async function applyBrushFilter(this: ChumakApp) {
+export async function applyBrushFilter(this: SytoApp) {
   if (!this.edaBrushSelection || !this.selectedColumn) return;
   const { min, max } = this.edaBrushSelection;
   const col = this.selectedColumn;

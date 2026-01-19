@@ -33,7 +33,7 @@ export function AppHeader({ onOpenDialog, onClearAllData }: AppHeaderProps) {
         {/* Logo */}
         <div class={styles.logo}>
           <span class={styles.logoIcon}>☆</span>
-          <span class={styles.logoText}>Chumak</span>
+          <span class={styles.logoText}>Syto</span>
         </div>
 
         {/* Ribbon Tabs */}
@@ -66,7 +66,7 @@ export function AppHeader({ onOpenDialog, onClearAllData }: AppHeaderProps) {
           <button
             class="button button--secondary button--small"
             onClick={() => onOpenDialog('about')}
-            title="About Chumak"
+            title="About Syto"
           >
             <span class="iconify" data-icon="carbon:information"></span>
             <span>About</span>

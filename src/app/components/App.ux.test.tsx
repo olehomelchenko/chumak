@@ -9,12 +9,12 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, fireEvent, waitFor } from '@testing-library/preact';
 import { App } from './App';
 import { AppStore } from '../stores/AppStore';
-import { ChumakApp } from '../../chumak-app';
+import { SytoApp } from '../../syto-app';
 import { DialogStore } from '../stores/DialogStore';
 import { previewTypeConversion } from '../handlers/interaction-handlers';
 
 describe('App UX Interactions', () => {
-  let app: ChumakApp;
+  let app: SytoApp;
   const testData = [
     { name: 'Alice', age: 30, sales: 1000 },
     { name: 'Bob', age: 25, sales: 1500 },
@@ -31,7 +31,7 @@ describe('App UX Interactions', () => {
     vi.spyOn(console, 'warn').mockImplementation(() => {});
 
     // Create app instance
-    app = new ChumakApp();
+    app = new SytoApp();
 
     // Mock dialog methods
     app.alert = vi.fn().mockResolvedValue(undefined);

@@ -1,7 +1,7 @@
 import { ASTNode } from './expression-parser';
 
 /**
- * Chumak AST Validator - Security and schema validation
+ * Syto AST Validator - Security and schema validation
  */
 
 const ALLOWED_NODE_TYPES = new Set([

@@ -1,5 +1,5 @@
 /**
- * Chumak Schema Engine
+ * Syto Schema Engine
  *
  * Handles granular type inference and schema propagation through transformation steps.
  */
@@ -676,7 +676,7 @@ export const SchemaEngine = {
     if (unknownKey) {
       console.warn(
         `SchemaEngine: Unknown transform key "${unknownKey}" encountered in deriveNextSchema. ` +
-          `Schema will remain unchanged. This may be from a newer version of Chumak.`
+          `Schema will remain unchanged. This may be from a newer version of Syto.`
       );
     }
 

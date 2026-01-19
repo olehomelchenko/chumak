@@ -1,6 +1,6 @@
 # Transform Architecture Review
 
-> **Purpose**: Analysis of Chumak's transform building blocks, gaps, and improvement opportunities
+> **Purpose**: Analysis of Syto's transform building blocks, gaps, and improvement opportunities
 >
 > **Related Documents**:
 >
@@ -15,7 +15,7 @@
 
 ### 1.1 Transform Inventory
 
-Chumak currently provides **18 transforms**, each following the single-responsibility principle:
+Syto currently provides **18 transforms**, each following the single-responsibility principle:
 
 | Category                 | Transforms                             | Granularity    |
 | ------------------------ | -------------------------------------- | -------------- |
@@ -26,11 +26,11 @@ Chumak currently provides **18 transforms**, each following the single-responsib
 | **Multi-Model**          | `join`                                 | Single-purpose |
 | **Metadata**             | `addIndex`, `sort`, `import`           | Single-purpose |
 
-### 1.2 What Chumak Does Well
+### 1.2 What Syto Does Well
 
-Compared to Power Query M's documented limitations, Chumak already avoids several pitfalls:
+Compared to Power Query M's documented limitations, Syto already avoids several pitfalls:
 
-| M Limitation                                           | Chumak's Approach                                                 |
+| M Limitation                                           | Syto's Approach                                                   |
 | ------------------------------------------------------ | ----------------------------------------------------------------- |
 | Opaque lazy evaluation causing "time-traveling" errors | Eager sequential execution - transforms run in written order      |
 | No native regex support                                | `regexp_match()` and `regexp_extract()` in expressions            |

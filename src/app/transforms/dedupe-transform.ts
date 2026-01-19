@@ -1,4 +1,4 @@
-import type { ChumakApp } from '../../chumak-app';
+import type { SytoApp } from '../../syto-app';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 
@@ -128,7 +128,7 @@ export function findAllDuplicateRowCount(data: any[], columns: string[]): number
   return count;
 }
 
-export async function applyDedupeTransform(this: ChumakApp) {
+export async function applyDedupeTransform(this: SytoApp) {
   const { mode } = DialogStore.dedupeState;
   const columns = getDedupeColumns();
   const opName = mode.value === 'keep' ? 'Keep Duplicates' : 'Remove Duplicates';

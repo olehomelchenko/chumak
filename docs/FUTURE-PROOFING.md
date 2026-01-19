@@ -4,18 +4,18 @@
 
 **Use this document when:** Adding new column types, transforms, functions, or modifying data structures that get persisted.
 
-This is not a theoretical "what if we rename everything" document. It focuses on **realistic scenarios** you'll encounter when evolving Chumak and how to handle them gracefully.
+This is not a theoretical "what if we rename everything" document. It focuses on **realistic scenarios** you'll encounter when evolving Syto and how to handle them gracefully.
 
 ---
 
 ## How Data is Persisted
 
-| Location               | What's Stored                          | Format                                            |
-| ---------------------- | -------------------------------------- | ------------------------------------------------- |
-| IndexedDB `sources`    | Raw imported data + metadata           | `Source` objects                                  |
-| IndexedDB `models`     | Transform pipelines + computed results | `Model` objects with `TransformStep[]`            |
-| Exported workflow JSON | Portable pipeline definition           | `{ formatVersion, chumakVersion, source, model }` |
-| URL hash               | Current view state                     | `/#/sourceId/modelId`                             |
+| Location               | What's Stored                          | Format                                          |
+| ---------------------- | -------------------------------------- | ----------------------------------------------- |
+| IndexedDB `sources`    | Raw imported data + metadata           | `Source` objects                                |
+| IndexedDB `models`     | Transform pipelines + computed results | `Model` objects with `TransformStep[]`          |
+| Exported workflow JSON | Portable pipeline definition           | `{ formatVersion, sytoVersion, source, model }` |
+| URL hash               | Current view state                     | `/#/sourceId/modelId`                           |
 
 **Key insight:** IndexedDB stores the full objects, including computed `data` arrays. Workflow JSON stores just the pipeline definition.
 
@@ -236,7 +236,7 @@ export interface Model {
 - ✅ Schema version fields (`__v`) on Source and Model - enables version-based migrations
 - ✅ Graceful unknown type handling (`normalizeSchema()`) - converts unknown types to `string`
 - ✅ Graceful unknown transform handling - skips unknown transforms with warnings
-- ✅ Workflow format versioning (`formatVersion`, `chumakVersion`) - enables format detection
+- ✅ Workflow format versioning (`formatVersion`, `sytoVersion`) - enables format detection
 - ✅ Join references use ID only (not names) - prevents breaks when names change
 
 **You should use these patterns when adding new features.**

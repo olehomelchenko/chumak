@@ -2,7 +2,7 @@
 
 ## Overview
 
-Add a comprehensive deduplication feature to Chumak that allows users to detect and remove duplicate rows based on table-level or column-level criteria.
+Add a comprehensive deduplication feature to Syto that allows users to detect and remove duplicate rows based on table-level or column-level criteria.
 
 ## Features
 
@@ -47,7 +47,7 @@ if (transform.dedupe) {
 
 ---
 
-### 2. Main Application (`src/chumak-app.ts`)
+### 2. Main Application (`src/syto-app.ts`)
 
 **Add state property** (around line 160, near other dialog states):
 
@@ -159,7 +159,7 @@ Update `<tr>` to include duplicate class when highlighted.
 
 ---
 
-### 5. Template Config (`src/chumak-app.ts`)
+### 5. Template Config (`src/syto-app.ts`)
 
 **Add to `getTemplateConfigs()`**:
 
@@ -187,7 +187,7 @@ Update `<tr>` to include duplicate class when highlighted.
 ## Implementation Order
 
 1. **Transform logic**: Add `dedupe` handling in `transforms.ts`
-2. **App state**: Add `dedupeDialogState` and methods in `chumak-app.ts`
+2. **App state**: Add `dedupeDialogState` and methods in `syto-app.ts`
 3. **Modal template**: Create `dedupe-modal.html`
 4. **UI integration**: Enable ribbon button, add toolbar button, add modal container
 5. **Styling**: Add duplicate row CSS classes

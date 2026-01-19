@@ -1,15 +1,15 @@
 # Project Finalization & Robustness Plan
 
-This plan aims to complete the transition to a modern, decoupled architecture by thinning the `ChumakApp` coordinator, removing "skeleton" UI elements, and establishing a verification baseline with E2E tests.
+This plan aims to complete the transition to a modern, decoupled architecture by thinning the `SytoApp` coordinator, removing "skeleton" UI elements, and establishing a verification baseline with E2E tests.
 
 ## Proposed Changes
 
-### 1. Refactor `ChumakApp` (Coordinator) - COMPLETE
+### 1. Refactor `SytoApp` (Coordinator) - COMPLETE
 
 The goal was to reduce `chumak-app.ts` from 1377 lines to < 300 lines (currently around 900, still thining).
 
 - [x] Extract all transformation handlers into standalone files in `src/app/handlers/`.
-- [x] Decouple UI dialogs from `ChumakApp` props.
+- [x] Decouple UI dialogs from `SytoApp` props.
 - [ ] Move pagination logic to `pagination-handlers.ts`.
 - [ ] Remove remaining redundant state management methods (Notification, EDA).
 

@@ -86,7 +86,7 @@ Step editing allows users to modify transformation steps after they've been adde
 
 ### Core Methods
 
-**Location**: [src/chumak-app.js](../src/chumak-app.js:2382-2490)
+**Location**: [src/syto-app.js](../src/syto-app.js:2382-2490)
 
 #### `editStep(stepIndex)`
 
@@ -175,7 +175,7 @@ async applyStepResult(transform, resultTable) {
 - `null` = not editing (default)
 - `number` = index of step being edited
 
-**Location**: [src/chumak-app.js:9](../src/chumak-app.js:9)
+**Location**: [src/syto-app.js:9](../src/syto-app.js:9)
 
 ### UI Components
 
@@ -198,7 +198,7 @@ async applyStepResult(transform, resultTable) {
 - Not on types step (`!step.types`)
 - Only on last step (`index === activeModel.steps.length - 1`)
 
-**CSS Styling**: [styles/chumak.css:447-467](../styles/chumak.css:447-467)
+**CSS Styling**: [styles/syto.css:447-467](../styles/syto.css:447-467)
 
 ```css
 .step-item__edit {
@@ -503,9 +503,9 @@ When adding edit support for a new transform:
 
 **Files Modified**: 4
 
-- `src/chumak-app.js` - Core methods
+- `src/syto-app.js` - Core methods
 - `index.html` - Edit button UI
-- `styles/chumak.css` - Button styling
+- `styles/syto.css` - Button styling
 - `src/tests/step-editing.test.js` - Test suite (new file)
 - `src/tests/runner.html` - Include new test file
 
@@ -620,6 +620,6 @@ Continue anyway? [Cancel] [Edit Anyway]
 ## References
 
 - **Original Plan**: `/Users/oleh/.claude/plans/whimsical-humming-hellman.md`
-- **Core Implementation**: [src/chumak-app.js:2382-2490](../src/chumak-app.js:2382-2490)
+- **Core Implementation**: [src/syto-app.js:2382-2490](../src/syto-app.js:2382-2490)
 - **Test Suite**: [src/tests/step-editing.test.js](../src/tests/step-editing.test.js)
 - **Arquero API**: [https://uwdata.github.io/arquero/](https://uwdata.github.io/arquero/)

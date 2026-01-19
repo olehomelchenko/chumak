@@ -1,6 +1,6 @@
-import type { ChumakApp } from '../../chumak-app';
+import type { SytoApp } from '../../syto-app';
 
-export function showError(this: ChumakApp, title: string, message: string, options: any = {}) {
+export function showError(this: SytoApp, title: string, message: string, options: any = {}) {
   const { stepIndex, stepDescription, duration = 0 } = options;
   let stepInfo = null;
   if (stepIndex !== undefined && stepDescription) {
@@ -9,18 +9,18 @@ export function showError(this: ChumakApp, title: string, message: string, optio
   this._addNotification('error', title, message, stepInfo, duration);
 }
 
-export function showWarning(this: ChumakApp, title: string, message: string, options: any = {}) {
+export function showWarning(this: SytoApp, title: string, message: string, options: any = {}) {
   const { duration = 6000 } = options;
   this._addNotification('warning', title, message, null, duration);
 }
 
-export function showSuccess(this: ChumakApp, message: string, options: any = {}) {
+export function showSuccess(this: SytoApp, message: string, options: any = {}) {
   const { duration = 3000 } = options;
   this._addNotification('success', 'Success', message, null, duration);
 }
 
 export function _addNotification(
-  this: ChumakApp,
+  this: SytoApp,
   type: string,
   title: string,
   message: string,
@@ -48,7 +48,7 @@ export function _addNotification(
   }
 }
 
-export function dismissNotification(this: ChumakApp, id: number) {
+export function dismissNotification(this: SytoApp, id: number) {
   const notification = this.notifications.find((n) => n.id === id);
   if (notification) {
     notification.visible = false;
@@ -58,7 +58,7 @@ export function dismissNotification(this: ChumakApp, id: number) {
   }
 }
 
-export function getNotificationIcon(this: ChumakApp, type: string) {
+export function getNotificationIcon(this: SytoApp, type: string) {
   switch (type) {
     case 'error':
       return '⚠️';
@@ -71,7 +71,7 @@ export function getNotificationIcon(this: ChumakApp, type: string) {
   }
 }
 
-export function alert(this: ChumakApp, message: string, title = 'Alert'): Promise<boolean> {
+export function alert(this: SytoApp, message: string, title = 'Alert'): Promise<boolean> {
   return new Promise((resolve) => {
     this.messageBox = {
       visible: true,
@@ -84,7 +84,7 @@ export function alert(this: ChumakApp, message: string, title = 'Alert'): Promis
   });
 }
 
-export function confirm(this: ChumakApp, message: string, title = 'Confirm'): Promise<boolean> {
+export function confirm(this: SytoApp, message: string, title = 'Confirm'): Promise<boolean> {
   return new Promise((resolve) => {
     this.messageBox = {
       visible: true,
@@ -98,7 +98,7 @@ export function confirm(this: ChumakApp, message: string, title = 'Confirm'): Pr
 }
 
 export function prompt(
-  this: ChumakApp,
+  this: SytoApp,
   message: string,
   defaultValue = '',
   title = 'Prompt'
@@ -115,7 +115,7 @@ export function prompt(
   });
 }
 
-export function closeMessageBox(this: ChumakApp, result: boolean) {
+export function closeMessageBox(this: SytoApp, result: boolean) {
   const { resolve, type, inputValue } = this.messageBox;
   this.messageBox.visible = false;
 
@@ -130,7 +130,7 @@ export function closeMessageBox(this: ChumakApp, result: boolean) {
   }
 }
 
-export function getMessageBoxIcon(this: ChumakApp) {
+export function getMessageBoxIcon(this: SytoApp) {
   switch (this.messageBox.type) {
     case 'alert':
       return 'carbon:information-filled';

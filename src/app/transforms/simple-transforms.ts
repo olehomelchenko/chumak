@@ -1,7 +1,7 @@
-import type { ChumakApp } from '../../chumak-app';
+import type { SytoApp } from '../../syto-app';
 import { DialogStore } from '../stores/DialogStore';
 
-export async function applySortTransform(this: ChumakApp) {
+export async function applySortTransform(this: SytoApp) {
   const field = DialogStore.sortState.field.value;
   const order = DialogStore.sortState.order.value;
   if (!field) {
@@ -11,7 +11,7 @@ export async function applySortTransform(this: ChumakApp) {
   await this.runTransform('Sort', { sort: { field, order } });
 }
 
-export async function applySliceRowsTransform(this: ChumakApp) {
+export async function applySliceRowsTransform(this: SytoApp) {
   const { count, mode } = this.sliceRowsDialogState;
   if (!count || count <= 0) {
     await this.alert('Please enter a valid number of rows');
@@ -20,7 +20,7 @@ export async function applySliceRowsTransform(this: ChumakApp) {
   await this.runTransform('Slice Rows', { sliceRows: { count, mode } });
 }
 
-export async function applyIndexTransform(this: ChumakApp) {
+export async function applyIndexTransform(this: SytoApp) {
   const { columnName, startFrom } = this.indexDialogState;
   if (!columnName || columnName.trim() === '') {
     await this.alert('Please enter a column name');
@@ -31,7 +31,7 @@ export async function applyIndexTransform(this: ChumakApp) {
   });
 }
 
-export async function applyReplaceTransform(this: ChumakApp) {
+export async function applyReplaceTransform(this: SytoApp) {
   const { column, findValue, replaceValue } = this.replaceDialogState;
   if (!column) {
     await this.alert('Please select a column');

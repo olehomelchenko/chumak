@@ -1,8 +1,8 @@
-# Chumak App Refactoring Progress
+# Syto App Refactoring Progress
 
 ## Overview
 
-Split [chumak-app.js](../src/chumak-app.js) (2,866 lines) into focused modules to improve maintainability.
+Split [syto-app.js](../src/syto-app.js) (2,866 lines) into focused modules to improve maintainability.
 
 ## Completed Modules (Phase 1 & 2)
 
@@ -120,7 +120,7 @@ Extract from lines ~2760-2860:
 
 ## Integration Plan
 
-### Update [chumak-app.js](../src/chumak-app.js)
+### Update [syto-app.js](../src/syto-app.js)
 
 ```javascript
 import { createExportHandlers } from './app/export-handlers.js';
@@ -130,7 +130,7 @@ import { createDialogManager } from './app/dialog-manager.js';
 import { createInteractionHandlers } from './app/interaction-handlers.js';
 // TODO: Add remaining imports
 
-function chumakApp() {
+function sytoApp() {
   return {
     // State declarations (keep in main file)
     ribbonTab: 'prepare',
@@ -155,7 +155,7 @@ function chumakApp() {
 
 ### Update [index.html](../index.html)
 
-Add module imports before chumak-app.js:
+Add module imports before syto-app.js:
 
 ```html
 <!-- App modules -->
@@ -167,14 +167,14 @@ Add module imports before chumak-app.js:
 <!-- TODO: Add remaining module imports -->
 
 <!-- Main app -->
-<script type="module" src="src/chumak-app.js"></script>
+<script type="module" src="src/syto-app.js"></script>
 ```
 
 ## Expected File Sizes After Completion
 
 | File                    | Current | Target | Reduction |
 | ----------------------- | ------- | ------ | --------- |
-| chumak-app.js           | 2,866   | ~350   | -88%      |
+| syto-app.js             | 2,866   | ~350   | -88%      |
 | export-handlers.js      | -       | 185    | +185      |
 | import-handlers.js      | -       | 470    | +470      |
 | eda-handlers.js         | -       | 175    | +175      |
@@ -201,7 +201,7 @@ Add module imports before chumak-app.js:
 2. Extract model-manager.js
 3. Extract step-manager.js
 4. Extract pagination.js
-5. Update chumak-app.js with imports and mixins
+5. Update syto-app.js with imports and mixins
 6. Update index.html with module imports
 7. Test all functionality
 8. Update CLAUDE.md with new structure

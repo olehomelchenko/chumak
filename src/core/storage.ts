@@ -1,10 +1,10 @@
 /**
- * Chumak Storage Layer - IndexedDB Persistence
+ * Syto Storage Layer - IndexedDB Persistence
  */
 
 import { SchemaEngine } from './schema-engine';
 
-const DB_NAME = 'chumak-db';
+const DB_NAME = 'syto-db';
 const DB_VERSION = 1;
 
 /**

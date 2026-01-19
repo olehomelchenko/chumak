@@ -1,14 +1,14 @@
-import type { ChumakApp } from '../../chumak-app';
+import type { SytoApp } from '../../syto-app';
 import { parseExpression } from '../../core/expression-parser';
 import { interpretAST } from '../../core/ast-interpreter';
 import { DialogStore } from '../stores/DialogStore';
 
-export function validateFilterExpression(this: ChumakApp) {
+export function validateFilterExpression(this: SytoApp) {
   const expr = DialogStore.filterState.expression.value;
   DialogStore.filterState.error.value = this.validateExpression(expr);
 }
 
-export function debouncedUpdateFilterPreview(this: ChumakApp) {
+export function debouncedUpdateFilterPreview(this: SytoApp) {
   if (this._previewDebounceTimer) {
     clearTimeout(this._previewDebounceTimer);
   }
@@ -17,7 +17,7 @@ export function debouncedUpdateFilterPreview(this: ChumakApp) {
   }, 150);
 }
 
-export function updateFilterPreview(this: ChumakApp) {
+export function updateFilterPreview(this: SytoApp) {
   const expr = DialogStore.filterState.expression.value.trim();
   const hasError = DialogStore.filterState.error.value;
   const previewMode = DialogStore.filterState.previewMode.value;
@@ -81,13 +81,13 @@ export function updateFilterPreview(this: ChumakApp) {
   }
 }
 
-export function toggleFilterPreviewMode(this: ChumakApp) {
+export function toggleFilterPreviewMode(this: SytoApp) {
   const current = DialogStore.filterState.previewMode.value;
   DialogStore.filterState.previewMode.value = current === 'matching' ? 'all' : 'matching';
   this.updateFilterPreview();
 }
 
-export async function applyFilterTransform(this: ChumakApp) {
+export async function applyFilterTransform(this: SytoApp) {
   const expr = DialogStore.filterState.expression.value.trim();
   const hasError = DialogStore.filterState.error.value;
 

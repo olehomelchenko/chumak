@@ -1,7 +1,7 @@
 import { ASTNode } from './expression-parser';
 
 /**
- * Chumak AST Interpreter - Safe expression evaluation
+ * Syto AST Interpreter - Safe expression evaluation
  */
 
 const BINARY_OPS: Record<string, (l: any, r: any) => any> = {

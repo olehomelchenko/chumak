@@ -1,4 +1,4 @@
-import type { ChumakApp } from '../../chumak-app';
+import type { SytoApp } from '../../syto-app';
 import { describeTransform } from '../../core/transforms';
 import { Model } from '../types';
 import { ColumnSchema, TransformStep } from '../../core/schema-engine';
@@ -12,9 +12,9 @@ import * as PatternHandlers from './pattern-handlers';
 
 /**
  * Dispatches transform application based on the active dialog.
- * Each case calls the corresponding method on ChumakApp directly.
+ * Each case calls the corresponding method on SytoApp directly.
  */
-export async function applyActiveTransform(this: ChumakApp) {
+export async function applyActiveTransform(this: SytoApp) {
   switch (this.activeDialog) {
     case 'filter':
       await this.applyFilterTransform();
@@ -104,7 +104,7 @@ export async function applyActiveTransform(this: ChumakApp) {
  * Computes a model's data up to a specific step.
  * Delegates to StepService for the actual computation.
  */
-export function computeModelUpToStep(this: ChumakApp, model: Model, stepIndex: number) {
+export function computeModelUpToStep(this: SytoApp, model: Model, stepIndex: number) {
   return StepService.computeModelUpToStep(model, stepIndex, {
     sources: this.sources,
     models: this.models,
@@ -114,7 +114,7 @@ export function computeModelUpToStep(this: ChumakApp, model: Model, stepIndex: n
 /**
  * Computes the active model up to a specific step.
  */
-export function computeUpToStep(this: ChumakApp, stepIndex: number) {
+export function computeUpToStep(this: SytoApp, stepIndex: number) {
   if (!this.activeModel) throw new Error('No active model');
   return this.computeModelUpToStep(this.activeModel, stepIndex);
 }
@@ -122,7 +122,7 @@ export function computeUpToStep(this: ChumakApp, stepIndex: number) {
 /**
  * Views the result at a specific step index.
  */
-export function viewStep(this: ChumakApp, stepIndex: number) {
+export function viewStep(this: SytoApp, stepIndex: number) {
   try {
     const result = this.computeUpToStep(stepIndex);
     this.currentData = result.data;
@@ -145,7 +145,7 @@ export function viewStep(this: ChumakApp, stepIndex: number) {
 /**
  * Views the final result of the active model.
  */
-export function viewFinalResult(this: ChumakApp) {
+export function viewFinalResult(this: SytoApp) {
   if (!this.activeModel) return;
   this.currentData = this.activeModel.data;
   if (this.activeModel.schema && this.activeModel.schema.length > 0) {
@@ -165,7 +165,7 @@ export function viewFinalResult(this: ChumakApp) {
 /**
  * Opens a dialog to edit an existing step.
  */
-export function editStep(this: ChumakApp, stepIndex: number) {
+export function editStep(this: SytoApp, stepIndex: number) {
   if (!this.activeModel) return;
   const step = this.activeModel.steps[stepIndex];
   if (!step || step.import || step.types) return;
@@ -330,7 +330,7 @@ export function editStep(this: ChumakApp, stepIndex: number) {
 /**
  * Cancels the current edit operation.
  */
-export function cancelEdit(this: ChumakApp) {
+export function cancelEdit(this: SytoApp) {
   this.editingStepIndex = null;
   this.closeDialog(true);
 }
@@ -338,7 +338,7 @@ export function cancelEdit(this: ChumakApp) {
 /**
  * Removes a step from the active model.
  */
-export async function removeStep(this: ChumakApp, stepIndex: number) {
+export async function removeStep(this: SytoApp, stepIndex: number) {
   if (!this.activeModel) return;
   if (this.activeModel.steps[stepIndex].import) {
     this.showWarning('Cannot remove import step', 'The import step is required.');
@@ -362,7 +362,7 @@ export async function removeStep(this: ChumakApp, stepIndex: number) {
  * Shows a modal for choosing how to remove a step (single vs cascade).
  */
 export function showStepRemovalModal(
-  this: ChumakApp,
+  this: SytoApp,
   stepIndex: number
 ): Promise<'single' | 'all' | null> {
   if (!this.activeModel) return Promise.resolve(null);
@@ -384,7 +384,7 @@ export function showStepRemovalModal(
 /**
  * Closes the step removal modal.
  */
-export function closeStepRemovalModal(this: ChumakApp, confirmed: boolean) {
+export function closeStepRemovalModal(this: SytoApp, confirmed: boolean) {
   if (this.stepRemovalModal.resolve) {
     this.stepRemovalModal.resolve(confirmed ? this.stepRemovalModal.removeMode : null);
   }
@@ -394,11 +394,7 @@ export function closeStepRemovalModal(this: ChumakApp, confirmed: boolean) {
 /**
  * Executes the removal of a step from the model.
  */
-export async function executeStepRemoval(
-  this: ChumakApp,
-  stepIndex: number,
-  mode: 'single' | 'all'
-) {
+export async function executeStepRemoval(this: SytoApp, stepIndex: number, mode: 'single' | 'all') {
   if (!this.activeModel) return;
 
   const self = this;
@@ -417,7 +413,7 @@ export async function executeStepRemoval(
 /**
  * Updates a step in the model with a new transform.
  */
-export async function updateStep(this: ChumakApp, stepIndex: number, newTransform: TransformStep) {
+export async function updateStep(this: SytoApp, stepIndex: number, newTransform: TransformStep) {
   if (!this.activeModel) return;
 
   const self = this;

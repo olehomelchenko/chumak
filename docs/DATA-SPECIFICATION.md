@@ -1,4 +1,4 @@
-# Chumak — Data Specification
+# Syto — Data Specification
 
 > **Related Documentation**:
 >
@@ -7,7 +7,7 @@
 > - **[FUTURE-PROOFING.md](FUTURE-PROOFING.md)**: Schema evolution and compatibility constraints
 > - **[TRANSFORM-ARCHITECTURE-REVIEW.md](TRANSFORM-ARCHITECTURE-REVIEW.md)**: Transform design analysis, gaps, and proposed additions
 
-This document describes how data is structured, stored, and serialized in Chumak.
+This document describes how data is structured, stored, and serialized in Syto.
 
 ---
 
@@ -299,14 +299,14 @@ op.variance('column') — Variance
 | `sources`    | `id` | Full Source objects including data         |
 | `models`     | `id` | Full Model objects including computed data |
 
-**Database name:** `chumak-db`
+**Database name:** `syto-db`
 **Version:** `1`
 
 ### 5.2 localStorage
 
-| Key               | Purpose                                        |
-| ----------------- | ---------------------------------------------- |
-| `chumak-settings` | User preferences (theme, performance settings) |
+| Key             | Purpose                                        |
+| --------------- | ---------------------------------------------- |
+| `syto-settings` | User preferences (theme, performance settings) |
 
 ### 5.3 URL Hash State
 
@@ -326,7 +326,7 @@ Exported workflow JSON for sharing and replay:
 ```json
 {
   "formatVersion": 1,
-  "chumakVersion": "0.1.0",
+  "sytoVersion": "0.1.0",
   "name": "Sales Analysis",
   "exportedAt": "2024-01-15T10:30:00.000Z",
   "source": {

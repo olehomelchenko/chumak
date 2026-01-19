@@ -1,4 +1,4 @@
-import type { ChumakApp } from '../../chumak-app';
+import type { SytoApp } from '../../syto-app';
 import { describeTransform } from '../../core/transforms';
 import { parseExpression } from '../../core/expression-parser';
 import { validateAST } from '../../core/ast-validator';
@@ -11,7 +11,7 @@ export function getPreviewRowLimit(): number {
   return 100;
 }
 
-export function getModelMeta(this: ChumakApp, model: any) {
+export function getModelMeta(this: SytoApp, model: any) {
   if (!model) return '';
   const rowCount = model.data ? model.data.length : 0;
   const colCount = model.schema
@@ -25,15 +25,15 @@ export function getModelMeta(this: ChumakApp, model: any) {
   return `${rowCount.toLocaleString()} x ${colCount} • ${stepsText}`;
 }
 
-export function describeTransformWrapper(this: ChumakApp, transform: any) {
+export function describeTransformWrapper(this: SytoApp, transform: any) {
   return describeTransform(transform);
 }
 
 /**
- * Creates callbacks from ChumakApp for StepService.
+ * Creates callbacks from SytoApp for StepService.
  * This allows the framework-agnostic StepService to interact with the UI.
  */
-export function createExecutionCallbacks(app: ChumakApp): ExecutionCallbacks {
+export function createExecutionCallbacks(app: SytoApp): ExecutionCallbacks {
   return {
     onTransformStart: (label: string) => app.startTransformation(label),
     onTransformEnd: () => app.endTransformation(),
@@ -49,7 +49,7 @@ export function createExecutionCallbacks(app: ChumakApp): ExecutionCallbacks {
  * Runs a transform using StepService.
  */
 export async function runTransform(
-  this: ChumakApp,
+  this: SytoApp,
   label: string,
   transform: any,
   closeDialog = true
@@ -63,7 +63,7 @@ export async function runTransform(
  * Kept for backward compatibility during migration
  */
 export async function applyStepResult(
-  this: ChumakApp,
+  this: SytoApp,
   transform: any,
   resultTable: any,
   closeDialogAfter = true
@@ -72,7 +72,7 @@ export async function applyStepResult(
   return StepService.applyStepResult(transform, resultTable, callbacks, closeDialogAfter);
 }
 
-export function validateExpression(this: ChumakApp, expr: string): string | null {
+export function validateExpression(this: SytoApp, expr: string): string | null {
   const trimmed = expr.trim();
   if (!trimmed) return null;
   try {
@@ -84,7 +84,7 @@ export function validateExpression(this: ChumakApp, expr: string): string | null
   }
 }
 
-export function getColumnType(this: ChumakApp, colName: string): string {
+export function getColumnType(this: SytoApp, colName: string): string {
   const schema = this.getActiveSchema();
   if (schema) {
     const col = schema.find((c: any) => c.name === colName);
@@ -97,15 +97,15 @@ export function getColumnType(this: ChumakApp, colName: string): string {
   return 'string';
 }
 
-export function isComparable(this: ChumakApp, type?: string) {
+export function isComparable(this: SytoApp, type?: string) {
   return ['number', 'integer', 'float', 'date', 'datetime'].includes(type || '');
 }
 
-export function isDateType(this: ChumakApp, type?: string) {
+export function isDateType(this: SytoApp, type?: string) {
   return ['date', 'datetime'].includes(type || '');
 }
 
-export function getTypeIcon(this: ChumakApp, colName: string) {
+export function getTypeIcon(this: SytoApp, colName: string) {
   const type = this.getColumnType(colName);
   switch (type) {
     case 'date':
@@ -128,7 +128,7 @@ export function getTypeIcon(this: ChumakApp, colName: string) {
   }
 }
 
-export function formatCellValue(this: ChumakApp, value: any) {
+export function formatCellValue(this: SytoApp, value: any) {
   if (value === null || value === undefined || value === '') return 'null';
 
   // Handle error objects (Power Query-style error cells)
@@ -165,7 +165,7 @@ export function formatCellValue(this: ChumakApp, value: any) {
  * Formats a cell value for tooltip display.
  * Returns "Error" for error objects instead of "[Object object]".
  */
-export function formatCellValueForTooltip(this: ChumakApp, value: any): string {
+export function formatCellValueForTooltip(this: SytoApp, value: any): string {
   if (value === null || value === undefined || value === '') return 'null';
 
   // Handle error objects - return "Error" instead of "[Object object]"
@@ -194,7 +194,7 @@ export function formatCellValueForTooltip(this: ChumakApp, value: any): string {
   return String(value);
 }
 
-export function getTypeIndicator(this: ChumakApp, colName: string) {
+export function getTypeIndicator(this: SytoApp, colName: string) {
   const type = this.getColumnType(colName);
   switch (type) {
     case 'string':
@@ -214,18 +214,18 @@ export function getTypeIndicator(this: ChumakApp, colName: string) {
   }
 }
 
-export function quoteColumnRef(this: ChumakApp, colName: string) {
+export function quoteColumnRef(this: SytoApp, colName: string) {
   if (/[\s\-+*/()[\]{}]/.test(colName)) {
     return `[${colName}]`;
   }
   return colName;
 }
 
-export function escapePattern(this: ChumakApp, pattern: string) {
+export function escapePattern(this: SytoApp, pattern: string) {
   return pattern.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
 }
 
-export function formatLiteral(this: ChumakApp, value: any, type?: string) {
+export function formatLiteral(this: SytoApp, value: any, type?: string) {
   if (value === null || value === undefined) return 'null';
   if (type === 'number' || type === 'integer' || type === 'float' || typeof value === 'number')
     return String(value);
@@ -246,14 +246,14 @@ export function formatLiteral(this: ChumakApp, value: any, type?: string) {
   return `"${String(value).replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
 }
 
-export function getActiveSchema(this: ChumakApp): ColumnSchema[] {
+export function getActiveSchema(this: SytoApp): ColumnSchema[] {
   if (this.viewingIntermediate && this.viewingSchema) {
     return this.viewingSchema;
   }
   return this.activeModel?.schema || [];
 }
 
-export function preparePreviewData(this: ChumakApp, table: any, limit = 100) {
+export function preparePreviewData(this: SytoApp, table: any, limit = 100) {
   return {
     rows: table.slice(0, limit).objects(),
     columns: table.columnNames(),

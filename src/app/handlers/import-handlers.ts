@@ -1,10 +1,10 @@
-import type { ChumakApp } from '../../chumak-app';
+import type { SytoApp } from '../../syto-app';
 import type { DataRow } from '../types';
 import Papa from 'papaparse';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 
-export function handleFileSelect(this: ChumakApp, event: Event) {
+export function handleFileSelect(this: SytoApp, event: Event) {
   const target = event.target as HTMLInputElement;
   const file = target.files?.[0];
   if (!file) return;
@@ -12,7 +12,7 @@ export function handleFileSelect(this: ChumakApp, event: Event) {
   target.value = '';
 }
 
-export async function handleFileDrop(this: ChumakApp, event: DragEvent) {
+export async function handleFileDrop(this: SytoApp, event: DragEvent) {
   this.isDragging = false;
   const files = event.dataTransfer?.files;
   if (!files || files.length === 0) return;
@@ -25,7 +25,7 @@ export async function handleFileDrop(this: ChumakApp, event: DragEvent) {
   this.showImportDialog(file);
 }
 
-export async function handlePaste(this: ChumakApp, event: ClipboardEvent) {
+export async function handlePaste(this: SytoApp, event: ClipboardEvent) {
   const target = event.target as HTMLElement;
   if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)
     return;
@@ -58,7 +58,7 @@ export async function handlePaste(this: ChumakApp, event: ClipboardEvent) {
   }
 }
 
-export async function promptPaste(this: ChumakApp) {
+export async function promptPaste(this: SytoApp) {
   try {
     if (navigator.clipboard && navigator.clipboard.readText) {
       const text = await navigator.clipboard.readText();
@@ -87,7 +87,7 @@ export async function promptPaste(this: ChumakApp) {
   }
 }
 
-export function showImportDialog(this: ChumakApp, file: File) {
+export function showImportDialog(this: SytoApp, file: File) {
   this.importFileData = { file };
   const fileName = file.name.toLowerCase();
 
@@ -108,7 +108,7 @@ export function showImportDialog(this: ChumakApp, file: File) {
   }
 }
 
-export function handleJsonPreview(this: ChumakApp, file: File, data: any, path = '') {
+export function handleJsonPreview(this: SytoApp, file: File, data: any, path = '') {
   const defaultName = file.name.replace(/\.json$/i, '');
   let resolvedData = data;
 
@@ -149,7 +149,7 @@ export function handleJsonPreview(this: ChumakApp, file: File, data: any, path =
   this.openDialog('import-csv');
 }
 
-export function updateJsonPath(this: ChumakApp) {
+export function updateJsonPath(this: SytoApp) {
   const { fullJsonData, jsonPath, fileName } = this.importDialogState;
   if (!fullJsonData) return;
 
@@ -158,7 +158,7 @@ export function updateJsonPath(this: ChumakApp) {
   this.handleJsonPreview(fileMock, fullJsonData, jsonPath);
 }
 
-export function resolvePath(this: ChumakApp, obj: any, path: string) {
+export function resolvePath(this: SytoApp, obj: any, path: string) {
   if (!path) return obj;
   try {
     const parts = path.split('.');
@@ -178,7 +178,7 @@ export function resolvePath(this: ChumakApp, obj: any, path: string) {
   }
 }
 
-export function getSuggestedKeys(this: ChumakApp, obj: any): string[] {
+export function getSuggestedKeys(this: SytoApp, obj: any): string[] {
   if (obj === null || typeof obj !== 'object') return [];
   if (Array.isArray(obj)) {
     // If it's an array, we could suggest indices or keys of the first element
@@ -190,19 +190,19 @@ export function getSuggestedKeys(this: ChumakApp, obj: any): string[] {
   return Object.keys(obj);
 }
 
-export function selectJsonPathSegment(this: ChumakApp, segment: string) {
+export function selectJsonPathSegment(this: SytoApp, segment: string) {
   const currentPath = this.importDialogState.jsonPath;
   const newPath = currentPath ? `${currentPath}.${segment}` : segment;
   this.importDialogState.jsonPath = newPath;
   this.updateJsonPath();
 }
 
-export function resetJsonPath(this: ChumakApp) {
+export function resetJsonPath(this: SytoApp) {
   this.importDialogState.jsonPath = '';
   this.updateJsonPath();
 }
 
-export function flattenData(this: ChumakApp, data: any[]): any[] {
+export function flattenData(this: SytoApp, data: any[]): any[] {
   return data.map((item) => {
     const flattened: any = {};
     const flatten = (obj: any, prefix = '') => {
@@ -220,7 +220,7 @@ export function flattenData(this: ChumakApp, data: any[]): any[] {
   });
 }
 
-export function serializeNestedData(this: ChumakApp, data: any[]): any[] {
+export function serializeNestedData(this: SytoApp, data: any[]): any[] {
   return data.map((item) => {
     const newItem: any = {};
     Object.keys(item).forEach((key) => {
@@ -235,7 +235,7 @@ export function serializeNestedData(this: ChumakApp, data: any[]): any[] {
   });
 }
 
-export function handleCsvPreview(this: ChumakApp, file: File) {
+export function handleCsvPreview(this: SytoApp, file: File) {
   const previewLimit = AppStore.uxSettings.value.preview.rowLimit;
   Papa.parse(file, {
     preview: previewLimit,
@@ -270,7 +270,7 @@ export function handleCsvPreview(this: ChumakApp, file: File) {
   });
 }
 
-export function showImportUrlDialog(this: ChumakApp) {
+export function showImportUrlDialog(this: SytoApp) {
   this.importUrlDialogState = {
     url: '',
     isFetching: false,
@@ -279,7 +279,7 @@ export function showImportUrlDialog(this: ChumakApp) {
   this.openDialog('import-url');
 }
 
-export async function fetchAndImportFromUrl(this: ChumakApp) {
+export async function fetchAndImportFromUrl(this: SytoApp) {
   const { url } = DialogStore.importUrlState;
   const currentUrl = url.value;
 
@@ -331,7 +331,7 @@ export async function fetchAndImportFromUrl(this: ChumakApp) {
     // We need to call showImportDialog.
     // Since we are in the same module, we can call it if we make it standalone too?
     // Or we can import usage from the class context if we weren't removing `this`.
-    // But showImportDialog is currently `export function showImportDialog(this: ChumakApp...`
+    // But showImportDialog is currently `export function showImportDialog(this: SytoApp...`
     // We need to decouple showImportDialog as well.
     // For now, let's assume showImportDialog is refactored below or we call a refactored version.
 
@@ -346,7 +346,7 @@ export async function fetchAndImportFromUrl(this: ChumakApp) {
   }
 }
 
-export async function confirmImport(this: ChumakApp) {
+export async function confirmImport(this: SytoApp) {
   const {
     headerMode,
     delimiter,
@@ -458,7 +458,7 @@ export async function confirmImport(this: ChumakApp) {
   });
 }
 
-export function updateImportPreview(this: ChumakApp) {
+export function updateImportPreview(this: SytoApp) {
   if (!this.importFileData) return;
   const file = this.importFileData.file;
   const delimiter = this.importDialogState.delimiter;
@@ -483,7 +483,7 @@ export function updateImportPreview(this: ChumakApp) {
   });
 }
 
-export function updateHeadersForPreview(this: ChumakApp) {
+export function updateHeadersForPreview(this: SytoApp) {
   const {
     rawPreviewData,
     headerMode,
@@ -546,7 +546,7 @@ export function updateHeadersForPreview(this: ChumakApp) {
   }
 }
 
-export function resolveDuplicateHeaders(this: ChumakApp, headers: string[]) {
+export function resolveDuplicateHeaders(this: SytoApp, headers: string[]) {
   const seen: Record<string, number> = {};
   const duplicates: { name: string; positions: number[] }[] = [];
   const resolvedHeaders: string[] = [];

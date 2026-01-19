@@ -1,4 +1,4 @@
-import type { ChumakApp } from '../../chumak-app';
+import type { SytoApp } from '../../syto-app';
 import { setUrlState, getUrlState, clearUrlHash } from '../../core/url-state';
 import { html as aboutHtml } from '../../content/about.md';
 import { html as expressionsHtml } from '../../content/expressions.md';
@@ -8,7 +8,7 @@ import * as DateHandlers from './date-handlers';
 
 // Local signals replaced by DialogStore
 
-export function getDialogState(this: ChumakApp, dialog: string) {
+export function getDialogState(this: SytoApp, dialog: string) {
   switch (dialog) {
     case 'filter':
       return {
@@ -74,13 +74,13 @@ export function getDialogState(this: ChumakApp, dialog: string) {
   }
 }
 
-export function reSnapshot(this: ChumakApp) {
+export function reSnapshot(this: SytoApp) {
   if (this.activeDialog) {
     this.dialogSnapshot = JSON.stringify(this.getDialogState(this.activeDialog));
   }
 }
 
-export function openDialog(this: ChumakApp, dialogName: string, section?: string) {
+export function openDialog(this: SytoApp, dialogName: string, section?: string) {
   this.activeDialog = dialogName;
   this.initDialogState(dialogName, section);
   this.clearColumnSelection();
@@ -92,7 +92,7 @@ export function openDialog(this: ChumakApp, dialogName: string, section?: string
   }
 }
 
-export function handleHashChange(this: ChumakApp) {
+export function handleHashChange(this: SytoApp) {
   const urlState = getUrlState();
   if (urlState.page) {
     if (this.activeDialog !== urlState.page) {
@@ -122,7 +122,7 @@ export function handleHashChange(this: ChumakApp) {
   }
 }
 
-export function initDialogState(this: ChumakApp, dialogName: string, section?: string) {
+export function initDialogState(this: SytoApp, dialogName: string, section?: string) {
   if (dialogName === 'filter') {
     // State initialized by DialogStore.openDialog call or explicit reset if needed
     // Logic moved to component or kept in store
@@ -289,7 +289,7 @@ export function initDialogState(this: ChumakApp, dialogName: string, section?: s
   }
 }
 
-export function isSlidePanel(this: ChumakApp, dialog: string | null): boolean {
+export function isSlidePanel(this: SytoApp, dialog: string | null): boolean {
   if (!dialog) return false;
   const slidePanels = [
     'filter',
@@ -322,13 +322,13 @@ export function isSlidePanel(this: ChumakApp, dialog: string | null): boolean {
   return slidePanels.includes(dialog);
 }
 
-export function isCenteredModal(this: ChumakApp, dialog: string | null): boolean {
+export function isCenteredModal(this: SytoApp, dialog: string | null): boolean {
   if (!dialog) return false;
   const centeredModals = ['import-url', 'settings', 'download', 'about', 'expressions'];
   return centeredModals.includes(dialog);
 }
 
-export function getDialogTitle(this: ChumakApp): string {
+export function getDialogTitle(this: SytoApp): string {
   switch (this.activeDialog) {
     case 'filter':
       return 'Filter Rows';
@@ -369,7 +369,7 @@ export function getDialogTitle(this: ChumakApp): string {
     case 'download':
       return 'Download Data';
     case 'about':
-      return 'About Chumak';
+      return 'About Syto';
     case 'expressions':
       return 'Expression Reference';
     case 'column-editor':
@@ -389,7 +389,7 @@ export function getDialogTitle(this: ChumakApp): string {
   }
 }
 
-export function getDialogButtonText(this: ChumakApp): string {
+export function getDialogButtonText(this: SytoApp): string {
   switch (this.activeDialog) {
     case 'import-csv':
       return 'Import';
@@ -404,29 +404,29 @@ export function getDialogButtonText(this: ChumakApp): string {
   }
 }
 
-export function getAboutContent(this: ChumakApp): string {
+export function getAboutContent(this: SytoApp): string {
   return aboutHtml;
 }
 
-export function getExpressionsContent(this: ChumakApp): string {
+export function getExpressionsContent(this: SytoApp): string {
   return expressionsHtml;
 }
 
-export function hasPreviewData(this: ChumakApp): boolean {
+export function hasPreviewData(this: SytoApp): boolean {
   if (this.activeDialog === 'import-csv') {
     return DialogStore.importCsvState.previewDataRows.value.length > 0;
   }
   return DialogStore.previewState.rows.value.length > 0;
 }
 
-export function getPreviewTitle(this: ChumakApp): string {
+export function getPreviewTitle(this: SytoApp): string {
   if (this.activeDialog === 'import-csv') {
     return 'Import Preview';
   }
   return DialogStore.previewState.title.value;
 }
 
-export function getPreviewStats(this: ChumakApp): string {
+export function getPreviewStats(this: SytoApp): string {
   if (this.activeDialog === 'import-csv') {
     const rows = DialogStore.importCsvState.previewDataRows.value.length;
     const cols = DialogStore.importCsvState.previewHeaders.value.length;
@@ -436,14 +436,14 @@ export function getPreviewStats(this: ChumakApp): string {
   return DialogStore.previewState.stats.value;
 }
 
-export function getPreviewColumns(this: ChumakApp): string[] {
+export function getPreviewColumns(this: SytoApp): string[] {
   if (this.activeDialog === 'import-csv') {
     return DialogStore.importCsvState.previewHeaders.value;
   }
   return DialogStore.previewState.columns.value;
 }
 
-export function getPreviewRows(this: ChumakApp): any[] {
+export function getPreviewRows(this: SytoApp): any[] {
   if (this.activeDialog === 'import-csv') {
     const headers = DialogStore.importCsvState.previewHeaders.value;
     const rows = DialogStore.importCsvState.previewDataRows.value;
@@ -459,7 +459,7 @@ export function getPreviewRows(this: ChumakApp): any[] {
   return DialogStore.previewState.rows.value;
 }
 
-export function formatPreviewCell(this: ChumakApp, row: any, col: string): string {
+export function formatPreviewCell(this: SytoApp, row: any, col: string): string {
   const val = row[col];
   if (val == null || val === '') return '—';
   if (typeof val === 'boolean') return val ? '✓' : '✗';
@@ -478,7 +478,7 @@ export function formatPreviewCell(this: ChumakApp, row: any, col: string): strin
   return String(val);
 }
 
-export function clearPreview(this: ChumakApp): void {
+export function clearPreview(this: SytoApp): void {
   if (this._previewDebounceTimer) {
     clearTimeout(this._previewDebounceTimer);
     this._previewDebounceTimer = null;
@@ -490,11 +490,11 @@ export function clearPreview(this: ChumakApp): void {
   DialogStore.previewState.rows.value = [];
 }
 
-export function isNewPreviewColumn(this: ChumakApp, col: string): boolean {
+export function isNewPreviewColumn(this: SytoApp, col: string): boolean {
   return DialogStore.previewState.newColumns.value.includes(col);
 }
 
-export function activeDialogError(this: ChumakApp): boolean {
+export function activeDialogError(this: SytoApp): boolean {
   switch (this.activeDialog) {
     case 'filter':
       return !!DialogStore.filterState.error.value;
@@ -537,14 +537,14 @@ export function activeDialogError(this: ChumakApp): boolean {
   }
 }
 
-export function hasUnsavedChanges(this: ChumakApp) {
+export function hasUnsavedChanges(this: SytoApp) {
   if (!this.activeDialog || this.dialogSnapshot === null) return false;
   const current = this.getDialogState(this.activeDialog);
   if (current === null) return false;
   return JSON.stringify(current) !== this.dialogSnapshot;
 }
 
-export async function closeDialog(this: ChumakApp, force = false) {
+export async function closeDialog(this: SytoApp, force = false) {
   if (!force && this.hasUnsavedChanges()) {
     if (!(await this.confirm('You have unsaved changes. Are you sure you want to discard them?')))
       return;
@@ -564,7 +564,7 @@ export async function closeDialog(this: ChumakApp, force = false) {
   this.resetDialogStates();
 }
 
-export function resetDialogStates(this: ChumakApp) {
+export function resetDialogStates(this: SytoApp) {
   DialogStore.resetAll();
   this.importFileData = null;
 }

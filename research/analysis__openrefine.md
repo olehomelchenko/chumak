@@ -541,7 +541,7 @@ assertEquals(invoke("split", "a,b", ","), new String[] {"a", "b"});
 
 ## Phase 9: Ideas and Warnings
 
-### Ideas to Adopt for Chumak
+### Ideas to Adopt for Syto
 
 #### 1. **Two-phase Parse/Evaluate Model** ✅ HIGHLY RECOMMENDED
 
@@ -562,13 +562,13 @@ assertEquals(invoke("split", "a,b", ","), new String[] {"a", "b"});
 - One bad cell doesn't fail entire column
 - Errors propagate through expression tree
 - User can see which rows failed
-- **Critical for Chumak:** Tabular data needs this pattern
+- **Critical for Syto:** Tabular data needs this pattern
 
 #### 4. **Column Dependency Tracking** ⚠️ OPTIONAL BUT VALUABLE
 
 - Performance optimization: only load needed columns
 - Enables smart caching
-- **For Chumak:** Useful for large CSVs in browser, but Phase 2+
+- **For Syto:** Useful for large CSVs in browser, but Phase 2+
 
 #### 5. **Method-style Syntax** ✅ USER-FRIENDLY
 
@@ -595,20 +595,20 @@ assertEquals(invoke("split", "a,b", ","), new String[] {"a", "b"});
 
 - "Parsing error at offset 42: Missing )" is not user-friendly
 - No context, no suggestions, technical jargon
-- **For Chumak:** Show snippet of expression, highlight position, suggest fixes
+- **For Syto:** Show snippet of expression, highlight position, suggest fixes
 - Example: `Expected ')' after expression | value.split(',`) ← here`
 
 #### 2. **Fail-fast, No Error Recovery** ⚠️ ACCEPTABLE BUT LIMITING
 
 - First error stops parsing
 - No multiple error collection
-- **For Chumak:** Consider showing multiple errors in Phase 3, but Phase 1 can match GREL
+- **For Syto:** Consider showing multiple errors in Phase 3, but Phase 1 can match GREL
 
 #### 3. **No Column Name Validation** ⚠️ TRADEOFF
 
 - Unknown columns → null at runtime (no parse error)
 - User doesn't know if typo until evaluation
-- **For Chumak Decision:**
+- **For Syto Decision:**
   - Phase 1: Follow GREL (flexibility wins)
   - Phase 3: Optional schema validation mode?
 
@@ -616,7 +616,7 @@ assertEquals(invoke("split", "a,b", ","), new String[] {"a", "b"});
 
 - No plugin system, functions compiled in
 - Extensions require separate language modules
-- **For Chumak:** Design for extensibility from start
+- **For Syto:** Design for extensibility from start
   - Consider: `registerFunction(name, impl)` API
   - Or: Functions imported from separate modules
 
@@ -625,19 +625,19 @@ assertEquals(invoke("split", "a,b", ","), new String[] {"a", "b"});
 - Unicode collation for strings
 - Type coercion for numbers
 - Special null handling
-- **For Chumak:** Document clearly, consider strict mode option
+- **For Syto:** Document clearly, consider strict mode option
 
 #### 6. **No Logical Operators (&&, ||)** ⚠️ SURPRISING
 
 - Must use functions: `and(a, b)`, `or(a, b)`
 - Users expect &&/|| from JS
-- **For Chumak:** Support both? `&&` maps to `and()` internally?
+- **For Syto:** Support both? `&&` maps to `and()` internally?
 
 #### 7. **Technical Language in UI** ❌ IMPROVE
 
 - "identifier", "delimiter", "evaluable" in errors
 - Target audience may not know compiler terms
-- **For Chumak:** Use user-friendly terms: "column name", ")", "expression"
+- **For Syto:** Use user-friendly terms: "column name", ")", "expression"
 
 ### Patterns Worth Copying
 
@@ -670,23 +670,23 @@ class Token {
 }
 ```
 
-### Architecture Decisions for Chumak
+### Architecture Decisions for Syto
 
-| Aspect                  | GREL Approach          | Chumak Recommendation                                         |
-| ----------------------- | ---------------------- | ------------------------------------------------------------- | --- | ---------- |
-| **Parse/eval split**    | Yes                    | ✅ Adopt                                                      |
-| **AST vs code gen**     | AST                    | ✅ Adopt (easier to inspect/debug)                            |
-| **Datum syntax**        | `cells.col`, `value`   | ✅ Adapt: `row.col`, `value` for simplicity                   |
-| **Bracket notation**    | Via get() function     | ✅ Adopt                                                      |
-| **Error strategy**      | Errors as values       | ✅ Adopt (perfect for data wrangling)                         |
-| **Operator precedence** | Hardcoded levels       | ✅ Adopt (simple, correct)                                    |
-| **Boolean operators**   | Functions only         | ⚠️ Consider: Support `&&`, `                                  |     | ` directly |
-| **Function registry**   | Static, hardcoded      | ❌ Improve: Make extensible                                   |
-| **Error messages**      | Technical, offset only | ❌ Improve: User-friendly, contextual                         |
-| **Control structures**  | AST args (unevaluated) | ⚠️ Consider: Chumak likely doesn't need (no loops in Phase 1) |
-| **Type system**         | Implicit coercion      | ✅ Adopt for Phase 1 (explicit typing in Phase 3?)            |
+| Aspect                  | GREL Approach          | Syto Recommendation                                         |
+| ----------------------- | ---------------------- | ----------------------------------------------------------- | --- | ---------- |
+| **Parse/eval split**    | Yes                    | ✅ Adopt                                                    |
+| **AST vs code gen**     | AST                    | ✅ Adopt (easier to inspect/debug)                          |
+| **Datum syntax**        | `cells.col`, `value`   | ✅ Adapt: `row.col`, `value` for simplicity                 |
+| **Bracket notation**    | Via get() function     | ✅ Adopt                                                    |
+| **Error strategy**      | Errors as values       | ✅ Adopt (perfect for data wrangling)                       |
+| **Operator precedence** | Hardcoded levels       | ✅ Adopt (simple, correct)                                  |
+| **Boolean operators**   | Functions only         | ⚠️ Consider: Support `&&`, `                                |     | ` directly |
+| **Function registry**   | Static, hardcoded      | ❌ Improve: Make extensible                                 |
+| **Error messages**      | Technical, offset only | ❌ Improve: User-friendly, contextual                       |
+| **Control structures**  | AST args (unevaluated) | ⚠️ Consider: Syto likely doesn't need (no loops in Phase 1) |
+| **Type system**         | Implicit coercion      | ✅ Adopt for Phase 1 (explicit typing in Phase 3?)          |
 
-### Applicability to Chumak
+### Applicability to Syto
 
 #### Directly Reusable (Concepts)
 
@@ -719,7 +719,7 @@ class Token {
 - Parser: ~345 lines
 - **Core total: ~700 lines** (without functions)
 
-**For Chumak (JS):**
+**For Syto (JS):**
 
 - Similar size expected for parser/scanner
 - **Estimate: 500-800 lines** for core expression handling (JS is more concise)
@@ -729,13 +729,13 @@ class Token {
 
 1. **Use GREL's parser structure as template** - proven, simple, correct
 2. **Adopt error-as-value pattern** - essential for data wrangling
-3. **Improve error messages significantly** - Chumak's UX advantage
+3. **Improve error messages significantly** - Syto's UX advantage
 4. **Design for extensibility** - functions should be pluggable
 5. **Support both function and operator syntax for booleans** - `and(a,b)` OR `a && b`
 6. **Keep it simple for Phase 1** - GREL's core is ~700 lines, achievable
-7. **Test-driven** - GREL's test coverage is function-heavy; Chumak should test parser more
+7. **Test-driven** - GREL's test coverage is function-heavy; Syto should test parser more
 
-### Not Needed for Chumak Phase 1
+### Not Needed for Syto Phase 1
 
 - Control structures (if, forEach) - no loops in MVP
 - 100+ functions - start with ~15 essential ones

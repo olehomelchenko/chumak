@@ -1,8 +1,8 @@
-# Chumak: Expression Parser Research Guide
+# Syto: Expression Parser Research Guide
 
 ## Purpose
 
-This document guides the analysis of existing codebases to inform expression parser design decisions for Chumak. The goal is to fill in the comparison table by examining each project's approach to expression handling.
+This document guides the analysis of existing codebases to inform expression parser design decisions for Syto. The goal is to fill in the comparison table by examining each project's approach to expression handling.
 
 ---
 
@@ -218,7 +218,7 @@ For each project, follow this protocol sequentially. Record findings in the comp
    - Overly complex approaches that seem unnecessary
    - Known issues mentioned in GitHub issues
    - Places where tests reveal bugs or limitations
-3. **Applicability to Chumak:**
+3. **Applicability to Syto:**
    - What can be directly reused?
    - What needs adaptation?
    - What should be explicitly avoided?
@@ -349,7 +349,7 @@ Use this template for detailed notes on each project:
 
 **Practical focus:**
 
-- What can Chumak adopt directly?
+- What can Syto adopt directly?
 - What needs adaptation?
 - What should be avoided?
 
@@ -367,4 +367,4 @@ After analyzing all projects, produce:
 
 1. **Completed comparison table** (above)
 2. **Per-project notes** (using template, in separate files named `analysis__{project}.md`)
-3. **Recommendation summary:** Based on findings, recommend parsing approach for Chumak with rationale
+3. **Recommendation summary:** Based on findings, recommend parsing approach for Syto with rationale

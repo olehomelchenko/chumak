@@ -1,8 +1,8 @@
 /**
- * Chumak UX Settings - localStorage-based user preferences
+ * Syto UX Settings - localStorage-based user preferences
  */
 
-const UX_SETTINGS_KEY = 'chumak-ux-settings';
+const UX_SETTINGS_KEY = 'syto-ux-settings';
 
 export interface UXSettings {
   pagination: {
@@ -11,7 +11,7 @@ export interface UXSettings {
   preview: {
     rowLimit: number;
   };
-  theme: 'blues' | 'chumak';
+  theme: 'blues' | 'syto';
 }
 
 // Default settings
@@ -22,7 +22,7 @@ const DEFAULT_SETTINGS: UXSettings = {
   preview: {
     rowLimit: 100,
   },
-  theme: 'chumak',
+  theme: 'syto',
 };
 
 /**

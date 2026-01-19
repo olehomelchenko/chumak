@@ -1,14 +1,14 @@
-import type { ChumakApp } from '../../chumak-app';
+import type { SytoApp } from '../../syto-app';
 import { parseExpression } from '../../core/expression-parser';
 import { interpretAST } from '../../core/ast-interpreter';
 import { DialogStore } from '../stores/DialogStore';
 
-export function validateDeriveExpression(this: ChumakApp) {
+export function validateDeriveExpression(this: SytoApp) {
   const expr = DialogStore.deriveState.expression.value;
   DialogStore.deriveState.error.value = this.validateExpression(expr);
 }
 
-export function debouncedUpdateDerivePreview(this: ChumakApp) {
+export function debouncedUpdateDerivePreview(this: SytoApp) {
   if (this._previewDebounceTimer) {
     clearTimeout(this._previewDebounceTimer);
   }
@@ -17,7 +17,7 @@ export function debouncedUpdateDerivePreview(this: ChumakApp) {
   }, 150);
 }
 
-export function updateDerivePreview(this: ChumakApp) {
+export function updateDerivePreview(this: SytoApp) {
   const columnName = DialogStore.deriveState.columnName.value;
   const expression = DialogStore.deriveState.expression.value;
   const error = DialogStore.deriveState.error.value;
@@ -55,7 +55,7 @@ export function updateDerivePreview(this: ChumakApp) {
   }
 }
 
-export async function applyDeriveTransform(this: ChumakApp) {
+export async function applyDeriveTransform(this: SytoApp) {
   const columnName = DialogStore.deriveState.columnName.value;
   const expression = DialogStore.deriveState.expression.value;
   const error = DialogStore.deriveState.error.value;

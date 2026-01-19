@@ -1,6 +1,6 @@
-# Claude Context - Chumak Project
+# Claude Context - Syto Project
 
-> **Purpose**: Onboarding document for Claude AI sessions working on Chumak
+> **Purpose**: Onboarding document for Claude AI sessions working on Syto
 
 ---
 
@@ -33,7 +33,7 @@
 
 ## Project Overview
 
-**Chumak** is a browser-based data wrangling tool for cleaning and transforming tabular data. Think "Power Query in the browser" or "OpenRefine but simpler."
+**Syto** is a browser-based data wrangling tool for cleaning and transforming tabular data. Think "Power Query in the browser" or "OpenRefine but simpler."
 
 ### Key Characteristics
 
@@ -88,7 +88,7 @@ docs/               # Documentation
 ### Key Entry Points
 
 - `src/main.tsx` — Application bootstrap
-- `src/chumak-app.ts` — Main orchestration (coordinates stores and services)
+- `src/syto-app.ts` — Main orchestration (coordinates stores and services)
 - `src/core/transforms.ts` — Transform implementations
 - `src/core/schema-engine.ts` — Type inference and propagation
 

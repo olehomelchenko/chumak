@@ -41,7 +41,7 @@ export function EmptyState({
     >
       <div class="empty-state__content">
         <span class="iconify empty-state__icon" data-icon="carbon:cloud-upload"></span>
-        <h2 class="empty-state__title">Get Started with Chumak</h2>
+        <h2 class="empty-state__title">Get Started with Syto</h2>
         <p class="empty-state__text">
           Drag and drop a CSV file here, or use one of the options below
         </p>

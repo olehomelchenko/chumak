@@ -147,7 +147,7 @@ export class StepService {
 
   /**
    * Computes a model's data up to (and including) a specific step index.
-   * This is a pure function that doesn't depend on ChumakApp state.
+   * This is a pure function that doesn't depend on SytoApp state.
    */
   static computeModelUpToStep(
     model: Model,

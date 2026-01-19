@@ -1,4 +1,4 @@
-# Chumak Expression Parser - Design Decision
+# Syto Expression Parser - Design Decision
 
 **Status**: Recommended Approach (Implemented in Phase 0)
 **Research basis**: Analysis of 8 production systems (Arquero, Vega-Lite, jsep, filtrex, OpenRefine, ag-Grid, Tidyjs, danfo.js)
@@ -9,7 +9,7 @@
 
 **Recommendation: Hybrid Strategy with Structured Predicates + jsep Parser**
 
-Chumak will use a **dual-mode input system**:
+Syto will use a **dual-mode input system**:
 
 1. **Structured predicate objects** (80% of use cases) - GUI-driven, type-safe, beginner-friendly
 2. **Expression strings** (20% of use cases) - Advanced users, escape hatch for complex logic
@@ -122,7 +122,7 @@ const result = interpretAST(ast, rowData);
 // Better (OpenRefine)
 "Parsing error at offset 42: Missing )"
 
-// Best (Chumak target)
+// Best (Syto target)
 "Expected ')' after expression
  sales > 1000 + (revenue - cost
                                 ↑
@@ -433,7 +433,7 @@ region == "North"
 // Arquero:     d.sales > 1000  (requires 'd.' prefix)
 // Vega-Lite:   {field: "sales", gt: 1000}  (predicate object)
 // OpenRefine:  cells.sales > 1000  (requires 'cells.' prefix)
-// Chumak:      sales > 1000  (simplest - auto-detect from schema)
+// Syto:      sales > 1000  (simplest - auto-detect from schema)
 ```
 
 **Implementation:**
@@ -746,7 +746,7 @@ discount(price, 15);
 // ❌ NEVER (ag-Grid's approach)
 const fn = new Function('d', userExpression);
 
-// ✅ ALWAYS (Chumak's approach)
+// ✅ ALWAYS (Syto's approach)
 const ast = jsep(userExpression);
 validateAST(ast);
 interpretAST(ast, data);
@@ -1445,13 +1445,13 @@ alpine.js                       (already dependency)
 | System         | Parser      | Functions      | Complexity         |
 | -------------- | ----------- | -------------- | ------------------ |
 | **ag-Grid**    | None        | None           | Minimal (insecure) |
-| **Chumak**     | jsep        | Phased rollout | Moderate           |
+| **Syto**       | jsep        | Phased rollout | Moderate           |
 | **OpenRefine** | Handwritten | 100+ functions | High               |
 | **Arquero**    | Acorn       | Extensive      | High               |
 
 **Analysis:**
 
-- Chumak: Balanced approach with reasonable complexity
+- Syto: Balanced approach with reasonable complexity
 - Lighter than GREL/Arquero (no extensive function library)
 - More secure than ag-Grid (validation + sandboxing)
 - Compact implementation with external parser library

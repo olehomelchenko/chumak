@@ -1,4 +1,4 @@
-# Custom Icon Library Setup for Chumak
+# Custom Icon Library Setup for Syto
 
 This guide outlines how to transform hand-drawn SVGs into a production-ready, tree-shakable icon library that works with Preact and Vite, enabling gradual replacement of Iconify icons.
 
@@ -7,7 +7,7 @@ This guide outlines how to transform hand-drawn SVGs into a production-ready, tr
 Maintain a clear separation between raw iPad exports and generated Preact components.
 
 ```text
-chumak/
+syto/
 ├── public/
 │   └── icons/           # Drop your hand-drawn .svg files here
 ├── src/
@@ -249,7 +249,7 @@ Start with icons users see most:
 - Remove Iconify script from `index.html` once all icons are replaced
 - Clean up old `data-icon` usages
 
-## 8. Current Icon Usage in Chumak
+## 8. Current Icon Usage in Syto
 
 ### Iconify Icon Sets Used:
 

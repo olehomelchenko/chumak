@@ -1,4 +1,4 @@
-# Chumak — Feature Backlog
+# Syto — Feature Backlog
 
 This document tracks planned features and enhancements, organized by scope and effort.
 
@@ -108,7 +108,7 @@ Current join implementation covers most needs; these are edge cases.
 
 Migrate from Iconify CDN to custom hand-drawn SVG icons for better brand consistency and offline support.
 
-**Current State**: Chumak uses Iconify via CDN script (`iconify.min.js`) with icons from Carbon Design (`carbon:*`), Material Symbols Light (`material-symbols-light:*`), Codicon (`codicon:*`), and Iconify Extended (`ix:*`).
+**Current State**: Syto uses Iconify via CDN script (`iconify.min.js`) with icons from Carbon Design (`carbon:*`), Material Symbols Light (`material-symbols-light:*`), Codicon (`codicon:*`), and Iconify Extended (`ix:*`).
 
 **Proposed Solution**:
 

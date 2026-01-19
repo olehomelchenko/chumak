@@ -1,8 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { ChumakApp } from './chumak-app';
+import { SytoApp } from './syto-app';
 
-describe('ChumakApp URL Import', () => {
-  let app: ChumakApp;
+describe('SytoApp URL Import', () => {
+  let app: SytoApp;
 
   beforeEach(() => {
     // Mock global fetch
@@ -10,7 +10,7 @@ describe('ChumakApp URL Import', () => {
     // Mock console.error to keep test output clean
     vi.spyOn(console, 'error').mockImplementation(() => {});
 
-    app = new ChumakApp();
+    app = new SytoApp();
     // Mock methods called by fetchAndImportFromUrl
     app.closeDialog = vi.fn();
     app.showImportDialog = vi.fn();

@@ -2,7 +2,7 @@
 
 ## Project: Vega-Lite
 
-Analysis conducted for Chumak expression parser design research.
+Analysis conducted for Syto expression parser design research.
 
 ---
 
@@ -939,7 +939,7 @@ export function getDependentFields(expression: string) {
 
 ## Phase 9: Ideas and Warnings
 
-### Ideas to Adopt for Chumak
+### Ideas to Adopt for Syto
 
 #### 1. **Declarative Predicate Objects as Primary API**
 
@@ -951,7 +951,7 @@ export function getDependentFields(expression: string) {
 {and: [pred1, pred2]}  // vs "pred1 && pred2"
 ```
 
-**Benefits for Chumak:**
+**Benefits for Syto:**
 
 - **Lower barrier to entry** - users don't need to learn expression syntax
 - **Type-safe in TypeScript** - catch errors at design time
@@ -961,7 +961,7 @@ export function getDependentFields(expression: string) {
 
 **Adoption strategy:**
 
-- Make predicate objects the primary API in Chumak UI
+- Make predicate objects the primary API in Syto UI
 - Generate Arquero expressions from predicates (like Vega-Lite generates Vega expressions)
 - Allow advanced users to write raw expressions as escape hatch
 
@@ -976,9 +976,9 @@ export function getDependentFields(expression: string) {
 - Handles keywords: `datum["class"]`
 - Consistent regardless of field name complexity
 
-**Adoption for Chumak:**
+**Adoption for Syto:**
 
-- Always generate bracket notation from Chumak's filter/derive UI
+- Always generate bracket notation from Syto's filter/derive UI
 - Accept both styles in advanced expression mode
 - Convert user's dot notation to bracket notation when processing
 
@@ -999,7 +999,7 @@ export function getDependentFields(expression: string) {
 - **Visual representation** - can render as tree in UI
 - **Serialization-friendly** - JSON-native structure
 
-**Adoption for Chumak:**
+**Adoption for Syto:**
 
 - Use similar structure for complex filters
 - UI can show collapsible groups: "Match ALL of:" / "Match ANY of:"
@@ -1016,7 +1016,7 @@ export function getDependentFields(expression: string) {
 - **Debugging** - can inspect generated expressions
 - **Performance** - no runtime parsing overhead
 
-**Adoption for Chumak:**
+**Adoption for Syto:**
 
 - Generate Arquero functions from predicates before applying to data
 - Cache generated functions
@@ -1036,7 +1036,7 @@ export function getDependentFields(expression: string) {
 - Safe even if precedence rules change
 - Explicit evaluation order
 
-**Adoption for Chumak:**
+**Adoption for Syto:**
 
 - When generating expressions from predicates, add extra parentheses
 - Doesn't hurt readability much
@@ -1052,7 +1052,7 @@ export function getDependentFields(expression: string) {
 - **Gradual learning** - start with predicates, advance to expressions
 - **Flexibility** - handle edge cases predicates don't cover
 
-**Adoption for Chumak:**
+**Adoption for Syto:**
 
 - Predicate builder for 80% of use cases
 - "Advanced Expression" mode for the 20%
@@ -1073,10 +1073,10 @@ export function getDependentFields(expression: string) {
 - Errors discovered late (at Vega runtime)
 - Poor user experience for debugging
 
-**Recommendation for Chumak:**
+**Recommendation for Syto:**
 
-- **OPPOSITE approach for Chumak** - validate early since Chumak runs in browser
-- Chumak can afford validation since it controls the runtime (Arquero)
+- **OPPOSITE approach for Syto** - validate early since Syto runs in browser
+- Syto can afford validation since it controls the runtime (Arquero)
 - Catch errors before applying to data
 
 ### Warnings to Heed
@@ -1085,7 +1085,7 @@ export function getDependentFields(expression: string) {
 
 **Vega-Lite problem:** Expression errors only surface at Vega runtime
 
-**For Chumak:**
+**For Syto:**
 
 - **DO validate** expressions before applying
 - Show syntax errors immediately in UI
@@ -1096,7 +1096,7 @@ export function getDependentFields(expression: string) {
 
 **Vega-Lite problem:** Typos in field names pass through silently
 
-**For Chumak:**
+**For Syto:**
 
 - **DO validate** field names against current dataset schema
 - Show autocomplete for field names
@@ -1107,7 +1107,7 @@ export function getDependentFields(expression: string) {
 
 **Vega-Lite problem:** Technical errors, no actionable guidance
 
-**For Chumak:**
+**For Syto:**
 
 - User-friendly error messages: "The field 'Slaes' doesn't exist. Did you mean 'Sales'?"
 - Show where error occurred (highlight in UI)
@@ -1117,7 +1117,7 @@ export function getDependentFields(expression: string) {
 
 **Vega-Lite observation:** Tests focus on happy path
 
-**For Chumak:**
+**For Syto:**
 
 - **DO test** error cases thoroughly
 - Test malformed inputs
@@ -1128,7 +1128,7 @@ export function getDependentFields(expression: string) {
 
 **Vega-Lite observation:** TimeUnit handling adds significant complexity
 
-**For Chumak:**
+**For Syto:**
 
 - **Postpone** advanced date handling to later phases
 - Start with simple date comparisons
@@ -1139,14 +1139,14 @@ export function getDependentFields(expression: string) {
 
 **Vega-Lite approach:** Relies on JavaScript's implicit coercion
 
-**For Chumak:**
+**For Syto:**
 
 - **BE EXPLICIT** about type coercion rules
 - Warn when comparing different types: `sales > "100"` (number vs string)
 - Provide type conversion functions: `toNumber()`, `toString()`
 - Document coercion behavior clearly
 
-### Applicability to Chumak
+### Applicability to Syto
 
 #### Can Be Directly Reused
 
@@ -1159,26 +1159,26 @@ export function getDependentFields(expression: string) {
 
 1. **Expression generation target:**
    - Vega-Lite → Vega expression strings
-   - Chumak → Arquero table methods or functions
+   - Syto → Arquero table methods or functions
 
 2. **DateTime handling:**
    - Vega-Lite → Vega's datetime() and time() functions
-   - Chumak → Arquero's op.year(), op.month(), or JavaScript Date
+   - Syto → Arquero's op.year(), op.month(), or JavaScript Date
 
 3. **Function library:**
    - Vega-Lite → Vega expression functions
-   - Chumak → Arquero operations (op.\*)
+   - Syto → Arquero operations (op.\*)
 
 4. **Validation strategy:**
    - Vega-Lite → Minimal (trust runtime)
-   - Chumak → Comprehensive (validate before executing)
+   - Syto → Comprehensive (validate before executing)
 
 #### Should Be Avoided
 
-1. **No validation of expressions** - Chumak should validate
-2. **No field name checking** - Chumak should check against schema
-3. **Generic error messages** - Chumak should provide helpful guidance
-4. **Pass-through philosophy** - Chumak should catch errors early
+1. **No validation of expressions** - Syto should validate
+2. **No field name checking** - Syto should check against schema
+3. **Generic error messages** - Syto should provide helpful guidance
+4. **Pass-through philosophy** - Syto should catch errors early
 
 ### Key Architectural Lessons
 
@@ -1186,7 +1186,7 @@ export function getDependentFields(expression: string) {
 
 **Vega-Lite lesson:** Compilation (spec → executable) is a clean separation
 
-**For Chumak:**
+**For Syto:**
 
 - UI → Workflow JSON → Arquero operations → Results
 - Each stage has clear responsibilities
@@ -1196,7 +1196,7 @@ export function getDependentFields(expression: string) {
 
 **Vega-Lite lesson:** Structured predicates + expression strings = flexibility + power
 
-**For Chumak:**
+**For Syto:**
 
 - Beginners use predicate builder (GUI forms)
 - Advanced users write expressions
@@ -1206,7 +1206,7 @@ export function getDependentFields(expression: string) {
 
 **Vega-Lite lesson:** JSON specs are portable, inspectable, version-controllable
 
-**For Chumak:**
+**For Syto:**
 
 - Workflow JSON can be exported, shared, version-controlled
 - Readable by humans and machines
@@ -1216,7 +1216,7 @@ export function getDependentFields(expression: string) {
 
 **Vega-Lite lesson:** Don't reimplement what runtime provides
 
-**For Chumak:**
+**For Syto:**
 
 - Use Arquero's full feature set
 - Don't reimplement filtering, aggregation, etc.
@@ -1267,7 +1267,7 @@ function composeLogic(op: LogicalComposition<Predicate>): string {
 }
 ```
 
-### Implementation Priorities for Chumak Phase 1
+### Implementation Priorities for Syto Phase 1
 
 **High Priority (copy Vega-Lite's approach):**
 
@@ -1285,7 +1285,7 @@ function composeLogic(op: LogicalComposition<Predicate>): string {
 **Low Priority (consider in later phases):**
 
 1. DateTime/TimeUnit support (complex, defer to Phase 3)
-2. Signal-like dynamic values (if needed for Chumak use cases)
+2. Signal-like dynamic values (if needed for Syto use cases)
 3. Custom comparison functions beyond standard operators
 
 ---

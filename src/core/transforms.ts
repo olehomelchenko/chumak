@@ -7,7 +7,7 @@ import { convertType } from './type-converter';
 import type { Source, Model } from '../app/types';
 
 /**
- * Chumak Transform Engine
+ * Syto Transform Engine
  */
 
 export interface MatchOptions {
@@ -151,7 +151,7 @@ export function applyTransform(
   if (unknownKey) {
     console.warn(
       `Unknown transform key "${unknownKey}" encountered. Skipping this transform. ` +
-        `This may be from a newer version of Chumak. The workflow will continue with remaining transforms.`
+        `This may be from a newer version of Syto. The workflow will continue with remaining transforms.`
     );
     return table; // Return table unchanged
   }
@@ -765,7 +765,7 @@ export function applyTransform(
     const key = transformKeys[0];
     console.warn(
       `Transform key "${key}" not recognized. Skipping this transform. ` +
-        `This may be from a newer version of Chumak. The workflow will continue with remaining transforms.`
+        `This may be from a newer version of Syto. The workflow will continue with remaining transforms.`
     );
     return table; // Return table unchanged
   }

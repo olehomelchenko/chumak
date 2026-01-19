@@ -1,10 +1,10 @@
 import { Config } from 'vega-lite';
 
 /**
- * Chumak Theme (Default)
+ * Syto Theme (Default)
  * Sharp corners, IBM Plex Sans, Vibrant Blue highlights
  */
-export const chumakTheme: Config = {
+export const sytoTheme: Config = {
   background: 'transparent',
   font: '"IBM Plex Sans", sans-serif',
   title: {

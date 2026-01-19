@@ -1,6 +1,6 @@
 # Expression Language Reference
 
-Chumak uses a safe expression language for filtering rows, deriving new columns, and pattern matching. This reference covers all supported operators and functions.
+Syto uses a safe expression language for filtering rows, deriving new columns, and pattern matching. This reference covers all supported operators and functions.
 
 ## Basic Syntax
 
@@ -257,7 +257,7 @@ is_nan(value) ? 0 : value         → replace invalid with 0
 
 ## Security Note
 
-Chumak's expression engine is sandboxed for security. Expressions cannot:
+Syto's expression engine is sandboxed for security. Expressions cannot:
 
 - Access browser globals (`window`, `document`)
 - Execute arbitrary JavaScript

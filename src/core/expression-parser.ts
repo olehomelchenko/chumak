@@ -1,7 +1,7 @@
 import jsep from 'jsep';
 
 /**
- * Chumak Expression Parser - jsep wrapper
+ * Syto Expression Parser - jsep wrapper
  */
 
 // Configure jsep for nullish coalescing operator

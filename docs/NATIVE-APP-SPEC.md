@@ -1,6 +1,6 @@
-# Chumak Native (macOS) - Functional Specification
+# Syto Native (macOS) - Functional Specification
 
-> **Purpose**: Complete functional specification for reimplementing Chumak as a native macOS application with DuckDB + Parquet backend.
+> **Purpose**: Complete functional specification for reimplementing Syto as a native macOS application with DuckDB + Parquet backend.
 
 ---
 
@@ -859,7 +859,7 @@ LIMIT 10;
 ### 10.1 Project File Structure
 
 ```
-MyProject.chumak/
+MyProject.syto/
 ├── manifest.json           # Project metadata
 ├── sources/
 │   ├── src_001.parquet    # Source data
@@ -978,7 +978,7 @@ SET enable_progress_bar = true;
 
 ## 14. Electron Development Path
 
-> **Purpose**: Implementation guide for transforming Chumak browser app into an Electron desktop application with DuckDB + Parquet backend.
+> **Purpose**: Implementation guide for transforming Syto browser app into an Electron desktop application with DuckDB + Parquet backend.
 
 ### 14.1 Overview
 
@@ -1055,7 +1055,7 @@ The Electron path allows reusing the existing TypeScript/Preact codebase while a
 
 3. **Implement Expression-to-SQL Translator** (`src/core/expression-to-sql.ts`)
    - Convert validated AST (from `jsep`) to SQL expressions
-   - Map Chumak functions to DuckDB functions (see §9)
+   - Map Syto functions to DuckDB functions (see §9)
    - Handle operators, null coalescing, ternary conditionals
    - Escape column names and handle special characters
 
@@ -1114,7 +1114,7 @@ const data = await invoke('execute_query', { sql, tableId });
 **Tasks**:
 
 1. **Project File Structure**
-   - Implement `.chumak` directory format (see §10.1)
+   - Implement `.syto` directory format (see §10.1)
    - Create `manifest.json` for project metadata
    - Store sources as `sources/*.parquet` files
    - Store model definitions as `models/*.json` files
@@ -1144,7 +1144,7 @@ const data = await invoke('execute_query', { sql, tableId });
    - Native file dialogs via Electron APIs
 
 6. **Project Lifecycle Management**
-   - New Project (creates `.chumak` directory)
+   - New Project (creates `.syto` directory)
    - Open Project (file picker → load manifest)
    - Save Project (write all changes)
    - Save As (copy project to new location)
@@ -1194,7 +1194,7 @@ const data = await invoke('execute_query', { sql, tableId });
 
 **Translation Examples** (from §9.1):
 
-| Chumak Expression                   | DuckDB SQL                                  |
+| Syto Expression                     | DuckDB SQL                                  |
 | ----------------------------------- | ------------------------------------------- |
 | `sales > 1000 && region == "North"` | `sales > 1000 AND region = 'North'`         |
 | `revenue - cost`                    | `revenue - cost`                            |
@@ -1302,7 +1302,7 @@ await connection.query(`
    - Dock/menu bar icons
    - Notification system (optional)
    - Recent files in system menu
-   - File associations (`.chumak` file extension)
+   - File associations (`.syto` file extension)
 
 6. **Settings Storage**
    - Use Electron's `app.getPath('userData')` for settings
@@ -1313,7 +1313,7 @@ await connection.query(`
 
 - `src/app/handlers/import-handlers.ts` - Use Electron dialog APIs
 - `src/app/handlers/export-handlers.ts` - Use Electron save dialog
-- `src/chumak-app.ts` - Add menu handlers and keyboard shortcuts
+- `src/syto-app.ts` - Add menu handlers and keyboard shortcuts
 
 **Files to Create**:
 
@@ -1325,13 +1325,13 @@ await connection.query(`
 
 #### Phase 7: Type System & Schema Inference
 
-**Objective**: Leverage DuckDB's native type system while maintaining Chumak's schema abstraction.
+**Objective**: Leverage DuckDB's native type system while maintaining Syto's schema abstraction.
 
 **Tasks**:
 
 1. **Type Inference via DuckDB**
    - Use DuckDB `DESCRIBE` or result metadata for type detection
-   - Map DuckDB types to Chumak types (see §2.1)
+   - Map DuckDB types to Syto types (see §2.1)
    - Handle type inference on import (CSV → Parquet)
 
 2. **Schema Propagation**
@@ -1402,7 +1402,7 @@ await connection.query(`
 - ✅ State management (Preact Signals, AppStore)
 - ✅ Dialog components and layouts
 - ✅ Vega-Lite charts and EDA panels
-- ✅ Theme system (Chumak, Blues themes)
+- ✅ Theme system (Syto, Blues themes)
 - ✅ Expression parser (`jsep` - `src/core/expression-parser.ts`)
 - ✅ AST validator (`src/core/ast-validator.ts` - security checks)
 - ✅ Transform JSON specifications (no changes)
@@ -1445,7 +1445,7 @@ await connection.query(`
 **Directory Layout**:
 
 ```
-chumak/
+syto/
 ├── electron/
 │   ├── main.js              # Main process
 │   ├── preload.js           # Preload script
@@ -1479,12 +1479,12 @@ chumak/
    - Memory management for long-running queries
 
 3. **Type System Mapping**
-   - Ensuring Chumak types map correctly to DuckDB types
+   - Ensuring Syto types map correctly to DuckDB types
    - Type inference from SQL results vs. JavaScript arrays
    - Handling type conversion errors gracefully
 
 4. **Project File Format**
-   - Defining `.chumak` project structure and manifest schema
+   - Defining `.syto` project structure and manifest schema
    - Handling project migration/versioning
    - Concurrent access and file locking (if multiple windows)
 
@@ -1594,5 +1594,5 @@ npm run build:linux  # Linux AppImage/deb/rpm
 ---
 
 _Document generated: 2026-01-14_
-_Based on Chumak browser version analysis_
+_Based on Syto browser version analysis_
 _Updated: Added Electron development path (Section 14)_

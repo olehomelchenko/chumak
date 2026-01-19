@@ -6,7 +6,7 @@
 
 ## Executive Summary
 
-Arquero provides **35+ verbs** that can significantly reduce Chumak's implementation burden. The current architecture (custom AST for user expressions, Arquero delegation for data operations) is proven and should continue.
+Arquero provides **35+ verbs** that can significantly reduce Syto's implementation burden. The current architecture (custom AST for user expressions, Arquero delegation for data operations) is proven and should continue.
 
 **Key Finding**: Most planned transforms are 30-60 line wrappers around Arquero methods.
 
@@ -34,17 +34,17 @@ Arquero provides **35+ verbs** that can significantly reduce Chumak's implementa
 
 ## Implemented Transforms
 
-| Chumak Transform | Arquero Verb               | Lines | Implementation                 |
-| ---------------- | -------------------------- | ----- | ------------------------------ |
-| **filter**       | Custom AST                 | ~50   | Security-validated interpreter |
-| **select**       | `table.select()`           | ~10   | Direct wrapper                 |
-| **remove**       | `table.not()`              | ~10   | Direct wrapper                 |
-| **rename**       | `table.rename()`           | ~10   | Direct wrapper                 |
-| **sort**         | `table.orderby()`          | ~15   | Direct wrapper                 |
-| **derive**       | Custom AST                 | ~50   | Security-validated interpreter |
-| **aggregate**    | `table.groupby().rollup()` | ~70   | Complex wrapper with rollup    |
-| **join**         | `table.join()` family      | ~100  | Multi-table coordination       |
-| **types**        | Schema override            | ~20   | Metadata transform             |
+| Syto Transform | Arquero Verb               | Lines | Implementation                 |
+| -------------- | -------------------------- | ----- | ------------------------------ |
+| **filter**     | Custom AST                 | ~50   | Security-validated interpreter |
+| **select**     | `table.select()`           | ~10   | Direct wrapper                 |
+| **remove**     | `table.not()`              | ~10   | Direct wrapper                 |
+| **rename**     | `table.rename()`           | ~10   | Direct wrapper                 |
+| **sort**       | `table.orderby()`          | ~15   | Direct wrapper                 |
+| **derive**     | Custom AST                 | ~50   | Security-validated interpreter |
+| **aggregate**  | `table.groupby().rollup()` | ~70   | Complex wrapper with rollup    |
+| **join**       | `table.join()` family      | ~100  | Multi-table coordination       |
+| **types**      | Schema override            | ~20   | Metadata transform             |
 
 ---
 
@@ -62,7 +62,7 @@ table.dedupe(); // all columns
 table.dedupe('a', 'b'); // specific columns
 ```
 
-**Chumak Transform Spec**:
+**Syto Transform Spec**:
 
 ```json
 { "dedupe": ["col1", "col2"] }  // Specific columns
@@ -144,7 +144,7 @@ table.pivot(['foo', 'bar'], ['x', 'y']); // Multiple keys/values
 table.pivot('type', { sum: (d) => op.sum(d.val) }); // With aggregation
 ```
 
-**Chumak Transform Spec**:
+**Syto Transform Spec**:
 
 ```json
 {
@@ -193,7 +193,7 @@ table.fold(['colA', 'colB']); // Multiple columns
 table.fold(['q1', 'q2', 'q3'], { as: ['quarter', 'sales'] }); // Custom names
 ```
 
-**Chumak Transform Spec**:
+**Syto Transform Spec**:
 
 ```json
 {

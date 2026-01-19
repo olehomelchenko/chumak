@@ -1,8 +1,8 @@
 import vegaEmbed from 'vega-embed';
-import { chumakTheme, bluesTheme } from './vega-themes';
+import { sytoTheme, bluesTheme } from './vega-themes';
 
 /**
- * Chumak Charts Engine
+ * Syto Charts Engine
  *
  * Provides visualization capabilities using Vega-Lite.
  */
@@ -21,7 +21,7 @@ export const ChartsEngine = {
     container: string | HTMLElement,
     data: any[],
     column: string,
-    theme: 'chumak' | 'blues' = 'chumak',
+    theme: 'syto' | 'blues' = 'syto',
     options: ChartOptions = {}
   ): Promise<void> {
     if (!data || data.length === 0 || !column) return;
@@ -76,7 +76,7 @@ export const ChartsEngine = {
       ],
     };
 
-    const vegaTheme = theme === 'chumak' ? chumakTheme : bluesTheme;
+    const vegaTheme = theme === 'syto' ? sytoTheme : bluesTheme;
 
     try {
       await vegaEmbed(container, spec, {
@@ -100,7 +100,7 @@ export const ChartsEngine = {
   async renderCategoricalBar(
     container: string | HTMLElement,
     aggregatedData: any[],
-    theme: 'chumak' | 'blues' = 'chumak',
+    theme: 'syto' | 'blues' = 'syto',
     options: ChartOptions = {}
   ): Promise<void> {
     if (!aggregatedData || aggregatedData.length === 0) return;
@@ -135,7 +135,7 @@ export const ChartsEngine = {
               if (d.isError) return '#8B0000'; // Dark red for errors
               if (d.isNull) return '#666666'; // Darker grey for nulls
               if (d.isOther) return '#C8C8C8'; // Light grey for others
-              // Mix of Chumak and KSE colors that look good in both
+              // Mix of Syto and KSE colors that look good in both
               const colors = ['#1789fc', '#fdb833', '#a7c539', '#00bbce', '#f15b43'];
               return colors[i] || '#C8C8C8';
             }),
@@ -154,7 +154,7 @@ export const ChartsEngine = {
       },
     };
 
-    const vegaTheme = theme === 'chumak' ? chumakTheme : bluesTheme;
+    const vegaTheme = theme === 'syto' ? sytoTheme : bluesTheme;
 
     try {
       await vegaEmbed(container, spec, {
@@ -179,7 +179,7 @@ export const ChartsEngine = {
     container: string | HTMLElement,
     data: any[],
     column: string,
-    theme: 'chumak' | 'blues' = 'chumak',
+    theme: 'syto' | 'blues' = 'syto',
     onBrush?: (selection: { min: number; max: number } | null) => void,
     options: ChartOptions = {}
   ): Promise<void> {
@@ -235,7 +235,7 @@ export const ChartsEngine = {
       ],
     };
 
-    const vegaTheme = theme === 'chumak' ? chumakTheme : bluesTheme;
+    const vegaTheme = theme === 'syto' ? sytoTheme : bluesTheme;
 
     try {
       const result = await vegaEmbed(container, spec, {
@@ -273,7 +273,7 @@ export const ChartsEngine = {
     container: string | HTMLElement,
     data: any[],
     column: string,
-    theme: 'chumak' | 'blues' = 'chumak',
+    theme: 'syto' | 'blues' = 'syto',
     options: ChartOptions = {}
   ): Promise<void> {
     if (!data || data.length === 0 || !column) return;
@@ -340,7 +340,7 @@ export const ChartsEngine = {
       },
     };
 
-    const vegaTheme = theme === 'chumak' ? chumakTheme : bluesTheme;
+    const vegaTheme = theme === 'syto' ? sytoTheme : bluesTheme;
 
     try {
       await vegaEmbed(container, spec, {

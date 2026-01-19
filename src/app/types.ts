@@ -194,7 +194,7 @@ export interface AppState {
   edaChartView: 'boxplot' | 'histogram';
   edaBrushSelection: { min: number; max: number } | null;
   edaDateTreatment: 'temporal' | 'categorical';
-  theme: 'chumak' | 'blues';
+  theme: 'syto' | 'blues';
 
   // Transformation status
   isTransforming: boolean;

@@ -1,10 +1,10 @@
-import type { ChumakApp } from '../../chumak-app';
+import type { SytoApp } from '../../syto-app';
 import * as aq from 'arquero';
 import { applyTransform } from '../../core/transforms';
 import { SchemaEngine } from '../../core/schema-engine';
 import { DialogStore } from '../stores/DialogStore';
 
-export function detectDelimiter(this: ChumakApp, column: string) {
+export function detectDelimiter(this: SytoApp, column: string) {
   if (!column || !this.currentData || this.currentData.length === 0) return null;
   const delimiters = [
     { char: ',', name: 'Comma', isRegex: false },
@@ -50,7 +50,7 @@ export function detectDelimiter(this: ChumakApp, column: string) {
   return validDelimiters.length > 0 ? validDelimiters[0] : null;
 }
 
-export function debouncedUpdateSplitPreview(this: ChumakApp) {
+export function debouncedUpdateSplitPreview(this: SytoApp) {
   if (this._previewDebounceTimer) clearTimeout(this._previewDebounceTimer);
   this._previewDebounceTimer = setTimeout(() => {
     this.updateSplitPreview();
@@ -58,7 +58,7 @@ export function debouncedUpdateSplitPreview(this: ChumakApp) {
   }, 150);
 }
 
-export function selectSplitColumn(this: ChumakApp, col: string) {
+export function selectSplitColumn(this: SytoApp, col: string) {
   this.splitDialogState.column = col;
   const detected = this.detectDelimiter(col);
   if (detected) {
@@ -71,7 +71,7 @@ export function selectSplitColumn(this: ChumakApp, col: string) {
   this.updateSplitPreview();
 }
 
-export function updateSplitPreview(this: ChumakApp) {
+export function updateSplitPreview(this: SytoApp) {
   const { column, delimiter, mode, maxColumns, keepOriginal, isRegex } = this.splitDialogState;
   this.splitDialogState.error = null;
   this.clearPreview();
@@ -137,7 +137,7 @@ export function updateSplitPreview(this: ChumakApp) {
   }
 }
 
-export async function applySplitTransform(this: ChumakApp) {
+export async function applySplitTransform(this: SytoApp) {
   const { column, delimiter, mode, maxColumns, keepOriginal, isRegex } = this.splitDialogState;
   if (!column) {
     await this.alert('Please select a column');

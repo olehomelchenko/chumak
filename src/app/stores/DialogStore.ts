@@ -207,7 +207,7 @@ export class DialogStore {
 
   // Settings Dialog State
   static settingsState = {
-    theme: signal<'chumak' | 'blues'>('chumak'),
+    theme: signal<'syto' | 'blues'>('syto'),
     rowLimit: signal(100),
   };
 
@@ -365,7 +365,7 @@ export class DialogStore {
     this.importUrlState.isFetching.value = false;
     this.importUrlState.error.value = null;
 
-    this.settingsState.theme.value = 'chumak';
+    this.settingsState.theme.value = 'syto';
     this.settingsState.rowLimit.value = 100;
 
     this.imputeState.column.value = '';

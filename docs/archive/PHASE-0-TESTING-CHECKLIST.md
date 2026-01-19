@@ -198,7 +198,7 @@
 - [ ] Import a CSV file
 - [ ] Click "Export CSV" button
 - [ ] Verify download starts
-- [ ] Verify filename format: `chumak-export-YYYY-MM-DD-HHmmss.csv`
+- [ ] Verify filename format: `syto-export-YYYY-MM-DD-HHmmss.csv`
 - [ ] Open downloaded CSV in text editor
 - [ ] Verify data is correct
 - [ ] Verify headers are present
@@ -230,7 +230,7 @@
 - [ ] Apply 2-3 transforms (filter, select)
 - [ ] Click "Export Workflow JSON" button
 - [ ] Verify download starts
-- [ ] Verify filename format: `chumak-workflow-YYYY-MM-DD-HHmmss.json`
+- [ ] Verify filename format: `syto-workflow-YYYY-MM-DD-HHmmss.json`
 - [ ] Open downloaded JSON in text editor
 - [ ] Verify structure contains:
   - `version: "1.0"`

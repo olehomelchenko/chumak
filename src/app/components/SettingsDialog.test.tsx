@@ -6,7 +6,7 @@ import { DialogStore } from '../stores/DialogStore';
 describe('SettingsDialog', () => {
   beforeEach(() => {
     // Reset store state before each test
-    DialogStore.settingsState.theme.value = 'chumak';
+    DialogStore.settingsState.theme.value = 'syto';
     DialogStore.settingsState.rowLimit.value = 100;
   });
 
@@ -14,7 +14,7 @@ describe('SettingsDialog', () => {
     render(<SettingsDialog />);
 
     expect(screen.getByText('Color Scheme')).toBeDefined();
-    expect(screen.getByText('Chumak')).toBeDefined();
+    expect(screen.getByText('Syto')).toBeDefined();
     expect(screen.getByText('Blues (KSE)')).toBeDefined();
     expect(screen.getByDisplayValue('100')).toBeDefined();
   });

@@ -1,6 +1,6 @@
 # Research: Expression Parser Design
 
-This directory contains background research conducted to inform Chumak's expression parser design decisions.
+This directory contains background research conducted to inform Syto's expression parser design decisions.
 
 ## Purpose
 

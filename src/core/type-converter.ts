@@ -1,5 +1,5 @@
 /**
- * Chumak Type Converter
+ * Syto Type Converter
  *
  * Handles type conversion between column types with Power Query-style error cells.
  */
