@@ -5,8 +5,31 @@ interface ImportUrlDialogProps {
   onImport: () => void;
 }
 
+const POPULAR_DATASETS = [
+  'cars.json',
+  'movies.json',
+  'iris.json',
+  'unemployment.json',
+  'weather.csv',
+  'barley.json',
+  'stocks.json',
+  'anscombe.json',
+  'airports.csv',
+  'jobs.json',
+  'population.json',
+  'sp500.csv',
+];
+
+const CDN_BASE_URL = 'https://cdn.jsdelivr.net/npm/vega-datasets@latest/data';
+
 export function ImportUrlDialog({ onImport }: ImportUrlDialogProps) {
   const { url, error, isFetching } = DialogStore.importUrlState;
+
+  const handleDatasetClick = (filename: string, e: Event) => {
+    e.preventDefault();
+    DialogStore.importUrlState.url.value = `${CDN_BASE_URL}/${filename}`;
+    DialogStore.importUrlState.error.value = null;
+  };
 
   return (
     <div>
@@ -18,6 +41,7 @@ export function ImportUrlDialog({ onImport }: ImportUrlDialogProps) {
           value={url.value}
           onInput={(e) => {
             url.value = (e.target as HTMLInputElement).value;
+            DialogStore.importUrlState.error.value = null;
           }}
           placeholder="https://example.com/data.csv"
           onKeyDown={(e) => {
@@ -28,6 +52,37 @@ export function ImportUrlDialog({ onImport }: ImportUrlDialogProps) {
           autoFocus
         />
         <p class={styles.helpText}>Enter the direct link to a CSV or TSV file.</p>
+      </div>
+
+      <div class={styles.group} style={{ marginTop: '1rem' }}>
+        <p class={styles.helpText} style={{ marginBottom: '0.5rem' }}>
+          Sample datasets:
+        </p>
+        <div>
+          {POPULAR_DATASETS.map((filename) => (
+            <div key={filename} style={{ marginBottom: '0.25rem' }}>
+              <a
+                href={`${CDN_BASE_URL}/${filename}`}
+                onClick={(e) => handleDatasetClick(filename, e)}
+                style={{
+                  color: 'var(--color-cyan)',
+                  textDecoration: 'none',
+                  fontSize: 'var(--font-size-sm)',
+                  cursor: 'pointer',
+                  display: 'inline-block',
+                }}
+                onMouseEnter={(e) => {
+                  (e.target as HTMLAnchorElement).style.textDecoration = 'underline';
+                }}
+                onMouseLeave={(e) => {
+                  (e.target as HTMLAnchorElement).style.textDecoration = 'none';
+                }}
+              >
+                {filename}
+              </a>
+            </div>
+          ))}
+        </div>
       </div>
 
       {error.value && (

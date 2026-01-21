@@ -304,6 +304,7 @@ export async function fetchAndImportFromUrl(this: SytoApp) {
 
     // Extract filename from URL or use a default
     let fileName = 'Imported Data.csv';
+    let fileType = 'text/csv';
     try {
       const urlObj = new URL(currentUrl);
       const pathParts = urlObj.pathname.split('/');
@@ -311,19 +312,23 @@ export async function fetchAndImportFromUrl(this: SytoApp) {
       if (lastPart) {
         if (lastPart.toLowerCase().endsWith('.json')) {
           fileName = lastPart;
+          fileType = 'application/json';
         } else if (
           lastPart.toLowerCase().endsWith('.csv') ||
           lastPart.toLowerCase().endsWith('.tsv') ||
           lastPart.toLowerCase().endsWith('.txt')
         ) {
           fileName = lastPart;
+          if (lastPart.toLowerCase().endsWith('.tsv')) {
+            fileType = 'text/tab-separated-values';
+          }
         }
       }
     } catch (e) {
       // Fallback to default filename
     }
 
-    const file = new File([text], fileName, { type: 'text/csv' });
+    const file = new File([text], fileName, { type: fileType });
 
     // Close URL dialog and show the standard import dialog
     this.closeDialog(true); // Close current (force close without unsaved changes prompt)
