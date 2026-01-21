@@ -104,6 +104,7 @@ Located above the data preview table, this toolbar provides status and model-spe
 
 - **Single-select chips**: For source column pickers (sort, replace, regexp-\*)
 - **Multi-select chips**: For bulk column operations (remove, unpivot) with Cmd/Ctrl+click toggle
+- **List Selection**: For detailed management (rename, reorder, select) with drag-and-drop support
 
 **Preview Triggers**:
 
@@ -210,12 +211,13 @@ All UI components are Preact/TSX with co-located CSS Modules in `src/app/compone
 
 ### 7.5 Shared Components
 
-| Component           | Purpose                           |
-| ------------------- | --------------------------------- |
-| `ColumnChips.tsx`   | Multi-select column picker        |
-| `ColumnToolbar.tsx` | Floating actions on column header |
-| `CellToolbar.tsx`   | Floating actions on cell click    |
-| `TypeBadge.tsx`     | Column type indicator             |
+| Component           | Purpose                              |
+| ------------------- | ------------------------------------ |
+| `ColumnChips.tsx`   | Multi-select column picker           |
+| `ColumnSelector`    | Unified column selection (Grid/List) |
+| `ColumnToolbar.tsx` | Floating actions on column header    |
+| `CellToolbar.tsx`   | Floating actions on cell click       |
+| `TypeBadge.tsx`     | Column type indicator                |
 
 ---
 

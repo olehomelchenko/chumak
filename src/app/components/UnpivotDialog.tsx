@@ -1,5 +1,6 @@
 import { useComputed } from '@preact/signals';
 import styles from './TransformDialog.module.css';
+import { ColumnSelector } from './column-selector';
 import * as FoldHandlers from '../handlers/fold-handlers';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
@@ -25,6 +26,19 @@ export function UnpivotDialog() {
 
   const handleModeChange = (newMode: UnpivotMode) => {
     mode.value = newMode;
+    FoldHandlers.updateFoldPreview();
+  };
+
+  // Convert boolean array to string array for ColumnSelector
+  const getSelectedColumnNames = (): string[] => {
+    return columns.filter((_, index) => selectedColumns.value[index]);
+  };
+
+  // Convert string array from ColumnSelector to boolean array
+  const handleColumnSelectionChange = (selected: string[] | string) => {
+    const selectedArray = Array.isArray(selected) ? selected : [selected];
+    const newSelection = columns.map((col) => selectedArray.includes(col));
+    selectedColumns.value = newSelection;
     FoldHandlers.updateFoldPreview();
   };
 
@@ -98,49 +112,15 @@ export function UnpivotDialog() {
         </p>
       </div>
 
-      <label class={styles.label}>{labelText}</label>
-
-      <div
-        class={styles.actions}
-        style={{ marginBottom: '0.5rem', display: 'flex', gap: '0.5rem' }}
-      >
-        <button
-          type="button"
-          class="button button--text button--small"
-          onClick={FoldHandlers.selectAllForFold}
-        >
-          Select All
-        </button>
-        <button
-          type="button"
-          class="button button--text button--small"
-          onClick={FoldHandlers.selectNoneForFold}
-        >
-          Select None
-        </button>
-      </div>
-
-      <div class={styles.chipGrid}>
-        {columns.map((col, index) => (
-          <button
-            key={col}
-            type="button"
-            class={`${styles.chip} ${selectedColumns.value[index] ? styles.active : ''}`}
-            onClick={() => FoldHandlers.toggleColumnForFold(index)}
-          >
-            <span
-              class={`iconify ${styles.chipIcon}`}
-              data-icon={
-                selectedColumns.value[index] ? 'carbon:checkmark-filled' : 'carbon:checkbox'
-              }
-              style={{
-                color: selectedColumns.value[index] ? 'var(--color-green)' : '',
-              }}
-            />
-            <span class={styles.chipText}>{col}</span>
-          </button>
-        ))}
-      </div>
+      <ColumnSelector
+        columns={columns}
+        selectedColumns={getSelectedColumnNames()}
+        onSelectionChange={handleColumnSelectionChange}
+        mode="multi"
+        display="chip"
+        allowSelectAll={true}
+        label={labelText.value}
+      />
     </div>
   );
 }

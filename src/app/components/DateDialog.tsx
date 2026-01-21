@@ -4,6 +4,7 @@
 
 import { useComputed, useSignalEffect } from '@preact/signals';
 import styles from './TransformDialog.module.css';
+import { ColumnSelector } from './column-selector';
 import { DialogStore } from '../stores/DialogStore';
 import * as DateHandlers from '../handlers/date-handlers';
 
@@ -35,48 +36,20 @@ export function DateDialog() {
     <div>
       {/* Source Column */}
       <div class={styles.group}>
-        <label class={styles.label}>Source column:</label>
-        <div class={styles.chipGrid2}>
-          {dateColumns.map((col) => (
-            <button
-              key={col}
-              type="button"
-              class={`${styles.chip} ${column.value === col ? styles.active : ''}`}
-              style={{
-                flexDirection: 'row',
-                justifyContent: 'start',
-                gap: '0.5rem',
-                padding: '0.5rem 0.75rem',
-              }}
-              onClick={() => (column.value = col)}
-            >
-              <span class={`iconify ${styles.chipIcon}`} data-icon="carbon:calendar" />
-              <span
-                style={{
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  textAlign: 'left',
-                  flexGrow: 1,
-                }}
-              >
-                {col}
-              </span>
-            </button>
-          ))}
-        </div>
-        {dateColumns.length === 0 && (
-          <div
-            style={{
-              color: 'var(--color-dark-gray)',
-              fontSize: '0.8rem',
-              marginTop: '0.5rem',
-              fontStyle: 'italic',
-            }}
-          >
-            No date/datetime columns found. Use the column type menu to set a column as date.
-          </div>
-        )}
+        <ColumnSelector
+          columns={dateColumns}
+          selectedColumns={column.value}
+          onSelectionChange={(col) => (column.value = col as string)}
+          mode="single"
+          display="chip"
+          gridColumns={2}
+          label="Source column:"
+          helpText={
+            dateColumns.length === 0
+              ? 'No date/datetime columns found. Use the column type menu to set a column as date.'
+              : undefined
+          }
+        />
       </div>
 
       {column.value && (

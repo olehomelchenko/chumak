@@ -2,6 +2,7 @@ import { useComputed } from '@preact/signals';
 import * as PivotHandlers from '../handlers/pivot-handlers';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
+import { ColumnSelector } from './column-selector';
 import styles from './TransformDialog.module.css';
 
 export type PivotAggregation = 'sum' | 'mean' | 'count' | 'min' | 'max' | 'any';
@@ -17,23 +18,6 @@ export function PivotDialog() {
     isPreviewing,
   } = DialogStore.pivotState;
   const columns = AppStore.columns.value;
-  // Helpers for multi-select
-  const toggleRowColumn = (col: string) => {
-    if (rowColumns.value.includes(col)) {
-      rowColumns.value = rowColumns.value.filter((c) => c !== col);
-    } else {
-      rowColumns.value = [...rowColumns.value, col];
-    }
-  };
-
-  const selectAllRows = () => {
-    // Select all valid columns (not used in col/val)
-    rowColumns.value = columns.filter((c) => c !== columnColumn.value && c !== valueColumn.value);
-  };
-
-  const selectNoneRows = () => {
-    rowColumns.value = [];
-  };
 
   // Preview text computed in component to avoid complex templates
   const summaryText = useComputed(() => {
@@ -63,68 +47,18 @@ export function PivotDialog() {
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1rem' }}>
         {/* Row Columns */}
         <div class={styles.group}>
-          <label class={styles.label}>Rows</label>
-          <div
-            class={styles.actions}
-            style={{ marginBottom: '0.5rem', display: 'flex', gap: '0.5rem' }}
-          >
-            <button type="button" class="button button--text button--small" onClick={selectAllRows}>
-              Select All
-            </button>
-            <button
-              type="button"
-              class="button button--text button--small"
-              onClick={selectNoneRows}
-            >
-              Select None
-            </button>
-          </div>
-
-          <div class={styles.chipGrid} style={{ maxHeight: '200px' }}>
-            {columns.map((col) => {
-              const isDisabled = col === columnColumn.value || col === valueColumn.value;
-              const isSelected = rowColumns.value.includes(col);
-              return (
-                <button
-                  key={col}
-                  type="button"
-                  class={`${styles.chip} ${isSelected ? styles.active : ''}`}
-                  disabled={isDisabled}
-                  style={{
-                    flexDirection: 'row',
-                    justifyContent: 'start',
-                    gap: '0.5rem',
-                    padding: '0.5rem 0.75rem',
-                    opacity: isDisabled ? 0.4 : 1,
-                    pointerEvents: isDisabled ? 'none' : 'auto',
-                  }}
-                  onClick={() => toggleRowColumn(col)}
-                >
-                  <span
-                    class={`iconify ${styles.chipIcon}`}
-                    data-icon={isSelected ? 'carbon:checkmark-filled' : 'carbon:checkbox'}
-                    style={{
-                      color: isSelected ? 'var(--color-green)' : '',
-                    }}
-                  />
-                  <span
-                    style={{
-                      whiteSpace: 'nowrap',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      flexGrow: 1,
-                      textAlign: 'left',
-                    }}
-                  >
-                    {col}
-                  </span>
-                </button>
-              );
-            })}
-          </div>
-          <p class={styles.helpText} style={{ fontSize: '0.7rem', marginTop: '0.25rem' }}>
-            Group by these columns
-          </p>
+          <ColumnSelector
+            columns={columns}
+            selectedColumns={rowColumns.value}
+            onSelectionChange={(selected) => (rowColumns.value = selected as string[])}
+            mode="multi"
+            display="chip"
+            allowSelectAll={true}
+            disabledColumns={[columnColumn.value, valueColumn.value].filter(Boolean)}
+            maxHeight={200}
+            label="Rows"
+            helpText="Group by these columns"
+          />
         </div>
 
         {/* Columns & Values */}

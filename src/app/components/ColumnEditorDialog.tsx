@@ -1,6 +1,7 @@
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 import { useComputed } from '@preact/signals';
+import { ColumnSelector } from './column-selector';
 import styles from './TransformDialog.module.css';
 import * as Handlers from '../handlers/column-editor-handlers';
 
@@ -24,22 +25,51 @@ export function ColumnEditorDialog() {
     patternText,
     patternMode,
     patternMatchType,
-    draggedIndex,
     textSubMode,
     textValue,
     textError,
   } = DialogStore.columnEditorState;
 
-  // Compute changes using shared logic (or keep here for immediate reactivity if needed,
-  // but let's use the one that matches our handler logic)
+  // Compute changes using shared logic
   const changes = useComputed<ColumnEditorChanges>(() => {
     return Handlers.getColumnEditorChanges();
   });
 
-  const updateRename = (index: number, val: string) => {
-    const newCols = [...columns.value];
-    newCols[index] = { ...newCols[index], renamed: val };
+  // Adapter functions for ColumnSelector
+  const getColumnNames = (): string[] => columns.value.map((item) => item.original);
+  const getSelectedColumnNames = (): string[] =>
+    columns.value.filter((item) => item.selected).map((item) => item.original);
+  const getRenameValues = (): Record<string, string> => {
+    const result: Record<string, string> = {};
+    columns.value.forEach((item) => {
+      result[item.original] = item.renamed;
+    });
+    return result;
+  };
+
+  const handleSelectionChange = (selected: string[] | string) => {
+    const selectedArray = Array.isArray(selected) ? selected : [selected];
+    const newCols = columns.value.map((item) => ({
+      ...item,
+      selected: selectedArray.includes(item.original),
+    }));
     columns.value = newCols;
+  };
+
+  const handleRenameChange = (columnName: string, newName: string) => {
+    const index = columns.value.findIndex((item) => item.original === columnName);
+    if (index >= 0) {
+      const newCols = [...columns.value];
+      newCols[index] = { ...newCols[index], renamed: newName };
+      columns.value = newCols;
+    }
+  };
+
+  const handleReorder = (newOrder: string[]) => {
+    const reordered = newOrder.map(
+      (original) => columns.value.find((item) => item.original === original)!
+    );
+    columns.value = reordered;
   };
 
   return (
@@ -130,63 +160,20 @@ export function ColumnEditorDialog() {
           </div>
 
           {/* Column List */}
-          <div class={styles.columnEditorList}>
-            {columns.value.map((item, index) => (
-              <div
-                key={item.original}
-                class={`${styles.columnEditorItem} ${!item.selected ? styles.unselected : ''} ${draggedIndex.value === index ? styles.dragging : ''}`}
-                draggable
-                onDragStart={(e) => Handlers.handleColumnEditorDragStart(index, e)}
-                onDragOver={(e) => Handlers.handleColumnEditorDragOver(e)}
-                onDrop={() => Handlers.handleColumnEditorDrop(index)}
-                onDragEnd={() => Handlers.handleColumnEditorDragEnd()}
-              >
-                {/* Handle */}
-                <span class={styles.dragHandle}>⋮⋮</span>
-
-                {/* Checkbox */}
-                <button
-                  type="button"
-                  class={styles.itemCheckbox}
-                  onClick={() => Handlers.toggleColumnEditorColumn(index)}
-                >
-                  <span
-                    style={{
-                      color: item.selected ? 'var(--color-green)' : 'var(--color-red)',
-                    }}
-                  >
-                    {item.selected ? '✓' : '✗'}
-                  </span>
-                </button>
-
-                {/* Original Name */}
-                <span
-                  class={styles.originalName}
-                  style={{
-                    textDecoration: !item.selected ? 'line-through' : 'none',
-                    opacity: !item.selected ? 0.6 : 1,
-                  }}
-                >
-                  {item.original}
-                </span>
-
-                {/* Arrow */}
-                {item.selected && <span class={styles.arrow}>→</span>}
-
-                {/* Editable Name */}
-                <input
-                  type="text"
-                  class={`${styles.input} ${styles.renamedName}`}
-                  value={item.renamed}
-                  disabled={!item.selected}
-                  onInput={(e) => updateRename(index, e.currentTarget.value)}
-                  style={{
-                    opacity: !item.selected ? 0.4 : 1,
-                  }}
-                />
-              </div>
-            ))}
-          </div>
+          <ColumnSelector
+            columns={getColumnNames()}
+            selectedColumns={getSelectedColumnNames()}
+            onSelectionChange={handleSelectionChange}
+            mode="multi"
+            display="list"
+            allowDrag={true}
+            allowRename={true}
+            allowSelectAll={true}
+            renameValues={getRenameValues()}
+            onRenameChange={handleRenameChange}
+            onReorder={handleReorder}
+            maxHeight={400}
+          />
         </div>
       )}
 

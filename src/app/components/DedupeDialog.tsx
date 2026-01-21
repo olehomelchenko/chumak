@@ -1,12 +1,7 @@
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
-import {
-  toggleDedupeAllColumns,
-  toggleDedupeColumn,
-  selectAllForDedupe,
-  selectNoneForDedupe,
-  updateDedupePreview,
-} from '../transforms/dedupe-transform';
+import { ColumnSelector } from './column-selector';
+import { toggleDedupeAllColumns, updateDedupePreview } from '../transforms/dedupe-transform';
 import styles from './TransformDialog.module.css';
 
 export function DedupeDialog() {
@@ -15,6 +10,19 @@ export function DedupeDialog() {
 
   const handleModeChange = (newMode: 'remove' | 'keep') => {
     mode.value = newMode;
+    updateDedupePreview();
+  };
+
+  // Convert boolean array to string array for ColumnSelector
+  const getSelectedColumnNames = (): string[] => {
+    return columns.filter((_, index) => selectedColumns.value[index]);
+  };
+
+  // Convert string array from ColumnSelector to boolean array
+  const handleColumnSelectionChange = (selected: string[] | string) => {
+    const selectedArray = Array.isArray(selected) ? selected : [selected];
+    const newSelection = columns.map((col) => selectedArray.includes(col));
+    selectedColumns.value = newSelection;
     updateDedupePreview();
   };
 
@@ -80,43 +88,14 @@ export function DedupeDialog() {
             Select columns to use as composite key:
           </p>
 
-          <div class={styles.actions} style={{ marginBottom: '0.5rem', marginTop: 0 }}>
-            <button
-              type="button"
-              class="button button--text button--small"
-              onClick={() => selectAllForDedupe()}
-            >
-              Select All
-            </button>
-            <button
-              type="button"
-              class="button button--text button--small"
-              onClick={() => selectNoneForDedupe()}
-            >
-              Select None
-            </button>
-          </div>
-
-          <div class={styles.chipGrid}>
-            {columns.map((col, index) => {
-              const isActive = selectedColumns.value[index];
-              return (
-                <button
-                  key={col}
-                  type="button"
-                  class={`${styles.chip} ${isActive ? styles.active : ''}`}
-                  onClick={() => toggleDedupeColumn(index)}
-                >
-                  <span
-                    class={`iconify ${styles.chipIcon}`}
-                    data-icon={isActive ? 'carbon:checkmark-filled' : 'carbon:checkbox'}
-                    style={{ color: isActive ? 'var(--color-green)' : '' }}
-                  ></span>
-                  <span class={styles.chipText}>{col}</span>
-                </button>
-              );
-            })}
-          </div>
+          <ColumnSelector
+            columns={columns}
+            selectedColumns={getSelectedColumnNames()}
+            onSelectionChange={handleColumnSelectionChange}
+            mode="multi"
+            display="chip"
+            allowSelectAll={true}
+          />
         </div>
       )}
 

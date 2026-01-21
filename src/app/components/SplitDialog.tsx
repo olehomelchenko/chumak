@@ -5,6 +5,7 @@
 import { useSignalEffect } from '@preact/signals';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
+import { ColumnSelector } from './column-selector';
 import * as SplitHandlers from '../handlers/split-handlers';
 import styles from './TransformDialog.module.css';
 
@@ -53,26 +54,14 @@ export function SplitDialog() {
     <div>
       {/* Column Selection */}
       <div class={styles.group}>
-        <label class={styles.label}>Column to split:</label>
-        <div class={styles.chipGrid}>
-          {columns.map((col) => (
-            <button
-              key={col}
-              type="button"
-              class={`${styles.chip} ${column.value === col ? styles.active : ''}`}
-              style={{
-                flexDirection: 'row',
-                justifyContent: 'start',
-                gap: '0.5rem',
-                padding: '0.5rem 0.75rem',
-              }}
-              onClick={() => SplitHandlers.selectSplitColumn(col)}
-            >
-              <span class={`iconify ${styles.chipIcon}`} data-icon="carbon:column" />
-              <span>{col}</span>
-            </button>
-          ))}
-        </div>
+        <ColumnSelector
+          columns={columns}
+          selectedColumns={column.value}
+          onSelectionChange={(col) => SplitHandlers.selectSplitColumn(col as string)}
+          mode="single"
+          display="chip"
+          label="Column to split:"
+        />
       </div>
 
       {/* Delimiter */}

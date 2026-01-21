@@ -1,6 +1,7 @@
 import * as AggregateHandlers from '../handlers/aggregate-handlers';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
+import { ColumnSelector } from './column-selector';
 import styles from './TransformDialog.module.css';
 
 export interface Aggregation {
@@ -12,22 +13,6 @@ export interface Aggregation {
 export function AggregateDialog() {
   const { groupBy, aggregations, isPreviewing } = DialogStore.aggregateState;
   const columns = AppStore.columns.value;
-
-  const toggleColumn = (col: string) => {
-    if (groupBy.value.includes(col)) {
-      groupBy.value = groupBy.value.filter((c) => c !== col);
-    } else {
-      groupBy.value = [...groupBy.value, col];
-    }
-  };
-
-  const selectAll = () => {
-    groupBy.value = [...columns];
-  };
-
-  const selectNone = () => {
-    groupBy.value = [];
-  };
 
   const updateAggregation = (index: number, field: keyof Aggregation, value: string) => {
     const newAggs = [...aggregations.value];
@@ -53,65 +38,16 @@ export function AggregateDialog() {
     <div>
       {/* Group By Section */}
       <div class={styles.group}>
-        <label class={styles.label}>Group By (Columns)</label>
-        <div
-          class={styles.actions}
-          style={{ marginBottom: '0.5rem', display: 'flex', gap: '0.5rem' }}
-        >
-          <button type="button" class="button button--text button--small" onClick={selectAll}>
-            Select All
-          </button>
-          <button type="button" class="button button--text button--small" onClick={selectNone}>
-            Select None
-          </button>
-        </div>
-
-        <div class={styles.chipGrid}>
-          {columns.map((col) => {
-            const isSelected = groupBy.value.includes(col);
-            return (
-              <button
-                key={col}
-                type="button"
-                class={`${styles.chip} ${isSelected ? styles.active : ''}`}
-                style={{
-                  flexDirection: 'row',
-                  justifyContent: 'start',
-                  gap: '0.5rem',
-                  padding: '0.5rem 0.75rem',
-                }}
-                onClick={() => toggleColumn(col)}
-              >
-                <div
-                  class={`iconify ${styles.chipIcon}`}
-                  style={{
-                    color: isSelected ? 'var(--color-green)' : 'currentColor',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  {isSelected ? '✓' : '☐'}
-                </div>
-                <span
-                  style={{
-                    whiteSpace: 'nowrap',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    flexGrow: 1,
-                    textAlign: 'left',
-                  }}
-                >
-                  {col}
-                </span>
-              </button>
-            );
-          })}
-          {columns.length === 0 && (
-            <div style={{ color: '#888', fontSize: '0.8rem' }}>No columns available</div>
-          )}
-        </div>
-        <div class={styles.helpText}>Selected columns will define the grouping keys.</div>
+        <ColumnSelector
+          columns={columns}
+          selectedColumns={groupBy.value}
+          onSelectionChange={(selected) => (groupBy.value = selected as string[])}
+          mode="multi"
+          display="chip"
+          allowSelectAll={true}
+          label="Group By (Columns)"
+          helpText="Selected columns will define the grouping keys."
+        />
       </div>
 
       {/* Aggregations Section */}

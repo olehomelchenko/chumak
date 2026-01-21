@@ -1,5 +1,6 @@
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
+import { ColumnSelector } from './column-selector';
 import styles from './TransformDialog.module.css';
 
 export function ReplaceDialog() {
@@ -8,36 +9,14 @@ export function ReplaceDialog() {
   return (
     <div>
       <div class={styles.group}>
-        <label class={styles.label}>Column:</label>
-        <div class={styles.chipGrid}>
-          {columns.map((col) => (
-            <button
-              key={col}
-              type="button"
-              class={`${styles.chip} ${column.value === col ? styles.active : ''}`}
-              style={{
-                flexDirection: 'row',
-                justifyContent: 'start',
-                gap: '0.5rem',
-                padding: '0.5rem 0.75rem',
-              }}
-              onClick={() => (column.value = col)}
-            >
-              <span class={`iconify ${styles.chipIcon}`} data-icon="carbon:column" />
-              <span
-                style={{
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  textAlign: 'left',
-                  flexGrow: 1,
-                }}
-              >
-                {col}
-              </span>
-            </button>
-          ))}
-        </div>
+        <ColumnSelector
+          columns={columns}
+          selectedColumns={column.value}
+          onSelectionChange={(col) => (column.value = col as string)}
+          mode="single"
+          display="chip"
+          label="Column:"
+        />
       </div>
 
       <div class={styles.group}>

@@ -1,5 +1,6 @@
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
+import { ColumnSelector } from './column-selector';
 import {
   validateRegexpMatchExpression,
   debouncedUpdateRegexpMatchPreview,
@@ -22,23 +23,17 @@ export function RegexpMatchDialog() {
       </p>
 
       <div class={styles.group}>
-        <label class={styles.label}>Source column:</label>
-        <div class={styles.chipGrid}>
-          {columns.map((col) => (
-            <button
-              key={col}
-              type="button"
-              class={`${styles.chip} ${sourceColumn.value === col ? styles.active : ''}`}
-              onClick={() => {
-                sourceColumn.value = col;
-                debouncedUpdateRegexpMatchPreview();
-              }}
-            >
-              <span class={`iconify ${styles.chipIcon}`} data-icon="carbon:column"></span>
-              <span class={styles.chipText}>{col}</span>
-            </button>
-          ))}
-        </div>
+        <ColumnSelector
+          columns={columns}
+          selectedColumns={sourceColumn.value}
+          onSelectionChange={(col) => {
+            sourceColumn.value = col as string;
+            debouncedUpdateRegexpMatchPreview();
+          }}
+          mode="single"
+          display="chip"
+          label="Source column:"
+        />
       </div>
 
       <div class={styles.group}>

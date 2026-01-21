@@ -107,6 +107,7 @@ Standard dialog structure:
 ```tsx
 export function YourTransformDialog() {
   const state = DialogStore.yourTransformState;
+  const columns = AppStore.columns.value; // Available columns
 
   // Validation effect
   useSignalEffect(() => {
@@ -130,10 +131,13 @@ export function YourTransformDialog() {
       }
     >
       <div class={styles.field}>
-        <label>Parameter 1</label>
-        <input
-          value={state.param1.value}
-          onInput={(e) => (state.param1.value = e.currentTarget.value)}
+        <ColumnSelector
+          label="Target Column"
+          columns={columns}
+          selectedColumns={state.param1.value}
+          onSelectionChange={(val) => (state.param1.value = val as string)}
+          mode="single"
+          display="chip"
         />
       </div>
       {state.error.value && <div class={styles.error}>{state.error.value}</div>}
