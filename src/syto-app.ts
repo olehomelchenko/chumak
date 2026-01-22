@@ -829,6 +829,21 @@ export class SytoApp implements AppState {
     // Update URL when switching to a model
     setUrlState({ sourceId: model.sourceId, modelId: model.id });
   }
+  showModelInfo() {
+    if (!this.activeModel) return;
+    ModelService.showModelInfo(this.activeModel, () => this.clearColumnSelection());
+    // Update URL when showing model info
+    setUrlState({
+      sourceId: this.activeModel.sourceId,
+      modelId: this.activeModel.id,
+      section: 'info',
+    });
+  }
+  showDatasetInfo(source: Source) {
+    ModelService.showDatasetInfo(source, () => this.clearColumnSelection());
+    // Update URL when showing dataset info
+    setUrlState({ sourceId: source.id, section: 'info' });
+  }
   createNewModel(source: Source) {
     return ModelService.createNewModel(
       source,
@@ -1249,21 +1264,33 @@ export class SytoApp implements AppState {
     } else if (urlState.modelId) {
       const model = models.find((m) => m.id === urlState.modelId);
       if (model) {
-        this.activeModel = model;
-        this.currentData = model.data;
-        this.viewMode = 'model';
-        // Ensure URL is set after restoration
-        setUrlState({ sourceId: model.sourceId, modelId: model.id });
+        if (urlState.section === 'info') {
+          // Show model info view
+          ModelService.showModelInfo(model, () => this.clearColumnSelection());
+          setUrlState({ sourceId: model.sourceId, modelId: model.id, section: 'info' });
+        } else {
+          // Show model view
+          this.activeModel = model;
+          this.currentData = model.data;
+          this.viewMode = 'model';
+          setUrlState({ sourceId: model.sourceId, modelId: model.id });
+        }
         restored = true;
       }
     } else if (urlState.sourceId) {
       const source = sources.find((s) => s.id === urlState.sourceId);
       if (source) {
-        this.activeSource = source;
-        this.currentData = source.data;
-        this.viewMode = 'dataset-info';
-        // Ensure URL is set after restoration
-        setUrlState({ sourceId: source.id });
+        if (urlState.section === 'info') {
+          // Show dataset info view
+          ModelService.showDatasetInfo(source, () => this.clearColumnSelection());
+          setUrlState({ sourceId: source.id, section: 'info' });
+        } else {
+          // Show dataset info view (default for source)
+          this.activeSource = source;
+          this.currentData = source.data;
+          this.viewMode = 'dataset-info';
+          setUrlState({ sourceId: source.id });
+        }
         restored = true;
       }
     }

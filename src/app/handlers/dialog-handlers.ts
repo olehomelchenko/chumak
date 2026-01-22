@@ -103,13 +103,33 @@ export function handleHashChange(this: SytoApp) {
     // Handle model/source routes
     if (urlState.modelId) {
       const model = this.models.find((m) => m.id === urlState.modelId);
-      if (model && this.activeModel?.id !== model.id) {
-        this.switchToModel(model);
+      if (model) {
+        if (urlState.section === 'info') {
+          // Show model info view
+          if (this.activeModel?.id !== model.id || AppStore.viewMode.value !== 'model-info') {
+            this.showModelInfo();
+          }
+        } else {
+          // Switch to model view
+          if (this.activeModel?.id !== model.id) {
+            this.switchToModel(model);
+          }
+        }
       }
     } else if (urlState.sourceId) {
       const source = this.sources.find((s) => s.id === urlState.sourceId);
-      if (source && this.activeSource?.id !== source.id) {
-        this.switchToSource(source);
+      if (source) {
+        if (urlState.section === 'info') {
+          // Show dataset info view
+          if (this.activeSource?.id !== source.id || AppStore.viewMode.value !== 'dataset-info') {
+            this.showDatasetInfo(source);
+          }
+        } else {
+          // Switch to source view
+          if (this.activeSource?.id !== source.id) {
+            this.switchToSource(source);
+          }
+        }
       }
     }
 

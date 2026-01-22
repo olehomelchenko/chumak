@@ -51,6 +51,7 @@ export interface Source {
   rawSize?: number;
   rowCount?: number;
   createdAt?: string;
+  comment?: string;
   __v?: number; // Schema version for future migrations (defaults to 1)
 }
 
@@ -63,6 +64,7 @@ export interface Model {
   data: DataRow[];
   stats?: EDAStats | null;
   isStale?: boolean; // True if a dependency changed but model not yet recomputed
+  comment?: string;
   __v?: number; // Schema version for future migrations (defaults to 1)
 }
 
@@ -220,7 +222,7 @@ export interface AppState {
   activeModel: Model | null;
   currentData: DataRow[] | null;
   columns: string[];
-  viewMode: 'empty' | 'dataset-info' | 'model';
+  viewMode: 'empty' | 'dataset-info' | 'model' | 'model-info';
 
   // Notifications
   notifications: Notification[];

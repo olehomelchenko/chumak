@@ -2,11 +2,17 @@
 import { AppStore } from '../stores/AppStore';
 import { EmptyState, EmptyStateProps } from './EmptyState';
 import { DatasetInfoView, DatasetInfoViewProps } from './DatasetInfoView';
+import { ModelInfoView, ModelInfoViewProps } from './ModelInfoView';
 import { PaginationBar, PaginationBarProps } from './PaginationBar';
 import { DataTable, DataTableProps } from './DataTable';
 
 export interface MainContentProps
-  extends EmptyStateProps, DatasetInfoViewProps, PaginationBarProps, DataTableProps {}
+  extends
+    EmptyStateProps,
+    DatasetInfoViewProps,
+    ModelInfoViewProps,
+    PaginationBarProps,
+    DataTableProps {}
 
 export function MainContent(props: MainContentProps) {
   const viewMode = AppStore.viewMode;
@@ -31,9 +37,14 @@ export function MainContent(props: MainContentProps) {
         />
       )}
 
+      {viewMode.value === 'model-info' && (
+        <ModelInfoView onRenameModel={props.onRenameModel} onDeleteModel={props.onDeleteModel} />
+      )}
+
       {viewMode.value === 'model' && (
         <>
           <PaginationBar
+            onModelInfo={props.onModelInfo}
             onRenameModel={props.onRenameModel}
             onCopyModel={props.onCopyModel}
             onCreateNewModelFromActive={props.onCreateNewModelFromActive}

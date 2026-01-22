@@ -73,6 +73,9 @@ export type { EmptyStateProps } from './EmptyState';
 export { DatasetInfoView } from './DatasetInfoView';
 export type { DatasetInfoViewProps } from './DatasetInfoView';
 
+export { ModelInfoView } from './ModelInfoView';
+export type { ModelInfoViewProps } from './ModelInfoView';
+
 export { PaginationBar } from './PaginationBar';
 export type { PaginationBarProps } from './PaginationBar';
 

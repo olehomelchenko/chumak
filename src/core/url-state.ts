@@ -6,7 +6,7 @@ export interface URLState {
   sourceId?: string;
   modelId?: string;
   page?: string; // 'about', 'reference', 'expressions', 'settings'
-  section?: string; // e.g., 'filter' for reference/filter
+  section?: string; // e.g., 'filter' for reference/filter, 'info' for dataset/model info
 }
 
 /**
@@ -33,7 +33,16 @@ export function getUrlState(): URLState {
     } else if (parts.length >= 1) {
       state.sourceId = parts[0];
       if (parts.length >= 2) {
-        state.modelId = parts[1];
+        // Check if second part is 'info' (for dataset info) or a modelId
+        if (parts[1] === 'info') {
+          state.section = 'info';
+        } else {
+          state.modelId = parts[1];
+          // Check if third part is 'info' (for model info)
+          if (parts.length >= 3 && parts[2] === 'info') {
+            state.section = 'info';
+          }
+        }
       }
     }
   }
@@ -56,6 +65,9 @@ export function setUrlState(state: URLState): void {
     hashPath += `/${state.sourceId}`;
     if (state.modelId) {
       hashPath += `/${state.modelId}`;
+    }
+    if (state.section === 'info') {
+      hashPath += `/info`;
     }
   }
 

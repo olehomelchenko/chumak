@@ -32,6 +32,7 @@ interface Source {
   rawSize?: number; // Original file size in bytes
   rowCount?: number; // Number of rows
   createdAt?: string; // ISO timestamp
+  comment?: string; // User-provided comment/notes about the dataset
 }
 ```
 
@@ -49,6 +50,7 @@ interface Model {
   data: DataRow[]; // Computed result data
   stats?: EDAStats | null; // Cached EDA statistics for selected column
   isStale?: boolean; // True if a dependency changed but model not yet recomputed
+  comment?: string; // User-provided comment/notes about the model
 }
 ```
 

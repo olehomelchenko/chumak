@@ -3,7 +3,7 @@ import { Source, Model, DataRow, DialogName, Notification } from '../types';
 import { ColumnSchema } from '../../core/schema-engine';
 import { UXSettings } from '../../core/ux-settings';
 
-export type ViewMode = 'empty' | 'dataset-info' | 'model';
+export type ViewMode = 'empty' | 'dataset-info' | 'model' | 'model-info';
 
 /**
  * AppStore

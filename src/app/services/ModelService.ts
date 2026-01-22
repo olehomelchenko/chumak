@@ -27,6 +27,30 @@ export class ModelService {
   }
 
   /**
+   * Shows the dataset info view for a source
+   */
+  static showDatasetInfo(source: Source, clearColumnSelection: () => void) {
+    AppStore.activeSource.value = source;
+    AppStore.activeModel.value = null;
+    AppStore.viewMode.value = 'dataset-info';
+    AppStore.activeStepIndex.value = null;
+    AppStore.viewingIntermediate.value = false;
+    clearColumnSelection();
+  }
+
+  /**
+   * Shows the model info view for a model
+   */
+  static showModelInfo(model: Model, clearColumnSelection: () => void) {
+    AppStore.activeSource.value = null;
+    AppStore.activeModel.value = model;
+    AppStore.viewMode.value = 'model-info';
+    AppStore.activeStepIndex.value = null;
+    AppStore.viewingIntermediate.value = false;
+    clearColumnSelection();
+  }
+
+  /**
    * Switches the active view to a specific model.
    * If the model is stale (dependency changed), auto-recomputes it.
    */

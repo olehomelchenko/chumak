@@ -148,6 +148,8 @@ export function App({ app }: AppProps) {
     onDeleteSource: (s: any) => app.deleteSource(s),
     onSwitchToModel: (m: any) => app.switchToModel(m),
     onCreateNewModel: (s: any) => app.createNewModel(s),
+    // ModelInfo
+    onModelInfo: () => app.showModelInfo && app.showModelInfo(),
     // Pagination
     onRenameModel: () => app.renameCurrentModel(),
     onCopyModel: () => app.copyCurrentModel(),

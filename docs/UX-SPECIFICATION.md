@@ -79,10 +79,26 @@ The sidebar provides central management for all data assets:
 
 Located above the data preview table, this toolbar provides status and model-specific actions:
 
+- **Model Info Button**: Opens the Model Info view showing model metadata, comment, and column schema. Positioned leftmost, before the Rename button.
 - **Metadata**: Real-time summary of the data shape and pipeline length.
 - **Download Modal**: A unified menu for exporting current data as CSV/JSON or the workflow spec.
 - **Overlapping Icon Buttons**: Reworked copy buttons using a format icon base (CSV/JSON) with a copy overlay icon.
 - **JSON Editor Toggle**: Rapid switching between the visual steps view and the raw JSON specification.
+
+### 3.3.1 Dataset & Model Info Views
+
+Both datasets (sources) and models have dedicated info views accessible via:
+
+- **Dataset Info**: Clicking a source in the sidebar or navigating to `#/src_xxx/info`
+- **Model Info**: Clicking the "Model Info" button in the pagination bar or navigating to `#/src_xxx/mdl_xxx/info`
+
+These views display:
+
+- **Metadata**: Name, source/model relationships, row/column counts, steps, status
+- **Comment Section**: Editable text area for user notes about the dataset or model
+- **Column Schema Table**: Complete list of columns with types and positions
+
+Comments are persisted to IndexedDB and automatically saved when edited.
 
 ### 3.4 Interactive Table Context
 

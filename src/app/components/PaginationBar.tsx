@@ -3,6 +3,7 @@ import { DialogName } from '../types';
 import styles from './PaginationBar.module.css';
 
 export interface PaginationBarProps {
+  onModelInfo: () => void;
   onRenameModel: () => void;
   onCopyModel: () => void;
   onCreateNewModelFromActive: () => void;
@@ -19,6 +20,7 @@ export interface PaginationBarProps {
 }
 
 export function PaginationBar({
+  onModelInfo,
   onRenameModel,
   onCopyModel,
   onCreateNewModelFromActive,
@@ -41,6 +43,10 @@ export function PaginationBar({
     <div class={styles.pagination}>
       {/* Model Actions (Left) */}
       <div class={styles.modelActions}>
+        <button class="button button--ghost button--small" onClick={onModelInfo} title="Model Info">
+          <span class="iconify" data-icon="carbon:information"></span>
+          <span>Model Info</span>
+        </button>
         <button
           class="button button--ghost button--small"
           onClick={onRenameModel}
