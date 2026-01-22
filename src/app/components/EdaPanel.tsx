@@ -4,6 +4,7 @@ import { DialogStore } from '../stores/DialogStore';
 import { ChartsEngine } from '../../core/charts';
 import { EDAEngine } from '../../core/eda-engine';
 import { SchemaEngine } from '../../core/schema-engine';
+import { TypeIndicator } from './TypeIndicator';
 import styles from './EdaPanel.module.css';
 
 export function EdaPanel({ onApplyFilter }: { onApplyFilter?: () => void }) {
@@ -201,8 +202,8 @@ export function EdaPanel({ onApplyFilter }: { onApplyFilter?: () => void }) {
     <div class={styles.edaPanel} onClick={handlePanelClick}>
       <div class={styles.edaPanel__header}>
         <div class={styles.edaPanel__title}>
+          <TypeIndicator type={edaStats.type} showLabel={false} size="small" />
           <span class={styles.edaPanel__columnName}>{selectedColumn}</span>
-          <span class={`type-badge type-badge--${edaStats.type}`}>{edaStats.type}</span>
           {isDate && (
             <div class={styles.edaTreatmentToggle}>
               <button

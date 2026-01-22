@@ -97,14 +97,90 @@ type ColumnType = 'string' | 'integer' | 'float' | 'boolean' | 'date' | 'datetim
 
 ### 2.3 Type Inference
 
-Types are inferred from sample data (first 20 rows) using pattern matching:
+Syto uses sample-based type inference to automatically detect column types. The inference process operates at two key moments:
 
-1. **Boolean**: All values are `true` or `false`
-2. **Integer**: All values are whole numbers
-3. **Float**: All values are numbers with decimals
-4. **DateTime**: Matches `YYYY-MM-DDTHH:MM:SS` or `YYYY-MM-DD HH:MM:SS`
-5. **Date**: Matches `YYYY-MM-DD`, `YYYY/MM/DD`, or `MM/DD/YYYY`
-6. **String**: Default fallback
+#### 2.3.1 Initial Import Inference
+
+When a dataset is imported from CSV/JSON, types are inferred for each column:
+
+- **Sample size**: First **20 rows** of each column
+- **Implementation**: `SchemaEngine.createInitialSchema()`
+- **Result**: Stored in `Source.columns` as `ColumnSchema[]`
+- **Transform step**: An initial `types` step is added to the model with the inferred types
+
+**Note**: Since CSV/JSON are inherently untyped (all strings in CSV), the import process applies type detection to classify the imported string data.
+
+#### 2.3.2 Transform Propagation Inference
+
+When transforms are applied, schema is recalculated:
+
+- **Sample size**: Up to **100 rows** of result data
+- **Implementation**: `SchemaEngine.deriveNextSchema()`
+- **Triggers**:
+  - New columns created (e.g., `derive`, `split`)
+  - Aggregation operations change types
+  - User applies `types` transform with explicit type assignments
+- **Result**: Updated `Model.schema`
+
+#### 2.3.3 Auto-Detect Feature
+
+The "Auto-Detect Types" button re-infers types for all columns in current view:
+
+- **Sample size**: First **50 rows**
+- **Implementation**: `autoDetectSchema()` handler
+- **Effect**: Creates a new `types` transform step with inferred types
+
+#### 2.3.4 Inference Algorithm
+
+Types are inferred using pattern matching with the following priority order:
+
+1. **Boolean**: All non-null values are JavaScript `boolean` type (`true` or `false`)
+2. **Integer**: All non-null values are JavaScript `number` type and are whole numbers
+3. **Float**: All non-null values are JavaScript `number` type (includes decimals)
+4. **Numeric Strings**: All non-null values are strings that parse cleanly as numbers (e.g., `"123"`, `"45.67"`)
+   - Trimmed and validated with `Number()`, excluding `NaN` and `Infinity`
+   - Returns `integer` if all parse as whole numbers, `float` otherwise
+5. **DateTime**: All non-null string values match regex:
+   - ISO format: `YYYY-MM-DDTHH:MM:SS...`
+   - SQL format: `YYYY-MM-DD HH:MM:SS...`
+6. **Date**: All non-null string values match one of:
+   - ISO format: `YYYY-MM-DD` or `YYYY/MM/DD`
+   - American format: `MM/DD/YYYY` or `M/D/YYYY`
+7. **String**: Default fallback for all other cases
+
+**Null handling**: `null`, `undefined`, and empty strings (`""`) are excluded from pattern matching during inference.
+
+#### 2.3.5 Type Conversion
+
+When a `types` transform is applied, values are converted to the target type:
+
+- **Implementation**: `convertType()` in `type-converter.ts`
+- **Error handling**: Failed conversions create error objects (Power Query-style) rather than throwing exceptions
+- **Null/empty strings**: Handled intelligently per target type
+  - Dates: convert to `null`
+  - Numbers: create error object for empty strings
+  - Strings: preserve as-is
+- **Examples**:
+  - String `"123"` → Integer `123`
+  - String `"true"` → Boolean `true`
+  - String `"2024-01-15"` → Date object
+  - String `"abc"` → Integer conversion error object
+
+#### 2.3.6 Dataset vs Model Types
+
+**Important distinction**:
+
+- **Datasets** (`Source`): Types are inferred during import from the raw CSV/JSON data
+  - CSV data is inherently string-based, so inference classifies these strings
+  - Stored in `Source.columns`
+
+- **Models**: Types are propagated through transform steps
+  - Start with dataset's inferred types
+  - Re-inferred for new/derived columns
+  - Explicitly changed via `types` transform
+  - Stored in `Model.schema`
+
+Models always start with an initial `types` transform step that captures the dataset's inferred types as the baseline.
 
 ---
 

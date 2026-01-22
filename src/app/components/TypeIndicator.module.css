@@ -1,0 +1,86 @@
+.typeIndicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.indicator {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  font-size: 10px;
+  font-weight: bold;
+  font-family: var(--font-family-mono);
+  background: var(--color-light-gray);
+  color: var(--color-dark-gray);
+  flex-shrink: 0;
+
+  /* Type-specific colors (matches TypeMenu) */
+  &.string {
+    color: var(--color-midnight-blue);
+  }
+  &.integer,
+  &.float {
+    color: var(--color-cyan);
+  }
+  &.date,
+  &.datetime {
+    color: #9b59b6;
+  }
+  &.boolean {
+    color: var(--color-green);
+  }
+
+  .iconify {
+    width: 14px;
+    height: 14px;
+  }
+}
+
+.label {
+  font-size: var(--font-size-sm);
+  color: var(--color-midnight-blue);
+  white-space: nowrap;
+}
+
+/* Size variants */
+.small {
+  gap: 6px;
+
+  .indicator {
+    width: 16px;
+    height: 16px;
+    font-size: 9px;
+
+    .iconify {
+      width: 12px;
+      height: 12px;
+    }
+  }
+
+  .label {
+    font-size: var(--font-size-xs);
+  }
+}
+
+.medium {
+  gap: 8px;
+
+  .indicator {
+    width: 20px;
+    height: 20px;
+    font-size: 10px;
+
+    .iconify {
+      width: 14px;
+      height: 14px;
+    }
+  }
+
+  .label {
+    font-size: var(--font-size-sm);
+  }
+}

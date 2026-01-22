@@ -202,38 +202,17 @@
   &__cell {
     padding: var(--space-sm) var(--space-md);
     color: var(--color-midnight-blue);
+
+    /* For cells containing TypeIndicator + column name */
+    &:first-child {
+      display: flex;
+      align-items: center;
+      gap: var(--space-sm);
+    }
   }
 }
 
-.typeBadge {
-  display: inline-block;
-  padding: 2px var(--space-sm);
-  border-radius: var(--border-radius);
-  font-size: var(--font-size-xs);
-  font-weight: var(--font-weight-medium);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-
-  &--string {
-    background: #e3f2fd;
-    color: #1565c0;
-  }
-
-  &--number,
-  &--integer,
-  &--float {
-    background: #f3e5f5;
-    color: #6a1b9a;
-  }
-
-  &--boolean {
-    background: #e8f5e9;
-    color: #2e7d32;
-  }
-
-  &--date,
-  &--datetime {
-    background: #fff3e0;
-    color: #e65100;
-  }
+.columnName {
+  font-family: var(--font-family-mono);
+  font-size: var(--font-size-sm);
 }

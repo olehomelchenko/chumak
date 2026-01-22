@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'preact/hooks';
 import { AppStore } from '../stores/AppStore';
 import { PersistenceService } from '../services/PersistenceService';
+import { TypeIndicator } from './TypeIndicator';
 import styles from './DatasetInfoView.module.css';
 
 export interface ModelInfoViewProps {
@@ -163,21 +164,16 @@ export function ModelInfoView({ onRenameModel, onDeleteModel }: ModelInfoViewPro
           <table class={styles.schemaTable}>
             <thead>
               <tr>
-                <th class={styles.schemaTable__header}>Column Name</th>
-                <th class={styles.schemaTable__header}>Type</th>
+                <th class={styles.schemaTable__header}>Column</th>
                 <th class={styles.schemaTable__header}>Position</th>
               </tr>
             </thead>
             <tbody>
               {(model.schema || []).map((column: any, index: number) => (
                 <tr key={column.name} class={styles.schemaTable__row}>
-                  <td class={styles.schemaTable__cell}>{column.name}</td>
                   <td class={styles.schemaTable__cell}>
-                    <span
-                      class={`${styles.typeBadge} ${styles[`typeBadge--${column.type || column.inferredType}`]}`}
-                    >
-                      {column.type || column.inferredType}
-                    </span>
+                    <TypeIndicator type={column.type || column.inferredType} size="small" />
+                    <span class={styles.columnName}>{column.name}</span>
                   </td>
                   <td class={styles.schemaTable__cell}>{index + 1}</td>
                 </tr>

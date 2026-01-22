@@ -3,6 +3,7 @@ import { AppStore } from '../stores/AppStore';
 import { getDependencyTooltip } from '../handlers/helper-handlers';
 import type { Source, Model } from '../types';
 import { PersistenceService } from '../services/PersistenceService';
+import { TypeIndicator } from './TypeIndicator';
 import styles from './DatasetInfoView.module.css';
 
 export interface DatasetInfoViewProps {
@@ -207,21 +208,16 @@ export function DatasetInfoView({
           <table class={styles.schemaTable}>
             <thead>
               <tr>
-                <th class={styles.schemaTable__header}>Column Name</th>
-                <th class={styles.schemaTable__header}>Type</th>
+                <th class={styles.schemaTable__header}>Column</th>
                 <th class={styles.schemaTable__header}>Position</th>
               </tr>
             </thead>
             <tbody>
               {(source.columns || []).map((column: any) => (
                 <tr key={column.name} class={styles.schemaTable__row}>
-                  <td class={styles.schemaTable__cell}>{column.name}</td>
                   <td class={styles.schemaTable__cell}>
-                    <span
-                      class={`${styles.typeBadge} ${styles[`typeBadge--${column.type || column.inferredType}`]}`}
-                    >
-                      {column.type || column.inferredType}
-                    </span>
+                    <TypeIndicator type={column.type || column.inferredType} size="small" />
+                    <span class={styles.columnName}>{column.name}</span>
                   </td>
                   <td class={styles.schemaTable__cell}>{column.originalPosition + 1}</td>
                 </tr>
