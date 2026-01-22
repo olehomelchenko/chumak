@@ -8,6 +8,46 @@ const DB_NAME = 'syto-db';
 const DB_VERSION = 1;
 
 /**
+ * Deep clone an object while converting Date objects to local date strings (YYYY-MM-DD).
+ * This ensures dates are serialized without timezone conversion issues.
+ *
+ * Why not use JSON replacer? Date objects have a toJSON() method that is called BEFORE
+ * the replacer function, converting to UTC ISO strings. We must convert dates before
+ * JSON.stringify sees them.
+ */
+export function convertDatesForStorage(obj: any): any {
+  if (obj === null || obj === undefined) {
+    return obj;
+  }
+
+  // Handle Date objects
+  if (obj instanceof Date) {
+    const pad = (n: number) => String(n).padStart(2, '0');
+    // Always serialize dates as YYYY-MM-DD (local date, no timezone conversion)
+    return `${obj.getFullYear()}-${pad(obj.getMonth() + 1)}-${pad(obj.getDate())}`;
+  }
+
+  // Handle arrays
+  if (Array.isArray(obj)) {
+    return obj.map((item) => convertDatesForStorage(item));
+  }
+
+  // Handle plain objects
+  if (typeof obj === 'object' && obj.constructor === Object) {
+    const result: any = {};
+    for (const key in obj) {
+      if (obj.hasOwnProperty(key)) {
+        result[key] = convertDatesForStorage(obj[key]);
+      }
+    }
+    return result;
+  }
+
+  // Return primitives and other types as-is
+  return obj;
+}
+
+/**
  * Open/create the IndexedDB database
  */
 export function openDatabase(): Promise<IDBDatabase> {
@@ -52,7 +92,9 @@ export async function saveSources(sources: any[]): Promise<void> {
 
     clearRequest.onsuccess = () => {
       sources.forEach((source) => {
-        const cleanSource = JSON.parse(JSON.stringify(source));
+        // Convert Date objects to YYYY-MM-DD strings before serialization
+        const converted = convertDatesForStorage(source);
+        const cleanSource = JSON.parse(JSON.stringify(converted));
         store.put(cleanSource);
       });
     };
@@ -106,7 +148,9 @@ export async function saveModels(models: any[]): Promise<void> {
 
     clearRequest.onsuccess = () => {
       models.forEach((model) => {
-        const cleanModel = JSON.parse(JSON.stringify(model));
+        // Convert Date objects to YYYY-MM-DD strings before serialization
+        const converted = convertDatesForStorage(model);
+        const cleanModel = JSON.parse(JSON.stringify(converted));
         store.put(cleanModel);
       });
     };

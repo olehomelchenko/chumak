@@ -1,5 +1,6 @@
 import { AppStore } from '../stores/AppStore';
 import Papa from 'papaparse';
+import { convertDatesForStorage } from '../../core/storage';
 
 /**
  * ExportService
@@ -107,7 +108,7 @@ export class ExportService {
 
     const start = performance.now();
     try {
-      const json = JSON.stringify(data, null, 2);
+      const json = JSON.stringify(convertDatesForStorage(data), null, 2);
       const blob = new Blob([json], { type: 'application/json;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -166,7 +167,7 @@ export class ExportService {
     }
 
     try {
-      const json = JSON.stringify(pageData, null, 2);
+      const json = JSON.stringify(convertDatesForStorage(pageData), null, 2);
       await navigator.clipboard.writeText(json);
       await alert('Current page data copied to clipboard (JSON)!');
     } catch (error: any) {

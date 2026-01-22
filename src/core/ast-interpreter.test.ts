@@ -831,3 +831,71 @@ describe('Case-Insensitive Comparison Functions', () => {
     });
   });
 });
+
+describe('parseToDate - ISO DateTime handling', () => {
+  it('should extract date from UTC ISO datetime string (regression test)', () => {
+    // This is the specific bug: "2011-12-31T22:00:00.000Z" should parse as 2011-12-31
+    const result = parseToDate('2011-12-31T22:00:00.000Z');
+    expect(result).toBeInstanceOf(Date);
+    expect(result?.getFullYear()).toBe(2011);
+    expect(result?.getMonth()).toBe(11); // December (0-indexed)
+    expect(result?.getDate()).toBe(31);
+  });
+
+  it('should preserve time components for non-UTC datetime strings', () => {
+    // Datetime strings WITHOUT Z should preserve the full datetime
+    const result = parseToDate('2012-01-01T10:30:00');
+    expect(result).toBeInstanceOf(Date);
+    expect(result?.getFullYear()).toBe(2012);
+    expect(result?.getMonth()).toBe(0); // January
+    expect(result?.getDate()).toBe(1);
+    expect(result?.getHours()).toBe(10);
+    expect(result?.getMinutes()).toBe(30);
+  });
+
+  it('should extract only date from UTC datetime strings ending in Z', () => {
+    // Datetime strings WITH Z (from toISOString()) should extract only the date
+    const result = parseToDate('2012-01-01T10:30:00.000Z');
+    expect(result).toBeInstanceOf(Date);
+    expect(result?.getFullYear()).toBe(2012);
+    expect(result?.getMonth()).toBe(0); // January
+    expect(result?.getDate()).toBe(1);
+    // Time should be midnight (local) since we extracted only the date
+    expect(result?.getHours()).toBe(0);
+    expect(result?.getMinutes()).toBe(0);
+  });
+
+  it('should handle plain YYYY-MM-DD format', () => {
+    const result = parseToDate('2012-01-01');
+    expect(result).toBeInstanceOf(Date);
+    expect(result?.getFullYear()).toBe(2012);
+    expect(result?.getMonth()).toBe(0);
+    expect(result?.getDate()).toBe(1);
+  });
+
+  it('should handle Date objects', () => {
+    const date = new Date(2012, 0, 1);
+    const result = parseToDate(date);
+    expect(result).toBe(date);
+  });
+
+  it('should return null for invalid input', () => {
+    expect(parseToDate(null)).toBe(null);
+    expect(parseToDate(undefined)).toBe(null);
+    expect(parseToDate('')).toBe(null);
+    expect(parseToDate('invalid')).toBe(null);
+  });
+
+  it('should demonstrate the timezone bug is fixed', () => {
+    // Before the fix: "2011-12-31T22:00:00.000Z" would parse and display
+    // as Dec 31 in some timezones or Jan 1 in others depending on local time
+    // After the fix: we extract just the date portion (2011-12-31)
+    const utcString = '2011-12-31T22:00:00.000Z';
+    const result = parseToDate(utcString);
+
+    // Should always be Dec 31, regardless of local timezone
+    expect(result?.getDate()).toBe(31);
+    expect(result?.getMonth()).toBe(11); // December
+    expect(result?.getFullYear()).toBe(2011);
+  });
+});

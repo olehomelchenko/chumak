@@ -46,6 +46,16 @@ export function parseToDate(value: any): Date | null {
       return new Date(y, m - 1, d);
     }
 
+    // ISO DateTime with UTC indicator (YYYY-MM-DDTHH:MM:SS...Z)
+    // Extract just the date part to avoid timezone conversion issues
+    // This handles legacy data that was serialized with toISOString() which always ends with Z
+    // We only do this for UTC strings (ending in Z) to avoid breaking legitimate datetime strings
+    if (/^\d{4}-\d{2}-\d{2}T[\d:.]+Z$/.test(trimmed)) {
+      const datePart = trimmed.split('T')[0];
+      const [y, m, d] = datePart.split('-').map(Number);
+      return new Date(y, m - 1, d);
+    }
+
     const parsed = new Date(trimmed);
     return isNaN(parsed.getTime()) ? null : parsed;
   }
