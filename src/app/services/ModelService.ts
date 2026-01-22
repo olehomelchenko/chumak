@@ -83,9 +83,9 @@ export class ModelService {
       }
     }
 
-    // Ensure schema exists
+    // Ensure schema exists (fallback for models that lost their schema)
     if (model.data && model.data.length > 0 && (!model.schema || model.schema.length === 0)) {
-      model.schema = SchemaEngine.createInitialSchema(model.data);
+      model.schema = SchemaEngine.createLogicalSchema(model.data);
     }
 
     AppStore.currentData.value = model.data;
@@ -156,9 +156,12 @@ export class ModelService {
     if (source.customHeaders) importStep.import.customHeaders = source.customHeaders;
     newModel.steps.push(importStep);
 
+    // Initial Types Step - infer logical types from the data
+    // This is where type inference happens (dataset has physical types, model has logical types)
     const typesStep = { types: {} as any };
     source.columns.forEach((col) => {
-      typesStep.types[col.name] = col.type;
+      const sample = newModel.data.slice(0, 20).map((row: any) => row[col.name]);
+      typesStep.types[col.name] = SchemaEngine.inferType(sample);
     });
     newModel.steps.push(typesStep);
 

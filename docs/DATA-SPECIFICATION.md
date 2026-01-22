@@ -95,22 +95,54 @@ type ColumnType = 'string' | 'integer' | 'float' | 'boolean' | 'date' | 'datetim
 | `date`     | Date without time | `"2024-01-15"`           |
 | `datetime` | Date with time    | `"2024-01-15T10:30:00"`  |
 
-### 2.3 Type Inference
+### 2.3 Type System: Physical vs Logical Types
 
-Syto uses sample-based type inference to automatically detect column types. The inference process operates at two key moments:
+Syto distinguishes between **physical types** (what the parser returns) and **logical types** (what's used for data wrangling).
 
-#### 2.3.1 Initial Import Inference
+#### 2.3.1 Physical Types (Import Types)
 
-When a dataset is imported from CSV/JSON, types are inferred for each column:
+When a dataset is imported, **physical types** are extracted based on what the parser returns:
 
+- **Source**: PapaParse with `dynamicTyping: true` (CSV) or `JSON.parse` (JSON)
 - **Sample size**: First **20 rows** of each column
-- **Implementation**: `SchemaEngine.createInitialSchema()`
+- **Implementation**: `SchemaEngine.createPhysicalSchema()`
 - **Result**: Stored in `Source.columns` as `ColumnSchema[]`
-- **Transform step**: An initial `types` step is added to the model with the inferred types
+- **UI Label**: "Import Types" in Dataset Info View
 
-**Note**: Since CSV/JSON are inherently untyped (all strings in CSV), the import process applies type detection to classify the imported string data.
+**Physical Type Detection:**
 
-#### 2.3.2 Transform Propagation Inference
+For CSV with `dynamicTyping: true`:
+
+- JavaScript `number` → `integer` or `float` (based on `Number.isInteger()`)
+- JavaScript `boolean` → `boolean`
+- Everything else (including date strings like `"2024-01-15"`) → `string`
+
+For JSON:
+
+- JavaScript `number` → `integer` or `float`
+- JavaScript `boolean` → `boolean`
+- JavaScript `string` → `string`
+- `null`/`undefined` → `string` (fallback)
+
+**Key Point**: Physical types reflect what PapaParse/JSON.parse gives us after `dynamicTyping`. **No pattern-based inference** is applied at the dataset level. Dates remain as strings because CSV/JSON formats don't have native date types.
+
+#### 2.3.2 Logical Types (Data Types)
+
+When a model is created from a dataset, **logical types** are inferred from the data:
+
+- **Timing**: First `types` transform step in the model pipeline
+- **Sample size**: First **20 rows** of each column
+- **Implementation**: `SchemaEngine.inferType()` (see algorithm below)
+- **Result**: Stored in model's first `types` step, then propagated to `Model.schema`
+- **UI Label**: "Data Types" in Model Info View
+
+**This is where type inference happens** - pattern matching converts:
+
+- String `"2024-01-15"` → logical type `date`
+- String `"123"` → logical type `integer`
+- String `"true"` → remains `string` (unless it's already a boolean from `dynamicTyping`)
+
+#### 2.3.3 Transform Propagation
 
 When transforms are applied, schema is recalculated:
 
@@ -122,15 +154,15 @@ When transforms are applied, schema is recalculated:
   - User applies `types` transform with explicit type assignments
 - **Result**: Updated `Model.schema`
 
-#### 2.3.3 Auto-Detect Feature
+#### 2.3.4 Auto-Detect Feature
 
-The "Auto-Detect Types" button re-infers types for all columns in current view:
+The "Auto-Detect Types" button re-infers logical types for all columns in current model view:
 
 - **Sample size**: First **50 rows**
 - **Implementation**: `autoDetectSchema()` handler
-- **Effect**: Creates a new `types` transform step with inferred types
+- **Effect**: Creates a new `types` transform step with re-inferred logical types
 
-#### 2.3.4 Inference Algorithm
+#### 2.3.5 Logical Type Inference Algorithm
 
 Types are inferred using pattern matching with the following priority order:
 
@@ -150,9 +182,9 @@ Types are inferred using pattern matching with the following priority order:
 
 **Null handling**: `null`, `undefined`, and empty strings (`""`) are excluded from pattern matching during inference.
 
-#### 2.3.5 Type Conversion
+#### 2.3.6 Type Conversion
 
-When a `types` transform is applied, values are converted to the target type:
+When a `types` transform is applied, values are converted to the target logical type:
 
 - **Implementation**: `convertType()` in `type-converter.ts`
 - **Error handling**: Failed conversions create error objects (Power Query-style) rather than throwing exceptions
@@ -166,21 +198,32 @@ When a `types` transform is applied, values are converted to the target type:
   - String `"2024-01-15"` → Date object
   - String `"abc"` → Integer conversion error object
 
-#### 2.3.6 Dataset vs Model Types
+#### 2.3.7 Type System Summary
 
-**Important distinction**:
+**Clear separation between physical and logical types:**
 
-- **Datasets** (`Source`): Types are inferred during import from the raw CSV/JSON data
-  - CSV data is inherently string-based, so inference classifies these strings
-  - Stored in `Source.columns`
+| Aspect           | Physical Types (Datasets)           | Logical Types (Models)                  |
+| ---------------- | ----------------------------------- | --------------------------------------- |
+| **What**         | Parser output after `dynamicTyping` | Inferred types for data wrangling       |
+| **When**         | During CSV/JSON import              | In model's first `types` step           |
+| **How**          | JavaScript type detection           | Pattern matching (dates, numbers, etc.) |
+| **Where Stored** | `Source.columns`                    | `Model.schema` (via `types` step)       |
+| **UI Label**     | "Import Types"                      | "Data Types"                            |
+| **Example**      | `"2024-01-15"` → `string`           | `"2024-01-15"` → `date`                 |
 
-- **Models**: Types are propagated through transform steps
-  - Start with dataset's inferred types
-  - Re-inferred for new/derived columns
-  - Explicitly changed via `types` transform
-  - Stored in `Model.schema`
+**Why this separation matters:**
 
-Models always start with an initial `types` transform step that captures the dataset's inferred types as the baseline.
+1. **Clarity**: Datasets show what was actually imported (physical reality)
+2. **Provenance**: You can see the raw data types before inference
+3. **Flexibility**: Type inference decisions are visible and modifiable in the model's first step
+4. **Correctness**: CSV/JSON truly don't have date types - now this is represented accurately
+
+**Data Flow:**
+
+```
+CSV File → PapaParse (dynamicTyping) → Physical Types (dataset) →
+Inference → Logical Types (model's first types step) → Data Wrangling
+```
 
 ---
 

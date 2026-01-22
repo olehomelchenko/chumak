@@ -523,9 +523,9 @@ export async function applyJoinTransform(callbacks: any, app?: any) {
         return;
       }
 
-      // Create schema from result
+      // Create logical schema from result (models use logical types)
       const { SchemaEngine } = await import('../../core/schema-engine');
-      const schema = SchemaEngine.createInitialSchema(resultData);
+      const schema = SchemaEngine.createLogicalSchema(resultData);
 
       const newModel: any = {
         id: `mdl_${Date.now()}`,

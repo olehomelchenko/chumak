@@ -58,6 +58,16 @@
     align-items: center;
     gap: var(--space-sm);
   }
+
+  &__subtitle {
+    font-size: var(--font-size-xs);
+    font-weight: var(--font-weight-normal);
+    color: var(--color-dark-gray);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-left: auto;
+    cursor: help;
+  }
 }
 
 .infoList {

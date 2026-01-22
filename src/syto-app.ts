@@ -1314,7 +1314,8 @@ export class SytoApp implements AppState {
 
     if (this.currentData && this.currentData.length > 0) {
       if (this.activeModel && (!this.activeModel.schema || this.activeModel.schema.length === 0)) {
-        this.activeModel.schema = SchemaEngine.createInitialSchema(this.activeModel.data);
+        // Fallback: infer logical types for model (models use logical types, not physical)
+        this.activeModel.schema = SchemaEngine.createLogicalSchema(this.activeModel.data);
       }
 
       if (this.activeModel?.schema) {

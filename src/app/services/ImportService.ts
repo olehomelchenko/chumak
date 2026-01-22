@@ -34,6 +34,8 @@ export class ImportService {
 
     const cleanData = JSON.parse(JSON.stringify(data));
 
+    // Use physical types for the dataset (what PapaParse gives us after dynamicTyping)
+    // Logical type inference happens in the model's first types step
     const source: Source = {
       id: `src_${Date.now()}`,
       name: sourceName,
@@ -44,7 +46,7 @@ export class ImportService {
       customHeaders: customHeaders || null,
       rawSize: file.size,
       rowCount: cleanData.length,
-      columns: SchemaEngine.createInitialSchema(cleanData),
+      columns: SchemaEngine.createPhysicalSchema(cleanData),
       createdAt: new Date().toISOString(),
       data: cleanData,
       __v: 1,
@@ -74,10 +76,12 @@ export class ImportService {
     if (headerMode === 'manual' && customHeaders) importStep.import.customHeaders = customHeaders;
     mainModel.steps.push(importStep);
 
-    // Initial Types Step
+    // Initial Types Step - infer logical types from the data
+    // This is where type inference happens (dataset has physical types, model has logical types)
     const typesStep = { types: {} as any };
     source.columns.forEach((col: any) => {
-      typesStep.types[col.name] = col.type;
+      const sample = cleanData.slice(0, 20).map((row: any) => row[col.name]);
+      typesStep.types[col.name] = SchemaEngine.inferType(sample);
     });
     mainModel.steps.push(typesStep);
 

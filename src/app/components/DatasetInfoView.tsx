@@ -204,7 +204,15 @@ export function DatasetInfoView({
 
         {/* Column Schema Card */}
         <div class={`${styles.infoCard} ${styles.full}`}>
-          <h3 class={styles.infoCard__title}>Column Schema</h3>
+          <h3 class={styles.infoCard__title}>
+            Column Schema
+            <span
+              class={styles.infoCard__subtitle}
+              title="Types as imported by the parser (before inference)"
+            >
+              Import Types
+            </span>
+          </h3>
           <table class={styles.schemaTable}>
             <thead>
               <tr>

@@ -176,11 +176,76 @@ export const SchemaEngine = {
   },
 
   /**
-   * Create initial schema for a raw dataset
+   * Create initial schema from imported data using PHYSICAL types only.
+   * Physical types are what the parser (PapaParse with dynamicTyping, or JSON.parse) gives us.
+   * No inference is applied - we just classify the JavaScript runtime types.
+   *
+   * For CSV with dynamicTyping=true:
+   * - Numbers → 'integer' or 'float'
+   * - Booleans → 'boolean'
+   * - Everything else → 'string'
+   *
+   * For JSON:
+   * - number → 'integer' or 'float'
+   * - boolean → 'boolean'
+   * - string → 'string'
+   * - null/undefined → 'string' (fallback)
+   *
    * @param {Record<string, any>[]} data - Array of row objects
-   * @returns {ColumnSchema[]} Array of ColumnSchema objects
+   * @returns {ColumnSchema[]} Array of ColumnSchema with physical types
    */
-  createInitialSchema(data: Record<string, any>[]): ColumnSchema[] {
+  createPhysicalSchema(data: Record<string, any>[]): ColumnSchema[] {
+    if (!data || data.length === 0) return [];
+
+    const columns = Object.keys(data[0]);
+    return columns.map((name, index) => {
+      const sample = data.slice(0, 20).map((row) => row[name]);
+      return {
+        name,
+        type: this.detectPhysicalType(sample),
+        format: {},
+        originalPosition: index,
+      };
+    });
+  },
+
+  /**
+   * Detect the physical type based on JavaScript runtime types.
+   * This examines what PapaParse/JSON.parse actually returned, without inference.
+   *
+   * @param {any[]} values - Sample values from a column
+   * @returns {ColumnType} The physical type
+   */
+  detectPhysicalType(values: any[]): ColumnType {
+    if (!values || values.length === 0) return 'string';
+
+    // Filter out nulls/undefined for type detection
+    const nonNullValues = values.filter((v) => v !== null && v !== undefined && v !== '');
+    if (nonNullValues.length === 0) return 'string';
+
+    // Check for boolean (actual JS boolean type)
+    if (nonNullValues.every((v) => typeof v === 'boolean')) {
+      return 'boolean';
+    }
+
+    // Check for number (actual JS number type)
+    if (nonNullValues.every((v) => typeof v === 'number')) {
+      const allIntegers = nonNullValues.every((v) => Number.isInteger(v));
+      return allIntegers ? 'integer' : 'float';
+    }
+
+    // Everything else is a string (including Date objects serialized as strings)
+    return 'string';
+  },
+
+  /**
+   * Create logical schema from model data using type inference.
+   * This is used for models (not sources) to infer logical types from the data.
+   *
+   * @param {Record<string, any>[]} data - Array of row objects
+   * @returns {ColumnSchema[]} Array of ColumnSchema with logical types
+   */
+  createLogicalSchema(data: Record<string, any>[]): ColumnSchema[] {
     if (!data || data.length === 0) return [];
 
     const columns = Object.keys(data[0]);
@@ -189,7 +254,7 @@ export const SchemaEngine = {
       return {
         name,
         type: this.inferType(sample),
-        format: {}, // Placeholder for future use
+        format: {},
         originalPosition: index,
       };
     });
