@@ -5,6 +5,13 @@ import { html as expressionsHtml } from '../../content/expressions.md';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 import * as DateHandlers from './date-handlers';
+import {
+  isSlidePanel as registryIsSlidePanel,
+  isCenteredModal as registryIsCenteredModal,
+  getDialogTitle as registryGetDialogTitle,
+  getDialogButtonText as registryGetDialogButtonText,
+  isUrlNavigableDialog,
+} from '../dialog-registry';
 
 // Local signals replaced by DialogStore
 
@@ -88,7 +95,7 @@ export function openDialog(this: SytoApp, dialogName: string, section?: string) 
   this.reSnapshot();
 
   // Update URL for navigable pages
-  if (['about', 'reference', 'expressions', 'settings'].includes(dialogName)) {
+  if (isUrlNavigableDialog(dialogName as any)) {
     setUrlState({ page: dialogName, section });
   }
 }
@@ -134,10 +141,7 @@ export function handleHashChange(this: SytoApp) {
     }
 
     // Close dialog if hash changed to non-page route
-    if (
-      this.activeDialog &&
-      ['about', 'reference', 'expressions', 'settings'].includes(this.activeDialog)
-    ) {
+    if (this.activeDialog && isUrlNavigableDialog(this.activeDialog as any)) {
       this.activeDialog = null;
     }
   }
@@ -328,126 +332,19 @@ export function initDialogState(this: SytoApp, dialogName: string, section?: str
 }
 
 export function isSlidePanel(this: SytoApp, dialog: string | null): boolean {
-  if (!dialog) return false;
-  const slidePanels = [
-    'filter',
-    'sort',
-    'sliceRows',
-    'selectPattern',
-    'removePattern',
-    'conditional',
-    'renamePattern',
-    'index',
-    'select',
-    'remove',
-    'rename',
-    'split',
-    'derive',
-    'regexpMatch',
-    'regexpExtract',
-    'date',
-    'dedupe',
-    'fold',
-    'pivot',
-    'aggregate',
-    'join',
-    'replace',
-    'column-editor',
-    'import-csv',
-    'import-url',
-    'impute',
-  ];
-  return slidePanels.includes(dialog);
+  return registryIsSlidePanel(dialog as any);
 }
 
 export function isCenteredModal(this: SytoApp, dialog: string | null): boolean {
-  if (!dialog) return false;
-  const centeredModals = ['import-url', 'settings', 'download', 'about', 'expressions'];
-  return centeredModals.includes(dialog);
+  return registryIsCenteredModal(dialog as any);
 }
 
 export function getDialogTitle(this: SytoApp): string {
-  switch (this.activeDialog) {
-    case 'filter':
-      return 'Filter Rows';
-    case 'sort':
-      return 'Sort Rows';
-    case 'sliceRows':
-      return 'Keep / Remove Rows';
-    case 'index':
-      return 'Add Index Column';
-    case 'split':
-      return 'Split Column';
-    case 'derive':
-      return 'Derive Column';
-    case 'regexpMatch':
-      return 'Regexp Match';
-    case 'regexpExtract':
-      return 'Regexp Extract';
-    case 'date':
-      return 'Date Operations';
-    case 'dedupe':
-      return 'Duplicates';
-    case 'fold':
-      return 'Unpivot Data (Fold)';
-    case 'pivot':
-      return 'Pivot Data (Wide)';
-    case 'aggregate':
-      return 'Group By';
-    case 'join':
-      return 'Join Data';
-    case 'concat':
-      return 'Concat Data';
-    case 'union':
-      return 'Union Data';
-    case 'replace':
-      return 'Replace Values';
-    case 'import-csv':
-      return this.importDialogState.isJson ? 'Import JSON' : 'Import CSV';
-    case 'import-url':
-      return 'Import from URL';
-    case 'settings':
-      return 'Settings';
-    case 'download':
-      return 'Download Data';
-    case 'about':
-      return 'About Syto';
-    case 'expressions':
-      return 'Expression Reference';
-    case 'column-editor':
-      return 'Edit Columns';
-    case 'impute':
-      return 'Impute Missing Values';
-    case 'selectPattern':
-      return 'Select Pattern';
-    case 'removePattern':
-      return 'Remove Pattern';
-    case 'conditional':
-      return 'Conditional Column';
-    case 'renamePattern':
-      return 'Rename Pattern';
-    default:
-      return '';
-  }
+  return registryGetDialogTitle(this.activeDialog as any, this);
 }
 
 export function getDialogButtonText(this: SytoApp): string {
-  switch (this.activeDialog) {
-    case 'import-csv':
-      return 'Import';
-    case 'import-url':
-      return 'Fetch Data';
-    case 'join':
-      return 'Apply Join';
-    case 'concat':
-      return 'Apply Concat';
-    case 'union':
-      return 'Apply Union';
-    case 'download':
-      return 'Download';
-    default:
-      return 'Apply';
-  }
+  return registryGetDialogButtonText(this.activeDialog as any);
 }
 
 export function getAboutContent(this: SytoApp): string {
@@ -601,10 +498,7 @@ export async function closeDialog(this: SytoApp, force = false) {
   }
 
   // Clear URL hash if closing a navigable page
-  if (
-    this.activeDialog &&
-    ['about', 'reference', 'expressions', 'settings'].includes(this.activeDialog)
-  ) {
+  if (this.activeDialog && isUrlNavigableDialog(this.activeDialog as any)) {
     clearUrlHash();
   }
 

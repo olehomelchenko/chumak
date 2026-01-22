@@ -9,6 +9,7 @@ import { ColumnToolbar } from './ColumnToolbar';
 import { CellToolbar } from './CellToolbar';
 import { GlobalUI } from './GlobalUI';
 import { TypeMenu } from './TypeMenu';
+import { isSlidePanel, isCenteredModal } from '../dialog-registry';
 import {
   SortDialog,
   IndexDialog,
@@ -70,43 +71,6 @@ interface AppProps {
 
 export function App({ app }: AppProps) {
   const activeDialog = AppStore.activeDialog.value;
-
-  // Helpers copied/wrapped
-  const isSlidePanel = (d: string | null) => {
-    if (!d) return false;
-    return [
-      'filter',
-      'sort',
-      'sliceRows',
-      'index',
-      'split',
-      'derive',
-      'regexpMatch',
-      'regexpExtract',
-      'date',
-      'dedupe',
-      'fold',
-      'pivot',
-      'aggregate',
-      'join',
-      'concat',
-      'union',
-      'replace',
-      'column-editor',
-      'import-csv',
-      'import-url',
-      'impute',
-      'selectPattern',
-      'removePattern',
-      'conditional',
-      'renamePattern',
-    ].includes(d);
-  };
-
-  const isCenteredModal = (d: string | null) => {
-    if (!d) return false;
-    return ['settings', 'download', 'about', 'expressions', 'type-conversion'].includes(d);
-  };
 
   // Helper Wrappers
   const previewStats = getPreviewStats.call(app);

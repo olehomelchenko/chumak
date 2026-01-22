@@ -249,41 +249,6 @@ The transformation JSON format needs to be stable enough that:
 
 ---
 
-### Dialog Registration Centralization
-
-**Status**: Future refactor
-**Effort**: Medium (~150 lines)
-
-Currently, adding a new dialog requires updates across ~12 files (see [DEVELOPMENT-PATTERNS.md](DEVELOPMENT-PATTERNS.md) §7.1). This is error-prone and has caused bugs (missing entries in `isSlidePanel` arrays, etc.).
-
-**Proposed Solution**: Create a centralized dialog registry that defines dialog metadata once:
-
-```typescript
-const DIALOG_REGISTRY = {
-  impute: {
-    name: 'impute',
-    title: 'Impute Missing Values',
-    type: 'slide-panel', // or 'centered-modal'
-    component: ImputeDialog,
-    initState: (app) => {
-      /* ... */
-    },
-  },
-  // ... other dialogs
-};
-```
-
-**Benefits**:
-
-- Single source of truth for dialog configuration
-- Automatic generation of `isSlidePanel()`, `getDialogTitle()`, etc.
-- Type-safe dialog names
-- Reduced risk of missed updates
-
-**Files to refactor**: `dialog-handlers.ts`, `App.tsx`, create new `dialog-registry.ts`
-
----
-
 ---
 
 ## Non-Destructive Pillar Strengthening
@@ -369,7 +334,8 @@ Completed features are documented here for posterity:
 - **Impute transform** — January 2025. Fill missing values with constants via `impute` transform with UI integration.
 - **Concat and Union transforms** — January 2025. Stack rows from multiple models/sources. Concat keeps duplicates, union removes them. Full dependency tracking and staleness support.
 - **Multi-model dependency graph** (Phase 3) — January 2025. Complete dependency tracking for all multi-model operations (join, concat, union) with UI indicators for stale models and dependency relationships.
+- **Dialog registry centralization** — January 2026. Created [`dialog-registry.ts`](../src/app/dialog-registry.ts) to eliminate duplicated `isSlidePanel` arrays and scattered metadata. Reduced files to update per dialog from ~12 to ~6-9.
 
 ---
 
-**Last updated**: January 2025
+**Last updated**: January 2026
