@@ -1123,7 +1123,16 @@ export class SytoApp implements AppState {
     return InteractionHandlers.quickFilter((name) => this.openDialog(name));
   }
   quickRename() {
-    return InteractionHandlers.quickRename((name, sec) => this.openDialog(name, sec));
+    return InteractionHandlers.quickRename(
+      (msg, def) => this.prompt(msg, def),
+      (msg) => this.alert(msg),
+      {
+        onTransformStart: (label: string) => this.startTransformation(label),
+        onTransformEnd: () => this.endTransformation(),
+        onError: (msg: string) => this.alert(msg),
+        updatePagination: () => this.updatePagination(),
+      }
+    );
   }
   quickRemove() {
     return InteractionHandlers.quickRemove({

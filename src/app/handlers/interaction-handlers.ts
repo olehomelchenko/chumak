@@ -294,9 +294,35 @@ export function quickFilter(onOpenDialog: (name: string) => void) {
   onOpenDialog('filter');
 }
 
-export function quickRename(onOpenDialog: (name: string, section?: string) => void) {
-  if (!AppStore.selectedColumn.value) return;
-  onOpenDialog('column-editor', 'rename');
+export async function quickRename(
+  prompt: (msg: string, def?: string) => Promise<string | null>,
+  alert: (msg: string) => Promise<any>,
+  callbacks: any
+) {
+  const col = AppStore.selectedColumn.value;
+  if (!col) return;
+
+  const newName = await prompt(`Rename column "${col}" to:`, col);
+  if (!newName || newName.trim() === '') return;
+
+  const trimmedName = newName.trim();
+  if (trimmedName === col) return; // No change
+
+  // Check for duplicate column names
+  const columns = AppStore.columns.value;
+  if (columns.includes(trimmedName)) {
+    await alert(`Column "${trimmedName}" already exists`);
+    return;
+  }
+
+  const transform = {
+    rename: {
+      [col]: trimmedName,
+    },
+  };
+
+  await StepService.runTransform('Rename Column', transform, callbacks);
+  AppStore.selectedColumn.value = null;
 }
 
 export async function quickRemove(callbacks: any) {

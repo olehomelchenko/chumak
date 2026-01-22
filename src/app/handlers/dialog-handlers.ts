@@ -235,26 +235,31 @@ export function initDialogState(this: SytoApp, dialogName: string, section?: str
       state.column.value = this.columns[0] || '';
     }
   } else if (dialogName === 'split') {
-    const initialColumn = this.columns[0] || '';
     const state = DialogStore.splitState;
 
-    state.column.value = initialColumn;
-    state.delimiter.value = ',';
-    state.autoDetectedDelimiter.value = null;
-    state.isRegex.value = false;
+    // Only initialize column if not already set by quickSplit
+    if (!state.column.value) {
+      const initialColumn = this.columns[0] || '';
+      state.column.value = initialColumn;
+      state.delimiter.value = ',';
+      state.autoDetectedDelimiter.value = null;
+      state.isRegex.value = false;
+
+      if (initialColumn) {
+        const detected = this.detectDelimiter(initialColumn);
+        if (detected) {
+          state.delimiter.value = detected.char;
+          state.isRegex.value = detected.isRegex;
+          state.autoDetectedDelimiter.value = detected.name;
+        }
+      }
+    }
+
+    // Always initialize these fields
     state.mode.value = 'spread';
     state.maxColumns.value = 10;
     state.keepOriginal.value = false;
     state.error.value = null;
-
-    if (initialColumn) {
-      const detected = this.detectDelimiter(initialColumn);
-      if (detected) {
-        state.delimiter.value = detected.char;
-        state.isRegex.value = detected.isRegex;
-        state.autoDetectedDelimiter.value = detected.name;
-      }
-    }
 
     // We rely on component effects or explicit calls for updates
     if (typeof this.debouncedUpdateSplitPreview === 'function') {
@@ -292,8 +297,15 @@ export function initDialogState(this: SytoApp, dialogName: string, section?: str
     DateHandlers.clearDatePreview();
   } else if (dialogName === 'dedupe') {
     const state = DialogStore.dedupeState;
-    state.selectedColumns.value = this.columns.map(() => true);
-    state.useAllColumns.value = true;
+
+    // Only initialize selection if not already set by quickDedupe
+    // Check if any column is selected (quickDedupe sets at least one to true)
+    const hasSelection = state.selectedColumns.value.some((selected) => selected);
+    if (!hasSelection || state.selectedColumns.value.length !== this.columns.length) {
+      state.selectedColumns.value = this.columns.map(() => true);
+      state.useAllColumns.value = true;
+    }
+
     state.duplicateCount.value = 0;
     state.mode.value = 'remove';
 
