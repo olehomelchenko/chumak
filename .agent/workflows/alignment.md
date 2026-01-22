@@ -67,6 +67,54 @@ Verify the fix respects:
 
 ---
 
+## Pattern C: Refactoring
+
+### Impact Analysis
+
+Before proceeding with refactoring:
+
+1. **Search for usages**: Use Grep to find all references to modified functions/methods/types across the codebase
+2. **Identify call sites**: Document where the refactored code is used (components, services, handlers, tests)
+3. **Check exports**: Verify if refactored items are exported and used by other modules
+4. **Review dependencies**: Check what the refactored code depends on and what depends on it
+
+### Testing
+
+- **Update existing tests**: Ensure all tests for refactored code still pass and reflect new structure
+- **Verify call sites**: Check that all usages of refactored code work correctly
+- **Run full test suite**: Execute `npm test` to catch any breaking changes
+- **Integration check**: Test user-facing features that rely on refactored code
+- **Type safety**: Run `npm run typecheck` to ensure no type errors were introduced
+
+### Documentation
+
+Update affected documentation:
+
+- **[SPECIFICATION.md](docs/SPECIFICATION.md)**: If architecture or module responsibilities changed
+- **[DATA-SPECIFICATION.md](docs/DATA-SPECIFICATION.md)**: If data structures or interfaces were altered
+- **[DEVELOPMENT-PATTERNS.md](docs/DEVELOPMENT-PATTERNS.md)**: If coding patterns or conventions evolved
+- Code comments: Update JSDoc or inline comments if function signatures or behavior changed
+
+### Alignment Check
+
+Verify refactoring aligns with:
+
+- **[SOUL.md](SOUL.md)**: Simplicity and clarity principles
+- **[DEVELOPMENT-PATTERNS.md](docs/DEVELOPMENT-PATTERNS.md)**: Consistent with project patterns
+- **[FUTURE-PROOFING.md](docs/FUTURE-PROOFING.md)**: Maintains backwards compatibility where needed
+- **[SPECIFICATION.md](docs/SPECIFICATION.md)**: Follows established architecture
+
+### Common Refactoring Checks
+
+- **Function signatures**: If changed, verify all call sites are updated
+- **Type definitions**: Search for TypeScript type usages if interfaces/types changed
+- **Imports**: Check that import paths are correct if files were moved
+- **State management**: If signals/stores were refactored, verify all consumers
+- **Props/interfaces**: If component props changed, check all usages
+- **Constants/enums**: If renamed or restructured, find and update all references
+
+---
+
 ## Reference Documents
 
 | Document                                                | Purpose                            |
