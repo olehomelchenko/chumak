@@ -73,6 +73,14 @@ export function AppHeader({ onOpenDialog, onClearAllData }: AppHeaderProps) {
           </button>
           <button
             class="button button--secondary button--small"
+            onClick={() => onOpenDialog('dependency-graph')}
+            title="View dependency graph between sources and models"
+          >
+            <span class="iconify" data-icon="carbon:network-3"></span>
+            <span>Graph</span>
+          </button>
+          <button
+            class="button button--secondary button--small"
             onClick={() => onOpenDialog('settings')}
             title="Application Settings"
           >

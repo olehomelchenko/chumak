@@ -239,6 +239,13 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     type: 'centered-modal',
     isUrlNavigable: true,
   },
+
+  'dependency-graph': {
+    name: 'dependency-graph',
+    title: 'Dependency Graph',
+    type: 'centered-modal',
+    isUrlNavigable: false,
+  },
 };
 
 /**

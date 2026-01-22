@@ -20,7 +20,9 @@
   },
   "dependencies": {
     "@preact/signals": "^2.5.1",
+    "@types/dagre": "^0.7.53",
     "arquero": "^6.0.1",
+    "dagre": "^0.8.5",
     "jsep": "^1.4.0",
     "papaparse": "^5.5.1",
     "preact": "^10.28.2",

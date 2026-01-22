@@ -39,6 +39,7 @@ import {
   RemovePatternDialog,
   ConditionalDialog,
   RenamePatternDialog,
+  DependencyGraphDialog,
 } from './index';
 // Import handlers for helpers
 import {
@@ -318,7 +319,11 @@ export function App({ app }: AppProps) {
       {/* Centered Modal Shell */}
       {isCenteredModal(activeDialog) && (
         <div class={styles.centeredModalBackdrop} onClick={() => app.closeDialog()}>
-          <div class={styles.centeredModal} onClick={(e) => e.stopPropagation()}>
+          <div
+            class={styles.centeredModal}
+            style={{ width: activeDialog === 'dependency-graph' ? '66vw' : undefined }}
+            onClick={(e) => e.stopPropagation()}
+          >
             {activeDialog === 'type-conversion' ? (
               <TypeConversionDialog
                 app={app}
@@ -380,8 +385,11 @@ export function App({ app }: AppProps) {
                       dangerouslySetInnerHTML={{ __html: expressionsHtml }}
                     ></div>
                   )}
+                  {activeDialog === 'dependency-graph' && <DependencyGraphDialog />}
                 </div>
-                {!['about', 'expressions', 'download', 'settings'].includes(activeDialog || '') && (
+                {!['about', 'expressions', 'download', 'settings', 'dependency-graph'].includes(
+                  activeDialog || ''
+                ) && (
                   <div class={styles.centeredModalFooter}>
                     <button class="button button--secondary" onClick={() => app.closeDialog()}>
                       Cancel
