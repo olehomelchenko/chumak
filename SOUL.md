@@ -43,6 +43,17 @@ Users who need more can write expressions (`revenue - cost > 1000`), use regex e
 
 Syto handles tabular data transformation: import, clean, reshape, export. It's not trying to become a spreadsheet, a statistical package, a visualization tool, or a database. The EDA features (histograms, boxplots, statistics) exist to help users understand their data before transforming it — not to replace dedicated analysis tools.
 
+### 6. Non-Destructive by Design
+
+Every transformation is a step in a pipeline, not a destructive change to the underlying data. The original raw data (the "Source") is always preserved exactly as it was imported.
+
+This provides:
+
+- **Traceability**: Users can see exactly how they got from raw data to the final result.
+- **Experimental Freedom**: Users can add, remove, or modify steps without fear of corrupting their data.
+- **Technical Rollback**: You can always revert to any previous state by simply moving back in the pipeline or deleting steps.
+- **Reproducibility**: The pipeline is a recipe that can be applied to new versions of the same raw data.
+
 ## What We're Not
 
 - **Not a spreadsheet replacement**: No cell-by-cell editing, no formulas that reference A1:B5

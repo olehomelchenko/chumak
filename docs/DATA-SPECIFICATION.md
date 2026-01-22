@@ -54,7 +54,17 @@ interface Model {
 }
 ```
 
-### 1.3 DataRow
+### 1.3 Non-Destructive Data Model
+
+Syto employs a non-destructive data model where the **Source** (raw data) is immutable. Any transformation applied by the user is stored as a `TransformStep` within a **Model**.
+
+This architecture ensures:
+
+- **Zero Data Loss**: The original dataset is never modified or overwritten.
+- **Full Traceability**: Every change is a discrete, inspectable step in a pipeline.
+- **State Reversal**: Users can "roll back" by removing steps or editing previous ones, causing the model to recompute from the original source.
+
+### 1.4 DataRow
 
 A **DataRow** is a generic object representing one row of tabular data.
 

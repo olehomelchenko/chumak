@@ -23,13 +23,14 @@ Syto is a browser-based data wrangling tool for cleaning and transforming tabula
 
 ### 1.3 Design Principles
 
-| Principle                     | Implication                                         |
-| ----------------------------- | --------------------------------------------------- |
-| **Local-first**               | All data stays in browser. No uploads, no accounts. |
-| **Progressive disclosure**    | Simple defaults, optional advanced configuration.   |
-| **Declarative specification** | Transformations are data (JSON), not code.          |
-| **Reproducibility**           | Workflows can be exported, shared, and replayed.    |
-| **Incremental complexity**    | UI reveals features as users need them.             |
+| Principle                     | Implication                                          |
+| ----------------------------- | ---------------------------------------------------- |
+| **Local-first**               | All data stays in browser. No uploads, no accounts.  |
+| **Non-destructive**           | Raw data preserved; changes are steps in a pipeline. |
+| **Progressive disclosure**    | Simple defaults, optional advanced configuration.    |
+| **Declarative specification** | Transformations are data (JSON), not code.           |
+| **Reproducibility**           | Workflows can be exported, shared, and replayed.     |
+| **Incremental complexity**    | UI reveals features as users need them.              |
 
 ### 1.4 Project Status
 
@@ -193,9 +194,14 @@ docs/               # Project documentation
 
 ## 4. Data Model
 
-### 4.1 Transformation Pipeline
+### 4.1 Non-Destructive Transformation Pipeline
 
-Workflows are stored as a list of `Transform` steps applied to a static `Source`. Models are recomputed through the pipeline of steps, allowing for non-destructive editing and replaying of data wrangling operations.
+Syto follows a non-destructive architecture. Workflows are stored as an ordered list of `Transform` steps applied to an immutable `Source`.
+
+- **Immutable Sources**: Raw imported data is never modified.
+- **On-the-fly Computation**: Models are recomputed through the entire pipeline of steps whenever a change occurs.
+- **Technical Rollback**: By editing or removing steps, users can revert to any prior state without loss of information.
+- **Audit Trail**: The step list serves as a naturally traceable log of all data manipulations.
 
 ### 4.2 Transform Specification Format
 

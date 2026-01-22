@@ -284,6 +284,24 @@ const DIALOG_REGISTRY = {
 
 ---
 
+---
+
+## Non-Destructive Pillar Strengthening
+
+**Status**: Analysis Complete / Implementation Planned
+**Reference**: [NON-DESTRUCTIVE-ANALYSIS.md](NON-DESTRUCTIVE-ANALYSIS.md)
+
+A comprehensive analysis of Syto's adherence to non-destructive principles was conducted in January 2026. While the core foundation is solid, several infrastructure enhancements are planned to make the "unbreakable" workflow a reality.
+
+| Enhancement               | Description                                               | Severity |
+| ------------------------- | --------------------------------------------------------- | -------- |
+| **Shadow Sources**        | Preserve deleted model states if dependencies exist.      | Medium   |
+| **Error Audit Trail**     | Explicit warnings for records excluded from aggregations. | Low      |
+| **Pre-flight Validation** | Schema integrity checks for manual JSON edits.            | Low      |
+| **Command Undo/Redo**     | First-class UI for undoing/redoing pipeline changes.      | Low      |
+
+---
+
 ## Not Planned (Out of Scope)
 
 These have been considered and explicitly excluded:
