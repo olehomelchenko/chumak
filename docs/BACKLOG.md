@@ -10,35 +10,6 @@ This document tracks planned features and enhancements, organized by scope and e
 
 ---
 
-### Set Operations (Concat, Union)
-
-**Status**: ✅ Complete (January 2025)
-**Effort**: Small (~40 lines total for transforms)
-**Arquero**: `table.concat()`, `table.union()`
-
-Combine multiple models/sources.
-
-| Operation  | Behavior                        | Arquero               |
-| ---------- | ------------------------------- | --------------------- |
-| **Concat** | Stack rows (keeps duplicates)   | `table.concat(other)` |
-| **Union**  | Stack rows (removes duplicates) | `table.union(other)`  |
-
-**Transform schema** (follows existing `join` pattern):
-
-```json
-{ "concat": { "with": "mdl_xyz" } }
-{ "union": { "with": "mdl_xyz" } }
-```
-
-**Why useful**: Common need when data comes in multiple files (monthly reports, split exports).
-
-**Lower priority**:
-
-- `intersect` — keep rows in both tables
-- `except` — keep rows only in first table
-
----
-
 ### Sample (Random Rows)
 
 **Status**: Planned
@@ -180,34 +151,6 @@ Drag columns in the data table to reorder. Would generate a `select` step with t
 
 ## Infrastructure
 
-### Multi-Model Dependency Graph
-
-**Status**: ✅ Complete (January 2025)
-**Effort**: Medium (~450 lines total across 3 phases)
-**Reference**: [MULTI-MODEL-ARCHITECTURE.md](MULTI-MODEL-ARCHITECTURE.md)
-
-Enable reliable multi-model workflows by tracking dependencies between models.
-
-**Problem**: When Model A changes, Model B (that joins A) needs to recompute. Need warnings when deleting a model that others depend on.
-
-**Solution**: `DependencyService` builds a DAG of model relationships.
-
-| Phase       | Scope                                           | Status      |
-| ----------- | ----------------------------------------------- | ----------- |
-| **Phase 1** | Dependency tracking, cascade warnings on delete | ✅ Complete |
-| **Phase 2** | Staleness tracking, auto-recompute on view      | ✅ Complete |
-| **Phase 3** | New operations (concat, union)                  | ✅ Complete |
-
-**Implemented** (January 2025):
-
-- `DependencyService.ts` with graph building, querying, cycle detection
-- Delete protection: blocks deletion of models referenced by others
-- Staleness tracking: dependent models marked stale when source changes
-- Lazy recomputation: stale models auto-recompute when viewed
-- Concat and union transforms with full dependency tracking
-- Stale model indicators in UI (Sidebar and DatasetInfoView)
-- Dependency tooltips showing relationship counts
-
 ---
 
 ### Performance Profiling & Limits
@@ -282,23 +225,18 @@ These have been considered and explicitly excluded:
 
 ## Priority Summary
 
-### High Priority (Core Gaps)
-
-1. ~~**Multi-model dependency graph**~~ — ✅ Complete
-2. ~~**Set operations (concat, union)**~~ — ✅ Complete
-
 ### Medium Priority (Useful Additions)
 
-3. Keyboard shortcuts
+1. Keyboard shortcuts
 
 ### Lower Priority (Nice to Have)
 
-4. Step reordering
-5. Column reordering (`reorder`, `moveColumn`)
-6. Sample transform
-7. Advanced joins (semi, anti, lookup)
-8. Spread/unroll transforms
-9. Window functions (`cumsum`, `lag`, `rank`) — Future
+2. Step reordering
+3. Column reordering (`reorder`, `moveColumn`)
+4. Sample transform
+5. Advanced joins (semi, anti, lookup)
+6. Spread/unroll transforms
+7. Window functions (`cumsum`, `lag`, `rank`) — Future
 
 ---
 
@@ -308,9 +246,6 @@ Most planned transforms are thin wrappers around existing Arquero verbs:
 
 | Transform | Arquero Verb       | Wrapper Complexity |
 | --------- | ------------------ | ------------------ |
-| Impute    | `table.impute()`   | 30-60 lines        |
-| Concat    | `table.concat()`   | ~20 lines          |
-| Union     | `table.union()`    | ~20 lines          |
 | Sample    | `table.sample()`   | ~25 lines          |
 | Spread    | `table.spread()`   | ~40 lines          |
 | Unroll    | `table.unroll()`   | ~40 lines          |
