@@ -177,15 +177,22 @@ export class DialogStore {
 
   // Column Editor State
   static columnEditorState = {
-    mode: signal<'list' | 'text'>('list'),
+    mode: signal<'list' | 'text' | 'pattern'>('list'),
     textSubMode: signal<'rename' | 'reorder' | 'select'>('rename'),
     columns: signal<Array<{ original: string; renamed: string; selected: boolean }>>([]),
     textValue: signal(''),
     textError: signal<string | null>(null),
     patternText: signal(''),
     patternMode: signal<'include' | 'exclude'>('include'),
-    patternMatchType: signal<'prefix' | 'suffix' | 'exact'>('prefix'),
+    patternMatchType: signal<'prefix' | 'suffix' | 'exact' | 'contains' | 'regex'>('prefix'),
     draggedIndex: signal<number | null>(null),
+    // Pattern operation mode for unified pattern operations
+    patternOperationMode: signal<'select' | 'remove' | 'rename'>('select'),
+    // Pattern fields for rename operation
+    patternFind: signal(''),
+    patternReplace: signal(''),
+    patternRegex: signal(false),
+    patternError: signal<string | null>(null),
   };
 
   // Simple dialog states (sliceRows, index, replace, fold)

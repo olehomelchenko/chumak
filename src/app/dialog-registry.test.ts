@@ -35,10 +35,9 @@ describe('Dialog Registry', () => {
         'replace',
         'column-editor',
         'impute',
-        'selectPattern',
-        'removePattern',
+        // Note: selectPattern, removePattern, and renamePattern are deprecated
+        // and unified into column-editor dialog
         'conditional',
-        'renamePattern',
       ];
 
       transformDialogs.forEach((dialogName) => {
@@ -263,10 +262,9 @@ describe('Dialog Registry', () => {
         'import-csv',
         'import-url',
         'impute',
-        'selectPattern',
-        'removePattern',
+        // Note: selectPattern, removePattern, and renamePattern are deprecated
+        // and unified into column-editor dialog
         'conditional',
-        'renamePattern',
       ];
 
       expectedSlidePanels.forEach((name) => {

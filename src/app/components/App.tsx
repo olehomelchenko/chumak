@@ -35,10 +35,7 @@ import {
   DedupeDialog,
   TypeConversionDialog,
   ImputeDialog,
-  SelectPatternDialog,
-  RemovePatternDialog,
   ConditionalDialog,
-  RenamePatternDialog,
   DependencyGraphDialog,
 } from './index';
 // Import handlers for helpers
@@ -228,15 +225,25 @@ export function App({ app }: AppProps) {
                 {activeDialog === 'union' && <UnionDialog />}
                 {activeDialog === 'aggregate' && <AggregateDialog />}
                 {activeDialog === 'column-editor' && <ColumnEditorDialog />}
-                {activeDialog === 'import-csv' && <ImportCsvDialog />}
+                {activeDialog === 'import-csv' && (
+                  <ImportCsvDialog
+                    onJsonPathUpdate={() => app.updateJsonPath()}
+                    onJsonPathReset={() => app.resetJsonPath()}
+                    onJsonPathSegmentSelect={(key) => app.selectJsonPathSegment(key)}
+                    onParamChange={() => {
+                      if (DialogStore.importCsvState.isJson.value) {
+                        app.updateHeadersForPreview();
+                      } else {
+                        app.updateImportPreview();
+                      }
+                    }}
+                  />
+                )}
                 {activeDialog === 'import-url' && (
                   <ImportUrlDialog onImport={() => app.fetchAndImportFromUrl()} />
                 )}
                 {activeDialog === 'impute' && <ImputeDialog />}
-                {activeDialog === 'selectPattern' && <SelectPatternDialog />}
-                {activeDialog === 'removePattern' && <RemovePatternDialog />}
                 {activeDialog === 'conditional' && <ConditionalDialog />}
-                {activeDialog === 'renamePattern' && <RenamePatternDialog />}
               </div>
 
               <div class={styles.slidePanelFooter}>

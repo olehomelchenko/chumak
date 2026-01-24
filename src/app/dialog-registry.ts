@@ -155,17 +155,18 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     type: 'slide-panel',
   },
 
-  selectPattern: {
-    name: 'selectPattern',
-    title: 'Select Pattern',
-    type: 'slide-panel',
-  },
-
-  removePattern: {
-    name: 'removePattern',
-    title: 'Remove Pattern',
-    type: 'slide-panel',
-  },
+  // Deprecated: Pattern operations are now unified in column-editor dialog
+  // selectPattern: {
+  //   name: 'selectPattern',
+  //   title: 'Select Pattern',
+  //   type: 'slide-panel',
+  // },
+  //
+  // removePattern: {
+  //   name: 'removePattern',
+  //   title: 'Remove Pattern',
+  //   type: 'slide-panel',
+  // },
 
   conditional: {
     name: 'conditional',
@@ -173,11 +174,12 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     type: 'slide-panel',
   },
 
-  renamePattern: {
-    name: 'renamePattern',
-    title: 'Rename Pattern',
-    type: 'slide-panel',
-  },
+  // Deprecated: Pattern operations are now unified in column-editor dialog
+  // renamePattern: {
+  //   name: 'renamePattern',
+  //   title: 'Rename Pattern',
+  //   type: 'slide-panel',
+  // },
 
   // === Import Dialogs ===
 

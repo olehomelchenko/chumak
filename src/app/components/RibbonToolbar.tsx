@@ -93,7 +93,7 @@ export function RibbonToolbar({ onOpenDialog, onAutoDetectSchema }: RibbonToolba
               <RibbonButton
                 icon="carbon:table-split"
                 label="Edit Columns"
-                title="Select, rename, remove, and reorder columns"
+                title="Select, rename, remove, reorder columns, and apply pattern operations"
                 onClick={() => onOpenDialog('column-editor')}
               />
               <RibbonButton
@@ -101,24 +101,6 @@ export function RibbonToolbar({ onOpenDialog, onAutoDetectSchema }: RibbonToolba
                 label="Split"
                 title="Split column by delimiter"
                 onClick={() => onOpenDialog('split')}
-              />
-              <RibbonButton
-                icon="carbon:select"
-                label="Select Pattern"
-                title="Select columns matching a pattern"
-                onClick={() => onOpenDialog('selectPattern')}
-              />
-              <RibbonButton
-                icon="carbon:close"
-                label="Remove Pattern"
-                title="Remove columns matching a pattern"
-                onClick={() => onOpenDialog('removePattern')}
-              />
-              <RibbonButton
-                icon="carbon:text-annotation-toggle"
-                label="Rename Pattern"
-                title="Rename columns by pattern"
-                onClick={() => onOpenDialog('renamePattern')}
               />
             </RibbonGroup>
 

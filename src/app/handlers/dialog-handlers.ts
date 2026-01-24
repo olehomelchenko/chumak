@@ -207,6 +207,12 @@ export function initDialogState(this: SytoApp, dialogName: string, section?: str
     ) as any;
     state.textValue.value = '';
     state.textError.value = null;
+    // Initialize pattern operation mode
+    state.patternOperationMode.value = 'select';
+    state.patternFind.value = '';
+    state.patternReplace.value = '';
+    state.patternRegex.value = false;
+    state.patternError.value = null;
   } else if (dialogName === 'settings') {
     const state = DialogStore.settingsState;
     state.theme.value = this.theme as any;

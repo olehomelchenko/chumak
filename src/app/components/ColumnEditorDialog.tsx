@@ -1,3 +1,4 @@
+import { Fragment } from 'preact';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 import { useComputed } from '@preact/signals';
@@ -28,6 +29,11 @@ export function ColumnEditorDialog() {
     textSubMode,
     textValue,
     textError,
+    patternOperationMode,
+    patternFind,
+    patternReplace,
+    patternRegex,
+    patternError,
   } = DialogStore.columnEditorState;
 
   // Compute changes using shared logic
@@ -90,6 +96,13 @@ export function ColumnEditorDialog() {
             onClick={() => Handlers.switchColumnEditorToText()}
           >
             Text Mode
+          </button>
+          <button
+            type="button"
+            class={`${styles.toggleButton} ${mode.value === 'pattern' ? styles.active : ''}`}
+            onClick={() => (mode.value = 'pattern')}
+          >
+            Pattern Mode
           </button>
         </div>
       </div>
@@ -237,6 +250,170 @@ export function ColumnEditorDialog() {
           ></textarea>
 
           {textError.value && <div class={styles.error}>{textError.value}</div>}
+        </div>
+      )}
+
+      {mode.value === 'pattern' && (
+        <div>
+          {/* Pattern Operation Type Selector */}
+          <div class={styles.group}>
+            <label class={styles.label}>Pattern Operation:</label>
+            <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
+              {[
+                { val: 'select', label: 'Select by Pattern' },
+                { val: 'remove', label: 'Remove by Pattern' },
+                { val: 'rename', label: 'Rename by Pattern' },
+              ].map((opt) => (
+                <label key={opt.val} class={styles.checkboxLabel}>
+                  <input
+                    type="radio"
+                    name="patternOperationMode"
+                    value={opt.val}
+                    checked={patternOperationMode.value === opt.val}
+                    onChange={() => {
+                      patternOperationMode.value = opt.val as any;
+                      patternError.value = null;
+                    }}
+                  />
+                  <span>{opt.label}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+
+          {/* Select/Remove Pattern UI */}
+          {(patternOperationMode.value === 'select' || patternOperationMode.value === 'remove') && (
+            <Fragment>
+              <div class={styles.group}>
+                <label class={styles.label}>Pattern:</label>
+                <input
+                  type="text"
+                  class={styles.input}
+                  value={patternText.value}
+                  onInput={(e) => {
+                    patternText.value = (e.target as HTMLInputElement).value;
+                    patternError.value = null;
+                  }}
+                  placeholder="e.g., sales_ or _2023"
+                />
+              </div>
+
+              <div class={styles.group}>
+                <label class={styles.label}>Match type:</label>
+                <select
+                  class={styles.input}
+                  value={patternMatchType.value}
+                  onChange={(e) => {
+                    patternMatchType.value = (e.target as HTMLSelectElement).value as any;
+                    patternError.value = null;
+                  }}
+                >
+                  <option value="prefix">Prefix (starts with)</option>
+                  <option value="suffix">Suffix (ends with)</option>
+                  <option value="contains">Contains</option>
+                  <option value="regex">Regex</option>
+                </select>
+                <p class={styles.helpText}>
+                  {patternMatchType.value === 'prefix' && 'Columns that start with the pattern'}
+                  {patternMatchType.value === 'suffix' && 'Columns that end with the pattern'}
+                  {patternMatchType.value === 'contains' && 'Columns that contain the pattern'}
+                  {patternMatchType.value === 'regex' && 'Columns matching the regex pattern'}
+                </p>
+              </div>
+
+              {patternError.value && <div class={styles.error}>{patternError.value}</div>}
+            </Fragment>
+          )}
+
+          {/* Rename Pattern UI */}
+          {patternOperationMode.value === 'rename' && (
+            <Fragment>
+              <div class={styles.group}>
+                <label class={styles.label}>Find pattern:</label>
+                <input
+                  type="text"
+                  class={styles.input}
+                  value={patternFind.value}
+                  onInput={(e) => {
+                    patternFind.value = (e.target as HTMLInputElement).value;
+                    patternError.value = null;
+                  }}
+                  placeholder="e.g., _old$"
+                />
+              </div>
+
+              <div class={styles.group}>
+                <label class={styles.label}>Replace with:</label>
+                <input
+                  type="text"
+                  class={styles.input}
+                  value={patternReplace.value}
+                  onInput={(e) => {
+                    patternReplace.value = (e.target as HTMLInputElement).value;
+                    patternError.value = null;
+                  }}
+                  placeholder="e.g., _new"
+                />
+              </div>
+
+              <div class={styles.group}>
+                <label class={styles.checkboxLabel}>
+                  <input
+                    type="checkbox"
+                    checked={patternRegex.value}
+                    onChange={(e) => {
+                      patternRegex.value = (e.target as HTMLInputElement).checked;
+                      patternError.value = null;
+                    }}
+                  />
+                  <span>Use regex pattern</span>
+                </label>
+                <p class={styles.helpText}>
+                  {patternRegex.value
+                    ? 'Pattern is a regular expression (e.g., ^prefix_ or _suffix$)'
+                    : 'Pattern is plain text (exact match)'}
+                </p>
+              </div>
+
+              {patternError.value && <div class={styles.error}>{patternError.value}</div>}
+            </Fragment>
+          )}
+
+          {/* Pattern Preview */}
+          {patternOperationMode.value === 'select' && patternText.value.trim() && (
+            <div class={styles.expressionHelp} style={{ marginTop: '1rem' }}>
+              <div class={styles.expressionHelpTitle} style={{ display: 'block' }}>
+                Preview: Columns that will be selected
+              </div>
+              <div style={{ fontSize: '0.8125rem', marginTop: '0.5rem' }}>
+                {Handlers.getPatternMatchedColumns('select').join(', ') || 'No columns match'}
+              </div>
+            </div>
+          )}
+
+          {patternOperationMode.value === 'remove' && patternText.value.trim() && (
+            <div class={styles.expressionHelp} style={{ marginTop: '1rem' }}>
+              <div class={styles.expressionHelpTitle} style={{ display: 'block' }}>
+                Preview: Columns that will be removed
+              </div>
+              <div style={{ fontSize: '0.8125rem', marginTop: '0.5rem' }}>
+                {Handlers.getPatternMatchedColumns('remove').join(', ') || 'No columns match'}
+              </div>
+            </div>
+          )}
+
+          {patternOperationMode.value === 'rename' && patternFind.value.trim() && (
+            <div class={styles.expressionHelp} style={{ marginTop: '1rem' }}>
+              <div class={styles.expressionHelpTitle} style={{ display: 'block' }}>
+                Preview: Columns that will be renamed
+              </div>
+              <div style={{ fontSize: '0.8125rem', marginTop: '0.5rem' }}>
+                {Handlers.getPatternRenamePreview()
+                  .map((p) => `${p.from} -> ${p.to}`)
+                  .join(', ') || 'No columns match'}
+              </div>
+            </div>
+          )}
         </div>
       )}
 

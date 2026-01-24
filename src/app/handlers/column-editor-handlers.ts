@@ -2,6 +2,7 @@ import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 import { StepService } from '../services/StepService';
 import * as NotificationHandlers from './notification-handlers';
+import { matchColumnPattern } from '../../core/transforms';
 
 export function toggleColumnEditorColumn(index: number) {
   const columns = DialogStore.columnEditorState.columns.value;
@@ -216,9 +217,179 @@ export function getColumnEditorChanges(): {
   return { hasChanges, removed, renamed, reordered };
 }
 
+export function getPatternMatchedColumns(_operation: 'select' | 'remove'): string[] {
+  const state = DialogStore.columnEditorState;
+  const appColumns = AppStore.columns.value;
+  const { patternText, patternMatchType } = state;
+
+  if (!patternText.value || patternText.value.trim() === '') {
+    return [];
+  }
+
+  try {
+    // For both select and remove, we want to find columns that match the pattern
+    // The difference is in how they're used: select keeps them, remove removes them
+    // Filter out 'exact' since it's not supported by transform types
+    let matchType = patternMatchType.value;
+    if (matchType === 'exact') {
+      // Convert 'exact' to 'contains' for preview purposes
+      matchType = 'contains';
+    }
+    const matched = matchColumnPattern(appColumns, {
+      pattern: patternText.value.trim(),
+      matchType: matchType as 'prefix' | 'suffix' | 'contains' | 'regex',
+      mode: 'include', // Always use 'include' to get matching columns
+    });
+    return matched;
+  } catch (e) {
+    return [];
+  }
+}
+
+export function getPatternRenamePreview(): Array<{ from: string; to: string }> {
+  const state = DialogStore.columnEditorState;
+  const appColumns = AppStore.columns.value;
+  const { patternFind, patternReplace, patternRegex } = state;
+
+  if (!patternFind.value || patternFind.value.trim() === '') {
+    return [];
+  }
+
+  const preview: Array<{ from: string; to: string }> = [];
+
+  for (const col of appColumns) {
+    let newName: string | null = null;
+
+    if (patternRegex.value) {
+      try {
+        const regex = new RegExp(patternFind.value);
+        if (regex.test(col)) {
+          newName = col.replace(regex, patternReplace.value);
+        }
+      } catch (e) {
+        // Invalid regex
+        return [];
+      }
+    } else {
+      if (col.includes(patternFind.value)) {
+        newName = col.replace(patternFind.value, patternReplace.value);
+      }
+    }
+
+    if (newName && newName !== col) {
+      preview.push({ from: col, to: newName });
+    }
+  }
+
+  return preview;
+}
+
 export async function applyColumnEditorTransform(callbacks: any) {
   const state = DialogStore.columnEditorState;
   const appColumns = AppStore.columns.value;
+
+  // Handle pattern mode
+  if (state.mode.value === 'pattern') {
+    const {
+      patternOperationMode,
+      patternText,
+      patternMatchType,
+      patternFind,
+      patternReplace,
+      patternRegex,
+    } = state;
+
+    if (patternOperationMode.value === 'select') {
+      if (!patternText.value || patternText.value.trim() === '') {
+        await NotificationHandlers.alert.call(null as any, 'Please enter a pattern');
+        return;
+      }
+
+      // Validate regex if matchType is regex
+      if (patternMatchType.value === 'regex') {
+        try {
+          new RegExp(patternText.value);
+        } catch (e: any) {
+          state.patternError.value = `Invalid regex pattern: ${e.message}`;
+          return;
+        }
+      }
+
+      // Filter out 'exact' since transform types don't support it
+      let matchType = patternMatchType.value;
+      if (matchType === 'exact') {
+        matchType = 'contains'; // Convert to contains for transform
+      }
+      const transform = {
+        selectPattern: {
+          pattern: patternText.value.trim(),
+          matchType: matchType as 'prefix' | 'suffix' | 'contains' | 'regex',
+        },
+      };
+
+      state.patternError.value = null;
+      await StepService.runTransform('Select Pattern', transform, callbacks);
+      return;
+    } else if (patternOperationMode.value === 'remove') {
+      if (!patternText.value || patternText.value.trim() === '') {
+        await NotificationHandlers.alert.call(null as any, 'Please enter a pattern');
+        return;
+      }
+
+      // Validate regex if matchType is regex
+      if (patternMatchType.value === 'regex') {
+        try {
+          new RegExp(patternText.value);
+        } catch (e: any) {
+          state.patternError.value = `Invalid regex pattern: ${e.message}`;
+          return;
+        }
+      }
+
+      // Filter out 'exact' since transform types don't support it
+      let matchType = patternMatchType.value;
+      if (matchType === 'exact') {
+        matchType = 'contains'; // Convert to contains for transform
+      }
+      const transform = {
+        removePattern: {
+          pattern: patternText.value.trim(),
+          matchType: matchType as 'prefix' | 'suffix' | 'contains' | 'regex',
+        },
+      };
+
+      state.patternError.value = null;
+      await StepService.runTransform('Remove Pattern', transform, callbacks);
+      return;
+    } else if (patternOperationMode.value === 'rename') {
+      if (!patternFind.value || patternFind.value.trim() === '') {
+        await NotificationHandlers.alert.call(null as any, 'Please enter a find pattern');
+        return;
+      }
+
+      // Validate regex if enabled
+      if (patternRegex.value) {
+        try {
+          new RegExp(patternFind.value);
+        } catch (e: any) {
+          state.patternError.value = `Invalid regex pattern: ${e.message}`;
+          return;
+        }
+      }
+
+      const transform = {
+        renamePattern: {
+          find: patternFind.value.trim(),
+          replace: patternReplace.value.trim(),
+          regex: patternRegex.value,
+        },
+      };
+
+      state.patternError.value = null;
+      await StepService.runTransform('Rename Pattern', transform, callbacks);
+      return;
+    }
+  }
 
   // Handle text mode
   if (state.mode.value === 'text') {
