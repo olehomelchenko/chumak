@@ -192,6 +192,8 @@ export function EdaPanel({ onApplyFilter }: { onApplyFilter?: () => void }) {
   };
 
   const handlePanelClick = (e: MouseEvent) => {
+    // Stop propagation to prevent body click handler from closing the panel
+    e.stopPropagation();
     // Clear cell selection if clicking background
     if (!(e.target as HTMLElement).closest(`.${styles.edaFlowItem}`)) {
       AppStore.selectedCell.value = null;
@@ -199,7 +201,7 @@ export function EdaPanel({ onApplyFilter }: { onApplyFilter?: () => void }) {
   };
 
   return (
-    <div class={styles.edaPanel} onClick={handlePanelClick}>
+    <div class={styles.edaPanel} data-eda-panel="true" onClick={handlePanelClick}>
       <div class={styles.edaPanel__header}>
         <div class={styles.edaPanel__title}>
           <TypeIndicator type={edaStats.type} showLabel={false} size="small" />
