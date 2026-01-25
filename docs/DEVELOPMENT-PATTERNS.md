@@ -580,7 +580,7 @@ User expressions go through three stages for security:
 │ Stage 2: VALIDATION (ast-validator.ts)      │
 │ - Whitelist check (allowed node types)      │
 │ - Operator whitelist (no assignment, etc.)  │
-│ - Function whitelist (28 safe functions)    │
+│ - Function whitelist (64 safe functions)    │
 │ - Schema validation (column exists?)        │
 └─────────────────────────────────────────────┘
     ↓

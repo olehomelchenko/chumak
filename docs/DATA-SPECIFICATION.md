@@ -464,6 +464,9 @@ Expressions are used in `filter` and `derive` transforms.
 
 - `abs(n)`, `round(n, decimals?)`, `floor(n)`, `ceil(n)`
 - `min(a, b, ...)`, `max(a, b, ...)`
+- `pow(base, exponent)`, `sqrt(n)`, `cbrt(n)`, `exp(n)`, `ln(n)`, `log10(n)`, `log2(n)`
+- `sin(n)`, `cos(n)`, `tan(n)`, `asin(n)`, `acos(n)`, `atan(n)`, `atan2(y, x)`
+- `radians(n)`, `degrees(n)`, `sign(n)`, `trunc(n)`, `pi()`, `e()`
 - `parse_int(s)`, `parse_float(s)`, `is_nan(n)`
 
 **Date functions:**

@@ -44,7 +44,7 @@ Compared to Power Query M's documented limitations, Syto already avoids several 
 
 The expression engine provides a secure, validated subset of operations:
 
-- **43 whitelisted functions** across string, math, date, and regex categories
+- **64 whitelisted functions** across string, math, date, and regex categories
 - **Bracket notation** for column names with spaces: `[Column Name]`
 - **Word-form operators** for beginners: `and`, `or`, `not`
 - **Error objects** instead of crashes for failed conversions

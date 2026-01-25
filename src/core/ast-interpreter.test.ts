@@ -628,6 +628,47 @@ describe('Math Functions', () => {
       expect(interpretAST(parseExpression('max(positive, nullVal, integer)'), row)).toBe(100);
     });
   });
+
+  describe('new math functions', () => {
+    it('should calculate pow()', () => {
+      expect(interpretAST(parseExpression('pow(2, 3)'), {})).toBe(8);
+      expect(interpretAST(parseExpression('pow(10, -2)'), {})).toBe(0.01);
+    });
+
+    it('should calculate sqrt()', () => {
+      expect(interpretAST(parseExpression('sqrt(16)'), {})).toBe(4);
+      expect(interpretAST(parseExpression('sqrt(-1)'), {})).toBe(null);
+    });
+
+    it('should calculate logs', () => {
+      expect(interpretAST(parseExpression('ln(e())'), {})).toBeCloseTo(1);
+      expect(interpretAST(parseExpression('log10(100)'), {})).toBe(2);
+      expect(interpretAST(parseExpression('log2(8)'), {})).toBe(3);
+    });
+
+    it('should calculate trig functions', () => {
+      expect(interpretAST(parseExpression('sin(0)'), {})).toBe(0);
+      expect(interpretAST(parseExpression('cos(0)'), {})).toBe(1);
+      expect(interpretAST(parseExpression('round(sin(pi() / 2), 0)'), {})).toBe(1);
+    });
+
+    it('should handle radians/degrees conversion', () => {
+      expect(interpretAST(parseExpression('radians(180)'), {})).toBeCloseTo(Math.PI);
+      expect(interpretAST(parseExpression('degrees(pi())'), {})).toBe(180);
+    });
+
+    it('should handle constants', () => {
+      expect(interpretAST(parseExpression('pi()'), {})).toBe(Math.PI);
+      expect(interpretAST(parseExpression('e()'), {})).toBe(Math.E);
+    });
+
+    it('should handle sign and trunc', () => {
+      expect(interpretAST(parseExpression('sign(-5)'), {})).toBe(-1);
+      expect(interpretAST(parseExpression('sign(5)'), {})).toBe(1);
+      expect(interpretAST(parseExpression('trunc(13.37)'), {})).toBe(13);
+      expect(interpretAST(parseExpression('trunc(-13.37)'), {})).toBe(-13);
+    });
+  });
 });
 
 describe('Type Conversion Functions', () => {

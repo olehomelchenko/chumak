@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated": "2026-01-25T08:57:49.492Z",
+  "generated": "2026-01-25T11:45:16.349Z",
   "functions": [
     {
       "name": "regexp_match",
@@ -830,6 +830,384 @@
         {
           "expression": "abs(-5)",
           "result": "5"
+        }
+      ]
+    },
+    {
+      "name": "pow",
+      "category": "Math",
+      "description": "Returns the base raised to the power of the exponent",
+      "signature": "pow(base, exponent)",
+      "params": [
+        {
+          "name": "base",
+          "description": "The base number"
+        },
+        {
+          "name": "exponent",
+          "description": "The exponent"
+        }
+      ],
+      "returns": "Base raised to the power of exponent, or null if invalid",
+      "examples": [
+        {
+          "expression": "pow(2, 3)",
+          "result": "8"
+        }
+      ]
+    },
+    {
+      "name": "sqrt",
+      "category": "Math",
+      "description": "Returns the square root of a number",
+      "signature": "sqrt(value)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Numeric value"
+        }
+      ],
+      "returns": "Square root, or null if number is negative or invalid",
+      "examples": [
+        {
+          "expression": "sqrt(16)",
+          "result": "4"
+        }
+      ]
+    },
+    {
+      "name": "cbrt",
+      "category": "Math",
+      "description": "Returns the cube root of a number",
+      "signature": "cbrt(value)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Numeric value"
+        }
+      ],
+      "returns": "Cube root, or null if invalid",
+      "examples": [
+        {
+          "expression": "cbrt(27)",
+          "result": "3"
+        }
+      ]
+    },
+    {
+      "name": "exp",
+      "category": "Math",
+      "description": "Returns e raised to the power of the value",
+      "signature": "exp(value)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Numeric value"
+        }
+      ],
+      "returns": "e^value, or null if invalid",
+      "examples": [
+        {
+          "expression": "exp(1)",
+          "result": "2.71828..."
+        }
+      ]
+    },
+    {
+      "name": "ln",
+      "category": "Math",
+      "description": "Returns the natural logarithm (base e) of a number",
+      "signature": "ln(value)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Numeric value"
+        }
+      ],
+      "returns": "Natural logarithm, or null if value <= 0 or invalid",
+      "examples": [
+        {
+          "expression": "ln(2.71828)",
+          "result": "1"
+        }
+      ]
+    },
+    {
+      "name": "log10",
+      "category": "Math",
+      "description": "Returns the base 10 logarithm of a number",
+      "signature": "log10(value)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Numeric value"
+        }
+      ],
+      "returns": "Base 10 logarithm, or null if value <= 0 or invalid",
+      "examples": [
+        {
+          "expression": "log10(100)",
+          "result": "2"
+        }
+      ]
+    },
+    {
+      "name": "log2",
+      "category": "Math",
+      "description": "Returns the base 2 logarithm of a number",
+      "signature": "log2(value)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Numeric value"
+        }
+      ],
+      "returns": "Base 2 logarithm, or null if value <= 0 or invalid",
+      "examples": [
+        {
+          "expression": "log2(8)",
+          "result": "3"
+        }
+      ]
+    },
+    {
+      "name": "sin",
+      "category": "Math",
+      "description": "Returns the sine of an angle (in radians)",
+      "signature": "sin(value)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Angle in radians"
+        }
+      ],
+      "returns": "Sine of the angle, or null if invalid",
+      "examples": [
+        {
+          "expression": "sin(pi() / 2)",
+          "result": "1"
+        }
+      ]
+    },
+    {
+      "name": "cos",
+      "category": "Math",
+      "description": "Returns the cosine of an angle (in radians)",
+      "signature": "cos(value)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Angle in radians"
+        }
+      ],
+      "returns": "Cosine of the angle, or null if invalid",
+      "examples": [
+        {
+          "expression": "cos(0)",
+          "result": "1"
+        }
+      ]
+    },
+    {
+      "name": "tan",
+      "category": "Math",
+      "description": "Returns the tangent of an angle (in radians)",
+      "signature": "tan(value)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Angle in radians"
+        }
+      ],
+      "returns": "Tangent of the angle, or null if invalid",
+      "examples": [
+        {
+          "expression": "tan(0)",
+          "result": "0"
+        }
+      ]
+    },
+    {
+      "name": "asin",
+      "category": "Math",
+      "description": "Returns the arcsine (in radians) of a number",
+      "signature": "asin(value)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Number between -1 and 1"
+        }
+      ],
+      "returns": "Arcsine in radians, or null if value is outside [-1, 1] or invalid",
+      "examples": [
+        {
+          "expression": "asin(1)",
+          "result": "1.57079..."
+        }
+      ]
+    },
+    {
+      "name": "acos",
+      "category": "Math",
+      "description": "Returns the arccosine (in radians) of a number",
+      "signature": "acos(value)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Number between -1 and 1"
+        }
+      ],
+      "returns": "Arccosine in radians, or null if value is outside [-1, 1] or invalid",
+      "examples": [
+        {
+          "expression": "acos(1)",
+          "result": "0"
+        }
+      ]
+    },
+    {
+      "name": "atan",
+      "category": "Math",
+      "description": "Returns the arctangent (in radians) of a number",
+      "signature": "atan(value)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Numeric value"
+        }
+      ],
+      "returns": "Arctangent in radians, or null if invalid",
+      "examples": [
+        {
+          "expression": "atan(0)",
+          "result": "0"
+        }
+      ]
+    },
+    {
+      "name": "atan2",
+      "category": "Math",
+      "description": "Returns the angle (in radians) from the X-axis to a point (x, y)",
+      "signature": "atan2(y, x)",
+      "params": [
+        {
+          "name": "y",
+          "description": "Y-coordinate"
+        },
+        {
+          "name": "x",
+          "description": "X-coordinate"
+        }
+      ],
+      "returns": "Angle in radians, or null if invalid",
+      "examples": [
+        {
+          "expression": "atan2(1, 1)",
+          "result": "0.78539..."
+        }
+      ]
+    },
+    {
+      "name": "radians",
+      "category": "Math",
+      "description": "Converts degrees to radians",
+      "signature": "radians(value)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Angle in degrees"
+        }
+      ],
+      "returns": "Angle in radians, or null if invalid",
+      "examples": [
+        {
+          "expression": "radians(180)",
+          "result": "3.14159..."
+        }
+      ]
+    },
+    {
+      "name": "degrees",
+      "category": "Math",
+      "description": "Converts radians to degrees",
+      "signature": "degrees(value)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Angle in radians"
+        }
+      ],
+      "returns": "Angle in degrees, or null if invalid",
+      "examples": [
+        {
+          "expression": "degrees(pi())",
+          "result": "180"
+        }
+      ]
+    },
+    {
+      "name": "sign",
+      "category": "Math",
+      "description": "Returns the sign of a number, indicating whether it is positive (1), negative (-1), or zero (0)",
+      "signature": "sign(value)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Numeric value"
+        }
+      ],
+      "returns": "1, -1, 0, or null if invalid",
+      "examples": [
+        {
+          "expression": "sign(-5)",
+          "result": "-1"
+        }
+      ]
+    },
+    {
+      "name": "trunc",
+      "category": "Math",
+      "description": "Returns the integer part of a number by removing any fractional digits",
+      "signature": "trunc(value)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Numeric value"
+        }
+      ],
+      "returns": "Integer part, or null if invalid",
+      "examples": [
+        {
+          "expression": "trunc(13.37)",
+          "result": "13"
+        }
+      ]
+    },
+    {
+      "name": "pi",
+      "category": "Math",
+      "description": "Returns the value of PI (approximately 3.14159)",
+      "signature": "pi()",
+      "params": [],
+      "returns": "PI",
+      "examples": [
+        {
+          "expression": "pi()",
+          "result": "3.14159..."
+        }
+      ]
+    },
+    {
+      "name": "e",
+      "category": "Math",
+      "description": "Returns Euler's number E (approximately 2.71828)",
+      "signature": "e()",
+      "params": [],
+      "returns": "E",
+      "examples": [
+        {
+          "expression": "e()",
+          "result": "2.71828..."
         }
       ]
     },

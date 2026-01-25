@@ -160,6 +160,53 @@ export function DeriveDialog() {
           </div>
         </div>
 
+        {/* Math Functions */}
+        <div class={styles.group} style={{ marginBottom: '0.75rem' }}>
+          <div class={styles.exampleTitle}>Math Functions:</div>
+          <div class={`${styles.exampleGrid} ${styles.mono}`}>
+            <div>
+              <code class={styles.exampleCode}>round(n, 2)</code>
+              <span class={styles.exampleDescription}>— round to 2 decimals</span>
+            </div>
+            <div>
+              <code class={styles.exampleCode}>abs(n)</code>
+              <span class={styles.exampleDescription}>— absolute value</span>
+            </div>
+            <div>
+              <code class={styles.exampleCode}>pow(b, e)</code>
+              <span class={styles.exampleDescription}>— power</span>
+            </div>
+            <div>
+              <code class={styles.exampleCode}>sqrt(n)</code>
+              <span class={styles.exampleDescription}>— square root</span>
+            </div>
+            <div>
+              <code class={styles.exampleCode}>floor(n)</code>
+              <span class={styles.exampleDescription}>— round down</span>
+            </div>
+            <div>
+              <code class={styles.exampleCode}>ceil(n)</code>
+              <span class={styles.exampleDescription}>— round up</span>
+            </div>
+            <div>
+              <code class={styles.exampleCode}>min(a, b, ...)</code>
+              <span class={styles.exampleDescription}>— minimum</span>
+            </div>
+            <div>
+              <code class={styles.exampleCode}>max(a, b, ...)</code>
+              <span class={styles.exampleDescription}>— maximum</span>
+            </div>
+            <div>
+              <code class={styles.exampleCode}>pi()</code>
+              <span class={styles.exampleDescription}>— 3.14159...</span>
+            </div>
+            <div>
+              <code class={styles.exampleCode}>ln(n)</code>
+              <span class={styles.exampleDescription}>— natural log</span>
+            </div>
+          </div>
+        </div>
+
         {/* Text Functions */}
         <div class={styles.dashedSeparator}>
           <strong style={{ color: 'var(--color-dark-gray)' }}>Text:</strong>{' '}
