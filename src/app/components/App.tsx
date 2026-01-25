@@ -28,6 +28,7 @@ import {
   AggregateDialog,
   ImportCsvDialog,
   ImportUrlDialog,
+  GenerateDialog,
   DownloadDialog,
   SettingsDialog,
   ColumnEditorDialog,
@@ -85,6 +86,7 @@ export function App({ app }: AppProps) {
     onUploadClick: () => app.handleUploadClick(),
     onPasteClick: () => app.handlePasteClick(),
     onUrlClick: () => app.openDialog('import-url'),
+    onGenerateClick: () => app.openDialog('generate'),
     onSwitchToSource: (s: any) => app.switchToSource(s),
     onSwitchToModel: (m: any) => app.switchToModel(m),
     onViewStep: (i: number) => app.viewStep(i),
@@ -243,6 +245,7 @@ export function App({ app }: AppProps) {
                 {activeDialog === 'import-url' && (
                   <ImportUrlDialog onImport={() => app.fetchAndImportFromUrl()} />
                 )}
+                {activeDialog === 'generate' && <GenerateDialog />}
                 {activeDialog === 'impute' && <ImputeDialog />}
                 {activeDialog === 'conditional' && <ConditionalDialog />}
               </div>

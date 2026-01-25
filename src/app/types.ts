@@ -21,6 +21,7 @@ export type DialogName =
   | 'aggregate'
   | 'import-csv'
   | 'import-url'
+  | 'generate'
   | 'column-editor'
   | 'settings'
   | 'download'

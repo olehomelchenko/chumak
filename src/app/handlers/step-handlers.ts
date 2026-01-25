@@ -107,6 +107,9 @@ export async function applyActiveTransform(this: SytoApp) {
     case 'import-url':
       await this.fetchAndImportFromUrl();
       break;
+    case 'generate':
+      await this.generateData();
+      break;
   }
 }
 

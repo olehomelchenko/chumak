@@ -43,6 +43,8 @@ export type { Aggregation } from './AggregateDialog';
 export { ImportCsvDialog } from './ImportCsvDialog';
 export type { ImportCsvDialogProps } from './ImportCsvDialog';
 
+export { GenerateDialog } from './GenerateDialog';
+
 export { ColumnEditorDialog } from './ColumnEditorDialog';
 export type { ColumnEditorItem, ColumnEditorChanges } from './ColumnEditorDialog';
 

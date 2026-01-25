@@ -330,6 +330,28 @@ export class DialogStore {
     error: signal<string | null>(null),
   };
 
+  // Generate Data Dialog State
+  static generateState = {
+    sourceName: signal('generated_data'),
+    rowCount: signal(100),
+    generators: signal<
+      Array<{
+        id: string;
+        name: string;
+        type: string;
+        config: any;
+      }>
+    >([
+      {
+        id: 'gen_1',
+        name: 'id',
+        type: 'integerSequence',
+        config: { type: 'integerSequence', start: 1, step: 1 },
+      },
+    ]),
+    error: signal<string | null>(null),
+  };
+
   /**
    * Creates a reactive proxy for a signal-based state object.
    * Allows direct property access and assignment to be transparently
@@ -468,6 +490,18 @@ export class DialogStore {
     this.renamePatternState.replace.value = '';
     this.renamePatternState.regex.value = false;
     this.renamePatternState.error.value = null;
+
+    this.generateState.sourceName.value = 'generated_data';
+    this.generateState.rowCount.value = 100;
+    this.generateState.generators.value = [
+      {
+        id: 'gen_1',
+        name: 'id',
+        type: 'integerSequence',
+        config: { type: 'integerSequence', start: 1, step: 1 },
+      },
+    ];
+    this.generateState.error.value = null;
 
     // Join Dialog State
     this.joinState.leftModel.value = null;

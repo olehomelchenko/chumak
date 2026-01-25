@@ -203,6 +203,13 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     buttonText: 'Fetch Data',
   },
 
+  generate: {
+    name: 'generate',
+    title: 'Generate Data',
+    type: 'slide-panel',
+    buttonText: 'Generate',
+  },
+
   // === Utility Dialogs (Centered Modals) ===
 
   settings: {

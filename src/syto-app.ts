@@ -15,6 +15,7 @@ import * as DedupeHandlers from './app/handlers/dedupe-handlers';
 import * as RegexpHandlers from './app/handlers/regexp-handlers';
 import * as SimpleHandlers from './app/handlers/simple-handlers';
 import * as ImportHandlers from './app/handlers/import-handlers';
+import * as GenerateHandlers from './app/handlers/generate-handlers';
 import * as StepHandlers from './app/handlers/step-handlers';
 import * as DialogHandlers from './app/handlers/dialog-handlers';
 import * as NotificationHandlers from './app/handlers/notification-handlers';
@@ -775,6 +776,9 @@ export class SytoApp implements AppState {
   }
   confirmImport() {
     return ImportHandlers.confirmImport.call(this);
+  }
+  generateData() {
+    return GenerateHandlers.generateData.call(this);
   }
   createSource(
     file: File,

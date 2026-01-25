@@ -12,6 +12,7 @@ export interface SidebarProps {
   onUploadClick: () => void;
   onPasteClick: () => void;
   onUrlClick: () => void;
+  onGenerateClick: () => void;
   // Navigation
   onSwitchToSource: (source: Source) => void;
   onSwitchToModel: (model: Model) => void;
@@ -47,6 +48,7 @@ export function Sidebar({
   onUploadClick,
   onPasteClick,
   onUrlClick,
+  onGenerateClick,
   onSwitchToSource,
   onSwitchToModel,
   onViewStep,
@@ -99,6 +101,14 @@ export function Sidebar({
           <button class={styles.importAction} onClick={onUrlClick} title="Import from URL">
             <span class="iconify" data-icon="carbon:link"></span>
             <span>URL</span>
+          </button>
+          <button
+            class={styles.importAction}
+            onClick={onGenerateClick}
+            title="Generate synthetic data"
+          >
+            <span class="iconify" data-icon="carbon:data-2"></span>
+            <span>Generate</span>
           </button>
         </div>
         <div class={styles.treeView}>

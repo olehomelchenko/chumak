@@ -227,12 +227,13 @@ Each transform is one object in an array.
 
 ### 5.1 Data Import/Export
 
-| Feature               | Implementation                                              |
-| --------------------- | ----------------------------------------------------------- |
-| **Import CSV (file)** | Sidebar action + drag-drop → Config dialog → Creates Source |
-| **Paste CSV**         | Sidebar action / CTRL+V → Config dialog → Creates Source    |
-| **Import from URL**   | Fetch CSV from public URL → Config dialog → Creates Source  |
-| **Unified Download**  | Modal with CSV, Data JSON, and Workflow JSON options        |
+| Feature               | Implementation                                                                      |
+| --------------------- | ----------------------------------------------------------------------------------- |
+| **Import CSV (file)** | Sidebar action + drag-drop → Config dialog → Creates Source                         |
+| **Paste CSV**         | Sidebar action / CTRL+V → Config dialog → Creates Source                            |
+| **Import from URL**   | Fetch CSV from public URL → Config dialog → Creates Source                          |
+| **Generate Data**     | Sidebar action → Dialog with column generators → Creates Source with synthetic data |
+| **Unified Download**  | Modal with CSV, Data JSON, and Workflow JSON options                                |
 
 ### 5.2 Core Transformations
 

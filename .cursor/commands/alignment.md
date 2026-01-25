@@ -35,6 +35,8 @@ Update relevant docs if the feature is significant:
 - **[UX-SPECIFICATION.md](docs/UX-SPECIFICATION.md)**: New UI patterns or components
 - **[BACKLOG.md](docs/BACKLOG.md)**: Mark completed items
 
+The list is not exclusive - if you think another document needs update, proceed with it.
+
 ### Alignment Check
 
 Verify changes align with:

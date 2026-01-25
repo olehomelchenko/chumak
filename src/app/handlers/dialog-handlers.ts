@@ -60,6 +60,12 @@ export function getDialogState(this: SytoApp, dialog: string) {
       return this.importDialogState;
     case 'import-url':
       return { url: this.importUrlDialogState.url };
+    case 'generate':
+      return {
+        sourceName: DialogStore.generateState.sourceName.value,
+        rowCount: DialogStore.generateState.rowCount.value,
+        generators: DialogStore.generateState.generators.value,
+      };
     case 'dedupe':
       return this.dedupeDialogState;
     case 'column-editor':
@@ -474,6 +480,14 @@ export function activeDialogError(this: SytoApp): boolean {
       );
     case 'import-url':
       return !this.importUrlDialogState.url || this.importUrlDialogState.isFetching;
+    case 'generate':
+      const generateState = DialogStore.generateState;
+      return (
+        !generateState.sourceName.value?.trim() ||
+        generateState.rowCount.value <= 0 ||
+        generateState.generators.value.length === 0 ||
+        !!generateState.error.value
+      );
     case 'impute':
       const imputeState = DialogStore.imputeState;
       return (
