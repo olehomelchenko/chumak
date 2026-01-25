@@ -149,4 +149,59 @@ describe('Schema Engine', () => {
       spy.mockRestore();
     });
   });
+
+  describe('compareSchemas()', () => {
+    const oldSchema: ColumnSchema[] = [
+      { name: 'id', type: 'integer' as const },
+      { name: 'name', type: 'string' as const },
+      { name: 'age', type: 'integer' as const },
+    ];
+
+    it('detects identical schemas', () => {
+      const diff = SchemaEngine.compareSchemas(oldSchema, [...oldSchema]);
+      expect(diff.missingColumns).toHaveLength(0);
+      expect(diff.newColumns).toHaveLength(0);
+      expect(diff.typeChanges).toHaveLength(0);
+      expect(diff.compatibilityWarning).toBeNull();
+    });
+
+    it('detects missing columns', () => {
+      const newSchema: ColumnSchema[] = [
+        { name: 'id', type: 'integer' as const },
+        { name: 'name', type: 'string' as const },
+      ];
+      const diff = SchemaEngine.compareSchemas(oldSchema, newSchema);
+      expect(diff.missingColumns).toEqual(['age']);
+      expect(diff.compatibilityWarning).toContain('missing');
+    });
+
+    it('detects new columns', () => {
+      const newSchema: ColumnSchema[] = [...oldSchema, { name: 'email', type: 'string' as const }];
+      const diff = SchemaEngine.compareSchemas(oldSchema, newSchema);
+      expect(diff.newColumns).toEqual(['email']);
+      expect(diff.compatibilityWarning).toBeNull();
+    });
+
+    it('detects type changes', () => {
+      const newSchema: ColumnSchema[] = [
+        { name: 'id', type: 'integer' as const },
+        { name: 'name', type: 'string' as const },
+        { name: 'age', type: 'string' as const }, // type changed
+      ];
+      const diff = SchemaEngine.compareSchemas(oldSchema, newSchema);
+      expect(diff.typeChanges).toEqual([{ column: 'age', oldType: 'integer', newType: 'string' }]);
+    });
+
+    it('handles combination of changes', () => {
+      const newSchema: ColumnSchema[] = [
+        { name: 'id', type: 'string' as const }, // type change
+        { name: 'name', type: 'string' as const },
+        { name: 'email', type: 'string' as const }, // new
+      ];
+      const diff = SchemaEngine.compareSchemas(oldSchema, newSchema);
+      expect(diff.missingColumns).toEqual(['age']);
+      expect(diff.newColumns).toEqual(['email']);
+      expect(diff.typeChanges).toEqual([{ column: 'id', oldType: 'integer', newType: 'string' }]);
+    });
+  });
 });

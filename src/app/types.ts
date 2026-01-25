@@ -1,3 +1,4 @@
+export type { ColumnSchema };
 import { TransformStep, ColumnSchema } from '../core/schema-engine';
 import { EDAStats } from '../core/eda-engine';
 
@@ -60,6 +61,7 @@ export interface Source {
   createdAt?: string;
   comment?: string;
   __v?: number; // Schema version for future migrations (defaults to 1)
+  backup?: Omit<Source, 'backup'>;
 }
 
 export interface Model {

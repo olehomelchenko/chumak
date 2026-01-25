@@ -806,6 +806,25 @@ export class SytoApp implements AppState {
   confirmImport() {
     return ImportHandlers.confirmImport.call(this);
   }
+  showReplaceSourceDialog(source: Source) {
+    return ImportHandlers.showReplaceSourceDialog.call(this, source);
+  }
+  async restoreSourceBackup(source: Source) {
+    const { ReplaceSourceService } = await import('./app/services/ReplaceSourceService');
+    await ReplaceSourceService.restoreBackup(source.id);
+  }
+  computeSchemaDiffForPreview(
+    oldSchema: ColumnSchema[],
+    previewColumns: string[],
+    previewData: any[][]
+  ) {
+    return ImportHandlers.computeSchemaDiffForPreview.call(
+      this,
+      oldSchema,
+      previewColumns,
+      previewData
+    );
+  }
   generateData() {
     return GenerateHandlers.generateData.call(this);
   }

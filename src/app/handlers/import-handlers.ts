@@ -3,6 +3,9 @@ import type { DataRow } from '../types';
 import Papa from 'papaparse';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
+import { Source } from '../types';
+import { SchemaEngine, ColumnSchema } from '../../core/schema-engine';
+import { ReplaceSourceService } from '../services/ReplaceSourceService';
 
 export function handleFileSelect(this: SytoApp, event: Event) {
   const target = event.target as HTMLInputElement;
@@ -146,6 +149,16 @@ export function handleJsonPreview(this: SytoApp, file: File, data: any, path = '
     flattenJson: this.importDialogState.flattenJson ?? false,
     serializeNested: this.importDialogState.serializeNested ?? true,
   };
+
+  // If in replace mode, compute schema diff
+  if (DialogStore.importCsvState.isReplaceMode.value) {
+    const sourceId = DialogStore.importCsvState.targetSourceId.value;
+    const source = AppStore.sources.value.find((s) => s.id === sourceId);
+    if (source) {
+      this.computeSchemaDiffForPreview(source.columns, headers, previewData);
+    }
+  }
+
   this.openDialog('import-csv');
 }
 
@@ -261,6 +274,17 @@ export function handleCsvPreview(this: SytoApp, file: File) {
         jsonData: null,
       };
       this.updateHeadersForPreview();
+
+      // If in replace mode, compute schema diff
+      if (DialogStore.importCsvState.isReplaceMode.value) {
+        const sourceId = DialogStore.importCsvState.targetSourceId.value;
+        const source = AppStore.sources.value.find((s) => s.id === sourceId);
+        if (source) {
+          const { previewHeaders, previewDataRows } = this.importDialogState;
+          this.computeSchemaDiffForPreview(source.columns, previewHeaders, previewDataRows);
+        }
+      }
+
       this.openDialog('import-csv');
     },
     error: async (error) => {
@@ -351,6 +375,39 @@ export async function fetchAndImportFromUrl(this: SytoApp) {
   }
 }
 
+export function showReplaceSourceDialog(this: SytoApp, source: Source) {
+  // Set replace mode flags
+  DialogStore.importCsvState.isReplaceMode.value = true;
+  DialogStore.importCsvState.targetSourceId.value = source.id;
+  DialogStore.importCsvState.sourceName.value = source.name;
+
+  // Open file picker
+  const input = document.getElementById('file-input') as HTMLInputElement;
+  input?.click();
+}
+
+export function computeSchemaDiffForPreview(
+  this: SytoApp,
+  oldSchema: ColumnSchema[],
+  previewColumns: string[],
+  previewData: any[][]
+): void {
+  // Infer schema from preview
+  const rowObjects = previewData.map((row) => {
+    const obj: Record<string, any> = {};
+    previewColumns.forEach((col, i) => {
+      obj[col] = row[i];
+    });
+    return obj;
+  });
+
+  const newSchema = SchemaEngine.createPhysicalSchema(rowObjects);
+
+  // Compare schemas
+  const diff = SchemaEngine.compareSchemas(oldSchema, newSchema);
+  DialogStore.importCsvState.schemaDiff.value = diff;
+}
+
 export async function confirmImport(this: SytoApp) {
   const {
     headerMode,
@@ -382,16 +439,48 @@ export async function confirmImport(this: SytoApp) {
 
     const columns = processedData.length > 0 ? Object.keys(processedData[0]) : customHeaders;
 
-    this.createSource(
-      file,
-      sourceName.trim(),
-      columns,
-      processedData,
-      'first-row',
-      ',',
-      columns,
-      'json'
-    );
+    if (DialogStore.importCsvState.isReplaceMode.value) {
+      const sourceId = DialogStore.importCsvState.targetSourceId.value!;
+      const schemaDiff = DialogStore.importCsvState.schemaDiff.value;
+
+      const executeReplacement = async () => {
+        const fullColumns = SchemaEngine.createPhysicalSchema(processedData);
+        await ReplaceSourceService.replaceSource(sourceId, processedData, fullColumns, {
+          fileName: file.name,
+          headerMode: 'first-row',
+          delimiter: ',',
+        });
+
+        // Reset flags and close dialog
+        DialogStore.importCsvState.isReplaceMode.value = false;
+        DialogStore.importCsvState.targetSourceId.value = null;
+        DialogStore.importCsvState.schemaDiff.value = null;
+        this.closeDialog();
+      };
+
+      if (schemaDiff && schemaDiff.missingColumns.length > 0) {
+        const confirmed = await this.confirm(
+          `⚠️ Warning: The new data is missing ${schemaDiff.missingColumns.length} column(s) that exist in the current source:\n\n${schemaDiff.missingColumns.join(', ')}\n\nDependent models may break when recomputed. Are you sure you want to proceed?`,
+          'Confirm Replacement'
+        );
+        if (confirmed) {
+          await executeReplacement();
+        }
+      } else {
+        await executeReplacement();
+      }
+    } else {
+      await this.createSource(
+        file,
+        sourceName.trim(),
+        columns,
+        processedData,
+        'first-row',
+        ',',
+        columns,
+        'json'
+      );
+    }
     return;
   }
 
@@ -406,6 +495,7 @@ export async function confirmImport(this: SytoApp) {
         await this.alert('Error: CSV file is empty');
         return;
       }
+
       let columns: string[], data: DataRow[];
       if (headerMode === 'first-row') {
         columns = customHeaders;
@@ -417,15 +507,6 @@ export async function confirmImport(this: SytoApp) {
           });
           return obj;
         });
-        await this.createSource(
-          file,
-          sourceName.trim(),
-          columns,
-          data,
-          headerMode,
-          delimiter,
-          customHeaders
-        );
       } else if (headerMode === 'auto-generate') {
         columns = rawData[0]?.map((_, i) => `Column ${i + 1}`) || [];
         data = rawData.map((row) => {
@@ -435,8 +516,8 @@ export async function confirmImport(this: SytoApp) {
           });
           return obj;
         });
-        await this.createSource(file, sourceName.trim(), columns, data, headerMode, delimiter);
-      } else if (headerMode === 'manual') {
+      } else {
+        // manual
         columns = customHeaders;
         data = rawData.map((row) => {
           const obj: DataRow = {};
@@ -445,16 +526,53 @@ export async function confirmImport(this: SytoApp) {
           });
           return obj;
         });
-        await this.createSource(
-          file,
-          sourceName.trim(),
-          columns,
-          data,
-          headerMode,
-          delimiter,
-          customHeaders
-        );
       }
+
+      // Handle replacement if in replace mode
+      if (DialogStore.importCsvState.isReplaceMode.value) {
+        const sourceId = DialogStore.importCsvState.targetSourceId.value!;
+        const schemaDiff = DialogStore.importCsvState.schemaDiff.value;
+
+        const executeReplacement = async () => {
+          const fullColumns = SchemaEngine.createPhysicalSchema(data);
+          await ReplaceSourceService.replaceSource(sourceId, data, fullColumns, {
+            fileName: file.name,
+            headerMode,
+            delimiter,
+          });
+
+          // Reset flags and close dialog
+          DialogStore.importCsvState.isReplaceMode.value = false;
+          DialogStore.importCsvState.targetSourceId.value = null;
+          DialogStore.importCsvState.schemaDiff.value = null;
+          this.closeDialog();
+        };
+
+        // Check for missing columns
+        if (schemaDiff && schemaDiff.missingColumns.length > 0) {
+          const confirmed = await this.confirm(
+            `⚠️ Warning: The new data is missing ${schemaDiff.missingColumns.length} column(s) that exist in the current source:\n\n${schemaDiff.missingColumns.join(', ')}\n\nDependent models may break when recomputed. Are you sure you want to proceed?`,
+            'Confirm Replacement'
+          );
+          if (confirmed) {
+            await executeReplacement();
+          }
+        } else {
+          await executeReplacement();
+        }
+        return;
+      }
+
+      // Normal import
+      await this.createSource(
+        file,
+        sourceName.trim(),
+        columns,
+        data,
+        headerMode,
+        delimiter,
+        customHeaders
+      );
     },
     error: async (error) => {
       console.error('CSV parsing error:', error);
@@ -547,6 +665,16 @@ export function updateHeadersForPreview(this: SytoApp) {
     this.importDialogState.duplicateWarning = warning;
     if (headerMode === 'first-row' || headerMode === 'manual') {
       this.importDialogState.customHeaders = resolvedHeaders;
+    }
+  }
+
+  // Re-compute schema diff if in replace mode
+  if (DialogStore.importCsvState.isReplaceMode.value) {
+    const sourceId = DialogStore.importCsvState.targetSourceId.value;
+    const source = AppStore.sources.value.find((s) => s.id === sourceId);
+    if (source) {
+      const { previewHeaders, previewDataRows } = this.importDialogState;
+      this.computeSchemaDiffForPreview(source.columns, previewHeaders, previewDataRows);
     }
   }
 }

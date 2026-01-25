@@ -34,6 +34,8 @@ export function MainContent(props: MainContentProps) {
           onDeleteSource={props.onDeleteSource}
           onSwitchToModel={props.onSwitchToModel}
           onCreateNewModel={props.onCreateNewModel}
+          onReplaceSource={props.onReplaceSource}
+          onRestoreBackup={props.onRestoreBackup}
         />
       )}
 

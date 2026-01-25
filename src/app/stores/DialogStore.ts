@@ -9,6 +9,7 @@ import {
   DateDialogState,
   DataRow,
 } from '../types';
+import { SchemaDiff } from '../../core/schema-engine';
 
 /**
  * DialogStore
@@ -291,6 +292,11 @@ export class DialogStore {
     rawPreviewData: signal<any[][]>([]),
     previewHeaders: signal<string[]>([]),
     previewDataRows: signal<any[][]>([]),
+
+    // Replace mode
+    isReplaceMode: signal(false),
+    targetSourceId: signal<string | null>(null),
+    schemaDiff: signal<SchemaDiff | null>(null),
   };
 
   // Import URL Dialog State
@@ -496,6 +502,9 @@ export class DialogStore {
     this.importCsvState.fileName.value = '';
     this.importCsvState.sourceName.value = '';
     this.importCsvState.jsonData.value = null;
+    this.importCsvState.isReplaceMode.value = false;
+    this.importCsvState.targetSourceId.value = null;
+    this.importCsvState.schemaDiff.value = null;
 
     this.importUrlState.url.value = '';
     this.importUrlState.isFetching.value = false;

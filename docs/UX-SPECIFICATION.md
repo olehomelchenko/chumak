@@ -94,7 +94,9 @@ Both datasets (sources) and models have dedicated info views accessible via:
 
 These views display:
 
-- **Metadata**: Name, source/model relationships, row/column counts, steps, status
+- **Actions**:
+  - **Dataset Info**: Replace Data (initiates replace flow), Restore Backup (visible only if backup exists), Rename, Delete
+  - **Model Info**: Rename, Delete
 - **Comment Section**: Editable text area for user notes about the dataset or model
 - **Column Schema Table**: Complete list of columns with types and positions
 
@@ -115,6 +117,13 @@ Comments are persisted to IndexedDB and automatically saved when edited.
 **Unified Modal Shell**: Both dialog types use a shared component architecture that handles the backdrop, header (title + close button), and footer (actions). This ensures visual consistency and reduces code duplication across all dialogs.
 
 **Preview Panel**: Appears in the remaining 2/3 of screen space when preview data exists for slide panel dialogs. Supports highlighting of new/derived columns and shows import previews with configurable row limits via UX settings.
+
+**Replace Mode Feedback**:
+In replace mode, the Import Dialog displays:
+
+- **Replace Mode Banner**: A contextual header indicating which source is being updated.
+- **Schema Diff Panel**: A proactive analysis panel showing detected differences between the existing schema and the replacement data. It categorizes changes into **Missing Columns** (warning state), **New Columns**, and **Type Changes**.
+- **Danger States**: If columns present in the original source are missing in the replacement data, the Schema Diff Panel adopts a danger (red) theme to warn about potential model breakages.
 
 **Column Selection Patterns**:
 

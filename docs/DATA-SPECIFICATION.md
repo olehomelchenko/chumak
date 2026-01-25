@@ -34,6 +34,7 @@ interface Source {
   rowCount?: number; // Number of rows
   createdAt?: string; // ISO timestamp
   comment?: string; // User-provided comment/notes about the dataset
+  backup?: Omit<Source, 'backup'>; // Snapshotted previous version of the source
 }
 ```
 
@@ -64,6 +65,7 @@ This architecture ensures:
 - **Zero Data Loss**: The original dataset is never modified or overwritten.
 - **Full Traceability**: Every change is a discrete, inspectable step in a pipeline.
 - **State Reversal**: Users can "roll back" by removing steps or editing previous ones, causing the model to recompute from the original source.
+- **Data Replacement & Backups**: While sources can be updated with new data (e.g., refreshing a CSV), Syto maintains a one-level `.backup` of the previous source data and metadata. This allows users to restore the previous state if the new data schema causes downstream model failures. Restoring a backup is a "swap" operation, enabling both undo and redo of the replacement.
 
 ### 1.4 DataRow
 

@@ -23,6 +23,17 @@ export interface ColumnSchema {
   originalPosition?: number;
 }
 
+export interface SchemaDiff {
+  missingColumns: string[];
+  newColumns: string[];
+  typeChanges: Array<{
+    column: string;
+    oldType: ColumnType;
+    newType: ColumnType;
+  }>;
+  compatibilityWarning: string | null;
+}
+
 export interface TransformStep {
   select?: string[];
   remove?: string[];
@@ -864,5 +875,40 @@ export const SchemaEngine = {
       }
       return col;
     });
+  },
+
+  /**
+   * Compare two schemas to detect differences (missing/new columns, type changes)
+   */
+  compareSchemas(oldSchema: ColumnSchema[], newSchema: ColumnSchema[]): SchemaDiff {
+    const oldCols = oldSchema.map((c) => c.name);
+    const newCols = newSchema.map((c) => c.name);
+
+    const missingColumns = oldCols.filter((name) => !newCols.includes(name));
+    const newColumns = newCols.filter((name) => !oldCols.includes(name));
+
+    const typeChanges: Array<{ column: string; oldType: ColumnType; newType: ColumnType }> = [];
+    for (const oldCol of oldSchema) {
+      const newCol = newSchema.find((c) => c.name === oldCol.name);
+      if (newCol && newCol.type !== oldCol.type) {
+        typeChanges.push({
+          column: oldCol.name,
+          oldType: oldCol.type,
+          newType: newCol.type,
+        });
+      }
+    }
+
+    let compatibilityWarning: string | null = null;
+    if (missingColumns.length > 0) {
+      compatibilityWarning = `Warning: The new data is missing ${missingColumns.length} column(s) that exist in the current source. Dependent models may break when recomputed.`;
+    }
+
+    return {
+      missingColumns,
+      newColumns,
+      typeChanges,
+      compatibilityWarning,
+    };
   },
 };

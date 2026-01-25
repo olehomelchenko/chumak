@@ -1,0 +1,96 @@
+.panel {
+  background: var(--surface-low);
+  border: 1px solid var(--border-color);
+  border-radius: var(--radius-md);
+  padding: 12px;
+  margin-bottom: 16px;
+}
+
+.panel.danger {
+  background: #fff5f5;
+  border-color: #feb2b2;
+}
+
+.title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  margin-bottom: 12px;
+  color: var(--text-primary);
+}
+
+.panel.danger .title {
+  color: #c53030;
+}
+
+.warning {
+  color: #ff9800;
+}
+
+.panel.danger .warning {
+  color: #c53030;
+}
+
+.icon {
+  font-size: 1.1rem;
+}
+
+.grid {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.section {
+  font-size: 0.85rem;
+}
+
+.sectionTitle {
+  font-weight: 500;
+  margin-bottom: 4px;
+  color: var(--text-secondary);
+}
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.chip {
+  padding: 2px 8px;
+  border-radius: 4px;
+  font-size: 0.75rem;
+  background: var(--surface-mid);
+  border: 1px solid var(--border-color);
+}
+
+.missing .chip {
+  background: #fff3e0;
+  border-color: #ffe0b2;
+  color: #e65100;
+}
+
+.new .chip {
+  background: #e8f5e9;
+  border-color: #c8e6c9;
+  color: #2e7d32;
+}
+
+.typeChange .chip {
+  background: #e3f2fd;
+  border-color: #bbdefb;
+  color: #1565c0;
+}
+
+.oldType {
+  text-decoration: line-through;
+  opacity: 0.6;
+  margin-right: 4px;
+}
+
+.newType {
+  font-weight: 600;
+}

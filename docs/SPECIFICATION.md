@@ -178,6 +178,7 @@ docs/               # Project documentation
 - `ModelService.ts` — Model CRUD, step management
 - `StepService.ts` — Transform step execution and validation
 - `ImportService.ts` — CSV/URL/clipboard import logic
+- `ReplaceSourceService.ts` — Data replacement and backup restoration
 - `ExportService.ts` — CSV/JSON/workflow export
 - `PersistenceService.ts` — IndexedDB coordination
 
@@ -200,7 +201,8 @@ docs/               # Project documentation
 
 Syto follows a non-destructive architecture. Workflows are stored as an ordered list of `Transform` steps applied to an immutable `Source`.
 
-- **Immutable Sources**: Raw imported data is never modified.
+- **Immutable Sources**: Raw imported data is never modified by transformations.
+- **Replaceable Data**: Sources can be updated/replaced with newer data files. A single-level `.backup` is maintained to allow restoration if the replacement breaks downstream models.
 - **On-the-fly Computation**: Models are recomputed through the entire pipeline of steps whenever a change occurs.
 - **Technical Rollback**: By editing or removing steps, users can revert to any prior state without loss of information.
 - **Audit Trail**: The step list serves as a naturally traceable log of all data manipulations.
@@ -232,6 +234,8 @@ Each transform is one object in an array.
 | **Import CSV (file)** | Sidebar action + drag-drop → Config dialog → Creates Source                         |
 | **Paste CSV**         | Sidebar action / CTRL+V → Config dialog → Creates Source                            |
 | **Import from URL**   | Fetch CSV from public URL → Config dialog → Creates Source                          |
+| **Replace Data**      | Update existing Source with new file → Diff analysis → Marks dependents stale       |
+| **Restore Backup**    | Roll back Source to previous data state (Swap current/backup)                       |
 | **Generate Data**     | Sidebar action → Dialog with column generators → Creates Source with synthetic data |
 | **Unified Download**  | Modal with CSV, Data JSON, and Workflow JSON options                                |
 

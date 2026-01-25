@@ -1,5 +1,6 @@
 import { JSX } from 'preact';
 import { DialogStore } from '../stores/DialogStore';
+import { SchemaDiffPanel } from './SchemaDiffPanel';
 import styles from './TransformDialog.module.css';
 
 // Props interface kept for reference/testing
@@ -29,6 +30,8 @@ export function ImportCsvDialog({
     headerMode,
     customHeaders,
     duplicateWarning,
+    isReplaceMode,
+    schemaDiff,
   } = DialogStore.importCsvState;
 
   const handleJsonPathInput = (e: JSX.TargetedEvent<HTMLInputElement>) => {
@@ -75,6 +78,26 @@ export function ImportCsvDialog({
 
   return (
     <div>
+      {/* Replace Mode Banner */}
+      {isReplaceMode.value && (
+        <div class={styles.replaceBanner}>
+          <span
+            class={`iconify ${styles.replaceIcon}`}
+            data-icon="carbon:cyclostat"
+            style={{ fontSize: '24px' }}
+          ></span>
+          <div class={styles.replaceInfo}>
+            <strong>Replace Mode</strong>
+            <p>
+              You are replacing data in source: <em>{sourceName.value}</em>
+            </p>
+          </div>
+        </div>
+      )}
+
+      {/* Schema Diff Panel */}
+      {isReplaceMode.value && schemaDiff.value && <SchemaDiffPanel diff={schemaDiff.value} />}
+
       {/* Source Name */}
       <div class={styles.group}>
         <label class={styles.label}>Source Name:</label>

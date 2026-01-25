@@ -34,10 +34,11 @@ Adding a transform requires changes across multiple files. Use this checklist:
 
 Syto is built on the principle of **non-destructive data wrangling**. Developers MUST ensure that:
 
-1. **Sources are Immutable**: Never modify the `data` or `columns` of a `Source` object after creation.
-2. **Transforms return new tables**: Always use Arquero verbs that return a new table instance or create a new set of objects.
-3. **Traceability**: Every user action that changes data must be represented as a `TransformStep` in a `Model`. This allows the application to "replay" the pipeline from the raw source at any time.
-4. **No Side Effects**: Transformation logic in `src/core/transforms.ts` must be pure and rely only on the input table, transform parameters, and schema.
+1. **Sources are Immutable to Transforms**: Never modify the `data` or `columns` of a `Source` object during transformation execution.
+2. **Explicit Replacement with Backups**: If a user explicitly replaces a source's data, the application must maintain a `.backup` of the previous state to allow restoration (Undo/Redo).
+3. **Transforms return new tables**: Always use Arquero verbs that return a new table instance or create a new set of objects.
+4. **Traceability**: Every user action that changes data must be represented as a `TransformStep` in a `Model`. This allows the application to "replay" the pipeline from the raw source at any time.
+5. **No Side Effects**: Transformation logic in `src/core/transforms.ts` must be pure and rely only on the input table, transform parameters, and schema.
 
 This pattern enables technical rollback, experimental workflows, and reproducibility—core pillars of the Syto philosophy.
 
