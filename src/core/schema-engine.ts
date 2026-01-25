@@ -104,6 +104,10 @@ export interface TransformStep {
   };
   concat?: { with: string };
   union?: { with: string };
+  sample?: { count: number; seed?: number };
+  semijoin?: { right: string; on: [string, string][] };
+  antijoin?: { right: string; on: [string, string][] };
+  lookup?: { right: string; on: [string, string][]; values: string[] };
 }
 
 export const SchemaEngine = {
@@ -479,6 +483,30 @@ export const SchemaEngine = {
       }
     }
 
+    // 5a. LOOKUP: Add columns from right table
+    if (transform.lookup) {
+      if (sampleData && sampleData.length > 0) {
+        const names = Object.keys(sampleData[0]);
+        return names.map((name, i) => {
+          const existing = currentSchema.find((c) => c.name === name);
+          if (existing) return { ...existing };
+
+          const sample = sampleData.slice(0, 20).map((row) => row[name]);
+          return {
+            name,
+            type: this.inferType(sample),
+            format: {},
+            originalPosition: i,
+          };
+        });
+      }
+    }
+
+    // 5b. SEMIJOIN / ANTIJOIN: Keep left schema
+    if (transform.semijoin || transform.antijoin) {
+      return currentSchema.map((c) => ({ ...c }));
+    }
+
     // 6. TYPES: Update column types
     if (transform.types) {
       const typesMap = transform.types;
@@ -736,6 +764,16 @@ export const SchemaEngine = {
       'sliceRows',
       'addIndex',
       'impute',
+      'selectPattern',
+      'removePattern',
+      'conditional',
+      'renamePattern',
+      'concat',
+      'union',
+      'sample',
+      'semijoin',
+      'antijoin',
+      'lookup',
     ];
     const transformKeys = Object.keys(transform).filter((k) => k !== '__v'); // Ignore version field
     const unknownKey = transformKeys.find((k) => !knownKeys.includes(k));

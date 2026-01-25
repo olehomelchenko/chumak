@@ -95,6 +95,10 @@ export interface FullTransformStep extends TransformStep {
     replace: string;
     regex?: boolean;
   };
+  sample?: { count: number; seed?: number };
+  semijoin?: { right: string; on: [string, string][] };
+  antijoin?: { right: string; on: [string, string][] };
+  lookup?: { right: string; on: [string, string][]; values: string[] };
 }
 
 /**
@@ -125,6 +129,10 @@ const KNOWN_TRANSFORM_KEYS: readonly string[] = [
   'removePattern',
   'conditional',
   'renamePattern',
+  'sample',
+  'semijoin',
+  'antijoin',
+  'lookup',
 ] as const;
 
 /**
@@ -268,6 +276,113 @@ export function applyTransform(
     }
 
     return table.union(targetTable);
+  }
+
+  if (transform.sample) {
+    const { count, seed } = transform.sample;
+    const numRows = table.numRows();
+    const sampleSize = Math.min(count, numRows);
+
+    if (seed !== undefined) {
+      // Seeded sampling: use a seeded random approach
+      // Create an array of indices, shuffle with seeded random, take first N
+      const rows = table.objects();
+      const indices = Array.from({ length: numRows }, (_, i) => i);
+
+      // Simple seeded shuffle (Fisher-Yates with seeded random)
+      const seededRandom = (s: number) => {
+        return () => {
+          s = Math.sin(s) * 10000;
+          return s - Math.floor(s);
+        };
+      };
+      const rng = seededRandom(seed);
+
+      for (let i = indices.length - 1; i > 0; i--) {
+        const j = Math.floor(rng() * (i + 1));
+        [indices[i], indices[j]] = [indices[j], indices[i]];
+      }
+
+      const sampledRows = indices.slice(0, sampleSize).map((i) => rows[i]);
+      return (aq as any).from(sampledRows);
+    }
+
+    return table.sample(sampleSize);
+  }
+
+  if (transform.semijoin) {
+    const { right, on } = transform.semijoin;
+    let rightTable = null;
+
+    const rightModel = context?.models.find((m: any) => m.id === right);
+    if (rightModel) {
+      rightTable = (aq as any).from(rightModel.data);
+    } else {
+      const rightSource = context?.sources.find((s: any) => s.id === right);
+      if (rightSource) {
+        rightTable = (aq as any).from(rightSource.data);
+      }
+    }
+
+    if (!rightTable) {
+      throw new Error(`Semijoin target with ID '${right}' not found`);
+    }
+
+    const leftKeys = on.map((pair: [string, string]) => pair[0]);
+    const rightKeys = on.map((pair: [string, string]) => pair[1]);
+    const keys = leftKeys.length === 1 ? [leftKeys[0], rightKeys[0]] : [leftKeys, rightKeys];
+
+    return table.semijoin(rightTable, keys);
+  }
+
+  if (transform.antijoin) {
+    const { right, on } = transform.antijoin;
+    let rightTable = null;
+
+    const rightModel = context?.models.find((m: any) => m.id === right);
+    if (rightModel) {
+      rightTable = (aq as any).from(rightModel.data);
+    } else {
+      const rightSource = context?.sources.find((s: any) => s.id === right);
+      if (rightSource) {
+        rightTable = (aq as any).from(rightSource.data);
+      }
+    }
+
+    if (!rightTable) {
+      throw new Error(`Antijoin target with ID '${right}' not found`);
+    }
+
+    const leftKeys = on.map((pair: [string, string]) => pair[0]);
+    const rightKeys = on.map((pair: [string, string]) => pair[1]);
+    const keys = leftKeys.length === 1 ? [leftKeys[0], rightKeys[0]] : [leftKeys, rightKeys];
+
+    return table.antijoin(rightTable, keys);
+  }
+
+  if (transform.lookup) {
+    const { right, on, values } = transform.lookup;
+    let rightTable = null;
+
+    const rightModel = context?.models.find((m: any) => m.id === right);
+    if (rightModel) {
+      rightTable = (aq as any).from(rightModel.data);
+    } else {
+      const rightSource = context?.sources.find((s: any) => s.id === right);
+      if (rightSource) {
+        rightTable = (aq as any).from(rightSource.data);
+      }
+    }
+
+    if (!rightTable) {
+      throw new Error(`Lookup target with ID '${right}' not found`);
+    }
+
+    const leftKeys = on.map((pair: [string, string]) => pair[0]);
+    const rightKeys = on.map((pair: [string, string]) => pair[1]);
+    const keys = leftKeys.length === 1 ? [leftKeys[0], rightKeys[0]] : [leftKeys, rightKeys];
+
+    return table.lookup(rightTable, keys, ...values);
   }
 
   if (transform.derive) {
@@ -1017,6 +1132,27 @@ export function describeTransform(transform: any, rightName: string | null = nul
       linearInterpolation: 'Linear Interpolation',
     };
     return `Impute: ${column} (${strategyLabels[strategy] || strategy})`;
+  }
+
+  if (transform.sample) {
+    const { count, seed } = transform.sample;
+    return seed !== undefined ? `Sample: ${count} rows (seed: ${seed})` : `Sample: ${count} rows`;
+  }
+
+  if (transform.semijoin) {
+    const name = rightName || (transform.semijoin.right.startsWith('mdl_') ? 'model' : 'source');
+    return `Semijoin: ${name}`;
+  }
+
+  if (transform.antijoin) {
+    const name = rightName || (transform.antijoin.right.startsWith('mdl_') ? 'model' : 'source');
+    return `Antijoin: ${name}`;
+  }
+
+  if (transform.lookup) {
+    const name = rightName || (transform.lookup.right.startsWith('mdl_') ? 'model' : 'source');
+    const valCount = transform.lookup.values.length;
+    return `Lookup: ${valCount} column${valCount !== 1 ? 's' : ''} from ${name}`;
   }
 
   return 'Unknown transform';

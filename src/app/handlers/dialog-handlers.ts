@@ -48,6 +48,11 @@ export function getDialogState(this: SytoApp, dialog: string) {
         field: DialogStore.sortState.field.value,
         order: DialogStore.sortState.order.value,
       };
+    case 'sample':
+      return {
+        count: DialogStore.sampleState.count.value,
+        seed: DialogStore.sampleState.seed.value,
+      };
     case 'replace':
       return this.replaceDialogState;
     case 'split':
@@ -178,6 +183,9 @@ export function initDialogState(this: SytoApp, dialogName: string, section?: str
   } else if (dialogName === 'sliceRows') {
     DialogStore.sliceRowsState.count.value = 10;
     DialogStore.sliceRowsState.mode.value = 'first';
+  } else if (dialogName === 'sample') {
+    DialogStore.sampleState.count.value = 100;
+    DialogStore.sampleState.seed.value = undefined;
   } else if (dialogName === 'index') {
     DialogStore.indexState.columnName.value = 'row_index';
     DialogStore.indexState.startFrom.value = 1;
@@ -474,6 +482,8 @@ export function activeDialogError(this: SytoApp): boolean {
       return !this.sliceRowsDialogState.count || this.sliceRowsDialogState.count <= 0;
     case 'index':
       return !this.indexDialogState.columnName || this.indexDialogState.columnName.trim() === '';
+    case 'sample':
+      return !DialogStore.sampleState.count.value || DialogStore.sampleState.count.value <= 0;
     case 'regexpMatch':
       return !!this.regexpMatchDialogState.error;
     case 'regexpExtract':
@@ -487,7 +497,13 @@ export function activeDialogError(this: SytoApp): boolean {
         !DialogStore.mergeState.columnName.value?.trim()
       );
     case 'join':
-      return !DialogStore.joinState.rightModel.value;
+      const joinState = DialogStore.joinState;
+      const hasRight = !!joinState.rightModel.value;
+      const hasKeys =
+        joinState.joinType.value === 'cross' || joinState.keyPairs.value.some((p) => p[0] && p[1]);
+      const hasLookupValues =
+        joinState.joinType.value !== 'lookup' || joinState.selectedRightColumns.value.length > 0;
+      return !hasRight || !hasKeys || !hasLookupValues;
     case 'concat':
       return !DialogStore.concatState.targetModel.value;
     case 'union':

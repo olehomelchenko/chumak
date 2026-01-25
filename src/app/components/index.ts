@@ -12,6 +12,7 @@ export type { UnpivotMode } from './UnpivotDialog';
 export { IndexDialog } from './IndexDialog';
 export { ReplaceDialog } from './ReplaceDialog';
 export { SliceRowsDialog } from './SliceRowsDialog';
+export { SampleDialog } from './SampleDialog';
 export { UnpivotDialog } from './UnpivotDialog';
 export { ImputeDialog } from './ImputeDialog';
 

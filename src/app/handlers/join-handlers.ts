@@ -340,6 +340,33 @@ export async function previewJoin() {
   state.previewError.value = null;
   state.previewData.value = null;
 
+  const getTransform = () => {
+    const completePairs = keyPairs.filter((pair: any) => pair[0] && pair[1]) as [string, string][];
+    if (joinType === 'semi') {
+      return { semijoin: { right: rightModel, on: completePairs } };
+    }
+    if (joinType === 'anti') {
+      return { antijoin: { right: rightModel, on: completePairs } };
+    }
+    if (joinType === 'lookup') {
+      return {
+        lookup: {
+          right: rightModel,
+          on: completePairs,
+          values: selectedRightColumns,
+        },
+      };
+    }
+    return {
+      join: {
+        right: rightModel,
+        on: completePairs,
+        how: joinType,
+        suffixes: suffixes,
+      },
+    };
+  };
+
   try {
     // Get left table data and columns
     const { data: leftData, columns: leftColumns } = getTableDataForTarget(leftModelId);
@@ -354,14 +381,7 @@ export async function previewJoin() {
       targetModel.data = result.data;
     }
 
-    const transform = {
-      join: {
-        right: rightModel,
-        on: keyPairs.filter((pair: any) => pair[0] && pair[1]),
-        how: joinType,
-        suffixes: suffixes,
-      },
-    };
+    const transform = getTransform();
     const table = aq.from(leftData);
     const context = { sources, models };
     let result = applyTransform(table, transform, leftColumns, context);
@@ -452,17 +472,37 @@ export async function applyJoinTransform(callbacks: any, app?: any) {
       targetModel.data = result.data;
     }
 
-    // Type casting for key pairs to ensure they match expected transform format
-    const completePairs = keyPairs.filter((pair) => pair[0] && pair[1]) as [string, string][];
-
-    const transform = {
-      join: {
-        right: rightModel,
-        on: completePairs,
-        how: joinType,
-        suffixes: suffixes as [string, string],
-      },
+    const getTransform = () => {
+      const completePairs = keyPairs.filter((pair: any) => pair[0] && pair[1]) as [
+        string,
+        string,
+      ][];
+      if (joinType === 'semi') {
+        return { semijoin: { right: rightModel, on: completePairs } };
+      }
+      if (joinType === 'anti') {
+        return { antijoin: { right: rightModel, on: completePairs } };
+      }
+      if (joinType === 'lookup') {
+        return {
+          lookup: {
+            right: rightModel,
+            on: completePairs,
+            values: selectedRightColumns,
+          },
+        };
+      }
+      return {
+        join: {
+          right: rightModel,
+          on: completePairs,
+          how: joinType,
+          suffixes: suffixes as [string, string],
+        },
+      };
     };
+
+    const transform = getTransform();
 
     // Apply join transform
     const table = aq.from(leftData);

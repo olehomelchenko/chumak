@@ -39,6 +39,7 @@ export type DialogName =
   | 'conditional'
   | 'renamePattern'
   | 'dependency-graph'
+  | 'sample'
   | null;
 
 export interface Source {

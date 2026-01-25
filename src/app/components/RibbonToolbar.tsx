@@ -84,6 +84,12 @@ export function RibbonToolbar({ onOpenDialog, onAutoDetectSchema }: RibbonToolba
                 title="Keep or remove top/bottom N rows"
                 onClick={() => onOpenDialog('sliceRows')}
               />
+              <RibbonButton
+                icon="carbon:chart-venn-diagram"
+                label="Sample"
+                title="Randomly sample rows (with optional seed)"
+                onClick={() => onOpenDialog('sample')}
+              />
             </RibbonGroup>
 
             <RibbonDivider />

@@ -201,7 +201,7 @@ All UI components are Preact/TSX with co-located CSS Modules in `src/app/compone
 - `AggregateDialog.tsx`, `PivotDialog.tsx`, `JoinDialog.tsx`
 - `SplitDialog.tsx`, `ReplaceDialog.tsx`, `FoldDialog.tsx`
 - `RegexpMatchDialog.tsx`, `RegexpExtractDialog.tsx`
-- `TypeConversionDialog.tsx`, `DedupeDialog.tsx`, `ImputeDialog.tsx`
+- `TypeConversionDialog.tsx`, `DedupeDialog.tsx`, `ImputeDialog.tsx`, `SampleDialog.tsx`
 
 **Other Dialogs**:
 

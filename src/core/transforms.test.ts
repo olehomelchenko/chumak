@@ -1487,4 +1487,363 @@ describe('Transform Engine', () => {
       expect(rows.map((r) => r.id).sort()).toEqual([1, 2]);
     });
   });
+
+  describe('applyTransform() - SAMPLE', () => {
+    it('should sample random rows without seed', () => {
+      const table = (aq as any).from([
+        { id: 1 },
+        { id: 2 },
+        { id: 3 },
+        { id: 4 },
+        { id: 5 },
+        { id: 6 },
+        { id: 7 },
+        { id: 8 },
+        { id: 9 },
+        { id: 10 },
+      ]);
+      const transform = { sample: { count: 3 } };
+      const result = applyTransform(table, transform, ['id']);
+
+      expect(result.numRows()).toBe(3);
+      const rows = result.objects();
+      // All sampled ids should be from original data
+      rows.forEach((r) => {
+        expect(r.id).toBeGreaterThanOrEqual(1);
+        expect(r.id).toBeLessThanOrEqual(10);
+      });
+    });
+
+    it('should sample deterministically with seed', () => {
+      const table = (aq as any).from([
+        { id: 1 },
+        { id: 2 },
+        { id: 3 },
+        { id: 4 },
+        { id: 5 },
+        { id: 6 },
+        { id: 7 },
+        { id: 8 },
+        { id: 9 },
+        { id: 10 },
+      ]);
+      const transform = { sample: { count: 3, seed: 42 } };
+
+      // Run twice with same seed
+      const result1 = applyTransform(table, transform, ['id']);
+      const result2 = applyTransform(table, transform, ['id']);
+
+      expect(result1.numRows()).toBe(3);
+      expect(result2.numRows()).toBe(3);
+
+      // Same seed should produce same results
+      const rows1 = result1.objects().map((r) => r.id);
+      const rows2 = result2.objects().map((r) => r.id);
+      expect(rows1).toEqual(rows2);
+    });
+
+    it('should handle count larger than table size', () => {
+      const table = (aq as any).from([{ id: 1 }, { id: 2 }, { id: 3 }]);
+      const transform = { sample: { count: 10 } };
+      const result = applyTransform(table, transform, ['id']);
+
+      // Should return all rows
+      expect(result.numRows()).toBe(3);
+    });
+
+    it('should return empty table when sampling from empty table', () => {
+      const table = (aq as any).from([]);
+      const transform = { sample: { count: 5 } };
+      const result = applyTransform(table, transform, []);
+
+      expect(result.numRows()).toBe(0);
+    });
+  });
+
+  describe('applyTransform() - SEMIJOIN', () => {
+    it('should keep rows that match right table', () => {
+      const leftTable = (aq as any).from([
+        { id: 1, name: 'Alice' },
+        { id: 2, name: 'Bob' },
+        { id: 3, name: 'Charlie' },
+        { id: 4, name: 'Diana' },
+      ]);
+
+      const models = [
+        {
+          id: 'mdl_right',
+          name: 'Right Model',
+          data: [
+            { id: 1, score: 100 },
+            { id: 3, score: 200 },
+          ],
+        },
+      ];
+
+      const context = { sources: [], models: models };
+      const transform = { semijoin: { right: 'mdl_right', on: [['id', 'id']] } };
+      const result = applyTransform(leftTable, transform, ['id', 'name'], context);
+      const rows = result.objects();
+
+      // Only rows that match (id 1 and 3)
+      expect(rows.length).toBe(2);
+      expect(rows.map((r) => r.id).sort()).toEqual([1, 3]);
+      // Should NOT have columns from right table
+      expect(rows[0]).not.toHaveProperty('score');
+    });
+
+    it('should use source data for semijoin', () => {
+      const leftTable = (aq as any).from([
+        { id: 1, name: 'A' },
+        { id: 2, name: 'B' },
+      ]);
+
+      const sources = [
+        {
+          id: 'src_1',
+          name: 'Source',
+          data: [{ id: 1, extra: 'info' }],
+        },
+      ];
+
+      const context = { sources: sources, models: [] };
+      const transform = { semijoin: { right: 'src_1', on: [['id', 'id']] } };
+      const result = applyTransform(leftTable, transform, ['id', 'name'], context);
+      const rows = result.objects();
+
+      expect(rows.length).toBe(1);
+      expect(rows[0].id).toBe(1);
+    });
+
+    it('should throw error when semijoin target not found', () => {
+      const table = (aq as any).from([{ id: 1 }]);
+      const transform = { semijoin: { right: 'nonexistent', on: [['id', 'id']] } };
+
+      expect(() => {
+        applyTransform(table, transform, ['id'], { sources: [], models: [] });
+      }).toThrow("Semijoin target with ID 'nonexistent' not found");
+    });
+  });
+
+  describe('applyTransform() - ANTIJOIN', () => {
+    it('should keep rows that do NOT match right table', () => {
+      const leftTable = (aq as any).from([
+        { id: 1, name: 'Alice' },
+        { id: 2, name: 'Bob' },
+        { id: 3, name: 'Charlie' },
+        { id: 4, name: 'Diana' },
+      ]);
+
+      const models = [
+        {
+          id: 'mdl_right',
+          name: 'Right Model',
+          data: [
+            { id: 1, score: 100 },
+            { id: 3, score: 200 },
+          ],
+        },
+      ];
+
+      const context = { sources: [], models: models };
+      const transform = { antijoin: { right: 'mdl_right', on: [['id', 'id']] } };
+      const result = applyTransform(leftTable, transform, ['id', 'name'], context);
+      const rows = result.objects();
+
+      // Only rows that DON'T match (id 2 and 4)
+      expect(rows.length).toBe(2);
+      expect(rows.map((r) => r.id).sort()).toEqual([2, 4]);
+    });
+
+    it('should return all rows when no matches exist', () => {
+      const leftTable = (aq as any).from([
+        { id: 1, name: 'A' },
+        { id: 2, name: 'B' },
+      ]);
+
+      const models = [
+        {
+          id: 'mdl_right',
+          name: 'Right',
+          data: [{ id: 99, score: 999 }],
+        },
+      ];
+
+      const context = { sources: [], models: models };
+      const transform = { antijoin: { right: 'mdl_right', on: [['id', 'id']] } };
+      const result = applyTransform(leftTable, transform, ['id', 'name'], context);
+
+      expect(result.numRows()).toBe(2);
+    });
+
+    it('should return empty table when all rows match', () => {
+      const leftTable = (aq as any).from([
+        { id: 1, name: 'A' },
+        { id: 2, name: 'B' },
+      ]);
+
+      const models = [
+        {
+          id: 'mdl_right',
+          name: 'Right',
+          data: [
+            { id: 1, score: 100 },
+            { id: 2, score: 200 },
+          ],
+        },
+      ];
+
+      const context = { sources: [], models: models };
+      const transform = { antijoin: { right: 'mdl_right', on: [['id', 'id']] } };
+      const result = applyTransform(leftTable, transform, ['id', 'name'], context);
+
+      expect(result.numRows()).toBe(0);
+    });
+
+    it('should throw error when antijoin target not found', () => {
+      const table = (aq as any).from([{ id: 1 }]);
+      const transform = { antijoin: { right: 'nonexistent', on: [['id', 'id']] } };
+
+      expect(() => {
+        applyTransform(table, transform, ['id'], { sources: [], models: [] });
+      }).toThrow("Antijoin target with ID 'nonexistent' not found");
+    });
+  });
+
+  describe('applyTransform() - LOOKUP', () => {
+    it('should lookup and add columns from right table', () => {
+      const leftTable = (aq as any).from([
+        { id: 1, name: 'Alice' },
+        { id: 2, name: 'Bob' },
+        { id: 3, name: 'Charlie' },
+      ]);
+
+      const models = [
+        {
+          id: 'mdl_right',
+          name: 'Right Model',
+          data: [
+            { id: 1, score: 100, grade: 'A' },
+            { id: 2, score: 85, grade: 'B' },
+            { id: 4, score: 70, grade: 'C' },
+          ],
+        },
+      ];
+
+      const context = { sources: [], models: models };
+      const transform = {
+        lookup: { right: 'mdl_right', on: [['id', 'id']], values: ['score', 'grade'] },
+      };
+      const result = applyTransform(leftTable, transform, ['id', 'name'], context);
+      const rows = result.objects();
+
+      expect(rows.length).toBe(3);
+      expect(result.columnNames()).toContain('score');
+      expect(result.columnNames()).toContain('grade');
+
+      // id 1 matches
+      expect(rows[0].score).toBe(100);
+      expect(rows[0].grade).toBe('A');
+
+      // id 2 matches
+      expect(rows[1].score).toBe(85);
+      expect(rows[1].grade).toBe('B');
+
+      // id 3 doesn't match - should have undefined/null
+      expect(rows[2].score).toBeUndefined();
+      expect(rows[2].grade).toBeUndefined();
+    });
+
+    it('should lookup single column', () => {
+      const leftTable = (aq as any).from([
+        { id: 1, name: 'A' },
+        { id: 2, name: 'B' },
+      ]);
+
+      const models = [
+        {
+          id: 'mdl_ref',
+          name: 'Reference',
+          data: [
+            { id: 1, code: 'X01' },
+            { id: 2, code: 'X02' },
+          ],
+        },
+      ];
+
+      const context = { sources: [], models: models };
+      const transform = { lookup: { right: 'mdl_ref', on: [['id', 'id']], values: ['code'] } };
+      const result = applyTransform(leftTable, transform, ['id', 'name'], context);
+      const rows = result.objects();
+
+      expect(rows[0].code).toBe('X01');
+      expect(rows[1].code).toBe('X02');
+    });
+
+    it('should lookup from source', () => {
+      const leftTable = (aq as any).from([{ id: 1, name: 'A' }]);
+
+      const sources = [
+        {
+          id: 'src_ref',
+          name: 'Reference Source',
+          data: [{ id: 1, category: 'Premium' }],
+        },
+      ];
+
+      const context = { sources: sources, models: [] };
+      const transform = { lookup: { right: 'src_ref', on: [['id', 'id']], values: ['category'] } };
+      const result = applyTransform(leftTable, transform, ['id', 'name'], context);
+      const rows = result.objects();
+
+      expect(rows[0].category).toBe('Premium');
+    });
+
+    it('should throw error when lookup target not found', () => {
+      const table = (aq as any).from([{ id: 1 }]);
+      const transform = { lookup: { right: 'nonexistent', on: [['id', 'id']], values: ['col'] } };
+
+      expect(() => {
+        applyTransform(table, transform, ['id'], { sources: [], models: [] });
+      }).toThrow("Lookup target with ID 'nonexistent' not found");
+    });
+  });
+
+  describe('describeTransform() - New Transforms', () => {
+    it('should describe sample transform', () => {
+      expect(describeTransform({ sample: { count: 100 } })).toBe('Sample: 100 rows');
+      expect(describeTransform({ sample: { count: 50, seed: 42 } })).toBe(
+        'Sample: 50 rows (seed: 42)'
+      );
+    });
+
+    it('should describe semijoin transform', () => {
+      expect(describeTransform({ semijoin: { right: 'mdl_test', on: [['id', 'id']] } })).toBe(
+        'Semijoin: model'
+      );
+      expect(describeTransform({ semijoin: { right: 'src_test', on: [['id', 'id']] } })).toBe(
+        'Semijoin: source'
+      );
+    });
+
+    it('should describe antijoin transform', () => {
+      expect(describeTransform({ antijoin: { right: 'mdl_test', on: [['id', 'id']] } })).toBe(
+        'Antijoin: model'
+      );
+      expect(describeTransform({ antijoin: { right: 'src_test', on: [['id', 'id']] } })).toBe(
+        'Antijoin: source'
+      );
+    });
+
+    it('should describe lookup transform', () => {
+      expect(
+        describeTransform({ lookup: { right: 'mdl_ref', on: [['id', 'id']], values: ['score'] } })
+      ).toBe('Lookup: 1 column from model');
+      expect(
+        describeTransform({
+          lookup: { right: 'src_ref', on: [['id', 'id']], values: ['a', 'b', 'c'] },
+        })
+      ).toBe('Lookup: 3 columns from source');
+    });
+  });
 });

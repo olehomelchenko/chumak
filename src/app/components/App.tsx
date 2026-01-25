@@ -15,6 +15,7 @@ import {
   IndexDialog,
   ReplaceDialog,
   SliceRowsDialog,
+  SampleDialog,
   UnpivotDialog,
   FilterDialog,
   PivotDialog,
@@ -219,6 +220,7 @@ export function App({ app }: AppProps) {
                 {activeDialog === 'dedupe' && <DedupeDialog />}
                 {activeDialog === 'sort' && <SortDialog />}
                 {activeDialog === 'sliceRows' && <SliceRowsDialog />}
+                {activeDialog === 'sample' && <SampleDialog />}
                 {activeDialog === 'index' && <IndexDialog />}
                 {activeDialog === 'fold' && <UnpivotDialog />}
                 {activeDialog === 'pivot' && <PivotDialog />}

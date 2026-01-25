@@ -68,6 +68,12 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     type: 'slide-panel',
   },
 
+  sample: {
+    name: 'sample',
+    title: 'Sample Rows',
+    type: 'slide-panel',
+  },
+
   split: {
     name: 'split',
     title: 'Split Column',

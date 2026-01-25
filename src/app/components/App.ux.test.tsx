@@ -560,6 +560,23 @@ describe('App UX Interactions', () => {
         expect(slidePanel).toBeDefined();
       });
     });
+
+    it('should open sample dialog when ribbon sample button is clicked', async () => {
+      AppStore.ribbonTab.value = 'prepare';
+      render(<App app={app} />);
+
+      // Find sample button by its icon
+      const sampleButton = document
+        .querySelector('[data-icon="carbon:chart-venn-diagram"]')
+        ?.closest('button');
+      expect(sampleButton).toBeDefined();
+
+      fireEvent.click(sampleButton!);
+
+      await waitFor(() => {
+        expect(app.openDialog).toHaveBeenCalledWith('sample');
+      });
+    });
   });
 
   describe('Type Conversion', () => {

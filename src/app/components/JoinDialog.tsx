@@ -6,7 +6,7 @@ import { JoinTreeSelector } from './JoinTreeSelector';
 import { TablePreviewModal } from './TablePreviewModal';
 import * as JoinHandlers from '../handlers/join-handlers';
 
-export type JoinType = 'inner' | 'left' | 'right' | 'full' | 'cross';
+export type JoinType = 'inner' | 'left' | 'right' | 'full' | 'cross' | 'semi' | 'anti' | 'lookup';
 
 export interface JoinTarget {
   id: string;
@@ -22,6 +22,9 @@ const joinTypeIcons: Record<JoinType, string> = {
   right: 'carbon:join-right',
   full: 'carbon:join-full',
   cross: 'carbon:join',
+  semi: 'carbon:dot-mark',
+  anti: 'carbon:error-filled',
+  lookup: 'carbon:search',
 };
 
 export function JoinDialog() {
@@ -179,7 +182,9 @@ export function JoinDialog() {
       <div class={styles.group}>
         <label class={styles.label}>Join Type</label>
         <div class={joinStyles.joinTypeGrid}>
-          {(['inner', 'left', 'right', 'full', 'cross'] as JoinType[]).map((type) => (
+          {(
+            ['inner', 'left', 'right', 'full', 'cross', 'semi', 'anti', 'lookup'] as JoinType[]
+          ).map((type) => (
             <label key={type} class={styles.radioLabel}>
               <input
                 type="radio"
@@ -205,6 +210,10 @@ export function JoinDialog() {
           {joinType.value === 'right' && 'Keep all rows from right table, matching rows from left'}
           {joinType.value === 'full' && 'Keep all rows from both tables'}
           {joinType.value === 'cross' && 'Cartesian product (all combinations)'}
+          {joinType.value === 'semi' && 'Keep rows from left table that have matches in right'}
+          {joinType.value === 'anti' &&
+            'Keep rows from left table that do NOT have matches in right'}
+          {joinType.value === 'lookup' && 'Left join optimized for looking up specific values'}
         </div>
       </div>
 
@@ -431,62 +440,64 @@ export function JoinDialog() {
         </div>
 
         {/* Right Columns */}
-        <div class={styles.group}>
-          <label class={styles.label}>Right Columns to Include</label>
-          <div class={styles.actions} style={{ marginBottom: '0.5rem', marginTop: 0 }}>
-            <button
-              type="button"
-              class="button button--text button--small"
-              onClick={selectAllRightColumns}
-            >
-              Select All
-            </button>
-            <button
-              type="button"
-              class="button button--text button--small"
-              onClick={selectNoneRightColumns}
-            >
-              Select None
-            </button>
-          </div>
-          <div class={styles.columnEditorList}>
-            {rightColumns.value.map((col) => {
-              const isSelected = selectedRightColumns.value.includes(col);
-              return (
-                <div
-                  key={col}
-                  class={`${styles.columnEditorItem} ${!isSelected ? styles.unselected : ''}`}
-                >
-                  {/* Checkbox */}
-                  <button
-                    type="button"
-                    class={styles.itemCheckbox}
-                    onClick={() => toggleRightColumn(col)}
+        {joinType.value !== 'semi' && joinType.value !== 'anti' && (
+          <div class={styles.group}>
+            <label class={styles.label}>Right Columns to Include</label>
+            <div class={styles.actions} style={{ marginBottom: '0.5rem', marginTop: 0 }}>
+              <button
+                type="button"
+                class="button button--text button--small"
+                onClick={selectAllRightColumns}
+              >
+                Select All
+              </button>
+              <button
+                type="button"
+                class="button button--text button--small"
+                onClick={selectNoneRightColumns}
+              >
+                Select None
+              </button>
+            </div>
+            <div class={styles.columnEditorList}>
+              {rightColumns.value.map((col) => {
+                const isSelected = selectedRightColumns.value.includes(col);
+                return (
+                  <div
+                    key={col}
+                    class={`${styles.columnEditorItem} ${!isSelected ? styles.unselected : ''}`}
                   >
+                    {/* Checkbox */}
+                    <button
+                      type="button"
+                      class={styles.itemCheckbox}
+                      onClick={() => toggleRightColumn(col)}
+                    >
+                      <span
+                        style={{
+                          color: isSelected ? 'var(--color-green)' : 'var(--color-red)',
+                        }}
+                      >
+                        {isSelected ? '✓' : '✗'}
+                      </span>
+                    </button>
+
+                    {/* Column Name */}
                     <span
+                      class={styles.originalName}
                       style={{
-                        color: isSelected ? 'var(--color-green)' : 'var(--color-red)',
+                        textDecoration: !isSelected ? 'line-through' : 'none',
+                        opacity: !isSelected ? 0.6 : 1,
                       }}
                     >
-                      {isSelected ? '✓' : '✗'}
+                      {col}
                     </span>
-                  </button>
-
-                  {/* Column Name */}
-                  <span
-                    class={styles.originalName}
-                    style={{
-                      textDecoration: !isSelected ? 'line-through' : 'none',
-                      opacity: !isSelected ? 0.6 : 1,
-                    }}
-                  >
-                    {col}
-                  </span>
-                </div>
-              );
-            })}
+                  </div>
+                );
+              })}
+            </div>
           </div>
-        </div>
+        )}
       </div>
 
       {/* Column Suffixes */}

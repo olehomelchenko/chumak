@@ -231,6 +231,11 @@ export class DialogStore {
     isRegex: signal(false),
   };
 
+  static sampleState = {
+    count: signal(100),
+    seed: signal<number | undefined>(undefined),
+  };
+
   static foldState = {
     keyName: signal('key'),
     valueName: signal('value'),
@@ -427,6 +432,9 @@ export class DialogStore {
     this.replaceState.findValue.value = '';
     this.replaceState.replaceValue.value = '';
     this.replaceState.isRegex.value = false;
+
+    this.sampleState.count.value = 100;
+    this.sampleState.seed.value = undefined;
 
     this.splitState.column.value = '';
     this.splitState.delimiter.value = ',';

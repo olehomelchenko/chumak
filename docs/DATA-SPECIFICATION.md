@@ -273,9 +273,13 @@ interface TransformStep {
   join?: { right: string; on: [string, string][]; how: string; suffixes?: [string, string] };
   concat?: { with: string };
   union?: { with: string };
+  semijoin?: { right: string; on: [string, string][] };
+  antijoin?: { right: string; on: [string, string][] };
+  lookup?: { right: string; on: [string, string][]; values: string[] };
 
   // Advanced operations
   impute?: { column: string; strategy: string; value?: any };
+  sample?: { count: number; seed?: number };
 }
 ```
 
@@ -394,6 +398,59 @@ With regex pattern (e.g., format phone numbers):
   }
 }
 ```
+
+**Sample** — Extract random rows:
+
+```json
+{
+  "sample": {
+    "count": 1000,
+    "seed": 42
+  }
+}
+```
+
+The `seed` parameter is optional. When provided, sampling is deterministic (same seed produces same results). Useful for reproducible workflows.
+
+**Semijoin** — Filter to rows that exist in another table (no columns added):
+
+```json
+{
+  "semijoin": {
+    "right": "mdl_customers",
+    "on": [["customer_id", "id"]]
+  }
+}
+```
+
+Use case: Filter orders to only those from customers in a specific customer list.
+
+**Antijoin** — Filter to rows that don't exist in another table:
+
+```json
+{
+  "antijoin": {
+    "right": "mdl_processed",
+    "on": [["id", "id"]]
+  }
+}
+```
+
+Use case: Find records that are missing from another table (e.g., orders not yet shipped).
+
+**Lookup** — Fast left join for adding specific columns:
+
+```json
+{
+  "lookup": {
+    "right": "mdl_reference",
+    "on": [["category_id", "id"]],
+    "values": ["category_name", "department"]
+  }
+}
+```
+
+More efficient than a full join when you only need to add a few columns from a reference table.
 
 **Merge** — Concatenate multiple columns with a separator:
 

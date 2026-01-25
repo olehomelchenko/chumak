@@ -26,6 +26,9 @@ export async function applyActiveTransform(this: SytoApp) {
     case 'sliceRows':
       await this.applySliceRowsTransform();
       break;
+    case 'sample':
+      await this.applySampleTransform();
+      break;
     case 'index':
       await this.applyIndexTransform();
       break;
@@ -256,6 +259,10 @@ export function editStep(this: SytoApp, stepIndex: number) {
     this.openDialog('sort');
     DialogStore.sortState.field.value = step.sort.field;
     DialogStore.sortState.order.value = step.sort.order;
+  } else if (step.sample) {
+    this.openDialog('sample');
+    DialogStore.sampleState.count.value = step.sample.count;
+    DialogStore.sampleState.seed.value = step.sample.seed;
   } else if (step.aggregate) {
     this.openDialog('aggregate');
     const aggregations = Object.entries(step.aggregate.rollup).map(([output, opStr]) => {
@@ -278,6 +285,25 @@ export function editStep(this: SytoApp, stepIndex: number) {
     DialogStore.joinState.joinType.value = step.join.how;
     DialogStore.joinState.keyPairs.value = step.join.on;
     DialogStore.joinState.suffixes.value = step.join.suffixes || ['_x', '_y'];
+    this.onJoinTargetChange();
+  } else if (step.semijoin) {
+    this.openDialog('join');
+    DialogStore.joinState.rightModel.value = step.semijoin.right;
+    DialogStore.joinState.joinType.value = 'semi';
+    DialogStore.joinState.keyPairs.value = step.semijoin.on;
+    this.onJoinTargetChange();
+  } else if (step.antijoin) {
+    this.openDialog('join');
+    DialogStore.joinState.rightModel.value = step.antijoin.right;
+    DialogStore.joinState.joinType.value = 'anti';
+    DialogStore.joinState.keyPairs.value = step.antijoin.on;
+    this.onJoinTargetChange();
+  } else if (step.lookup) {
+    this.openDialog('join');
+    DialogStore.joinState.rightModel.value = step.lookup.right;
+    DialogStore.joinState.joinType.value = 'lookup';
+    DialogStore.joinState.keyPairs.value = step.lookup.on;
+    DialogStore.joinState.selectedRightColumns.value = step.lookup.values;
     this.onJoinTargetChange();
   } else if (step.fold) {
     this.openDialog('fold');

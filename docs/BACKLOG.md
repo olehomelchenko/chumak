@@ -10,24 +10,6 @@ This document tracks planned features and enhancements, organized by scope and e
 
 ---
 
-### Sample (Random Rows)
-
-**Status**: Planned
-**Effort**: Small (~25 lines)
-**Arquero**: `table.sample(n, options)`
-
-Extract random sample of rows. Useful for:
-
-- Testing workflows on large datasets
-- Creating training/test splits
-- Quick exploration
-
-```json
-{ "sample": { "count": 1000, "seed": 42 } }
-```
-
----
-
 ### Spread (Array to Columns)
 
 **Status**: Low priority
@@ -57,22 +39,6 @@ Expand array values into separate rows.
 ```
 
 **Use case**: Flattening nested data structures.
-
----
-
-### Advanced Joins
-
-**Status**: Low priority
-**Effort**: Small (~90 lines total)
-**Arquero**: `table.semijoin()`, `table.antijoin()`, `table.lookup()`
-
-| Join Type    | Behavior                                           | Use Case                  |
-| ------------ | -------------------------------------------------- | ------------------------- |
-| **Semijoin** | Keep left rows that match right (no right columns) | Filtering by existence    |
-| **Antijoin** | Keep left rows that don't match right              | Finding missing records   |
-| **Lookup**   | Fast left join for adding columns                  | Reference data enrichment |
-
-Current join implementation covers most needs; these are edge cases.
 
 ---
 
@@ -233,10 +199,8 @@ These have been considered and explicitly excluded:
 
 2. Step reordering
 3. Column reordering (`reorder`, `moveColumn`)
-4. Sample transform
-5. Advanced joins (semi, anti, lookup)
-6. Spread/unroll transforms
-7. Window functions (`cumsum`, `lag`, `rank`) — Future
+4. Spread/unroll transforms
+5. Window functions (`cumsum`, `lag`, `rank`) — Future
 
 ---
 
@@ -244,13 +208,14 @@ These have been considered and explicitly excluded:
 
 Most planned transforms are thin wrappers around existing Arquero verbs:
 
-| Transform | Arquero Verb       | Wrapper Complexity |
-| --------- | ------------------ | ------------------ |
-| Sample    | `table.sample()`   | ~25 lines          |
-| Spread    | `table.spread()`   | ~40 lines          |
-| Unroll    | `table.unroll()`   | ~40 lines          |
-| Semijoin  | `table.semijoin()` | ~30 lines          |
-| Antijoin  | `table.antijoin()` | ~30 lines          |
+| Transform    | Arquero Verb       | Wrapper Complexity | Status  |
+| ------------ | ------------------ | ------------------ | ------- |
+| ~~Sample~~   | `table.sample()`   | ~25 lines          | ✅ Done |
+| Spread       | `table.spread()`   | ~40 lines          | Planned |
+| Unroll       | `table.unroll()`   | ~40 lines          | Planned |
+| ~~Semijoin~~ | `table.semijoin()` | ~30 lines          | ✅ Done |
+| ~~Antijoin~~ | `table.antijoin()` | ~30 lines          | ✅ Done |
+| ~~Lookup~~   | `table.lookup()`   | ~30 lines          | ✅ Done |
 
 The heavy lifting is in expression functions, which require AST validator/interpreter updates rather than new Arquero integration.
 
@@ -271,6 +236,8 @@ Completed features are documented here for posterity:
 - **Concat and Union transforms** — January 2025. Stack rows from multiple models/sources. Concat keeps duplicates, union removes them. Full dependency tracking and staleness support.
 - **Multi-model dependency graph** (Phase 3) — January 2025. Complete dependency tracking for all multi-model operations (join, concat, union) with UI indicators for stale models and dependency relationships.
 - **Dialog registry centralization** — January 2026. Created [`dialog-registry.ts`](../src/app/dialog-registry.ts) to eliminate duplicated `isSlidePanel` arrays and scattered metadata. Reduced files to update per dialog from ~12 to ~6-9.
+- **Sample transform** — January 2026. Extract random sample of rows with optional seed for reproducible sampling. Useful for testing workflows on large datasets.
+- **Advanced joins (semijoin, antijoin, lookup)** — January 2026. Three specialized join operations: semijoin filters to matching rows, antijoin filters to non-matching rows, lookup adds specific columns from a reference table.
 
 ---
 
