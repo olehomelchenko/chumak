@@ -167,6 +167,15 @@ export class DialogStore {
     previewData: signal<DateDialogState['previewData']>([]),
   };
 
+  // Text Dialog State
+  static textState = {
+    column: signal(''),
+    operations: signal<string[]>([]),
+    removeOrigin: signal(false),
+    error: signal<string | null>(null),
+    previewData: signal<Array<{ input: string; output: any }>>([]),
+  };
+
   // Dedupe Dialog State
   static dedupeState = {
     selectedColumns: signal<boolean[]>([]),
@@ -407,6 +416,12 @@ export class DialogStore {
     this.dateState.extractParts.value = ['year'];
     this.dateState.truncateUnits.value = ['month'];
     this.dateState.outputColumn.value = '';
+
+    this.textState.column.value = '';
+    this.textState.operations.value = [];
+    this.textState.removeOrigin.value = false;
+    this.textState.error.value = null;
+    this.textState.previewData.value = [];
 
     this.dedupeState.selectedColumns.value = [];
     this.dedupeState.useAllColumns.value = true;

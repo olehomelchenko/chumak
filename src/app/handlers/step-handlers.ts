@@ -7,6 +7,7 @@ import { StepService, ComputeResult } from '../services/StepService';
 import type { PivotAggregation } from '../components/PivotDialog';
 import * as ColumnEditorHandlers from './column-editor-handlers';
 import * as DateHandlers from './date-handlers';
+import * as TextHandlers from './text-handlers';
 import * as HelperHandlers from './helper-handlers';
 import * as PatternHandlers from './pattern-handlers';
 
@@ -42,6 +43,9 @@ export async function applyActiveTransform(this: SytoApp) {
       break;
     case 'date':
       await DateHandlers.applyDateTransform(HelperHandlers.createExecutionCallbacks(this));
+      break;
+    case 'text':
+      await TextHandlers.applyTextTransform(HelperHandlers.createExecutionCallbacks(this));
       break;
     case 'fold':
       await this.applyFoldTransform();

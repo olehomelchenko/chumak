@@ -143,6 +143,7 @@ regexp_extract(text, "(\\d+)", 1)  → Extract first capture group
 | ------------------------- | --------------------- | -------------------------------- |
 | `upper(text)`             | Uppercase string      | `upper(name)` → "JOHN DOE"       |
 | `lower(text)`             | Lowercase string      | `lower(name)` → "john doe"       |
+| `titlecase(text)`         | Title case string     | `titlecase(name)` → "John Doe"   |
 | `trim(text)`              | Trimmed string        | `trim(padded)` → removes spaces  |
 | `substring(text, start)`  | Substring from start  | `substring(name, 5)` → "Doe"     |
 | `substring(text, s, len)` | Substring with length | `substring(name, 0, 4)` → "John" |
@@ -240,6 +241,7 @@ regexp_extract(phone, "\\((\d{3})\\)", 1)  → area code
 // String manipulation
 upper(name)                       → "JOHN DOE"
 lower(email)                      → normalized email
+titlecase(name)                   → "John Doe"
 trim(input)                       → remove whitespace
 substring(sku, 0, 3)              → product category prefix
 

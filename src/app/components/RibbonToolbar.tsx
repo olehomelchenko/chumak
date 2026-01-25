@@ -196,6 +196,12 @@ export function RibbonToolbar({ onOpenDialog, onAutoDetectSchema }: RibbonToolba
                 onClick={() => onOpenDialog('date')}
               />
               <RibbonButton
+                icon="carbon:string-text"
+                label="Text"
+                title="Text operations: case conversion, trim whitespace"
+                onClick={() => onOpenDialog('text')}
+              />
+              <RibbonButton
                 icon="codicon:replace"
                 label="Replace"
                 title="Replace values in a column"

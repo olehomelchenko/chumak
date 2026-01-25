@@ -12,6 +12,7 @@ export type DialogName =
   | 'filter'
   | 'pivot'
   | 'date'
+  | 'text'
   | 'derive'
   | 'split'
   | 'join'
@@ -141,6 +142,14 @@ export interface DateDialogState {
   extractParts: string[];
   truncateUnits: string[];
   outputColumn: string;
+  removeOrigin: boolean;
+  error: string | null;
+  previewData: Array<{ input: string; output: any }>;
+}
+
+export interface TextDialogState {
+  column: string;
+  operations: string[]; // ['uppercase', 'lowercase', 'titlecase', 'trim']
   removeOrigin: boolean;
   error: string | null;
   previewData: Array<{ input: string; output: any }>;

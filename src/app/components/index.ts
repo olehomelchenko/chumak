@@ -24,6 +24,8 @@ export type { PivotAggregation } from './PivotDialog';
 export { DateDialog } from './DateDialog';
 export type { DateOperation } from './DateDialog';
 
+export { TextDialog } from './TextDialog';
+
 export { SplitDialog } from './SplitDialog';
 export type { SplitMode } from './SplitDialog';
 

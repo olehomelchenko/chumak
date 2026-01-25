@@ -92,6 +92,12 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     type: 'slide-panel',
   },
 
+  text: {
+    name: 'text',
+    title: 'Text Operations',
+    type: 'slide-panel',
+  },
+
   dedupe: {
     name: 'dedupe',
     title: 'Duplicates',

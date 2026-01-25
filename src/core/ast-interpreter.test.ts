@@ -470,6 +470,36 @@ describe('String Functions', () => {
     });
   });
 
+  describe('titlecase()', () => {
+    it('should capitalize first letter of each word', () => {
+      expect(interpretAST(parseExpression('titlecase(name)'), row)).toBe('Hello World');
+    });
+
+    it('should convert all-uppercase to title case', () => {
+      expect(interpretAST(parseExpression('titlecase("HELLO WORLD")'), row)).toBe('Hello World');
+    });
+
+    it('should convert all-lowercase to title case', () => {
+      expect(interpretAST(parseExpression('titlecase("hello world")'), row)).toBe('Hello World');
+    });
+
+    it('should return null for null input', () => {
+      expect(interpretAST(parseExpression('titlecase(nullVal)'), row)).toBe(null);
+    });
+
+    it('should handle empty string', () => {
+      expect(interpretAST(parseExpression('titlecase(empty)'), row)).toBe('');
+    });
+
+    it('should preserve multiple spaces between words', () => {
+      expect(interpretAST(parseExpression('titlecase("hello  world")'), row)).toBe('Hello  World');
+    });
+
+    it('should handle single word', () => {
+      expect(interpretAST(parseExpression('titlecase("hello")'), row)).toBe('Hello');
+    });
+  });
+
   describe('substring()', () => {
     it('should extract substring with start and length', () => {
       expect(interpretAST(parseExpression('substring(name, 0, 5)'), row)).toBe('Hello');

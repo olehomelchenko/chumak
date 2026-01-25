@@ -19,6 +19,7 @@ import {
   FilterDialog,
   PivotDialog,
   DateDialog,
+  TextDialog,
   SplitDialog,
   DeriveDialog,
   JoinDialog,
@@ -212,6 +213,7 @@ export function App({ app }: AppProps) {
                 {activeDialog === 'regexpMatch' && <RegexpMatchDialog />}
                 {activeDialog === 'regexpExtract' && <RegexpExtractDialog />}
                 {activeDialog === 'date' && <DateDialog />}
+                {activeDialog === 'text' && <TextDialog />}
                 {activeDialog === 'dedupe' && <DedupeDialog />}
                 {activeDialog === 'sort' && <SortDialog />}
                 {activeDialog === 'sliceRows' && <SliceRowsDialog />}

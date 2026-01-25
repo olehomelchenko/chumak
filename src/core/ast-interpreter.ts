@@ -320,6 +320,15 @@ const FUNCTION_IMPLS: Record<string, (...args: any[]) => any> = {
     if (value == null) return null;
     return String(value).toLowerCase();
   },
+  titlecase: (value) => {
+    if (value == null) return null;
+    const str = String(value);
+    return str
+      .toLowerCase()
+      .split(' ')
+      .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
+      .join(' ');
+  },
   trim: (value) => {
     if (value == null) return null;
     return String(value).trim();

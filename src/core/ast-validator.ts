@@ -76,6 +76,7 @@ const ALLOWED_FUNCTIONS: Record<string, FunctionSpec> = {
   // String functions
   upper: { minArgs: 1, maxArgs: 1 },
   lower: { minArgs: 1, maxArgs: 1 },
+  titlecase: { minArgs: 1, maxArgs: 1 },
   trim: { minArgs: 1, maxArgs: 1 },
   substring: { minArgs: 2, maxArgs: 3 },
   len: { minArgs: 1, maxArgs: 1 },
