@@ -268,6 +268,8 @@ interface TransformStep {
   fold?: { columns: string[]; as: [string, string] };
   pivot?: { rows?: string[]; keys: string; values: string; aggregation: string; options?: {...} };
   split?: { column: string; mode: string; delimiter: string; ... };
+  spread?: { column: string; limit?: number; keepOriginal?: boolean };
+  unroll?: { column: string; indices?: boolean; keepOriginal?: boolean };
 
   // Multi-model operations
   join?: { right: string; on: [string, string][]; how: string; suffixes?: [string, string] };
@@ -451,6 +453,40 @@ Use case: Find records that are missing from another table (e.g., orders not yet
 ```
 
 More efficient than a full join when you only need to add a few columns from a reference table.
+
+**Spread** — Convert array column into multiple columns:
+
+```json
+{
+  "spread": {
+    "column": "tags",
+    "limit": 5,
+    "keepOriginal": false
+  }
+}
+```
+
+Spreads array values into separate columns. For example, `tags: ['a','b','c']` becomes three columns: `tags_1: 'a'`, `tags_2: 'b'`, `tags_3: 'c'`. The `limit` parameter caps the number of columns created. Set `keepOriginal: true` to preserve the original array column.
+
+Works with both native arrays and JSON string arrays (e.g., `["a","b","c"]`).
+
+**Unroll** — Expand array values into separate rows:
+
+```json
+{
+  "unroll": {
+    "column": "items",
+    "indices": true,
+    "keepOriginal": false
+  }
+}
+```
+
+Expands array values into separate rows. For example, a row with `id: 1, items: ['a','b','c']` becomes three rows, each with `id: 1` and one item from the array. All other columns are duplicated across the new rows.
+
+When `indices: true`, adds a column named `{column}__unroll_index` containing the 0-based position of each value in the original array. Set `keepOriginal: true` to preserve the original array column.
+
+Works with both native arrays and JSON string arrays.
 
 **Merge** — Concatenate multiple columns with a separator:
 

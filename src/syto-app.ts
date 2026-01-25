@@ -18,6 +18,9 @@ import * as SimpleHandlers from './app/handlers/simple-handlers';
 import * as ImportHandlers from './app/handlers/import-handlers';
 import * as GenerateHandlers from './app/handlers/generate-handlers';
 import * as SampleHandlers from './app/handlers/sample-handlers';
+import * as SpreadHandlers from './app/handlers/spread-handlers';
+import * as UnrollHandlers from './app/handlers/unroll-handlers';
+import * as KeyboardHandlers from './app/handlers/keyboard-handlers';
 import * as StepHandlers from './app/handlers/step-handlers';
 import * as DialogHandlers from './app/handlers/dialog-handlers';
 import * as NotificationHandlers from './app/handlers/notification-handlers';
@@ -712,6 +715,12 @@ export class SytoApp implements AppState {
   applySampleTransform() {
     return SampleHandlers.applySampleTransform(HelperHandlers.createExecutionCallbacks(this));
   }
+  applySpreadTransform() {
+    return SpreadHandlers.applySpreadTransform(HelperHandlers.createExecutionCallbacks(this));
+  }
+  applyUnrollTransform() {
+    return UnrollHandlers.applyUnrollTransform(HelperHandlers.createExecutionCallbacks(this));
+  }
 
   // Export handlers
   exportCSV() {
@@ -1363,6 +1372,7 @@ export class SytoApp implements AppState {
     setTimeout(() => this.syncUrlState(), 0);
 
     window.addEventListener('keydown', (e) => {
+      // Handle Escape key first (highest priority)
       if (e.key === 'Escape') {
         if (this.messageBox.visible) {
           this.closeMessageBox(false);
@@ -1381,6 +1391,9 @@ export class SytoApp implements AppState {
           return;
         }
       }
+
+      // Handle other keyboard shortcuts
+      KeyboardHandlers.handleKeyDown(this, e);
     });
 
     window.addEventListener('paste', (e) => this.handlePaste(e));

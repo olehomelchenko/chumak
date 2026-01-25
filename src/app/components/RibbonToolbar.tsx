@@ -114,6 +114,18 @@ export function RibbonToolbar({ onOpenDialog, onAutoDetectSchema }: RibbonToolba
                 title="Merge/concatenate multiple columns into one"
                 onClick={() => onOpenDialog('merge')}
               />
+              <RibbonButton
+                icon="carbon:column"
+                label="Spread"
+                title="Convert array column into multiple columns"
+                onClick={() => onOpenDialog('spread')}
+              />
+              <RibbonButton
+                icon="carbon:row"
+                label="Unroll"
+                title="Expand array values into separate rows"
+                onClick={() => onOpenDialog('unroll')}
+              />
             </RibbonGroup>
 
             <RibbonDivider />

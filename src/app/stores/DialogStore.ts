@@ -236,6 +236,18 @@ export class DialogStore {
     seed: signal<number | undefined>(undefined),
   };
 
+  static spreadState = {
+    column: signal(''),
+    limit: signal<number | undefined>(undefined),
+    keepOriginal: signal(false),
+  };
+
+  static unrollState = {
+    column: signal(''),
+    indices: signal(false),
+    keepOriginal: signal(false),
+  };
+
   static foldState = {
     keyName: signal('key'),
     valueName: signal('value'),
@@ -435,6 +447,14 @@ export class DialogStore {
 
     this.sampleState.count.value = 100;
     this.sampleState.seed.value = undefined;
+
+    this.spreadState.column.value = '';
+    this.spreadState.limit.value = undefined;
+    this.spreadState.keepOriginal.value = false;
+
+    this.unrollState.column.value = '';
+    this.unrollState.indices.value = false;
+    this.unrollState.keepOriginal.value = false;
 
     this.splitState.column.value = '';
     this.splitState.delimiter.value = ',';

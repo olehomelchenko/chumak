@@ -13,6 +13,8 @@ export { IndexDialog } from './IndexDialog';
 export { ReplaceDialog } from './ReplaceDialog';
 export { SliceRowsDialog } from './SliceRowsDialog';
 export { SampleDialog } from './SampleDialog';
+export { SpreadDialog } from './SpreadDialog';
+export { UnrollDialog } from './UnrollDialog';
 export { UnpivotDialog } from './UnpivotDialog';
 export { ImputeDialog } from './ImputeDialog';
 

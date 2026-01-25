@@ -29,6 +29,12 @@ export async function applyActiveTransform(this: SytoApp) {
     case 'sample':
       await this.applySampleTransform();
       break;
+    case 'spread':
+      await this.applySpreadTransform();
+      break;
+    case 'unroll':
+      await this.applyUnrollTransform();
+      break;
     case 'index':
       await this.applyIndexTransform();
       break;

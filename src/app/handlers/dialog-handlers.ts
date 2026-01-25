@@ -53,6 +53,18 @@ export function getDialogState(this: SytoApp, dialog: string) {
         count: DialogStore.sampleState.count.value,
         seed: DialogStore.sampleState.seed.value,
       };
+    case 'spread':
+      return {
+        column: DialogStore.spreadState.column.value,
+        limit: DialogStore.spreadState.limit.value,
+        keepOriginal: DialogStore.spreadState.keepOriginal.value,
+      };
+    case 'unroll':
+      return {
+        column: DialogStore.unrollState.column.value,
+        indices: DialogStore.unrollState.indices.value,
+        keepOriginal: DialogStore.unrollState.keepOriginal.value,
+      };
     case 'replace':
       return this.replaceDialogState;
     case 'split':
@@ -186,6 +198,12 @@ export function initDialogState(this: SytoApp, dialogName: string, section?: str
   } else if (dialogName === 'sample') {
     DialogStore.sampleState.count.value = 100;
     DialogStore.sampleState.seed.value = undefined;
+  } else if (dialogName === 'spread') {
+    DialogStore.spreadState.column.value = '';
+    DialogStore.spreadState.limit.value = undefined;
+  } else if (dialogName === 'unroll') {
+    DialogStore.unrollState.column.value = '';
+    DialogStore.unrollState.indices.value = false;
   } else if (dialogName === 'index') {
     DialogStore.indexState.columnName.value = 'row_index';
     DialogStore.indexState.startFrom.value = 1;
@@ -484,6 +502,14 @@ export function activeDialogError(this: SytoApp): boolean {
       return !this.indexDialogState.columnName || this.indexDialogState.columnName.trim() === '';
     case 'sample':
       return !DialogStore.sampleState.count.value || DialogStore.sampleState.count.value <= 0;
+    case 'spread':
+      return (
+        !DialogStore.spreadState.column.value || DialogStore.spreadState.column.value.trim() === ''
+      );
+    case 'unroll':
+      return (
+        !DialogStore.unrollState.column.value || DialogStore.unrollState.column.value.trim() === ''
+      );
     case 'regexpMatch':
       return !!this.regexpMatchDialogState.error;
     case 'regexpExtract':

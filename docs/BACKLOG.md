@@ -10,38 +10,6 @@ This document tracks planned features and enhancements, organized by scope and e
 
 ---
 
-### Spread (Array to Columns)
-
-**Status**: Low priority
-**Effort**: Small-Medium (~40 lines)
-**Arquero**: `table.spread(column, options)`
-
-Convert array column into multiple columns.
-
-```json
-{ "spread": { "column": "tags", "limit": 5 } }
-```
-
-**Use case**: JSON data with array fields that need to become separate columns.
-
----
-
-### Unroll (Array to Rows)
-
-**Status**: Low priority
-**Effort**: Small-Medium (~40 lines)
-**Arquero**: `table.unroll(column, options)`
-
-Expand array values into separate rows.
-
-```json
-{ "unroll": { "column": "items" } }
-```
-
-**Use case**: Flattening nested data structures.
-
----
-
 ## UI/UX Enhancements
 
 ### Custom Icon Library
@@ -80,14 +48,12 @@ See [custom-icons-setup.md](custom-icons-setup.md) for detailed setup guide and 
 
 ### Keyboard Shortcuts
 
-**Status**: Planned
+**Status**: Partial (see Completed Features)
 **Effort**: Medium
 
+Remaining shortcuts to implement:
+
 - `Ctrl/Cmd + Z` — Undo last step
-- `Ctrl/Cmd + S` — Save/download workflow
-- `Ctrl/Cmd + V` — Paste data (already works)
-- `Delete` — Remove selected step
-- Arrow keys — Navigate steps/columns
 
 ---
 
@@ -193,14 +159,13 @@ These have been considered and explicitly excluded:
 
 ### Medium Priority (Useful Additions)
 
-1. Keyboard shortcuts
+1. Command Undo/Redo (Ctrl/Cmd+Z)
 
 ### Lower Priority (Nice to Have)
 
 2. Step reordering
 3. Column reordering (`reorder`, `moveColumn`)
-4. Spread/unroll transforms
-5. Window functions (`cumsum`, `lag`, `rank`) — Future
+4. Window functions (`cumsum`, `lag`, `rank`) — Future
 
 ---
 
@@ -211,8 +176,8 @@ Most planned transforms are thin wrappers around existing Arquero verbs:
 | Transform    | Arquero Verb       | Wrapper Complexity | Status  |
 | ------------ | ------------------ | ------------------ | ------- |
 | ~~Sample~~   | `table.sample()`   | ~25 lines          | ✅ Done |
-| Spread       | `table.spread()`   | ~40 lines          | Planned |
-| Unroll       | `table.unroll()`   | ~40 lines          | Planned |
+| ~~Spread~~   | `table.spread()`   | ~40 lines          | ✅ Done |
+| ~~Unroll~~   | `table.unroll()`   | ~40 lines          | ✅ Done |
 | ~~Semijoin~~ | `table.semijoin()` | ~30 lines          | ✅ Done |
 | ~~Antijoin~~ | `table.antijoin()` | ~30 lines          | ✅ Done |
 | ~~Lookup~~   | `table.lookup()`   | ~30 lines          | ✅ Done |
@@ -238,6 +203,8 @@ Completed features are documented here for posterity:
 - **Dialog registry centralization** — January 2026. Created [`dialog-registry.ts`](../src/app/dialog-registry.ts) to eliminate duplicated `isSlidePanel` arrays and scattered metadata. Reduced files to update per dialog from ~12 to ~6-9.
 - **Sample transform** — January 2026. Extract random sample of rows with optional seed for reproducible sampling. Useful for testing workflows on large datasets.
 - **Advanced joins (semijoin, antijoin, lookup)** — January 2026. Three specialized join operations: semijoin filters to matching rows, antijoin filters to non-matching rows, lookup adds specific columns from a reference table.
+- **Spread/Unroll transforms** — January 2026. Array column operations: spread converts array columns into multiple columns, unroll expands array values into separate rows. Both support JSON string arrays and `keepOriginal` option.
+- **Keyboard shortcuts (partial)** — January 2026. `Ctrl/Cmd+S` to save workflow, `Delete` to remove last step, arrow keys to navigate steps. Escape handling for dialogs/modals.
 
 ---
 

@@ -74,6 +74,18 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     type: 'slide-panel',
   },
 
+  spread: {
+    name: 'spread',
+    title: 'Spread Array Column',
+    type: 'slide-panel',
+  },
+
+  unroll: {
+    name: 'unroll',
+    title: 'Unroll Array Column',
+    type: 'slide-panel',
+  },
+
   split: {
     name: 'split',
     title: 'Split Column',

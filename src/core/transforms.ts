@@ -99,6 +99,8 @@ export interface FullTransformStep extends TransformStep {
   semijoin?: { right: string; on: [string, string][] };
   antijoin?: { right: string; on: [string, string][] };
   lookup?: { right: string; on: [string, string][]; values: string[] };
+  spread?: { column: string; limit?: number; keepOriginal?: boolean };
+  unroll?: { column: string; indices?: boolean; keepOriginal?: boolean };
 }
 
 /**
@@ -133,6 +135,8 @@ const KNOWN_TRANSFORM_KEYS: readonly string[] = [
   'semijoin',
   'antijoin',
   'lookup',
+  'spread',
+  'unroll',
 ] as const;
 
 /**
@@ -143,6 +147,27 @@ function getUnknownTransformKey(transform: any): string | null {
   const keys = Object.keys(transform).filter((k) => k !== '__v'); // Ignore version field
   const unknownKey = keys.find((k) => !KNOWN_TRANSFORM_KEYS.includes(k as any));
   return unknownKey || null;
+}
+
+/**
+ * Check if a column contains JSON strings that need parsing for spread/unroll operations
+ */
+function checkIfNeedsJsonParsing(table: any, column: string): boolean {
+  const firstRow = table.objects({ limit: 1 })[0];
+  if (!firstRow || !(column in firstRow)) {
+    return false;
+  }
+  const value = firstRow[column];
+  // Check if it's a string that starts with '[' (likely a JSON array)
+  if (typeof value === 'string' && value.trim().startsWith('[')) {
+    try {
+      const parsed = JSON.parse(value);
+      return Array.isArray(parsed);
+    } catch {
+      return false;
+    }
+  }
+  return false;
 }
 
 /**
@@ -308,6 +333,114 @@ export function applyTransform(
     }
 
     return table.sample(sampleSize);
+  }
+
+  if (transform.spread) {
+    const { column, limit, keepOriginal } = transform.spread;
+    const options = limit !== undefined ? { limit } : {};
+
+    // Check if column contains JSON strings and parse if needed
+    const needsParsing = checkIfNeedsJsonParsing(table, column);
+    if (needsParsing) {
+      const tempCol = `__temp_spread_${column}`;
+      table = table.derive({
+        [tempCol]: (aq as any).escape((d: any) => {
+          const val = d[column];
+          if (typeof val === 'string' && val.trim().startsWith('[')) {
+            try {
+              return JSON.parse(val);
+            } catch {
+              return val;
+            }
+          }
+          return val;
+        }),
+      });
+      let result = table.spread(tempCol, options);
+      // Rename spread columns from temp name to original
+      const columnNames = result.columnNames();
+      const spreadCols = columnNames.filter((c: string) => c.startsWith(`${tempCol}_`));
+      if (spreadCols.length > 0) {
+        const renameMap: Record<string, string> = {};
+        spreadCols.forEach((c: string) => {
+          const suffix = c.substring(tempCol.length);
+          renameMap[c] = `${column}${suffix}`;
+        });
+        result = result.rename(renameMap);
+      }
+      // Remove the original column if keepOriginal is false
+      if (!keepOriginal && result.columnNames().includes(column)) {
+        result = result.select((aq as any).not(column));
+      }
+      return result;
+    }
+
+    // Native array handling
+    // If keepOriginal is true, preserve the column before spread
+    if (keepOriginal) {
+      const preservedCol = `__preserve_${column}`;
+      table = table.derive({
+        [preservedCol]: (aq as any).escape((d: any) => d[column]),
+      });
+      const result = table.spread(column, options);
+      const renameMap: Record<string, string> = {};
+      renameMap[preservedCol] = column;
+      return result.rename(renameMap);
+    }
+
+    // Default: spread without keeping original (arquero removes it automatically)
+    return table.spread(column, options);
+  }
+
+  if (transform.unroll) {
+    const { column, indices, keepOriginal } = transform.unroll;
+    const indexColName = indices ? `${column}__unroll_index` : undefined;
+    const options = indexColName ? { index: indexColName } : {};
+
+    // Check if column contains JSON strings and parse if needed
+    const needsParsing = checkIfNeedsJsonParsing(table, column);
+    if (needsParsing) {
+      const tempCol = `__temp_unroll_${column}`;
+      table = table.derive({
+        [tempCol]: (aq as any).escape((d: any) => {
+          const val = d[column];
+          if (typeof val === 'string' && val.trim().startsWith('[')) {
+            try {
+              return JSON.parse(val);
+            } catch {
+              return val;
+            }
+          }
+          return val;
+        }),
+      });
+      // Unroll the temp column
+      let result = table.unroll(tempCol, options);
+      // Remove the original column if keepOriginal is false
+      if (!keepOriginal && result.columnNames().includes(column)) {
+        result = result.select((aq as any).not(column));
+      }
+      // Rename the temp column to the original column name
+      const renameMap: Record<string, string> = {};
+      renameMap[tempCol] = column;
+      return result.rename(renameMap);
+    }
+
+    // Native array handling
+    // If keepOriginal is true, preserve the column before unroll
+    if (keepOriginal) {
+      const preservedCol = `__preserve_${column}`;
+      table = table.derive({
+        [preservedCol]: (aq as any).escape((d: any) => d[column]),
+      });
+      const result = table.unroll(column, options);
+      const renameMap: Record<string, string> = {};
+      renameMap[preservedCol] = column;
+      return result.rename(renameMap);
+    }
+
+    // Default: unroll without keeping original (arquero removes it automatically)
+    return table.unroll(column, options);
   }
 
   if (transform.semijoin) {
@@ -1137,6 +1270,16 @@ export function describeTransform(transform: any, rightName: string | null = nul
   if (transform.sample) {
     const { count, seed } = transform.sample;
     return seed !== undefined ? `Sample: ${count} rows (seed: ${seed})` : `Sample: ${count} rows`;
+  }
+
+  if (transform.spread) {
+    const { column, limit } = transform.spread;
+    return limit !== undefined ? `Spread: ${column} (max ${limit} cols)` : `Spread: ${column}`;
+  }
+
+  if (transform.unroll) {
+    const { column, indices } = transform.unroll;
+    return indices ? `Unroll: ${column} (with indices)` : `Unroll: ${column}`;
   }
 
   if (transform.semijoin) {

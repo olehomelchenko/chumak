@@ -108,6 +108,8 @@ export interface TransformStep {
   semijoin?: { right: string; on: [string, string][] };
   antijoin?: { right: string; on: [string, string][] };
   lookup?: { right: string; on: [string, string][]; values: string[] };
+  spread?: { column: string; limit?: number; keepOriginal?: boolean };
+  unroll?: { column: string; indices?: boolean; keepOriginal?: boolean };
 }
 
 export const SchemaEngine = {
@@ -742,6 +744,63 @@ export const SchemaEngine = {
       return newSchema;
     }
 
+    // 11. SPREAD: Convert array column into multiple columns
+    if (transform.spread) {
+      const { column, keepOriginal } = transform.spread;
+
+      // Remove the original column unless keepOriginal is true
+      let newSchema = keepOriginal
+        ? [...currentSchema]
+        : currentSchema.filter((c) => c.name !== column);
+
+      // Infer new columns from sample data
+      if (sampleData && sampleData.length > 0) {
+        const sampleColumns = Object.keys(sampleData[0]);
+        const spreadColumns = sampleColumns.filter(
+          (name) => !currentSchema.find((c) => c.name === name)
+        );
+
+        let pos = newSchema.length;
+        for (const newColName of spreadColumns) {
+          const sampleValues = sampleData.map((row) => row[newColName]);
+          const type = this.inferType(sampleValues);
+
+          newSchema.push({
+            name: newColName,
+            type: type,
+            format: {},
+            originalPosition: pos++,
+          });
+        }
+      }
+
+      return newSchema;
+    }
+
+    // 12. UNROLL: Expand array values into separate rows (schema mostly unchanged)
+    if (transform.unroll) {
+      const { column, indices } = transform.unroll;
+      // Note: keepOriginal doesn't affect schema since unroll preserves/replaces the column in-place
+
+      let newSchema = [...currentSchema];
+
+      // If indices is true, add an index column named {column}__unroll_index
+      if (indices) {
+        const indexColName = `${column}__unroll_index`;
+        const hasIndexColumn = newSchema.find((c) => c.name === indexColName);
+        if (!hasIndexColumn) {
+          newSchema.push({
+            name: indexColName,
+            type: 'integer',
+            format: {},
+            originalPosition: newSchema.length,
+          });
+        }
+      }
+
+      return newSchema;
+    }
+
     // Future-proofing: Check for unknown transform keys
     // Note: 'import', 'replace', 'sliceRows', 'addIndex', 'dedupe' don't change schema,
     // so they may not have explicit handlers above
@@ -774,6 +833,8 @@ export const SchemaEngine = {
       'semijoin',
       'antijoin',
       'lookup',
+      'spread',
+      'unroll',
     ];
     const transformKeys = Object.keys(transform).filter((k) => k !== '__v'); // Ignore version field
     const unknownKey = transformKeys.find((k) => !knownKeys.includes(k));

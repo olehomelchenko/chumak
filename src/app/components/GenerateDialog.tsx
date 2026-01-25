@@ -101,7 +101,7 @@ export function GenerateDialog() {
             <div class={styles.group}>
               <label class={styles.label}>Unit:</label>
               <select
-                class={styles.select}
+                class={styles.input}
                 value={config.unit}
                 onChange={(e) =>
                   updateConfig(gen.id, { unit: (e.target as HTMLSelectElement).value })
@@ -315,7 +315,7 @@ export function GenerateDialog() {
               <div class={styles.group}>
                 <label class={styles.label}>Generator Type:</label>
                 <select
-                  class={styles.select}
+                  class={styles.input}
                   value={gen.type}
                   onChange={(e) =>
                     updateGeneratorType(

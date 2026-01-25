@@ -1560,6 +1560,218 @@ describe('Transform Engine', () => {
     });
   });
 
+  describe('applyTransform() - SPREAD', () => {
+    it('should spread array column into multiple columns', () => {
+      const table = (aq as any).from([
+        { id: 1, tags: ['a', 'b', 'c'] },
+        { id: 2, tags: ['x', 'y'] },
+      ]);
+      const transform = { spread: { column: 'tags' } };
+      const result = applyTransform(table, transform, ['id', 'tags']);
+      const columns = result.columnNames();
+
+      // Should have id column and spread tag columns
+      // Note: Arquero uses 1-based indexing for spread columns
+      expect(columns).toContain('id');
+      expect(columns).toContain('tags_1');
+      expect(columns).toContain('tags_2');
+      expect(columns).toContain('tags_3');
+      expect(columns).not.toContain('tags'); // Original column removed
+
+      const rows = result.objects();
+      expect(rows[0].tags_1).toBe('a');
+      expect(rows[0].tags_2).toBe('b');
+      expect(rows[0].tags_3).toBe('c');
+      expect(rows[1].tags_1).toBe('x');
+      expect(rows[1].tags_2).toBe('y');
+    });
+
+    it('should respect limit parameter', () => {
+      const table = (aq as any).from([{ id: 1, tags: ['a', 'b', 'c', 'd', 'e'] }]);
+      const transform = { spread: { column: 'tags', limit: 2 } };
+      const result = applyTransform(table, transform, ['id', 'tags']);
+      const columns = result.columnNames();
+
+      // Should only have 2 spread columns (1-based indexing)
+      expect(columns).toContain('tags_1');
+      expect(columns).toContain('tags_2');
+      expect(columns).not.toContain('tags_3');
+    });
+
+    it('should handle empty arrays', () => {
+      const table = (aq as any).from([
+        { id: 1, tags: [] },
+        { id: 2, tags: ['a'] },
+      ]);
+      const transform = { spread: { column: 'tags' } };
+      const result = applyTransform(table, transform, ['id', 'tags']);
+
+      expect(result.numRows()).toBe(2);
+      // Empty array row should have undefined/null values
+    });
+
+    it('should handle JSON string arrays', () => {
+      const table = (aq as any).from([
+        { id: 1, tags: '["a", "b", "c"]' },
+        { id: 2, tags: '["x", "y"]' },
+      ]);
+      const transform = { spread: { column: 'tags' } };
+      const result = applyTransform(table, transform, ['id', 'tags']);
+      const columns = result.columnNames();
+
+      // Should parse JSON strings and spread them
+      expect(columns).toContain('id');
+      expect(columns).toContain('tags_1');
+      expect(columns).toContain('tags_2');
+      expect(columns).toContain('tags_3');
+      expect(columns).not.toContain('tags'); // Original column removed
+
+      const rows = result.objects();
+      expect(rows[0].tags_1).toBe('a');
+      expect(rows[0].tags_2).toBe('b');
+      expect(rows[0].tags_3).toBe('c');
+      expect(rows[1].tags_1).toBe('x');
+      expect(rows[1].tags_2).toBe('y');
+    });
+
+    it('should handle JSON string arrays with limit', () => {
+      const table = (aq as any).from([{ id: 1, tags: '["a", "b", "c", "d"]' }]);
+      const transform = { spread: { column: 'tags', limit: 2 } };
+      const result = applyTransform(table, transform, ['id', 'tags']);
+      const columns = result.columnNames();
+
+      expect(columns).toContain('tags_1');
+      expect(columns).toContain('tags_2');
+      expect(columns).not.toContain('tags_3');
+    });
+
+    it('should keep original column when keepOriginal is true', () => {
+      const table = (aq as any).from([
+        { id: 1, tags: ['a', 'b', 'c'] },
+        { id: 2, tags: ['x', 'y'] },
+      ]);
+      const transform = { spread: { column: 'tags', keepOriginal: true } };
+      const result = applyTransform(table, transform, ['id', 'tags']);
+      const columns = result.columnNames();
+
+      // Should keep the original column
+      expect(columns).toContain('tags');
+      expect(columns).toContain('tags_1');
+      expect(columns).toContain('tags_2');
+      expect(columns).toContain('tags_3');
+
+      const rows = result.objects();
+      // Original column should still have array values
+      expect(rows[0].tags).toEqual(['a', 'b', 'c']);
+      expect(rows[1].tags).toEqual(['x', 'y']);
+    });
+  });
+
+  describe('applyTransform() - UNROLL', () => {
+    it('should unroll array values into separate rows', () => {
+      const table = (aq as any).from([
+        { id: 1, items: ['a', 'b', 'c'] },
+        { id: 2, items: ['x'] },
+      ]);
+      const transform = { unroll: { column: 'items' } };
+      const result = applyTransform(table, transform, ['id', 'items']);
+
+      expect(result.numRows()).toBe(4); // 3 + 1
+      const rows = result.objects();
+
+      // First row unrolled into 3 rows
+      expect(rows.filter((r) => r.id === 1).length).toBe(3);
+      expect(rows.filter((r) => r.id === 2).length).toBe(1);
+
+      // Check values
+      expect(rows[0].items).toBe('a');
+      expect(rows[1].items).toBe('b');
+      expect(rows[2].items).toBe('c');
+      expect(rows[3].items).toBe('x');
+    });
+
+    it('should add index column when indices is true', () => {
+      const table = (aq as any).from([{ id: 1, items: ['a', 'b'] }]);
+      const transform = { unroll: { column: 'items', indices: true } };
+      const result = applyTransform(table, transform, ['id', 'items']);
+      const columns = result.columnNames();
+
+      expect(columns).toContain('items__unroll_index');
+      const rows = result.objects();
+      expect(rows[0].items__unroll_index).toBe(0);
+      expect(rows[1].items__unroll_index).toBe(1);
+    });
+
+    it('should handle empty arrays', () => {
+      const table = (aq as any).from([
+        { id: 1, items: [] },
+        { id: 2, items: ['a'] },
+      ]);
+      const transform = { unroll: { column: 'items' } };
+      const result = applyTransform(table, transform, ['id', 'items']);
+
+      // Empty array row is removed by unroll
+      expect(result.numRows()).toBe(1);
+      const rows = result.objects();
+      expect(rows[0].id).toBe(2);
+    });
+
+    it('should handle JSON string arrays', () => {
+      const table = (aq as any).from([
+        { id: 1, items: '["a", "b", "c"]' },
+        { id: 2, items: '["x"]' },
+      ]);
+      const transform = { unroll: { column: 'items' } };
+      const result = applyTransform(table, transform, ['id', 'items']);
+
+      expect(result.numRows()).toBe(4); // 3 + 1
+      const rows = result.objects();
+
+      // Check that JSON was parsed and unrolled correctly
+      expect(rows.filter((r) => r.id === 1).length).toBe(3);
+      expect(rows.filter((r) => r.id === 2).length).toBe(1);
+
+      expect(rows[0].items).toBe('a');
+      expect(rows[1].items).toBe('b');
+      expect(rows[2].items).toBe('c');
+      expect(rows[3].items).toBe('x');
+    });
+
+    it('should handle JSON string arrays with indices', () => {
+      const table = (aq as any).from([{ id: 1, items: '["a", "b"]' }]);
+      const transform = { unroll: { column: 'items', indices: true } };
+      const result = applyTransform(table, transform, ['id', 'items']);
+      const columns = result.columnNames();
+
+      expect(columns).toContain('items__unroll_index');
+      const rows = result.objects();
+      expect(rows[0].items__unroll_index).toBe(0);
+      expect(rows[1].items__unroll_index).toBe(1);
+    });
+
+    it('should keep original column when keepOriginal is true', () => {
+      const table = (aq as any).from([
+        { id: 1, items: ['a', 'b', 'c'] },
+        { id: 2, items: ['x'] },
+      ]);
+      const transform = { unroll: { column: 'items', keepOriginal: true } };
+      const result = applyTransform(table, transform, ['id', 'items']);
+      const columns = result.columnNames();
+
+      // Should keep the original column
+      expect(columns).toContain('items');
+
+      expect(result.numRows()).toBe(4); // 3 + 1
+      const rows = result.objects();
+
+      // Original column should still have array values
+      expect(rows[0].items).toEqual(['a', 'b', 'c']);
+      expect(rows[1].items).toEqual(['a', 'b', 'c']);
+      expect(rows[2].items).toEqual(['a', 'b', 'c']);
+      expect(rows[3].items).toEqual(['x']);
+    });
+  });
+
   describe('applyTransform() - SEMIJOIN', () => {
     it('should keep rows that match right table', () => {
       const leftTable = (aq as any).from([
@@ -1844,6 +2056,20 @@ describe('Transform Engine', () => {
           lookup: { right: 'src_ref', on: [['id', 'id']], values: ['a', 'b', 'c'] },
         })
       ).toBe('Lookup: 3 columns from source');
+    });
+
+    it('should describe spread transform', () => {
+      expect(describeTransform({ spread: { column: 'tags' } })).toBe('Spread: tags');
+      expect(describeTransform({ spread: { column: 'items', limit: 5 } })).toBe(
+        'Spread: items (max 5 cols)'
+      );
+    });
+
+    it('should describe unroll transform', () => {
+      expect(describeTransform({ unroll: { column: 'items' } })).toBe('Unroll: items');
+      expect(describeTransform({ unroll: { column: 'data', indices: true } })).toBe(
+        'Unroll: data (with indices)'
+      );
     });
   });
 });

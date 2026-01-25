@@ -40,6 +40,8 @@ export type DialogName =
   | 'renamePattern'
   | 'dependency-graph'
   | 'sample'
+  | 'spread'
+  | 'unroll'
   | null;
 
 export interface Source {
