@@ -54,6 +54,17 @@ This provides:
 - **Technical Rollback**: You can always revert to any previous state by simply moving back in the pipeline or deleting steps.
 - **Reproducibility**: The pipeline is a recipe that can be applied to new versions of the same raw data.
 
+### 7. Respect for User Agency (The "Adult in the Room")
+
+Syto assumes the user is an intelligent human being capable of making their own decisions. We do not believe in paternalistic software that hides power or prevents potentially breaking actions if the user chooses to take them.
+
+While we prioritize safety and non-destructiveness by default, we enter into a specific agreement with the user regarding high-stakes operations (like editing raw JSON or replacing a dataset):
+
+- **No Over-Guardrailing**: We do not block the user from making changes that might be irreversible or break the pipeline's logic.
+- **Informed Consent**: The app provides a fair and visible warning about the danger of an operation. It does not and cannot perform a comprehensive check for all possible things that can go wrong—but it expects the user to assess the risks once notified.
+- **User Responsibility**: Once warned, the expectation is that the user is capable of assessing the risks and making an informed decision for themselves.
+- **Pragmatic Compatibility**: We strive for backwards compatibility in the engine, but we prioritize giving the user full control over protecting them from themselves in "Danger Zone" scenarios.
+
 ## What We're Not
 
 - **Not a spreadsheet replacement**: No cell-by-cell editing, no formulas that reference A1:B5
