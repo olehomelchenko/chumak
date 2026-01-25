@@ -257,6 +257,7 @@ Each transform is one object in an array.
 | **Date Ops**   | Extract or truncate date parts                                                                                                          |
 | **Regexp**     | Pattern matching and extraction (`regexp_match`, `regexp_extract`)                                                                      |
 | **Impute**     | Fill missing values (constant, mean, median, min, max, forward/backward fill, linear interpolation)                                     |
+| **Merge**      | Concatenate multiple columns with separator (uses `derive` internally, optionally followed by `remove`)                                 |
 
 ---
 

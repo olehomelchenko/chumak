@@ -21,6 +21,7 @@ import {
   DateDialog,
   TextDialog,
   SplitDialog,
+  MergeDialog,
   DeriveDialog,
   JoinDialog,
   ConcatDialog,
@@ -223,6 +224,7 @@ export function App({ app }: AppProps) {
                 {activeDialog === 'pivot' && <PivotDialog />}
                 {activeDialog === 'replace' && <ReplaceDialog />}
                 {activeDialog === 'split' && <SplitDialog />}
+                {activeDialog === 'merge' && <MergeDialog />}
                 {activeDialog === 'join' && <JoinDialog />}
                 {activeDialog === 'concat' && <ConcatDialog />}
                 {activeDialog === 'union' && <UnionDialog />}

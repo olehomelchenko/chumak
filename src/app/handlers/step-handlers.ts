@@ -32,6 +32,9 @@ export async function applyActiveTransform(this: SytoApp) {
     case 'split':
       await this.applySplitTransform();
       break;
+    case 'merge':
+      await this.applyMergeTransform();
+      break;
     case 'derive':
       await this.applyDeriveTransform();
       break;

@@ -15,6 +15,7 @@ export type DialogName =
   | 'text'
   | 'derive'
   | 'split'
+  | 'merge'
   | 'join'
   | 'concat'
   | 'union'

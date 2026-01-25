@@ -102,6 +102,12 @@ export function RibbonToolbar({ onOpenDialog, onAutoDetectSchema }: RibbonToolba
                 title="Split column by delimiter"
                 onClick={() => onOpenDialog('split')}
               />
+              <RibbonButton
+                icon="carbon:join-left"
+                label="Merge"
+                title="Merge/concatenate multiple columns into one"
+                onClick={() => onOpenDialog('merge')}
+              />
             </RibbonGroup>
 
             <RibbonDivider />

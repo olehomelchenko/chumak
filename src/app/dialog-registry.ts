@@ -74,6 +74,12 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     type: 'slide-panel',
   },
 
+  merge: {
+    name: 'merge',
+    title: 'Merge Columns',
+    type: 'slide-panel',
+  },
+
   regexpMatch: {
     name: 'regexpMatch',
     title: 'Regexp Match',

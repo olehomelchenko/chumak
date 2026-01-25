@@ -11,6 +11,7 @@ import * as UnionHandlers from './app/handlers/union-handlers';
 import * as PivotHandlers from './app/handlers/pivot-handlers';
 import * as FoldHandlers from './app/handlers/fold-handlers';
 import * as SplitHandlers from './app/handlers/split-handlers';
+import * as MergeHandlers from './app/handlers/merge-handlers';
 import * as DedupeHandlers from './app/handlers/dedupe-handlers';
 import * as RegexpHandlers from './app/handlers/regexp-handlers';
 import * as SimpleHandlers from './app/handlers/simple-handlers';
@@ -611,6 +612,14 @@ export class SytoApp implements AppState {
   }
   applySplitTransform() {
     return SplitHandlers.applySplitTransform(HelperHandlers.createExecutionCallbacks(this));
+  }
+
+  // Merge handlers
+  selectMergeColumns(columns: string[]) {
+    return MergeHandlers.selectMergeColumns(columns);
+  }
+  applyMergeTransform() {
+    return MergeHandlers.applyMergeTransform(HelperHandlers.createExecutionCallbacks(this));
   }
 
   // Dedupe handlers

@@ -376,6 +376,39 @@ interface TransformStep {
 }
 ```
 
+**Merge** — Concatenate multiple columns with a separator:
+
+The merge operation is implemented using the `derive` transform (and optionally `remove`). It's not a separate transform type, but a UI convenience that generates the appropriate derive expression.
+
+Example: Merging `first_name` and `last_name` with a space separator creates:
+
+```json
+{
+  "derive": {
+    "full_name": "(first_name ?? \"\") + \" \" + (last_name ?? \"\")"
+  }
+}
+```
+
+If "Remove original columns" is selected, a second step is added:
+
+```json
+{
+  "remove": ["first_name", "last_name"]
+}
+```
+
+**Null handling:** The merge operation uses the nullish coalescing operator (`??`) to convert null values to empty strings before concatenation. This ensures that `null` values don't break the concatenation.
+
+**Column name escaping:** Columns with special characters or spaces use bracket notation: `[Column Name]`
+
+**Examples:**
+
+- No separator: `"(col1 ?? \"\") + (col2 ?? \"\")"`
+- Space separator: `"(col1 ?? \"\") + \" \" + (col2 ?? \"\")"`
+- Comma separator: `"(col1 ?? \"\") + \", \" + (col2 ?? \"\")"`
+- Single column: `"(col1 ?? \"\")"`
+
 ---
 
 ## 4. Expression Syntax

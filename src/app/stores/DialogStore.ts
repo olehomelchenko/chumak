@@ -138,6 +138,15 @@ export class DialogStore {
     columnRenames: signal<Record<string, string>>({}),
   };
 
+  // Merge Dialog State
+  static mergeState = {
+    columns: signal<string[]>([]),
+    separator: signal(' '),
+    columnName: signal(''),
+    removeOriginal: signal(false),
+    error: signal<string | null>(null),
+  };
+
   // Regexp Match Dialog State
   static regexpMatchState = {
     sourceColumn: signal(''),

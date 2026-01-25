@@ -29,6 +29,8 @@ export { TextDialog } from './TextDialog';
 export { SplitDialog } from './SplitDialog';
 export type { SplitMode } from './SplitDialog';
 
+export { MergeDialog } from './MergeDialog';
+
 export { DeriveDialog } from './DeriveDialog';
 
 export { JoinDialog } from './JoinDialog';

@@ -52,6 +52,13 @@ export function getDialogState(this: SytoApp, dialog: string) {
       return this.replaceDialogState;
     case 'split':
       return this.splitDialogState;
+    case 'merge':
+      return {
+        columns: DialogStore.mergeState.columns.value,
+        separator: DialogStore.mergeState.separator.value,
+        columnName: DialogStore.mergeState.columnName.value,
+        removeOriginal: DialogStore.mergeState.removeOriginal.value,
+      };
     case 'regexpMatch':
       return this.regexpMatchDialogState;
     case 'regexpExtract':
@@ -280,6 +287,14 @@ export function initDialogState(this: SytoApp, dialogName: string, section?: str
     if (typeof this.debouncedUpdateSplitPreview === 'function') {
       this.debouncedUpdateSplitPreview();
     }
+  } else if (dialogName === 'merge') {
+    // Reset merge state
+    const state = DialogStore.mergeState;
+    state.columns.value = [];
+    state.separator.value = ' ';
+    state.columnName.value = '';
+    state.removeOriginal.value = false;
+    state.error.value = null;
   } else if (dialogName === 'regexpMatch') {
     const state = DialogStore.regexpMatchState;
     state.sourceColumn.value = this.columns[0] || '';
@@ -465,6 +480,12 @@ export function activeDialogError(this: SytoApp): boolean {
       return !!this.regexpExtractDialogState.error;
     case 'split':
       return !!this.splitDialogState.error;
+    case 'merge':
+      return (
+        !!DialogStore.mergeState.error.value ||
+        DialogStore.mergeState.columns.value.length === 0 ||
+        !DialogStore.mergeState.columnName.value?.trim()
+      );
     case 'join':
       return !DialogStore.joinState.rightModel.value;
     case 'concat':
