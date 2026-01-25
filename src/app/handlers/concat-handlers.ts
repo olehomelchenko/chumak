@@ -3,7 +3,6 @@ import { applyTransform } from '../../core/transforms';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 import { StepService } from '../services/StepService';
-import * as NotificationHandlers from './notification-handlers';
 
 export function initializeConcatDialog() {
   const models = AppStore.models.value;
@@ -110,10 +109,7 @@ export async function applyConcatTransform(callbacks: any) {
   const sources = AppStore.sources.value;
 
   if (!targetModel) {
-    await NotificationHandlers.alert.call(
-      null as any,
-      'Please select a model or source to concat with'
-    );
+    await callbacks.onError?.('Please select a model or source to concat with');
     return;
   }
 
@@ -139,6 +135,6 @@ export async function applyConcatTransform(callbacks: any) {
     await StepService.runTransform('Concat', transform, callbacks);
   } catch (error: any) {
     console.error('Concat transform setup error:', error);
-    await NotificationHandlers.alert.call(null as any, 'Error preparing concat: ' + error.message);
+    await callbacks.onError?.('Error preparing concat: ' + error.message);
   }
 }

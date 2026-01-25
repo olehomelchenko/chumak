@@ -228,6 +228,7 @@ export class DialogStore {
     column: signal(''),
     findValue: signal(''),
     replaceValue: signal(''),
+    isRegex: signal(false),
   };
 
   static foldState = {
@@ -425,6 +426,7 @@ export class DialogStore {
     this.replaceState.column.value = '';
     this.replaceState.findValue.value = '';
     this.replaceState.replaceValue.value = '';
+    this.replaceState.isRegex.value = false;
 
     this.splitState.column.value = '';
     this.splitState.delimiter.value = ',';

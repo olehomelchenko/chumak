@@ -259,7 +259,7 @@ interface TransformStep {
 
   // Value operations
   derive?: Record<string, string>;    // column -> expression
-  replace?: { column: string; find: any; replace: any };
+  replace?: { column: string; find: any; replace: any; isRegex?: boolean };
   types?: Record<string, ColumnType>;
   addIndex?: { columnName: string; startFrom?: number };
 
@@ -291,6 +291,25 @@ interface TransformStep {
 
 ```json
 { "derive": { "profit": "revenue - cost", "margin": "profit / revenue * 100" } }
+```
+
+**Replace** — Replace values in a column:
+
+```json
+{ "replace": { "column": "status", "find": "active", "replace": "ACTIVE" } }
+```
+
+With regex pattern (e.g., format phone numbers):
+
+```json
+{
+  "replace": {
+    "column": "phone",
+    "find": "(\\d{3})-(\\d{4})",
+    "replace": "($1) $2",
+    "isRegex": true
+  }
+}
 ```
 
 **Aggregate** — Group and summarize:
@@ -459,6 +478,12 @@ Expressions are used in `filter` and `derive` transforms.
 
 - `regexp_match(s, pattern)` — Returns boolean
 - `regexp_extract(s, pattern, group?)` — Returns matched string
+- `regexp_replace(s, pattern, replacement)` — Returns text with replacements (supports capture groups)
+
+**JSON functions:**
+
+- `is_json(s)` — Tests if string contains valid JSON
+- `json_extract(s, path)` — Extracts value from JSON at dot-notation path
 
 ### 4.4 Aggregate Functions (in rollup)
 

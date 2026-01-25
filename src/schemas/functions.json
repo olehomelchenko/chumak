@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated": "2026-01-25T07:03:54.993Z",
+  "generated": "2026-01-25T08:57:49.492Z",
   "functions": [
     {
       "name": "regexp_match",
@@ -53,6 +53,39 @@
         },
         {
           "expression": "regexp_extract(name, \"(\\\\w+) (\\\\w+)\", 1) // First capture group"
+        }
+      ]
+    },
+    {
+      "name": "regexp_replace",
+      "category": "Regex",
+      "description": "Replaces text matching a regular expression pattern",
+      "signature": "regexp_replace(value, pattern, replacement)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Text value to perform replacement on"
+        },
+        {
+          "name": "pattern",
+          "description": "Regular expression pattern to match"
+        },
+        {
+          "name": "replacement",
+          "description": "Replacement string (supports $1, $2, etc. for capture groups)"
+        }
+      ],
+      "returns": "Text with replacements made, or null if value is null",
+      "examples": [
+        {
+          "expression": "regexp_replace(phone, \"(\\\\d{3})-(\\\\d{4})\", \"($1) $2\")"
+        },
+        {
+          "expression": "regexp_replace(text, \"(?i)hello\", \"Hi\") // Case-insensitive replacement"
+        },
+        {
+          "expression": "regexp_replace(\"foo bar foo\", \"foo\", \"baz\")",
+          "result": "\"baz bar baz\""
         }
       ]
     },
@@ -977,6 +1010,66 @@
         {
           "expression": "is_nan(\"abc\")",
           "result": "true"
+        }
+      ]
+    },
+    {
+      "name": "is_json",
+      "category": "JSON",
+      "description": "Tests if a string contains valid JSON",
+      "signature": "is_json(value)",
+      "params": [
+        {
+          "name": "value",
+          "description": "String value to test"
+        }
+      ],
+      "returns": "true if valid JSON, false otherwise, null if input is null",
+      "examples": [
+        {
+          "expression": "is_json('{\"name\": \"Alice\"}')"
+        },
+        {
+          "expression": "is_json('{\"valid\": true}')",
+          "result": "true"
+        },
+        {
+          "expression": "is_json('invalid')",
+          "result": "false"
+        }
+      ]
+    },
+    {
+      "name": "json_extract",
+      "category": "JSON",
+      "description": "Parses JSON string and extracts value at specified path",
+      "signature": "json_extract(value, path)",
+      "params": [
+        {
+          "name": "value",
+          "description": "String containing JSON"
+        },
+        {
+          "name": "path",
+          "description": "Dot-notation path (e.g., \"user.name\" or \"items.0.price\")"
+        }
+      ],
+      "returns": "Extracted value, or null if path not found or JSON invalid",
+      "examples": [
+        {
+          "expression": "json_extract('{\"name\":\"Alice\"}', \"name\")"
+        },
+        {
+          "expression": "json_extract('{\"name\":\"Alice\"}', \"name\")",
+          "result": "\"Alice\""
+        },
+        {
+          "expression": "json_extract('{\"user\":{\"email\":\"a@b.com\"}}', \"user.email\")",
+          "result": "\"a@b.com\""
+        },
+        {
+          "expression": "json_extract('{\"items\":[{\"price\":10}]}', \"items.0.price\")",
+          "result": "10"
         }
       ]
     }

@@ -1,7 +1,6 @@
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 import { StepService } from '../services/StepService';
-import * as NotificationHandlers from './notification-handlers';
 import { matchColumnPattern } from '../../core/transforms';
 
 export function toggleColumnEditorColumn(index: number) {
@@ -301,7 +300,7 @@ export async function applyColumnEditorTransform(callbacks: any) {
 
     if (patternOperationMode.value === 'select') {
       if (!patternText.value || patternText.value.trim() === '') {
-        await NotificationHandlers.alert.call(null as any, 'Please enter a pattern');
+        await callbacks.onError?.('Please enter a pattern');
         return;
       }
 
@@ -332,7 +331,7 @@ export async function applyColumnEditorTransform(callbacks: any) {
       return;
     } else if (patternOperationMode.value === 'remove') {
       if (!patternText.value || patternText.value.trim() === '') {
-        await NotificationHandlers.alert.call(null as any, 'Please enter a pattern');
+        await callbacks.onError?.('Please enter a pattern');
         return;
       }
 
@@ -363,7 +362,7 @@ export async function applyColumnEditorTransform(callbacks: any) {
       return;
     } else if (patternOperationMode.value === 'rename') {
       if (!patternFind.value || patternFind.value.trim() === '') {
-        await NotificationHandlers.alert.call(null as any, 'Please enter a find pattern');
+        await callbacks.onError?.('Please enter a find pattern');
         return;
       }
 
@@ -394,10 +393,7 @@ export async function applyColumnEditorTransform(callbacks: any) {
   // Handle text mode
   if (state.mode.value === 'text') {
     if (!validateColumnEditorText()) {
-      await NotificationHandlers.alert.call(
-        null as any,
-        state.textError.value || 'Invalid column names'
-      );
+      await callbacks.onError?.(state.textError.value || 'Invalid column names');
       return;
     }
 

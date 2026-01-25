@@ -45,10 +45,10 @@ export async function applyActiveTransform(this: SytoApp) {
       await this.applyRegexpExtractTransform();
       break;
     case 'date':
-      await DateHandlers.applyDateTransform(HelperHandlers.createExecutionCallbacks(this));
+      await DateHandlers.applyDateTransform(HelperHandlers.createExecutionCallbacks(this), this);
       break;
     case 'text':
-      await TextHandlers.applyTextTransform(HelperHandlers.createExecutionCallbacks(this));
+      await TextHandlers.applyTextTransform(HelperHandlers.createExecutionCallbacks(this), this);
       break;
     case 'fold':
       await this.applyFoldTransform();

@@ -607,14 +607,38 @@ export function applyTransform(
   }
 
   if (transform.replace) {
-    const { column, find, replace } = transform.replace;
+    const { column, find, replace, isRegex } = transform.replace;
     const rows = table.objects();
     const resultRows = rows.map((row: any) => {
       const currentValue = row[column];
-      if (currentValue === find || (find === null && currentValue === null)) {
-        return { ...row, [column]: replace };
+
+      if (isRegex) {
+        // Regex mode: use string replacement with regex
+        if (currentValue == null) return row;
+        try {
+          // Parse flags if present (e.g., (?i) for case-insensitive)
+          const flagMatch = find.match(/^\(\?([gimsuy]+)\)/);
+          let pattern = find;
+          let flags = 'g'; // Always global replace
+          if (flagMatch) {
+            pattern = find.slice(flagMatch[0].length);
+            flags = flagMatch[1].includes('g') ? flagMatch[1] : flagMatch[1] + 'g';
+          }
+          const regex = new RegExp(pattern, flags);
+          const newValue = String(currentValue).replace(regex, replace ?? '');
+          return { ...row, [column]: newValue };
+        } catch (e) {
+          // If regex is invalid, return row unchanged
+          console.error('Invalid regex in replace transform:', e);
+          return row;
+        }
+      } else {
+        // Simple mode: exact value match
+        if (currentValue === find || (find === null && currentValue === null)) {
+          return { ...row, [column]: replace };
+        }
+        return row;
       }
-      return row;
     });
     return (aq as any).from(resultRows);
   }

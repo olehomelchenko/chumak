@@ -1,14 +1,13 @@
 import * as aq from 'arquero';
 import { DialogStore } from '../stores/DialogStore';
 import { applyTransform } from '../../core/transforms';
-import * as NotificationHandlers from './notification-handlers';
 import { StepService } from '../services/StepService';
 
 export async function applySortTransform(callbacks: any) {
   const field = DialogStore.sortState.field.value;
   const order = DialogStore.sortState.order.value;
   if (!field) {
-    await NotificationHandlers.alert.call(null as any, 'Please select a column to sort by');
+    await callbacks.onError?.('Please select a column to sort by');
     return;
   }
   await StepService.runTransform('Sort', { sort: { field, order } }, callbacks);
@@ -17,7 +16,7 @@ export async function applySortTransform(callbacks: any) {
 export async function applySliceRowsTransform(callbacks: any) {
   const { count, mode } = DialogStore.sliceRowsState;
   if (!count.value || count.value <= 0) {
-    await NotificationHandlers.alert.call(null as any, 'Please enter a valid number of rows');
+    await callbacks.onError?.('Please enter a valid number of rows');
     return;
   }
   await StepService.runTransform(
@@ -30,7 +29,7 @@ export async function applySliceRowsTransform(callbacks: any) {
 export async function applyIndexTransform(callbacks: any) {
   const { columnName, startFrom } = DialogStore.indexState;
   if (!columnName.value || columnName.value.trim() === '') {
-    await NotificationHandlers.alert.call(null as any, 'Please enter a column name');
+    await callbacks.onError?.('Please enter a column name');
     return;
   }
   await StepService.runTransform(
@@ -42,15 +41,21 @@ export async function applyIndexTransform(callbacks: any) {
   );
 }
 
-export async function applyReplaceTransform(callbacks: any) {
-  const { column, findValue, replaceValue } = DialogStore.replaceState;
+export async function applyReplaceTransform(callbacks: any, app?: any) {
+  const { column, findValue, replaceValue, isRegex } = DialogStore.replaceState;
   if (!column.value) {
-    await NotificationHandlers.alert.call(null as any, 'Please select a column');
+    await callbacks.onError?.('Please select a column');
     return;
   }
-  if (findValue.value === undefined || findValue.value === null) {
-    if (!(await NotificationHandlers.confirm.call(null as any, 'Replace null/empty values?')))
-      return;
+  if (!isRegex.value && (findValue.value === undefined || findValue.value === null)) {
+    if (app) {
+      const confirmed = await app.confirm('Replace null/empty values?');
+      if (!confirmed) return;
+    }
+  }
+  if (isRegex.value && !findValue.value) {
+    await callbacks.onError?.('Please enter a regex pattern');
+    return;
   }
 
   const transform = {
@@ -58,15 +63,20 @@ export async function applyReplaceTransform(callbacks: any) {
       column: column.value,
       find: findValue.value,
       replace: replaceValue.value === '' ? null : replaceValue.value,
+      isRegex: isRegex.value,
     },
   };
-  await StepService.runTransform('Replace', transform, callbacks);
+  await StepService.runTransform(
+    isRegex.value ? 'Replace (Regex)' : 'Replace',
+    transform,
+    callbacks
+  );
 }
 
 export async function applyImputeTransform(callbacks: any) {
   const { column, strategy, value, includeEmptyString } = DialogStore.imputeState;
   if (!column.value) {
-    await NotificationHandlers.alert.call(null as any, 'Please select a column');
+    await callbacks.onError?.('Please select a column');
     return;
   }
 

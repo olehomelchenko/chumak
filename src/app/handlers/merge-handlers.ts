@@ -5,7 +5,6 @@ import { applyTransform } from '../../core/transforms';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 import { StepService } from '../services/StepService';
-import * as NotificationHandlers from './notification-handlers';
 
 let previewDebounceTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -129,33 +128,26 @@ export function clearPreview() {
   DialogStore.previewState.rows.value = [];
 }
 
-export async function applyMergeTransform(callbacks: any) {
+export async function applyMergeTransform(callbacks: any, app?: any) {
   const state = DialogStore.mergeState;
   const { columns, separator, columnName, removeOriginal } = state;
   const allColumns = AppStore.columns.value;
 
   if (!columns.value || columns.value.length === 0) {
-    await NotificationHandlers.alert.call(
-      null as any,
-      'Please select at least one column to merge'
-    );
+    await callbacks.onError?.('Please select at least one column to merge');
     return;
   }
 
   if (!columnName.value) {
-    await NotificationHandlers.alert.call(null as any, 'Please enter an output column name');
+    await callbacks.onError?.('Please enter an output column name');
     return;
   }
 
-  if (allColumns.includes(columnName.value)) {
-    if (
-      !(await NotificationHandlers.confirm.call(
-        null as any,
-        `Column "${columnName.value}" already exists. It will be overwritten. Continue?`
-      ))
-    ) {
-      return;
-    }
+  if (allColumns.includes(columnName.value) && app) {
+    const confirmed = await app.confirm(
+      `Column "${columnName.value}" already exists. It will be overwritten. Continue?`
+    );
+    if (!confirmed) return;
   }
 
   if (callbacks.onTransformStart) callbacks.onTransformStart('Merging columns...');
@@ -187,7 +179,7 @@ export async function applyMergeTransform(callbacks: any) {
     }
   } catch (error: any) {
     console.error('Merge transform error:', error);
-    await NotificationHandlers.alert.call(null as any, 'Error applying merge: ' + error.message);
+    await callbacks.onError?.('Error applying merge: ' + error.message);
   } finally {
     if (callbacks.onTransformEnd) callbacks.onTransformEnd();
   }

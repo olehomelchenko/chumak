@@ -49,6 +49,7 @@ const ALLOWED_FUNCTIONS: Record<string, FunctionSpec> = {
   // Regex functions
   regexp_match: { minArgs: 2, maxArgs: 2 },
   regexp_extract: { minArgs: 2, maxArgs: 3 },
+  regexp_replace: { minArgs: 3, maxArgs: 3 },
 
   // Date extraction - Phase 1
   year: { minArgs: 1, maxArgs: 1 },
@@ -106,6 +107,10 @@ const ALLOWED_FUNCTIONS: Record<string, FunctionSpec> = {
   parse_int: { minArgs: 1, maxArgs: 1 },
   parse_float: { minArgs: 1, maxArgs: 1 },
   is_nan: { minArgs: 1, maxArgs: 1 },
+
+  // JSON functions
+  is_json: { minArgs: 1, maxArgs: 1 },
+  json_extract: { minArgs: 2, maxArgs: 2 },
 };
 
 export interface ValidationResult {
@@ -238,7 +243,7 @@ function validateCallExpression(node: ASTNode, schema: string[]) {
     node.arguments.forEach((arg) => validateNode(arg, schema));
   }
 
-  if (fnName === 'regexp_match' || fnName === 'regexp_extract') {
+  if (fnName === 'regexp_match' || fnName === 'regexp_extract' || fnName === 'regexp_replace') {
     const patternArg = node.arguments![1];
     if (patternArg && patternArg.type === 'Literal' && typeof patternArg.value === 'string') {
       validateRegexPattern(patternArg.value, patternArg.start || 0);

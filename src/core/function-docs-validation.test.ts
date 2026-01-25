@@ -30,6 +30,7 @@ describe('Function Documentation Validation', () => {
       'text.md',
       'math.md',
       'conversion.md',
+      'json.md',
     ];
 
     for (const file of requiredFiles) {
@@ -85,7 +86,7 @@ describe('Function Documentation Validation', () => {
     const schemaPath = path.join(__dirname, '../../src/schemas/functions.json');
     const schema = JSON.parse(fs.readFileSync(schemaPath, 'utf-8'));
 
-    const validCategories = ['Regex', 'Date', 'Text', 'Math', 'Conversion'];
+    const validCategories = ['Regex', 'Date', 'Text', 'Math', 'Conversion', 'JSON'];
     const categories = new Set(schema.functions.map((fn: any) => fn.category));
 
     for (const category of categories) {

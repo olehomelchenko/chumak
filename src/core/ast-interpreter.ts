@@ -117,6 +117,29 @@ const FUNCTION_IMPLS: Record<string, (...args: any[]) => any> = {
       return { type: 'error', message: e.message };
     }
   },
+  /**
+   * @category Regex
+   * @description Replaces text matching a regular expression pattern
+   * @param value - Text value to perform replacement on
+   * @param pattern - Regular expression pattern to match
+   * @param replacement - Replacement string (supports $1, $2, etc. for capture groups)
+   * @returns Text with replacements made, or null if value is null
+   * @example regexp_replace(phone, "(\\d{3})-(\\d{4})", "($1) $2")
+   * @example regexp_replace(text, "(?i)hello", "Hi") // Case-insensitive replacement
+   * @example regexp_replace("foo bar foo", "foo", "baz") → "baz bar baz"
+   */
+  regexp_replace: (value, pattern, replacement) => {
+    if (value == null) return null;
+    if (replacement == null) replacement = '';
+    try {
+      const { pattern: p, flags } = parseRegexFlags(pattern);
+      // Add 'g' flag for global replacement if not already present
+      const finalFlags = flags.includes('g') ? flags : flags + 'g';
+      return String(value).replace(new RegExp(p, finalFlags), String(replacement));
+    } catch (e: any) {
+      return { type: 'error', message: e.message };
+    }
+  },
 
   // Date extraction - Phase 1
   /**
@@ -795,6 +818,58 @@ const FUNCTION_IMPLS: Record<string, (...args: any[]) => any> = {
   is_nan: (value) => {
     if (value == null) return false;
     return Number.isNaN(Number(value));
+  },
+
+  // JSON functions
+  /**
+   * @category JSON
+   * @description Tests if a string contains valid JSON
+   * @param value - String value to test
+   * @returns true if valid JSON, false otherwise, null if input is null
+   * @example is_json('{"name": "Alice"}')
+   * @example is_json('{"valid": true}') → true
+   * @example is_json('invalid') → false
+   */
+  is_json: (value) => {
+    if (value == null) return null;
+    try {
+      JSON.parse(String(value));
+      return true;
+    } catch {
+      return false;
+    }
+  },
+  /**
+   * @category JSON
+   * @description Parses JSON string and extracts value at specified path
+   * @param value - String containing JSON
+   * @param path - Dot-notation path (e.g., "user.name" or "items.0.price")
+   * @returns Extracted value, or null if path not found or JSON invalid
+   * @example json_extract('{"name":"Alice"}', "name")
+   * @example json_extract('{"name":"Alice"}', "name") → "Alice"
+   * @example json_extract('{"user":{"email":"a@b.com"}}', "user.email") → "a@b.com"
+   * @example json_extract('{"items":[{"price":10}]}', "items.0.price") → 10
+   */
+  json_extract: (value, path) => {
+    if (value == null || path == null) return null;
+    try {
+      const obj = JSON.parse(String(value));
+      const pathParts = String(path).split('.');
+      let result: any = obj;
+      for (const part of pathParts) {
+        if (result == null) return null;
+        // Check if part is numeric (array index)
+        const index = Number(part);
+        if (!isNaN(index) && Array.isArray(result)) {
+          result = result[index];
+        } else {
+          result = result[part];
+        }
+      }
+      return result === undefined ? null : result;
+    } catch {
+      return null;
+    }
   },
 };
 

@@ -1,6 +1,6 @@
 # Regex Functions
 
-2 functions available
+3 functions available
 
 ## regexp_match
 
@@ -39,6 +39,28 @@ Extracts text matching a regular expression pattern
 ```
 regexp_extract(phone, "\\d{3}-\\d{4}")
 regexp_extract(name, "(\\w+) (\\w+)", 1) // First capture group
+```
+
+---
+
+## regexp_replace
+
+Replaces text matching a regular expression pattern
+
+**Parameters:**
+
+- `value` — Text value to perform replacement on
+- `pattern` — Regular expression pattern to match
+- `replacement` — Replacement string (supports $1, $2, etc. for capture groups)
+
+**Returns:** Text with replacements made, or null if value is null
+
+**Examples:**
+
+```
+regexp_replace(phone, "(\\d{3})-(\\d{4})", "($1) $2")
+regexp_replace(text, "(?i)hello", "Hi") // Case-insensitive replacement
+regexp_replace("foo bar foo", "foo", "baz") → "baz bar baz"
 ```
 
 ---

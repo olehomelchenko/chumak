@@ -3,7 +3,6 @@ import { AppStore } from '../stores/AppStore';
 import { parseExpression } from '../../core/expression-parser';
 import { interpretAST } from '../../core/ast-interpreter';
 import * as HelperHandlers from './helper-handlers';
-import * as NotificationHandlers from './notification-handlers';
 import { StepService } from '../services/StepService';
 
 export function getDateColumns(): string[] {
@@ -264,13 +263,13 @@ export function getDatePartPreview(
   }
 }
 
-export async function applyDateTransform(callbacks: any) {
+export async function applyDateTransform(callbacks: any, app?: any) {
   const state = DialogStore.dateState;
   const { column, extractParts, truncateUnits, removeOrigin } = state;
   const colVal = column.value;
 
   if (!colVal) {
-    await NotificationHandlers.alert.call(null as any, 'Please select a source column');
+    await callbacks.onError?.('Please select a source column');
     return;
   }
 
@@ -278,10 +277,7 @@ export async function applyDateTransform(callbacks: any) {
   const truncateUnitsList = truncateUnits.value;
 
   if (extractPartsList.length === 0 && truncateUnitsList.length === 0) {
-    await NotificationHandlers.alert.call(
-      null as any,
-      'Please select at least one date part or unit to extract/truncate'
-    );
+    await callbacks.onError?.('Please select at least one date part or unit to extract/truncate');
     return;
   }
 
@@ -306,14 +302,13 @@ export async function applyDateTransform(callbacks: any) {
 
   // Check for existing columns
   const existingCols = columnsToCheck.filter((name) => appCols.includes(name) && name !== colVal);
-  if (existingCols.length > 0) {
+  if (existingCols.length > 0 && app) {
     const message =
       existingCols.length === 1
         ? `Column "${existingCols[0]}" already exists. It will be overwritten. Continue?`
         : `Columns ${existingCols.map((c) => `"${c}"`).join(', ')} already exist. They will be overwritten. Continue?`;
-    if (!(await NotificationHandlers.confirm.call(null as any, message))) {
-      return;
-    }
+    const confirmed = await app.confirm(message);
+    if (!confirmed) return;
   }
 
   // Build operation name

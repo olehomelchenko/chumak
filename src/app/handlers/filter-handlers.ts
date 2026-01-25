@@ -5,7 +5,6 @@ import { formatError } from '../../core/error-formatter';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 import * as HelperHandlers from './helper-handlers';
-import * as NotificationHandlers from './notification-handlers';
 import { StepService } from '../services/StepService';
 
 let previewDebounceTimer: ReturnType<typeof setTimeout> | null = null;
@@ -121,14 +120,11 @@ export async function applyFilterTransform(callbacks: any) {
   const hasError = DialogStore.filterState.error.value;
 
   if (!expr) {
-    await NotificationHandlers.alert.call(null as any, 'Please enter a filter expression');
+    await callbacks.onError?.('Please enter a filter expression');
     return;
   }
   if (hasError) {
-    await NotificationHandlers.alert.call(
-      null as any,
-      'Please fix the expression errors before applying'
-    );
+    await callbacks.onError?.('Please fix the expression errors before applying');
     return;
   }
 

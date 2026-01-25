@@ -929,3 +929,161 @@ describe('parseToDate - ISO DateTime handling', () => {
     expect(result?.getFullYear()).toBe(2011);
   });
 });
+
+describe('JSON Functions', () => {
+  const row = {
+    validJson: '{"name": "Alice", "age": 30}',
+    nestedJson: '{"user": {"name": "Bob", "email": "bob@example.com"}}',
+    arrayJson: '{"items": [{"price": 10}, {"price": 20}]}',
+    invalidJson: 'not valid json',
+    emptyStr: '',
+    nullVal: null,
+  };
+
+  describe('is_json()', () => {
+    it('should return true for valid JSON strings', () => {
+      expect(interpretAST(parseExpression('is_json(validJson)'), row)).toBe(true);
+      expect(interpretAST(parseExpression('is_json(nestedJson)'), row)).toBe(true);
+      expect(interpretAST(parseExpression('is_json(arrayJson)'), row)).toBe(true);
+    });
+
+    it('should return true for JSON primitives', () => {
+      const primitiveRow = {
+        jsonNum: '123',
+        jsonStr: '"hello"',
+        jsonBool: 'true',
+        jsonNull: 'null',
+      };
+      expect(interpretAST(parseExpression('is_json(jsonNum)'), primitiveRow)).toBe(true);
+      expect(interpretAST(parseExpression('is_json(jsonStr)'), primitiveRow)).toBe(true);
+      expect(interpretAST(parseExpression('is_json(jsonBool)'), primitiveRow)).toBe(true);
+      expect(interpretAST(parseExpression('is_json(jsonNull)'), primitiveRow)).toBe(true);
+    });
+
+    it('should return false for invalid JSON', () => {
+      expect(interpretAST(parseExpression('is_json(invalidJson)'), row)).toBe(false);
+      expect(interpretAST(parseExpression('is_json(emptyStr)'), row)).toBe(false);
+    });
+
+    it('should return null for null input', () => {
+      expect(interpretAST(parseExpression('is_json(nullVal)'), row)).toBe(null);
+    });
+  });
+
+  describe('json_extract()', () => {
+    it('should extract top-level properties', () => {
+      expect(interpretAST(parseExpression('json_extract(validJson, "name")'), row)).toBe('Alice');
+      expect(interpretAST(parseExpression('json_extract(validJson, "age")'), row)).toBe(30);
+    });
+
+    it('should extract nested properties with dot notation', () => {
+      expect(interpretAST(parseExpression('json_extract(nestedJson, "user.name")'), row)).toBe(
+        'Bob'
+      );
+      expect(interpretAST(parseExpression('json_extract(nestedJson, "user.email")'), row)).toBe(
+        'bob@example.com'
+      );
+    });
+
+    it('should extract from arrays using numeric index', () => {
+      expect(interpretAST(parseExpression('json_extract(arrayJson, "items.0.price")'), row)).toBe(
+        10
+      );
+      expect(interpretAST(parseExpression('json_extract(arrayJson, "items.1.price")'), row)).toBe(
+        20
+      );
+    });
+
+    it('should return null for non-existent paths', () => {
+      expect(interpretAST(parseExpression('json_extract(validJson, "missing")'), row)).toBe(null);
+      expect(interpretAST(parseExpression('json_extract(nestedJson, "user.missing")'), row)).toBe(
+        null
+      );
+      expect(interpretAST(parseExpression('json_extract(arrayJson, "items.5.price")'), row)).toBe(
+        null
+      );
+    });
+
+    it('should return null for invalid JSON', () => {
+      expect(interpretAST(parseExpression('json_extract(invalidJson, "name")'), row)).toBe(null);
+    });
+
+    it('should return null for null input', () => {
+      expect(interpretAST(parseExpression('json_extract(nullVal, "name")'), row)).toBe(null);
+    });
+
+    it('should handle complex nested structures', () => {
+      const complexRow = {
+        data: '{"company": {"employees": [{"name": "Alice", "role": "dev"}]}}',
+      };
+      expect(
+        interpretAST(parseExpression('json_extract(data, "company.employees.0.name")'), complexRow)
+      ).toBe('Alice');
+      expect(
+        interpretAST(parseExpression('json_extract(data, "company.employees.0.role")'), complexRow)
+      ).toBe('dev');
+    });
+  });
+});
+
+describe('Regex Functions - regexp_replace()', () => {
+  const row = {
+    text: 'foo bar foo',
+    phone: '123-4567',
+    name: 'John Doe',
+    email: 'john@example.com',
+    nullVal: null,
+  };
+
+  it('should replace all matches globally', () => {
+    expect(interpretAST(parseExpression('regexp_replace(text, "foo", "baz")'), row)).toBe(
+      'baz bar baz'
+    );
+  });
+
+  it('should support capture groups', () => {
+    expect(
+      interpretAST(
+        parseExpression('regexp_replace(phone, "(\\\\d{3})-(\\\\d{4})", "($1) $2")'),
+        row
+      )
+    ).toBe('(123) 4567');
+  });
+
+  it('should support case-insensitive replacement', () => {
+    expect(interpretAST(parseExpression('regexp_replace(name, "(?i)john", "Jane")'), row)).toBe(
+      'Jane Doe'
+    );
+    expect(interpretAST(parseExpression('regexp_replace(name, "(?i)JOHN", "Jane")'), row)).toBe(
+      'Jane Doe'
+    );
+  });
+
+  it('should replace with empty string', () => {
+    expect(interpretAST(parseExpression('regexp_replace(email, "@.*", "")'), row)).toBe('john');
+  });
+
+  it('should handle complex patterns', () => {
+    const row2 = { data: 'abc123def456' };
+    expect(interpretAST(parseExpression('regexp_replace(data, "\\\\d+", "X")'), row2)).toBe(
+      'abcXdefX'
+    );
+  });
+
+  it('should return null for null input', () => {
+    expect(interpretAST(parseExpression('regexp_replace(nullVal, "test", "new")'), row)).toBe(null);
+  });
+
+  it('should handle no matches', () => {
+    expect(interpretAST(parseExpression('regexp_replace(text, "xyz", "new")'), row)).toBe(
+      'foo bar foo'
+    );
+  });
+
+  it('should handle special regex characters', () => {
+    const row2 = { data: 'test.file.txt' };
+    expect(interpretAST(parseExpression('regexp_replace(data, "\\\\.", "-")'), row2)).toBe(
+      'test-file-txt'
+    );
+  });
+});

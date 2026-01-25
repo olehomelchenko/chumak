@@ -3,7 +3,6 @@ import { AppStore } from '../stores/AppStore';
 import { parseExpression } from '../../core/expression-parser';
 import { interpretAST } from '../../core/ast-interpreter';
 import * as HelperHandlers from './helper-handlers';
-import * as NotificationHandlers from './notification-handlers';
 import { StepService } from '../services/StepService';
 
 export function getTextColumns(): string[] {
@@ -204,18 +203,18 @@ export function getTextOperationPreview(opValue: string): string {
   }
 }
 
-export async function applyTextTransform(callbacks: any) {
+export async function applyTextTransform(callbacks: any, app?: any) {
   const state = DialogStore.textState;
   const { column, operations, removeOrigin } = state;
   const colVal = column.value;
 
   if (!colVal) {
-    await NotificationHandlers.alert.call(null as any, 'Please select a source column');
+    await callbacks.onError?.('Please select a source column');
     return;
   }
 
   if (operations.value.length === 0) {
-    await NotificationHandlers.alert.call(null as any, 'Please select at least one operation');
+    await callbacks.onError?.('Please select at least one operation');
     return;
   }
 
@@ -245,11 +244,10 @@ export async function applyTextTransform(callbacks: any) {
 
   // Check for existing column
   const appCols = AppStore.columns.value;
-  if (appCols.includes(outputName) && outputName !== colVal) {
+  if (appCols.includes(outputName) && outputName !== colVal && app) {
     const message = `Column "${outputName}" already exists. It will be overwritten. Continue?`;
-    if (!(await NotificationHandlers.confirm.call(null as any, message))) {
-      return;
-    }
+    const confirmed = await app.confirm(message);
+    if (!confirmed) return;
   }
 
   // Build operation description

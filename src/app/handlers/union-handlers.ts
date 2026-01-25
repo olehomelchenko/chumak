@@ -3,7 +3,6 @@ import { applyTransform } from '../../core/transforms';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 import { StepService } from '../services/StepService';
-import * as NotificationHandlers from './notification-handlers';
 
 export function initializeUnionDialog() {
   const models = AppStore.models.value;
@@ -110,10 +109,7 @@ export async function applyUnionTransform(callbacks: any) {
   const sources = AppStore.sources.value;
 
   if (!targetModel) {
-    await NotificationHandlers.alert.call(
-      null as any,
-      'Please select a model or source to union with'
-    );
+    await callbacks.onError?.('Please select a model or source to union with');
     return;
   }
 
@@ -139,6 +135,6 @@ export async function applyUnionTransform(callbacks: any) {
     await StepService.runTransform('Union', transform, callbacks);
   } catch (error: any) {
     console.error('Union transform setup error:', error);
-    await NotificationHandlers.alert.call(null as any, 'Error preparing union: ' + error.message);
+    await callbacks.onError?.('Error preparing union: ' + error.message);
   }
 }

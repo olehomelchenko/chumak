@@ -5,7 +5,6 @@ import { formatError } from '../../core/error-formatter';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 import * as HelperHandlers from './helper-handlers';
-import * as NotificationHandlers from './notification-handlers';
 import { StepService } from '../services/StepService';
 
 let previewDebounceTimer: ReturnType<typeof setTimeout> | null = null;
@@ -86,34 +85,27 @@ export function clearPreview() {
   DialogStore.previewState.rows.value = [];
 }
 
-export async function applyDeriveTransform(callbacks: any) {
+export async function applyDeriveTransform(callbacks: any, app?: any) {
   const columnName = DialogStore.deriveState.columnName.value;
   const expression = DialogStore.deriveState.expression.value;
   const error = DialogStore.deriveState.error.value;
   const columns = AppStore.columns.value;
 
   if (!columnName || !expression) {
-    await NotificationHandlers.alert.call(
-      null as any,
-      'Please provide both column name and expression'
-    );
+    await callbacks.onError?.('Please provide both column name and expression');
     return;
   }
   if (error) {
-    await NotificationHandlers.alert.call(
-      null as any,
-      'Please fix the expression errors before applying'
-    );
+    await callbacks.onError?.('Please fix the expression errors before applying');
     return;
   }
   if (columns.includes(columnName)) {
-    if (
-      !(await NotificationHandlers.confirm.call(
-        null as any,
+    if (app) {
+      const confirmed = await app.confirm(
         `Column "${columnName}" already exists. It will be overwritten. Continue?`
-      ))
-    )
-      return;
+      );
+      if (!confirmed) return;
+    }
   }
 
   const transform = { derive: { [columnName]: expression } };

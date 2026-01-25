@@ -473,7 +473,7 @@ export class SytoApp implements AppState {
     return DeriveHandlers.updateDerivePreview();
   }
   applyDeriveTransform() {
-    return DeriveHandlers.applyDeriveTransform(HelperHandlers.createExecutionCallbacks(this));
+    return DeriveHandlers.applyDeriveTransform(HelperHandlers.createExecutionCallbacks(this), this);
   }
 
   // Aggregate handlers
@@ -619,7 +619,7 @@ export class SytoApp implements AppState {
     return MergeHandlers.selectMergeColumns(columns);
   }
   applyMergeTransform() {
-    return MergeHandlers.applyMergeTransform(HelperHandlers.createExecutionCallbacks(this));
+    return MergeHandlers.applyMergeTransform(HelperHandlers.createExecutionCallbacks(this), this);
   }
 
   // Dedupe handlers
@@ -668,7 +668,10 @@ export class SytoApp implements AppState {
     return RegexpHandlers.updateRegexpMatchPreview();
   }
   applyRegexpMatchTransform() {
-    return RegexpHandlers.applyRegexpMatchTransform(HelperHandlers.createExecutionCallbacks(this));
+    return RegexpHandlers.applyRegexpMatchTransform(
+      HelperHandlers.createExecutionCallbacks(this),
+      this
+    );
   }
   validateRegexpExtractExpression() {
     return RegexpHandlers.validateRegexpExtractExpression();
@@ -681,13 +684,17 @@ export class SytoApp implements AppState {
   }
   applyRegexpExtractTransform() {
     return RegexpHandlers.applyRegexpExtractTransform(
-      HelperHandlers.createExecutionCallbacks(this)
+      HelperHandlers.createExecutionCallbacks(this),
+      this
     );
   }
 
   // Simple handlers
   applyReplaceTransform() {
-    return SimpleHandlers.applyReplaceTransform(HelperHandlers.createExecutionCallbacks(this));
+    return SimpleHandlers.applyReplaceTransform(
+      HelperHandlers.createExecutionCallbacks(this),
+      this
+    );
   }
   applySortTransform() {
     return SimpleHandlers.applySortTransform(HelperHandlers.createExecutionCallbacks(this));

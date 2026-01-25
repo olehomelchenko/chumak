@@ -4,7 +4,6 @@ import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 import { StepService } from '../services/StepService';
 import * as HelperHandlers from './helper-handlers';
-import * as NotificationHandlers from './notification-handlers';
 
 export function addAggregation() {
   const state = DialogStore.aggregateState;
@@ -91,6 +90,6 @@ export async function applyAggregateTransform(callbacks: any) {
     const transform = constructAggregateStep();
     await StepService.runTransform('Aggregate', transform, callbacks);
   } catch (error: any) {
-    await NotificationHandlers.alert.call(null as any, error.message);
+    await callbacks.onError?.(error.message);
   }
 }

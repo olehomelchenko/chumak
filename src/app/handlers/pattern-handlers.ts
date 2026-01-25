@@ -1,12 +1,11 @@
 import { DialogStore } from '../stores/DialogStore';
 import { StepService } from '../services/StepService';
-import * as NotificationHandlers from './notification-handlers';
 
 export async function applySelectPatternTransform(callbacks: any) {
   const { pattern, matchType, include } = DialogStore.selectPatternState;
 
   if (!pattern.value || pattern.value.trim() === '') {
-    await NotificationHandlers.alert.call(null as any, 'Please enter a pattern');
+    await callbacks.onError?.('Please enter a pattern');
     return;
   }
 
@@ -36,7 +35,7 @@ export async function applyRemovePatternTransform(callbacks: any) {
   const { pattern, matchType } = DialogStore.removePatternState;
 
   if (!pattern.value || pattern.value.trim() === '') {
-    await NotificationHandlers.alert.call(null as any, 'Please enter a pattern');
+    await callbacks.onError?.('Please enter a pattern');
     return;
   }
 
@@ -65,19 +64,19 @@ export async function applyConditionalTransform(callbacks: any) {
   const { column, conditions, else: elseValue } = DialogStore.conditionalState;
 
   if (!column.value || column.value.trim() === '') {
-    await NotificationHandlers.alert.call(null as any, 'Please enter a column name');
+    await callbacks.onError?.('Please enter a column name');
     return;
   }
 
   // Validate conditions
   const validConditions = conditions.value.filter((c) => c.when.trim() && c.then.trim());
   if (validConditions.length === 0) {
-    await NotificationHandlers.alert.call(null as any, 'Please add at least one valid condition');
+    await callbacks.onError?.('Please add at least one valid condition');
     return;
   }
 
   if (!elseValue.value || elseValue.value.trim() === '') {
-    await NotificationHandlers.alert.call(null as any, 'Please enter an else value');
+    await callbacks.onError?.('Please enter an else value');
     return;
   }
 
@@ -100,7 +99,7 @@ export async function applyRenamePatternTransform(callbacks: any) {
   const { find, replace: replaceValue, regex } = DialogStore.renamePatternState;
 
   if (!find.value || find.value.trim() === '') {
-    await NotificationHandlers.alert.call(null as any, 'Please enter a find pattern');
+    await callbacks.onError?.('Please enter a find pattern');
     return;
   }
 

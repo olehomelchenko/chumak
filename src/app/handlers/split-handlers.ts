@@ -4,7 +4,6 @@ import { SchemaEngine, ColumnType } from '../../core/schema-engine';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 import { StepService } from '../services/StepService';
-import * as NotificationHandlers from './notification-handlers';
 
 let previewDebounceTimer: ReturnType<typeof setTimeout> | null = null;
 
@@ -169,11 +168,11 @@ export async function applySplitTransform(callbacks: any) {
   const models = AppStore.models.value;
 
   if (!column.value) {
-    await NotificationHandlers.alert.call(null as any, 'Please select a column');
+    await callbacks.onError?.('Please select a column');
     return;
   }
   if (!delimiter.value) {
-    await NotificationHandlers.alert.call(null as any, 'Please enter a delimiter');
+    await callbacks.onError?.('Please enter a delimiter');
     return;
   }
 
@@ -217,7 +216,7 @@ export async function applySplitTransform(callbacks: any) {
     }
   } catch (error: any) {
     console.error('Split transform error:', error);
-    await NotificationHandlers.alert.call(null as any, 'Error applying split: ' + error.message);
+    await callbacks.onError?.('Error applying split: ' + error.message);
   } finally {
     if (callbacks.onTransformEnd) callbacks.onTransformEnd();
   }

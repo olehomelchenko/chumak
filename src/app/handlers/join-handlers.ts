@@ -3,7 +3,6 @@ import { applyTransform } from '../../core/transforms';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 import { StepService } from '../services/StepService';
-import * as NotificationHandlers from './notification-handlers';
 
 export function initializeJoinDialog() {
   const models = AppStore.models.value;
@@ -423,23 +422,17 @@ export async function applyJoinTransform(callbacks: any, app?: any) {
   const sources = AppStore.sources.value;
 
   if (!leftModelId) {
-    await NotificationHandlers.alert.call(null as any, 'Please select a left table');
+    await callbacks.onError?.('Please select a left table');
     return;
   }
   if (!rightModel) {
-    await NotificationHandlers.alert.call(
-      null as any,
-      'Please select a model or source to join with'
-    );
+    await callbacks.onError?.('Please select a model or source to join with');
     return;
   }
   if (joinType !== 'cross') {
     const completePairs = keyPairs.filter((pair) => pair[0] && pair[1]);
     if (completePairs.length === 0) {
-      await NotificationHandlers.alert.call(
-        null as any,
-        'Please specify at least one complete key pair'
-      );
+      await callbacks.onError?.('Please specify at least one complete key pair');
       return;
     }
   }
@@ -495,16 +488,13 @@ export async function applyJoinTransform(callbacks: any, app?: any) {
         : sources.find((s) => s.id === leftModelId);
 
       if (!leftSource) {
-        await NotificationHandlers.alert.call(null as any, 'Could not find source for new model');
+        await callbacks.onError?.('Could not find source for new model');
         return;
       }
 
       const defaultName = `join_${AppStore.models.value.filter((m) => m.sourceId === leftSource.id).length + 1}`;
       if (!app?.prompt) {
-        await NotificationHandlers.alert.call(
-          null as any,
-          'Cannot create new model: app instance not available'
-        );
+        await callbacks.onError?.('Cannot create new model: app instance not available');
         return;
       }
       const modelName = await app.prompt('Enter name for new model:', defaultName);
@@ -516,10 +506,7 @@ export async function applyJoinTransform(callbacks: any, app?: any) {
       );
 
       if (existingModel) {
-        await NotificationHandlers.alert.call(
-          null as any,
-          'A model with this name already exists for this source.'
-        );
+        await callbacks.onError?.('A model with this name already exists for this source.');
         return;
       }
 
@@ -595,6 +582,6 @@ export async function applyJoinTransform(callbacks: any, app?: any) {
     }
   } catch (error: any) {
     console.error('Join transform setup error:', error);
-    await NotificationHandlers.alert.call(null as any, 'Error preparing join: ' + error.message);
+    await callbacks.onError?.('Error preparing join: ' + error.message);
   }
 }

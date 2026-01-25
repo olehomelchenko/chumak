@@ -1,7 +1,6 @@
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 import * as HelperHandlers from './helper-handlers';
-import * as NotificationHandlers from './notification-handlers';
 import { StepService } from '../services/StepService';
 
 let matchDebounceTimer: ReturnType<typeof setTimeout> | null = null;
@@ -64,7 +63,7 @@ export function updateRegexpMatchPreview() {
   }
 }
 
-export async function applyRegexpMatchTransform(callbacks: any) {
+export async function applyRegexpMatchTransform(callbacks: any, app?: any) {
   const { columnName, sourceColumn, pattern, error } = DialogStore.regexpMatchState;
   const columns = AppStore.columns.value;
 
@@ -74,25 +73,22 @@ export async function applyRegexpMatchTransform(callbacks: any) {
   const pat = pattern.value;
 
   if (!colName || !pat) {
-    await NotificationHandlers.alert.call(null as any, 'Please provide column name and pattern');
+    await callbacks.onError?.('Please provide column name and pattern');
     return;
   }
   if (error.value) {
-    await NotificationHandlers.alert.call(null as any, 'Please fix pattern errors before applying');
+    await callbacks.onError?.('Please fix pattern errors before applying');
     return;
   }
   if (!srcCol) {
-    await NotificationHandlers.alert.call(null as any, 'Please select a source column');
+    await callbacks.onError?.('Please select a source column');
     return;
   }
-  if (columns.includes(colName)) {
-    if (
-      !(await NotificationHandlers.confirm.call(
-        null as any,
-        `Column "${colName}" already exists. It will be overwritten. Continue?`
-      ))
-    )
-      return;
+  if (columns.includes(colName) && app) {
+    const confirmed = await app.confirm(
+      `Column "${colName}" already exists. It will be overwritten. Continue?`
+    );
+    if (!confirmed) return;
   }
 
   const colRef = HelperHandlers.quoteColumnRef.call(null as any, srcCol);
@@ -160,7 +156,7 @@ export function clearPreview() {
   DialogStore.previewState.rows.value = [];
 }
 
-export async function applyRegexpExtractTransform(callbacks: any) {
+export async function applyRegexpExtractTransform(callbacks: any, app?: any) {
   const { columnName, sourceColumn, pattern, group, error } = DialogStore.regexpExtractState;
   const columns = AppStore.columns.value;
 
@@ -170,25 +166,22 @@ export async function applyRegexpExtractTransform(callbacks: any) {
   const grp = group.value;
 
   if (!colName || !pat) {
-    await NotificationHandlers.alert.call(null as any, 'Please provide column name and pattern');
+    await callbacks.onError?.('Please provide column name and pattern');
     return;
   }
   if (error.value) {
-    await NotificationHandlers.alert.call(null as any, 'Please fix pattern errors before applying');
+    await callbacks.onError?.('Please fix pattern errors before applying');
     return;
   }
   if (!srcCol) {
-    await NotificationHandlers.alert.call(null as any, 'Please select a source column');
+    await callbacks.onError?.('Please select a source column');
     return;
   }
-  if (columns.includes(colName)) {
-    if (
-      !(await NotificationHandlers.confirm.call(
-        null as any,
-        `Column "${colName}" already exists. It will be overwritten. Continue?`
-      ))
-    )
-      return;
+  if (columns.includes(colName) && app) {
+    const confirmed = await app.confirm(
+      `Column "${colName}" already exists. It will be overwritten. Continue?`
+    );
+    if (!confirmed) return;
   }
 
   const colRef = HelperHandlers.quoteColumnRef.call(null as any, srcCol);

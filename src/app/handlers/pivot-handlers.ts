@@ -5,7 +5,6 @@ import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 import { StepService } from '../services/StepService';
 import * as HelperHandlers from './helper-handlers';
-import * as NotificationHandlers from './notification-handlers';
 
 export function onPivotConfigChange() {
   const state = DialogStore.pivotState;
@@ -127,7 +126,7 @@ export async function applyPivotTransform(callbacks: any) {
     }
   } catch (error: any) {
     console.error('Pivot transform error:', error);
-    await NotificationHandlers.alert.call(null as any, 'Error applying pivot: ' + error.message);
+    await callbacks.onError?.('Error applying pivot: ' + error.message);
   } finally {
     if (callbacks.onTransformEnd) callbacks.onTransformEnd();
   }
