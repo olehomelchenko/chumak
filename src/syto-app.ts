@@ -960,9 +960,6 @@ export class SytoApp implements AppState {
   getAboutContent() {
     return DialogHandlers.getAboutContent.call(this);
   }
-  getExpressionsContent() {
-    return DialogHandlers.getExpressionsContent.call(this);
-  }
   getDialogTitle() {
     return DialogHandlers.getDialogTitle.call(this);
   }

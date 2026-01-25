@@ -4,6 +4,7 @@
 >
 > - **[SPECIFICATION.md](SPECIFICATION.md)**: Technical architecture and codebase map
 > - **[DEVELOPMENT-PATTERNS.md](DEVELOPMENT-PATTERNS.md)**: How to add transforms, testing, state management
+> - **[FUNCTION-DOCS-SYSTEM.md](FUNCTION-DOCS-SYSTEM.md)**: Auto-generated function documentation system
 > - **[FUTURE-PROOFING.md](FUTURE-PROOFING.md)**: Schema evolution and compatibility constraints
 > - **[TRANSFORM-ARCHITECTURE-REVIEW.md](TRANSFORM-ARCHITECTURE-REVIEW.md)**: Transform design analysis, gaps, and proposed additions
 
@@ -399,6 +400,8 @@ Expressions are used in `filter` and `derive` transforms.
 > **Note:** Word-form operators (`and`, `or`, `not`) are beginner-friendly alternatives to the symbolic operators (`&&`, `||`, `!`). Both syntaxes are fully supported.
 
 ### 4.3 Functions
+
+> **Complete Function Reference**: See [FUNCTION-DOCS-SYSTEM.md](FUNCTION-DOCS-SYSTEM.md) for auto-generated documentation with examples, parameters, and return values. The function reference dialog is accessible via Help → "Expression Reference" in the UI.
 
 **String functions:**
 

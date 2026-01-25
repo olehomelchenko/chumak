@@ -20,6 +20,7 @@
 ### Development Guides
 
 - **[DEVELOPMENT-PATTERNS.md](docs/DEVELOPMENT-PATTERNS.md)**: How to add transforms, testing patterns, state management conventions
+- **[FUNCTION-DOCS-SYSTEM.md](docs/FUNCTION-DOCS-SYSTEM.md)**: Auto-generated function documentation system (JSDoc → markdown/JSON)
 - **[DEBUGGING.md](docs/DEBUGGING.md)**: CSS Module debugging and DevTools tips
 - **[BACKLOG.md](docs/BACKLOG.md)**: Feature backlog and future enhancements
 - **[TRANSFORM-ARCHITECTURE-REVIEW.md](docs/TRANSFORM-ARCHITECTURE-REVIEW.md)**: Transform design analysis and improvement roadmap
@@ -121,6 +122,7 @@ npm run format   # Prettier
 | --------------------- | ---------------------------------------------------------- |
 | Data structures       | [DATA-SPECIFICATION.md](docs/DATA-SPECIFICATION.md) §1-3   |
 | Expression syntax     | [DATA-SPECIFICATION.md](docs/DATA-SPECIFICATION.md) §4     |
+| Expression functions  | [FUNCTION-DOCS-SYSTEM.md](docs/FUNCTION-DOCS-SYSTEM.md)    |
 | How transforms work   | [SPECIFICATION.md](docs/SPECIFICATION.md) §3, §5           |
 | Adding new transforms | [DEVELOPMENT-PATTERNS.md](docs/DEVELOPMENT-PATTERNS.md) §1 |
 | Testing patterns      | [DEVELOPMENT-PATTERNS.md](docs/DEVELOPMENT-PATTERNS.md) §3 |

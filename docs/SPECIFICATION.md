@@ -6,6 +6,7 @@
 > - **[DATA-SPECIFICATION.md](DATA-SPECIFICATION.md)**: Data structures, transform format, and persistence
 > - **[UX-SPECIFICATION.md](UX-SPECIFICATION.md)**: UI/UX design guidelines and component patterns
 > - **[DEVELOPMENT-PATTERNS.md](DEVELOPMENT-PATTERNS.md)**: How to add transforms, testing, state management
+> - **[FUNCTION-DOCS-SYSTEM.md](FUNCTION-DOCS-SYSTEM.md)**: Auto-generated function documentation system
 > - **[FUTURE-PROOFING.md](FUTURE-PROOFING.md)**: Schema evolution and persistence compatibility
 > - **[TRANSFORM-ARCHITECTURE-REVIEW.md](TRANSFORM-ARCHITECTURE-REVIEW.md)**: Transform design analysis, gaps, and improvement roadmap
 
@@ -100,6 +101,7 @@ A three-stage pipeline for safe execution of user-defined formulas:
 - **Implementation**: `src/core/expression-parser.ts`, `src/core/ast-validator.ts`, `src/core/ast-interpreter.ts`
 - **Tests**: `src/core/expression-parser.test.ts`, `src/core/ast-validator.test.ts`, `src/core/ast-interpreter.test.ts`
 - **Design**: See [docs/archive/PARSER-DESIGN-DECISION.md](archive/PARSER-DESIGN-DECISION.md) for architecture rationale
+- **Function Documentation**: See [FUNCTION-DOCS-SYSTEM.md](FUNCTION-DOCS-SYSTEM.md) for auto-generated function reference and documentation system
 
 #### Transformation Engine
 

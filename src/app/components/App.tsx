@@ -38,13 +38,13 @@ import {
   ImputeDialog,
   ConditionalDialog,
   DependencyGraphDialog,
+  FunctionReferenceDialog,
 } from './index';
 // Import handlers for helpers
 import {
   getDialogTitle,
   getDialogButtonText,
   getAboutContent,
-  getExpressionsContent,
   getPreviewTitle,
   getPreviewStats,
   hasPreviewData,
@@ -77,7 +77,6 @@ export function App({ app }: AppProps) {
   const dialogTitle = getDialogTitle.call(app);
   const buttonText = getDialogButtonText.call(app);
   const aboutHtml = activeDialog === 'about' ? getAboutContent.call(app) : '';
-  const expressionsHtml = activeDialog === 'expressions' ? getExpressionsContent.call(app) : '';
   const hasPreview = hasPreviewData.call(app);
   const dialogError = activeDialogError.call(app);
 
@@ -388,12 +387,7 @@ export function App({ app }: AppProps) {
                       dangerouslySetInnerHTML={{ __html: aboutHtml }}
                     ></div>
                   )}
-                  {activeDialog === 'expressions' && (
-                    <div
-                      id="expressions-modal-container"
-                      dangerouslySetInnerHTML={{ __html: expressionsHtml }}
-                    ></div>
-                  )}
+                  {activeDialog === 'expressions' && <FunctionReferenceDialog />}
                   {activeDialog === 'dependency-graph' && <DependencyGraphDialog />}
                 </div>
                 {!['about', 'expressions', 'download', 'settings', 'dependency-graph'].includes(

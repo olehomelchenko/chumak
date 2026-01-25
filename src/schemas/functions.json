@@ -1,0 +1,984 @@
+{
+  "version": "1.0.0",
+  "generated": "2026-01-25T03:55:19.110Z",
+  "functions": [
+    {
+      "name": "regexp_match",
+      "category": "Regex",
+      "description": "Tests if a value matches a regular expression pattern",
+      "signature": "regexp_match(value, pattern)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Text value to test"
+        },
+        {
+          "name": "pattern",
+          "description": "Regular expression pattern (use (?i) prefix for case-insensitive)"
+        }
+      ],
+      "returns": "true if pattern matches, false otherwise, null if value is null",
+      "examples": [
+        {
+          "expression": "regexp_match(email, \"@gmail\\\\.com$\")"
+        },
+        {
+          "expression": "regexp_match(name, \"(?i)john\") // Case-insensitive"
+        }
+      ]
+    },
+    {
+      "name": "regexp_extract",
+      "category": "Regex",
+      "description": "Extracts text matching a regular expression pattern",
+      "signature": "regexp_extract(value, pattern, group)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Text value to extract from"
+        },
+        {
+          "name": "pattern",
+          "description": "Regular expression pattern"
+        },
+        {
+          "name": "group",
+          "description": "Capture group index (default: 0 for full match)"
+        }
+      ],
+      "returns": "Matched text or null if no match",
+      "examples": [
+        {
+          "expression": "regexp_extract(phone, \"\\\\d{3}-\\\\d{4}\")"
+        },
+        {
+          "expression": "regexp_extract(name, \"(\\\\w+) (\\\\w+)\", 1) // First capture group"
+        }
+      ]
+    },
+    {
+      "name": "year",
+      "category": "Date",
+      "description": "Extracts the year from a date value",
+      "signature": "year(value)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Date value or date string"
+        }
+      ],
+      "returns": "Year as number (e.g., 2024), or null if invalid",
+      "examples": [
+        {
+          "expression": "year(order_date)"
+        },
+        {
+          "expression": "year(\"2024-01-15\")",
+          "result": "2024"
+        }
+      ]
+    },
+    {
+      "name": "month",
+      "category": "Date",
+      "description": "Extracts the month from a date value",
+      "signature": "month(value)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Date value or date string"
+        }
+      ],
+      "returns": "Month as number (1-12), or null if invalid",
+      "examples": [
+        {
+          "expression": "month(created_at)"
+        },
+        {
+          "expression": "month(\"2024-03-15\")",
+          "result": "3"
+        }
+      ]
+    },
+    {
+      "name": "day",
+      "category": "Date",
+      "description": "Extracts the day of month from a date value",
+      "signature": "day(value)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Date value or date string"
+        }
+      ],
+      "returns": "Day as number (1-31), or null if invalid",
+      "examples": [
+        {
+          "expression": "day(birth_date)"
+        },
+        {
+          "expression": "day(\"2024-01-15\")",
+          "result": "15"
+        }
+      ]
+    },
+    {
+      "name": "hour",
+      "category": "Date",
+      "description": "Extracts the hour from a datetime value",
+      "signature": "hour(value)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Datetime value or datetime string"
+        }
+      ],
+      "returns": "Hour as number (0-23), or null if invalid",
+      "examples": [
+        {
+          "expression": "hour(timestamp)"
+        },
+        {
+          "expression": "hour(\"2024-01-15T14:30:00\")",
+          "result": "14"
+        }
+      ]
+    },
+    {
+      "name": "minute",
+      "category": "Date",
+      "description": "Extracts the minute from a datetime value",
+      "signature": "minute(value)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Datetime value or datetime string"
+        }
+      ],
+      "returns": "Minute as number (0-59), or null if invalid",
+      "examples": [
+        {
+          "expression": "minute(timestamp)"
+        },
+        {
+          "expression": "minute(\"2024-01-15T14:30:00\")",
+          "result": "30"
+        }
+      ]
+    },
+    {
+      "name": "second",
+      "category": "Date",
+      "description": "Extracts the second from a datetime value",
+      "signature": "second(value)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Datetime value or datetime string"
+        }
+      ],
+      "returns": "Second as number (0-59), or null if invalid",
+      "examples": [
+        {
+          "expression": "second(timestamp)"
+        },
+        {
+          "expression": "second(\"2024-01-15T14:30:45\")",
+          "result": "45"
+        }
+      ]
+    },
+    {
+      "name": "weekday",
+      "category": "Date",
+      "description": "Returns the day of week (ISO 8601: 0=Monday, 6=Sunday)",
+      "signature": "weekday(value)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Date value or date string"
+        }
+      ],
+      "returns": "Day of week as number (0-6), or null if invalid",
+      "examples": [
+        {
+          "expression": "weekday(date)"
+        },
+        {
+          "expression": "weekday(\"2024-01-15\")",
+          "result": "0 // Monday"
+        }
+      ]
+    },
+    {
+      "name": "week",
+      "category": "Date",
+      "description": "Returns the ISO week number of the year",
+      "signature": "week(value)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Date value or date string"
+        }
+      ],
+      "returns": "Week number (1-53), or null if invalid",
+      "examples": [
+        {
+          "expression": "week(order_date)"
+        },
+        {
+          "expression": "week(\"2024-01-15\")",
+          "result": "3"
+        }
+      ]
+    },
+    {
+      "name": "quarter",
+      "category": "Date",
+      "description": "Returns the quarter of the year",
+      "signature": "quarter(value)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Date value or date string"
+        }
+      ],
+      "returns": "Quarter as number (1-4), or null if invalid",
+      "examples": [
+        {
+          "expression": "quarter(sale_date)"
+        },
+        {
+          "expression": "quarter(\"2024-03-15\")",
+          "result": "1"
+        }
+      ]
+    },
+    {
+      "name": "today",
+      "category": "Date",
+      "description": "Returns the current date in YYYY-MM-DD format",
+      "signature": "today()",
+      "params": [],
+      "returns": "Current date as string",
+      "examples": [
+        {
+          "expression": "order_date == today()"
+        },
+        {
+          "expression": "today()",
+          "result": "\"2024-01-15\""
+        }
+      ]
+    },
+    {
+      "name": "now",
+      "category": "Date",
+      "description": "Returns the current datetime in ISO format",
+      "signature": "now()",
+      "params": [],
+      "returns": "Current datetime as string",
+      "examples": [
+        {
+          "expression": "created_at < now()"
+        },
+        {
+          "expression": "now()",
+          "result": "\"2024-01-15T14:30:45\""
+        }
+      ]
+    },
+    {
+      "name": "days_between",
+      "category": "Date",
+      "description": "Calculates the number of days between two dates",
+      "signature": "days_between(date1, date2)",
+      "params": [
+        {
+          "name": "date1",
+          "description": "Start date"
+        },
+        {
+          "name": "date2",
+          "description": "End date"
+        }
+      ],
+      "returns": "Number of days from date1 to date2, or null if either date is invalid",
+      "examples": [
+        {
+          "expression": "days_between(start, end)"
+        },
+        {
+          "expression": "days_between(\"2024-01-01\", \"2024-01-15\")",
+          "result": "14"
+        }
+      ]
+    },
+    {
+      "name": "date_add",
+      "category": "Date",
+      "description": "Adds a time interval to a date",
+      "signature": "date_add(value, amount, unit)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Date value or date string"
+        },
+        {
+          "name": "amount",
+          "description": "Number of units to add (can be negative)"
+        },
+        {
+          "name": "unit",
+          "description": "Time unit: \"days\", \"months\", \"years\", \"hours\", \"minutes\", \"seconds\""
+        }
+      ],
+      "returns": "New date/datetime as string, or null if invalid",
+      "examples": [
+        {
+          "expression": "date_add(order_date, 30, \"days\")"
+        },
+        {
+          "expression": "date_add(\"2024-01-15\", 2, \"months\")",
+          "result": "\"2024-03-15\""
+        }
+      ]
+    },
+    {
+      "name": "date_trunc",
+      "category": "Date",
+      "description": "Truncates a date to the start of a time period",
+      "signature": "date_trunc(value, unit)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Date value or date string"
+        },
+        {
+          "name": "unit",
+          "description": "Truncation unit: \"year\", \"quarter\", \"month\", \"week\", \"day\", \"hour\", \"minute\", \"second\""
+        }
+      ],
+      "returns": "Truncated date/datetime as string, or null if invalid",
+      "examples": [
+        {
+          "expression": "date_trunc(timestamp, \"month\")"
+        },
+        {
+          "expression": "date_trunc(\"2024-01-15\", \"month\")",
+          "result": "\"2024-01-01\""
+        }
+      ]
+    },
+    {
+      "name": "format_date",
+      "category": "Date",
+      "description": "Formats a date using a custom format string",
+      "signature": "format_date(value, format)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Date value or date string"
+        },
+        {
+          "name": "format",
+          "description": "Format string using tokens (YYYY, MM, DD, HH, mm, ss, etc.)"
+        }
+      ],
+      "returns": "Formatted date string, or null if invalid",
+      "examples": [
+        {
+          "expression": "format_date(date, \"DD/MM/YYYY\")"
+        },
+        {
+          "expression": "format_date(\"2024-01-15\", \"MM/DD/YYYY\")",
+          "result": "\"01/15/2024\""
+        }
+      ]
+    },
+    {
+      "name": "upper",
+      "category": "Text",
+      "description": "Converts text to uppercase",
+      "signature": "upper(value)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Text value"
+        }
+      ],
+      "returns": "Uppercase string, or null if input is null",
+      "examples": [
+        {
+          "expression": "upper(name)"
+        },
+        {
+          "expression": "upper(\"john doe\")",
+          "result": "\"JOHN DOE\""
+        }
+      ]
+    },
+    {
+      "name": "lower",
+      "category": "Text",
+      "description": "Converts text to lowercase",
+      "signature": "lower(value)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Text value"
+        }
+      ],
+      "returns": "Lowercase string, or null if input is null",
+      "examples": [
+        {
+          "expression": "lower(name)"
+        },
+        {
+          "expression": "lower(\"JOHN DOE\")",
+          "result": "\"john doe\""
+        }
+      ]
+    },
+    {
+      "name": "titlecase",
+      "category": "Text",
+      "description": "Converts text to title case (capitalizes first letter of each word)",
+      "signature": "titlecase(value)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Text value"
+        }
+      ],
+      "returns": "Title case string, or null if input is null",
+      "examples": [
+        {
+          "expression": "titlecase(name)"
+        },
+        {
+          "expression": "titlecase(\"john doe\")",
+          "result": "\"John Doe\""
+        }
+      ]
+    },
+    {
+      "name": "trim",
+      "category": "Text",
+      "description": "Removes leading and trailing whitespace",
+      "signature": "trim(value)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Text value"
+        }
+      ],
+      "returns": "Trimmed string, or null if input is null",
+      "examples": [
+        {
+          "expression": "trim(padded)"
+        },
+        {
+          "expression": "trim(\"  hello  \")",
+          "result": "\"hello\""
+        }
+      ]
+    },
+    {
+      "name": "substring",
+      "category": "Text",
+      "description": "Extracts a substring from text",
+      "signature": "substring(value, start, length)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Text value"
+        },
+        {
+          "name": "start",
+          "description": "Start index (0-based)"
+        },
+        {
+          "name": "length",
+          "description": "Optional length of substring"
+        }
+      ],
+      "returns": "Substring, or null if input is null",
+      "examples": [
+        {
+          "expression": "substring(name, 5)"
+        },
+        {
+          "expression": "substring(\"John Doe\", 0, 4)",
+          "result": "\"John\""
+        }
+      ]
+    },
+    {
+      "name": "len",
+      "category": "Text",
+      "description": "Returns the length of a string",
+      "signature": "len(value)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Text value"
+        }
+      ],
+      "returns": "String length as number, or null if input is null",
+      "examples": [
+        {
+          "expression": "len(name)"
+        },
+        {
+          "expression": "len(\"John Doe\")",
+          "result": "8"
+        }
+      ]
+    },
+    {
+      "name": "split",
+      "category": "Text",
+      "description": "Splits text by delimiter and returns segment at index",
+      "signature": "split(value, delimiter, index)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Text value to split"
+        },
+        {
+          "name": "delimiter",
+          "description": "Delimiter string"
+        },
+        {
+          "name": "index",
+          "description": "Index of segment to return (default: 0, use -1 for last segment)"
+        }
+      ],
+      "returns": "Segment at index, or null if index is out of bounds",
+      "examples": [
+        {
+          "expression": "split(\"a,b,c\", \",\")"
+        },
+        {
+          "expression": "split(\"a,b,c\", \",\", 2)",
+          "result": "\"c\""
+        },
+        {
+          "expression": "split(\"a,b,c\", \",\", -1)",
+          "result": "\"c\""
+        }
+      ]
+    },
+    {
+      "name": "equals",
+      "category": "Text",
+      "description": "Tests if two values are equal (case-sensitive)",
+      "signature": "equals(value1, value2)",
+      "params": [
+        {
+          "name": "value1",
+          "description": "First value"
+        },
+        {
+          "name": "value2",
+          "description": "Second value"
+        }
+      ],
+      "returns": "true if equal, false otherwise",
+      "examples": [
+        {
+          "expression": "equals(name, \"Alice\")"
+        },
+        {
+          "expression": "equals(\"Alice\", \"alice\")",
+          "result": "false"
+        }
+      ]
+    },
+    {
+      "name": "contains",
+      "category": "Text",
+      "description": "Tests if text contains a substring (case-sensitive)",
+      "signature": "contains(value, substring)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Text value"
+        },
+        {
+          "name": "substring",
+          "description": "Substring to search for"
+        }
+      ],
+      "returns": "true if substring is found, false otherwise",
+      "examples": [
+        {
+          "expression": "contains(code, \"ABC\")"
+        },
+        {
+          "expression": "contains(\"ABCDEF\", \"BCD\")",
+          "result": "true"
+        }
+      ]
+    },
+    {
+      "name": "starts_with",
+      "category": "Text",
+      "description": "Tests if text starts with a prefix (case-sensitive)",
+      "signature": "starts_with(value, prefix)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Text value"
+        },
+        {
+          "name": "prefix",
+          "description": "Prefix to check for"
+        }
+      ],
+      "returns": "true if text starts with prefix, false otherwise",
+      "examples": [
+        {
+          "expression": "starts_with(code, \"AB\")"
+        },
+        {
+          "expression": "starts_with(\"ABCDEF\", \"ABC\")",
+          "result": "true"
+        }
+      ]
+    },
+    {
+      "name": "ends_with",
+      "category": "Text",
+      "description": "Tests if text ends with a suffix (case-sensitive)",
+      "signature": "ends_with(value, suffix)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Text value"
+        },
+        {
+          "name": "suffix",
+          "description": "Suffix to check for"
+        }
+      ],
+      "returns": "true if text ends with suffix, false otherwise",
+      "examples": [
+        {
+          "expression": "ends_with(file, \".csv\")"
+        },
+        {
+          "expression": "ends_with(\"data.csv\", \".csv\")",
+          "result": "true"
+        }
+      ]
+    },
+    {
+      "name": "equals_ci",
+      "category": "Text",
+      "description": "Tests if two values are equal (case-insensitive)",
+      "signature": "equals_ci(value1, value2)",
+      "params": [
+        {
+          "name": "value1",
+          "description": "First value"
+        },
+        {
+          "name": "value2",
+          "description": "Second value"
+        }
+      ],
+      "returns": "true if equal (ignoring case), false otherwise",
+      "examples": [
+        {
+          "expression": "equals_ci(name, \"alice\")"
+        },
+        {
+          "expression": "equals_ci(\"Alice\", \"ALICE\")",
+          "result": "true"
+        }
+      ]
+    },
+    {
+      "name": "contains_ci",
+      "category": "Text",
+      "description": "Tests if text contains a substring (case-insensitive)",
+      "signature": "contains_ci(value, substring)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Text value"
+        },
+        {
+          "name": "substring",
+          "description": "Substring to search for"
+        }
+      ],
+      "returns": "true if substring is found (ignoring case), false otherwise",
+      "examples": [
+        {
+          "expression": "contains_ci(code, \"abc\")"
+        },
+        {
+          "expression": "contains_ci(\"ABCDEF\", \"bcd\")",
+          "result": "true"
+        }
+      ]
+    },
+    {
+      "name": "starts_with_ci",
+      "category": "Text",
+      "description": "Tests if text starts with a prefix (case-insensitive)",
+      "signature": "starts_with_ci(value, prefix)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Text value"
+        },
+        {
+          "name": "prefix",
+          "description": "Prefix to check for"
+        }
+      ],
+      "returns": "true if text starts with prefix (ignoring case), false otherwise",
+      "examples": [
+        {
+          "expression": "starts_with_ci(code, \"ab\")"
+        },
+        {
+          "expression": "starts_with_ci(\"ABCDEF\", \"abc\")",
+          "result": "true"
+        }
+      ]
+    },
+    {
+      "name": "ends_with_ci",
+      "category": "Text",
+      "description": "Tests if text ends with a suffix (case-insensitive)",
+      "signature": "ends_with_ci(value, suffix)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Text value"
+        },
+        {
+          "name": "suffix",
+          "description": "Suffix to check for"
+        }
+      ],
+      "returns": "true if text ends with suffix (ignoring case), false otherwise",
+      "examples": [
+        {
+          "expression": "ends_with_ci(file, \".CSV\")"
+        },
+        {
+          "expression": "ends_with_ci(\"data.csv\", \".CSV\")",
+          "result": "true"
+        }
+      ]
+    },
+    {
+      "name": "abs",
+      "category": "Math",
+      "description": "Returns the absolute value of a number",
+      "signature": "abs(value)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Numeric value"
+        }
+      ],
+      "returns": "Absolute value, or null if input is null/invalid",
+      "examples": [
+        {
+          "expression": "abs(-5)"
+        },
+        {
+          "expression": "abs(-5)",
+          "result": "5"
+        }
+      ]
+    },
+    {
+      "name": "round",
+      "category": "Math",
+      "description": "Rounds a number to specified decimal places",
+      "signature": "round(value, decimals)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Numeric value"
+        },
+        {
+          "name": "decimals",
+          "description": "Number of decimal places (default: 0)"
+        }
+      ],
+      "returns": "Rounded number, or null if input is null/invalid",
+      "examples": [
+        {
+          "expression": "round(3.7)"
+        },
+        {
+          "expression": "round(3.14159, 2)",
+          "result": "3.14"
+        }
+      ]
+    },
+    {
+      "name": "floor",
+      "category": "Math",
+      "description": "Rounds a number down to the nearest integer",
+      "signature": "floor(value)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Numeric value"
+        }
+      ],
+      "returns": "Floored number, or null if input is null/invalid",
+      "examples": [
+        {
+          "expression": "floor(3.9)"
+        },
+        {
+          "expression": "floor(3.9)",
+          "result": "3"
+        }
+      ]
+    },
+    {
+      "name": "ceil",
+      "category": "Math",
+      "description": "Rounds a number up to the nearest integer",
+      "signature": "ceil(value)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Numeric value"
+        }
+      ],
+      "returns": "Ceiled number, or null if input is null/invalid",
+      "examples": [
+        {
+          "expression": "ceil(3.1)"
+        },
+        {
+          "expression": "ceil(3.1)",
+          "result": "4"
+        }
+      ]
+    },
+    {
+      "name": "min",
+      "category": "Math",
+      "description": "Returns the minimum value from a list of numbers",
+      "signature": "min(args)",
+      "params": [
+        {
+          "name": "args",
+          "description": "Variable number of numeric values"
+        }
+      ],
+      "returns": "Minimum value, or null if all inputs are null/invalid",
+      "examples": [
+        {
+          "expression": "min(price, cost, 100)"
+        },
+        {
+          "expression": "min(10, 5, 20)",
+          "result": "5"
+        }
+      ]
+    },
+    {
+      "name": "max",
+      "category": "Math",
+      "description": "Returns the maximum value from a list of numbers",
+      "signature": "max(args)",
+      "params": [
+        {
+          "name": "args",
+          "description": "Variable number of numeric values"
+        }
+      ],
+      "returns": "Maximum value, or null if all inputs are null/invalid",
+      "examples": [
+        {
+          "expression": "max(price, cost)"
+        },
+        {
+          "expression": "max(10, 5, 20)",
+          "result": "20"
+        }
+      ]
+    },
+    {
+      "name": "parse_int",
+      "category": "Conversion",
+      "description": "Parses a value as an integer",
+      "signature": "parse_int(value)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Value to parse"
+        }
+      ],
+      "returns": "Integer value, or null if parsing fails",
+      "examples": [
+        {
+          "expression": "parse_int(\"42\")"
+        },
+        {
+          "expression": "parse_int(\"42\")",
+          "result": "42"
+        }
+      ]
+    },
+    {
+      "name": "parse_float",
+      "category": "Conversion",
+      "description": "Parses a value as a floating-point number",
+      "signature": "parse_float(value)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Value to parse"
+        }
+      ],
+      "returns": "Float value, or null if parsing fails",
+      "examples": [
+        {
+          "expression": "parse_float(\"3.14\")"
+        },
+        {
+          "expression": "parse_float(\"3.14\")",
+          "result": "3.14"
+        }
+      ]
+    },
+    {
+      "name": "is_nan",
+      "category": "Conversion",
+      "description": "Tests if a value is not a valid number",
+      "signature": "is_nan(value)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Value to test"
+        }
+      ],
+      "returns": "true if value is NaN, false otherwise",
+      "examples": [
+        {
+          "expression": "is_nan(\"abc\")"
+        },
+        {
+          "expression": "is_nan(\"abc\")",
+          "result": "true"
+        }
+      ]
+    }
+  ]
+}

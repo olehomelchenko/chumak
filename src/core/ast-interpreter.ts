@@ -78,7 +78,15 @@ function parseRegexFlags(pattern: string) {
 }
 
 const FUNCTION_IMPLS: Record<string, (...args: any[]) => any> = {
-  // Regex functions
+  /**
+   * @category Regex
+   * @description Tests if a value matches a regular expression pattern
+   * @param value - Text value to test
+   * @param pattern - Regular expression pattern (use (?i) prefix for case-insensitive)
+   * @returns true if pattern matches, false otherwise, null if value is null
+   * @example regexp_match(email, "@gmail\\.com$")
+   * @example regexp_match(name, "(?i)john") // Case-insensitive
+   */
   regexp_match: (value, pattern) => {
     if (value == null) return null;
     try {
@@ -88,6 +96,16 @@ const FUNCTION_IMPLS: Record<string, (...args: any[]) => any> = {
       return { type: 'error', message: e.message };
     }
   },
+  /**
+   * @category Regex
+   * @description Extracts text matching a regular expression pattern
+   * @param value - Text value to extract from
+   * @param pattern - Regular expression pattern
+   * @param group - Capture group index (default: 0 for full match)
+   * @returns Matched text or null if no match
+   * @example regexp_extract(phone, "\\d{3}-\\d{4}")
+   * @example regexp_extract(name, "(\\w+) (\\w+)", 1) // First capture group
+   */
   regexp_extract: (value, pattern, group = 0) => {
     if (value == null) return null;
     try {
@@ -101,38 +119,102 @@ const FUNCTION_IMPLS: Record<string, (...args: any[]) => any> = {
   },
 
   // Date extraction - Phase 1
+  /**
+   * @category Date
+   * @description Extracts the year from a date value
+   * @param value - Date value or date string
+   * @returns Year as number (e.g., 2024), or null if invalid
+   * @example year(order_date)
+   * @example year("2024-01-15") → 2024
+   */
   year: (value) => {
     const date = parseToDate(value);
     return date ? date.getFullYear() : null;
   },
+  /**
+   * @category Date
+   * @description Extracts the month from a date value
+   * @param value - Date value or date string
+   * @returns Month as number (1-12), or null if invalid
+   * @example month(created_at)
+   * @example month("2024-03-15") → 3
+   */
   month: (value) => {
     const date = parseToDate(value);
     return date ? date.getMonth() + 1 : null; // 1-12 instead of 0-11
   },
+  /**
+   * @category Date
+   * @description Extracts the day of month from a date value
+   * @param value - Date value or date string
+   * @returns Day as number (1-31), or null if invalid
+   * @example day(birth_date)
+   * @example day("2024-01-15") → 15
+   */
   day: (value) => {
     const date = parseToDate(value);
     return date ? date.getDate() : null;
   },
+  /**
+   * @category Date
+   * @description Extracts the hour from a datetime value
+   * @param value - Datetime value or datetime string
+   * @returns Hour as number (0-23), or null if invalid
+   * @example hour(timestamp)
+   * @example hour("2024-01-15T14:30:00") → 14
+   */
   hour: (value) => {
     const date = parseToDate(value);
     return date ? date.getHours() : null;
   },
+  /**
+   * @category Date
+   * @description Extracts the minute from a datetime value
+   * @param value - Datetime value or datetime string
+   * @returns Minute as number (0-59), or null if invalid
+   * @example minute(timestamp)
+   * @example minute("2024-01-15T14:30:00") → 30
+   */
   minute: (value) => {
     const date = parseToDate(value);
     return date ? date.getMinutes() : null;
   },
+  /**
+   * @category Date
+   * @description Extracts the second from a datetime value
+   * @param value - Datetime value or datetime string
+   * @returns Second as number (0-59), or null if invalid
+   * @example second(timestamp)
+   * @example second("2024-01-15T14:30:45") → 45
+   */
   second: (value) => {
     const date = parseToDate(value);
     return date ? date.getSeconds() : null;
   },
 
   // Date extraction - Phase 2
+  /**
+   * @category Date
+   * @description Returns the day of week (ISO 8601: 0=Monday, 6=Sunday)
+   * @param value - Date value or date string
+   * @returns Day of week as number (0-6), or null if invalid
+   * @example weekday(date)
+   * @example weekday("2024-01-15") → 0 // Monday
+   */
   weekday: (value) => {
     const date = parseToDate(value);
     if (!date) return null;
     // Convert JS Sunday=0 to Monday=0 (ISO 8601)
     return (date.getDay() + 6) % 7;
   },
+  /**
+   * @category Date
+   * @description Returns the ISO week number of the year
+   * @param value - Date value or date string
+   * @returns Week number (1-53), or null if invalid
+   * @example week(order_date)
+   * @example week("2024-01-15") → 3
+   */
   week: (value) => {
     const date = parseToDate(value);
     if (!date) return null;
@@ -147,6 +229,14 @@ const FUNCTION_IMPLS: Record<string, (...args: any[]) => any> = {
     }
     return 1 + Math.ceil((firstThursday - target.valueOf()) / 604800000);
   },
+  /**
+   * @category Date
+   * @description Returns the quarter of the year
+   * @param value - Date value or date string
+   * @returns Quarter as number (1-4), or null if invalid
+   * @example quarter(sale_date)
+   * @example quarter("2024-03-15") → 1
+   */
   quarter: (value) => {
     const date = parseToDate(value);
     if (!date) return null;
@@ -154,11 +244,25 @@ const FUNCTION_IMPLS: Record<string, (...args: any[]) => any> = {
   },
 
   // Date utilities - Phase 3
+  /**
+   * @category Date
+   * @description Returns the current date in YYYY-MM-DD format
+   * @returns Current date as string
+   * @example order_date == today()
+   * @example today() → "2024-01-15"
+   */
   today: () => {
     const d = new Date();
     const pad = (n: number) => String(n).padStart(2, '0');
     return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
   },
+  /**
+   * @category Date
+   * @description Returns the current datetime in ISO format
+   * @returns Current datetime as string
+   * @example created_at < now()
+   * @example now() → "2024-01-15T14:30:45"
+   */
   now: () => {
     const d = new Date();
     const pad = (n: number) => String(n).padStart(2, '0');
@@ -168,6 +272,15 @@ const FUNCTION_IMPLS: Record<string, (...args: any[]) => any> = {
   },
 
   // Date arithmetic - Phase 4
+  /**
+   * @category Date
+   * @description Calculates the number of days between two dates
+   * @param date1 - Start date
+   * @param date2 - End date
+   * @returns Number of days from date1 to date2, or null if either date is invalid
+   * @example days_between(start, end)
+   * @example days_between("2024-01-01", "2024-01-15") → 14
+   */
   days_between: (date1, date2) => {
     const d1 = parseToDate(date1);
     const d2 = parseToDate(date2);
@@ -177,6 +290,16 @@ const FUNCTION_IMPLS: Record<string, (...args: any[]) => any> = {
     const utc2 = Date.UTC(d2.getFullYear(), d2.getMonth(), d2.getDate());
     return Math.floor((utc2 - utc1) / 86400000);
   },
+  /**
+   * @category Date
+   * @description Adds a time interval to a date
+   * @param value - Date value or date string
+   * @param amount - Number of units to add (can be negative)
+   * @param unit - Time unit: "days", "months", "years", "hours", "minutes", "seconds"
+   * @returns New date/datetime as string, or null if invalid
+   * @example date_add(order_date, 30, "days")
+   * @example date_add("2024-01-15", 2, "months") → "2024-03-15"
+   */
   date_add: (value, amount, unit) => {
     const date = parseToDate(value);
     if (!date || typeof amount !== 'number') return null;
@@ -227,6 +350,15 @@ const FUNCTION_IMPLS: Record<string, (...args: any[]) => any> = {
       resultDate.getSeconds()
     )}`;
   },
+  /**
+   * @category Date
+   * @description Truncates a date to the start of a time period
+   * @param value - Date value or date string
+   * @param unit - Truncation unit: "year", "quarter", "month", "week", "day", "hour", "minute", "second"
+   * @returns Truncated date/datetime as string, or null if invalid
+   * @example date_trunc(timestamp, "month")
+   * @example date_trunc("2024-01-15", "month") → "2024-01-01"
+   */
   date_trunc: (value, unit) => {
     const date = parseToDate(value);
     if (!date) return null;
@@ -280,6 +412,15 @@ const FUNCTION_IMPLS: Record<string, (...args: any[]) => any> = {
       result.getHours()
     )}:${pad(result.getMinutes())}:${pad(result.getSeconds())}`;
   },
+  /**
+   * @category Date
+   * @description Formats a date using a custom format string
+   * @param value - Date value or date string
+   * @param format - Format string using tokens (YYYY, MM, DD, HH, mm, ss, etc.)
+   * @returns Formatted date string, or null if invalid
+   * @example format_date(date, "DD/MM/YYYY")
+   * @example format_date("2024-01-15", "MM/DD/YYYY") → "01/15/2024"
+   */
   format_date: (value, format) => {
     const date = parseToDate(value);
     if (!date || typeof format !== 'string') return null;
@@ -312,14 +453,38 @@ const FUNCTION_IMPLS: Record<string, (...args: any[]) => any> = {
   },
 
   // String functions
+  /**
+   * @category Text
+   * @description Converts text to uppercase
+   * @param value - Text value
+   * @returns Uppercase string, or null if input is null
+   * @example upper(name)
+   * @example upper("john doe") → "JOHN DOE"
+   */
   upper: (value) => {
     if (value == null) return null;
     return String(value).toUpperCase();
   },
+  /**
+   * @category Text
+   * @description Converts text to lowercase
+   * @param value - Text value
+   * @returns Lowercase string, or null if input is null
+   * @example lower(name)
+   * @example lower("JOHN DOE") → "john doe"
+   */
   lower: (value) => {
     if (value == null) return null;
     return String(value).toLowerCase();
   },
+  /**
+   * @category Text
+   * @description Converts text to title case (capitalizes first letter of each word)
+   * @param value - Text value
+   * @returns Title case string, or null if input is null
+   * @example titlecase(name)
+   * @example titlecase("john doe") → "John Doe"
+   */
   titlecase: (value) => {
     if (value == null) return null;
     const str = String(value);
@@ -329,10 +494,28 @@ const FUNCTION_IMPLS: Record<string, (...args: any[]) => any> = {
       .map((word) => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ');
   },
+  /**
+   * @category Text
+   * @description Removes leading and trailing whitespace
+   * @param value - Text value
+   * @returns Trimmed string, or null if input is null
+   * @example trim(padded)
+   * @example trim("  hello  ") → "hello"
+   */
   trim: (value) => {
     if (value == null) return null;
     return String(value).trim();
   },
+  /**
+   * @category Text
+   * @description Extracts a substring from text
+   * @param value - Text value
+   * @param start - Start index (0-based)
+   * @param length - Optional length of substring
+   * @returns Substring, or null if input is null
+   * @example substring(name, 5)
+   * @example substring("John Doe", 0, 4) → "John"
+   */
   substring: (value, start, length) => {
     if (value == null) return null;
     const str = String(value);
@@ -343,12 +526,31 @@ const FUNCTION_IMPLS: Record<string, (...args: any[]) => any> = {
     const len = Math.max(0, Math.floor(length));
     return str.substring(startIdx, startIdx + len);
   },
+  /**
+   * @category Text
+   * @description Returns the length of a string
+   * @param value - Text value
+   * @returns String length as number, or null if input is null
+   * @example len(name)
+   * @example len("John Doe") → 8
+   */
   len: (value) => {
     if (value == null) return null;
     // Uses JavaScript's string length which counts UTF-16 code units
     // This means surrogate pairs (emojis, etc.) count as 2
     return String(value).length;
   },
+  /**
+   * @category Text
+   * @description Splits text by delimiter and returns segment at index
+   * @param value - Text value to split
+   * @param delimiter - Delimiter string
+   * @param index - Index of segment to return (default: 0, use -1 for last segment)
+   * @returns Segment at index, or null if index is out of bounds
+   * @example split("a,b,c", ",")
+   * @example split("a,b,c", ",", 2) → "c"
+   * @example split("a,b,c", ",", -1) → "c"
+   */
   split: (value, delimiter, index = 0) => {
     if (value == null) return null;
     const str = String(value);
@@ -361,47 +563,136 @@ const FUNCTION_IMPLS: Record<string, (...args: any[]) => any> = {
   },
 
   // String comparison functions (case-sensitive)
+  /**
+   * @category Text
+   * @description Tests if two values are equal (case-sensitive)
+   * @param value1 - First value
+   * @param value2 - Second value
+   * @returns true if equal, false otherwise
+   * @example equals(name, "Alice")
+   * @example equals("Alice", "alice") → false
+   */
   equals: (value1, value2) => {
     if (value1 == null || value2 == null) return false;
     return String(value1) === String(value2);
   },
+  /**
+   * @category Text
+   * @description Tests if text contains a substring (case-sensitive)
+   * @param value - Text value
+   * @param substring - Substring to search for
+   * @returns true if substring is found, false otherwise
+   * @example contains(code, "ABC")
+   * @example contains("ABCDEF", "BCD") → true
+   */
   contains: (value, substring) => {
     if (value == null || substring == null) return false;
     return String(value).includes(String(substring));
   },
+  /**
+   * @category Text
+   * @description Tests if text starts with a prefix (case-sensitive)
+   * @param value - Text value
+   * @param prefix - Prefix to check for
+   * @returns true if text starts with prefix, false otherwise
+   * @example starts_with(code, "AB")
+   * @example starts_with("ABCDEF", "ABC") → true
+   */
   starts_with: (value, prefix) => {
     if (value == null || prefix == null) return false;
     return String(value).startsWith(String(prefix));
   },
+  /**
+   * @category Text
+   * @description Tests if text ends with a suffix (case-sensitive)
+   * @param value - Text value
+   * @param suffix - Suffix to check for
+   * @returns true if text ends with suffix, false otherwise
+   * @example ends_with(file, ".csv")
+   * @example ends_with("data.csv", ".csv") → true
+   */
   ends_with: (value, suffix) => {
     if (value == null || suffix == null) return false;
     return String(value).endsWith(String(suffix));
   },
 
   // Case-insensitive comparison functions
+  /**
+   * @category Text
+   * @description Tests if two values are equal (case-insensitive)
+   * @param value1 - First value
+   * @param value2 - Second value
+   * @returns true if equal (ignoring case), false otherwise
+   * @example equals_ci(name, "alice")
+   * @example equals_ci("Alice", "ALICE") → true
+   */
   equals_ci: (value1, value2) => {
     if (value1 == null || value2 == null) return false;
     return String(value1).toLowerCase() === String(value2).toLowerCase();
   },
+  /**
+   * @category Text
+   * @description Tests if text contains a substring (case-insensitive)
+   * @param value - Text value
+   * @param substring - Substring to search for
+   * @returns true if substring is found (ignoring case), false otherwise
+   * @example contains_ci(code, "abc")
+   * @example contains_ci("ABCDEF", "bcd") → true
+   */
   contains_ci: (value, substring) => {
     if (value == null || substring == null) return false;
     return String(value).toLowerCase().includes(String(substring).toLowerCase());
   },
+  /**
+   * @category Text
+   * @description Tests if text starts with a prefix (case-insensitive)
+   * @param value - Text value
+   * @param prefix - Prefix to check for
+   * @returns true if text starts with prefix (ignoring case), false otherwise
+   * @example starts_with_ci(code, "ab")
+   * @example starts_with_ci("ABCDEF", "abc") → true
+   */
   starts_with_ci: (value, prefix) => {
     if (value == null || prefix == null) return false;
     return String(value).toLowerCase().startsWith(String(prefix).toLowerCase());
   },
+  /**
+   * @category Text
+   * @description Tests if text ends with a suffix (case-insensitive)
+   * @param value - Text value
+   * @param suffix - Suffix to check for
+   * @returns true if text ends with suffix (ignoring case), false otherwise
+   * @example ends_with_ci(file, ".CSV")
+   * @example ends_with_ci("data.csv", ".CSV") → true
+   */
   ends_with_ci: (value, suffix) => {
     if (value == null || suffix == null) return false;
     return String(value).toLowerCase().endsWith(String(suffix).toLowerCase());
   },
 
   // Math functions
+  /**
+   * @category Math
+   * @description Returns the absolute value of a number
+   * @param value - Numeric value
+   * @returns Absolute value, or null if input is null/invalid
+   * @example abs(-5)
+   * @example abs(-5) → 5
+   */
   abs: (value) => {
     if (value == null) return null;
     const num = Number(value);
     return isNaN(num) ? null : Math.abs(num);
   },
+  /**
+   * @category Math
+   * @description Rounds a number to specified decimal places
+   * @param value - Numeric value
+   * @param decimals - Number of decimal places (default: 0)
+   * @returns Rounded number, or null if input is null/invalid
+   * @example round(3.7)
+   * @example round(3.14159, 2) → 3.14
+   */
   round: (value, decimals = 0) => {
     if (value == null) return null;
     const num = Number(value);
@@ -409,16 +700,40 @@ const FUNCTION_IMPLS: Record<string, (...args: any[]) => any> = {
     const factor = Math.pow(10, Math.floor(decimals));
     return Math.round(num * factor) / factor;
   },
+  /**
+   * @category Math
+   * @description Rounds a number down to the nearest integer
+   * @param value - Numeric value
+   * @returns Floored number, or null if input is null/invalid
+   * @example floor(3.9)
+   * @example floor(3.9) → 3
+   */
   floor: (value) => {
     if (value == null) return null;
     const num = Number(value);
     return isNaN(num) ? null : Math.floor(num);
   },
+  /**
+   * @category Math
+   * @description Rounds a number up to the nearest integer
+   * @param value - Numeric value
+   * @returns Ceiled number, or null if input is null/invalid
+   * @example ceil(3.1)
+   * @example ceil(3.1) → 4
+   */
   ceil: (value) => {
     if (value == null) return null;
     const num = Number(value);
     return isNaN(num) ? null : Math.ceil(num);
   },
+  /**
+   * @category Math
+   * @description Returns the minimum value from a list of numbers
+   * @param args - Variable number of numeric values
+   * @returns Minimum value, or null if all inputs are null/invalid
+   * @example min(price, cost, 100)
+   * @example min(10, 5, 20) → 5
+   */
   min: (...args) => {
     const nums = args
       .filter((v) => v != null)
@@ -426,6 +741,14 @@ const FUNCTION_IMPLS: Record<string, (...args: any[]) => any> = {
       .filter((n) => !isNaN(n));
     return nums.length === 0 ? null : Math.min(...nums);
   },
+  /**
+   * @category Math
+   * @description Returns the maximum value from a list of numbers
+   * @param args - Variable number of numeric values
+   * @returns Maximum value, or null if all inputs are null/invalid
+   * @example max(price, cost)
+   * @example max(10, 5, 20) → 20
+   */
   max: (...args) => {
     const nums = args
       .filter((v) => v != null)
@@ -435,16 +758,40 @@ const FUNCTION_IMPLS: Record<string, (...args: any[]) => any> = {
   },
 
   // Type conversion
+  /**
+   * @category Conversion
+   * @description Parses a value as an integer
+   * @param value - Value to parse
+   * @returns Integer value, or null if parsing fails
+   * @example parse_int("42")
+   * @example parse_int("42") → 42
+   */
   parse_int: (value) => {
     if (value == null) return null;
     const result = parseInt(String(value), 10);
     return isNaN(result) ? null : result;
   },
+  /**
+   * @category Conversion
+   * @description Parses a value as a floating-point number
+   * @param value - Value to parse
+   * @returns Float value, or null if parsing fails
+   * @example parse_float("3.14")
+   * @example parse_float("3.14") → 3.14
+   */
   parse_float: (value) => {
     if (value == null) return null;
     const result = parseFloat(String(value));
     return isNaN(result) ? null : result;
   },
+  /**
+   * @category Conversion
+   * @description Tests if a value is not a valid number
+   * @param value - Value to test
+   * @returns true if value is NaN, false otherwise
+   * @example is_nan("abc")
+   * @example is_nan("abc") → true
+   */
   is_nan: (value) => {
     if (value == null) return false;
     return Number.isNaN(Number(value));

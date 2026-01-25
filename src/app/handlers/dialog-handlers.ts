@@ -1,7 +1,6 @@
 import type { SytoApp } from '../../syto-app';
 import { setUrlState, getUrlState, clearUrlHash } from '../../core/url-state';
 import { html as aboutHtml } from '../../content/about.md';
-import { html as expressionsHtml } from '../../content/expressions.md';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 import * as DateHandlers from './date-handlers';
@@ -355,10 +354,6 @@ export function getDialogButtonText(this: SytoApp): string {
 
 export function getAboutContent(this: SytoApp): string {
   return aboutHtml;
-}
-
-export function getExpressionsContent(this: SytoApp): string {
-  return expressionsHtml;
 }
 
 export function hasPreviewData(this: SytoApp): boolean {

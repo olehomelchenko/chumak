@@ -614,6 +614,8 @@ The registry eliminates the need to update `isSlidePanel()`, `getDialogTitle()`,
 
 ### 7.2 Adding a New Function
 
+> **Documentation**: When adding functions, follow the JSDoc documentation pattern described in [FUNCTION-DOCS-SYSTEM.md](FUNCTION-DOCS-SYSTEM.md). The documentation system auto-generates markdown and JSON schema from JSDoc comments.
+
 To add a whitelisted function:
 
 1. Add to whitelist in `ast-validator.ts`:
@@ -634,17 +636,29 @@ const FUNCTION_ARITY: Record<string, [number, number]> = {
 };
 ```
 
-3. Implement in `ast-interpreter.ts`:
+3. Implement in `ast-interpreter.ts` with JSDoc comments:
 
 ```typescript
-case 'your_function': {
-  const arg1 = args[0];
-  const arg2 = args[1] ?? defaultValue;
-  return yourFunctionLogic(arg1, arg2);
-}
+/**
+ * @category [Date|Text|Math|Regex|Conversion]
+ * @description Brief description of what the function does
+ * @param paramName - Parameter description
+ * @returns Return value description
+ * @example your_function(arg1)
+ * @example your_function("value") → result
+ */
+your_function: (arg1, arg2) => {
+  // Implementation
+};
 ```
 
-4. Document in `DATA-SPECIFICATION.md` §4.3.
+4. Regenerate documentation:
+
+   ```bash
+   npm run docs:generate
+   ```
+
+5. Update `DATA-SPECIFICATION.md` §4.3 if adding a new category or significant function group.
 
 ---
 
