@@ -24,11 +24,13 @@
 - **[DEBUGGING.md](docs/DEBUGGING.md)**: CSS Module debugging and DevTools tips
 - **[BACKLOG.md](docs/BACKLOG.md)**: Feature backlog and future enhancements
 - **[TRANSFORM-ARCHITECTURE-REVIEW.md](docs/TRANSFORM-ARCHITECTURE-REVIEW.md)**: Transform design analysis and improvement roadmap
+- **[MULTI-MODEL-ARCHITECTURE.md](docs/MULTI-MODEL-ARCHITECTURE.md)**: Dependency graph system, staleness tracking, and multi-model operations
 
 ### Reference
 
 - **[docs/arquero/](docs/arquero/)**: Arquero library documentation (verbs, expressions, operators)
-- **[docs/archive/](docs/archive/)**: Historical design decisions and completed migrations
+- **[docs/archive/](docs/archive/)**: Architecture Decision Records (ADRs) - key architectural choices and rationale
+- **[docs/future/](docs/future/)**: Future roadmap documents (native app spec, custom icons)
 
 ---
 
