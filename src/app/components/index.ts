@@ -39,8 +39,7 @@ export { DeriveDialog } from './DeriveDialog';
 export { JoinDialog } from './JoinDialog';
 export type { JoinType, JoinTarget } from './JoinDialog';
 
-export { ConcatDialog } from './ConcatDialog';
-export { UnionDialog } from './UnionDialog';
+export { AppendDialog } from './AppendDialog';
 
 export { AggregateDialog } from './AggregateDialog';
 export type { Aggregation } from './AggregateDialog';

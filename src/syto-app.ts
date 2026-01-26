@@ -6,8 +6,7 @@ import * as FilterHandlers from './app/handlers/filter-handlers';
 import * as DeriveHandlers from './app/handlers/derive-handlers';
 import * as AggregateHandlers from './app/handlers/aggregate-handlers';
 import * as JoinHandlers from './app/handlers/join-handlers';
-import * as ConcatHandlers from './app/handlers/concat-handlers';
-import * as UnionHandlers from './app/handlers/union-handlers';
+import * as AppendHandlers from './app/handlers/append-handlers';
 import * as PivotHandlers from './app/handlers/pivot-handlers';
 import * as FoldHandlers from './app/handlers/fold-handlers';
 import * as SplitHandlers from './app/handlers/split-handlers';
@@ -347,6 +346,13 @@ export class SytoApp implements AppState {
     Object.assign(this.pivotDialogState, val);
   }
 
+  get appendDialogState() {
+    return DialogStore.createSignalProxy(DialogStore.appendState);
+  }
+  set appendDialogState(val: any) {
+    Object.assign(this.appendDialogState, val);
+  }
+
   get replaceDialogState() {
     return DialogStore.createSignalProxy(DialogStore.replaceState);
   }
@@ -523,32 +529,18 @@ export class SytoApp implements AppState {
     return JoinHandlers.applyJoinTransform(HelperHandlers.createExecutionCallbacks(this), this);
   }
 
-  // Concat handlers
-  initializeConcatDialog() {
-    return ConcatHandlers.initializeConcatDialog();
+  // Append handlers
+  initializeAppendDialog() {
+    return AppendHandlers.initializeAppendDialog();
   }
-  onConcatTargetChange() {
-    return ConcatHandlers.onConcatTargetChange();
+  onAppendLeftModelChange() {
+    return AppendHandlers.onAppendLeftModelChange();
   }
-  previewConcat() {
-    return ConcatHandlers.previewConcat();
+  onAppendTargetChange() {
+    return AppendHandlers.onAppendTargetChange();
   }
-  applyConcatTransform() {
-    return ConcatHandlers.applyConcatTransform(HelperHandlers.createExecutionCallbacks(this));
-  }
-
-  // Union handlers
-  initializeUnionDialog() {
-    return UnionHandlers.initializeUnionDialog();
-  }
-  onUnionTargetChange() {
-    return UnionHandlers.onUnionTargetChange();
-  }
-  previewUnion() {
-    return UnionHandlers.previewUnion();
-  }
-  applyUnionTransform() {
-    return UnionHandlers.applyUnionTransform(HelperHandlers.createExecutionCallbacks(this));
+  applyAppendTransform() {
+    return AppendHandlers.applyAppendTransform(HelperHandlers.createExecutionCallbacks(this));
   }
 
   // Pivot handlers

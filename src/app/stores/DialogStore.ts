@@ -70,22 +70,18 @@ export class DialogStore {
     } | null>(null), // Values to preview in mismatch modal
   };
 
-  // Concat Dialog State
-  static concatState = {
-    targets: signal<JoinTarget[]>([]),
+  static appendState = {
+    leftModel: signal<string | null>(null),
     targetModel: signal<string | null>(null),
+    leftColumns: signal<string[]>([]),
+    rightColumns: signal<string[]>([]),
+    selectedLeftColumns: signal<string[]>([]),
+    selectedRightColumns: signal<string[]>([]),
+    removeDuplicates: signal(false), // true = union, false = concat
     previewData: signal<any | null>(null),
     previewError: signal<string | null>(null),
     isPreviewing: signal(false),
-  };
-
-  // Union Dialog State
-  static unionState = {
-    targets: signal<JoinTarget[]>([]),
-    targetModel: signal<string | null>(null),
-    previewData: signal<any | null>(null),
-    previewError: signal<string | null>(null),
-    isPreviewing: signal(false),
+    previewTableId: signal<string | null>(null),
   };
 
   // Filter Dialog State
@@ -499,12 +495,19 @@ export class DialogStore {
     this.columnEditorState.columns.value = [];
     this.columnEditorState.textValue.value = '';
 
-    this.importCsvState.fileName.value = '';
-    this.importCsvState.sourceName.value = '';
-    this.importCsvState.jsonData.value = null;
-    this.importCsvState.isReplaceMode.value = false;
-    this.importCsvState.targetSourceId.value = null;
     this.importCsvState.schemaDiff.value = null;
+
+    this.appendState.leftModel.value = null;
+    this.appendState.targetModel.value = null;
+    this.appendState.leftColumns.value = [];
+    this.appendState.rightColumns.value = [];
+    this.appendState.selectedLeftColumns.value = [];
+    this.appendState.selectedRightColumns.value = [];
+    this.appendState.removeDuplicates.value = false;
+    this.appendState.previewData.value = null;
+    this.appendState.previewError.value = null;
+    this.appendState.isPreviewing.value = false;
+    this.appendState.previewTableId.value = null;
 
     this.importUrlState.url.value = '';
     this.importUrlState.isFetching.value = false;

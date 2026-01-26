@@ -1,6 +1,6 @@
 {
   "version": "1.0.0",
-  "generated": "2026-01-25T13:09:07.183Z",
+  "generated": "2026-01-26T00:40:39.798Z",
   "functions": [
     {
       "name": "regexp_match",

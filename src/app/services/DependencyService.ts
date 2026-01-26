@@ -250,6 +250,41 @@ export class DependencyService {
   }
 
   /**
+   * Checks if adding a dependency to a target would create a circular dependency.
+   * @param models - All models
+   * @param sources - All sources
+   * @param activeModelId - ID of the model where the dependency is being added
+   * @param targetId - ID of the model/source being referenced
+   */
+  static checkCircularDependency(
+    models: Model[],
+    sources: Source[],
+    activeModelId: string | null,
+    targetId: string
+  ): { isCyclic: boolean; message?: string } {
+    if (!activeModelId) return { isCyclic: false };
+
+    const graph = DependencyService.buildGraph(sources, models);
+    const node = graph.nodes.get(activeModelId);
+
+    if (node) {
+      node.dependencies.add(targetId);
+      if (DependencyService.hasCycle(graph)) {
+        const targetName =
+          models.find((m) => m.id === targetId)?.name ||
+          sources.find((s) => s.id === targetId)?.name ||
+          'target';
+        return {
+          isCyclic: true,
+          message: `Cannot reference "${targetName}": this would create a circular dependency (e.g., A depends on B, B depends on A).`,
+        };
+      }
+    }
+
+    return { isCyclic: false };
+  }
+
+  /**
    * Checks if a source can be safely deleted.
    * A source can be deleted if all its dependent models can be deleted.
    * This is more permissive since deleting a source already cascades to its models.

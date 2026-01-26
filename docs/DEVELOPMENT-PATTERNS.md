@@ -26,7 +26,8 @@ Adding a transform requires changes across multiple files. Use this checklist:
 | 6    | `src/app/handlers/*-handlers.ts` | Event handlers                     |
 | 7    | `src/app/components/Ribbon.tsx`  | Ribbon button (if new action)      |
 | 8    | `src/core/transforms.test.ts`    | Core logic tests                   |
-| 9    | `docs/DATA-SPECIFICATION.md`     | Transform documentation            |
+| 9    | `src/app/handlers/*`             | Cycle check (if external ref)      |
+| 10   | `docs/DATA-SPECIFICATION.md`     | Transform documentation            |
 
 ---
 
@@ -660,6 +661,46 @@ your_function: (arg1, arg2) => {
    ```
 
 5. Update `DATA-SPECIFICATION.md` §4.3 if adding a new category or significant function group.
+
+---
+
+## 8. Refactoring & Refinement Patterns
+
+### 8.1 UI Logic Consolidation
+
+When two operations share >80% of UI needs (e.g., _Concat_ vs. _Union_ or _Join_ variants), prefer a **Unified Dialog** (like `AppendDialog`) over separate components.
+
+- **Toggle for Variant**: Use a simple checkbox or radio to switch between specific transform keys (e.g., `{concat: ...}` vs `{union: ...}`).
+- **Parity through Patterns**: If a more complex operation (Join) already has a high-quality selector, reuse its UI components (`JoinTreeSelector`) and handler logic to bring simpler operations to parity.
+
+### 8.2 Safe Graph State Mutations
+
+For any transform that creates a reference from one model/source to another (Append, Join, Lookup):
+
+- **DFS Cycle Detection**: Always run a check using `DependencyService.checkCircularDependency` at the handler level _before_ applying the transform.
+- **Compute Order**: Ensure that for previews, the target table is fully computed up to its current last step using `StepService.computeModelUpToStep`.
+
+### 8.3 Deterministic Type Promotion
+
+When "stacking" or "merging" data from two different tables, follow the **Common Denominator Pattern**:
+
+1.  Compare types for same-named columns.
+2.  Use a centralized promotion utility (see `SchemaEngine.getPromotedType`).
+3.  Standardize on: `integer` + `float` → `float`, `date` + `datetime` → `datetime`, otherwise → `string`.
+
+### 8.4 Selection-Source Synchronization
+
+When a dialog depends on a source that the user can change:
+
+- **Automatic Refresh**: Implement an `onTargetChange` handler that resets/extracts columns from the new target and updates selection signals immediately.
+- **Selection Persistence**: If the new source shares some columns with the old one, consider preserving matching selections; otherwise, default to "Select All" for discoverability.
+
+### 8.5 Registry & Test Awareness
+
+When adding or removing dialog names from the `DialogName` union:
+
+- **Registry Check**: Verify [`dialog-registry.ts`](../src/app/dialog-registry.ts) matches the new types.
+- **Completeness Tests**: Update [`dialog-registry.test.ts`](../src/app/dialog-registry.test.ts) to ensure automated tests don't break on "undefined" config lookups.
 
 ---
 

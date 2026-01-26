@@ -3,6 +3,7 @@ import { applyTransform } from '../../core/transforms';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 import { StepService } from '../services/StepService';
+import { DependencyService } from '../services/DependencyService';
 
 export function initializeJoinDialog() {
   const models = AppStore.models.value;
@@ -73,7 +74,7 @@ export function initializeJoinDialog() {
  * Gets data and columns for a target (model or source) ID
  * @returns Object with data array and columns array
  */
-function getTableDataForTarget(targetId: string): { data: any[]; columns: string[] } {
+export function getTableDataForTarget(targetId: string): { data: any[]; columns: string[] } {
   if (!targetId) return { data: [], columns: [] };
   const models = AppStore.models.value;
   const sources = AppStore.sources.value;
@@ -336,6 +337,18 @@ export async function previewJoin() {
     }
   }
 
+  // Cycle check
+  const cycleResult = DependencyService.checkCircularDependency(
+    models,
+    sources,
+    leftModelId,
+    rightModel
+  );
+  if (cycleResult.isCyclic) {
+    state.previewError.value = cycleResult.message || 'Circular dependency detected';
+    return;
+  }
+
   state.isPreviewing.value = true;
   state.previewError.value = null;
   state.previewData.value = null;
@@ -455,6 +468,18 @@ export async function applyJoinTransform(callbacks: any, app?: any) {
       await callbacks.onError?.('Please specify at least one complete key pair');
       return;
     }
+  }
+
+  // Cycle check
+  const cycleResult = DependencyService.checkCircularDependency(
+    models,
+    sources,
+    leftModelId,
+    rightModel
+  );
+  if (cycleResult.isCyclic) {
+    await callbacks.onError?.(cycleResult.message || 'Circular dependency detected');
+    return;
   }
 
   try {

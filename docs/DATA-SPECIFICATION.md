@@ -275,8 +275,8 @@ interface TransformStep {
 
   // Multi-model operations
   join?: { right: string; on: [string, string][]; how: string; suffixes?: [string, string] };
-  concat?: { with: string };
-  union?: { with: string };
+  concat?: { with: string; columns?: string[]; targetColumns?: string[] };
+  union?: { with: string; columns?: string[]; targetColumns?: string[] };
   semijoin?: { right: string; on: [string, string][] };
   antijoin?: { right: string; on: [string, string][] };
   lookup?: { right: string; on: [string, string][]; values: string[] };
@@ -348,22 +348,30 @@ With regex pattern (e.g., format phone numbers):
 }
 ```
 
-**Concat** — Stack rows from another model/source (keeps duplicates):
+**Append (Concat / Union)** — Stacks rows from another model or source.
+
+Unified in the UI as the **Append** dialog, which allows choosing between keeping or removing duplicates.
+
+**Concat** — Keeps duplicates:
 
 ```json
 {
   "concat": {
-    "with": "mdl_monthly_data"
+    "with": "mdl_monthly_data",
+    "columns": ["col_1", "col_2"],
+    "targetColumns": ["col_A", "col_B"]
   }
 }
 ```
 
-**Union** — Stack rows from another model/source (removes duplicates):
+**Union** — Removes duplicates (based on all columns):
 
 ```json
 {
   "union": {
-    "with": "mdl_other_table"
+    "with": "mdl_other_table",
+    "columns": ["id", "val"],
+    "targetColumns": ["id", "val"]
   }
 }
 ```

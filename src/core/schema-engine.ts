@@ -113,8 +113,8 @@ export interface TransformStep {
     replace: string;
     regex?: boolean;
   };
-  concat?: { with: string };
-  union?: { with: string };
+  concat?: { with: string; columns?: string[]; targetColumns?: string[] };
+  union?: { with: string; columns?: string[]; targetColumns?: string[] };
   sample?: { count: number; seed?: number };
   semijoin?: { right: string; on: [string, string][] };
   antijoin?: { right: string; on: [string, string][] };
@@ -189,6 +189,31 @@ export const SchemaEngine = {
     }
 
     // Default to string
+    return 'string';
+  },
+
+  /**
+   * Promotes two types to a common compatible type.
+   * @param {ColumnType} t1
+   * @param {ColumnType} t2
+   * @returns {ColumnType}
+   */
+  getPromotedType(t1: ColumnType, t2: ColumnType): ColumnType {
+    if (t1 === t2) return t1;
+
+    const types = new Set([t1, t2]);
+
+    // Numeric promotions
+    if (types.has('integer') && types.has('float')) {
+      return 'float';
+    }
+
+    // Date promotions
+    if (types.has('date') && types.has('datetime')) {
+      return 'datetime';
+    }
+
+    // Fallback to string if anything is string or incompatible
     return 'string';
   },
 
@@ -810,6 +835,36 @@ export const SchemaEngine = {
       }
 
       return newSchema;
+    }
+
+    // 13. CONCAT / UNION: Merge schemas from both tables
+    if (transform.concat || transform.union) {
+      if (sampleData && sampleData.length > 0) {
+        const names = Object.keys(sampleData[0]);
+        return names.map((name, i) => {
+          const existing = currentSchema.find((c) => c.name === name);
+          // If column exists in current schema, we might still want to check if it needs promotion
+          // but for now, following Syto pattern of using sample data for new results.
+          const sample = sampleData.slice(0, 50).map((row) => row[name]);
+          const inferredType = this.inferType(sample);
+
+          if (existing) {
+            // Keep existing column but update type if inferred is different (handles promotion via inference)
+            return {
+              ...existing,
+              type: this.getPromotedType(existing.type, inferredType),
+              originalPosition: i,
+            };
+          }
+
+          return {
+            name,
+            type: inferredType,
+            format: {},
+            originalPosition: i,
+          };
+        });
+      }
     }
 
     // Future-proofing: Check for unknown transform keys

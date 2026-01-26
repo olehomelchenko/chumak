@@ -106,6 +106,27 @@ export function getDialogState(this: SytoApp, dialog: string) {
         rowLimit: this.uxSettings.preview?.rowLimit || 100,
         analyticsOptOut: this.uxSettings.analyticsOptOut ?? false,
       };
+    case 'append':
+      return {
+        targetModel: DialogStore.appendState.targetModel.value,
+        removeDuplicates: DialogStore.appendState.removeDuplicates.value,
+      };
+    case 'dedupe':
+      return this.dedupeDialogState;
+    case 'column-editor':
+      return DialogStore.columnEditorState.columns.value;
+    case 'impute':
+      return {
+        column: DialogStore.imputeState.column.value,
+        strategy: DialogStore.imputeState.strategy.value,
+        value: DialogStore.imputeState.value.value,
+      };
+    case 'settings':
+      return {
+        theme: this.theme,
+        rowLimit: this.uxSettings.preview?.rowLimit || 100,
+        analyticsOptOut: this.uxSettings.analyticsOptOut ?? false,
+      };
     default:
       return null;
   }
@@ -182,10 +203,8 @@ export function initDialogState(this: SytoApp, dialogName: string, section?: str
     // Logic moved to component or kept in store
   } else if (dialogName === 'join') {
     this.initializeJoinDialog(); // Updates DialogStore.joinState
-  } else if (dialogName === 'concat') {
-    this.initializeConcatDialog();
-  } else if (dialogName === 'union') {
-    this.initializeUnionDialog();
+  } else if (dialogName === 'append') {
+    this.initializeAppendDialog();
   } else if (dialogName === 'derive') {
     // State initialized by DialogStore
   } else if (dialogName === 'sort') {
@@ -530,10 +549,8 @@ export function activeDialogError(this: SytoApp): boolean {
       const hasLookupValues =
         joinState.joinType.value !== 'lookup' || joinState.selectedRightColumns.value.length > 0;
       return !hasRight || !hasKeys || !hasLookupValues;
-    case 'concat':
-      return !DialogStore.concatState.targetModel.value;
-    case 'union':
-      return !DialogStore.unionState.targetModel.value;
+    case 'append':
+      return !DialogStore.appendState.targetModel.value;
     case 'pivot':
       return !this.pivotDialogState.columnColumn || !this.pivotDialogState.valueColumn;
     case 'dedupe':

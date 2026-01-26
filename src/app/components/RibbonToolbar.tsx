@@ -252,16 +252,10 @@ export function RibbonToolbar({ onOpenDialog, onAutoDetectSchema }: RibbonToolba
                 onClick={() => onOpenDialog('join')}
               />
               <RibbonButton
-                icon="carbon:join-left"
-                label="Concat"
-                title="Stack rows from another model/source (keeps duplicates)"
-                onClick={() => onOpenDialog('concat')}
-              />
-              <RibbonButton
-                icon="carbon:join-inner"
-                label="Union"
-                title="Stack rows from another model/source (removes duplicates)"
-                onClick={() => onOpenDialog('union')}
+                icon="carbon:join-full"
+                label="Append"
+                title="Stack rows from another model/source (Concat or Union)"
+                onClick={() => onOpenDialog('append')}
               />
             </RibbonGroup>
           </div>

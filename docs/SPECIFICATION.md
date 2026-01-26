@@ -263,6 +263,7 @@ Each transform is one object in an array.
 | **Impute**     | Fill missing values (constant, mean, median, min, max, forward/backward fill, linear interpolation)                                     |
 | **Merge**      | Concatenate multiple columns with separator (uses `derive` internally, optionally followed by `remove`)                                 |
 | **Sample**     | Extract random rows (`sample: { count: 100, seed: 123 }`)                                                                               |
+| **Append**     | Unified Concat/Union with column selection from both tables (`concat`: ..., `union`: ...).                                              |
 | **Semijoin**   | Filter rows that exist in another table                                                                                                 |
 | **Antijoin**   | Filter rows that do NOT exist in another table                                                                                          |
 | **Lookup**     | Optimized left join for adding specific columns from another table                                                                      |
@@ -329,9 +330,6 @@ Tests are written in **TypeScript** using **Vitest** for native runner support a
 
 ## 8. Roadmap
 
-### 8.1 Future Direction
-
-- **Advanced Multi-model Operations**: `Union`, `Intersect`, and `Except` for advanced multi-model workflows.
 - **Window Functions**: Support for `cumsum`, `lag`, `rank`, and other window-based transformations.
 
 ---

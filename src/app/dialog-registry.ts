@@ -153,18 +153,11 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     buttonText: 'Apply Join',
   },
 
-  concat: {
-    name: 'concat',
-    title: 'Concat Data',
+  append: {
+    name: 'append',
+    title: 'Append Data',
     type: 'slide-panel',
-    buttonText: 'Apply Concat',
-  },
-
-  union: {
-    name: 'union',
-    title: 'Union Data',
-    type: 'slide-panel',
-    buttonText: 'Apply Union',
+    buttonText: 'Apply Append',
   },
 
   replace: {

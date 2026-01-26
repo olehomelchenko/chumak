@@ -71,11 +71,8 @@ export async function applyActiveTransform(this: SytoApp) {
     case 'join':
       await this.applyJoinTransform();
       break;
-    case 'concat':
-      await this.applyConcatTransform();
-      break;
-    case 'union':
-      await this.applyUnionTransform();
+    case 'append':
+      await this.applyAppendTransform();
       break;
     case 'replace':
       await this.applyReplaceTransform();
@@ -372,6 +369,20 @@ export function editStep(this: SytoApp, stepIndex: number) {
     state.column.value = step.impute.column;
     state.strategy.value = step.impute.strategy;
     state.value.value = step.impute.value || '';
+  } else if (step.concat) {
+    this.openDialog('append');
+    DialogStore.appendState.targetModel.value = step.concat.with;
+    DialogStore.appendState.removeDuplicates.value = false;
+    DialogStore.appendState.selectedLeftColumns.value = step.concat.columns || [];
+    DialogStore.appendState.selectedRightColumns.value = step.concat.targetColumns || [];
+    this.onAppendTargetChange();
+  } else if (step.union) {
+    this.openDialog('append');
+    DialogStore.appendState.targetModel.value = step.union.with;
+    DialogStore.appendState.removeDuplicates.value = true;
+    DialogStore.appendState.selectedLeftColumns.value = step.union.columns || [];
+    DialogStore.appendState.selectedRightColumns.value = step.union.targetColumns || [];
+    this.onAppendTargetChange();
   }
 }
 

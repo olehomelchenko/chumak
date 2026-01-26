@@ -278,7 +278,16 @@ export function applyTransform(
       throw new Error(`Concat target with ID '${targetId}' not found`);
     }
 
-    return table.concat(targetTable);
+    let leftTable = table;
+    const { columns: leftCols, targetColumns: rightCols } = transform.concat;
+    if (leftCols && leftCols.length > 0) {
+      leftTable = leftTable.select(...leftCols);
+    }
+    if (rightCols && rightCols.length > 0) {
+      targetTable = targetTable.select(...rightCols);
+    }
+
+    return leftTable.concat(targetTable);
   }
 
   if (transform.union) {
@@ -300,7 +309,16 @@ export function applyTransform(
       throw new Error(`Union target with ID '${targetId}' not found`);
     }
 
-    return table.union(targetTable);
+    let leftTable = table;
+    const { columns: leftCols, targetColumns: rightCols } = transform.union;
+    if (leftCols && leftCols.length > 0) {
+      leftTable = leftTable.select(...leftCols);
+    }
+    if (rightCols && rightCols.length > 0) {
+      targetTable = targetTable.select(...rightCols);
+    }
+
+    return leftTable.union(targetTable);
   }
 
   if (transform.sample) {

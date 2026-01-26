@@ -27,8 +27,7 @@ import {
   MergeDialog,
   DeriveDialog,
   JoinDialog,
-  ConcatDialog,
-  UnionDialog,
+  AppendDialog,
   AggregateDialog,
   ImportCsvDialog,
   ImportUrlDialog,
@@ -234,8 +233,7 @@ export function App({ app }: AppProps) {
                 {activeDialog === 'split' && <SplitDialog />}
                 {activeDialog === 'merge' && <MergeDialog />}
                 {activeDialog === 'join' && <JoinDialog />}
-                {activeDialog === 'concat' && <ConcatDialog />}
-                {activeDialog === 'union' && <UnionDialog />}
+                {activeDialog === 'append' && <AppendDialog />}
                 {activeDialog === 'aggregate' && <AggregateDialog />}
                 {activeDialog === 'column-editor' && <ColumnEditorDialog />}
                 {activeDialog === 'import-csv' && (
