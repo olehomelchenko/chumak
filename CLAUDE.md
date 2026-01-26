@@ -19,6 +19,7 @@
 
 ### Development Guides
 
+- **[DOCUMENTATION-GUIDE.md](docs/DOCUMENTATION-GUIDE.md)**: Documentation organization, user vs. internal docs, maintenance practices
 - **[DEVELOPMENT-PATTERNS.md](docs/DEVELOPMENT-PATTERNS.md)**: How to add transforms, testing patterns, state management conventions
 - **[FUNCTION-DOCS-SYSTEM.md](docs/FUNCTION-DOCS-SYSTEM.md)**: Auto-generated function documentation system (JSDoc → markdown/JSON)
 - **[DEBUGGING.md](docs/DEBUGGING.md)**: CSS Module debugging and DevTools tips
