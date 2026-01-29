@@ -96,12 +96,12 @@ Simple operations (filter, sort, remove columns) should be one or two clicks. Co
 
 ## Current State
 
-The core is solid: 13+ transformation types, expression parsing with security validation, type inference and propagation, EDA with charts. The project is usable for real data cleaning tasks.
+The core is solid: 20+ transformation types, expression parsing with security validation, type inference and propagation, EDA with charts, and a multi-model dependency graph for combining datasets. The project is usable for real data cleaning tasks.
 
 What's still evolving:
 
 - Performance limits with larger datasets
-- Set operations for combining multiple data sources
+- More complex window functions and advanced statistical operations
 
 ## Where It's Going
 

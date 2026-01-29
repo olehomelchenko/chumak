@@ -8,15 +8,17 @@ Review staged or uncommitted code to ensure quality, test coverage, and alignmen
 
 1. **Code Cleanup**: Remove leftover code, unnecessary defensive programming, and simplify over-engineered solutions from iterative development. Proceed with caution; ask for clarification if unsure.
 
-2. **Styles and UI**: whenever implementing or altering CSS or layout, consider following or generalizing to existing patterns rather than writing them from scratch
+2. **No Git Staging/Commit**: **NEVER** stage (`git add`) or commit (`git commit`) changes. This is the USER's responsibility. Your task is to modify the files and verify them.
 
-3. **Verification**: After changes, run `npm run typecheck` and/or `npm run build` to catch errors.
+3. **Styles and UI**: whenever implementing or altering CSS or layout, consider following or generalizing to existing patterns rather than writing them from scratch
 
-4. **Clarification**: If unsure or multiple approaches exist, ask the user before proceeding.
+4. **Verification**: After changes, run `npm run typecheck` and/or `npm run build` to catch errors.
 
-5. **Amendment**: the instructions are not strictly prohibitive. If you notice that some guidelines have valid reason to be violated or bypassed, you should mention it in the summary.
+5. **Clarification**: If unsure or multiple approaches exist, ask the user before proceeding.
 
-6. **Summary**: after performing the instructions, finish by responding the summary of the changes, focusing on what choices were made due to following the instructions, which choices were made in case when there was more than one way to solve it.
+6. **Amendment**: the instructions are not strictly prohibitive. If you notice that some guidelines have valid reason to be violated or bypassed, you should mention it in the summary.
+
+7. **Summary**: after performing the instructions, finish by responding the summary of the changes, focusing on what choices were made due to following the instructions, which choices were made in case when there was more than one way to solve it.
 
 ---
 

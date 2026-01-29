@@ -96,3 +96,4 @@ export type { TypeMenuProps } from './TypeMenu';
 export { TypeConversionDialog } from './TypeConversionDialog';
 export { DependencyGraphDialog } from './DependencyGraphDialog';
 export { FunctionReferenceDialog } from './FunctionReferenceDialog';
+export { DependencyImpactDialog } from './DependencyImpactDialog';

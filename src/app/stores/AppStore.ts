@@ -93,6 +93,19 @@ export class AppStore {
     resolve: null,
   });
 
+  // Dependency impact modal
+  static dependencyImpactModal = signal<{
+    visible: boolean;
+    dependentModels: Array<{ id: string; name: string; sourceName: string }>;
+    action: 'mark-stale' | 'recalculate';
+    resolve: ((action: 'mark-stale' | 'recalculate' | null) => void) | null;
+  }>({
+    visible: false,
+    dependentModels: [],
+    action: 'mark-stale',
+    resolve: null,
+  });
+
   // Intermediate viewing state
   static viewingSchema = signal<ColumnSchema[] | null>(null);
 
@@ -150,6 +163,12 @@ export class AppStore {
       stepName: '',
       affectedSteps: [],
       removeMode: 'all',
+      resolve: null,
+    };
+    this.dependencyImpactModal.value = {
+      visible: false,
+      dependentModels: [],
+      action: 'mark-stale',
       resolve: null,
     };
     this.viewingSchema.value = null;

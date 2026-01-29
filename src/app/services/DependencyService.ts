@@ -51,6 +51,21 @@ function extractReferencedIds(step: TransformStep): string[] {
     ids.push(step.union.with);
   }
 
+  // Semijoin transform references another model/source
+  if (step.semijoin?.right) {
+    ids.push(step.semijoin.right);
+  }
+
+  // Antijoin transform references another model/source
+  if (step.antijoin?.right) {
+    ids.push(step.antijoin.right);
+  }
+
+  // Lookup transform references another model/source
+  if (step.lookup?.right) {
+    ids.push(step.lookup.right);
+  }
+
   return ids;
 }
 
@@ -403,5 +418,29 @@ export class DependencyService {
     }
 
     return orphaned;
+  }
+
+  /**
+   * Gets list of dependent models with names for UI display
+   */
+  static getDependentModelsForUI(
+    models: Model[],
+    sources: Source[],
+    changedModelId: string
+  ): Array<{ id: string; name: string; sourceName: string }> {
+    const staleIds = DependencyService.getModelsToMarkStale(models, sources, changedModelId);
+
+    return staleIds
+      .map((id) => {
+        const model = models.find((m) => m.id === id);
+        if (!model) return null;
+        const source = sources.find((s) => s.id === model.sourceId);
+        return {
+          id: model.id,
+          name: model.name,
+          sourceName: source?.name || 'Unknown Source',
+        };
+      })
+      .filter((m): m is { id: string; name: string; sourceName: string } => m !== null);
   }
 }

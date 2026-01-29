@@ -10,6 +10,15 @@ This document describes established patterns for developing Syto. Follow these c
 
 ---
 
+## 0. AI Development Rules
+
+**Prohibited Actions**:
+
+- **NEVER** run `git add`, `git commit`, `git stash`, or `git push`.
+- All staging and committing must be done by the USER.
+
+---
+
 ## 1. Adding a New Transform
 
 Adding a transform requires changes across multiple files. Use this checklist:

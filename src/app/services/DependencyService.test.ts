@@ -542,5 +542,43 @@ describe('DependencyService', () => {
       expect(result.dependentModels[0].id).toBe('mdl_b');
       expect(result.message).toContain('model is referenced by');
     });
+
+    it('tracks semijoin dependencies in graph', () => {
+      const sources = [createSource('src_1', 'Source')];
+      const models = [
+        createModel('mdl_a', 'Model A', 'src_1'),
+        createModel('mdl_b', 'Model B', 'src_1', [{ semijoin: { right: 'mdl_a', on: [] } }]),
+      ];
+
+      const graph = DependencyService.buildGraph(sources, models);
+      const deps = DependencyService.getDependencies(graph, 'mdl_b');
+      expect(deps).toContain('mdl_a');
+    });
+
+    it('tracks antijoin dependencies in graph', () => {
+      const sources = [createSource('src_1', 'Source')];
+      const models = [
+        createModel('mdl_a', 'Model A', 'src_1'),
+        createModel('mdl_b', 'Model B', 'src_1', [{ antijoin: { right: 'mdl_a', on: [] } }]),
+      ];
+
+      const graph = DependencyService.buildGraph(sources, models);
+      const deps = DependencyService.getDependencies(graph, 'mdl_b');
+      expect(deps).toContain('mdl_a');
+    });
+
+    it('tracks lookup dependencies in graph', () => {
+      const sources = [createSource('src_1', 'Source')];
+      const models = [
+        createModel('mdl_a', 'Model A', 'src_1'),
+        createModel('mdl_b', 'Model B', 'src_1', [
+          { lookup: { right: 'mdl_a', on: [], values: [] } },
+        ]),
+      ];
+
+      const graph = DependencyService.buildGraph(sources, models);
+      const deps = DependencyService.getDependencies(graph, 'mdl_b');
+      expect(deps).toContain('mdl_a');
+    });
   });
 });

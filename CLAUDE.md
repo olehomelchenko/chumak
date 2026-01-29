@@ -111,6 +111,11 @@ npm test         # Run Vitest
 npm run format   # Prettier
 ```
 
+### AI Developer Protocol
+
+- **No Staging or Committing**: Never run `git add`, `git commit`, or `git push`. Staging and committing is strictly reserved for the USER.
+- **Verification**: After changes, run `npm run typecheck` or `npm test` to catch errors.
+
 ### Testing Philosophy
 
 - High coverage on core logic (parsing, transforms, schema)

@@ -141,8 +141,18 @@ export class StepService {
 
     callbacks.updatePagination?.();
 
-    // Mark dependent models as stale since this model's data changed
-    StepService.markDependentsStale(model.id);
+    // Show dependency impact dialog and handle dependent models
+    const shouldContinue = await StepService.handleDependencyImpact(model.id);
+
+    if (!shouldContinue) {
+      // User cancelled - rollback the step addition
+      model.steps.pop();
+      // Note: We don't restore previous data here as it would require keeping a backup
+      // The step is removed but the current data remains (which is the result of the step)
+      // This is acceptable as the user can just undo their last action
+      callbacks.onDialogClose?.(true);
+      return;
+    }
 
     await PersistenceService.autoSave();
 
@@ -266,8 +276,8 @@ export class StepService {
 
       callbacks.onSuccess(result);
 
-      // Mark dependent models as stale since this model's data changed
-      StepService.markDependentsStale(model.id);
+      // Handle dependent models (show dialog if needed)
+      await StepService.handleDependencyImpact(model.id);
 
       await PersistenceService.autoSave();
     } catch (error: any) {
@@ -311,8 +321,8 @@ export class StepService {
 
       callbacks.onSuccess(result);
 
-      // Mark dependent models as stale since this model's data changed
-      StepService.markDependentsStale(model.id);
+      // Handle dependent models (show dialog if needed)
+      await StepService.handleDependencyImpact(model.id);
 
       await PersistenceService.autoSave();
     } catch (error: any) {
@@ -337,8 +347,79 @@ export class StepService {
   }
 
   /**
+   * Shows dependency impact dialog if there are dependents, then handles them based on user choice
+   */
+  static async handleDependencyImpact(modelId: string): Promise<boolean> {
+    const models = AppStore.models.value;
+    const sources = AppStore.sources.value;
+
+    // Check if there are any dependents
+    const dependentModels = DependencyService.getDependentModelsForUI(models, sources, modelId);
+
+    if (dependentModels.length === 0) {
+      return true; // No dependents, continue
+    }
+
+    // Show dialog and wait for user choice
+    const action = await new Promise<'mark-stale' | 'recalculate' | null>((resolve) => {
+      AppStore.dependencyImpactModal.value = {
+        visible: true,
+        dependentModels,
+        action: 'mark-stale',
+        resolve,
+      };
+    });
+
+    if (action === null) {
+      return false; // User cancelled
+    }
+
+    if (action === 'mark-stale') {
+      // Mark dependents as stale (current behavior)
+      const staleIds = DependencyService.markDependentsStale(models, sources, modelId);
+      if (staleIds.length > 0) {
+        AppStore.models.value = [...models];
+      }
+    } else {
+      // Recalculate dependents now (eager)
+      const context = StepService.getContext();
+      const staleIds = DependencyService.getModelsToMarkStale(models, sources, modelId);
+
+      // Get topological execution order to ensure we recompute dependencies before dependents
+      const graph = DependencyService.buildGraph(sources, models);
+      const executionOrder = DependencyService.getExecutionOrder(graph, staleIds);
+      const sortedStaleIds = executionOrder.filter((id) => staleIds.includes(id));
+
+      for (const dependentId of sortedStaleIds) {
+        const dependentModel = models.find((m) => m.id === dependentId);
+        if (!dependentModel) continue;
+
+        try {
+          const result = StepService.computeModelUpToStep(
+            dependentModel,
+            dependentModel.steps.length - 1,
+            context
+          );
+
+          dependentModel.data = JSON.parse(JSON.stringify(convertDatesForStorage(result.data)));
+          dependentModel.schema = result.schema;
+          dependentModel.isStale = false;
+        } catch (error: any) {
+          console.error(`Failed to recompute dependent model ${dependentModel.name}:`, error);
+          dependentModel.isStale = true;
+        }
+      }
+
+      AppStore.models.value = [...models];
+    }
+
+    return true; // Continue
+  }
+
+  /**
    * Marks all models that depend on the given model as stale.
    * Should be called after any change to model data/steps.
+   * [DEPRECATED] Use handleDependencyImpact instead for user-facing operations
    */
   static markDependentsStale(modelId: string): void {
     const models = AppStore.models.value;

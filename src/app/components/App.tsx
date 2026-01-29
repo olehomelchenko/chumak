@@ -43,6 +43,7 @@ import {
   ConditionalDialog,
   DependencyGraphDialog,
   FunctionReferenceDialog,
+  DependencyImpactDialog,
 } from './index';
 // Import handlers for helpers
 import {
@@ -441,6 +442,7 @@ export function App({ app }: AppProps) {
       />
       <TypeMenu {...typeMenuProps} />
       <GlobalUI />
+      <DependencyImpactDialog />
     </div>
   );
 }
