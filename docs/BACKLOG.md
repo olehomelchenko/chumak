@@ -85,6 +85,40 @@ Drag columns in the data table to reorder. Would generate a `select` step with t
 
 ---
 
+### Native Date Object Support
+
+**Status:** Analysis Complete / Implementation Planned
+**Effort:** Medium-Large
+**Reference:** [DATE-STORAGE-ARCHITECTURE.md](DATE-STORAGE-ARCHITECTURE.md)
+
+Migrate from string-based date storage to native JavaScript Date objects in runtime memory, with schema-driven serialization at persistence boundaries.
+
+**Current State:** Dates are stored as strings (`"2024-01-15"`) throughout the data layer, with type hints in the schema. This causes data integrity issues due to timezone handling inconsistencies and repeated parsing overhead.
+
+**Proposed Solution:**
+
+- Create `data-hydration.ts` module with `hydrateData()` and `serializeData()` functions
+- Hydrate dates (string→Date) immediately after import and on load from persistence
+- Serialize dates (Date→string) only at persistence boundaries (IndexedDB, JSON export)
+- Schema becomes authoritative for type conversion
+
+**Benefits:**
+
+- Data integrity: Eliminates timezone-related date shifting
+- Performance: No repeated parsing in expressions
+- Type safety: Date columns contain actual Date objects
+- Native operations: Date comparisons work directly
+
+**Challenges:**
+
+- Bidirectional conversion required at persistence boundaries
+- Expression functions must handle both Date objects and strings during transition
+- Thorough testing needed for timezone edge cases
+
+See [DATE-STORAGE-ARCHITECTURE.md](DATE-STORAGE-ARCHITECTURE.md) for detailed analysis and implementation roadmap.
+
+---
+
 ### Performance Profiling & Limits
 
 **Status**: Ongoing
@@ -157,9 +191,13 @@ These have been considered and explicitly excluded:
 
 ## Priority Summary
 
+### Higher Priority (Data Integrity)
+
+1. Native Date Object Support — fixes date corruption/shifting issues
+
 ### Medium Priority (Useful Additions)
 
-1. Command Undo/Redo (Ctrl/Cmd+Z)
+2. Command Undo/Redo (Ctrl/Cmd+Z)
 
 ### Lower Priority (Nice to Have)
 
