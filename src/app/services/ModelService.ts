@@ -166,6 +166,13 @@ export class ModelService {
     });
     newModel.steps.push(typesStep);
 
+    // Compute final data and schema after initial steps
+    const context = { sources: AppStore.sources.value, models: AppStore.models.value };
+    const result = StepService.computeModelUpToStep(newModel, newModel.steps.length - 1, context);
+
+    newModel.data = JSON.parse(JSON.stringify(convertDatesForStorage(result.data)));
+    newModel.schema = result.schema;
+
     AppStore.models.value = [...AppStore.models.value, newModel];
     switchToModelFn(newModel);
 

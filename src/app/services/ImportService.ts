@@ -2,6 +2,8 @@ import { AppStore } from '../stores/AppStore';
 import { Source, Model } from '../types';
 import { SchemaEngine } from '../../core/schema-engine';
 import { PersistenceService } from './PersistenceService';
+import { StepService } from './StepService';
+import { convertDatesForStorage } from '../../core/storage';
 
 /**
  * ImportService
@@ -85,12 +87,19 @@ export class ImportService {
     });
     mainModel.steps.push(typesStep);
 
+    // Compute final data and schema after initial steps
+    const context = { sources: AppStore.sources.value, models: AppStore.models.value };
+    const result = StepService.computeModelUpToStep(mainModel, mainModel.steps.length - 1, context);
+
+    mainModel.data = JSON.parse(JSON.stringify(convertDatesForStorage(result.data)));
+    mainModel.schema = result.schema;
+
     AppStore.models.value = [...AppStore.models.value, mainModel];
 
     // Update active state
     AppStore.activeModel.value = mainModel;
-    AppStore.currentData.value = cleanData;
-    AppStore.columns.value = columns;
+    AppStore.currentData.value = result.data;
+    AppStore.columns.value = result.columns;
     AppStore.viewMode.value = 'model';
     AppStore.activeStepIndex.value = mainModel.steps.length - 1;
     AppStore.viewingIntermediate.value = false;
