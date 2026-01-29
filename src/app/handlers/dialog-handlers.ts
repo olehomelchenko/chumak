@@ -3,6 +3,7 @@ import { setUrlState, getUrlState, clearUrlHash } from '../../core/url-state';
 import { html as aboutHtml } from '../../content/about.md';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
+import { GeneratorService } from '../services/GeneratorService';
 import * as DateHandlers from './date-handlers';
 import {
   isSlidePanel as registryIsSlidePanel,
@@ -88,7 +89,9 @@ export function getDialogState(this: SytoApp, dialog: string) {
       return {
         sourceName: DialogStore.generateState.sourceName.value,
         rowCount: DialogStore.generateState.rowCount.value,
-        generators: DialogStore.generateState.generators.value,
+        columnName: DialogStore.generateState.columnName.value,
+        type: DialogStore.generateState.type.value,
+        config: DialogStore.generateState.config.value,
       };
     case 'dedupe':
       return this.dedupeDialogState;
@@ -426,6 +429,9 @@ export function hasPreviewData(this: SytoApp): boolean {
   if (this.activeDialog === 'import-csv') {
     return DialogStore.importCsvState.previewDataRows.value.length > 0;
   }
+  if (this.activeDialog === 'generate') {
+    return DialogStore.previewState.rows.value.length > 0;
+  }
   return DialogStore.previewState.rows.value.length > 0;
 }
 
@@ -560,14 +566,20 @@ export function activeDialogError(this: SytoApp): boolean {
       );
     case 'import-url':
       return !this.importUrlDialogState.url || this.importUrlDialogState.isFetching;
-    case 'generate':
-      const generateState = DialogStore.generateState;
+    case 'generate': {
+      const g = DialogStore.generateState;
+      const generator = {
+        name: g.columnName.value,
+        type: g.type.value as any,
+        config: g.config.value,
+      };
       return (
-        !generateState.sourceName.value?.trim() ||
-        generateState.rowCount.value <= 0 ||
-        generateState.generators.value.length === 0 ||
-        !!generateState.error.value
+        !g.sourceName.value?.trim() ||
+        !g.columnName.value?.trim() ||
+        g.rowCount.value <= 0 ||
+        !!GeneratorService.validateGenerator(generator, g.isRowAuto.value)
       );
+    }
     case 'impute':
       const imputeState = DialogStore.imputeState;
       return (

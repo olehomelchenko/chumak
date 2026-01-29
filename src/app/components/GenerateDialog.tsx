@@ -1,364 +1,424 @@
+import { useSignalEffect } from '@preact/signals';
 import { DialogStore } from '../stores/DialogStore';
 import { GeneratorService, GeneratorType } from '../services/GeneratorService';
+import * as GenerateHandlers from '../handlers/generate-handlers';
 import styles from './TransformDialog.module.css';
 
+const generatorIcons: Record<GeneratorType, string> = {
+  numberSequence: 'carbon:list-number',
+  dateSequence: 'carbon:calendar',
+  randomNumber: 'carbon:help',
+  randomDate: 'carbon:calendar-tools',
+  randomBoolean: 'carbon:boolean',
+  randomCategory: 'carbon:direction-loop',
+};
+
+const generatorLabels: Record<GeneratorType, string> = {
+  numberSequence: 'Number Sequence',
+  dateSequence: 'Date Sequence',
+  randomNumber: 'Random Number',
+  randomDate: 'Random Date',
+  randomBoolean: 'Random Boolean',
+  randomCategory: 'Random Category',
+};
+
 export function GenerateDialog() {
-  const { sourceName, rowCount, generators, error } = DialogStore.generateState;
+  const { sourceName, rowCount, isRowAuto, columnName, type, config, error } =
+    DialogStore.generateState;
 
-  const addColumn = () => {
-    const newId = `gen_${Date.now()}`;
-    const newGen = {
-      id: newId,
-      name: `column_${generators.value.length + 1}`,
-      type: 'integerSequence' as GeneratorType,
-      config: GeneratorService.getDefaultConfig('integerSequence'),
-    };
-    generators.value = [...generators.value, newGen];
+  useSignalEffect(() => {
+    // Subscribe to all changes that affect preview
+    void rowCount.value;
+    void isRowAuto.value;
+    void columnName.value;
+    void type.value;
+    void config.value;
+
+    GenerateHandlers.debouncedUpdateGeneratePreview();
+  });
+
+  // Single generator object for service compatibility
+  const currentGenerator = {
+    name: columnName.value,
+    type: type.value as GeneratorType,
+    config: config.value,
   };
 
-  const removeColumn = (id: string) => {
-    generators.value = generators.value.filter((g) => g.id !== id);
+  // Effect to update row count if Auto is enabled
+  const calculatedRows = GeneratorService.calculateRowCount([currentGenerator as any]);
+  if (isRowAuto.value && calculatedRows !== null && calculatedRows !== rowCount.value) {
+    rowCount.value = calculatedRows;
+  }
+
+  const handleTypeChange = (newType: GeneratorType) => {
+    type.value = newType;
+    config.value = GeneratorService.getDefaultConfig(newType);
+    error.value = null;
   };
 
-  const updateGenerator = (id: string, updates: Partial<(typeof generators.value)[0]>) => {
-    generators.value = generators.value.map((g) => (g.id === id ? { ...g, ...updates } : g));
+  const updateConfig = (updates: any) => {
+    config.value = { ...config.value, ...updates };
+    error.value = null;
   };
 
-  const updateGeneratorType = (id: string, newType: GeneratorType) => {
-    const newConfig = GeneratorService.getDefaultConfig(newType);
-    updateGenerator(id, { type: newType, config: newConfig });
-  };
+  const renderConfigFields = () => {
+    const t = type.value as GeneratorType;
+    const cfg = config.value;
 
-  const updateConfig = (id: string, configUpdates: any) => {
-    generators.value = generators.value.map((g) =>
-      g.id === id ? { ...g, config: { ...g.config, ...configUpdates } } : g
-    );
-  };
-
-  const renderConfigFields = (gen: (typeof generators.value)[0]) => {
-    const { type, config } = gen;
-
-    switch (type) {
-      case 'integerSequence':
-        return (
-          <>
-            <div class={styles.group} style={{ marginTop: '0.5rem' }}>
-              <label class={styles.label}>Start:</label>
-              <input
-                type="number"
-                class={styles.input}
-                value={config.start}
-                onInput={(e) =>
-                  updateConfig(gen.id, {
-                    start: parseInt((e.target as HTMLInputElement).value) || 0,
-                  })
+    if (t === 'numberSequence') {
+      return (
+        <div class={styles.configGrid}>
+          <div class={styles.flex15}>
+            <label class={styles.label}>Start *</label>
+            <input
+              type="text"
+              inputmode="decimal"
+              class={styles.input}
+              value={cfg.start}
+              onInput={(e) => {
+                const val = (e.target as HTMLInputElement).value;
+                if (val === '' || /^-?\d*\.?\d*$/.test(val)) {
+                  updateConfig({ start: val || '0' });
                 }
-              />
-            </div>
-            <div class={styles.group}>
-              <label class={styles.label}>Step:</label>
-              <input
-                type="number"
-                class={styles.input}
-                value={config.step}
-                onInput={(e) =>
-                  updateConfig(gen.id, {
-                    step: parseInt((e.target as HTMLInputElement).value) || 1,
-                  })
+              }}
+              placeholder="0"
+            />
+          </div>
+          <div class={styles.flex15}>
+            <label class={styles.label}>Stop *</label>
+            <input
+              type="text"
+              inputmode="decimal"
+              class={styles.input}
+              value={cfg.stop === undefined ? '' : cfg.stop}
+              onInput={(e) => {
+                const val = (e.target as HTMLInputElement).value;
+                if (val === '' || /^-?\d*\.?\d*$/.test(val)) {
+                  updateConfig({ stop: val === '' ? undefined : val });
                 }
-              />
-            </div>
-          </>
-        );
-
-      case 'dateSequence':
-        return (
-          <>
-            <div class={styles.group} style={{ marginTop: '0.5rem' }}>
-              <label class={styles.label}>Start Date:</label>
-              <input
-                type="date"
-                class={styles.input}
-                value={config.start}
-                onInput={(e) =>
-                  updateConfig(gen.id, { start: (e.target as HTMLInputElement).value })
+              }}
+              placeholder="e.g. 10.5"
+            />
+          </div>
+          <div class={styles.flex15}>
+            <label class={styles.label}>Step (opt)</label>
+            <input
+              type="text"
+              inputmode="decimal"
+              class={styles.input}
+              value={cfg.step || ''}
+              onInput={(e) => {
+                const val = (e.target as HTMLInputElement).value;
+                if (val === '' || /^-?\d*\.?\d*$/.test(val)) {
+                  updateConfig({ step: val || '1' });
                 }
-              />
-            </div>
-            <div class={styles.group}>
-              <label class={styles.label}>Increment:</label>
-              <input
-                type="number"
-                class={styles.input}
-                value={config.increment}
-                onInput={(e) =>
-                  updateConfig(gen.id, {
-                    increment: parseInt((e.target as HTMLInputElement).value) || 1,
-                  })
-                }
-              />
-            </div>
-            <div class={styles.group}>
-              <label class={styles.label}>Unit:</label>
-              <select
-                class={styles.input}
-                value={config.unit}
-                onChange={(e) =>
-                  updateConfig(gen.id, { unit: (e.target as HTMLSelectElement).value })
-                }
-              >
-                <option value="days">Days</option>
-                <option value="weeks">Weeks</option>
-                <option value="months">Months</option>
-                <option value="years">Years</option>
-              </select>
-            </div>
-          </>
-        );
-
-      case 'randomNumber':
-        return (
-          <>
-            <div class={styles.group} style={{ marginTop: '0.5rem' }}>
-              <label class={styles.label}>Min:</label>
-              <input
-                type="number"
-                class={styles.input}
-                value={config.min}
-                onInput={(e) =>
-                  updateConfig(gen.id, {
-                    min: parseFloat((e.target as HTMLInputElement).value) || 0,
-                  })
-                }
-              />
-            </div>
-            <div class={styles.group}>
-              <label class={styles.label}>Max:</label>
-              <input
-                type="number"
-                class={styles.input}
-                value={config.max}
-                onInput={(e) =>
-                  updateConfig(gen.id, {
-                    max: parseFloat((e.target as HTMLInputElement).value) || 100,
-                  })
-                }
-              />
-            </div>
-            <div class={styles.group}>
-              <label class={styles.label}>Decimals:</label>
-              <input
-                type="number"
-                class={styles.input}
-                value={config.decimals}
-                min="0"
-                max="10"
-                onInput={(e) =>
-                  updateConfig(gen.id, {
-                    decimals: parseInt((e.target as HTMLInputElement).value) || 0,
-                  })
-                }
-              />
-            </div>
-          </>
-        );
-
-      case 'randomDate':
-        return (
-          <>
-            <div class={styles.group} style={{ marginTop: '0.5rem' }}>
-              <label class={styles.label}>From:</label>
-              <input
-                type="date"
-                class={styles.input}
-                value={config.from}
-                onInput={(e) =>
-                  updateConfig(gen.id, { from: (e.target as HTMLInputElement).value })
-                }
-              />
-            </div>
-            <div class={styles.group}>
-              <label class={styles.label}>To:</label>
-              <input
-                type="date"
-                class={styles.input}
-                value={config.to}
-                onInput={(e) => updateConfig(gen.id, { to: (e.target as HTMLInputElement).value })}
-              />
-            </div>
-          </>
-        );
-
-      case 'randomBoolean':
-        return (
-          <div class={styles.group} style={{ marginTop: '0.5rem' }}>
-            <label class={styles.label}>True Probability (0-1):</label>
+              }}
+              placeholder="1"
+            />
+          </div>
+          <div class={styles.flex1}>
+            <label class={styles.label}>Decimals</label>
             <input
               type="number"
               class={styles.input}
-              value={config.trueProbability}
+              value={cfg.decimals}
               min="0"
-              max="1"
-              step="0.1"
-              onInput={(e) =>
-                updateConfig(gen.id, {
-                  trueProbability: parseFloat((e.target as HTMLInputElement).value) || 0.5,
-                })
-              }
+              max="10"
+              onInput={(e) => {
+                const val = (e.target as HTMLInputElement).value;
+                updateConfig({ decimals: val === '' ? 0 : parseInt(val) || 0 });
+              }}
             />
           </div>
-        );
+        </div>
+      );
+    }
 
-      case 'randomCategory':
-        return (
-          <div class={styles.group} style={{ marginTop: '0.5rem' }}>
-            <label class={styles.label}>Values (comma-separated):</label>
+    if (t === 'dateSequence') {
+      return (
+        <>
+          <div class={styles.configGrid}>
+            <div class={styles.flex1}>
+              <label class={styles.label}>Start Date *</label>
+              <input
+                type="text"
+                class={styles.input}
+                value={cfg.start}
+                onInput={(e) => updateConfig({ start: (e.target as HTMLInputElement).value })}
+                placeholder="YYYY-MM-DD HH:mm:ss"
+              />
+            </div>
+            <div class={styles.flex1}>
+              <label class={styles.label}>Stop Date *</label>
+              <input
+                type="text"
+                class={styles.input}
+                value={cfg.stop}
+                onInput={(e) => {
+                  const val = (e.target as HTMLInputElement).value;
+                  updateConfig({ stop: val === '' ? undefined : val });
+                }}
+                placeholder="YYYY-MM-DD HH:mm:ss"
+              />
+            </div>
+            <div class={styles.flex1}>
+              <label class={styles.label}>Step (opt)</label>
+              <input
+                type="number"
+                class={styles.input}
+                value={cfg.increment || ''}
+                onInput={(e) => {
+                  const val = (e.target as HTMLInputElement).value;
+                  updateConfig({ increment: val === '' ? 1 : parseInt(val) || 1 });
+                }}
+                placeholder="1"
+              />
+            </div>
+          </div>
+          <div class={styles.group} style={{ marginTop: '0.75rem' }}>
+            <label class={styles.label}>Unit</label>
+            <div class={styles.unitSelect}>
+              {['seconds', 'minutes', 'hours', 'days', 'weeks', 'months', 'years'].map((unit) => (
+                <label key={unit} class={styles.radioLabel} style={{ padding: '0.25rem 0.75rem' }}>
+                  <input
+                    type="radio"
+                    name="unit"
+                    value={unit}
+                    checked={cfg.unit === unit}
+                    onChange={() => updateConfig({ unit })}
+                    style={{ display: 'none' }}
+                  />
+                  <span style={{ textTransform: 'capitalize' }}>{unit}</span>
+                </label>
+              ))}
+            </div>
+          </div>
+        </>
+      );
+    }
+
+    if (t === 'randomNumber') {
+      return (
+        <div class={styles.configGrid}>
+          <div class={styles.flex1}>
+            <label class={styles.label}>Min</label>
+            <input
+              type="text"
+              inputmode="decimal"
+              class={styles.input}
+              value={cfg.min}
+              onInput={(e) => {
+                const val = (e.target as HTMLInputElement).value;
+                if (val === '' || /^-?\d*\.?\d*$/.test(val)) {
+                  updateConfig({ min: val || '0' });
+                }
+              }}
+            />
+          </div>
+          <div class={styles.flex1}>
+            <label class={styles.label}>Max</label>
+            <input
+              type="text"
+              inputmode="decimal"
+              class={styles.input}
+              value={cfg.max}
+              onInput={(e) => {
+                const val = (e.target as HTMLInputElement).value;
+                if (val === '' || /^-?\d*\.?\d*$/.test(val)) {
+                  updateConfig({ max: val || '100' });
+                }
+              }}
+            />
+          </div>
+          <div class={styles.flex1}>
+            <label class={styles.label}>Decimals</label>
+            <input
+              type="number"
+              class={styles.input}
+              value={cfg.decimals}
+              min="0"
+              max="10"
+              onInput={(e) => {
+                const val = (e.target as HTMLInputElement).value;
+                updateConfig({ decimals: val === '' ? 0 : parseInt(val) || 0 });
+              }}
+            />
+          </div>
+        </div>
+      );
+    }
+
+    if (t === 'randomDate') {
+      return (
+        <div class={styles.configGrid}>
+          <div class={styles.flex1}>
+            <label class={styles.label}>From</label>
             <input
               type="text"
               class={styles.input}
-              value={config.values.join(', ')}
-              onInput={(e) => {
-                const values = (e.target as HTMLInputElement).value
-                  .split(',')
-                  .map((v) => v.trim())
-                  .filter((v) => v !== '');
-                updateConfig(gen.id, { values });
-              }}
-              placeholder="A, B, C"
+              value={cfg.from}
+              onInput={(e) => updateConfig({ from: (e.target as HTMLInputElement).value })}
+              placeholder="YYYY-MM-DD"
             />
           </div>
-        );
-
-      default:
-        return null;
+          <div class={styles.flex1}>
+            <label class={styles.label}>To</label>
+            <input
+              type="text"
+              class={styles.input}
+              value={cfg.to}
+              onInput={(e) => updateConfig({ to: (e.target as HTMLInputElement).value })}
+              placeholder="YYYY-MM-DD"
+            />
+          </div>
+        </div>
+      );
     }
+
+    if (t === 'randomBoolean') {
+      return (
+        <div class={styles.group}>
+          <label class={styles.label}>True Probability (0-1)</label>
+          <input
+            type="text"
+            inputmode="decimal"
+            class={styles.input}
+            value={cfg.trueProbability}
+            onInput={(e) => {
+              const val = (e.target as HTMLInputElement).value;
+              if (val === '' || /^\d*\.?\d*$/.test(val)) {
+                updateConfig({
+                  trueProbability: val === '' ? 0.5 : val,
+                });
+              }
+            }}
+          />
+        </div>
+      );
+    }
+
+    if (t === 'randomCategory') {
+      return (
+        <div class={styles.group}>
+          <label class={styles.label}>Values (comma-separated)</label>
+          <input
+            type="text"
+            class={styles.input}
+            value={cfg.values.join(', ')}
+            onInput={(e) => {
+              const values = (e.target as HTMLInputElement).value
+                .split(',')
+                .map((v) => v.trim())
+                .filter((v) => v !== '');
+              updateConfig({ values });
+            }}
+            placeholder="A, B, C"
+          />
+        </div>
+      );
+    }
+
+    return null;
   };
 
   return (
     <div>
-      <div class={styles.group}>
-        <label class={styles.label}>Source Name:</label>
-        <input
-          type="text"
-          class={styles.input}
-          value={sourceName.value}
-          onInput={(e) => (sourceName.value = (e.target as HTMLInputElement).value)}
-          placeholder="generated_data"
-        />
+      {/* Row 1: Source Name | Column Name */}
+      <div class={styles.flexRow} style={{ marginBottom: '1rem' }}>
+        <div class={styles.flex1}>
+          <label class={styles.label}>Source Name</label>
+          <input
+            type="text"
+            class={styles.input}
+            value={sourceName.value}
+            onInput={(e) => (sourceName.value = (e.target as HTMLInputElement).value)}
+            placeholder="generated_data"
+          />
+        </div>
+        <div class={styles.flex1}>
+          <label class={styles.label}>Column Name</label>
+          <input
+            type="text"
+            class={styles.input}
+            value={columnName.value}
+            onInput={(e) => (columnName.value = (e.target as HTMLInputElement).value)}
+            placeholder="id"
+          />
+        </div>
       </div>
 
+      {/* Row 2: Generator Type Selection (Chips) */}
       <div class={styles.group}>
-        <label class={styles.label}>Number of Rows:</label>
+        <label class={styles.label}>Generator Type</label>
+        <div class={styles.grid3} style={{ marginBottom: '1rem' }}>
+          {(
+            [
+              'numberSequence',
+              'dateSequence',
+              'randomNumber',
+              'randomDate',
+              'randomBoolean',
+              'randomCategory',
+            ] as GeneratorType[]
+          ).map((t) => (
+            <label key={t} class={styles.radioLabelCentered}>
+              <input
+                type="radio"
+                name="generatorType"
+                value={t}
+                checked={type.value === t}
+                onChange={() => handleTypeChange(t)}
+                style={{ display: 'none' }}
+              />
+              <span
+                class="iconify"
+                data-icon={generatorIcons[t]}
+                style={{ fontSize: '16px' }}
+              ></span>
+              <span style={{ fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
+                {generatorLabels[t]}
+              </span>
+            </label>
+          ))}
+        </div>
+      </div>
+
+      {/* Row 3: Config Fields */}
+      <div class={styles.configBox}>{renderConfigFields()}</div>
+
+      {/* Row 4: Number of Rows */}
+      <div class={styles.group}>
+        <div class={styles.rowHeader}>
+          <label class={styles.label}>Number of Rows</label>
+          <label class={styles.autoLabel}>
+            <input
+              type="checkbox"
+              checked={isRowAuto.value}
+              onChange={(e) => (isRowAuto.value = (e.target as HTMLInputElement).checked)}
+            />
+            Auto-calculate
+          </label>
+        </div>
         <input
           type="number"
           class={styles.input}
           value={rowCount.value}
+          disabled={isRowAuto.value}
           onInput={(e) => (rowCount.value = parseInt((e.target as HTMLInputElement).value) || 100)}
           min="1"
           max="100000"
           placeholder="100"
+          style={
+            isRowAuto.value ? { opacity: 0.7, backgroundColor: 'var(--color-lighter-gray)' } : {}
+          }
         />
-        <p class={styles.helpText}>Maximum: 100,000 rows</p>
-      </div>
-
-      <div class={styles.group}>
-        <label class={styles.label}>Columns:</label>
-        <div style={{ marginTop: '0.5rem' }}>
-          {generators.value.map((gen, index) => (
-            <div
-              key={gen.id}
-              style={{
-                border: '1px solid var(--color-light-gray)',
-                borderRadius: '4px',
-                padding: '1rem',
-                marginBottom: '0.75rem',
-                backgroundColor: 'var(--color-off-white)',
-              }}
-            >
-              <div
-                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}
-              >
-                <h4 style={{ margin: 0, fontSize: '0.875rem', fontWeight: 600 }}>
-                  Column {index + 1}
-                </h4>
-                {generators.value.length > 1 && (
-                  <button
-                    type="button"
-                    onClick={() => removeColumn(gen.id)}
-                    style={{
-                      background: 'transparent',
-                      border: 'none',
-                      color: 'var(--color-red)',
-                      cursor: 'pointer',
-                      fontSize: '1rem',
-                    }}
-                    title="Remove column"
-                  >
-                    <span class="iconify" data-icon="carbon:close"></span>
-                  </button>
-                )}
-              </div>
-
-              <div class={styles.group} style={{ marginTop: '0.75rem' }}>
-                <label class={styles.label}>Column Name:</label>
-                <input
-                  type="text"
-                  class={styles.input}
-                  value={gen.name}
-                  onInput={(e) =>
-                    updateGenerator(gen.id, { name: (e.target as HTMLInputElement).value })
-                  }
-                  placeholder="column_name"
-                />
-              </div>
-
-              <div class={styles.group}>
-                <label class={styles.label}>Generator Type:</label>
-                <select
-                  class={styles.input}
-                  value={gen.type}
-                  onChange={(e) =>
-                    updateGeneratorType(
-                      gen.id,
-                      (e.target as HTMLSelectElement).value as GeneratorType
-                    )
-                  }
-                >
-                  <option value="integerSequence">Integer Sequence</option>
-                  <option value="dateSequence">Date Sequence</option>
-                  <option value="randomNumber">Random Number</option>
-                  <option value="randomDate">Random Date</option>
-                  <option value="randomBoolean">Random Boolean</option>
-                  <option value="randomCategory">Random Category</option>
-                </select>
-              </div>
-
-              {renderConfigFields(gen)}
-            </div>
-          ))}
-
-          <button
-            type="button"
-            onClick={addColumn}
-            style={{
-              width: '100%',
-              padding: '0.5rem',
-              border: '1px dashed var(--color-medium-gray)',
-              borderRadius: '4px',
-              background: 'transparent',
-              color: 'var(--color-cyan)',
-              cursor: 'pointer',
-              fontSize: '0.875rem',
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '0.25rem',
-            }}
-          >
-            <span class="iconify" data-icon="carbon:add"></span>
-            <span>Add Column</span>
-          </button>
-        </div>
+        <p class={styles.helpText}>
+          {isRowAuto.value
+            ? calculatedRows !== null
+              ? `Calculated ${calculatedRows.toLocaleString()} rows`
+              : 'Add a sequence with a "Stop" value to calculate rows'
+            : 'Maximum: 100,000 rows'}
+        </p>
       </div>
 
       {error.value && (

@@ -1,3 +1,7 @@
+---
+description: align the code with the project specifications
+---
+
 # Code Alignment
 
 Review staged or uncommitted code to ensure quality, test coverage, and alignment with project specifications.

@@ -363,21 +363,10 @@ export class DialogStore {
   static generateState = {
     sourceName: signal('generated_data'),
     rowCount: signal(100),
-    generators: signal<
-      Array<{
-        id: string;
-        name: string;
-        type: string;
-        config: any;
-      }>
-    >([
-      {
-        id: 'gen_1',
-        name: 'id',
-        type: 'integerSequence',
-        config: { type: 'integerSequence', start: 1, step: 1 },
-      },
-    ]),
+    isRowAuto: signal(false),
+    columnName: signal('id'),
+    type: signal('numberSequence'),
+    config: signal<any>({ type: 'numberSequence', start: 1, step: 1, decimals: 0 }),
     error: signal<string | null>(null),
   };
 
@@ -544,14 +533,10 @@ export class DialogStore {
 
     this.generateState.sourceName.value = 'generated_data';
     this.generateState.rowCount.value = 100;
-    this.generateState.generators.value = [
-      {
-        id: 'gen_1',
-        name: 'id',
-        type: 'integerSequence',
-        config: { type: 'integerSequence', start: 1, step: 1 },
-      },
-    ];
+    this.generateState.isRowAuto.value = false;
+    this.generateState.columnName.value = 'id';
+    this.generateState.type.value = 'numberSequence';
+    this.generateState.config.value = { type: 'numberSequence', start: 1, step: 1, decimals: 0 };
     this.generateState.error.value = null;
 
     // Join Dialog State

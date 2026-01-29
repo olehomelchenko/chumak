@@ -820,6 +820,9 @@ export class SytoApp implements AppState {
   generateData() {
     return GenerateHandlers.generateData.call(this);
   }
+  debouncedUpdateGeneratePreview() {
+    return GenerateHandlers.debouncedUpdateGeneratePreview();
+  }
   createSource(
     file: File,
     sourceName: string,

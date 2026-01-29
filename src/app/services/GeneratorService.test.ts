@@ -7,8 +7,8 @@ describe('GeneratorService', () => {
       const result = GeneratorService.generate(5, [
         {
           name: 'id',
-          type: 'integerSequence',
-          config: { type: 'integerSequence', start: 1, step: 1 },
+          type: 'numberSequence',
+          config: { type: 'numberSequence', start: 1, step: 1, decimals: 0 },
         },
       ]);
 
@@ -22,8 +22,8 @@ describe('GeneratorService', () => {
       const result = GeneratorService.generate(3, [
         {
           name: 'value',
-          type: 'integerSequence',
-          config: { type: 'integerSequence', start: 10, step: 5 },
+          type: 'numberSequence',
+          config: { type: 'numberSequence', start: 10, step: 5, decimals: 0 },
         },
       ]);
 
@@ -164,8 +164,8 @@ describe('GeneratorService', () => {
       const result = GeneratorService.generate(5, [
         {
           name: 'id',
-          type: 'integerSequence',
-          config: { type: 'integerSequence', start: 1, step: 1 },
+          type: 'numberSequence',
+          config: { type: 'numberSequence', start: 1, step: 1, decimals: 0 },
         },
         {
           name: 'date',
@@ -191,8 +191,8 @@ describe('GeneratorService', () => {
     it('should throw error for empty column name', () => {
       const error = GeneratorService.validateGenerator({
         name: '',
-        type: 'integerSequence',
-        config: { type: 'integerSequence', start: 1, step: 1 },
+        type: 'numberSequence',
+        config: { type: 'numberSequence', start: 1, step: 1, decimals: 0 },
       });
 
       expect(error).toBe('Column name cannot be empty');
@@ -201,8 +201,8 @@ describe('GeneratorService', () => {
     it('should throw error for zero step in integer sequence', () => {
       const error = GeneratorService.validateGenerator({
         name: 'id',
-        type: 'integerSequence',
-        config: { type: 'integerSequence', start: 1, step: 0 },
+        type: 'numberSequence',
+        config: { type: 'numberSequence', start: 1, step: 0, decimals: 0 },
       });
 
       expect(error).toBe('Step cannot be zero');
