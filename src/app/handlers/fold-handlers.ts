@@ -4,6 +4,7 @@ import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 import { StepService } from '../services/StepService';
 import * as NotificationHandlers from './notification-handlers';
+import { createDebouncedPreview, clearPreview, PreviewResult } from './preview-engine';
 
 export function toggleColumnForFold(index: number) {
   const state = DialogStore.foldState;
@@ -44,20 +45,20 @@ export function selectNoneForFold() {
   updateFoldPreview();
 }
 
-export function updateFoldPreview() {
-  const state = DialogStore.foldState;
-  const data = AppStore.currentData.value;
-  const columns = AppStore.columns.value;
-  const { keyName, valueName } = state;
-  const colsToFold = getColumnsToFold();
+// Preview engine instance for fold operations
+const foldPreview = createDebouncedPreview({
+  compute: (): PreviewResult | null => {
+    const state = DialogStore.foldState;
+    const data = AppStore.currentData.value;
+    const columns = AppStore.columns.value;
+    const { keyName, valueName } = state;
+    const colsToFold = getColumnsToFold();
 
-  if (colsToFold.length === 0) {
-    clearPreview();
-    return;
-  }
+    if (colsToFold.length === 0 || !data?.length) {
+      return null;
+    }
 
-  try {
-    const samples = data!.slice(0, 20);
+    const samples = data.slice(0, 20);
     const table = aq.from(samples);
     const step = {
       fold: {
@@ -71,23 +72,26 @@ export function updateFoldPreview() {
     const resultColumns = resultTable.columnNames();
     const newCols = [keyName.value || 'key', valueName.value || 'value'];
 
-    DialogStore.previewState.title.value = 'Unpivot Preview';
-    DialogStore.previewState.stats.value = `Showing sample result: ${previewRows.length} rows produced`;
-    DialogStore.previewState.columns.value = resultColumns;
-    DialogStore.previewState.newColumns.value = newCols;
-    DialogStore.previewState.rows.value = previewRows;
-  } catch (e) {
-    clearPreview();
-  }
+    return {
+      title: 'Unpivot Preview',
+      stats: `Showing sample result: ${previewRows.length} rows produced`,
+      columns: resultColumns,
+      newColumns: newCols,
+      rows: previewRows,
+    };
+  },
+});
+
+export function debouncedUpdateFoldPreview() {
+  foldPreview.trigger();
 }
 
-export function clearPreview() {
-  DialogStore.previewState.title.value = '';
-  DialogStore.previewState.stats.value = '';
-  DialogStore.previewState.columns.value = [];
-  DialogStore.previewState.newColumns.value = [];
-  DialogStore.previewState.rows.value = [];
+export function updateFoldPreview() {
+  foldPreview.compute();
 }
+
+// Re-export clearPreview from preview-engine
+export { clearPreview };
 
 export async function applyFoldTransform(callbacks: any) {
   const state = DialogStore.foldState;

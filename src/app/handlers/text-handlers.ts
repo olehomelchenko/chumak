@@ -4,6 +4,7 @@ import { parseExpression } from '../../core/expression-parser';
 import { interpretAST } from '../../core/ast-interpreter';
 import * as HelperHandlers from './helper-handlers';
 import { StepService } from '../services/StepService';
+import { createDebouncedPreview, clearPreview, PreviewResult } from './preview-engine';
 
 export function getTextColumns(): string[] {
   const schema = HelperHandlers.getActiveSchema.call({
@@ -73,18 +74,18 @@ export function setTrimOperation(enabled: boolean) {
   updatePreview();
 }
 
-export function updatePreview() {
-  const state = DialogStore.textState;
-  const { column, operations } = state;
-  const colVal = column.value;
-  const data = AppStore.currentData.value;
+// Preview engine instance for text operations
+const textPreview = createDebouncedPreview({
+  compute: (): PreviewResult | null => {
+    const state = DialogStore.textState;
+    const { column, operations } = state;
+    const colVal = column.value;
+    const data = AppStore.currentData.value;
 
-  if (!colVal || !data?.length || operations.value.length === 0) {
-    clearPreview();
-    return;
-  }
+    if (!colVal || !data?.length || operations.value.length === 0) {
+      return null;
+    }
 
-  try {
     // Use preview row limit setting
     const previewLimit = AppStore.uxSettings.value.preview.rowLimit;
     const samples = data.slice(0, previewLimit);
@@ -129,23 +130,26 @@ export function updatePreview() {
       return opDef?.label || op;
     });
 
-    DialogStore.previewState.title.value = `Text: ${opLabels.join(' + ')}`;
-    DialogStore.previewState.stats.value = `Showing ${previewRows.length} sample rows`;
-    DialogStore.previewState.columns.value = [colVal, outputName];
-    DialogStore.previewState.newColumns.value = [outputName];
-    DialogStore.previewState.rows.value = previewRows;
-  } catch (e) {
-    clearPreview();
-  }
+    return {
+      title: `Text: ${opLabels.join(' + ')}`,
+      stats: `Showing ${previewRows.length} sample rows`,
+      columns: [colVal, outputName],
+      newColumns: [outputName],
+      rows: previewRows,
+    };
+  },
+});
+
+export function debouncedUpdatePreview() {
+  textPreview.trigger();
 }
 
-export function clearPreview() {
-  DialogStore.previewState.title.value = '';
-  DialogStore.previewState.stats.value = '';
-  DialogStore.previewState.columns.value = [];
-  DialogStore.previewState.newColumns.value = [];
-  DialogStore.previewState.rows.value = [];
+export function updatePreview() {
+  textPreview.compute();
 }
+
+// Re-export clearPreview from preview-engine
+export { clearPreview };
 
 export function getTextOperationPreview(opValue: string): string {
   const state = DialogStore.textState;

@@ -5,6 +5,7 @@ import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 import { StepService } from '../services/StepService';
 import * as HelperHandlers from './helper-handlers';
+import { createDebouncedPreview, clearPreview, PreviewResult } from './preview-engine';
 
 export function onPivotConfigChange() {
   const state = DialogStore.pivotState;
@@ -53,17 +54,19 @@ export function constructPivotStep() {
   return transform;
 }
 
-export function previewPivot() {
-  const state = DialogStore.pivotState;
-  const data = AppStore.currentData.value;
-  const columns = AppStore.columns.value;
+// Preview engine instance for pivot operations
+const pivotPreview = createDebouncedPreview({
+  compute: (): PreviewResult | null => {
+    const state = DialogStore.pivotState;
+    const data = AppStore.currentData.value;
+    const columns = AppStore.columns.value;
 
-  state.isPreviewing.value = true;
-  state.previewError.value = null;
-  clearPreview();
-  try {
+    if (!data?.length) {
+      return null;
+    }
+
     const step = constructPivotStep();
-    const samples = data!.slice(0, 50);
+    const samples = data.slice(0, 50);
     const table = aq.from(samples);
     const resultTable = applyTransform(table, step, columns);
 
@@ -71,25 +74,36 @@ export function previewPivot() {
     const rowCols = state.rowColumns.value;
     const newCols = result.columns.filter((c: string) => !rowCols.includes(c));
 
-    DialogStore.previewState.title.value = 'Pivot Preview';
-    DialogStore.previewState.stats.value = `Showing ${result.rows.length} rows, ${result.columns.length} columns`;
-    DialogStore.previewState.columns.value = result.columns;
-    DialogStore.previewState.newColumns.value = newCols;
-    DialogStore.previewState.rows.value = result.rows;
-  } catch (error: any) {
-    state.previewError.value = error.message;
+    return {
+      title: 'Pivot Preview',
+      stats: `Showing ${result.rows.length} rows, ${result.columns.length} columns`,
+      columns: result.columns,
+      newColumns: newCols,
+      rows: result.rows,
+    };
+  },
+  onError: (error) => {
+    DialogStore.pivotState.previewError.value = error.message;
+  },
+});
+
+export function debouncedPreviewPivot() {
+  pivotPreview.trigger();
+}
+
+export function previewPivot() {
+  const state = DialogStore.pivotState;
+  state.isPreviewing.value = true;
+  state.previewError.value = null;
+  try {
+    pivotPreview.compute();
   } finally {
     state.isPreviewing.value = false;
   }
 }
 
-export function clearPreview() {
-  DialogStore.previewState.title.value = '';
-  DialogStore.previewState.stats.value = '';
-  DialogStore.previewState.columns.value = [];
-  DialogStore.previewState.newColumns.value = [];
-  DialogStore.previewState.rows.value = [];
-}
+// Re-export clearPreview from preview-engine
+export { clearPreview };
 
 export async function applyPivotTransform(callbacks: any) {
   const columns = AppStore.columns.value;

@@ -4,6 +4,7 @@ import { parseExpression } from '../../core/expression-parser';
 import { interpretAST } from '../../core/ast-interpreter';
 import * as HelperHandlers from './helper-handlers';
 import { StepService } from '../services/StepService';
+import { createDebouncedPreview, clearPreview, PreviewResult } from './preview-engine';
 
 export function getDateColumns(): string[] {
   const schema = HelperHandlers.getActiveSchema.call({
@@ -121,26 +122,25 @@ export function getDateOutputPlaceholder(): string {
   return `${colVal}_${parts[0]}_trunc`;
 }
 
-export function updateDatePreview() {
-  const state = DialogStore.dateState;
-  const { column, extractParts, truncateUnits } = state;
-  const colVal = column.value;
-  const data = AppStore.currentData.value;
+// Preview engine instance for date operations
+const datePreview = createDebouncedPreview({
+  compute: (): PreviewResult | null => {
+    const state = DialogStore.dateState;
+    const { column, extractParts, truncateUnits } = state;
+    const colVal = column.value;
+    const data = AppStore.currentData.value;
 
-  if (!colVal || !data?.length) {
-    clearDatePreview();
-    return;
-  }
+    if (!colVal || !data?.length) {
+      return null;
+    }
 
-  const extractPartsList = extractParts.value;
-  const truncateUnitsList = truncateUnits.value;
+    const extractPartsList = extractParts.value;
+    const truncateUnitsList = truncateUnits.value;
 
-  if (extractPartsList.length === 0 && truncateUnitsList.length === 0) {
-    clearDatePreview();
-    return;
-  }
+    if (extractPartsList.length === 0 && truncateUnitsList.length === 0) {
+      return null;
+    }
 
-  try {
     // Use preview row limit setting
     const previewLimit = AppStore.uxSettings.value.preview.rowLimit;
     const samples = data.slice(0, previewLimit);
@@ -197,23 +197,26 @@ export function updateDatePreview() {
       );
     }
 
-    DialogStore.previewState.title.value = `Date: ${operationNames.join(' + ')}`;
-    DialogStore.previewState.stats.value = `Showing ${previewRows.length} sample rows`;
-    DialogStore.previewState.columns.value = [colVal, ...outputCols];
-    DialogStore.previewState.newColumns.value = outputCols;
-    DialogStore.previewState.rows.value = previewRows;
-  } catch (e) {
-    clearDatePreview();
-  }
+    return {
+      title: `Date: ${operationNames.join(' + ')}`,
+      stats: `Showing ${previewRows.length} sample rows`,
+      columns: [colVal, ...outputCols],
+      newColumns: outputCols,
+      rows: previewRows,
+    };
+  },
+});
+
+export function debouncedUpdateDatePreview() {
+  datePreview.trigger();
 }
 
-export function clearDatePreview() {
-  DialogStore.previewState.title.value = '';
-  DialogStore.previewState.stats.value = '';
-  DialogStore.previewState.columns.value = [];
-  DialogStore.previewState.newColumns.value = [];
-  DialogStore.previewState.rows.value = [];
+export function updateDatePreview() {
+  datePreview.compute();
 }
+
+// Re-export clearPreview from preview-engine (aliased for backward compatibility)
+export { clearPreview as clearDatePreview };
 
 export function getDatePartPreview(
   partValue: string,

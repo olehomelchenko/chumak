@@ -4,6 +4,7 @@ import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 import { StepService } from '../services/StepService';
 import * as HelperHandlers from './helper-handlers';
+import { createDebouncedPreview, clearPreview, PreviewResult } from './preview-engine';
 
 export function addAggregation() {
   const state = DialogStore.aggregateState;
@@ -47,43 +48,55 @@ export function constructAggregateStep() {
   return { aggregate: { groupby: groupBy.value, rollup: rollup } };
 }
 
-export async function previewAggregate() {
-  const state = DialogStore.aggregateState;
-  const data = AppStore.currentData.value;
-  const columns = AppStore.columns.value;
+// Preview engine instance for aggregate operations
+const aggregatePreview = createDebouncedPreview({
+  compute: (): PreviewResult | null => {
+    const state = DialogStore.aggregateState;
+    const data = AppStore.currentData.value;
 
-  state.isPreviewing.value = true;
-  state.previewError.value = null;
-  clearPreview();
-  try {
+    if (!data?.length || state.aggregations.value.length === 0) {
+      return null;
+    }
+
     const step = constructAggregateStep();
-    const samples = data!.slice(0, 50);
+    const samples = data.slice(0, 50);
     const table = aq.from(samples);
-    const resultTable = applyTransform(table, step, columns);
+    const resultTable = applyTransform(table, step, AppStore.columns.value);
 
     const result = HelperHandlers.preparePreviewData.call(null as any, resultTable, 50);
     const groupBy = state.groupBy.value;
     const newCols = result.columns.filter((c: string) => !groupBy.includes(c));
 
-    DialogStore.previewState.title.value = 'Aggregate Preview';
-    DialogStore.previewState.stats.value = `Showing ${result.rows.length} rows, ${result.columns.length} columns`;
-    DialogStore.previewState.columns.value = result.columns;
-    DialogStore.previewState.newColumns.value = newCols;
-    DialogStore.previewState.rows.value = result.rows;
-  } catch (error: any) {
-    state.previewError.value = error.message;
+    return {
+      title: 'Aggregate Preview',
+      stats: `Showing ${result.rows.length} rows, ${result.columns.length} columns`,
+      columns: result.columns,
+      newColumns: newCols,
+      rows: result.rows,
+    };
+  },
+  onError: (error) => {
+    DialogStore.aggregateState.previewError.value = error.message;
+  },
+});
+
+export function debouncedUpdateAggregatePreview() {
+  aggregatePreview.trigger();
+}
+
+export function updateAggregatePreview() {
+  const state = DialogStore.aggregateState;
+  state.isPreviewing.value = true;
+  state.previewError.value = null;
+  try {
+    aggregatePreview.compute();
   } finally {
     state.isPreviewing.value = false;
   }
 }
 
-export function clearPreview() {
-  DialogStore.previewState.title.value = '';
-  DialogStore.previewState.stats.value = '';
-  DialogStore.previewState.columns.value = [];
-  DialogStore.previewState.newColumns.value = [];
-  DialogStore.previewState.rows.value = [];
-}
+// Re-export clearPreview from preview-engine
+export { clearPreview };
 
 export async function applyAggregateTransform(callbacks: any) {
   try {

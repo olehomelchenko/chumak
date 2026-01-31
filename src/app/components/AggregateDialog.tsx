@@ -128,7 +128,7 @@ export function AggregateDialog() {
       <div class={styles.group} style={{ marginTop: '1rem' }}>
         <button
           class="button button--secondary"
-          onClick={AggregateHandlers.previewAggregate}
+          onClick={AggregateHandlers.updateAggregatePreview}
           disabled={isPreviewing.value}
         >
           {isPreviewing.value ? 'Previewing...' : 'Preview Result'}

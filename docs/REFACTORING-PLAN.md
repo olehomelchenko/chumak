@@ -3,7 +3,7 @@
 > Architectural assessment and refactoring roadmap for the `src/app/` layer
 
 **Date:** 2026-01-31
-**Status:** In Progress (Phase 1 Complete)
+**Status:** In Progress (Phase 2 - Migrations Complete)
 
 ---
 
@@ -186,7 +186,7 @@ export function updatePreviewState(result: PreviewResult): void;
 export function clearPreview(): void;
 ```
 
-**Migrated**: 7 handlers now use `createDebouncedPreview()` instead of local debounce timers.
+**Migrated**: 13 handlers now use `createDebouncedPreview()` instead of local debounce timers.
 
 ### 4.2 Extract Validation Framework (P2) ✅ COMPLETE
 
@@ -294,14 +294,27 @@ handlers/
 - `split-handlers.ts` - uses `createDebouncedPreview`, `validateRegexPattern`
 - `pattern-handlers.ts` - uses `validateRegexPattern` (3 places)
 
-### Phase 2: Handler Consolidation (Week 3-4)
+### Phase 2: Handler Consolidation (Week 3-4) ⏳ IN PROGRESS
 
+- [x] Migrate remaining handlers to preview-engine (6 handlers)
 - [ ] Build handler testing framework
 - [ ] Add tests for critical handlers (join, import, aggregate)
 - [ ] Consolidate handlers into logical groups
-- [ ] Migrate handlers to use shared engines
 
 **Deliverable**: Better test coverage, organized handler structure
+
+**Files migrated (Phase 2):**
+
+- `aggregate-handlers.ts` - uses `createDebouncedPreview`
+- `fold-handlers.ts` - uses `createDebouncedPreview`
+- `pivot-handlers.ts` - uses `createDebouncedPreview`
+- `dedupe-handlers.ts` - uses `createDebouncedPreview`
+- `text-handlers.ts` - uses `createDebouncedPreview`
+- `date-handlers.ts` - uses `createDebouncedPreview`
+
+**Deferred to Phase 3:**
+
+- `join-handlers.ts` - complex async preview with dual state storage, needs architectural refactoring
 
 ### Phase 3: Architecture (Week 5-6)
 
@@ -339,11 +352,13 @@ handlers/
 
 ## Decision Log
 
-| Date       | Decision                                                  | Rationale                                          |
-| ---------- | --------------------------------------------------------- | -------------------------------------------------- |
-| 2026-01-31 | Prioritize duplication removal over SytoApp decomposition | Higher ROI, lower risk, enables future refactoring |
-| 2026-01-31 | Keep core layer unchanged                                 | Already well-structured, no issues identified      |
-| 2026-01-31 | Phase 1 complete: preview-engine and validation-engine    | 7 handlers migrated, 46 new tests, all tests pass  |
+| Date       | Decision                                                   | Rationale                                                 |
+| ---------- | ---------------------------------------------------------- | --------------------------------------------------------- |
+| 2026-01-31 | Prioritize duplication removal over SytoApp decomposition  | Higher ROI, lower risk, enables future refactoring        |
+| 2026-01-31 | Keep core layer unchanged                                  | Already well-structured, no issues identified             |
+| 2026-01-31 | Phase 1 complete: preview-engine and validation-engine     | 7 handlers migrated, 46 new tests, all tests pass         |
+| 2026-01-31 | Phase 2 migration: 6 additional handlers to preview-engine | 13 total handlers now use shared preview engine           |
+| 2026-01-31 | Defer join-handlers.ts to Phase 3                          | Complex async pattern with dual state needs arch refactor |
 
 ---
 

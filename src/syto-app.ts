@@ -499,8 +499,8 @@ export class SytoApp implements AppState {
   constructAggregateStep() {
     return AggregateHandlers.constructAggregateStep();
   }
-  previewAggregate() {
-    return AggregateHandlers.previewAggregate();
+  updateAggregatePreview() {
+    return AggregateHandlers.updateAggregatePreview();
   }
   applyAggregateTransform() {
     return AggregateHandlers.applyAggregateTransform(HelperHandlers.createExecutionCallbacks(this));
