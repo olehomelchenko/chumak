@@ -45,6 +45,7 @@ import {
   FunctionReferenceDialog,
   DependencyImpactDialog,
 } from './index';
+import { JsonEditorModal } from './JsonEditorModal';
 // Import handlers for helpers
 import {
   getDialogTitle,
@@ -99,9 +100,6 @@ export function App({ app }: AppProps) {
     onViewFinalResult: () => app.viewFinalResult(),
     onGetStepsJson: () => app.getStepsJson(),
     onEnterJsonEditMode: () => app.enterJsonEditMode(),
-    onCancelJsonEdit: () => app.cancelJsonEdit(),
-    onApplyJsonEdit: () => app.applyJsonEdit(),
-    onValidateJsonEdit: () => app.validateJsonEdit(),
     getModelMeta: (m: any) => getModelMeta.call(app, m),
   };
 
@@ -443,6 +441,7 @@ export function App({ app }: AppProps) {
       <TypeMenu {...typeMenuProps} />
       <GlobalUI />
       <DependencyImpactDialog />
+      <JsonEditorModal onCancel={() => app.cancelJsonEdit()} onApply={() => app.applyJsonEdit()} />
     </div>
   );
 }

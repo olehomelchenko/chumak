@@ -156,6 +156,10 @@ export default defineConfig(({ mode }) => {
             if (id.includes('workbox') || id.includes('vite-plugin-pwa')) {
               return 'pwa';
             }
+            // Split CodeMirror (editor library)
+            if (id.includes('@codemirror') || id.includes('codemirror')) {
+              return 'codemirror';
+            }
             // Keep other node_modules vendor code separate
             if (id.includes('node_modules')) {
               return 'vendor';

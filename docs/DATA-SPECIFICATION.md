@@ -586,6 +586,19 @@ If "Remove original columns" is selected, a second step is added:
 - Comma separator: `"(col1 ?? \"\") + \", \" + (col2 ?? \"\")"`
 - Single column: `"(col1 ?? \"\")"`
 
+### 4.5 Manual JSON Editing
+
+Advanced users can edit the transformation pipeline directly as JSON. This "Danger Zone" feature allows for:
+
+- Bulk editing of several steps at once
+- Reordering steps via copy-paste
+- Copying pipelines between different models or sources
+- Applying complex configurations not yet exposed in the visual UI
+
+Direct JSON editing is available via the **JSON** tab in the sidebar, which opens a dedicated modal with syntax highlighting and real-time linting.
+
+**Warning**: Direct JSON editing bypasses the safety checks of the visual dialogs. While the application provides linting for basic syntax and schema errors, invalid changes can still break the pipeline or cause recomputation errors.
+
 ---
 
 ## 5. Expression Syntax

@@ -217,6 +217,7 @@ All UI components are Preact/TSX with co-located CSS Modules in `src/app/compone
 - `ImportCsvDialog.tsx`, `ImportUrlDialog.tsx`
 - `ExportDialog.tsx`, `SettingsDialog.tsx`
 - `AboutDialog.tsx`, `ExpressionsDialog.tsx`
+- `JsonEditorModal.tsx` — Full-screen CodeMirror editor for pipeline JSON
 
 ### 7.3 EDA Components
 
@@ -228,11 +229,10 @@ All UI components are Preact/TSX with co-located CSS Modules in `src/app/compone
 
 ### 7.4 Pipeline Components
 
-| Component        | Purpose                             |
-| ---------------- | ----------------------------------- |
-| `StepList.tsx`   | Transform pipeline with edit/delete |
-| `StepEditor.tsx` | Individual step display             |
-| `JsonEditor.tsx` | Raw JSON workflow editing           |
+| Component             | Purpose                                      |
+| --------------------- | -------------------------------------------- |
+| `StepEditor.tsx`      | Individual step display                      |
+| `JsonEditorModal.tsx` | Full-featured CodeMirror editor for raw JSON |
 
 ### 7.5 Shared Components
 

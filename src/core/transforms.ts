@@ -106,7 +106,7 @@ export interface FullTransformStep extends TransformStep {
 /**
  * List of known transform keys (future-proofing: unknown transforms are skipped with warning)
  */
-const KNOWN_TRANSFORM_KEYS: readonly string[] = [
+export const KNOWN_TRANSFORM_KEYS: readonly string[] = [
   'select',
   'remove',
   'rename',

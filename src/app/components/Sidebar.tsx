@@ -24,9 +24,6 @@ export interface SidebarProps {
   // JSON edit
   onGetStepsJson: () => string;
   onEnterJsonEditMode: () => void;
-  onCancelJsonEdit: () => void;
-  onApplyJsonEdit: () => void;
-  onValidateJsonEdit: () => void;
   // Model meta helper
   getModelMeta: (model: Model) => string;
 }
@@ -57,9 +54,6 @@ export function Sidebar({
   onViewFinalResult,
   onGetStepsJson,
   onEnterJsonEditMode,
-  onCancelJsonEdit,
-  onApplyJsonEdit,
-  onValidateJsonEdit,
 }: SidebarProps) {
   const sources = AppStore.sources;
   const models = AppStore.models;
@@ -68,9 +62,6 @@ export function Sidebar({
   const currentData = AppStore.currentData;
   const activeStepIndex = AppStore.activeStepIndex;
   const viewingIntermediate = AppStore.viewingIntermediate;
-  const jsonEditMode = AppStore.jsonEditMode;
-  const jsonEditContent = AppStore.jsonEditContent;
-  const jsonEditError = AppStore.jsonEditError;
 
   const [activeTab, setActiveTab] = useState<'steps' | 'json'>('steps');
 
@@ -257,74 +248,22 @@ export function Sidebar({
               <div class={styles.empty}>No transformation steps yet.</div>
             )}
 
-            {/* JSON View/Edit Area */}
+            {/* JSON View */}
             {hasData.value && hasSteps.value && (
               <div class={styles.jsonEditor}>
-                {/* Read-only mode */}
-                {!jsonEditMode.value && (
-                  <div class={styles.jsonView}>
-                    <button
-                      class={styles.jsonEditToggle}
-                      onClick={onEnterJsonEditMode}
-                      title="Edit raw JSON (advanced - use with caution)"
-                    >
-                      <span
-                        class="iconify"
-                        data-icon="carbon:edit"
-                        style={{ width: '14px', height: '14px' }}
-                      ></span>
-                      Edit JSON
-                    </button>
-                    <pre class={styles.jsonContent}>{onGetStepsJson()}</pre>
-                  </div>
-                )}
-
-                {/* Edit mode (danger zone) */}
-                {jsonEditMode.value && (
-                  <div class={styles.jsonEditDangerZone}>
-                    {/* Warning banner */}
-                    <div class={styles.jsonEditWarning}>
-                      <span class={styles.jsonEditWarning__icon}>⚠️</span>
-                      <div class={styles.jsonEditWarning__text}>
-                        <strong>Danger Zone</strong> — Direct JSON editing bypasses validation.
-                        Invalid changes may break your workflow.
-                      </div>
-                    </div>
-
-                    {/* Textarea for editing */}
-                    <textarea
-                      class={`${styles.jsonEditTextarea} ${jsonEditError.value ? styles.error : ''}`}
-                      value={jsonEditContent.value}
-                      onInput={(e) => {
-                        jsonEditContent.value = (e.target as HTMLTextAreaElement).value;
-                        onValidateJsonEdit();
-                      }}
-                      spellcheck={false}
-                    ></textarea>
-
-                    {/* Error message */}
-                    {jsonEditError.value && (
-                      <div class={styles.jsonEditError}>{jsonEditError.value}</div>
-                    )}
-
-                    {/* Action buttons */}
-                    <div class={styles.jsonEditActions}>
-                      <button
-                        class="button button--secondary button--small"
-                        onClick={onCancelJsonEdit}
-                      >
-                        Cancel
-                      </button>
-                      <button
-                        class="button button--danger button--small"
-                        onClick={onApplyJsonEdit}
-                        disabled={!!jsonEditError.value}
-                      >
-                        Apply Changes
-                      </button>
-                    </div>
-                  </div>
-                )}
+                <button
+                  class={styles.jsonEditToggle}
+                  onClick={onEnterJsonEditMode}
+                  title="Edit raw JSON (opens editor modal)"
+                >
+                  <span
+                    class="iconify"
+                    data-icon="carbon:edit"
+                    style={{ width: '14px', height: '14px' }}
+                  ></span>
+                  Edit JSON
+                </button>
+                <pre class={styles.jsonContent}>{onGetStepsJson()}</pre>
               </div>
             )}
           </div>
