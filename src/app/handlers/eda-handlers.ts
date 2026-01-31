@@ -1,86 +1,144 @@
-import type { SytoApp } from '../../syto-app';
 import { SchemaEngine } from '../../core/schema-engine';
 import { EDAEngine } from '../../core/eda-engine';
 import { ChartsEngine } from '../../core/charts';
+import { AppStore } from '../stores/AppStore';
 import { DialogStore } from '../stores/DialogStore';
 
-export function selectColumn(this: SytoApp, col: string) {
-  this.selectedCell = null;
-  this.typeMenuOpen = false;
+/**
+ * Callbacks for EDA operations that need UI interaction
+ */
+export type EdaCallbacks = {
+  updateToolbarPosition: () => void;
+  applyFilterTransform: () => Promise<void>;
+  clearColumnSelection: () => void;
+};
 
-  if (this.selectedColumn === col) {
-    this.selectedColumn = null;
+let callbacks: EdaCallbacks | null = null;
+
+/**
+ * Set EDA callbacks for store-based operations
+ */
+export function setEdaCallbacks(cb: EdaCallbacks): void {
+  callbacks = cb;
+}
+
+/**
+ * Legacy SytoApp interface for backward compatibility
+ */
+interface LegacyApp {
+  updateToolbarPosition: () => void;
+  applyFilterTransform: () => Promise<void>;
+  clearColumnSelection: () => void;
+}
+
+/**
+ * Get callbacks - either from stored callbacks or from legacy app instance
+ */
+function getCallbacks(legacyApp?: LegacyApp): EdaCallbacks | null {
+  if (legacyApp) {
+    return {
+      updateToolbarPosition: () => legacyApp.updateToolbarPosition(),
+      applyFilterTransform: () => legacyApp.applyFilterTransform(),
+      clearColumnSelection: () => legacyApp.clearColumnSelection(),
+    };
+  }
+  return callbacks;
+}
+
+/**
+ * Select a column for EDA analysis
+ */
+export function selectColumn(this: LegacyApp | void, col: string): void {
+  const cb = getCallbacks(this as LegacyApp | undefined);
+
+  AppStore.selectedCell.value = null;
+  AppStore.typeMenuOpen.value = false;
+
+  // Toggle selection if clicking the same column
+  if (AppStore.selectedColumn.value === col) {
+    AppStore.selectedColumn.value = null;
     return;
   }
-  this.selectedColumn = col;
-  requestAnimationFrame(() => this.updateToolbarPosition());
-  if (this.selectedColumn && this.currentData) {
+
+  AppStore.selectedColumn.value = col;
+  requestAnimationFrame(() => cb?.updateToolbarPosition());
+
+  const currentData = AppStore.currentData.value;
+  const selectedColumn = AppStore.selectedColumn.value;
+
+  if (selectedColumn && currentData) {
+    // Get column schema
     let colSchema = null;
-    if (this.activeModel?.schema)
-      colSchema = this.activeModel.schema.find((c: any) => c.name === this.selectedColumn);
-    else if (this.activeSource?.columns)
-      colSchema = this.activeSource.columns.find((c: any) => c.name === this.selectedColumn);
+    const activeModel = AppStore.activeModel.value;
+    const activeSource = AppStore.activeSource.value;
+
+    if (activeModel?.schema) {
+      colSchema = activeModel.schema.find((c: any) => c.name === selectedColumn);
+    } else if (activeSource?.columns) {
+      colSchema = activeSource.columns.find((c: any) => c.name === selectedColumn);
+    }
+
     const type = colSchema
       ? colSchema.type
-      : SchemaEngine.inferType(
-          this.currentData.slice(0, 20).map((r: any) => r[this.selectedColumn!])
-        );
-    this.edaStats = EDAEngine.calculateStats(this.currentData, this.selectedColumn, type);
-    this.edaBrushSelection = null;
+      : SchemaEngine.inferType(currentData.slice(0, 20).map((r: any) => r[selectedColumn]));
+
+    // Calculate EDA stats
+    AppStore.edaStats.value = EDAEngine.calculateStats(currentData, selectedColumn, type);
+    AppStore.edaBrushSelection.value = null;
+
+    const theme = AppStore.theme.value;
+    const edaChartView = AppStore.edaChartView.value;
+    const edaDateTreatment = AppStore.edaDateTreatment.value;
+    const edaStats = AppStore.edaStats.value;
+
+    // Render appropriate chart based on type
     if (['integer', 'float', 'number'].includes(type)) {
       requestAnimationFrame(() => {
-        if (this.edaChartView === 'boxplot')
-          ChartsEngine.renderBoxPlot(
-            '#eda-boxplot',
-            this.currentData!,
-            this.selectedColumn!,
-            this.theme
-          );
-        else
+        if (edaChartView === 'boxplot') {
+          ChartsEngine.renderBoxPlot('#eda-boxplot', currentData, selectedColumn, theme);
+        } else {
           ChartsEngine.renderHistogram(
             '#eda-histogram',
-            this.currentData!,
-            this.selectedColumn!,
-            this.theme,
-            (sel: any) => this.handleBrushSelection(sel)
+            currentData,
+            selectedColumn,
+            theme,
+            (sel: any) => handleBrushSelection(sel)
           );
+        }
       });
-    } else if (['date', 'datetime'].includes(type) && this.edaDateTreatment === 'temporal') {
+    } else if (['date', 'datetime'].includes(type) && edaDateTreatment === 'temporal') {
       requestAnimationFrame(() =>
-        ChartsEngine.renderTemporalChart(
-          '#eda-temporal-chart',
-          this.currentData!,
-          this.selectedColumn!,
-          this.theme
-        )
+        ChartsEngine.renderTemporalChart('#eda-temporal-chart', currentData, selectedColumn, theme)
       );
     } else {
       requestAnimationFrame(() => {
-        if (this.edaStats && 'topValues' in this.edaStats) {
-          ChartsEngine.renderCategoricalBar(
-            '#eda-categorical-bar',
-            this.edaStats.topValues,
-            this.theme
-          );
+        if (edaStats && 'topValues' in edaStats) {
+          ChartsEngine.renderCategoricalBar('#eda-categorical-bar', edaStats.topValues, theme);
         }
       });
     }
   } else {
-    this.edaStats = null;
-    this.edaBrushSelection = null;
+    AppStore.edaStats.value = null;
+    AppStore.edaBrushSelection.value = null;
   }
 }
 
-export function selectEdaStat(this: SytoApp, label: string, rawValue: any, event: any) {
+/**
+ * Select an EDA stat value for cell toolbar display
+ */
+export function selectEdaStat(label: string, rawValue: any, event: any): void {
   const el = event.currentTarget;
-  this.selectedCell = null;
-  this.selectedCell = {
-    col: this.selectedColumn!,
+  const selectedColumn = AppStore.selectedColumn.value;
+
+  AppStore.selectedCell.value = null;
+  AppStore.selectedCell.value = {
+    col: selectedColumn!,
     value: rawValue,
     type: 'number',
     isEda: true,
     edaLabel: label,
   };
+
   requestAnimationFrame(() => {
     if (!el) return;
     const rect = el.getBoundingClientRect();
@@ -88,78 +146,95 @@ export function selectEdaStat(this: SytoApp, label: string, rawValue: any, event
     const toolbarWidth = 220;
     const windowWidth = window.innerWidth;
     const margin = 12;
-    let x = Math.max(
+    const x = Math.max(
       toolbarWidth / 2 + margin,
       Math.min(windowWidth - toolbarWidth / 2 - margin, center)
     );
-    this.cellToolbarPos = { x: x, y: rect.top - 8, arrowOffset: center - x };
+    AppStore.cellToolbarPos.value = { x, y: rect.top - 8, arrowOffset: center - x };
   });
 }
 
-export function setEdaChartView(this: SytoApp, view: 'boxplot' | 'histogram') {
-  this.edaChartView = view;
-  this.edaBrushSelection = null;
-  if (this.selectedColumn && this.edaStats) {
-    const type = this.edaStats.type;
+/**
+ * Set chart view type (boxplot or histogram)
+ */
+export function setEdaChartView(view: 'boxplot' | 'histogram'): void {
+  AppStore.edaChartView.value = view;
+  AppStore.edaBrushSelection.value = null;
+
+  const selectedColumn = AppStore.selectedColumn.value;
+  const edaStats = AppStore.edaStats.value;
+  const currentData = AppStore.currentData.value;
+  const theme = AppStore.theme.value;
+
+  if (selectedColumn && edaStats && currentData) {
+    const type = edaStats.type;
     if (['integer', 'float', 'number'].includes(type)) {
       requestAnimationFrame(() => {
-        if (view === 'boxplot')
-          ChartsEngine.renderBoxPlot(
-            '#eda-boxplot',
-            this.currentData!,
-            this.selectedColumn!,
-            this.theme
-          );
-        else
+        if (view === 'boxplot') {
+          ChartsEngine.renderBoxPlot('#eda-boxplot', currentData, selectedColumn, theme);
+        } else {
           ChartsEngine.renderHistogram(
             '#eda-histogram',
-            this.currentData!,
-            this.selectedColumn!,
-            this.theme,
-            (sel: any) => this.handleBrushSelection(sel)
+            currentData,
+            selectedColumn,
+            theme,
+            (sel: any) => handleBrushSelection(sel)
           );
+        }
       });
     }
   }
 }
 
-export function setEdaDateTreatment(this: SytoApp, treatment: 'temporal' | 'categorical') {
-  this.edaDateTreatment = treatment;
-  if (this.selectedColumn && this.edaStats && ['date', 'datetime'].includes(this.edaStats.type)) {
+/**
+ * Set date treatment (temporal or categorical)
+ */
+export function setEdaDateTreatment(treatment: 'temporal' | 'categorical'): void {
+  AppStore.edaDateTreatment.value = treatment;
+
+  const selectedColumn = AppStore.selectedColumn.value;
+  const edaStats = AppStore.edaStats.value;
+  const currentData = AppStore.currentData.value;
+  const theme = AppStore.theme.value;
+
+  if (selectedColumn && edaStats && currentData && ['date', 'datetime'].includes(edaStats.type)) {
     requestAnimationFrame(() => {
       if (treatment === 'temporal') {
-        ChartsEngine.renderTemporalChart(
-          '#eda-temporal-chart',
-          this.currentData!,
-          this.selectedColumn!,
-          this.theme
-        );
+        ChartsEngine.renderTemporalChart('#eda-temporal-chart', currentData, selectedColumn, theme);
       } else {
-        if (this.edaStats && 'topValues' in this.edaStats) {
-          ChartsEngine.renderCategoricalBar(
-            '#eda-categorical-bar',
-            this.edaStats.topValues,
-            this.theme
-          );
+        if (edaStats && 'topValues' in edaStats) {
+          ChartsEngine.renderCategoricalBar('#eda-categorical-bar', edaStats.topValues, theme);
         }
       }
     });
   }
 }
 
-export function handleBrushSelection(this: SytoApp, selection: any) {
-  this.edaBrushSelection = selection;
+/**
+ * Handle brush selection on histogram
+ */
+export function handleBrushSelection(selection: any): void {
+  AppStore.edaBrushSelection.value = selection;
 }
 
-export async function applyBrushFilter(this: SytoApp) {
-  if (!this.edaBrushSelection || !this.selectedColumn) return;
-  const { min, max } = this.edaBrushSelection;
-  const col = this.selectedColumn;
+/**
+ * Apply a filter based on current brush selection
+ */
+export async function applyBrushFilter(this: LegacyApp | void): Promise<void> {
+  const cb = getCallbacks(this as LegacyApp | undefined);
+  const edaBrushSelection = AppStore.edaBrushSelection.value;
+  const selectedColumn = AppStore.selectedColumn.value;
+
+  if (!edaBrushSelection || !selectedColumn) return;
+
+  const { min, max } = edaBrushSelection;
   const fmtMin = Number.isInteger(min) ? min : min.toFixed(4);
   const fmtMax = Number.isInteger(max) ? max : max.toFixed(4);
-  const expr = `[${col}] >= ${fmtMin} && [${col}] <= ${fmtMax}`;
+  const expr = `[${selectedColumn}] >= ${fmtMin} && [${selectedColumn}] <= ${fmtMax}`;
+
   DialogStore.filterState.expression.value = expr;
   DialogStore.filterState.error.value = null;
-  await this.applyFilterTransform();
-  this.clearColumnSelection();
+
+  await cb?.applyFilterTransform();
+  cb?.clearColumnSelection();
 }

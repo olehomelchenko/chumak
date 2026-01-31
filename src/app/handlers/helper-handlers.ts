@@ -1,4 +1,3 @@
-import type { SytoApp } from '../../syto-app';
 import { describeTransform } from '../../core/transforms';
 import { parseExpression } from '../../core/expression-parser';
 import { validateAST } from '../../core/ast-validator';
@@ -14,7 +13,10 @@ export function getPreviewRowLimit(): number {
   return 100;
 }
 
-export function getModelMeta(this: SytoApp, model: any) {
+/**
+ * Get metadata string for a model (row count, column count, step count)
+ */
+export function getModelMeta(model: any): string {
   if (!model) return '';
   const rowCount = model.data ? model.data.length : 0;
   const colCount = model.schema
@@ -28,36 +30,94 @@ export function getModelMeta(this: SytoApp, model: any) {
   return `${rowCount.toLocaleString()} x ${colCount} • ${stepsText}`;
 }
 
-export function describeTransformWrapper(this: SytoApp, transform: any) {
+/**
+ * Get human-readable description for a transform
+ */
+export function describeTransformWrapper(transform: any): string {
   return describeTransform(transform);
 }
 
 /**
- * Creates callbacks from SytoApp for StepService.
- * This allows the framework-agnostic StepService to interact with the UI.
+ * Callbacks interface for transform execution.
+ * Used by handlers and components to interact with the UI.
  */
-export function createExecutionCallbacks(app: SytoApp): ExecutionCallbacks {
+export type TransformCallbacks = {
+  startTransformation: (label: string) => void;
+  endTransformation: () => void;
+  alert: (message: string) => Promise<boolean>;
+  closeDialog: (clearPreview?: boolean) => void;
+  updatePagination: () => void;
+};
+
+let transformCallbacks: TransformCallbacks | null = null;
+
+/**
+ * Set transform callbacks for store-based operations
+ */
+export function setTransformCallbacks(cb: TransformCallbacks): void {
+  transformCallbacks = cb;
+}
+
+/**
+ * SytoApp interface for backward compatibility during migration.
+ * This will be removed once all handlers are migrated.
+ */
+interface LegacySytoApp {
+  startTransformation: (label: string) => void;
+  endTransformation: () => void;
+  alert: (message: string) => Promise<boolean>;
+  closeDialog: (clearPreview?: boolean) => void;
+  updatePagination: () => void;
+}
+
+/**
+ * Creates callbacks for StepService.
+ * Accepts optional app parameter for backward compatibility.
+ * New code should call setTransformCallbacks() at init and use no argument.
+ */
+export function createExecutionCallbacks(app?: LegacySytoApp): ExecutionCallbacks {
+  // If app is provided (legacy pattern), use it directly
+  if (app) {
+    return {
+      onTransformStart: (label: string) => app.startTransformation(label),
+      onTransformEnd: () => app.endTransformation(),
+      onError: async (message: string) => {
+        await app.alert(message);
+      },
+      onDialogClose: (clearPreview?: boolean) => app.closeDialog(clearPreview),
+      updatePagination: () => app.updatePagination(),
+    };
+  }
+
+  // New pattern: use stored callbacks
+  if (!transformCallbacks) {
+    throw new Error('Transform callbacks not set. Call setTransformCallbacks first.');
+  }
   return {
-    onTransformStart: (label: string) => app.startTransformation(label),
-    onTransformEnd: () => app.endTransformation(),
+    onTransformStart: (label: string) => transformCallbacks!.startTransformation(label),
+    onTransformEnd: () => transformCallbacks!.endTransformation(),
     onError: async (message: string) => {
-      await app.alert(message);
+      await transformCallbacks!.alert(message);
     },
-    onDialogClose: (clearPreview?: boolean) => app.closeDialog(clearPreview),
-    updatePagination: () => app.updatePagination(),
+    onDialogClose: (clearPreview?: boolean) => transformCallbacks!.closeDialog(clearPreview),
+    updatePagination: () => transformCallbacks!.updatePagination(),
   };
 }
 
 /**
  * Runs a transform using StepService.
+ * @deprecated Use store-based pattern with setTransformCallbacks instead
  */
 export async function runTransform(
-  this: SytoApp,
+  this: LegacySytoApp | void,
   label: string,
   transform: any,
   closeDialog = true
-) {
-  const callbacks = createExecutionCallbacks(this);
+): Promise<boolean> {
+  // Support both old (this-bound) and new (store-based) patterns
+  const callbacks = this
+    ? createExecutionCallbacks(this as LegacySytoApp)
+    : createExecutionCallbacks();
   return StepService.runTransform(label, transform, callbacks, closeDialog);
 }
 
@@ -66,50 +126,68 @@ export async function runTransform(
  * Kept for backward compatibility during migration
  */
 export async function applyStepResult(
-  this: SytoApp,
+  this: LegacySytoApp | void,
   transform: any,
   resultTable: any,
   closeDialogAfter = true
-) {
-  const callbacks = createExecutionCallbacks(this);
+): Promise<void> {
+  const callbacks = this
+    ? createExecutionCallbacks(this as LegacySytoApp)
+    : createExecutionCallbacks();
   return StepService.applyStepResult(transform, resultTable, callbacks, closeDialogAfter);
 }
 
-export function validateExpression(this: SytoApp, expr: string): string | null {
+/**
+ * Validate an expression against current columns
+ */
+export function validateExpression(expr: string): string | null {
   const trimmed = expr.trim();
   if (!trimmed) return null;
   try {
     const ast = parseExpression(trimmed);
-    const validation = validateAST(ast, this.columns);
+    const validation = validateAST(ast, AppStore.columns.value);
     return validation.error ? formatError(validation.error, trimmed) : null;
   } catch (error: any) {
     return formatError(error, trimmed);
   }
 }
 
-export function getColumnType(this: SytoApp, colName: string): string {
-  const schema = this.getActiveSchema();
+/**
+ * Get the type of a column from the active schema
+ */
+export function getColumnType(colName: string): string {
+  const schema = getActiveSchema();
   if (schema) {
     const col = schema.find((c: any) => c.name === colName);
     if (col) return col.type;
   }
-  if (this.activeSource?.columns) {
-    const col = this.activeSource.columns.find((c: any) => c.name === colName);
+  const activeSource = AppStore.activeSource.value;
+  if (activeSource?.columns) {
+    const col = activeSource.columns.find((c: any) => c.name === colName);
     if (col) return col.type;
   }
   return 'string';
 }
 
-export function isComparable(this: SytoApp, type?: string) {
+/**
+ * Check if a type is comparable (can be used in comparisons)
+ */
+export function isComparable(type?: string): boolean {
   return ['number', 'integer', 'float', 'date', 'datetime'].includes(type || '');
 }
 
-export function isDateType(this: SytoApp, type?: string) {
+/**
+ * Check if a type is a date type
+ */
+export function isDateType(type?: string): boolean {
   return ['date', 'datetime'].includes(type || '');
 }
 
-export function getTypeIcon(this: SytoApp, colName: string) {
-  const type = this.getColumnType(colName);
+/**
+ * Get icon name for a column type
+ */
+export function getTypeIcon(colName: string): string {
+  const type = getColumnType(colName);
   switch (type) {
     case 'date':
       return 'ix:calendar';
@@ -131,7 +209,10 @@ export function getTypeIcon(this: SytoApp, colName: string) {
   }
 }
 
-export function formatCellValue(this: SytoApp, value: any) {
+/**
+ * Format a cell value for display in the data table
+ */
+export function formatCellValue(value: any): string {
   if (value === null || value === undefined || value === '') return 'null';
 
   // Handle error objects (Power Query-style error cells)
@@ -160,15 +241,15 @@ export function formatCellValue(this: SytoApp, value: any) {
     return String(value);
   }
 
-  // Return primitives as-is (string, number)
-  return value;
+  // Return primitives as string
+  return String(value);
 }
 
 /**
  * Formats a cell value for tooltip display.
  * Returns "Error" for error objects instead of "[Object object]".
  */
-export function formatCellValueForTooltip(this: SytoApp, value: any): string {
+export function formatCellValueForTooltip(value: any): string {
   if (value === null || value === undefined || value === '') return 'null';
 
   // Handle error objects - return "Error" instead of "[Object object]"
@@ -197,8 +278,11 @@ export function formatCellValueForTooltip(this: SytoApp, value: any): string {
   return String(value);
 }
 
-export function getTypeIndicator(this: SytoApp, colName: string) {
-  const type = this.getColumnType(colName);
+/**
+ * Get text indicator for a column type
+ */
+export function getTypeIndicator(colName: string): string {
+  const type = getColumnType(colName);
   switch (type) {
     case 'string':
       return 'Abc';
@@ -217,18 +301,27 @@ export function getTypeIndicator(this: SytoApp, colName: string) {
   }
 }
 
-export function quoteColumnRef(this: SytoApp, colName: string) {
+/**
+ * Quote a column reference if it contains special characters
+ */
+export function quoteColumnRef(colName: string): string {
   if (/[\s\-+*/()[\]{}]/.test(colName)) {
     return `[${colName}]`;
   }
   return colName;
 }
 
-export function escapePattern(this: SytoApp, pattern: string) {
+/**
+ * Escape special characters in a pattern string
+ */
+export function escapePattern(pattern: string): string {
   return pattern.replace(/\\/g, '\\\\').replace(/"/g, '\\"');
 }
 
-export function formatLiteral(this: SytoApp, value: any, type?: string) {
+/**
+ * Format a value as a literal for use in expressions
+ */
+export function formatLiteral(value: any, type?: string): string {
   if (value === null || value === undefined) return 'null';
   if (type === 'number' || type === 'integer' || type === 'float' || typeof value === 'number')
     return String(value);
@@ -249,14 +342,27 @@ export function formatLiteral(this: SytoApp, value: any, type?: string) {
   return `"${String(value).replace(/\\/g, '\\\\').replace(/"/g, '\\"')}"`;
 }
 
-export function getActiveSchema(this: SytoApp): ColumnSchema[] {
-  if (this.viewingIntermediate && this.viewingSchema) {
-    return this.viewingSchema;
+/**
+ * Get the active schema (viewing intermediate or model schema)
+ */
+export function getActiveSchema(): ColumnSchema[] {
+  if (AppStore.viewingIntermediate.value && AppStore.viewingSchema.value) {
+    return AppStore.viewingSchema.value;
   }
-  return this.activeModel?.schema || [];
+  return AppStore.activeModel.value?.schema || [];
 }
 
-export function preparePreviewData(this: SytoApp, table: any, limit = 100) {
+/**
+ * Prepare data from a table for preview display
+ */
+export function preparePreviewData(
+  table: any,
+  limit = 100
+): {
+  rows: any[];
+  columns: string[];
+  totalRows: number;
+} {
   return {
     rows: table.slice(0, limit).objects(),
     columns: table.columnNames(),

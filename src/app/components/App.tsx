@@ -344,7 +344,6 @@ export function App({ app }: AppProps) {
           >
             {activeDialog === 'type-conversion' ? (
               <TypeConversionDialog
-                app={app}
                 onCancel={() => {
                   app.closeDialog();
                   DialogStore.typeConversionState.column.value = null;

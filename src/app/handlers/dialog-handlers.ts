@@ -1,10 +1,15 @@
-import type { SytoApp } from '../../syto-app';
-import { setUrlState, getUrlState, clearUrlHash } from '../../core/url-state';
+/**
+ * Dialog Handlers - Legacy wrappers for backward compatibility
+ *
+ * This module provides backward-compatible wrappers around DialogCoordinator
+ * functions for use with the SytoApp `.call(this, ...)` pattern.
+ *
+ * New code should use DialogCoordinator directly.
+ */
+
 import { html as aboutHtml } from '../../content/about.md';
-import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
-import { GeneratorService } from '../services/GeneratorService';
-import * as DateHandlers from './date-handlers';
+import { DialogStore } from '../stores/DialogStore';
 import {
   isSlidePanel as registryIsSlidePanel,
   isCenteredModal as registryIsCenteredModal,
@@ -12,594 +17,426 @@ import {
   getDialogButtonText as registryGetDialogButtonText,
   isUrlNavigableDialog,
 } from '../dialog-registry';
+import * as DialogCoordinator from '../orchestration/DialogCoordinator';
+import { syncDialogToUrl, clearDialogFromUrl } from '../orchestration/UrlStateSync';
 
-// Local signals replaced by DialogStore
+// Re-export pure functions from DialogCoordinator
+export {
+  hasPreviewData,
+  getPreviewTitle,
+  getPreviewStats,
+  getPreviewColumns,
+  getPreviewRows,
+  isNewPreviewColumn,
+  formatPreviewCell,
+  clearPreview as clearPreviewDirect,
+} from '../orchestration/DialogCoordinator';
 
-export function getDialogState(this: SytoApp, dialog: string) {
-  switch (dialog) {
-    case 'filter':
-      return {
-        expression: DialogStore.filterState.expression.value,
-        previewMode: DialogStore.filterState.previewMode.value,
-      };
-    case 'derive':
-      return {
-        columnName: DialogStore.deriveState.columnName.value,
-        expression: DialogStore.deriveState.expression.value,
-      };
-    case 'sliceRows':
-      return this.sliceRowsDialogState;
-    case 'index':
-      return this.indexDialogState;
-    case 'aggregate':
-      return this.aggregateDialogState;
-    case 'join':
-      return {
-        rightModel: DialogStore.joinState.rightModel.value,
-        joinType: DialogStore.joinState.joinType.value,
-        keyPairs: DialogStore.joinState.keyPairs.value,
-        suffixes: DialogStore.joinState.suffixes.value,
-      };
-    case 'fold':
-      return this.foldDialogState;
-    case 'pivot':
-      return this.pivotDialogState;
-    case 'sort':
-      return {
-        field: DialogStore.sortState.field.value,
-        order: DialogStore.sortState.order.value,
-      };
-    case 'sample':
-      return {
-        count: DialogStore.sampleState.count.value,
-        seed: DialogStore.sampleState.seed.value,
-      };
-    case 'spread':
-      return {
-        column: DialogStore.spreadState.column.value,
-        limit: DialogStore.spreadState.limit.value,
-        keepOriginal: DialogStore.spreadState.keepOriginal.value,
-      };
-    case 'unroll':
-      return {
-        column: DialogStore.unrollState.column.value,
-        indices: DialogStore.unrollState.indices.value,
-        keepOriginal: DialogStore.unrollState.keepOriginal.value,
-      };
-    case 'replace':
-      return this.replaceDialogState;
-    case 'split':
-      return this.splitDialogState;
-    case 'merge':
-      return {
-        columns: DialogStore.mergeState.columns.value,
-        separator: DialogStore.mergeState.separator.value,
-        columnName: DialogStore.mergeState.columnName.value,
-        removeOriginal: DialogStore.mergeState.removeOriginal.value,
-      };
-    case 'regexpMatch':
-      return this.regexpMatchDialogState;
-    case 'regexpExtract':
-      return this.regexpExtractDialogState;
-    case 'import-csv':
-      return this.importDialogState;
-    case 'import-url':
-      return { url: this.importUrlDialogState.url };
-    case 'generate':
-      return {
-        sourceName: DialogStore.generateState.sourceName.value,
-        rowCount: DialogStore.generateState.rowCount.value,
-        columnName: DialogStore.generateState.columnName.value,
-        type: DialogStore.generateState.type.value,
-        config: DialogStore.generateState.config.value,
-      };
-    case 'dedupe':
-      return this.dedupeDialogState;
-    case 'column-editor':
-      return DialogStore.columnEditorState.columns.value;
-    case 'impute':
-      return {
-        column: DialogStore.imputeState.column.value,
-        strategy: DialogStore.imputeState.strategy.value,
-        value: DialogStore.imputeState.value.value,
-      };
-    case 'settings':
-      return {
-        theme: this.theme,
-        rowLimit: this.uxSettings.preview?.rowLimit || 100,
-        analyticsOptOut: this.uxSettings.analyticsOptOut ?? false,
-      };
-    case 'append':
-      return {
-        targetModel: DialogStore.appendState.targetModel.value,
-        removeDuplicates: DialogStore.appendState.removeDuplicates.value,
-      };
-    default:
-      return null;
+/**
+ * Legacy SytoApp interface for backward compatibility
+ */
+interface LegacyApp {
+  activeDialog: string | null;
+  dialogSnapshot: string | null;
+  columns: string[];
+  selectedColumn: string | null;
+  theme: string;
+  uxSettings: any;
+  _previewDebounceTimer: any;
+  // Proxy state accessors (still using proxy pattern)
+  sliceRowsDialogState: any;
+  indexDialogState: any;
+  aggregateDialogState: any;
+  foldDialogState: any;
+  pivotDialogState: any;
+  replaceDialogState: any;
+  splitDialogState: any;
+  regexpMatchDialogState: any;
+  regexpExtractDialogState: any;
+  importDialogState: any;
+  importUrlDialogState: any;
+  dedupeDialogState: any;
+  importFileData: any;
+  // Methods
+  getDialogState: (dialog: string) => any;
+  initDialogState: (dialog: string, section?: string) => void;
+  clearColumnSelection: () => void;
+  confirm: (message: string) => Promise<boolean>;
+  initializeJoinDialog: () => void;
+  initializeAppendDialog: () => void;
+  initializePivotDialog: () => void;
+  detectDelimiter: (column: string) => any;
+  debouncedUpdateSplitPreview?: () => void;
+  updateDedupePreview?: () => void;
+  updateImputePreview?: () => void;
+  resetDialogStates: () => void;
+  clearPreview: () => void;
+  hasUnsavedChanges: () => boolean;
+}
+
+/**
+ * Get serializable state for a dialog (used for change detection).
+ * This version uses proxy state from SytoApp for some dialogs.
+ */
+export function getDialogState(this: LegacyApp | void, dialog: string): any {
+  const legacyApp = this as LegacyApp | undefined;
+
+  // For dialogs that don't use proxy state, delegate to DialogCoordinator
+  const coordResult = DialogCoordinator.getDialogState(dialog);
+
+  // Handle dialogs that still use proxy state from SytoApp
+  if (legacyApp) {
+    switch (dialog) {
+      case 'sliceRows':
+        return legacyApp.sliceRowsDialogState;
+      case 'index':
+        return legacyApp.indexDialogState;
+      case 'aggregate':
+        return legacyApp.aggregateDialogState;
+      case 'fold':
+        return legacyApp.foldDialogState;
+      case 'pivot':
+        return legacyApp.pivotDialogState;
+      case 'replace':
+        return legacyApp.replaceDialogState;
+      case 'split':
+        return legacyApp.splitDialogState;
+      case 'regexpMatch':
+        return legacyApp.regexpMatchDialogState;
+      case 'regexpExtract':
+        return legacyApp.regexpExtractDialogState;
+      case 'import-csv':
+        return legacyApp.importDialogState;
+      case 'import-url':
+        return { url: legacyApp.importUrlDialogState?.url };
+      case 'dedupe':
+        return legacyApp.dedupeDialogState;
+      case 'settings':
+        return {
+          theme: legacyApp.theme,
+          rowLimit: legacyApp.uxSettings?.preview?.rowLimit || 100,
+          analyticsOptOut: legacyApp.uxSettings?.analyticsOptOut ?? false,
+        };
+    }
+  }
+
+  return coordResult;
+}
+
+/**
+ * Take a snapshot of current dialog state
+ */
+export function reSnapshot(this: LegacyApp | void): void {
+  const activeDialog = this ? (this as LegacyApp).activeDialog : AppStore.activeDialog.value;
+  if (activeDialog) {
+    const state = getDialogState.call(this, activeDialog);
+    AppStore.dialogSnapshot.value = JSON.stringify(state);
   }
 }
 
-export function reSnapshot(this: SytoApp) {
-  if (this.activeDialog) {
-    this.dialogSnapshot = JSON.stringify(this.getDialogState(this.activeDialog));
-  }
-}
+/**
+ * Open a dialog
+ */
+export function openDialog(this: LegacyApp | void, dialogName: string, section?: string): void {
+  const legacyApp = this as LegacyApp | undefined;
 
-export function openDialog(this: SytoApp, dialogName: string, section?: string) {
-  this.activeDialog = dialogName;
-  this.initDialogState(dialogName, section);
-  this.clearColumnSelection();
-  this.reSnapshot();
+  AppStore.activeDialog.value = dialogName as any;
+  initDialogState.call(this, dialogName, section);
+
+  if (legacyApp?.clearColumnSelection) {
+    legacyApp.clearColumnSelection();
+  }
+
+  reSnapshot.call(this);
 
   // Update URL for navigable pages
-  if (isUrlNavigableDialog(dialogName as any)) {
-    setUrlState({ page: dialogName, section });
-  }
+  syncDialogToUrl(dialogName, section);
 }
 
-export function handleHashChange(this: SytoApp) {
-  const urlState = getUrlState();
-  if (urlState.page) {
-    if (this.activeDialog !== urlState.page) {
-      this.openDialog(urlState.page, urlState.section);
-    }
-  } else {
-    // Handle model/source routes
-    if (urlState.modelId) {
-      const model = this.models.find((m) => m.id === urlState.modelId);
-      if (model) {
-        if (urlState.section === 'info') {
-          // Show model info view
-          if (this.activeModel?.id !== model.id || AppStore.viewMode.value !== 'model-info') {
-            this.showModelInfo();
-          }
-        } else {
-          // Switch to model view
-          if (this.activeModel?.id !== model.id) {
-            this.switchToModel(model);
-          }
-        }
-      }
-    } else if (urlState.sourceId) {
-      const source = this.sources.find((s) => s.id === urlState.sourceId);
-      if (source) {
-        if (urlState.section === 'info') {
-          // Show dataset info view
-          if (this.activeSource?.id !== source.id || AppStore.viewMode.value !== 'dataset-info') {
-            this.showDatasetInfo(source);
-          }
-        } else {
-          // Switch to source view
-          if (this.activeSource?.id !== source.id) {
-            this.switchToSource(source);
-          }
-        }
-      }
-    }
+/**
+ * Initialize state for a specific dialog.
+ * Delegates to DialogCoordinator but sets up callbacks from SytoApp.
+ */
+export function initDialogState(
+  this: LegacyApp | void,
+  dialogName: string,
+  section?: string
+): void {
+  const legacyApp = this as LegacyApp | undefined;
 
-    // Close dialog if hash changed to non-page route
-    if (this.activeDialog && isUrlNavigableDialog(this.activeDialog as any)) {
-      this.activeDialog = null;
-    }
+  // Set up callbacks for DialogCoordinator if we have a legacy app
+  if (legacyApp) {
+    DialogCoordinator.setDialogCallbacks({
+      initializeJoinDialog: () => legacyApp.initializeJoinDialog?.(),
+      initializeAppendDialog: () => legacyApp.initializeAppendDialog?.(),
+      initializePivotDialog: () => legacyApp.initializePivotDialog?.(),
+      detectDelimiter: (col) => legacyApp.detectDelimiter?.(col),
+      debouncedUpdateSplitPreview: () => legacyApp.debouncedUpdateSplitPreview?.(),
+      updateDedupePreview: () => legacyApp.updateDedupePreview?.(),
+      updateImputePreview: () => legacyApp.updateImputePreview?.(),
+      clearColumnSelection: () => legacyApp.clearColumnSelection?.(),
+      confirm: (msg) => legacyApp.confirm?.(msg) ?? Promise.resolve(false),
+    });
   }
-}
 
-export function initDialogState(this: SytoApp, dialogName: string, section?: string) {
-  if (dialogName === 'filter') {
-    // State initialized by DialogStore.openDialog call or explicit reset if needed
-    // Logic moved to component or kept in store
-  } else if (dialogName === 'join') {
-    this.initializeJoinDialog(); // Updates DialogStore.joinState
-  } else if (dialogName === 'append') {
-    this.initializeAppendDialog();
-  } else if (dialogName === 'derive') {
-    // State initialized by DialogStore
-  } else if (dialogName === 'sort') {
-    DialogStore.sortState.field.value = this.columns[0] || '';
-    DialogStore.sortState.order.value = 'asc';
-    AppStore.activeDialog.value = 'sort';
-  } else if (dialogName === 'sliceRows') {
-    DialogStore.sliceRowsState.count.value = 10;
-    DialogStore.sliceRowsState.mode.value = 'first';
-  } else if (dialogName === 'sample') {
-    DialogStore.sampleState.count.value = 100;
-    DialogStore.sampleState.seed.value = undefined;
-  } else if (dialogName === 'spread') {
-    DialogStore.spreadState.column.value = '';
-    DialogStore.spreadState.limit.value = undefined;
-  } else if (dialogName === 'unroll') {
-    DialogStore.unrollState.column.value = '';
-    DialogStore.unrollState.indices.value = false;
-  } else if (dialogName === 'index') {
-    DialogStore.indexState.columnName.value = 'row_index';
-    DialogStore.indexState.startFrom.value = 1;
-  } else if (dialogName === 'aggregate') {
-    DialogStore.aggregateState.groupBy.value = [];
-    DialogStore.aggregateState.aggregations.value = [{ output: 'count', func: 'count', col: '' }];
-    DialogStore.aggregateState.isPreviewing.value = false;
-  } else if (dialogName === 'import-csv') {
+  // Delegate to DialogCoordinator for initialization
+  DialogCoordinator.initDialogState(dialogName, section);
+
+  // Handle import-csv special case (copies from proxy state)
+  if (dialogName === 'import-csv' && legacyApp) {
     const state = DialogStore.importCsvState;
-    state.sourceName.value = this.importDialogState.sourceName;
-    state.isJson.value = !!this.importDialogState.isJson;
-    state.jsonPath.value = this.importDialogState.jsonPath || '';
-    state.jsonRawValuePreview.value = this.importDialogState.jsonRawValuePreview || '';
-    state.suggestedJsonKeys.value = this.importDialogState.suggestedJsonKeys || [];
-    state.flattenJson.value = !!this.importDialogState.flattenJson;
-    state.serializeNested.value = !!this.importDialogState.serializeNested;
-    state.jsonData.value = this.importDialogState.jsonData || null;
+    const proxy = legacyApp.importDialogState;
+    if (proxy) {
+      state.sourceName.value = proxy.sourceName || '';
+      state.isJson.value = !!proxy.isJson;
+      state.jsonPath.value = proxy.jsonPath || '';
+      state.jsonRawValuePreview.value = proxy.jsonRawValuePreview || '';
+      state.suggestedJsonKeys.value = proxy.suggestedJsonKeys || [];
+      state.flattenJson.value = !!proxy.flattenJson;
+      state.serializeNested.value = !!proxy.serializeNested;
+      state.jsonData.value = proxy.jsonData || null;
+      state.delimiter.value = proxy.delimiter || ',';
+      state.headerMode.value = proxy.headerMode || 'auto';
+      state.customHeaders.value = [...(proxy.customHeaders || [])];
+      state.duplicateWarning.value = proxy.duplicateWarning || '';
+      state.previewHeaders.value = [...(proxy.previewHeaders || [])];
+      state.previewDataRows.value = [...(proxy.previewDataRows || [])];
+    }
+  }
 
-    state.delimiter.value = this.importDialogState.delimiter;
-    state.headerMode.value = this.importDialogState.headerMode;
-    state.customHeaders.value = [...(this.importDialogState.customHeaders || [])];
-    state.duplicateWarning.value = this.importDialogState.duplicateWarning || '';
-    state.previewHeaders.value = [...(this.importDialogState.previewHeaders || [])];
-    state.previewDataRows.value = [...(this.importDialogState.previewDataRows || [])];
-  } else if (dialogName === 'column-editor') {
-    const state = DialogStore.columnEditorState;
-    state.mode.value = 'list';
-    state.columns.value = this.columns.map((col) => ({
-      original: col,
-      renamed: col,
-      selected: true,
-    }));
-    state.patternText.value = '';
-    state.patternMode.value = 'include';
-    state.patternMatchType.value = 'prefix';
-    state.draggedIndex.value = null;
-    state.textSubMode.value = (
-      section === 'select' || section === 'reorder' ? section : 'rename'
-    ) as any;
-    state.textValue.value = '';
-    state.textError.value = null;
-    // Initialize pattern operation mode
-    state.patternOperationMode.value = 'select';
-    state.patternFind.value = '';
-    state.patternReplace.value = '';
-    state.patternRegex.value = false;
-    state.patternError.value = null;
-  } else if (dialogName === 'settings') {
-    const state = DialogStore.settingsState;
-    state.theme.value = this.theme as any;
-    state.rowLimit.value = this.uxSettings.preview?.rowLimit || 100;
-    state.analyticsOptOut.value = this.uxSettings.analyticsOptOut ?? false;
-  } else if (dialogName === 'fold') {
-    DialogStore.foldState.keyName.value = 'key';
-    DialogStore.foldState.valueName.value = 'value';
-    DialogStore.foldState.selectedColumns.value = this.columns.map(() => false);
-    DialogStore.foldState.mode.value = 'keep';
-  } else if (dialogName === 'pivot') {
-    this.initializePivotDialog();
+  // Handle pivot special case (copies from proxy state)
+  if (dialogName === 'pivot' && legacyApp) {
     const state = DialogStore.pivotState;
-    state.rowColumns.value = [...this.pivotDialogState.rowColumns];
-    state.columnColumn.value = this.pivotDialogState.columnColumn;
-    state.valueColumn.value = this.pivotDialogState.valueColumn;
-    state.aggregation.value = this.pivotDialogState.aggregation;
-    state.uniqueValueCount.value = this.pivotDialogState.uniqueValueCount;
-    state.options.value = { ...this.pivotDialogState.options };
-    state.isPreviewing.value = this.pivotDialogState.isPreviewing;
-  } else if (dialogName === 'replace') {
-    const state = DialogStore.replaceState;
-    // Only initialize if not already set by quickReplace
-    if (!state.findValue.value) {
-      state.column.value = this.columns[0] || '';
-      state.findValue.value = '';
-      state.replaceValue.value = '';
-    } else if (!state.column.value) {
-      // If findValue is set but column isn't, set column to first column
-      state.column.value = this.columns[0] || '';
-    }
-  } else if (dialogName === 'split') {
-    const state = DialogStore.splitState;
-
-    // Only initialize column if not already set by quickSplit
-    if (!state.column.value) {
-      const initialColumn = this.columns[0] || '';
-      state.column.value = initialColumn;
-      state.delimiter.value = ',';
-      state.autoDetectedDelimiter.value = null;
-      state.isRegex.value = false;
-
-      if (initialColumn) {
-        const detected = this.detectDelimiter(initialColumn);
-        if (detected) {
-          state.delimiter.value = detected.char;
-          state.isRegex.value = detected.isRegex;
-          state.autoDetectedDelimiter.value = detected.name;
-        }
-      }
-    }
-
-    // Always initialize these fields
-    state.mode.value = 'spread';
-    state.maxColumns.value = 10;
-    state.keepOriginal.value = false;
-    state.error.value = null;
-
-    // We rely on component effects or explicit calls for updates
-    if (typeof this.debouncedUpdateSplitPreview === 'function') {
-      this.debouncedUpdateSplitPreview();
-    }
-  } else if (dialogName === 'merge') {
-    // Reset merge state
-    const state = DialogStore.mergeState;
-    state.columns.value = [];
-    state.separator.value = ' ';
-    state.columnName.value = '';
-    state.removeOriginal.value = false;
-    state.error.value = null;
-  } else if (dialogName === 'regexpMatch') {
-    const state = DialogStore.regexpMatchState;
-    state.sourceColumn.value = this.columns[0] || '';
-    state.pattern.value = '';
-    state.columnName.value = '';
-    state.error.value = null;
-  } else if (dialogName === 'regexpExtract') {
-    const state = DialogStore.regexpExtractState;
-    state.sourceColumn.value = this.columns[0] || '';
-    state.pattern.value = '';
-    state.columnName.value = '';
-    state.group.value = 0;
-    state.error.value = null;
-  } else if (dialogName === 'date') {
-    const dateColumns = DateHandlers.getDateColumns();
-    const initialColumn =
-      this.selectedColumn && dateColumns.includes(this.selectedColumn)
-        ? this.selectedColumn
-        : dateColumns[0] || '';
-
-    const state = DialogStore.dateState;
-    state.column.value = initialColumn;
-    state.operation.value = 'extract';
-    state.extractParts.value = [];
-    state.truncateUnits.value = [];
-    state.outputColumn.value = '';
-    state.error.value = null;
-
-    // Don't update preview on init - wait for user to select parts
-    DateHandlers.clearDatePreview();
-  } else if (dialogName === 'dedupe') {
-    const state = DialogStore.dedupeState;
-
-    // Only initialize selection if not already set by quickDedupe
-    // Check if any column is selected (quickDedupe sets at least one to true)
-    const hasSelection = state.selectedColumns.value.some((selected) => selected);
-    if (!hasSelection || state.selectedColumns.value.length !== this.columns.length) {
-      state.selectedColumns.value = this.columns.map(() => true);
-      state.useAllColumns.value = true;
-    }
-
-    state.duplicateCount.value = 0;
-    state.mode.value = 'remove';
-
-    if (typeof this.updateDedupePreview === 'function') {
-      this.updateDedupePreview();
-    }
-  } else if (dialogName === 'impute') {
-    const state = DialogStore.imputeState;
-    state.column.value = this.selectedColumn || this.columns[0] || '';
-    state.strategy.value = 'constant';
-    state.value.value = '';
-    state.includeEmptyString.value = false;
-    state.previewRows.value = null;
-    state.error.value = null;
-
-    if (typeof (this as any).updateImputePreview === 'function') {
-      (this as any).updateImputePreview();
+    const proxy = legacyApp.pivotDialogState;
+    if (proxy) {
+      state.rowColumns.value = [...(proxy.rowColumns || [])];
+      state.columnColumn.value = proxy.columnColumn || '';
+      state.valueColumn.value = proxy.valueColumn || '';
+      state.aggregation.value = proxy.aggregation || 'sum';
+      state.uniqueValueCount.value = proxy.uniqueValueCount || 0;
+      state.options.value = { ...(proxy.options || {}) };
+      state.isPreviewing.value = proxy.isPreviewing || false;
     }
   }
 }
 
-export function isSlidePanel(this: SytoApp, dialog: string | null): boolean {
+/**
+ * Check if a dialog is a slide panel
+ */
+export function isSlidePanel(this: LegacyApp | void, dialog: string | null): boolean {
   return registryIsSlidePanel(dialog as any);
 }
 
-export function isCenteredModal(this: SytoApp, dialog: string | null): boolean {
+/**
+ * Check if a dialog is a centered modal
+ */
+export function isCenteredModal(this: LegacyApp | void, dialog: string | null): boolean {
   return registryIsCenteredModal(dialog as any);
 }
 
-export function getDialogTitle(this: SytoApp): string {
-  return registryGetDialogTitle(this.activeDialog as any, this);
+/**
+ * Get the title for the active dialog
+ */
+export function getDialogTitle(this: LegacyApp | void): string {
+  const activeDialog = this ? (this as LegacyApp).activeDialog : AppStore.activeDialog.value;
+  return registryGetDialogTitle(activeDialog as any, this as any);
 }
 
-export function getDialogButtonText(this: SytoApp): string {
-  return registryGetDialogButtonText(this.activeDialog as any);
+/**
+ * Get the button text for the active dialog
+ */
+export function getDialogButtonText(this: LegacyApp | void): string {
+  const activeDialog = this ? (this as LegacyApp).activeDialog : AppStore.activeDialog.value;
+  return registryGetDialogButtonText(activeDialog as any);
 }
 
-export function getAboutContent(this: SytoApp): string {
+/**
+ * Get the about page content
+ */
+export function getAboutContent(this: LegacyApp | void): string {
   return aboutHtml;
 }
 
-export function hasPreviewData(this: SytoApp): boolean {
-  if (this.activeDialog === 'import-csv') {
-    return DialogStore.importCsvState.previewDataRows.value.length > 0;
+/**
+ * Clear the preview state
+ */
+export function clearPreview(this: LegacyApp | void): void {
+  const legacyApp = this as LegacyApp | undefined;
+
+  // Clear any pending debounce timer
+  if (legacyApp?._previewDebounceTimer) {
+    clearTimeout(legacyApp._previewDebounceTimer);
+    legacyApp._previewDebounceTimer = null;
   }
-  if (this.activeDialog === 'generate') {
-    return DialogStore.previewState.rows.value.length > 0;
-  }
-  return DialogStore.previewState.rows.value.length > 0;
+
+  DialogCoordinator.clearPreview();
 }
 
-export function getPreviewTitle(this: SytoApp): string {
-  if (this.activeDialog === 'import-csv') {
-    return 'Import Preview';
-  }
-  return DialogStore.previewState.title.value;
-}
+/**
+ * Check if the active dialog has an error that should disable the apply button
+ */
+export function activeDialogError(this: LegacyApp | void): boolean {
+  const legacyApp = this as LegacyApp | undefined;
+  const activeDialog = legacyApp?.activeDialog ?? AppStore.activeDialog.value;
 
-export function getPreviewStats(this: SytoApp): string {
-  if (this.activeDialog === 'import-csv') {
-    const rows = DialogStore.importCsvState.previewDataRows.value.length;
-    const cols = DialogStore.importCsvState.previewHeaders.value.length;
-    const limit = AppStore.uxSettings.value.preview.rowLimit;
-    return `${rows} rows, ${cols} columns (first ${Math.min(rows, limit)} rows shown)`;
-  }
-  return DialogStore.previewState.stats.value;
-}
-
-export function getPreviewColumns(this: SytoApp): string[] {
-  if (this.activeDialog === 'import-csv') {
-    return DialogStore.importCsvState.previewHeaders.value;
-  }
-  return DialogStore.previewState.columns.value;
-}
-
-export function getPreviewRows(this: SytoApp): any[] {
-  if (this.activeDialog === 'import-csv') {
-    const headers = DialogStore.importCsvState.previewHeaders.value;
-    const rows = DialogStore.importCsvState.previewDataRows.value;
-    // Convert array rows to object rows to match expected format
-    return rows.map((row: any[]) => {
-      const obj: any = {};
-      headers.forEach((header, i) => {
-        obj[header] = row[i];
-      });
-      return obj;
-    });
-  }
-  return DialogStore.previewState.rows.value;
-}
-
-export function formatPreviewCell(this: SytoApp, row: any, col: string): string {
-  const val = row[col];
-  if (val == null || val === '') return '—';
-  if (typeof val === 'boolean') return val ? '✓' : '✗';
-  // Handle conversion errors
-  if (typeof val === 'object' && val !== null && 'type' in val && val.type === 'error') {
-    return 'Error';
-  }
-  if (val instanceof Date) {
-    // Format dates using local time to avoid timezone shifts
-    // (toISOString() converts to UTC which shifts dates for non-UTC timezones)
-    if (isNaN(val.getTime())) return 'Invalid Date';
-    const pad = (n: number) => String(n).padStart(2, '0');
-    return `${val.getFullYear()}-${pad(val.getMonth() + 1)}-${pad(val.getDate())}`;
-  }
-  if (typeof val === 'object') return JSON.stringify(val);
-  return String(val);
-}
-
-export function clearPreview(this: SytoApp): void {
-  if (this._previewDebounceTimer) {
-    clearTimeout(this._previewDebounceTimer);
-    this._previewDebounceTimer = null;
-  }
-  DialogStore.previewState.title.value = '';
-  DialogStore.previewState.stats.value = '';
-  DialogStore.previewState.columns.value = [];
-  DialogStore.previewState.newColumns.value = [];
-  DialogStore.previewState.rows.value = [];
-}
-
-export function isNewPreviewColumn(this: SytoApp, col: string): boolean {
-  return DialogStore.previewState.newColumns.value.includes(col);
-}
-
-export function activeDialogError(this: SytoApp): boolean {
-  switch (this.activeDialog) {
-    case 'filter':
-      return !!DialogStore.filterState.error.value;
-    case 'derive':
-      const deriveState = DialogStore.deriveState;
-      return (
-        !!deriveState.error.value ||
-        !deriveState.columnName.value?.trim() ||
-        !deriveState.expression.value?.trim()
-      );
-    case 'sliceRows':
-      return !this.sliceRowsDialogState.count || this.sliceRowsDialogState.count <= 0;
-    case 'index':
-      return !this.indexDialogState.columnName || this.indexDialogState.columnName.trim() === '';
-    case 'sample':
-      return !DialogStore.sampleState.count.value || DialogStore.sampleState.count.value <= 0;
-    case 'spread':
-      return (
-        !DialogStore.spreadState.column.value || DialogStore.spreadState.column.value.trim() === ''
-      );
-    case 'unroll':
-      return (
-        !DialogStore.unrollState.column.value || DialogStore.unrollState.column.value.trim() === ''
-      );
-    case 'regexpMatch':
-      return !!this.regexpMatchDialogState.error;
-    case 'regexpExtract':
-      return !!this.regexpExtractDialogState.error;
-    case 'split':
-      return !!this.splitDialogState.error;
-    case 'merge':
-      return (
-        !!DialogStore.mergeState.error.value ||
-        DialogStore.mergeState.columns.value.length === 0 ||
-        !DialogStore.mergeState.columnName.value?.trim()
-      );
-    case 'join':
-      const joinState = DialogStore.joinState;
-      const hasRight = !!joinState.rightModel.value;
-      const hasKeys =
-        joinState.joinType.value === 'cross' || joinState.keyPairs.value.some((p) => p[0] && p[1]);
-      const hasLookupValues =
-        joinState.joinType.value !== 'lookup' || joinState.selectedRightColumns.value.length > 0;
-      return !hasRight || !hasKeys || !hasLookupValues;
-    case 'append':
-      return !DialogStore.appendState.targetModel.value;
-    case 'pivot':
-      return !this.pivotDialogState.columnColumn || !this.pivotDialogState.valueColumn;
-    case 'dedupe':
-      return (
-        !this.dedupeDialogState.useAllColumns &&
-        !this.dedupeDialogState.selectedColumns.some((v: any) => v)
-      );
-    case 'import-url':
-      return !this.importUrlDialogState.url || this.importUrlDialogState.isFetching;
-    case 'generate': {
-      const g = DialogStore.generateState;
-      const generator = {
-        name: g.columnName.value,
-        type: g.type.value as any,
-        config: g.config.value,
-      };
-      return (
-        !g.sourceName.value?.trim() ||
-        !g.columnName.value?.trim() ||
-        g.rowCount.value <= 0 ||
-        !!GeneratorService.validateGenerator(generator, g.isRowAuto.value)
-      );
+  // Handle dialogs that use proxy state
+  if (legacyApp) {
+    switch (activeDialog) {
+      case 'sliceRows':
+        return !legacyApp.sliceRowsDialogState?.count || legacyApp.sliceRowsDialogState?.count <= 0;
+      case 'index':
+        return (
+          !legacyApp.indexDialogState?.columnName ||
+          legacyApp.indexDialogState?.columnName.trim() === ''
+        );
+      case 'regexpMatch':
+        return !!legacyApp.regexpMatchDialogState?.error;
+      case 'regexpExtract':
+        return !!legacyApp.regexpExtractDialogState?.error;
+      case 'split':
+        return !!legacyApp.splitDialogState?.error;
+      case 'pivot':
+        return (
+          !legacyApp.pivotDialogState?.columnColumn || !legacyApp.pivotDialogState?.valueColumn
+        );
+      case 'dedupe':
+        return (
+          !legacyApp.dedupeDialogState?.useAllColumns &&
+          !legacyApp.dedupeDialogState?.selectedColumns?.some((v: any) => v)
+        );
+      case 'import-url':
+        return !legacyApp.importUrlDialogState?.url || legacyApp.importUrlDialogState?.isFetching;
     }
-    case 'impute':
-      const imputeState = DialogStore.imputeState;
-      return (
-        !imputeState.column.value ||
-        (imputeState.strategy.value === 'constant' && !imputeState.value.value?.trim())
-      );
-    default:
-      return false;
   }
+
+  // Delegate to DialogCoordinator for other dialogs
+  return DialogCoordinator.activeDialogHasError();
 }
 
-export function hasUnsavedChanges(this: SytoApp) {
-  if (!this.activeDialog || this.dialogSnapshot === null) return false;
-  const current = this.getDialogState(this.activeDialog);
+/**
+ * Check if dialog has unsaved changes
+ */
+export function hasUnsavedChanges(this: LegacyApp | void): boolean {
+  const legacyApp = this as LegacyApp | undefined;
+  const activeDialog = legacyApp?.activeDialog ?? AppStore.activeDialog.value;
+  const snapshot = AppStore.dialogSnapshot.value;
+
+  if (!activeDialog || snapshot === null) return false;
+
+  const current = getDialogState.call(this, activeDialog);
   if (current === null) return false;
-  return JSON.stringify(current) !== this.dialogSnapshot;
+
+  return JSON.stringify(current) !== snapshot;
 }
 
-export async function closeDialog(this: SytoApp, force = false) {
-  if (!force && this.hasUnsavedChanges()) {
-    if (!(await this.confirm('You have unsaved changes. Are you sure you want to discard them?')))
-      return;
+/**
+ * Close the current dialog
+ */
+export async function closeDialog(this: LegacyApp | void, force = false): Promise<void> {
+  const legacyApp = this as LegacyApp | undefined;
+  const activeDialog = legacyApp?.activeDialog ?? AppStore.activeDialog.value;
+
+  if (!force && hasUnsavedChanges.call(this)) {
+    const confirmed = legacyApp?.confirm
+      ? await legacyApp.confirm('You have unsaved changes. Are you sure you want to discard them?')
+      : await DialogCoordinator.closeDialog(false);
+    if (!confirmed) return;
   }
 
   // Clear URL hash if closing a navigable page
-  if (this.activeDialog && isUrlNavigableDialog(this.activeDialog as any)) {
-    clearUrlHash();
+  if (activeDialog && isUrlNavigableDialog(activeDialog as any)) {
+    clearDialogFromUrl(activeDialog);
   }
 
-  this.clearPreview();
-  this.activeDialog = null;
-  this.dialogSnapshot = null;
-  this.resetDialogStates();
+  clearPreview.call(this);
+  AppStore.activeDialog.value = null;
+  AppStore.dialogSnapshot.value = null;
+  resetDialogStates.call(this);
 }
 
-export function resetDialogStates(this: SytoApp) {
+/**
+ * Reset all dialog states
+ */
+export function resetDialogStates(this: LegacyApp | void): void {
   DialogStore.resetAll();
-  this.importFileData = null;
+  AppStore.importFileData.value = null;
 }
+
+/**
+ * Handle browser back/forward navigation.
+ * This is a legacy wrapper that sets up callbacks and delegates to the URL state handler.
+ */
+export function handleHashChange(this: LegacyHashChangeApp | void): void {
+  const legacyApp = this as LegacyHashChangeApp | undefined;
+  if (!legacyApp) return;
+
+  const { getUrlState } = require('../../core/url-state');
+  const urlState = getUrlState();
+
+  // Handle page routes (about, reference, expressions, settings)
+  if (urlState.page) {
+    if (legacyApp.activeDialog !== urlState.page) {
+      legacyApp.openDialog(urlState.page, urlState.section);
+    }
+    return;
+  }
+
+  // Handle model/source routes
+  if (urlState.modelId) {
+    const model = legacyApp.models?.find((m: any) => m.id === urlState.modelId);
+    if (model) {
+      if (urlState.section === 'info') {
+        // Show model info view
+        if (legacyApp.activeModel?.id !== model.id || AppStore.viewMode.value !== 'model-info') {
+          legacyApp.showModelInfo?.();
+        }
+      } else {
+        // Switch to model view
+        if (legacyApp.activeModel?.id !== model.id) {
+          legacyApp.switchToModel?.(model);
+        }
+      }
+    }
+  } else if (urlState.sourceId) {
+    const source = legacyApp.sources?.find((s: any) => s.id === urlState.sourceId);
+    if (source) {
+      if (urlState.section === 'info') {
+        // Show dataset info view
+        if (
+          legacyApp.activeSource?.id !== source.id ||
+          AppStore.viewMode.value !== 'dataset-info'
+        ) {
+          legacyApp.showDatasetInfo?.(source);
+        }
+      } else {
+        // Switch to source view
+        if (legacyApp.activeSource?.id !== source.id) {
+          legacyApp.switchToSource?.(source);
+        }
+      }
+    }
+  }
+
+  // Close dialog if hash changed to non-page route
+  if (legacyApp.activeDialog && isUrlNavigableDialog(legacyApp.activeDialog as any)) {
+    AppStore.activeDialog.value = null;
+  }
+}
+
+/**
+ * Extended legacy interface for handleHashChange
+ */
+interface LegacyHashChangeApp extends LegacyApp {
+  models: any[];
+  sources: any[];
+  activeModel: any;
+  activeSource: any;
+  openDialog: (dialog: string, section?: string) => void;
+  switchToModel: (model: any) => void;
+  switchToSource: (source: any) => void;
+  showModelInfo: () => void;
+  showDatasetInfo: (source: any) => void;
+}
+
+// Re-export URL sync functions from UrlStateSync
+export { syncDialogToUrl, clearDialogFromUrl } from '../orchestration/UrlStateSync';

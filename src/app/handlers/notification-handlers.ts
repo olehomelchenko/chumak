@@ -1,33 +1,55 @@
-import type { SytoApp } from '../../syto-app';
+import { AppStore } from '../stores/AppStore';
 
-export function showError(this: SytoApp, title: string, message: string, options: any = {}) {
+/**
+ * Show an error notification
+ */
+export function showError(
+  title: string,
+  message: string,
+  options: { stepIndex?: number; stepDescription?: string; duration?: number } = {}
+): void {
   const { stepIndex, stepDescription, duration = 0 } = options;
-  let stepInfo = null;
+  let stepInfo: string | null = null;
   if (stepIndex !== undefined && stepDescription) {
     stepInfo = `Step ${stepIndex + 1}: ${stepDescription}`;
   }
-  this._addNotification('error', title, message, stepInfo, duration);
+  _addNotification('error', title, message, stepInfo, duration);
 }
 
-export function showWarning(this: SytoApp, title: string, message: string, options: any = {}) {
+/**
+ * Show a warning notification
+ */
+export function showWarning(
+  title: string,
+  message: string,
+  options: { duration?: number } = {}
+): void {
   const { duration = 6000 } = options;
-  this._addNotification('warning', title, message, null, duration);
+  _addNotification('warning', title, message, null, duration);
 }
 
-export function showSuccess(this: SytoApp, message: string, options: any = {}) {
+/**
+ * Show a success notification
+ */
+export function showSuccess(message: string, options: { duration?: number } = {}): void {
   const { duration = 3000 } = options;
-  this._addNotification('success', 'Success', message, null, duration);
+  _addNotification('success', 'Success', message, null, duration);
 }
 
+/**
+ * Add a notification to the store
+ * @internal Exported for backward compatibility with SytoApp
+ */
 export function _addNotification(
-  this: SytoApp,
   type: string,
   title: string,
   message: string,
   stepInfo: string | null,
   duration: number
-) {
-  const id = ++this.notificationIdCounter;
+): void {
+  const id = AppStore.notificationIdCounter.value + 1;
+  AppStore.notificationIdCounter.value = id;
+
   const notification = {
     id,
     type,
@@ -36,29 +58,41 @@ export function _addNotification(
     stepInfo,
     visible: false,
   };
-  this.notifications.push(notification);
 
+  AppStore.notifications.value = [...AppStore.notifications.value, notification];
+
+  // Make visible after a brief delay (for animation)
   setTimeout(() => {
-    const n = this.notifications.find((n) => n.id === id);
-    if (n) n.visible = true;
+    AppStore.notifications.value = AppStore.notifications.value.map((n) =>
+      n.id === id ? { ...n, visible: true } : n
+    );
   }, 10);
 
+  // Auto-dismiss if duration is set
   if (duration > 0) {
-    setTimeout(() => this.dismissNotification(id), duration);
+    setTimeout(() => dismissNotification(id), duration);
   }
 }
 
-export function dismissNotification(this: SytoApp, id: number) {
-  const notification = this.notifications.find((n) => n.id === id);
-  if (notification) {
-    notification.visible = false;
-    setTimeout(() => {
-      this.notifications = this.notifications.filter((n) => n.id !== id);
-    }, 200);
-  }
+/**
+ * Dismiss a notification by ID
+ */
+export function dismissNotification(id: number): void {
+  // First mark as not visible (for fade-out animation)
+  AppStore.notifications.value = AppStore.notifications.value.map((n) =>
+    n.id === id ? { ...n, visible: false } : n
+  );
+
+  // Then remove after animation delay
+  setTimeout(() => {
+    AppStore.notifications.value = AppStore.notifications.value.filter((n) => n.id !== id);
+  }, 200);
 }
 
-export function getNotificationIcon(this: SytoApp, type: string) {
+/**
+ * Get icon for a notification type
+ */
+export function getNotificationIcon(type: string): string {
   switch (type) {
     case 'error':
       return '⚠️';
@@ -71,9 +105,12 @@ export function getNotificationIcon(this: SytoApp, type: string) {
   }
 }
 
-export function alert(this: SytoApp, message: string, title = 'Alert'): Promise<boolean> {
+/**
+ * Show an alert dialog and wait for user to dismiss it
+ */
+export function alert(message: string, title = 'Alert'): Promise<boolean> {
   return new Promise((resolve) => {
-    this.messageBox = {
+    AppStore.messageBox.value = {
       visible: true,
       title,
       message,
@@ -84,9 +121,12 @@ export function alert(this: SytoApp, message: string, title = 'Alert'): Promise<
   });
 }
 
-export function confirm(this: SytoApp, message: string, title = 'Confirm'): Promise<boolean> {
+/**
+ * Show a confirmation dialog and wait for user response
+ */
+export function confirm(message: string, title = 'Confirm'): Promise<boolean> {
   return new Promise((resolve) => {
-    this.messageBox = {
+    AppStore.messageBox.value = {
       visible: true,
       title,
       message,
@@ -97,14 +137,16 @@ export function confirm(this: SytoApp, message: string, title = 'Confirm'): Prom
   });
 }
 
+/**
+ * Show a prompt dialog and wait for user input
+ */
 export function prompt(
-  this: SytoApp,
   message: string,
   defaultValue = '',
   title = 'Prompt'
 ): Promise<string | null> {
   return new Promise((resolve) => {
-    this.messageBox = {
+    AppStore.messageBox.value = {
       visible: true,
       title,
       message,
@@ -115,10 +157,19 @@ export function prompt(
   });
 }
 
-export function closeMessageBox(this: SytoApp, result: boolean) {
-  const { resolve, type, inputValue } = this.messageBox;
-  this.messageBox.visible = false;
+/**
+ * Close the message box and resolve the promise
+ */
+export function closeMessageBox(result: boolean): void {
+  const { resolve, type, inputValue } = AppStore.messageBox.value;
 
+  // Close the message box
+  AppStore.messageBox.value = {
+    ...AppStore.messageBox.value,
+    visible: false,
+  };
+
+  // Resolve the promise based on dialog type
   if (resolve) {
     if (type === 'prompt') {
       resolve(result ? inputValue : null);
@@ -130,8 +181,11 @@ export function closeMessageBox(this: SytoApp, result: boolean) {
   }
 }
 
-export function getMessageBoxIcon(this: SytoApp) {
-  switch (this.messageBox.type) {
+/**
+ * Get icon for the current message box type
+ */
+export function getMessageBoxIcon(): string {
+  switch (AppStore.messageBox.value.type) {
     case 'alert':
       return 'carbon:information-filled';
     case 'confirm':

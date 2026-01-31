@@ -6,17 +6,16 @@ import {
   getPreviewRows,
   formatPreviewCell,
   isNewPreviewColumn,
-} from '../handlers/dialog-handlers';
+} from '../orchestration/DialogCoordinator';
 import styles from './App.module.css';
 import tableStyles from './DataTable.module.css';
 
 interface TypeConversionDialogProps {
-  app: any;
   onCancel: () => void;
   onApply: () => void;
 }
 
-export function TypeConversionDialog({ app, onCancel, onApply }: TypeConversionDialogProps) {
+export function TypeConversionDialog({ onCancel, onApply }: TypeConversionDialogProps) {
   const column = DialogStore.typeConversionState.column.value;
   const targetType = DialogStore.typeConversionState.targetType.value;
   const previewTitle = DialogStore.previewState.title.value;
@@ -30,8 +29,8 @@ export function TypeConversionDialog({ app, onCancel, onApply }: TypeConversionD
     }
   }, [column, targetType]);
 
-  const previewColumns = getPreviewColumns.call(app);
-  const previewRows = getPreviewRows.call(app);
+  const previewColumns = getPreviewColumns();
+  const previewRows = getPreviewRows();
 
   return (
     <div class={styles.centeredModalBackdrop} onClick={onCancel}>
@@ -67,7 +66,7 @@ export function TypeConversionDialog({ app, onCancel, onApply }: TypeConversionD
                     {previewColumns.map((col: string) => (
                       <th
                         key={col}
-                        class={`${tableStyles.dataTable__header} ${isNewPreviewColumn.call(app, col) ? styles.previewNewCol : ''}`}
+                        class={`${tableStyles.dataTable__header} ${isNewPreviewColumn(col) ? styles.previewNewCol : ''}`}
                       >
                         {col}
                       </th>
@@ -92,10 +91,10 @@ export function TypeConversionDialog({ app, onCancel, onApply }: TypeConversionD
                           return (
                             <td
                               key={col}
-                              class={`${tableStyles.cell} ${isNewPreviewColumn.call(app, col) ? styles.previewNewCol : ''} ${isError ? tableStyles.error : ''}`}
+                              class={`${tableStyles.cell} ${isNewPreviewColumn(col) ? styles.previewNewCol : ''} ${isError ? tableStyles.error : ''}`}
                               title={isError ? cellValue.message : undefined}
                             >
-                              {formatPreviewCell.call(app, row, col)}
+                              {formatPreviewCell(row, col)}
                             </td>
                           );
                         })}

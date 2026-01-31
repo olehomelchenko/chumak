@@ -1,13 +1,51 @@
-import type { SytoApp } from '../../syto-app';
 import { DialogStore } from '../stores/DialogStore';
 import { GeneratorService, ColumnGenerator } from '../services/GeneratorService';
 import { ImportService } from '../services/ImportService';
 import { createDebouncedPreview, clearPreview, PreviewResult } from './preview-engine';
 
 /**
+ * Callbacks for generate operations
+ */
+export type GenerateCallbacks = {
+  updatePagination: () => void;
+  closeDialog: (force?: boolean) => void;
+};
+
+let callbacks: GenerateCallbacks | null = null;
+
+/**
+ * Set generate callbacks for store-based operations
+ */
+export function setGenerateCallbacks(cb: GenerateCallbacks): void {
+  callbacks = cb;
+}
+
+/**
+ * Legacy SytoApp interface for backward compatibility
+ */
+interface LegacyApp {
+  updatePagination: () => void;
+  closeDialog: (force?: boolean) => void;
+}
+
+/**
+ * Get callbacks from legacy app or stored callbacks
+ */
+function getCallbacks(legacyApp?: LegacyApp): GenerateCallbacks | null {
+  if (legacyApp) {
+    return {
+      updatePagination: () => legacyApp.updatePagination(),
+      closeDialog: (force) => legacyApp.closeDialog(force),
+    };
+  }
+  return callbacks;
+}
+
+/**
  * Generate synthetic data based on the configuration in the generate dialog
  */
-export async function generateData(this: SytoApp) {
+export async function generateData(this: LegacyApp | void): Promise<void> {
+  const cb = getCallbacks(this as LegacyApp | undefined);
   const { sourceName, rowCount, columnName, type, config, error } = DialogStore.generateState;
 
   // Validate source name
@@ -68,8 +106,8 @@ export async function generateData(this: SytoApp) {
       ',',
       null,
       'generated',
-      () => this.updatePagination(),
-      (force?: boolean) => this.closeDialog(force)
+      () => cb?.updatePagination(),
+      (force?: boolean) => cb?.closeDialog(force)
     );
   } catch (err: any) {
     console.error('Generate data error:', err);

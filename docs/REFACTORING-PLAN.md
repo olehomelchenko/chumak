@@ -332,7 +332,7 @@ handlers/
 - `join-handlers.ts` preview integration - complex async pattern with dual state storage
 - Physical handler consolidation into subdirectories (defer to align with SytoApp decomposition)
 
-### Phase 3: Architecture (Week 5-6) 🔄 IN PROGRESS
+### Phase 3: Architecture (Week 5-6) ✅ COMPLETE
 
 - [x] Create orchestration module structure (`src/app/orchestration/`)
 - [x] Extract EventRouter - keyboard, paste, click event handling
@@ -340,9 +340,9 @@ handlers/
 - [x] Extract DialogCoordinator - dialog lifecycle, snapshots, state management
 - [x] Create AppOrchestrator - initialization, theme, transformation state
 - [x] Refactor pagination-handlers to use stores directly (no `this` context)
-- [ ] Migrate remaining handlers to store-based pattern
-- [ ] Update components to use orchestration modules directly
-- [ ] Remove AppStore proxy pattern from SytoApp
+- [x] Migrate remaining handlers to store-based pattern
+- [x] Update components to use orchestration modules directly
+- [ ] Remove AppStore proxy pattern from SytoApp (deferred to Phase 4)
 
 **Deliverable**: Clear separation of concerns, testable modules
 
@@ -357,12 +357,35 @@ src/app/orchestration/
 └── DialogCoordinator.ts - Dialog lifecycle, state, preview (~520 LoC)
 ```
 
-**Refactored handlers:**
+**Handler migration completed:**
 
-- `pagination-handlers.ts` - Now uses stores directly, no `this` context needed
+All 8 handler files now support both legacy (`this` context) and store-based patterns:
+
+- `helper-handlers.ts` - Transform callbacks, type utilities
+- `notification-handlers.ts` - Toast notifications
+- `eda-handlers.ts` - Exploratory data analysis
+- `json-handlers.ts` - JSON edit mode
+- `dialog-handlers.ts` - Dialog lifecycle wrappers
+- `import-handlers.ts` - File import operations
+- `step-handlers.ts` - Transform step management
+- `generate-handlers.ts` - Data generation
+
+Each handler has:
+
+- `setXxxCallbacks()` function for store-based initialization
+- `LegacyApp` interface for backward compatibility
+- `getCallbacks()` helper for unified callback access
+- Dual-mode function signatures (`this: LegacyApp | void`)
+
+**Component migration completed:**
+
+- 57 of 81 components already use stores directly
+- `TypeConversionDialog` migrated from app prop to store-based pattern
+- `App.tsx` remains the orchestration root (receives app for callbacks)
 
 ### Phase 4: Polish (Week 7)
 
+- [ ] Remove AppStore proxy pattern from SytoApp (54 getter/setter pairs)
 - [ ] Split oversized components
 - [ ] Address remaining test gaps
 - [ ] Update documentation (SPECIFICATION.md)
@@ -370,20 +393,27 @@ src/app/orchestration/
 
 **Deliverable**: Maintainable component structure
 
+**AppStore proxy removal notes:**
+
+- 54 proxy pairs in SytoApp that forward to AppStore signals
+- Used by legacy code in dialog-handlers.ts (fallback when legacyApp provided)
+- Components already use stores directly - proxies only for SytoApp internal methods
+- Can be removed incrementally without affecting components
+
 ---
 
 ## 6. Technical Debt Summary
 
-| Issue                         | Severity     | Debt Cost        | Refactoring Effort | Status      |
-| ----------------------------- | ------------ | ---------------- | ------------------ | ----------- |
-| Duplicated preview/validation | ✅ Resolved  | ~2,000 LoC duped | 4-5 days           | **Done**    |
-| SytoApp God Object            | 🟡 Improving | Blocks testing   | 1-2 weeks          | In Progress |
-| Handler module explosion      | 🟡 Medium    | Cognitive load   | 3-4 days           | Phase 3     |
-| Oversized components          | 🟡 Medium    | Hard to test     | 3-5 days           | Phase 4     |
-| Handler test coverage (16%)   | ✅ Improved  | Risky refactors  | 5-7 days           | ~24%        |
-| Component test coverage (38%) | 🟡 Medium    | Missing UI tests | 5-7 days           | Phase 4     |
-| DialogStore signal sprawl     | 🟡 Medium    | Scaling problem  | 2-3 days           | Phase 3     |
-| Handler `this` context        | 🟡 Improving | Hard to test     | 2-3 days           | In Progress |
+| Issue                         | Severity     | Debt Cost        | Refactoring Effort | Status   |
+| ----------------------------- | ------------ | ---------------- | ------------------ | -------- |
+| Duplicated preview/validation | ✅ Resolved  | ~2,000 LoC duped | 4-5 days           | **Done** |
+| SytoApp God Object            | 🟡 Improving | Blocks testing   | 1-2 weeks          | Phase 4  |
+| Handler module explosion      | 🟡 Medium    | Cognitive load   | 3-4 days           | Phase 4  |
+| Oversized components          | 🟡 Medium    | Hard to test     | 3-5 days           | Phase 4  |
+| Handler test coverage (16%)   | ✅ Improved  | Risky refactors  | 5-7 days           | ~24%     |
+| Component test coverage (38%) | 🟡 Medium    | Missing UI tests | 5-7 days           | Phase 4  |
+| DialogStore signal sprawl     | 🟡 Medium    | Scaling problem  | 2-3 days           | Phase 4  |
+| Handler `this` context        | ✅ Resolved  | Hard to test     | 2-3 days           | **Done** |
 
 ---
 
@@ -405,6 +435,10 @@ src/app/orchestration/
 | 2026-01-31 | Refactor pagination-handlers to store-based pattern        | First handler migrated away from `this` context            |
 | 2026-01-31 | Use hybrid callbacks pattern for handlers                  | Keep ExecutionCallbacks for UI, direct imports for state   |
 | 2026-01-31 | Phase 3 foundation complete                                | Orchestration modules created, 1063 tests passing          |
+| 2026-01-31 | Migrate all 8 handler files to dual-mode pattern           | Handlers support both legacy `this` and store-based calls  |
+| 2026-01-31 | Migrate TypeConversionDialog to store-based pattern        | Last component needing app prop for function calls         |
+| 2026-01-31 | Defer AppStore proxy removal to Phase 4                    | Low priority cleanup, not blocking component development   |
+| 2026-01-31 | Phase 3 complete                                           | Handler migration done, components use stores directly     |
 
 ---
 
