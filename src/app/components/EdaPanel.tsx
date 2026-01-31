@@ -5,6 +5,7 @@ import { ChartsEngine } from '../../core/charts';
 import { EDAEngine } from '../../core/eda-engine';
 import { SchemaEngine } from '../../core/schema-engine';
 import { TypeIndicator } from './TypeIndicator';
+import { EdaOverview, EdaNumericSection, EdaCategoricalSection } from './eda';
 import styles from './EdaPanel.module.css';
 
 export function EdaPanel({ onApplyFilter }: { onApplyFilter?: () => void }) {
@@ -54,15 +55,12 @@ export function EdaPanel({ onApplyFilter }: { onApplyFilter?: () => void }) {
     if (!selectedColumn || !currentData || !edaStats) return;
 
     const renderCharts = async () => {
-      // Small delay to ensure DOM elements are mounted
       await new Promise((resolve) => setTimeout(resolve, 10));
 
-      // Helper to check if element is in DOM
       const isInDOM = (el: HTMLElement | null): el is HTMLElement => {
         return el !== null && document.body.contains(el);
       };
 
-      // Box Plot
       if (isNumeric && view === 'boxplot' && isInDOM(boxPlotRef.current)) {
         try {
           await ChartsEngine.renderBoxPlot(boxPlotRef.current, currentData, selectedColumn, theme);
@@ -71,7 +69,6 @@ export function EdaPanel({ onApplyFilter }: { onApplyFilter?: () => void }) {
         }
       }
 
-      // Histogram
       if (isNumeric && view === 'histogram' && isInDOM(histogramRef.current)) {
         try {
           await ChartsEngine.renderHistogram(
@@ -86,7 +83,6 @@ export function EdaPanel({ onApplyFilter }: { onApplyFilter?: () => void }) {
         }
       }
 
-      // Temporal Chart
       if (isDate && dateTreatment === 'temporal' && isInDOM(temporalChartRef.current)) {
         try {
           await ChartsEngine.renderTemporalChart(
@@ -100,7 +96,6 @@ export function EdaPanel({ onApplyFilter }: { onApplyFilter?: () => void }) {
         }
       }
 
-      // Categorical Bar
       if (isCategorical && isInDOM(categoricalBarRef.current) && edaStats.topValues) {
         try {
           await ChartsEngine.renderCategoricalBar(
@@ -151,7 +146,6 @@ export function EdaPanel({ onApplyFilter }: { onApplyFilter?: () => void }) {
     DialogStore.filterState.expression.value = expr;
     DialogStore.filterState.error.value = null;
 
-    // We need to trigger the transform.
     if (onApplyFilter) {
       onApplyFilter();
     }
@@ -163,7 +157,6 @@ export function EdaPanel({ onApplyFilter }: { onApplyFilter?: () => void }) {
     e.stopPropagation();
     AppStore.selectedCell.value = null;
 
-    // Capture element reference before setTimeout (event object gets nullified)
     const el = e.currentTarget as HTMLElement;
     if (!el) return;
 
@@ -178,7 +171,6 @@ export function EdaPanel({ onApplyFilter }: { onApplyFilter?: () => void }) {
     );
     const toolbarPos = { x: x, y: rect.top - 8, arrowOffset: center - x };
 
-    // Must yield to signal update?
     setTimeout(() => {
       AppStore.selectedCell.value = {
         col: selectedColumn,
@@ -192,9 +184,7 @@ export function EdaPanel({ onApplyFilter }: { onApplyFilter?: () => void }) {
   };
 
   const handlePanelClick = (e: MouseEvent) => {
-    // Stop propagation to prevent body click handler from closing the panel
     e.stopPropagation();
-    // Clear cell selection if clicking background
     if (!(e.target as HTMLElement).closest(`.${styles.edaFlowItem}`)) {
       AppStore.selectedCell.value = null;
     }
@@ -229,163 +219,21 @@ export function EdaPanel({ onApplyFilter }: { onApplyFilter?: () => void }) {
       </div>
 
       <div class={styles.edaPanel__content}>
-        {/* Common Stats - Left Column */}
-        <div class={styles.edaOverview}>
-          <div class={styles.edaSection__title}>Overview</div>
-          <div class={styles.edaStatsList}>
-            <div class={styles.edaStat}>
-              <div class={styles.edaStat__label}>Total Rows</div>
-              <div class={styles.edaStat__value}>{edaStats.totalCount?.toLocaleString()}</div>
-            </div>
-            <div class={styles.edaStat} title={`${edaStats.nullPercentage}% missing`}>
-              <div class={styles.edaStat__label}>Missing</div>
-              <div class={styles.edaStat__value}>{edaStats.nullCount?.toLocaleString()}</div>
-              <div
-                class={styles.edaStat__sub}
-                style={{ color: edaStats.nullCount > 0 ? 'var(--color-red)' : 'inherit' }}
-              >
-                {edaStats.nullPercentage}%
-              </div>
-            </div>
-            <div class={styles.edaStat}>
-              <div class={styles.edaStat__label}>Unique Values</div>
-              <div class={styles.edaStat__value}>{edaStats.uniqueCount?.toLocaleString()}</div>
-              <div class={styles.edaStat__sub}>{edaStats.uniquePercentage}%</div>
-            </div>
-            <div class={styles.edaStat} title={`${edaStats.errorPercentage}% errors`}>
-              <div class={styles.edaStat__label}>Errors</div>
-              <div class={styles.edaStat__value}>{edaStats.errorCount?.toLocaleString()}</div>
-              <div
-                class={styles.edaStat__sub}
-                style={{ color: edaStats.errorCount > 0 ? 'var(--color-red)' : 'inherit' }}
-              >
-                {edaStats.errorPercentage}%
-              </div>
-            </div>
-          </div>
-        </div>
+        <EdaOverview edaStats={edaStats} />
 
-        {/* Numeric Stats - Right Column Grid */}
         {isNumeric && (
-          <div class={styles.edaChartGrid}>
-            {/* Container 1: Title/Controls (ccc) + Chart (CCC) */}
-            <div class={styles.edaChartSection}>
-              <div class={styles.edaSection__title}>
-                <span>Distribution & Outliers</span>
-                <div class={styles.chartSwitcher}>
-                  <button
-                    class={`${styles.chartSwitcher__btn} ${view === 'boxplot' ? styles['chartSwitcher__btn--active'] : ''}`}
-                    onClick={() => setView('boxplot')}
-                  >
-                    Box Plot
-                  </button>
-                  <button
-                    class={`${styles.chartSwitcher__btn} ${view === 'histogram' ? styles['chartSwitcher__btn--active'] : ''}`}
-                    onClick={() => setView('histogram')}
-                  >
-                    Histogram
-                  </button>
-                </div>
-              </div>
-              <div class={styles.chartContainer}>
-                {view === 'boxplot' && <div ref={boxPlotRef} class={styles.chart} />}
-                {view === 'histogram' && <div ref={histogramRef} class={styles.chart} />}
-              </div>
-            </div>
-
-            {/* Container 2: Selection Preview (jjj) + Stats Flow (ttt) */}
-            <div class={styles.edaStatsSection}>
-              <div class={styles.selectionPreview}>
-                {view === 'histogram' && brushSelection ? (
-                  <>
-                    <button class="button button--primary button--small" onClick={applyBrush}>
-                      Keep Only Selection
-                    </button>
-                    <span class={styles.brushBounds}>
-                      [{Number(brushSelection.min).toFixed(3)} -{' '}
-                      {Number(brushSelection.max).toFixed(3)}]
-                    </span>
-                  </>
-                ) : (
-                  <span class={styles.selectionPlaceholder}></span>
-                )}
-              </div>
-              <div class={styles.edaStatsFlow}>
-                <div
-                  class={styles.edaFlowItem}
-                  onClick={(e) => selectStat('Min', edaStats.raw.min, e)}
-                >
-                  <div class={styles.edaFlowItem__label}>Min</div>
-                  <div class={styles.edaFlowItem__value}>{edaStats.min}</div>
-                </div>
-                <div class={styles.edaFlowConnector}></div>
-                <div
-                  class={styles.edaFlowItem}
-                  onClick={(e) => selectStat('Mean - 3σ', edaStats.raw.meanMinus3Sigma, e)}
-                >
-                  <div class={styles.edaFlowItem__label}>μ-3σ</div>
-                  <div class={styles.edaFlowItem__value}>{edaStats.meanMinus3Sigma}</div>
-                </div>
-                <div class={styles.edaFlowConnector}></div>
-                <div
-                  class={styles.edaFlowItem}
-                  onClick={(e) => selectStat('P25', edaStats.raw.p25, e)}
-                >
-                  <div class={styles.edaFlowItem__label}>25%</div>
-                  <div class={styles.edaFlowItem__value}>{edaStats.p25}</div>
-                </div>
-                <div class={styles.edaFlowConnector}></div>
-                <div
-                  class={styles.edaFlowItem}
-                  onClick={(e) => selectStat('Median', edaStats.raw.median, e)}
-                >
-                  <div class={styles.edaFlowItem__label}>Median</div>
-                  <div
-                    class={`${styles.edaFlowItem__value} ${styles['edaFlowItem__value--highlight']}`}
-                  >
-                    {edaStats.median}
-                  </div>
-                </div>
-                <div class={styles.edaFlowConnector}></div>
-                <div
-                  class={styles.edaFlowItem}
-                  onClick={(e) => selectStat('P75', edaStats.raw.p75, e)}
-                >
-                  <div class={styles.edaFlowItem__label}>75%</div>
-                  <div class={styles.edaFlowItem__value}>{edaStats.p75}</div>
-                </div>
-                <div class={styles.edaFlowConnector}></div>
-                <div
-                  class={styles.edaFlowItem}
-                  onClick={(e) => selectStat('Mean + 3σ', edaStats.raw.meanPlus3Sigma, e)}
-                >
-                  <div class={styles.edaFlowItem__label}>μ+3σ</div>
-                  <div class={styles.edaFlowItem__value}>{edaStats.meanPlus3Sigma}</div>
-                </div>
-                <div class={styles.edaFlowConnector}></div>
-                <div
-                  class={styles.edaFlowItem}
-                  onClick={(e) => selectStat('Max', edaStats.raw.max, e)}
-                >
-                  <div class={styles.edaFlowItem__label}>Max</div>
-                  <div class={styles.edaFlowItem__value}>{edaStats.max}</div>
-                </div>
-
-                <div class={styles.edaFlowDivider}></div>
-
-                <div
-                  class={styles.edaFlowItem}
-                  onClick={(e) => selectStat('Mean', edaStats.raw.mean, e)}
-                >
-                  <div class={styles.edaFlowItem__label}>Mean</div>
-                  <div class={styles.edaFlowItem__value}>{edaStats.mean}</div>
-                </div>
-              </div>
-            </div>
-          </div>
+          <EdaNumericSection
+            edaStats={edaStats}
+            view={view}
+            brushSelection={brushSelection}
+            boxPlotRef={boxPlotRef}
+            histogramRef={histogramRef}
+            onViewChange={setView}
+            onApplyBrush={applyBrush}
+            onSelectStat={selectStat}
+          />
         )}
 
-        {/* Temporal Stats */}
         {isDate && dateTreatment === 'temporal' && (
           <div class={`${styles.edaSection} ${styles['edaSection--wide']}`}>
             <div class={styles.edaSection__title}>Timeline Distribution</div>
@@ -393,46 +241,8 @@ export function EdaPanel({ onApplyFilter }: { onApplyFilter?: () => void }) {
           </div>
         )}
 
-        {/* Categorical Stats */}
         {isCategorical && (
-          <div class={`${styles.edaSection} ${styles['edaSection--wide']}`}>
-            <div class={styles.edaSection__title}>Frequency Distribution</div>
-            <div class={styles.categoricalLayout}>
-              <div
-                ref={categoricalBarRef}
-                style={{ flex: 1, minWidth: 0, minHeight: '80px' }}
-              ></div>
-
-              <div class={styles.edaFrequencies}>
-                {edaStats.topValues?.map((item: any) => (
-                  <div
-                    class={`${styles.edaFreqItem} ${item.isOther ? styles['edaFreqItem--other'] : ''} ${item.isNull ? styles['edaFreqItem--null'] : ''}`}
-                    key={item.value}
-                  >
-                    <div class={styles.edaFreqItem__label} title={item.value}>
-                      {item.value || '(empty)'}
-                    </div>
-                    <div class={styles.edaFreqItem__barContainer}>
-                      <div
-                        class={styles.edaFreqItem__bar}
-                        style={{
-                          width: `${item.percentage}%`,
-                          backgroundColor: item.isNull
-                            ? '#666666'
-                            : item.isOther
-                              ? 'var(--color-medium-gray)'
-                              : 'var(--color-cyan)',
-                        }}
-                      ></div>
-                    </div>
-                    <div class={styles.edaFreqItem__value}>
-                      {item.count.toLocaleString()} ({item.percentage}%)
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </div>
+          <EdaCategoricalSection edaStats={edaStats} categoricalBarRef={categoricalBarRef} />
         )}
       </div>
     </div>

@@ -4,6 +4,7 @@ import styles from './TransformDialog.module.css';
 import joinStyles from './JoinDialog.module.css';
 import { JoinTreeSelector } from './JoinTreeSelector';
 import { TablePreviewModal } from './TablePreviewModal';
+import { JoinTypeSelector, JoinKeysEditor, JoinColumnSelector } from './join';
 import * as JoinHandlers from '../handlers/join-handlers';
 
 export type JoinType = 'inner' | 'left' | 'right' | 'full' | 'cross' | 'semi' | 'anti' | 'lookup';
@@ -14,18 +15,6 @@ export interface JoinTarget {
   type: 'model' | 'source';
   sourceName?: string;
 }
-
-// Icon mapping for join types
-const joinTypeIcons: Record<JoinType, string> = {
-  inner: 'carbon:join-inner',
-  left: 'carbon:join-left',
-  right: 'carbon:join-right',
-  full: 'carbon:join-full',
-  cross: 'carbon:join',
-  semi: 'carbon:dot-mark',
-  anti: 'carbon:error-filled',
-  lookup: 'carbon:search',
-};
 
 export function JoinDialog() {
   const {
@@ -57,11 +46,10 @@ export function JoinDialog() {
     JoinHandlers.onJoinTargetChange();
   };
 
-  const handleJoinTypeChange = (e: Event) => {
-    const target = e.target as HTMLInputElement;
-    DialogStore.joinState.joinType.value = target.value as JoinType;
+  const handleJoinTypeChange = (type: JoinType) => {
+    DialogStore.joinState.joinType.value = type;
     // Re-analyze if not cross join
-    if (target.value !== 'cross') {
+    if (type !== 'cross') {
       JoinHandlers.analyzeJoinKeys();
     }
   };
@@ -90,6 +78,7 @@ export function JoinDialog() {
     JoinHandlers.previewJoin();
   };
 
+  // Column selection handlers
   const toggleLeftColumn = (col: string) => {
     const selected = selectedLeftColumns.value;
     if (selected.includes(col)) {
@@ -179,324 +168,41 @@ export function JoinDialog() {
       </div>
 
       {/* Join Type */}
-      <div class={styles.group}>
-        <label class={styles.label}>Join Type</label>
-        <div class={joinStyles.joinTypeGrid}>
-          {(
-            ['inner', 'left', 'right', 'full', 'cross', 'semi', 'anti', 'lookup'] as JoinType[]
-          ).map((type) => (
-            <label key={type} class={styles.radioLabel}>
-              <input
-                type="radio"
-                name="joinType"
-                value={type}
-                checked={joinType.value === type}
-                onChange={handleJoinTypeChange}
-              />
-              <span
-                class="iconify"
-                data-icon={joinTypeIcons[type]}
-                style={{ fontSize: '16px' }}
-              ></span>
-              <span style={{ textTransform: 'capitalize' }}>
-                {type.charAt(0).toUpperCase() + type.slice(1)}
-              </span>
-            </label>
-          ))}
-        </div>
-        <div class={styles.helpText}>
-          {joinType.value === 'inner' && 'Keep only rows that match in both tables'}
-          {joinType.value === 'left' && 'Keep all rows from left table, matching rows from right'}
-          {joinType.value === 'right' && 'Keep all rows from right table, matching rows from left'}
-          {joinType.value === 'full' && 'Keep all rows from both tables'}
-          {joinType.value === 'cross' && 'Cartesian product (all combinations)'}
-          {joinType.value === 'semi' && 'Keep rows from left table that have matches in right'}
-          {joinType.value === 'anti' &&
-            'Keep rows from left table that do NOT have matches in right'}
-          {joinType.value === 'lookup' && 'Left join optimized for looking up specific values'}
-        </div>
-      </div>
+      <JoinTypeSelector joinType={joinType} onChange={handleJoinTypeChange} />
 
       {/* Join Keys */}
       {joinType.value !== 'cross' && (
-        <div class={styles.group}>
-          <label class={styles.label}>Join Keys</label>
-          {keyPairs.value.map((pair, index) => {
-            const analysis = keyPairAnalysis.value[index];
-            const hasLeftError = !pair[0];
-            const hasRightError = !pair[1];
-            const hasError = hasLeftError || hasRightError;
-
-            return (
-              <div key={index} class={joinStyles.keyPairContainer}>
-                <div class={styles.keyGrid}>
-                  <select
-                    class={`${styles.input} ${hasLeftError ? joinStyles.inputError : ''}`}
-                    style={{ flex: 1 }}
-                    value={pair[0] || ''}
-                    onChange={(e) => updateKeyPair(index, 0, e.currentTarget.value || null)}
-                  >
-                    <option value="">Select left column...</option>
-                    {leftColumns.value.map((col) => (
-                      <option key={col} value={col}>
-                        {col}
-                      </option>
-                    ))}
-                  </select>
-                  <span>=</span>
-                  <select
-                    class={`${styles.input} ${hasRightError ? joinStyles.inputError : ''}`}
-                    style={{ flex: 1 }}
-                    value={pair[1] || ''}
-                    onChange={(e) => updateKeyPair(index, 1, e.currentTarget.value || null)}
-                  >
-                    <option value="">Select right column...</option>
-                    {rightColumns.value.map((col) => (
-                      <option key={col} value={col}>
-                        {col}
-                      </option>
-                    ))}
-                  </select>
-                  <button
-                    class="button button--secondary button--small"
-                    onClick={() => JoinHandlers.removeJoinKeyPair(index)}
-                    disabled={keyPairs.value.length === 1}
-                    title="Remove key pair"
-                  >
-                    ×
-                  </button>
-                </div>
-
-                {/* Validation Errors */}
-                {hasError && (
-                  <div class={joinStyles.validationError}>
-                    {hasLeftError && <span>Left column is required</span>}
-                    {hasLeftError && hasRightError && <span> • </span>}
-                    {hasRightError && <span>Right column is required</span>}
-                  </div>
-                )}
-
-                {/* Analysis Results */}
-                {!hasError && analysis && pair[0] && pair[1] && (
-                  <div class={joinStyles.analysisBox}>
-                    <div class={joinStyles.analysisRow}>
-                      <span class={joinStyles.analysisLabel}>Left:</span>
-                      <span>{analysis.leftUnique} unique values</span>
-                      {analysis.leftHasDuplicates && (
-                        <span
-                          class={joinStyles.warningBadge}
-                          title="This column contains duplicate values"
-                        >
-                          ⚠️ Duplicates
-                        </span>
-                      )}
-                    </div>
-                    <div class={joinStyles.analysisRow}>
-                      <span class={joinStyles.analysisLabel}>Right:</span>
-                      <span>{analysis.rightUnique} unique values</span>
-                      {analysis.rightHasDuplicates && (
-                        <span
-                          class={joinStyles.warningBadge}
-                          title="This column contains duplicate values"
-                        >
-                          ⚠️ Duplicates
-                        </span>
-                      )}
-                    </div>
-                    <div class={joinStyles.analysisDivider}></div>
-                    <div class={joinStyles.analysisRow}>
-                      <span class={joinStyles.analysisLabel}>Matches:</span>
-                      <span class={joinStyles.matchCount}>{analysis.matches}</span>
-                      <span class={joinStyles.analysisLabel}>values</span>
-                    </div>
-                    <div class={joinStyles.analysisRow}>
-                      <span class={joinStyles.analysisLabel}>Left match:</span>
-                      <span class={joinStyles.matchPercent}>{analysis.leftMatchPercent}%</span>
-                      <span class={joinStyles.analysisLabel}>of left rows will match</span>
-                    </div>
-                    <div class={joinStyles.analysisRow}>
-                      <span class={joinStyles.analysisLabel}>Right match:</span>
-                      <span class={joinStyles.matchPercent}>{analysis.rightMatchPercent}%</span>
-                      <span class={joinStyles.analysisLabel}>of right rows will match</span>
-                    </div>
-                    <div class={joinStyles.analysisDivider}></div>
-                    <div class={joinStyles.analysisRow}>
-                      <span class={joinStyles.analysisLabel}>Left only:</span>
-                      <button
-                        class={joinStyles.clickableCount}
-                        onClick={() => {
-                          if (analysis.leftOnlyValues.length > 0) {
-                            DialogStore.joinState.previewMismatchValues.value = {
-                              values: analysis.leftOnlyValues,
-                              column: analysis.leftCol || '',
-                              side: 'left',
-                            };
-                          }
-                        }}
-                        disabled={analysis.leftOnly === 0}
-                        title="Click to view values"
-                      >
-                        {analysis.leftOnly}
-                      </button>
-                      <span class={joinStyles.analysisLabel}>
-                        ({analysis.leftOnlyPercent}% of left rows)
-                      </span>
-                    </div>
-                    <div class={joinStyles.analysisRow}>
-                      <span class={joinStyles.analysisLabel}>Right only:</span>
-                      <button
-                        class={joinStyles.clickableCount}
-                        onClick={() => {
-                          if (analysis.rightOnlyValues.length > 0) {
-                            DialogStore.joinState.previewMismatchValues.value = {
-                              values: analysis.rightOnlyValues,
-                              column: analysis.rightCol || '',
-                              side: 'right',
-                            };
-                          }
-                        }}
-                        disabled={analysis.rightOnly === 0}
-                        title="Click to view values"
-                      >
-                        {analysis.rightOnly}
-                      </button>
-                      <span class={joinStyles.analysisLabel}>
-                        ({analysis.rightOnlyPercent}% of right rows)
-                      </span>
-                    </div>
-                  </div>
-                )}
-              </div>
-            );
-          })}
-          <button
-            class="button button--secondary button--small"
-            onClick={JoinHandlers.addJoinKeyPair}
-          >
-            + Add Key Pair
-          </button>
-          <div class={styles.helpText}>Match rows where these columns have equal values</div>
-        </div>
+        <JoinKeysEditor
+          keyPairs={keyPairs.value as [string | null, string | null][]}
+          leftColumns={leftColumns.value}
+          rightColumns={rightColumns.value}
+          keyPairAnalysis={keyPairAnalysis.value}
+          onUpdate={updateKeyPair}
+        />
       )}
 
       {/* Column Selection */}
       <div class={joinStyles.columnSelectionGrid}>
         {/* Left Columns */}
-        <div class={styles.group}>
-          <label class={styles.label}>Left Columns to Include</label>
-          <div class={styles.actions} style={{ marginBottom: '0.5rem', marginTop: 0 }}>
-            <button
-              type="button"
-              class="button button--text button--small"
-              onClick={selectAllLeftColumns}
-            >
-              Select All
-            </button>
-            <button
-              type="button"
-              class="button button--text button--small"
-              onClick={selectNoneLeftColumns}
-            >
-              Select None
-            </button>
-          </div>
-          <div class={styles.columnEditorList}>
-            {leftColumns.value.map((col) => {
-              const isSelected = selectedLeftColumns.value.includes(col);
-              return (
-                <div
-                  key={col}
-                  class={`${styles.columnEditorItem} ${!isSelected ? styles.unselected : ''}`}
-                >
-                  {/* Checkbox */}
-                  <button
-                    type="button"
-                    class={styles.itemCheckbox}
-                    onClick={() => toggleLeftColumn(col)}
-                  >
-                    <span
-                      style={{
-                        color: isSelected ? 'var(--color-green)' : 'var(--color-red)',
-                      }}
-                    >
-                      {isSelected ? '✓' : '✗'}
-                    </span>
-                  </button>
-
-                  {/* Column Name */}
-                  <span
-                    class={styles.originalName}
-                    style={{
-                      textDecoration: !isSelected ? 'line-through' : 'none',
-                      opacity: !isSelected ? 0.6 : 1,
-                    }}
-                  >
-                    {col}
-                  </span>
-                </div>
-              );
-            })}
-          </div>
-        </div>
+        <JoinColumnSelector
+          label="Left Columns to Include"
+          columns={leftColumns.value}
+          selectedColumns={selectedLeftColumns.value}
+          onToggle={toggleLeftColumn}
+          onSelectAll={selectAllLeftColumns}
+          onSelectNone={selectNoneLeftColumns}
+        />
 
         {/* Right Columns */}
         {joinType.value !== 'semi' && joinType.value !== 'anti' && (
-          <div class={styles.group}>
-            <label class={styles.label}>Right Columns to Include</label>
-            <div class={styles.actions} style={{ marginBottom: '0.5rem', marginTop: 0 }}>
-              <button
-                type="button"
-                class="button button--text button--small"
-                onClick={selectAllRightColumns}
-              >
-                Select All
-              </button>
-              <button
-                type="button"
-                class="button button--text button--small"
-                onClick={selectNoneRightColumns}
-              >
-                Select None
-              </button>
-            </div>
-            <div class={styles.columnEditorList}>
-              {rightColumns.value.map((col) => {
-                const isSelected = selectedRightColumns.value.includes(col);
-                return (
-                  <div
-                    key={col}
-                    class={`${styles.columnEditorItem} ${!isSelected ? styles.unselected : ''}`}
-                  >
-                    {/* Checkbox */}
-                    <button
-                      type="button"
-                      class={styles.itemCheckbox}
-                      onClick={() => toggleRightColumn(col)}
-                    >
-                      <span
-                        style={{
-                          color: isSelected ? 'var(--color-green)' : 'var(--color-red)',
-                        }}
-                      >
-                        {isSelected ? '✓' : '✗'}
-                      </span>
-                    </button>
-
-                    {/* Column Name */}
-                    <span
-                      class={styles.originalName}
-                      style={{
-                        textDecoration: !isSelected ? 'line-through' : 'none',
-                        opacity: !isSelected ? 0.6 : 1,
-                      }}
-                    >
-                      {col}
-                    </span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
+          <JoinColumnSelector
+            label="Right Columns to Include"
+            columns={rightColumns.value}
+            selectedColumns={selectedRightColumns.value}
+            onToggle={toggleRightColumn}
+            onSelectAll={selectAllRightColumns}
+            onSelectNone={selectNoneRightColumns}
+          />
         )}
       </div>
 

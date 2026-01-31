@@ -393,7 +393,11 @@ Each handler has:
 - [x] Refactor all handlers to use stores directly (removed `legacyApp` fallback pattern)
 - [x] Remove proxy getter/setter pairs from SytoApp (53 of 57 removed, 4 kept for test compatibility)
 - [x] Delete orphaned legacy transform files (4 files removed)
-- [ ] Split oversized components
+- [x] Split oversized components (3 of 4 completed)
+  - [x] JoinDialog: 560 → 266 LoC (52% reduction) - extracted JoinTypeSelector, JoinKeyPairEditor, JoinColumnSelector
+  - [x] GenerateDialog: 432 → 128 LoC (70% reduction) - extracted GeneratorTypeSelector, GeneratorConfigEditor
+  - [x] EdaPanel: 440 → 243 LoC (45% reduction) - extracted EdaOverview, EdaNumericSection, EdaCategoricalSection
+  - [ ] ColumnEditorDialog: 458 LoC (deferred - complex mode state)
 - [ ] Address remaining test gaps
 - [ ] Update documentation (SPECIFICATION.md)
 - [ ] Performance profiling
@@ -453,6 +457,36 @@ Removed 53 of 57 proxy getter/setter pairs from `src/syto-app.ts`:
 
 Also removed `implements AppState` from SytoApp class (interface no longer needed).
 
+**Component splits completed:**
+
+Split 3 of 4 oversized components into smaller, focused sub-components:
+
+| Component      | Before | After | Reduction | Extracted Components                                                     |
+| -------------- | ------ | ----- | --------- | ------------------------------------------------------------------------ |
+| JoinDialog     | 560    | 266   | 52%       | JoinTypeSelector, JoinKeyPairEditor, JoinKeysEditor, JoinColumnSelector  |
+| GenerateDialog | 432    | 128   | 70%       | GeneratorTypeSelector, GeneratorConfigEditor (+ 6 type-specific configs) |
+| EdaPanel       | 440    | 243   | 45%       | EdaOverview, EdaNumericSection, EdaStatsFlow, EdaCategoricalSection      |
+
+**New sub-component directories:**
+
+```
+src/app/components/
+├── join/
+│   ├── index.ts
+│   ├── JoinTypeSelector.tsx
+│   ├── JoinKeyPairEditor.tsx
+│   └── JoinColumnSelector.tsx
+├── generate/
+│   ├── index.ts
+│   ├── GeneratorTypeSelector.tsx
+│   └── GeneratorConfigEditor.tsx
+└── eda/
+    ├── index.ts
+    ├── EdaOverview.tsx
+    ├── EdaNumericSection.tsx
+    └── EdaCategoricalSection.tsx
+```
+
 ---
 
 ## 6. Technical Debt Summary
@@ -464,7 +498,7 @@ Also removed `implements AppState` from SytoApp class (interface no longer neede
 | SytoApp proxy pattern         | ✅ Resolved | ~400 LoC bloat   | 2-3 days           | **Done** |
 | SytoApp.init() uses proxies   | ✅ Resolved | Hard to test     | 1 day              | **Done** |
 | Handler module explosion      | 🟡 Medium   | Cognitive load   | 3-4 days           | Phase 4  |
-| Oversized components          | 🟡 Medium   | Hard to test     | 3-5 days           | Phase 4  |
+| Oversized components          | ✅ Improved | Hard to test     | 3-5 days           | 3/4 done |
 | Handler test coverage (16%)   | ✅ Improved | Risky refactors  | 5-7 days           | ~24%     |
 | Component test coverage (38%) | 🟡 Medium   | Missing UI tests | 5-7 days           | Phase 4  |
 | DialogStore signal sprawl     | 🟡 Medium   | Scaling problem  | 2-3 days           | Phase 4  |
@@ -508,6 +542,10 @@ Also removed `implements AppState` from SytoApp class (interface no longer neede
 | 2026-01-31 | Keep 4 proxies for test compatibility                      | importDialogState, importUrlDialogState, activeDialog, columns  |
 | 2026-01-31 | Delete 4 orphaned legacy transform files                   | derive, filter, split, simple-transforms superseded by handlers |
 | 2026-01-31 | Remove `implements AppState` from SytoApp                  | Interface no longer needed after proxy removal                  |
+| 2026-01-31 | Split JoinDialog into sub-components                       | 560 → 266 LoC (52%), extracted type selector, key pair editor   |
+| 2026-01-31 | Split GenerateDialog into sub-components                   | 432 → 128 LoC (70%), extracted type selector, config editors    |
+| 2026-01-31 | Split EdaPanel into sub-components                         | 440 → 243 LoC (45%), extracted overview, numeric, categorical   |
+| 2026-01-31 | Defer ColumnEditorDialog split                             | Complex mode state coupling, low ROI vs other components        |
 
 ---
 
