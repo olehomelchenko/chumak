@@ -3,7 +3,7 @@
 > Architectural assessment and refactoring roadmap for the `src/app/` layer
 
 **Date:** 2026-01-31
-**Status:** In Progress (Phase 2 Complete, Phase 3 Pending)
+**Status:** In Progress (Phase 3 Foundation Complete)
 
 ---
 
@@ -332,14 +332,34 @@ handlers/
 - `join-handlers.ts` preview integration - complex async pattern with dual state storage
 - Physical handler consolidation into subdirectories (defer to align with SytoApp decomposition)
 
-### Phase 3: Architecture (Week 5-6)
+### Phase 3: Architecture (Week 5-6) 🔄 IN PROGRESS
 
-- [ ] Decompose SytoApp into focused modules
-- [ ] Remove AppStore proxy pattern
-- [ ] Update components to use AppStore directly
-- [ ] Refactor services to separate framework concerns
+- [x] Create orchestration module structure (`src/app/orchestration/`)
+- [x] Extract EventRouter - keyboard, paste, click event handling
+- [x] Extract UrlStateSync - URL hash synchronization
+- [x] Extract DialogCoordinator - dialog lifecycle, snapshots, state management
+- [x] Create AppOrchestrator - initialization, theme, transformation state
+- [x] Refactor pagination-handlers to use stores directly (no `this` context)
+- [ ] Migrate remaining handlers to store-based pattern
+- [ ] Update components to use orchestration modules directly
+- [ ] Remove AppStore proxy pattern from SytoApp
 
 **Deliverable**: Clear separation of concerns, testable modules
+
+**New orchestration modules created:**
+
+```
+src/app/orchestration/
+├── index.ts           - Module exports
+├── AppOrchestrator.ts - App init, theme, transformation state (~120 LoC)
+├── EventRouter.ts     - Keyboard, paste, click event routing (~100 LoC)
+├── UrlStateSync.ts    - URL hash synchronization (~180 LoC)
+└── DialogCoordinator.ts - Dialog lifecycle, state, preview (~520 LoC)
+```
+
+**Refactored handlers:**
+
+- `pagination-handlers.ts` - Now uses stores directly, no `this` context needed
 
 ### Phase 4: Polish (Week 7)
 
@@ -354,15 +374,16 @@ handlers/
 
 ## 6. Technical Debt Summary
 
-| Issue                         | Severity    | Debt Cost        | Refactoring Effort | Status   |
-| ----------------------------- | ----------- | ---------------- | ------------------ | -------- |
-| Duplicated preview/validation | ✅ Resolved | ~2,000 LoC duped | 4-5 days           | **Done** |
-| SytoApp God Object            | 🔴 High     | Blocks testing   | 1-2 weeks          | Phase 3  |
-| Handler module explosion      | 🟡 Medium   | Cognitive load   | 3-4 days           | Phase 3  |
-| Oversized components          | 🟡 Medium   | Hard to test     | 3-5 days           | Phase 4  |
-| Handler test coverage (16%)   | ✅ Improved | Risky refactors  | 5-7 days           | ~24%     |
-| Component test coverage (38%) | 🟡 Medium   | Missing UI tests | 5-7 days           | Phase 4  |
-| DialogStore signal sprawl     | 🟡 Medium   | Scaling problem  | 2-3 days           | Phase 3  |
+| Issue                         | Severity     | Debt Cost        | Refactoring Effort | Status      |
+| ----------------------------- | ------------ | ---------------- | ------------------ | ----------- |
+| Duplicated preview/validation | ✅ Resolved  | ~2,000 LoC duped | 4-5 days           | **Done**    |
+| SytoApp God Object            | 🟡 Improving | Blocks testing   | 1-2 weeks          | In Progress |
+| Handler module explosion      | 🟡 Medium    | Cognitive load   | 3-4 days           | Phase 3     |
+| Oversized components          | 🟡 Medium    | Hard to test     | 3-5 days           | Phase 4     |
+| Handler test coverage (16%)   | ✅ Improved  | Risky refactors  | 5-7 days           | ~24%        |
+| Component test coverage (38%) | 🟡 Medium    | Missing UI tests | 5-7 days           | Phase 4     |
+| DialogStore signal sprawl     | 🟡 Medium    | Scaling problem  | 2-3 days           | Phase 3     |
+| Handler `this` context        | 🟡 Improving | Hard to test     | 2-3 days           | In Progress |
 
 ---
 
@@ -379,6 +400,11 @@ handlers/
 | 2026-01-31 | Added 95 new handler tests (aggregate, import, join)       | Critical handlers now tested, coverage improved to ~24%    |
 | 2026-01-31 | Defer physical handler consolidation to Phase 3            | Better to align with SytoApp decomposition to reduce churn |
 | 2026-01-31 | Phase 2 complete                                           | 232 total handler tests, testing framework established     |
+| 2026-01-31 | Create orchestration module structure                      | Provides foundation for SytoApp decomposition              |
+| 2026-01-31 | Extract EventRouter, UrlStateSync, DialogCoordinator       | Separates concerns into testable modules                   |
+| 2026-01-31 | Refactor pagination-handlers to store-based pattern        | First handler migrated away from `this` context            |
+| 2026-01-31 | Use hybrid callbacks pattern for handlers                  | Keep ExecutionCallbacks for UI, direct imports for state   |
+| 2026-01-31 | Phase 3 foundation complete                                | Orchestration modules created, 1063 tests passing          |
 
 ---
 

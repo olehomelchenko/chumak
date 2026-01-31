@@ -1199,30 +1199,30 @@ export class SytoApp implements AppState {
     return InteractionHandlers.quickDedupe((name) => this.openDialog(name));
   }
 
-  // Pagination handlers
+  // Pagination handlers (now use stores directly, no 'this' context needed)
   updatePagination() {
-    return PaginationHandlers.updatePagination.call(this);
+    return PaginationHandlers.updatePagination();
   }
   getPaginatedData() {
-    return PaginationHandlers.getPaginatedData.call(this);
+    return PaginationHandlers.getPaginatedData();
   }
   getPaginationInfo() {
-    return PaginationHandlers.getPaginationInfo.call(this);
+    return PaginationHandlers.getPaginationInfo();
   }
   previousPage() {
-    return PaginationHandlers.previousPage.call(this);
+    return PaginationHandlers.previousPage();
   }
   nextPage() {
-    return PaginationHandlers.nextPage.call(this);
+    return PaginationHandlers.nextPage();
   }
   goToFirstPage() {
-    return PaginationHandlers.goToFirstPage.call(this);
+    return PaginationHandlers.goToFirstPage();
   }
   goToLastPage() {
-    return PaginationHandlers.goToLastPage.call(this);
+    return PaginationHandlers.goToLastPage();
   }
   updatePageSize(newSize: number | string) {
-    return PaginationHandlers.updatePageSize.call(this, newSize);
+    return PaginationHandlers.updatePageSize(newSize);
   }
 
   // Helper handlers
