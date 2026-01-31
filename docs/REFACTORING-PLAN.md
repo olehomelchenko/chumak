@@ -398,7 +398,12 @@ Each handler has:
   - [x] GenerateDialog: 432 → 128 LoC (70% reduction) - extracted GeneratorTypeSelector, GeneratorConfigEditor
   - [x] EdaPanel: 440 → 243 LoC (45% reduction) - extracted EdaOverview, EdaNumericSection, EdaCategoricalSection
   - [ ] ColumnEditorDialog: 458 LoC (deferred - complex mode state)
-- [ ] Address remaining test gaps
+- [x] Address remaining test gaps (166 new tests added)
+  - [x] step-handlers.ts (28 tests) - pipeline orchestration
+  - [x] column-editor-handlers.ts (59 tests) - column operations
+  - [x] date-handlers.ts (32 tests) - date transformations
+  - [x] text-handlers.ts (29 tests) - text processing
+  - [x] append-handlers.ts (18 tests) - data append
 - [ ] Update documentation (SPECIFICATION.md)
 - [ ] Performance profiling
 
@@ -487,6 +492,21 @@ src/app/components/
     └── EdaCategoricalSection.tsx
 ```
 
+**Handler test coverage improved:**
+
+Added 166 new tests for critical handlers:
+
+| Handler                   | Tests | Coverage                                              |
+| ------------------------- | ----- | ----------------------------------------------------- |
+| step-handlers.ts          | 28    | Pipeline orchestration, step editing, removal modals  |
+| column-editor-handlers.ts | 59    | Selection, patterns, drag/drop, text mode, validation |
+| date-handlers.ts          | 32    | Date extraction, truncation, preview generation       |
+| text-handlers.ts          | 29    | Case changes, trim, operation preview                 |
+| append-handlers.ts        | 18    | Initialization, target selection, circular deps       |
+
+**Total handler tests:** 398 (up from 232, ~71% increase)
+**Handler test coverage:** ~38% (up from ~24%)
+
 ---
 
 ## 6. Technical Debt Summary
@@ -499,7 +519,7 @@ src/app/components/
 | SytoApp.init() uses proxies   | ✅ Resolved | Hard to test     | 1 day              | **Done** |
 | Handler module explosion      | 🟡 Medium   | Cognitive load   | 3-4 days           | Phase 4  |
 | Oversized components          | ✅ Improved | Hard to test     | 3-5 days           | 3/4 done |
-| Handler test coverage (16%)   | ✅ Improved | Risky refactors  | 5-7 days           | ~24%     |
+| Handler test coverage (16%)   | ✅ Improved | Risky refactors  | 5-7 days           | ~38%     |
 | Component test coverage (38%) | 🟡 Medium   | Missing UI tests | 5-7 days           | Phase 4  |
 | DialogStore signal sprawl     | 🟡 Medium   | Scaling problem  | 2-3 days           | Phase 4  |
 | Handler `this` context        | ✅ Resolved | Hard to test     | 2-3 days           | **Done** |
@@ -546,6 +566,7 @@ src/app/components/
 | 2026-01-31 | Split GenerateDialog into sub-components                   | 432 → 128 LoC (70%), extracted type selector, config editors    |
 | 2026-01-31 | Split EdaPanel into sub-components                         | 440 → 243 LoC (45%), extracted overview, numeric, categorical   |
 | 2026-01-31 | Defer ColumnEditorDialog split                             | Complex mode state coupling, low ROI vs other components        |
+| 2026-01-31 | Add 166 handler tests for 5 critical handlers              | Coverage improved from ~24% to ~38%, 1229 total tests passing   |
 
 ---
 
