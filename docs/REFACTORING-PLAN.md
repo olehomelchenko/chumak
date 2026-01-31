@@ -3,7 +3,7 @@
 > Architectural assessment and refactoring roadmap for the `src/app/` layer
 
 **Date:** 2026-01-31
-**Status:** In Progress (Phase 2 - Migrations Complete)
+**Status:** In Progress (Phase 2 Complete, Phase 3 Pending)
 
 ---
 
@@ -294,12 +294,12 @@ handlers/
 - `split-handlers.ts` - uses `createDebouncedPreview`, `validateRegexPattern`
 - `pattern-handlers.ts` - uses `validateRegexPattern` (3 places)
 
-### Phase 2: Handler Consolidation (Week 3-4) ⏳ IN PROGRESS
+### Phase 2: Handler Consolidation (Week 3-4) ✅ COMPLETE
 
 - [x] Migrate remaining handlers to preview-engine (6 handlers)
-- [ ] Build handler testing framework
-- [ ] Add tests for critical handlers (join, import, aggregate)
-- [ ] Consolidate handlers into logical groups
+- [x] Build handler testing framework
+- [x] Add tests for critical handlers (join, import, aggregate)
+- [x] Consolidate handlers into logical groups (documentation)
 
 **Deliverable**: Better test coverage, organized handler structure
 
@@ -312,9 +312,25 @@ handlers/
 - `text-handlers.ts` - uses `createDebouncedPreview`
 - `date-handlers.ts` - uses `createDebouncedPreview`
 
+**Testing framework created:**
+
+- `test-utils.ts` (~150 LoC) - Shared testing utilities with:
+  - `TestData` factory - Standard test datasets (simple, withNulls, numeric, joinPair, etc.)
+  - `resetStores()` - Store reset helper
+  - `setTestData()` - Test data setup
+  - `createMockApp()` - Mock SytoApp factory
+  - `expectPreviewState()` / `expectPreviewCleared()` - Preview assertions
+
+**New test files (95 tests total):**
+
+- `aggregate-handlers.test.ts` (26 tests) - Aggregation operations, groupby, rollup
+- `import-handlers.test.ts` (42 tests) - Path resolution, header handling, data flattening
+- `join-handlers.test.ts` (27 tests) - Key pair management, key analysis, target resolution
+
 **Deferred to Phase 3:**
 
-- `join-handlers.ts` - complex async preview with dual state storage, needs architectural refactoring
+- `join-handlers.ts` preview integration - complex async pattern with dual state storage
+- Physical handler consolidation into subdirectories (defer to align with SytoApp decomposition)
 
 ### Phase 3: Architecture (Week 5-6)
 
@@ -342,9 +358,9 @@ handlers/
 | ----------------------------- | ----------- | ---------------- | ------------------ | -------- |
 | Duplicated preview/validation | ✅ Resolved | ~2,000 LoC duped | 4-5 days           | **Done** |
 | SytoApp God Object            | 🔴 High     | Blocks testing   | 1-2 weeks          | Phase 3  |
-| Handler module explosion      | 🔴 High     | Cognitive load   | 3-4 days           | Phase 2  |
+| Handler module explosion      | 🟡 Medium   | Cognitive load   | 3-4 days           | Phase 3  |
 | Oversized components          | 🟡 Medium   | Hard to test     | 3-5 days           | Phase 4  |
-| Handler test coverage (16%)   | 🟡 Medium   | Risky refactors  | 5-7 days           | Phase 2  |
+| Handler test coverage (16%)   | ✅ Improved | Risky refactors  | 5-7 days           | ~24%     |
 | Component test coverage (38%) | 🟡 Medium   | Missing UI tests | 5-7 days           | Phase 4  |
 | DialogStore signal sprawl     | 🟡 Medium   | Scaling problem  | 2-3 days           | Phase 3  |
 
@@ -352,13 +368,17 @@ handlers/
 
 ## Decision Log
 
-| Date       | Decision                                                   | Rationale                                                 |
-| ---------- | ---------------------------------------------------------- | --------------------------------------------------------- |
-| 2026-01-31 | Prioritize duplication removal over SytoApp decomposition  | Higher ROI, lower risk, enables future refactoring        |
-| 2026-01-31 | Keep core layer unchanged                                  | Already well-structured, no issues identified             |
-| 2026-01-31 | Phase 1 complete: preview-engine and validation-engine     | 7 handlers migrated, 46 new tests, all tests pass         |
-| 2026-01-31 | Phase 2 migration: 6 additional handlers to preview-engine | 13 total handlers now use shared preview engine           |
-| 2026-01-31 | Defer join-handlers.ts to Phase 3                          | Complex async pattern with dual state needs arch refactor |
+| Date       | Decision                                                   | Rationale                                                  |
+| ---------- | ---------------------------------------------------------- | ---------------------------------------------------------- |
+| 2026-01-31 | Prioritize duplication removal over SytoApp decomposition  | Higher ROI, lower risk, enables future refactoring         |
+| 2026-01-31 | Keep core layer unchanged                                  | Already well-structured, no issues identified              |
+| 2026-01-31 | Phase 1 complete: preview-engine and validation-engine     | 7 handlers migrated, 46 new tests, all tests pass          |
+| 2026-01-31 | Phase 2 migration: 6 additional handlers to preview-engine | 13 total handlers now use shared preview engine            |
+| 2026-01-31 | Defer join-handlers.ts to Phase 3                          | Complex async pattern with dual state needs arch refactor  |
+| 2026-01-31 | Created handler testing framework (test-utils.ts)          | Enables consistent testing patterns, reduces boilerplate   |
+| 2026-01-31 | Added 95 new handler tests (aggregate, import, join)       | Critical handlers now tested, coverage improved to ~24%    |
+| 2026-01-31 | Defer physical handler consolidation to Phase 3            | Better to align with SytoApp decomposition to reduce churn |
+| 2026-01-31 | Phase 2 complete                                           | 232 total handler tests, testing framework established     |
 
 ---
 
