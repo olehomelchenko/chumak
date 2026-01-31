@@ -26,6 +26,7 @@
 - **[BACKLOG.md](docs/BACKLOG.md)**: Feature backlog and future enhancements
 - **[TRANSFORM-ARCHITECTURE-REVIEW.md](docs/TRANSFORM-ARCHITECTURE-REVIEW.md)**: Transform design analysis and improvement roadmap
 - **[MULTI-MODEL-ARCHITECTURE.md](docs/MULTI-MODEL-ARCHITECTURE.md)**: Dependency graph system, staleness tracking, and multi-model operations
+- **[REFACTORING-PLAN.md](docs/REFACTORING-PLAN.md)**: App layer refactoring roadmap and technical debt assessment
 
 ### Reference
 
