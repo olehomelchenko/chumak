@@ -2,46 +2,26 @@ import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 import * as HelperHandlers from './helper-handlers';
 import { StepService } from '../services/StepService';
-
-let matchDebounceTimer: ReturnType<typeof setTimeout> | null = null;
-let extractDebounceTimer: ReturnType<typeof setTimeout> | null = null;
-
-export function validateRegexpPattern(pattern: string) {
-  if (!pattern) return null;
-  try {
-    new RegExp(pattern);
-    return null;
-  } catch (e: any) {
-    return `Invalid pattern: ${e.message}`;
-  }
-}
+import { createDebouncedPreview, clearPreview, PreviewResult } from './preview-engine';
+import { validateRegexPattern } from './validation-engine';
 
 export function validateRegexpMatchExpression() {
-  const pattern = DialogStore.regexpMatchState.pattern.value;
-  DialogStore.regexpMatchState.error.value = validateRegexpPattern(pattern);
+  validateRegexPattern(DialogStore.regexpMatchState.pattern.value, {
+    errorSignal: DialogStore.regexpMatchState.error,
+  });
 }
 
-export function debouncedUpdateRegexpMatchPreview() {
-  if (matchDebounceTimer) {
-    clearTimeout(matchDebounceTimer);
-  }
-  matchDebounceTimer = setTimeout(() => {
-    updateRegexpMatchPreview();
-  }, 150);
-}
+// Preview engine instance for regexp match operations
+const regexpMatchPreview = createDebouncedPreview({
+  compute: (): PreviewResult | null => {
+    const { sourceColumn, pattern, columnName, error } = DialogStore.regexpMatchState;
+    const currentData = AppStore.currentData.value;
+    const uxSettings = AppStore.uxSettings.value;
 
-export function updateRegexpMatchPreview() {
-  const { sourceColumn, pattern, columnName, error } = DialogStore.regexpMatchState;
-  const currentData = AppStore.currentData.value;
-  const uxSettings = AppStore.uxSettings.value;
+    if (!sourceColumn.value || !pattern.value || error.value || !currentData?.length) {
+      return null;
+    }
 
-  if (!sourceColumn.value || !pattern.value || error.value || !currentData?.length) {
-    // Clear preview
-    clearPreview();
-    return;
-  }
-
-  try {
     const regex = new RegExp(pattern.value);
     const previewLimit = Math.min(uxSettings.preview.rowLimit, 50);
     const samples = currentData.slice(0, previewLimit);
@@ -53,14 +33,22 @@ export function updateRegexpMatchPreview() {
       return { [sourceColumn.value]: val, [outputCol]: matches };
     });
 
-    DialogStore.previewState.title.value = `Regexp Match: ${outputCol}`;
-    DialogStore.previewState.stats.value = `Testing pattern on ${samples.length} rows`;
-    DialogStore.previewState.columns.value = [sourceColumn.value, outputCol];
-    DialogStore.previewState.newColumns.value = [outputCol];
-    DialogStore.previewState.rows.value = previewRows;
-  } catch {
-    clearPreview();
-  }
+    return {
+      title: `Regexp Match: ${outputCol}`,
+      stats: `Testing pattern on ${samples.length} rows`,
+      columns: [sourceColumn.value, outputCol],
+      newColumns: [outputCol],
+      rows: previewRows,
+    };
+  },
+});
+
+export function debouncedUpdateRegexpMatchPreview() {
+  regexpMatchPreview.trigger();
+}
+
+export function updateRegexpMatchPreview() {
+  regexpMatchPreview.compute();
 }
 
 export async function applyRegexpMatchTransform(callbacks: any, app?: any) {
@@ -98,30 +86,22 @@ export async function applyRegexpMatchTransform(callbacks: any, app?: any) {
 }
 
 export function validateRegexpExtractExpression() {
-  const pattern = DialogStore.regexpExtractState.pattern.value;
-  DialogStore.regexpExtractState.error.value = validateRegexpPattern(pattern);
+  validateRegexPattern(DialogStore.regexpExtractState.pattern.value, {
+    errorSignal: DialogStore.regexpExtractState.error,
+  });
 }
 
-export function debouncedUpdateRegexpExtractPreview() {
-  if (extractDebounceTimer) {
-    clearTimeout(extractDebounceTimer);
-  }
-  extractDebounceTimer = setTimeout(() => {
-    updateRegexpExtractPreview();
-  }, 150);
-}
+// Preview engine instance for regexp extract operations
+const regexpExtractPreview = createDebouncedPreview({
+  compute: (): PreviewResult | null => {
+    const { sourceColumn, pattern, group, columnName, error } = DialogStore.regexpExtractState;
+    const currentData = AppStore.currentData.value;
+    const uxSettings = AppStore.uxSettings.value;
 
-export function updateRegexpExtractPreview() {
-  const { sourceColumn, pattern, group, columnName, error } = DialogStore.regexpExtractState;
-  const currentData = AppStore.currentData.value;
-  const uxSettings = AppStore.uxSettings.value;
+    if (!sourceColumn.value || !pattern.value || error.value || !currentData?.length) {
+      return null;
+    }
 
-  if (!sourceColumn.value || !pattern.value || error.value || !currentData?.length) {
-    clearPreview();
-    return;
-  }
-
-  try {
     const regex = new RegExp(pattern.value);
     const previewLimit = Math.min(uxSettings.preview.rowLimit, 50);
     const samples = currentData.slice(0, previewLimit);
@@ -138,22 +118,32 @@ export function updateRegexpExtractPreview() {
       return { [sourceColumn.value]: val, [outputCol]: extracted ?? '(no match)' };
     });
 
-    DialogStore.previewState.title.value = `Regexp Extract: ${outputCol}`;
-    DialogStore.previewState.stats.value = `Extracting group ${groupNum} from ${samples.length} rows`;
-    DialogStore.previewState.columns.value = [sourceColumn.value, outputCol];
-    DialogStore.previewState.newColumns.value = [outputCol];
-    DialogStore.previewState.rows.value = previewRows;
-  } catch {
-    clearPreview();
-  }
+    return {
+      title: `Regexp Extract: ${outputCol}`,
+      stats: `Extracting group ${groupNum} from ${samples.length} rows`,
+      columns: [sourceColumn.value, outputCol],
+      newColumns: [outputCol],
+      rows: previewRows,
+    };
+  },
+});
+
+export function debouncedUpdateRegexpExtractPreview() {
+  regexpExtractPreview.trigger();
 }
 
-export function clearPreview() {
-  DialogStore.previewState.title.value = '';
-  DialogStore.previewState.stats.value = '';
-  DialogStore.previewState.columns.value = [];
-  DialogStore.previewState.newColumns.value = [];
-  DialogStore.previewState.rows.value = [];
+export function updateRegexpExtractPreview() {
+  regexpExtractPreview.compute();
+}
+
+// Re-export from engines for backward compatibility
+export { clearPreview };
+
+// Re-export validateRegexpPattern for backward compatibility
+// Note: Uses the new validation engine under the hood
+export function validateRegexpPattern(pattern: string): string | null {
+  const result = validateRegexPattern(pattern);
+  return result.error;
 }
 
 export async function applyRegexpExtractTransform(callbacks: any, app?: any) {

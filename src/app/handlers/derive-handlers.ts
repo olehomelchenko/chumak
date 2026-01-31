@@ -1,57 +1,33 @@
 import { parseExpression } from '../../core/expression-parser';
 import { interpretAST } from '../../core/ast-interpreter';
-import { validateAST } from '../../core/ast-validator';
-import { formatError } from '../../core/error-formatter';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 import * as HelperHandlers from './helper-handlers';
 import { StepService } from '../services/StepService';
-
-let previewDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+import { createDebouncedPreview, clearPreview, PreviewResult } from './preview-engine';
+import { validateExpression } from './validation-engine';
 
 export function validateDeriveExpression() {
-  const expr = DialogStore.deriveState.expression.value;
-  const trimmed = expr.trim();
-  if (!trimmed) {
-    DialogStore.deriveState.error.value = null;
-    return;
-  }
-  try {
-    const ast = parseExpression(trimmed);
+  validateExpression(DialogStore.deriveState.expression.value, AppStore.columns.value, {
+    errorSignal: DialogStore.deriveState.error,
+  });
+}
+
+// Preview engine instance for derive operations
+const derivePreview = createDebouncedPreview({
+  compute: (): PreviewResult | null => {
+    const columnName = DialogStore.deriveState.columnName.value;
+    const expression = DialogStore.deriveState.expression.value;
+    const error = DialogStore.deriveState.error.value;
+    const data = AppStore.currentData.value;
     const columns = AppStore.columns.value;
-    const validation = validateAST(ast, columns);
-    DialogStore.deriveState.error.value = validation.error
-      ? formatError(validation.error, trimmed)
-      : null;
-  } catch (error: any) {
-    DialogStore.deriveState.error.value = formatError(error, trimmed);
-  }
-}
 
-export function debouncedUpdateDerivePreview() {
-  if (previewDebounceTimer) {
-    clearTimeout(previewDebounceTimer);
-  }
-  previewDebounceTimer = setTimeout(() => {
-    updateDerivePreview();
-  }, 150);
-}
+    if (!expression || error || !data?.length) {
+      return null;
+    }
 
-export function updateDerivePreview() {
-  const columnName = DialogStore.deriveState.columnName.value;
-  const expression = DialogStore.deriveState.expression.value;
-  const error = DialogStore.deriveState.error.value;
-  const data = AppStore.currentData.value;
-  const columns = AppStore.columns.value;
-
-  if (!expression || error || !data?.length) {
-    clearPreview();
-    return;
-  }
-
-  try {
     const ast = parseExpression(expression);
-    const previewLimit = Math.min(HelperHandlers.getPreviewRowLimit.call(null as any), 50); // Cap at 50 for expression previews
+    const previewLimit = Math.min(HelperHandlers.getPreviewRowLimit.call(null as any), 50);
     const samples = data.slice(0, previewLimit);
     const outputCol = columnName || 'new_column';
 
@@ -67,23 +43,26 @@ export function updateDerivePreview() {
     // Show first 4 source columns + new derived column
     const previewCols = [...columns.slice(0, 4), outputCol];
 
-    DialogStore.previewState.title.value = `Derive: ${outputCol}`;
-    DialogStore.previewState.stats.value = `Showing ${previewRows.length} sample rows`;
-    DialogStore.previewState.columns.value = previewCols;
-    DialogStore.previewState.newColumns.value = [outputCol];
-    DialogStore.previewState.rows.value = previewRows;
-  } catch {
-    clearPreview();
-  }
+    return {
+      title: `Derive: ${outputCol}`,
+      stats: `Showing ${previewRows.length} sample rows`,
+      columns: previewCols,
+      newColumns: [outputCol],
+      rows: previewRows,
+    };
+  },
+});
+
+export function debouncedUpdateDerivePreview() {
+  derivePreview.trigger();
 }
 
-export function clearPreview() {
-  DialogStore.previewState.title.value = '';
-  DialogStore.previewState.stats.value = '';
-  DialogStore.previewState.columns.value = [];
-  DialogStore.previewState.newColumns.value = [];
-  DialogStore.previewState.rows.value = [];
+export function updateDerivePreview() {
+  derivePreview.compute();
 }
+
+// Re-export clearPreview from preview-engine
+export { clearPreview };
 
 export async function applyDeriveTransform(callbacks: any, app?: any) {
   const columnName = DialogStore.deriveState.columnName.value;

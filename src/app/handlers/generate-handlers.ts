@@ -2,6 +2,7 @@ import type { SytoApp } from '../../syto-app';
 import { DialogStore } from '../stores/DialogStore';
 import { GeneratorService, ColumnGenerator } from '../services/GeneratorService';
 import { ImportService } from '../services/ImportService';
+import { createDebouncedPreview, clearPreview, PreviewResult } from './preview-engine';
 
 /**
  * Generate synthetic data based on the configuration in the generate dialog
@@ -76,53 +77,44 @@ export async function generateData(this: SytoApp) {
   }
 }
 
-let previewDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+// Preview engine instance for generate operations
+const generatePreview = createDebouncedPreview({
+  compute: (): PreviewResult | null => {
+    const { rowCount, columnName, type, config } = DialogStore.generateState;
 
-export function debouncedUpdateGeneratePreview() {
-  if (previewDebounceTimer) {
-    clearTimeout(previewDebounceTimer);
-  }
-  previewDebounceTimer = setTimeout(() => {
-    updateGeneratePreview();
-  }, 150);
-}
+    const generator: ColumnGenerator = {
+      name: columnName.value.trim() || 'column',
+      type: type.value as any,
+      config: config.value,
+    };
 
-export function updateGeneratePreview() {
-  const { rowCount, columnName, type, config } = DialogStore.generateState;
+    const validationError = GeneratorService.validateGenerator(
+      generator,
+      DialogStore.generateState.isRowAuto.value
+    );
+    if (validationError || rowCount.value <= 0) {
+      return null;
+    }
 
-  const generator: ColumnGenerator = {
-    name: columnName.value.trim() || 'column',
-    type: type.value as any,
-    config: config.value,
-  };
-
-  const validationError = GeneratorService.validateGenerator(
-    generator,
-    DialogStore.generateState.isRowAuto.value
-  );
-  if (validationError || rowCount.value <= 0) {
-    DialogStore.previewState.title.value = '';
-    DialogStore.previewState.stats.value = '';
-    DialogStore.previewState.columns.value = [];
-    DialogStore.previewState.newColumns.value = [];
-    DialogStore.previewState.rows.value = [];
-    return;
-  }
-
-  try {
     const previewCount = Math.min(rowCount.value, 100);
     const { columns, data } = GeneratorService.generate(previewCount, [generator]);
 
-    DialogStore.previewState.title.value = 'Generate Preview';
-    DialogStore.previewState.stats.value = `Showing first ${previewCount} generated rows`;
-    DialogStore.previewState.columns.value = columns.map((c) => c.name);
-    DialogStore.previewState.newColumns.value = columns.map((c) => c.name);
-    DialogStore.previewState.rows.value = data;
-  } catch (e) {
-    DialogStore.previewState.title.value = '';
-    DialogStore.previewState.stats.value = '';
-    DialogStore.previewState.columns.value = [];
-    DialogStore.previewState.newColumns.value = [];
-    DialogStore.previewState.rows.value = [];
-  }
+    return {
+      title: 'Generate Preview',
+      stats: `Showing first ${previewCount} generated rows`,
+      columns: columns.map((c) => c.name),
+      newColumns: columns.map((c) => c.name),
+      rows: data,
+    };
+  },
+});
+
+export function debouncedUpdateGeneratePreview() {
+  generatePreview.trigger();
 }
+
+export function updateGeneratePreview() {
+  generatePreview.compute();
+}
+
+export { clearPreview };

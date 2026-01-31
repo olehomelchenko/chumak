@@ -1,5 +1,6 @@
 import { DialogStore } from '../stores/DialogStore';
 import { StepService } from '../services/StepService';
+import { validateRegexPattern } from './validation-engine';
 
 export async function applySelectPatternTransform(callbacks: any) {
   const { pattern, matchType, include } = DialogStore.selectPatternState;
@@ -11,10 +12,11 @@ export async function applySelectPatternTransform(callbacks: any) {
 
   // Validate regex if matchType is regex
   if (matchType.value === 'regex') {
-    try {
-      new RegExp(pattern.value);
-    } catch (e: any) {
-      DialogStore.selectPatternState.error.value = `Invalid regex pattern: ${e.message}`;
+    const validation = validateRegexPattern(pattern.value, {
+      errorPrefix: 'Invalid regex pattern',
+    });
+    if (!validation.valid) {
+      DialogStore.selectPatternState.error.value = validation.error;
       return;
     }
   }
@@ -41,10 +43,11 @@ export async function applyRemovePatternTransform(callbacks: any) {
 
   // Validate regex if matchType is regex
   if (matchType.value === 'regex') {
-    try {
-      new RegExp(pattern.value);
-    } catch (e: any) {
-      DialogStore.removePatternState.error.value = `Invalid regex pattern: ${e.message}`;
+    const validation = validateRegexPattern(pattern.value, {
+      errorPrefix: 'Invalid regex pattern',
+    });
+    if (!validation.valid) {
+      DialogStore.removePatternState.error.value = validation.error;
       return;
     }
   }
@@ -105,10 +108,9 @@ export async function applyRenamePatternTransform(callbacks: any) {
 
   // Validate regex if enabled
   if (regex.value) {
-    try {
-      new RegExp(find.value);
-    } catch (e: any) {
-      DialogStore.renamePatternState.error.value = `Invalid regex pattern: ${e.message}`;
+    const validation = validateRegexPattern(find.value, { errorPrefix: 'Invalid regex pattern' });
+    if (!validation.valid) {
+      DialogStore.renamePatternState.error.value = validation.error;
       return;
     }
   }

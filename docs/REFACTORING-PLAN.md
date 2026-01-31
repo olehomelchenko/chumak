@@ -3,7 +3,7 @@
 > Architectural assessment and refactoring roadmap for the `src/app/` layer
 
 **Date:** 2026-01-31
-**Status:** Proposed
+**Status:** In Progress (Phase 1 Complete)
 
 ---
 
@@ -142,66 +142,76 @@ debouncedUpdateSplitPreview();
 
 ## 3. Refactoring Priorities
 
-| Priority | Task                          | Effort    | Impact                            |
-| -------- | ----------------------------- | --------- | --------------------------------- |
-| **P1**   | Extract shared preview engine | 4-5 days  | Eliminates 10+ duplicates         |
-| **P2**   | Extract validation framework  | 2-3 days  | Eliminates 5+ duplicates          |
-| **P3**   | Decompose SytoApp             | 1-2 weeks | Enables testing, clear boundaries |
-| **P4**   | Consolidate handler modules   | 3-4 days  | Reduces cognitive load            |
-| **P5**   | Add handler tests             | 5-7 days  | Safety net for refactoring        |
-| **P6**   | Extract dialog state factory  | 2-3 days  | Simplifies DialogStore            |
-| **P7**   | Split oversized components    | 3-5 days  | Improves testability              |
+| Priority | Task                          | Effort    | Impact                            | Status  |
+| -------- | ----------------------------- | --------- | --------------------------------- | ------- |
+| **P1**   | Extract shared preview engine | 4-5 days  | Eliminates 10+ duplicates         | ✅ Done |
+| **P2**   | Extract validation framework  | 2-3 days  | Eliminates 5+ duplicates          | ✅ Done |
+| **P3**   | Decompose SytoApp             | 1-2 weeks | Enables testing, clear boundaries | Pending |
+| **P4**   | Consolidate handler modules   | 3-4 days  | Reduces cognitive load            | Pending |
+| **P5**   | Add handler tests             | 5-7 days  | Safety net for refactoring        | Pending |
+| **P6**   | Extract dialog state factory  | 2-3 days  | Simplifies DialogStore            | Pending |
+| **P7**   | Split oversized components    | 3-5 days  | Improves testability              | Pending |
 
 ---
 
 ## 4. Detailed Recommendations
 
-### 4.1 Extract Preview Engine (P1)
+### 4.1 Extract Preview Engine (P1) ✅ COMPLETE
 
-**Create `src/app/handlers/preview-engine.ts`**
+**Created `src/app/handlers/preview-engine.ts`** (~130 LoC, 15 tests)
 
 ```typescript
-export interface PreviewConfig {
-  computePreview: () => PreviewResult | null;
-  onSuccess?: (result: PreviewResult) => void;
+export interface PreviewResult {
+  title: string;
+  stats: string;
+  columns: string[];
+  newColumns?: string[];
+  rows: DataRow[];
+}
+
+export interface PreviewHandle<TState = void> {
+  trigger: (state?: TState) => void; // Debounced update
+  compute: (state?: TState) => void; // Immediate update
+  cancel: () => void; // Cancel pending
+  clear: () => void; // Clear preview state
+}
+
+export function createDebouncedPreview<TState>(config: {
+  compute: (state: TState) => PreviewResult | null;
   onError?: (error: Error) => void;
   debounceMs?: number;
-}
+}): PreviewHandle<TState>;
 
-export function createDebouncedPreview(config: PreviewConfig) {
-  // Single implementation of debounced preview pattern
-}
-
-export function updatePreviewState(result: PreviewResult) {
-  // Centralized DialogStore.previewState mutation
-}
-
-export function clearPreviewState() {
-  // Single clear implementation
-}
+export function updatePreviewState(result: PreviewResult): void;
+export function clearPreview(): void;
 ```
 
-**Migration**: Replace all `debouncedUpdate*Preview()` functions with calls to shared engine.
+**Migrated**: 7 handlers now use `createDebouncedPreview()` instead of local debounce timers.
 
-### 4.2 Extract Validation Framework (P2)
+### 4.2 Extract Validation Framework (P2) ✅ COMPLETE
 
-**Create `src/app/handlers/validation-engine.ts`**
+**Created `src/app/handlers/validation-engine.ts`** (~170 LoC, 31 tests)
 
 ```typescript
 export function validateExpression(
   expression: string,
   columns: string[],
-  errorSignal: Signal<string | null>
-): ValidationResult {
-  // Single validation implementation
-}
+  options?: { errorSignal?: Signal<string | null> }
+): { valid: boolean; error: string | null; ast: ASTNode | null };
 
-export function formatValidationError(error: Error, expression: string): string {
-  // Consistent error formatting
-}
+export function validateRegexPattern(
+  pattern: string,
+  options?: { errorSignal?: Signal<string | null>; flags?: string; errorPrefix?: string }
+): { valid: boolean; error: string | null; regex: RegExp | null };
+
+export function isExpressionValid(expression: string, columns: string[]): boolean;
+export function isRegexValid(pattern: string, flags?: string): boolean;
 ```
 
-**Migration**: Replace duplicate validation in filter, derive, regexp handlers.
+**Migrated**:
+
+- `filter-handlers.ts`, `derive-handlers.ts` → use `validateExpression()`
+- `regexp-handlers.ts`, `split-handlers.ts`, `pattern-handlers.ts` → use `validateRegexPattern()`
 
 ### 4.3 Decompose SytoApp (P3)
 
@@ -265,14 +275,24 @@ handlers/
 
 ## 5. Phased Roadmap
 
-### Phase 1: Foundation (Week 1-2)
+### Phase 1: Foundation (Week 1-2) ✅ COMPLETE
 
-- [ ] Extract preview engine → single source of truth
-- [ ] Extract validation engine → eliminate duplicates
-- [ ] Create test helpers for handler testing
-- [ ] Add tests for preview and validation engines
+- [x] Extract preview engine → `src/app/handlers/preview-engine.ts` (~130 LoC)
+- [x] Extract validation engine → `src/app/handlers/validation-engine.ts` (~170 LoC)
+- [x] Migrate 7 handler files to use shared engines
+- [x] Add tests for preview engine (15 tests) and validation engine (31 tests)
 
 **Deliverable**: Shared utilities, reduced duplication
+
+**Files migrated:**
+
+- `merge-handlers.ts` - uses `createDebouncedPreview`, exports `clearPreview`
+- `generate-handlers.ts` - uses `createDebouncedPreview`
+- `regexp-handlers.ts` - uses `createDebouncedPreview` (2x), `validateRegexPattern`
+- `filter-handlers.ts` - uses `createDebouncedPreview`, `validateExpression`
+- `derive-handlers.ts` - uses `createDebouncedPreview`, `validateExpression`
+- `split-handlers.ts` - uses `createDebouncedPreview`, `validateRegexPattern`
+- `pattern-handlers.ts` - uses `validateRegexPattern` (3 places)
 
 ### Phase 2: Handler Consolidation (Week 3-4)
 
@@ -305,15 +325,15 @@ handlers/
 
 ## 6. Technical Debt Summary
 
-| Issue                         | Severity  | Debt Cost        | Refactoring Effort |
-| ----------------------------- | --------- | ---------------- | ------------------ |
-| Duplicated preview/validation | 🔴 High   | ~2,000 LoC duped | 4-5 days           |
-| SytoApp God Object            | 🔴 High   | Blocks testing   | 1-2 weeks          |
-| Handler module explosion      | 🔴 High   | Cognitive load   | 3-4 days           |
-| Oversized components          | 🟡 Medium | Hard to test     | 3-5 days           |
-| Handler test coverage (16%)   | 🟡 Medium | Risky refactors  | 5-7 days           |
-| Component test coverage (38%) | 🟡 Medium | Missing UI tests | 5-7 days           |
-| DialogStore signal sprawl     | 🟡 Medium | Scaling problem  | 2-3 days           |
+| Issue                         | Severity    | Debt Cost        | Refactoring Effort | Status   |
+| ----------------------------- | ----------- | ---------------- | ------------------ | -------- |
+| Duplicated preview/validation | ✅ Resolved | ~2,000 LoC duped | 4-5 days           | **Done** |
+| SytoApp God Object            | 🔴 High     | Blocks testing   | 1-2 weeks          | Phase 3  |
+| Handler module explosion      | 🔴 High     | Cognitive load   | 3-4 days           | Phase 2  |
+| Oversized components          | 🟡 Medium   | Hard to test     | 3-5 days           | Phase 4  |
+| Handler test coverage (16%)   | 🟡 Medium   | Risky refactors  | 5-7 days           | Phase 2  |
+| Component test coverage (38%) | 🟡 Medium   | Missing UI tests | 5-7 days           | Phase 4  |
+| DialogStore signal sprawl     | 🟡 Medium   | Scaling problem  | 2-3 days           | Phase 3  |
 
 ---
 
@@ -323,6 +343,7 @@ handlers/
 | ---------- | --------------------------------------------------------- | -------------------------------------------------- |
 | 2026-01-31 | Prioritize duplication removal over SytoApp decomposition | Higher ROI, lower risk, enables future refactoring |
 | 2026-01-31 | Keep core layer unchanged                                 | Already well-structured, no issues identified      |
+| 2026-01-31 | Phase 1 complete: preview-engine and validation-engine    | 7 handlers migrated, 46 new tests, all tests pass  |
 
 ---
 

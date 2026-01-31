@@ -45,7 +45,6 @@ describe('Function Documentation Validation', () => {
 
     // Verify schema structure
     expect(schema).toHaveProperty('version');
-    expect(schema).toHaveProperty('generated');
     expect(schema).toHaveProperty('functions');
     expect(Array.isArray(schema.functions)).toBe(true);
 

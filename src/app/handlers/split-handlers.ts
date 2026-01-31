@@ -4,8 +4,8 @@ import { SchemaEngine, ColumnType } from '../../core/schema-engine';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 import { StepService } from '../services/StepService';
-
-let previewDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+import { createDebouncedPreview, clearPreview, PreviewResult } from './preview-engine';
+import { validateRegexPattern } from './validation-engine';
 
 export function detectDelimiter(column: string) {
   const data = AppStore.currentData.value;
@@ -54,43 +54,29 @@ export function detectDelimiter(column: string) {
   return validDelimiters.length > 0 ? validDelimiters[0] : null;
 }
 
-export function debouncedUpdateSplitPreview() {
-  if (previewDebounceTimer) clearTimeout(previewDebounceTimer);
-  previewDebounceTimer = setTimeout(() => {
-    updateSplitPreview();
-    previewDebounceTimer = null;
-  }, 150);
-}
+// Preview engine instance for split operations
+const splitPreview = createDebouncedPreview({
+  compute: (): PreviewResult | null => {
+    const state = DialogStore.splitState;
+    const { column, delimiter, mode, maxColumns, keepOriginal, isRegex } = state;
+    const data = AppStore.currentData.value;
+    const columns = AppStore.columns.value;
+    const sources = AppStore.sources.value;
+    const models = AppStore.models.value;
 
-export function selectSplitColumn(col: string) {
-  const state = DialogStore.splitState;
-  state.column.value = col;
-  const detected = detectDelimiter(col);
-  if (detected) {
-    state.delimiter.value = detected.char;
-    state.isRegex.value = detected.isRegex;
-    state.autoDetectedDelimiter.value = detected.name;
-  } else {
-    state.autoDetectedDelimiter.value = null;
-  }
-  updateSplitPreview();
-}
+    state.error.value = null;
 
-export function updateSplitPreview() {
-  const state = DialogStore.splitState;
-  const { column, delimiter, mode, maxColumns, keepOriginal, isRegex } = state;
-  const data = AppStore.currentData.value;
-  const columns = AppStore.columns.value;
-  const sources = AppStore.sources.value;
-  const models = AppStore.models.value;
+    if (!column.value || !delimiter.value) return null;
 
-  state.error.value = null;
-  clearPreview();
+    // Validate regex if needed
+    if (isRegex.value) {
+      const validation = validateRegexPattern(delimiter.value);
+      if (!validation.valid) {
+        state.error.value = validation.error;
+        return null;
+      }
+    }
 
-  if (!column.value || !delimiter.value) return;
-
-  try {
-    if (isRegex.value) new RegExp(delimiter.value);
     const transform = {
       split: {
         column: column.value,
@@ -138,26 +124,45 @@ export function updateSplitPreview() {
       return previewRow;
     });
 
-    DialogStore.previewState.title.value = 'Split Preview';
-    DialogStore.previewState.stats.value = keepOriginal.value
-      ? `${newCols.length} new columns created`
-      : `Original column removed, ${newCols.length} new columns created`;
-    DialogStore.previewState.columns.value = previewColumns;
-    DialogStore.previewState.newColumns.value = newCols;
-    DialogStore.previewState.rows.value = previewRows;
-  } catch (error: any) {
-    state.error.value = error.message;
-    clearPreview();
-  }
+    return {
+      title: 'Split Preview',
+      stats: keepOriginal.value
+        ? `${newCols.length} new columns created`
+        : `Original column removed, ${newCols.length} new columns created`,
+      columns: previewColumns,
+      newColumns: newCols,
+      rows: previewRows,
+    };
+  },
+  onError: (error) => {
+    DialogStore.splitState.error.value = error.message;
+  },
+});
+
+export function debouncedUpdateSplitPreview() {
+  splitPreview.trigger();
 }
 
-export function clearPreview() {
-  DialogStore.previewState.title.value = '';
-  DialogStore.previewState.stats.value = '';
-  DialogStore.previewState.columns.value = [];
-  DialogStore.previewState.newColumns.value = [];
-  DialogStore.previewState.rows.value = [];
+export function selectSplitColumn(col: string) {
+  const state = DialogStore.splitState;
+  state.column.value = col;
+  const detected = detectDelimiter(col);
+  if (detected) {
+    state.delimiter.value = detected.char;
+    state.isRegex.value = detected.isRegex;
+    state.autoDetectedDelimiter.value = detected.name;
+  } else {
+    state.autoDetectedDelimiter.value = null;
+  }
+  updateSplitPreview();
 }
+
+export function updateSplitPreview() {
+  splitPreview.compute();
+}
+
+// Re-export clearPreview from preview-engine
+export { clearPreview };
 
 export async function applySplitTransform(callbacks: any) {
   const state = DialogStore.splitState;

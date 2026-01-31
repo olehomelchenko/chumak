@@ -5,49 +5,34 @@ import { applyTransform } from '../../core/transforms';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 import { StepService } from '../services/StepService';
+import { createDebouncedPreview, clearPreview, PreviewResult } from './preview-engine';
 
-let previewDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+// Preview engine instance for merge operations
+const mergePreview = createDebouncedPreview({
+  compute: (): PreviewResult | null => {
+    const state = DialogStore.mergeState;
+    const { columns, separator, columnName } = state;
+    const data = AppStore.currentData.value;
+    const allColumns = AppStore.columns.value;
 
-export function selectMergeColumns(selectedColumns: string[]) {
-  const state = DialogStore.mergeState;
-  state.columns.value = selectedColumns;
-  updateMergePreview();
-}
+    state.error.value = null;
 
-export function debouncedUpdateMergePreview() {
-  if (previewDebounceTimer) clearTimeout(previewDebounceTimer);
-  previewDebounceTimer = setTimeout(() => {
-    updateMergePreview();
-    previewDebounceTimer = null;
-  }, 150);
-}
+    if (!columns.value || columns.value.length === 0) {
+      return null;
+    }
 
-export function updateMergePreview() {
-  const state = DialogStore.mergeState;
-  const { columns, separator, columnName } = state;
-  const data = AppStore.currentData.value;
-  const allColumns = AppStore.columns.value;
+    if (!columnName.value) {
+      state.error.value = 'Please enter an output column name';
+      return null;
+    }
 
-  state.error.value = null;
-  clearPreview();
+    // Check if all selected columns exist
+    const missingColumns = columns.value.filter((col) => !allColumns.includes(col));
+    if (missingColumns.length > 0) {
+      state.error.value = `Columns not found: ${missingColumns.join(', ')}`;
+      return null;
+    }
 
-  if (!columns.value || columns.value.length === 0) {
-    return;
-  }
-
-  if (!columnName.value) {
-    state.error.value = 'Please enter an output column name';
-    return;
-  }
-
-  // Check if all selected columns exist
-  const missingColumns = columns.value.filter((col) => !allColumns.includes(col));
-  if (missingColumns.length > 0) {
-    state.error.value = `Columns not found: ${missingColumns.join(', ')}`;
-    return;
-  }
-
-  try {
     // Build the concat expression
     const expression = buildConcatExpression(columns.value, separator.value);
 
@@ -63,7 +48,7 @@ export function updateMergePreview() {
       try {
         const result = interpretAST(ast, row);
         return { ...row, [outputCol]: result };
-      } catch (err: any) {
+      } catch {
         return { ...row, [outputCol]: '(error)' };
       }
     });
@@ -71,15 +56,31 @@ export function updateMergePreview() {
     // Show selected columns + new merged column
     const previewCols = [...columns.value, outputCol];
 
-    DialogStore.previewState.title.value = `Merge: ${outputCol}`;
-    DialogStore.previewState.stats.value = `Merging ${columns.value.length} columns`;
-    DialogStore.previewState.columns.value = previewCols;
-    DialogStore.previewState.newColumns.value = [outputCol];
-    DialogStore.previewState.rows.value = previewRows;
-  } catch (error: any) {
-    state.error.value = error.message;
-    clearPreview();
-  }
+    return {
+      title: `Merge: ${outputCol}`,
+      stats: `Merging ${columns.value.length} columns`,
+      columns: previewCols,
+      newColumns: [outputCol],
+      rows: previewRows,
+    };
+  },
+  onError: (error) => {
+    DialogStore.mergeState.error.value = error.message;
+  },
+});
+
+export function selectMergeColumns(selectedColumns: string[]) {
+  const state = DialogStore.mergeState;
+  state.columns.value = selectedColumns;
+  updateMergePreview();
+}
+
+export function debouncedUpdateMergePreview() {
+  mergePreview.trigger();
+}
+
+export function updateMergePreview() {
+  mergePreview.compute();
 }
 
 function buildConcatExpression(columns: string[], separator: string): string {
@@ -120,13 +121,8 @@ function escapeColumnName(name: string): string {
   return `[${name}]`;
 }
 
-export function clearPreview() {
-  DialogStore.previewState.title.value = '';
-  DialogStore.previewState.stats.value = '';
-  DialogStore.previewState.columns.value = [];
-  DialogStore.previewState.newColumns.value = [];
-  DialogStore.previewState.rows.value = [];
-}
+// clearPreview is exported from preview-engine
+export { clearPreview };
 
 export async function applyMergeTransform(callbacks: any, app?: any) {
   const state = DialogStore.mergeState;
