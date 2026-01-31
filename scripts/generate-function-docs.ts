@@ -277,7 +277,6 @@ function generateOperatorsMarkdown(): string {
 function generateJSONSchema(functions: FunctionMetadata[]): any {
   return {
     version: '1.0.0',
-    generated: new Date().toISOString(),
     functions: functions.map((fn) => ({
       name: fn.name,
       category: fn.category,

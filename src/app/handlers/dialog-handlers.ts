@@ -114,22 +114,6 @@ export function getDialogState(this: SytoApp, dialog: string) {
         targetModel: DialogStore.appendState.targetModel.value,
         removeDuplicates: DialogStore.appendState.removeDuplicates.value,
       };
-    case 'dedupe':
-      return this.dedupeDialogState;
-    case 'column-editor':
-      return DialogStore.columnEditorState.columns.value;
-    case 'impute':
-      return {
-        column: DialogStore.imputeState.column.value,
-        strategy: DialogStore.imputeState.strategy.value,
-        value: DialogStore.imputeState.value.value,
-      };
-    case 'settings':
-      return {
-        theme: this.theme,
-        rowLimit: this.uxSettings.preview?.rowLimit || 100,
-        analyticsOptOut: this.uxSettings.analyticsOptOut ?? false,
-      };
     default:
       return null;
   }
