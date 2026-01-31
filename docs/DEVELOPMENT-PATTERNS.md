@@ -172,51 +172,105 @@ export function YourTransformDialog() {
 
 ### 1.6 Handler Functions
 
-Standard handler pattern:
+Handlers use stores directly and leverage shared utilities from `preview-engine.ts` and `validation-engine.ts`.
+
+**Using Preview Engine** (recommended for new handlers):
 
 ```typescript
 // In src/app/handlers/your-transform-handlers.ts
+import { createDebouncedPreview, clearPreview } from './preview-engine';
+import { validateExpression } from './validation-engine';
+import { DialogStore } from '../stores/DialogStore';
+import { AppStore } from '../stores/AppStore';
 
-let previewTimer: number | null = null;
+// Create debounced preview handle
+const previewHandle = createDebouncedPreview({
+  compute: () => {
+    const { param1 } = DialogStore.yourTransformState;
+    if (!param1.value.trim()) return null;
 
-export function validateInput(): boolean {
-  const { param1, error } = DialogStore.yourTransformState;
+    const transform = { yourTransform: { param1: param1.value } };
+    const result = applyTransform(
+      AppStore.currentTable.value,
+      transform,
+      AppStore.currentSchema.value
+    );
+
+    return {
+      title: 'Your Transform',
+      stats: `${result.numRows()} rows`,
+      columns: ['existingCol'],
+      newColumns: ['newCol'],
+      rows: result.objects().slice(0, 100),
+    };
+  },
+  onError: (error) => {
+    DialogStore.yourTransformState.error.value = error.message;
+  },
+});
+
+export const debouncedUpdatePreview = previewHandle.trigger;
+export const clearYourTransformPreview = previewHandle.clear;
+
+export function applyYourTransform(callbacks: ExecutionCallbacks) {
+  const { param1 } = DialogStore.yourTransformState;
 
   if (!param1.value.trim()) {
-    error.value = 'Parameter is required';
-    return false;
+    callbacks.onError('Parameter is required');
+    return;
   }
 
-  error.value = null;
-  return true;
-}
+  const transform = { yourTransform: { param1: param1.value } };
 
-export function debouncedUpdatePreview() {
-  if (previewTimer) clearTimeout(previewTimer);
-  previewTimer = window.setTimeout(() => {
-    updatePreview();
-  }, 150);
-}
-
-export function updatePreview() {
-  if (!validateInput()) return;
-
-  const transform = { yourTransform: { param1: DialogStore.yourTransformState.param1.value } };
-  const result = applyTransform(AppStore.currentTable.value, transform, AppStore.schema.value);
-
-  DialogStore.yourTransformState.previewData.value = result
-    .objects()
-    .slice(0, getPreviewRowLimit());
-}
-
-export function applyTransform() {
-  if (!validateInput()) return;
-
-  const transform = { yourTransform: { param1: DialogStore.yourTransformState.param1.value } };
-
-  StepService.runTransform('Your Transform', transform, createStandardCallbacks(), () =>
-    DialogStore.closeDialog('yourTransform')
+  StepService.runTransform('Your Transform', transform, callbacks, () =>
+    callbacks.onDialogClose?.()
   );
+}
+```
+
+**Using Validation Engine** (for expression/regex validation):
+
+```typescript
+import { validateExpression, validateRegexPattern } from './validation-engine';
+
+// Validate user expressions
+const result = validateExpression(expression, columns, {
+  errorSignal: DialogStore.filterState.error,
+});
+if (result.valid) {
+  // Use result.ast for further processing
+}
+
+// Validate regex patterns
+const regexResult = validateRegexPattern(pattern, {
+  errorSignal: DialogStore.regexpState.error,
+  flags: 'gi',
+});
+if (regexResult.valid) {
+  // Use regexResult.regex for matching
+}
+```
+
+**Callback Pattern** (for UI integration):
+
+```typescript
+// Define callback interface
+interface YourHandlerCallbacks {
+  openDialog: (name: string) => void;
+  closeDialog: () => void;
+  runTransform: (...args: unknown[]) => Promise<boolean>;
+}
+
+let callbacks: YourHandlerCallbacks | null = null;
+
+// Called by App.tsx during initialization
+export function setYourHandlerCallbacks(cb: YourHandlerCallbacks) {
+  callbacks = cb;
+}
+
+// Handlers use callbacks for UI operations
+export function handleAction() {
+  callbacks?.openDialog('yourDialog');
 }
 ```
 
@@ -307,11 +361,67 @@ useSignalEffect(() => {
 | ----------- | ------------------------------- | ---------------------------------------- |
 | Unit        | `src/core/*.test.ts`            | Core logic (transforms, parsing, schema) |
 | Integration | `src/core/integration.test.ts`  | Multi-step pipelines                     |
+| Handler     | `src/app/handlers/*.test.ts`    | Handler logic and state management       |
 | Component   | `src/app/components/*.test.tsx` | UI interaction                           |
 
-### 3.2 Core Logic Tests
+### 3.2 Handler Test Utilities
 
-Pattern for transform tests:
+Use shared utilities from `src/app/handlers/test-utils.ts`:
+
+```typescript
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
+import { resetStores, setTestData, TestData, suppressConsole } from './test-utils';
+import { AppStore } from '../stores/AppStore';
+import { DialogStore } from '../stores/DialogStore';
+
+describe('your-handlers', () => {
+  let consoleSpy: ReturnType<typeof suppressConsole>;
+
+  beforeEach(() => {
+    resetStores(); // Reset all store signals
+    setTestData(TestData.simple); // Load test data into stores
+    consoleSpy = suppressConsole(); // Suppress console.error/warn
+  });
+
+  afterEach(() => {
+    consoleSpy.errorSpy.mockRestore();
+    consoleSpy.warnSpy.mockRestore();
+  });
+
+  it('does something', () => {
+    // Your test
+  });
+});
+```
+
+**Available Test Data**:
+
+| Factory              | Description                              |
+| -------------------- | ---------------------------------------- |
+| `TestData.simple`    | Basic name/age/city data (3 rows)        |
+| `TestData.withNulls` | Data with null values for impute testing |
+| `TestData.numeric`   | Numeric columns for aggregation testing  |
+| `TestData.joinPair`  | Two related datasets for join testing    |
+
+**Preview Assertions**:
+
+```typescript
+import { expectPreviewState, expectPreviewCleared } from './test-utils';
+
+// Assert preview has specific values
+expectPreviewState({
+  title: 'Filter',
+  columns: ['name', 'age'],
+  rowCount: 2,
+});
+
+// Assert preview is cleared
+expectPreviewCleared();
+```
+
+### 3.3 Core Logic Tests
+
+Pattern for core transform tests:
 
 ```typescript
 import { describe, it, expect } from 'vitest';
@@ -348,7 +458,7 @@ describe('yourTransform', () => {
 });
 ```
 
-### 3.3 Component Tests
+### 3.4 Component Tests
 
 Pattern for dialog tests:
 
@@ -383,7 +493,7 @@ describe('YourDialog', () => {
 });
 ```
 
-### 3.4 Mocking Guidelines
+### 3.5 Mocking Guidelines
 
 When to mock:
 
@@ -466,16 +576,25 @@ Error objects:
 
 ### 5.1 Debouncing
 
-Use debouncing for expensive operations triggered by user input:
+Use the preview engine for debounced previews (see §1.6). For other operations:
 
 ```typescript
+// Using preview engine (preferred for transform previews)
+import { createDebouncedPreview } from './preview-engine';
+
+const previewHandle = createDebouncedPreview({
+  compute: () => computePreview(),
+  debounceMs: 150, // Optional, defaults to 150ms
+});
+
+// Manual debouncing (for non-preview operations)
 let timer: number | null = null;
 
-export function debouncedUpdatePreview() {
+export function debouncedAction() {
   if (timer) clearTimeout(timer);
   timer = window.setTimeout(() => {
-    updatePreview();
-  }, 150); // 150ms for typing, adjust based on operation cost
+    performAction();
+  }, 150);
 }
 ```
 

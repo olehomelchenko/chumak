@@ -188,13 +188,13 @@ All UI components are Preact/TSX with co-located CSS Modules in `src/app/compone
 
 ### 7.1 Layout Components
 
-| Component          | Purpose                                 |
-| ------------------ | --------------------------------------- |
-| `App.tsx`          | Root component, orchestrates layout     |
-| `Ribbon.tsx`       | Workflow tabs and transform actions     |
-| `Sidebar.tsx`      | Sources/models tree and import actions  |
-| `DataTable.tsx`    | Paginated data preview with type badges |
-| `ModelToolbar.tsx` | Stats, download, copy actions           |
+| Component           | Purpose                                 |
+| ------------------- | --------------------------------------- |
+| `App.tsx`           | Root component, orchestrates layout     |
+| `RibbonToolbar.tsx` | Workflow tabs and transform actions     |
+| `Sidebar.tsx`       | Sources/models tree and import actions  |
+| `DataTable.tsx`     | Paginated data preview with type badges |
+| `PaginationBar.tsx` | Stats, download, copy actions           |
 
 ### 7.2 Dialog Components
 
@@ -211,21 +211,25 @@ All UI components are Preact/TSX with co-located CSS Modules in `src/app/compone
 - `SplitDialog.tsx`, `ReplaceDialog.tsx`, `FoldDialog.tsx`
 - `RegexpMatchDialog.tsx`, `RegexpExtractDialog.tsx`
 - `TypeConversionDialog.tsx`, `DedupeDialog.tsx`, `ImputeDialog.tsx`, `SampleDialog.tsx`
+- `GenerateDialog.tsx` — Synthetic data generation
 
 **Other Dialogs**:
 
 - `ImportCsvDialog.tsx`, `ImportUrlDialog.tsx`
-- `ExportDialog.tsx`, `SettingsDialog.tsx`
-- `AboutDialog.tsx`, `ExpressionsDialog.tsx`
+- `DownloadDialog.tsx`, `SettingsDialog.tsx`
+- `FunctionReferenceDialog.tsx` — Expression function reference
 - `JsonEditorModal.tsx` — Full-screen CodeMirror editor for pipeline JSON
 
 ### 7.3 EDA Components
 
-| Component          | Purpose                               |
-| ------------------ | ------------------------------------- |
-| `EdaPanel.tsx`     | Column statistics and distribution    |
-| `ChartPreview.tsx` | Vega-Lite chart rendering             |
-| `EdaToolbar.tsx`   | Chart type and date treatment toggles |
+Located in `src/app/components/eda/`:
+
+| Component                       | Purpose                                |
+| ------------------------------- | -------------------------------------- |
+| `EdaPanel.tsx`                  | Main panel orchestrating EDA sections  |
+| `eda/EdaOverview.tsx`           | Stats summary (rows, missing, unique)  |
+| `eda/EdaNumericSection.tsx`     | Numeric column statistics and boxplots |
+| `eda/EdaCategoricalSection.tsx` | Categorical distribution charts        |
 
 ### 7.4 Pipeline Components
 
@@ -234,15 +238,41 @@ All UI components are Preact/TSX with co-located CSS Modules in `src/app/compone
 | `StepEditor.tsx`      | Individual step display                      |
 | `JsonEditorModal.tsx` | Full-featured CodeMirror editor for raw JSON |
 
-### 7.5 Shared Components
+### 7.5 Sub-Component Directories
 
-| Component           | Purpose                              |
-| ------------------- | ------------------------------------ |
-| `ColumnChips.tsx`   | Multi-select column picker           |
-| `ColumnSelector`    | Unified column selection (Grid/List) |
-| `ColumnToolbar.tsx` | Floating actions on column header    |
-| `CellToolbar.tsx`   | Floating actions on cell click       |
-| `TypeBadge.tsx`     | Column type indicator                |
+Complex dialogs are split into focused sub-components organized in directories:
+
+**Join Dialog** (`join/`):
+
+| Component                | Purpose                                 |
+| ------------------------ | --------------------------------------- |
+| `JoinTypeSelector.tsx`   | Join type selection (left, inner, etc.) |
+| `JoinKeyPairEditor.tsx`  | Key pair management for join conditions |
+| `JoinColumnSelector.tsx` | Column selection from joined tables     |
+
+**Generate Dialog** (`generate/`):
+
+| Component                   | Purpose                                   |
+| --------------------------- | ----------------------------------------- |
+| `GeneratorTypeSelector.tsx` | Generator type selection (sequence, etc.) |
+| `GeneratorConfigEditor.tsx` | Type-specific configuration editors       |
+
+**Column Selector** (`column-selector/`):
+
+| Component            | Purpose                             |
+| -------------------- | ----------------------------------- |
+| `ColumnSelector.tsx` | Unified selection (Grid/List modes) |
+| `ColumnChip.tsx`     | Individual column chip component    |
+| `ColumnRow.tsx`      | List mode row component             |
+
+### 7.6 Shared Components
+
+| Component           | Purpose                               |
+| ------------------- | ------------------------------------- |
+| `ColumnToolbar.tsx` | Floating actions on column header     |
+| `CellToolbar.tsx`   | Floating actions on cell click        |
+| `TypeIndicator.tsx` | Column type indicator with icon       |
+| `GlobalUI.tsx`      | Toast notifications and global modals |
 
 ---
 

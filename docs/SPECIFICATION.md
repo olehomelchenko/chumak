@@ -139,11 +139,15 @@ src/
 ├── core/           # Data engine (transforms, expressions, schema, storage)
 ├── app/
 │   ├── components/ # Preact UI components with co-located CSS Modules
-│   ├── stores/     # Signal-based state management
-│   ├── services/   # Business logic (import, export, persistence)
-│   ├── handlers/   # Event handlers and UI interaction logic
-│   ├── transforms/ # Transform-specific UI logic (preview, validation)
-│   └── types.ts    # Application-wide TypeScript definitions
+│   │   ├── join/           # Join dialog sub-components
+│   │   ├── generate/       # Generate dialog sub-components
+│   │   ├── eda/            # EDA panel sub-components
+│   │   └── column-selector/  # Shared column selection components
+│   ├── stores/         # Signal-based state management
+│   ├── services/       # Business logic (import, export, persistence)
+│   ├── handlers/       # Event handlers, preview engine, validation
+│   ├── orchestration/  # App lifecycle and coordination modules
+│   └── types.ts        # Application-wide TypeScript definitions
 ├── content/        # Markdown content (about, expressions help)
 styles/             # Global CSS (variables, base, layout, buttons)
 docs/               # Project documentation
@@ -182,11 +186,20 @@ docs/               # Project documentation
 - `ExportService.ts` — CSV/JSON/workflow export
 - `PersistenceService.ts` — IndexedDB coordination
 
+**Orchestration** (`orchestration/`):
+
+- `AppOrchestrator.ts` — App initialization, theme management, transformation state
+- `EventRouter.ts` — Keyboard shortcuts, paste, and click event routing
+- `UrlStateSync.ts` — URL hash synchronization for navigation state
+- `DialogCoordinator.ts` — Dialog lifecycle, snapshots, and state management
+
 **Handlers** (`handlers/`):
 
-- Transform-specific: `filter-handlers.ts`, `derive-handlers.ts`, `join-handlers.ts`, etc.
-- UI interaction: `interaction-handlers.ts`, `column-editor-handlers.ts`
-- Import/export: `import-handlers.ts`, `json-handlers.ts`
+- **Shared utilities**: `preview-engine.ts` (debounced preview), `validation-engine.ts` (expression/regex validation)
+- **Transform-specific**: `filter-handlers.ts`, `derive-handlers.ts`, `join-handlers.ts`, etc.
+- **UI interaction**: `interaction-handlers.ts`, `column-editor-handlers.ts`
+- **Import/export**: `import-handlers.ts`, `json-handlers.ts`
+- **Testing utilities**: `test-utils.ts` (shared test fixtures and helpers)
 
 **Types** (`types.ts`):
 
@@ -324,7 +337,27 @@ Tests are written in **TypeScript** using **Vitest** for native runner support a
 - **Transformation Engine**: `src/core/transforms.test.ts`
 - **Propagation**: `src/core/schema-engine.test.ts`
 - **Integration**: `src/core/integration.test.ts` (end-to-end pipelines)
-- **UI Testing**: `src/app/components/App.ux.test.tsx` (interaction tests)
+
+### 7.3 Handler Coverage
+
+Handler tests use shared utilities from `src/app/handlers/test-utils.ts`:
+
+- **Test Data Factory**: `TestData.simple`, `TestData.withNulls`, `TestData.numeric`, `TestData.joinPair`
+- **Store Management**: `resetStores()`, `setTestData()`, `createMockApp()`
+- **Preview Assertions**: `expectPreviewState()`, `expectPreviewCleared()`
+
+Key handler test files:
+
+- `aggregate-handlers.test.ts` — Groupby, rollup, aggregation operations
+- `import-handlers.test.ts` — File import, path resolution, header detection
+- `join-handlers.test.ts` — Key pair management, join type selection
+- `step-handlers.test.ts` — Pipeline orchestration, step editing
+- `column-editor-handlers.test.ts` — Column operations, drag/drop, patterns
+
+### 7.4 UI Testing
+
+- **Interaction Tests**: `src/app/components/App.ux.test.tsx`
+- **Component Tests**: Co-located `*.test.tsx` files for individual components
 
 ---
 
