@@ -21,7 +21,19 @@ export function cancelJsonEdit(this: SytoApp) {
   this.jsonEditError = null;
 }
 
-export async function applyJsonChanges(this: SytoApp) {
+export function validateJsonEdit(this: SytoApp) {
+  try {
+    const parsed = JSON.parse(this.jsonEditContent);
+    if (!Array.isArray(parsed.transforms)) {
+      throw new Error('JSON must contain a "transforms" array');
+    }
+    this.jsonEditError = null;
+  } catch (error: any) {
+    this.jsonEditError = error.message;
+  }
+}
+
+export async function applyJsonEdit(this: SytoApp) {
   if (!this.activeModel) return;
 
   try {
@@ -32,7 +44,25 @@ export async function applyJsonChanges(this: SytoApp) {
 
     this.activeModel.steps = parsed.transforms;
     this.activeStepIndex = this.activeModel.steps.length - 1;
-    await this.computeModelUpToStep(this.activeModel, this.activeStepIndex);
+    const result = await this.computeModelUpToStep(this.activeModel, this.activeStepIndex);
+
+    // 1. Update the Model structure (for persistence)
+    const { convertDatesForStorage } = await import('../../core/storage');
+    this.activeModel.data = JSON.parse(JSON.stringify(convertDatesForStorage(result.data)));
+    this.activeModel.schema = result.schema;
+
+    // 2. Update UI Signals (for rendering)
+    this.currentData = result.data;
+    this.columns = result.columns;
+    this.viewingSchema = result.schema;
+    this.viewingIntermediate = false;
+    this.updatePagination();
+
+    // 3. Trigger Side Effects (Persistence & Dependencies)
+    const { PersistenceService } = await import('../services/PersistenceService');
+    const { StepService } = await import('../services/StepService');
+    await StepService.handleDependencyImpact(this.activeModel.id);
+    await PersistenceService.autoSave();
 
     this.jsonEditMode = false;
     this.jsonEditError = null;

@@ -1285,8 +1285,11 @@ export class SytoApp implements AppState {
   cancelJsonEdit() {
     return JsonHandlers.cancelJsonEdit.call(this);
   }
-  async applyJsonChanges() {
-    return JsonHandlers.applyJsonChanges.call(this);
+  async applyJsonEdit() {
+    return JsonHandlers.applyJsonEdit.call(this);
+  }
+  validateJsonEdit() {
+    return JsonHandlers.validateJsonEdit.call(this);
   }
 
   constructor() {

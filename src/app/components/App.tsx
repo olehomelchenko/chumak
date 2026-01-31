@@ -97,7 +97,7 @@ export function App({ app }: AppProps) {
     onEditStep: (i: number) => app.editStep(i),
     onRemoveStep: (i: number) => app.removeStep(i),
     onViewFinalResult: () => app.viewFinalResult(),
-    onGetStepsJson: () => JSON.stringify(app.activeModel?.steps, null, 2),
+    onGetStepsJson: () => app.getStepsJson(),
     onEnterJsonEditMode: () => app.enterJsonEditMode(),
     onCancelJsonEdit: () => app.cancelJsonEdit(),
     onApplyJsonEdit: () => app.applyJsonEdit(),
