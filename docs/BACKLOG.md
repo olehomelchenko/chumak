@@ -124,11 +124,23 @@ See [DATE-STORAGE-ARCHITECTURE.md](DATE-STORAGE-ARCHITECTURE.md) for detailed an
 **Status**: Ongoing
 **Effort**: Investigation
 
-Current soft limit is ~100K rows based on browser memory. Recent Preact migration improved rendering performance. Need systematic testing to determine:
+Current soft limit is ~100K rows based on browser memory. Need systematic testing to determine:
 
 - Comfortable limit on various machines
 - Where bottlenecks occur (parsing, transforms, rendering)
-- Whether web workers could help for heavy transforms
+
+#### Web Workers for Heavy Transforms
+
+**Status**: Deferred (investigation needed)
+**Effort**: Medium
+
+Investigate whether Arquero transforms can run in web workers to keep UI responsive during heavy operations. Questions to answer:
+
+- Can Arquero tables be transferred to workers efficiently (structured clone vs transferable)?
+- Which transforms would benefit most (join, aggregate, large filter operations)?
+- What's the serialization overhead vs transform time tradeoff?
+
+This would require a proof-of-concept with benchmarks before committing to implementation.
 
 ---
 
@@ -245,7 +257,14 @@ Completed features are documented here for posterity:
 - **Replace Data & Restore Backup** — January 2026. Updated the non-destructive pillar by allowing sources to be refreshed with new data while maintaining a one-level snapshot backup for undo/redo functionality. Includes schema diff analysis in the import dialog with danger-state warnings for missing columns.
 - **Keyboard shortcuts (partial)** — January 2026. `Ctrl/Cmd+S` to save workflow, `Delete` to remove last step, arrow keys to navigate steps. Escape handling for dialogs/modals.
 - **Advanced JSON Editor with Linting** — January 2026. Replaced the basic sidebar JSON view with a full-featured CodeMirror-based editor modal. Added real-time linting for JSON syntax, transform keys, and expression validation to catch errors before application.
+- **App Layer Refactoring** — January 2026. Major architectural refactoring of `src/app/` layer:
+  - Created orchestration modules (`AppOrchestrator`, `EventRouter`, `UrlStateSync`, `DialogCoordinator`) for clear separation of concerns
+  - Extracted shared `preview-engine.ts` and `validation-engine.ts` to eliminate ~2,000 LoC of duplication
+  - Migrated handlers to store-based pattern (no `this` context), enabling testability
+  - Split oversized components into focused sub-components (`join/`, `generate/`, `eda/`)
+  - Reduced `syto-app.ts` from 1,579 to 1,200 LoC by removing proxy pattern
+  - Added 166 handler tests, improving coverage from 16% to 38%
 
 ---
 
-**Last updated**: January 2026
+**Last updated**: February 2026
