@@ -23,34 +23,9 @@ export function setEdaCallbacks(cb: EdaCallbacks): void {
 }
 
 /**
- * Legacy SytoApp interface for backward compatibility
- */
-interface LegacyApp {
-  updateToolbarPosition: () => void;
-  applyFilterTransform: () => Promise<void>;
-  clearColumnSelection: () => void;
-}
-
-/**
- * Get callbacks - either from stored callbacks or from legacy app instance
- */
-function getCallbacks(legacyApp?: LegacyApp): EdaCallbacks | null {
-  if (legacyApp) {
-    return {
-      updateToolbarPosition: () => legacyApp.updateToolbarPosition(),
-      applyFilterTransform: () => legacyApp.applyFilterTransform(),
-      clearColumnSelection: () => legacyApp.clearColumnSelection(),
-    };
-  }
-  return callbacks;
-}
-
-/**
  * Select a column for EDA analysis
  */
-export function selectColumn(this: LegacyApp | void, col: string): void {
-  const cb = getCallbacks(this as LegacyApp | undefined);
-
+export function selectColumn(col: string): void {
   AppStore.selectedCell.value = null;
   AppStore.typeMenuOpen.value = false;
 
@@ -61,7 +36,7 @@ export function selectColumn(this: LegacyApp | void, col: string): void {
   }
 
   AppStore.selectedColumn.value = col;
-  requestAnimationFrame(() => cb?.updateToolbarPosition());
+  requestAnimationFrame(() => callbacks?.updateToolbarPosition());
 
   const currentData = AppStore.currentData.value;
   const selectedColumn = AppStore.selectedColumn.value;
@@ -220,8 +195,7 @@ export function handleBrushSelection(selection: any): void {
 /**
  * Apply a filter based on current brush selection
  */
-export async function applyBrushFilter(this: LegacyApp | void): Promise<void> {
-  const cb = getCallbacks(this as LegacyApp | undefined);
+export async function applyBrushFilter(): Promise<void> {
   const edaBrushSelection = AppStore.edaBrushSelection.value;
   const selectedColumn = AppStore.selectedColumn.value;
 
@@ -235,6 +209,6 @@ export async function applyBrushFilter(this: LegacyApp | void): Promise<void> {
   DialogStore.filterState.expression.value = expr;
   DialogStore.filterState.error.value = null;
 
-  await cb?.applyFilterTransform();
-  cb?.clearColumnSelection();
+  await callbacks?.applyFilterTransform();
+  callbacks?.clearColumnSelection();
 }

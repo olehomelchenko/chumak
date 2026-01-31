@@ -21,13 +21,19 @@ import * as SpreadHandlers from './app/handlers/spread-handlers';
 import * as UnrollHandlers from './app/handlers/unroll-handlers';
 import * as KeyboardHandlers from './app/handlers/keyboard-handlers';
 import * as StepHandlers from './app/handlers/step-handlers';
+import { setStepCallbacks } from './app/handlers/step-handlers';
 import * as DialogHandlers from './app/handlers/dialog-handlers';
+import { setDialogHandlerCallbacks } from './app/handlers/dialog-handlers';
 import * as NotificationHandlers from './app/handlers/notification-handlers';
 import * as EDAHandlers from './app/handlers/eda-handlers';
+import { setEdaCallbacks } from './app/handlers/eda-handlers';
 import * as InteractionHandlers from './app/handlers/interaction-handlers';
 import * as PaginationHandlers from './app/handlers/pagination-handlers';
 import * as HelperHandlers from './app/handlers/helper-handlers';
+import { setTransformCallbacks } from './app/handlers/helper-handlers';
 import * as JsonHandlers from './app/handlers/json-handlers';
+import { setJsonEditCallbacks } from './app/handlers/json-handlers';
+import { setImportCallbacks } from './app/handlers/import-handlers';
 import { SchemaEngine, ColumnSchema } from './core/schema-engine';
 import { AppStore, ViewMode } from './app/stores/AppStore';
 import { DialogStore } from './app/stores/DialogStore';
@@ -737,18 +743,18 @@ export class SytoApp implements AppState {
     );
   }
 
-  // Import handlers
+  // Import handlers (now use stores directly, no 'this' context needed)
   handleFileSelect(event: Event) {
-    return ImportHandlers.handleFileSelect.call(this, event);
+    return ImportHandlers.handleFileSelect(event);
   }
   handleFileDrop(event: DragEvent) {
-    return ImportHandlers.handleFileDrop.call(this, event);
+    return ImportHandlers.handleFileDrop(event);
   }
   handlePaste(event: ClipboardEvent) {
-    return ImportHandlers.handlePaste.call(this, event);
+    return ImportHandlers.handlePaste(event);
   }
   promptPaste() {
-    return ImportHandlers.promptPaste.call(this);
+    return ImportHandlers.promptPaste();
   }
   handleUploadClick() {
     const fileInput = document.getElementById('file-input') as HTMLInputElement;
@@ -760,46 +766,46 @@ export class SytoApp implements AppState {
     return this.promptPaste();
   }
   showImportDialog(file: File) {
-    return ImportHandlers.showImportDialog.call(this, file);
+    return ImportHandlers.showImportDialog(file);
   }
   handleJsonPreview(file: File, data: any, path = '') {
-    return ImportHandlers.handleJsonPreview.call(this, file, data, path);
+    return ImportHandlers.handleJsonPreview(file, data, path);
   }
   updateJsonPath() {
-    return ImportHandlers.updateJsonPath.call(this);
+    return ImportHandlers.updateJsonPath();
   }
   resolvePath(obj: any, path: string) {
-    return ImportHandlers.resolvePath.call(this, obj, path);
+    return ImportHandlers.resolvePath(obj, path);
   }
   getSuggestedKeys(obj: any) {
-    return ImportHandlers.getSuggestedKeys.call(this, obj);
+    return ImportHandlers.getSuggestedKeys(obj);
   }
   selectJsonPathSegment(segment: string) {
-    return ImportHandlers.selectJsonPathSegment.call(this, segment);
+    return ImportHandlers.selectJsonPathSegment(segment);
   }
   resetJsonPath() {
-    return ImportHandlers.resetJsonPath.call(this);
+    return ImportHandlers.resetJsonPath();
   }
   flattenData(data: any[]) {
-    return ImportHandlers.flattenData.call(this, data);
+    return ImportHandlers.flattenData(data);
   }
   serializeNestedData(data: any[]) {
-    return ImportHandlers.serializeNestedData.call(this, data);
+    return ImportHandlers.serializeNestedData(data);
   }
   handleCsvPreview(file: File) {
-    return ImportHandlers.handleCsvPreview.call(this, file);
+    return ImportHandlers.handleCsvPreview(file);
   }
   showImportUrlDialog() {
-    return ImportHandlers.showImportUrlDialog.call(this);
+    return ImportHandlers.showImportUrlDialog();
   }
   fetchAndImportFromUrl() {
-    return ImportHandlers.fetchAndImportFromUrl.call(this);
+    return ImportHandlers.fetchAndImportFromUrl();
   }
   confirmImport() {
-    return ImportHandlers.confirmImport.call(this);
+    return ImportHandlers.confirmImport();
   }
   showReplaceSourceDialog(source: Source) {
-    return ImportHandlers.showReplaceSourceDialog.call(this, source);
+    return ImportHandlers.showReplaceSourceDialog(source);
   }
   async restoreSourceBackup(source: Source) {
     const { ReplaceSourceService } = await import('./app/services/ReplaceSourceService');
@@ -810,12 +816,7 @@ export class SytoApp implements AppState {
     previewColumns: string[],
     previewData: any[][]
   ) {
-    return ImportHandlers.computeSchemaDiffForPreview.call(
-      this,
-      oldSchema,
-      previewColumns,
-      previewData
-    );
+    return ImportHandlers.computeSchemaDiffForPreview(oldSchema, previewColumns, previewData);
   }
   generateData() {
     return GenerateHandlers.generateData.call(this);
@@ -847,13 +848,13 @@ export class SytoApp implements AppState {
     );
   }
   updateImportPreview() {
-    return ImportHandlers.updateImportPreview.call(this);
+    return ImportHandlers.updateImportPreview();
   }
   updateHeadersForPreview() {
-    return ImportHandlers.updateHeadersForPreview.call(this);
+    return ImportHandlers.updateHeadersForPreview();
   }
   resolveDuplicateHeaders(headers: string[]) {
-    return ImportHandlers.resolveDuplicateHeaders.call(this, headers);
+    return ImportHandlers.resolveDuplicateHeaders(headers);
   }
 
   // Model & Source handlers
@@ -868,21 +869,22 @@ export class SytoApp implements AppState {
       model,
       () => this.clearColumnSelection(),
       () => this.updatePagination(),
-      this.ribbonTab,
+      AppStore.ribbonTab.value,
       (tab) => {
-        this.ribbonTab = tab;
+        AppStore.ribbonTab.value = tab;
       }
     );
     // Update URL when switching to a model
     setUrlState({ sourceId: model.sourceId, modelId: model.id });
   }
   showModelInfo() {
-    if (!this.activeModel) return;
-    ModelService.showModelInfo(this.activeModel, () => this.clearColumnSelection());
+    const activeModel = AppStore.activeModel.value;
+    if (!activeModel) return;
+    ModelService.showModelInfo(activeModel, () => this.clearColumnSelection());
     // Update URL when showing model info
     setUrlState({
-      sourceId: this.activeModel.sourceId,
-      modelId: this.activeModel.id,
+      sourceId: activeModel.sourceId,
+      modelId: activeModel.id,
       section: 'info',
     });
   }
@@ -900,7 +902,9 @@ export class SytoApp implements AppState {
     );
   }
   createNewModelFromActive() {
-    const source = this.sources.find((s) => s.id === this.activeModel?.sourceId);
+    const sources = AppStore.sources.value;
+    const activeModel = AppStore.activeModel.value;
+    const source = sources.find((s) => s.id === activeModel?.sourceId);
     if (!source) {
       this.alert('Source not found for current model');
       return;
@@ -944,121 +948,121 @@ export class SytoApp implements AppState {
     );
   }
 
-  // Step handlers
+  // Step handlers (now use stores directly, no 'this' context needed)
   async applyActiveTransform() {
-    return StepHandlers.applyActiveTransform.call(this);
+    return StepHandlers.applyActiveTransform();
   }
   computeModelUpToStep(model: Model, stepIndex: number) {
-    return StepHandlers.computeModelUpToStep.call(this, model, stepIndex);
+    return StepHandlers.computeModelUpToStep(model, stepIndex);
   }
   computeUpToStep(stepIndex: number) {
-    return StepHandlers.computeUpToStep.call(this, stepIndex);
+    return StepHandlers.computeUpToStep(stepIndex);
   }
   viewStep(stepIndex: number) {
-    return StepHandlers.viewStep.call(this, stepIndex);
+    return StepHandlers.viewStep(stepIndex);
   }
   viewFinalResult() {
-    return StepHandlers.viewFinalResult.call(this);
+    return StepHandlers.viewFinalResult();
   }
   editStep(stepIndex: number) {
-    return StepHandlers.editStep.call(this, stepIndex);
+    return StepHandlers.editStep(stepIndex);
   }
   cancelEdit() {
-    return StepHandlers.cancelEdit.call(this);
+    return StepHandlers.cancelEdit();
   }
   removeStep(stepIndex: number) {
-    return StepHandlers.removeStep.call(this, stepIndex);
+    return StepHandlers.removeStep(stepIndex);
   }
   showStepRemovalModal(stepIndex: number) {
-    return StepHandlers.showStepRemovalModal.call(this, stepIndex);
+    return StepHandlers.showStepRemovalModal(stepIndex);
   }
   closeStepRemovalModal(confirmed: boolean) {
-    return StepHandlers.closeStepRemovalModal.call(this, confirmed);
+    return StepHandlers.closeStepRemovalModal(confirmed);
   }
   executeStepRemoval(stepIndex: number, mode: 'single' | 'all') {
-    return StepHandlers.executeStepRemoval.call(this, stepIndex, mode);
+    return StepHandlers.executeStepRemoval(stepIndex, mode);
   }
   updateStep(stepIndex: number, newTransform: any) {
-    return StepHandlers.updateStep.call(this, stepIndex, newTransform);
+    return StepHandlers.updateStep(stepIndex, newTransform);
   }
 
-  // Dialog handlers
+  // Dialog handlers (now use stores directly, no 'this' context needed)
   getDialogState(dialog: string) {
-    return DialogHandlers.getDialogState.call(this, dialog);
+    return DialogHandlers.getDialogState(dialog);
   }
   reSnapshot() {
-    return DialogHandlers.reSnapshot.call(this);
+    return DialogHandlers.reSnapshot();
   }
   openDialog(dialogName: string, section?: string) {
-    return DialogHandlers.openDialog.call(this, dialogName, section);
+    return DialogHandlers.openDialog(dialogName, section);
   }
   handleHashChange() {
-    return DialogHandlers.handleHashChange.call(this);
+    return DialogHandlers.handleHashChange();
   }
   initDialogState(dialogName: string, section?: string) {
-    return DialogHandlers.initDialogState.call(this, dialogName, section);
+    return DialogHandlers.initDialogState(dialogName, section);
   }
   isSlidePanel(dialog: string | null) {
-    return DialogHandlers.isSlidePanel.call(this, dialog);
+    return DialogHandlers.isSlidePanel(dialog);
   }
   isCenteredModal(dialog: string | null) {
-    return DialogHandlers.isCenteredModal.call(this, dialog);
+    return DialogHandlers.isCenteredModal(dialog);
   }
   getAboutContent() {
-    return DialogHandlers.getAboutContent.call(this);
+    return DialogHandlers.getAboutContent();
   }
   getDialogTitle() {
-    return DialogHandlers.getDialogTitle.call(this);
+    return DialogHandlers.getDialogTitle();
   }
   getDialogButtonText() {
-    return DialogHandlers.getDialogButtonText.call(this);
+    return DialogHandlers.getDialogButtonText();
   }
   hasPreviewData() {
-    return DialogHandlers.hasPreviewData.call(this);
+    return DialogHandlers.hasPreviewData();
   }
   getPreviewTitle() {
-    return DialogHandlers.getPreviewTitle.call(this);
+    return DialogHandlers.getPreviewTitle();
   }
   getPreviewStats() {
-    return DialogHandlers.getPreviewStats.call(this);
+    return DialogHandlers.getPreviewStats();
   }
   getPreviewColumns() {
-    return DialogHandlers.getPreviewColumns.call(this);
+    return DialogHandlers.getPreviewColumns();
   }
   getPreviewRows() {
-    return DialogHandlers.getPreviewRows.call(this);
+    return DialogHandlers.getPreviewRows();
   }
   formatPreviewCell(row: any, col: string) {
-    return DialogHandlers.formatPreviewCell.call(this, row, col);
+    return DialogHandlers.formatPreviewCell(row, col);
   }
   clearPreview() {
-    return DialogHandlers.clearPreview.call(this);
+    return DialogHandlers.clearPreview();
   }
   isNewPreviewColumn(col: string) {
-    return DialogHandlers.isNewPreviewColumn.call(this, col);
+    return DialogHandlers.isNewPreviewColumn(col);
   }
   activeDialogError() {
-    return DialogHandlers.activeDialogError.call(this);
+    return DialogHandlers.activeDialogError();
   }
   hasUnsavedChanges() {
-    return DialogHandlers.hasUnsavedChanges.call(this);
+    return DialogHandlers.hasUnsavedChanges();
   }
   closeDialog(force = false) {
-    return DialogHandlers.closeDialog.call(this, force);
+    return DialogHandlers.closeDialog(force);
   }
   resetDialogStates() {
-    return DialogHandlers.resetDialogStates.call(this);
+    return DialogHandlers.resetDialogStates();
   }
 
-  // Notification handlers
+  // Notification handlers (now use stores directly, no 'this' context needed)
   showError(title: string, message: string, options: any = {}) {
-    return NotificationHandlers.showError.call(this, title, message, options);
+    return NotificationHandlers.showError(title, message, options);
   }
   showWarning(title: string, message: string, options: any = {}) {
-    return NotificationHandlers.showWarning.call(this, title, message, options);
+    return NotificationHandlers.showWarning(title, message, options);
   }
   showSuccess(message: string, options: any = {}) {
-    return NotificationHandlers.showSuccess.call(this, message, options);
+    return NotificationHandlers.showSuccess(message, options);
   }
   _addNotification(
     type: string,
@@ -1067,55 +1071,48 @@ export class SytoApp implements AppState {
     stepInfo: string | null,
     duration: number
   ) {
-    return NotificationHandlers._addNotification.call(
-      this,
-      type,
-      title,
-      message,
-      stepInfo,
-      duration
-    );
+    return NotificationHandlers._addNotification(type, title, message, stepInfo, duration);
   }
   dismissNotification(id: number) {
-    return NotificationHandlers.dismissNotification.call(this, id);
+    return NotificationHandlers.dismissNotification(id);
   }
   getNotificationIcon(type: string) {
-    return NotificationHandlers.getNotificationIcon.call(this, type);
+    return NotificationHandlers.getNotificationIcon(type);
   }
   alert(message: string, title = 'Alert') {
-    return NotificationHandlers.alert.call(this, message, title);
+    return NotificationHandlers.alert(message, title);
   }
   confirm(message: string, title = 'Confirm') {
-    return NotificationHandlers.confirm.call(this, message, title);
+    return NotificationHandlers.confirm(message, title);
   }
   prompt(message: string, defaultValue = '', title = 'Prompt') {
-    return NotificationHandlers.prompt.call(this, message, defaultValue, title);
+    return NotificationHandlers.prompt(message, defaultValue, title);
   }
   closeMessageBox(result: boolean) {
-    return NotificationHandlers.closeMessageBox.call(this, result);
+    return NotificationHandlers.closeMessageBox(result);
   }
   getMessageBoxIcon() {
-    return NotificationHandlers.getMessageBoxIcon.call(this);
+    return NotificationHandlers.getMessageBoxIcon();
   }
 
-  // EDA & Chart handlers
+  // EDA & Chart handlers (now use stores directly, no 'this' context needed)
   selectColumn(col: string) {
-    return EDAHandlers.selectColumn.call(this, col);
+    return EDAHandlers.selectColumn(col);
   }
   selectEdaStat(label: string, rawValue: any, event: any) {
-    return EDAHandlers.selectEdaStat.call(this, label, rawValue, event);
+    return EDAHandlers.selectEdaStat(label, rawValue, event);
   }
   setEdaChartView(view: 'boxplot' | 'histogram') {
-    return EDAHandlers.setEdaChartView.call(this, view);
+    return EDAHandlers.setEdaChartView(view);
   }
   setEdaDateTreatment(treatment: 'temporal' | 'categorical') {
-    return EDAHandlers.setEdaDateTreatment.call(this, treatment);
+    return EDAHandlers.setEdaDateTreatment(treatment);
   }
   handleBrushSelection(selection: any) {
-    return EDAHandlers.handleBrushSelection.call(this, selection);
+    return EDAHandlers.handleBrushSelection(selection);
   }
   applyBrushFilter() {
-    return EDAHandlers.applyBrushFilter.call(this);
+    return EDAHandlers.applyBrushFilter();
   }
   handleBodyClick(event: any) {
     return InteractionHandlers.handleBodyClick(event);
@@ -1225,71 +1222,71 @@ export class SytoApp implements AppState {
     return PaginationHandlers.updatePageSize(newSize);
   }
 
-  // Helper handlers
+  // Helper handlers (now use stores directly, no 'this' context needed)
   getModelMeta(model: any) {
-    return HelperHandlers.getModelMeta.call(this, model);
+    return HelperHandlers.getModelMeta(model);
   }
   describeTransform(transform: any) {
-    return HelperHandlers.describeTransformWrapper.call(this, transform);
+    return HelperHandlers.describeTransformWrapper(transform);
   }
   async applyStepResult(transform: any, resultTable: any, closeDialogAfter = true) {
-    return HelperHandlers.applyStepResult.call(this, transform, resultTable, closeDialogAfter);
+    return HelperHandlers.applyStepResult(transform, resultTable, closeDialogAfter);
   }
   async runTransform(label: string, transform: any, closeDialog = true) {
-    return HelperHandlers.runTransform.call(this, label, transform, closeDialog);
+    return HelperHandlers.runTransform(label, transform, closeDialog);
   }
   validateExpression(expr: string) {
-    return HelperHandlers.validateExpression.call(this, expr);
+    return HelperHandlers.validateExpression(expr);
   }
   getColumnType(colName: string) {
-    return HelperHandlers.getColumnType.call(this, colName);
+    return HelperHandlers.getColumnType(colName);
   }
   isComparable(type?: string) {
-    return HelperHandlers.isComparable.call(this, type);
+    return HelperHandlers.isComparable(type);
   }
   isDateType(type?: string) {
-    return HelperHandlers.isDateType.call(this, type);
+    return HelperHandlers.isDateType(type);
   }
   getTypeIcon(colName: string) {
-    return HelperHandlers.getTypeIcon.call(this, colName);
+    return HelperHandlers.getTypeIcon(colName);
   }
   formatCellValue(value: any) {
-    return HelperHandlers.formatCellValue.call(this, value);
+    return HelperHandlers.formatCellValue(value);
   }
   getTypeIndicator(colName: string) {
-    return HelperHandlers.getTypeIndicator.call(this, colName);
+    return HelperHandlers.getTypeIndicator(colName);
   }
   quoteColumnRef(colName: string) {
-    return HelperHandlers.quoteColumnRef.call(this, colName);
+    return HelperHandlers.quoteColumnRef(colName);
   }
   escapePattern(pattern: string) {
-    return HelperHandlers.escapePattern.call(this, pattern);
+    return HelperHandlers.escapePattern(pattern);
   }
   formatLiteral(value: any, type?: string) {
-    return HelperHandlers.formatLiteral.call(this, value, type);
+    return HelperHandlers.formatLiteral(value, type);
   }
   preparePreviewData(table: any, limit = 100) {
-    return HelperHandlers.preparePreviewData.call(this, table, limit);
+    return HelperHandlers.preparePreviewData(table, limit);
   }
   getActiveSchema() {
-    return HelperHandlers.getActiveSchema.call(this);
+    return HelperHandlers.getActiveSchema();
   }
 
-  // JSON handlers
+  // JSON handlers (now use stores directly, no 'this' context needed)
   getStepsJson() {
-    return JsonHandlers.getStepsJson.call(this);
+    return JsonHandlers.getStepsJson();
   }
   enterJsonEditMode() {
-    return JsonHandlers.enterJsonEditMode.call(this);
+    return JsonHandlers.enterJsonEditMode();
   }
   cancelJsonEdit() {
-    return JsonHandlers.cancelJsonEdit.call(this);
+    return JsonHandlers.cancelJsonEdit();
   }
   async applyJsonEdit() {
-    return JsonHandlers.applyJsonEdit.call(this);
+    return JsonHandlers.applyJsonEdit();
   }
   validateJsonEdit() {
-    return JsonHandlers.validateJsonEdit.call(this);
+    return JsonHandlers.validateJsonEdit();
   }
 
   constructor() {
@@ -1299,14 +1296,99 @@ export class SytoApp implements AppState {
   async init() {
     console.log('Initializing Syto App...');
 
-    this.uxSettings = loadUXSettings();
-    this.pageSize = this.uxSettings.pagination.pageSize;
-    this.theme = this.uxSettings.theme;
+    // Set up dialog handler callbacks
+    setDialogHandlerCallbacks({
+      confirm: (msg) => this.confirm(msg),
+      clearColumnSelection: () => this.clearColumnSelection(),
+      openDialog: (dialog, section) => this.openDialog(dialog, section),
+      switchToModel: (model) => this.switchToModel(model),
+      switchToSource: (source) => this.switchToSource(source),
+      showModelInfo: () => this.showModelInfo(),
+      showDatasetInfo: (source) => this.showDatasetInfo(source),
+      initializeJoinDialog: () => this.initializeJoinDialog(),
+      initializeAppendDialog: () => this.initializeAppendDialog(),
+      initializePivotDialog: () => this.initializePivotDialog(),
+      detectDelimiter: (col) => this.detectDelimiter(col),
+      debouncedUpdateSplitPreview: () => this.debouncedUpdateSplitPreview(),
+      updateDedupePreview: () => this.updateDedupePreview(),
+      updateImputePreview: () => SimpleHandlers.updateImputePreview(),
+    });
+
+    // Set up step handler callbacks
+    setStepCallbacks({
+      updatePagination: () => this.updatePagination(),
+      openDialog: (name, section) => this.openDialog(name, section),
+      closeDialog: (force) => this.closeDialog(force),
+      onJoinTargetChange: () => this.onJoinTargetChange(),
+      onAppendTargetChange: () => this.onAppendTargetChange(),
+      onPivotConfigChange: () => this.onPivotConfigChange(),
+      updateSplitPreview: () => this.updateSplitPreview(),
+      updateDedupePreview: () => this.updateDedupePreview(),
+      applyFilterTransform: () => this.applyFilterTransform(),
+      applySortTransform: () => this.applySortTransform(),
+      applySliceRowsTransform: () => this.applySliceRowsTransform(),
+      applySampleTransform: () => this.applySampleTransform(),
+      applySpreadTransform: () => this.applySpreadTransform(),
+      applyUnrollTransform: () => this.applyUnrollTransform(),
+      applyIndexTransform: () => this.applyIndexTransform(),
+      applySplitTransform: () => this.applySplitTransform(),
+      applyMergeTransform: () => this.applyMergeTransform(),
+      applyDeriveTransform: () => this.applyDeriveTransform(),
+      applyRegexpMatchTransform: () => this.applyRegexpMatchTransform(),
+      applyRegexpExtractTransform: () => this.applyRegexpExtractTransform(),
+      applyFoldTransform: () => this.applyFoldTransform(),
+      applyPivotTransform: () => this.applyPivotTransform(),
+      applyAggregateTransform: () => this.applyAggregateTransform(),
+      applyJoinTransform: () => this.applyJoinTransform(),
+      applyAppendTransform: () => this.applyAppendTransform(),
+      applyReplaceTransform: () => this.applyReplaceTransform(),
+      applyDedupeTransform: () => this.applyDedupeTransform(),
+      applyImputeTransform: () => this.applyImputeTransform(),
+      confirmImport: () => this.confirmImport(),
+      fetchAndImportFromUrl: () => this.fetchAndImportFromUrl(),
+      generateData: () => this.generateData(),
+      runTransform: (name, config, close) => this.runTransform(name, config, close),
+    });
+
+    // Set up EDA handler callbacks
+    setEdaCallbacks({
+      updateToolbarPosition: () => this.updateToolbarPosition(),
+      applyFilterTransform: () => this.applyFilterTransform(),
+      clearColumnSelection: () => this.clearColumnSelection(),
+    });
+
+    // Set up transform callbacks (for helper-handlers)
+    setTransformCallbacks({
+      startTransformation: (label) => this.startTransformation(label),
+      endTransformation: () => this.endTransformation(),
+      alert: (msg) => this.alert(msg),
+      closeDialog: (clearPreview) => this.closeDialog(clearPreview),
+      updatePagination: () => this.updatePagination(),
+    });
+
+    // Set up JSON edit callbacks
+    setJsonEditCallbacks({
+      computeModelUpToStep: (model, stepIndex) => this.computeModelUpToStep(model, stepIndex),
+      updatePagination: () => this.updatePagination(),
+    });
+
+    // Set up import callbacks
+    setImportCallbacks({
+      openDialog: (name, section) => this.openDialog(name, section),
+      closeDialog: (force) => this.closeDialog(force),
+      createSource: (file, name, columns, data, headerMode, delimiter, customHeaders, format) =>
+        this.createSource(file, name, columns, data, headerMode, delimiter, customHeaders, format),
+    });
+
+    const uxSettings = loadUXSettings();
+    AppStore.uxSettings.value = uxSettings;
+    AppStore.pageSize.value = uxSettings.pagination.pageSize;
+    AppStore.theme.value = uxSettings.theme;
     this.applyTheme();
 
     const { sources, models } = await loadInitialData();
-    this.sources = sources;
-    this.models = models;
+    AppStore.sources.value = sources;
+    AppStore.models.value = models;
 
     const urlState = getUrlState();
     let restored = false;
@@ -1326,9 +1408,9 @@ export class SytoApp implements AppState {
           setUrlState({ sourceId: model.sourceId, modelId: model.id, section: 'info' });
         } else {
           // Show model view
-          this.activeModel = model;
-          this.currentData = model.data;
-          this.viewMode = 'model';
+          AppStore.activeModel.value = model;
+          AppStore.currentData.value = model.data;
+          AppStore.viewMode.value = 'model';
           setUrlState({ sourceId: model.sourceId, modelId: model.id });
         }
         restored = true;
@@ -1342,9 +1424,9 @@ export class SytoApp implements AppState {
           setUrlState({ sourceId: source.id, section: 'info' });
         } else {
           // Show dataset info view (default for source)
-          this.activeSource = source;
-          this.currentData = source.data;
-          this.viewMode = 'dataset-info';
+          AppStore.activeSource.value = source;
+          AppStore.currentData.value = source.data;
+          AppStore.viewMode.value = 'dataset-info';
           setUrlState({ sourceId: source.id });
         }
         restored = true;
@@ -1355,31 +1437,34 @@ export class SytoApp implements AppState {
     window.addEventListener('hashchange', () => this.handleHashChange());
 
     if (!restored && models.length > 0) {
-      this.activeModel = models[0];
-      this.currentData = models[0].data;
-      this.viewMode = 'model';
+      AppStore.activeModel.value = models[0];
+      AppStore.currentData.value = models[0].data;
+      AppStore.viewMode.value = 'model';
       // Set URL for default model
       setUrlState({ sourceId: models[0].sourceId, modelId: models[0].id });
     }
 
-    if (this.activeModel) {
-      this.activeStepIndex =
-        this.activeModel.steps?.length > 0 ? this.activeModel.steps.length - 1 : null;
-      this.viewingIntermediate = false;
+    const activeModel = AppStore.activeModel.value;
+    if (activeModel) {
+      AppStore.activeStepIndex.value =
+        activeModel.steps?.length > 0 ? activeModel.steps.length - 1 : null;
+      AppStore.viewingIntermediate.value = false;
     }
 
-    if (this.currentData && this.currentData.length > 0) {
-      if (this.activeModel && (!this.activeModel.schema || this.activeModel.schema.length === 0)) {
+    const currentData = AppStore.currentData.value;
+    const activeSource = AppStore.activeSource.value;
+    if (currentData && currentData.length > 0) {
+      if (activeModel && (!activeModel.schema || activeModel.schema.length === 0)) {
         // Fallback: infer logical types for model (models use logical types, not physical)
-        this.activeModel.schema = SchemaEngine.createLogicalSchema(this.activeModel.data);
+        activeModel.schema = SchemaEngine.createLogicalSchema(activeModel.data);
       }
 
-      if (this.activeModel?.schema) {
-        this.columns = this.activeModel.schema.map((c: any) => c.name);
-      } else if (this.activeSource?.columns) {
-        this.columns = this.activeSource.columns.map((c: any) => c.name);
+      if (activeModel?.schema) {
+        AppStore.columns.value = activeModel.schema.map((c: any) => c.name);
+      } else if (activeSource?.columns) {
+        AppStore.columns.value = activeSource.columns.map((c: any) => c.name);
       } else {
-        this.columns = Object.keys(this.currentData[0]);
+        AppStore.columns.value = Object.keys(currentData[0]);
       }
     }
 
@@ -1391,19 +1476,19 @@ export class SytoApp implements AppState {
     window.addEventListener('keydown', (e) => {
       // Handle Escape key first (highest priority)
       if (e.key === 'Escape') {
-        if (this.messageBox.visible) {
+        if (AppStore.messageBox.value.visible) {
           this.closeMessageBox(false);
           return;
         }
-        if (this.activeDialog) {
+        if (AppStore.activeDialog.value) {
           this.closeDialog();
           return;
         }
-        if (this.typeMenuOpen) {
-          this.typeMenuOpen = false;
+        if (AppStore.typeMenuOpen.value) {
+          AppStore.typeMenuOpen.value = false;
           return;
         }
-        if (this.selectedColumn || this.selectedCell) {
+        if (AppStore.selectedColumn.value || AppStore.selectedCell.value) {
           this.clearColumnSelection();
           return;
         }
@@ -1420,47 +1505,49 @@ export class SytoApp implements AppState {
   }
 
   syncUrlState() {
+    const activeModel = AppStore.activeModel.value;
+    const activeSource = AppStore.activeSource.value;
     setUrlState({
-      modelId: this.activeModel?.id,
-      sourceId: this.activeSource?.id || this.activeModel?.sourceId,
+      modelId: activeModel?.id,
+      sourceId: activeSource?.id || activeModel?.sourceId,
     });
   }
 
   async startTransformation(message: string) {
-    this.isTransforming = true;
-    this.transformMessage = message;
+    AppStore.isTransforming.value = true;
+    AppStore.transformMessage.value = message;
     // Allow UI to update before continuing
     await new Promise((resolve) => requestAnimationFrame(() => resolve(undefined)));
     await new Promise((resolve) => setTimeout(resolve, 50));
   }
 
   endTransformation() {
-    this.isTransforming = false;
-    this.transformMessage = '';
+    AppStore.isTransforming.value = false;
+    AppStore.transformMessage.value = '';
   }
 
   applyTheme() {
-    document.documentElement.setAttribute('data-theme', this.theme);
+    document.documentElement.setAttribute('data-theme', AppStore.theme.value);
   }
 
   switchTheme(theme: 'blues' | 'syto') {
-    this.theme = theme;
+    AppStore.theme.value = theme;
     this.applyTheme();
-    updateUXSetting('theme', '', theme); // updateUXSetting in current impl takes category, key, value. Category is 'theme'? No, category is main property.
+    updateUXSetting('theme', '', theme);
   }
 
   updatePreviewRowLimit(value: string) {
     const limit = Math.max(10, Math.min(10000, parseInt(value, 10) || 100));
-    this.uxSettings.preview = { rowLimit: limit };
+    AppStore.uxSettings.value = { ...AppStore.uxSettings.value, preview: { rowLimit: limit } };
     updateUXSetting('preview', 'rowLimit', limit);
   }
 
   getPreviewRowLimit(): number {
-    return this.uxSettings.preview?.rowLimit || 100;
+    return AppStore.uxSettings.value.preview?.rowLimit || 100;
   }
 
   updateAnalyticsOptOut(optOut: boolean) {
-    this.uxSettings.analyticsOptOut = optOut;
+    AppStore.uxSettings.value = { ...AppStore.uxSettings.value, analyticsOptOut: optOut };
     updateUXSetting('analyticsOptOut', '', optOut);
     // If opting out, remove any existing GoatCounter script and stop tracking
     if (optOut) {

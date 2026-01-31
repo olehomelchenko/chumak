@@ -29,34 +29,10 @@ export function setJsonEditCallbacks(cb: JsonEditCallbacks): void {
 }
 
 /**
- * Legacy SytoApp interface for backward compatibility
- */
-interface LegacyApp {
-  activeModel?: Model | null;
-  computeModelUpToStep: (model: Model, stepIndex: number) => ComputeResult;
-  updatePagination: () => void;
-  showSuccess: (message: string) => void;
-  showError: (title: string, message: string, options?: any) => void;
-}
-
-/**
- * Get callbacks from legacy app or stored callbacks
- */
-function getCallbacks(legacyApp?: LegacyApp): JsonEditCallbacks | null {
-  if (legacyApp) {
-    return {
-      computeModelUpToStep: (model, stepIndex) => legacyApp.computeModelUpToStep(model, stepIndex),
-      updatePagination: () => legacyApp.updatePagination(),
-    };
-  }
-  return callbacks;
-}
-
-/**
  * Get JSON representation of model steps
  */
-export function getStepsJson(this: LegacyApp | void): string {
-  const activeModel = this ? (this as LegacyApp).activeModel : AppStore.activeModel.value;
+export function getStepsJson(): string {
+  const activeModel = AppStore.activeModel.value;
   if (!activeModel?.steps) return '';
   return JSON.stringify({ transforms: activeModel.steps }, null, 2);
 }
@@ -64,13 +40,13 @@ export function getStepsJson(this: LegacyApp | void): string {
 /**
  * Enter JSON edit mode
  */
-export function enterJsonEditMode(this: LegacyApp | void): void {
-  const activeModel = this ? (this as LegacyApp).activeModel : AppStore.activeModel.value;
+export function enterJsonEditMode(): void {
+  const activeModel = AppStore.activeModel.value;
   if (!activeModel?.steps) return;
 
   // Store backup of current steps
   AppStore.jsonEditBackup.value = JSON.parse(JSON.stringify(activeModel.steps));
-  AppStore.jsonEditContent.value = getStepsJson.call(this);
+  AppStore.jsonEditContent.value = getStepsJson();
   AppStore.jsonEditError.value = null;
   AppStore.jsonEditMode.value = true;
 }
@@ -78,8 +54,8 @@ export function enterJsonEditMode(this: LegacyApp | void): void {
 /**
  * Cancel JSON edit and restore backup
  */
-export function cancelJsonEdit(this: LegacyApp | void): void {
-  const activeModel = this ? (this as LegacyApp).activeModel : AppStore.activeModel.value;
+export function cancelJsonEdit(): void {
+  const activeModel = AppStore.activeModel.value;
   if (activeModel) {
     activeModel.steps = AppStore.jsonEditBackup.value;
   }
@@ -90,7 +66,7 @@ export function cancelJsonEdit(this: LegacyApp | void): void {
 /**
  * Validate JSON content
  */
-export function validateJsonEdit(this: LegacyApp | void): void {
+export function validateJsonEdit(): void {
   try {
     const content = AppStore.jsonEditContent.value;
     const parsed = JSON.parse(content);
@@ -106,10 +82,8 @@ export function validateJsonEdit(this: LegacyApp | void): void {
 /**
  * Apply JSON edit to model
  */
-export async function applyJsonEdit(this: LegacyApp | void): Promise<void> {
-  const legacyApp = this as LegacyApp | undefined;
-  const cb = getCallbacks(legacyApp);
-  const activeModel = legacyApp ? legacyApp.activeModel : AppStore.activeModel.value;
+export async function applyJsonEdit(): Promise<void> {
+  const activeModel = AppStore.activeModel.value;
 
   if (!activeModel) return;
 
@@ -124,7 +98,7 @@ export async function applyJsonEdit(this: LegacyApp | void): Promise<void> {
     const stepIndex = activeModel.steps.length - 1;
     AppStore.activeStepIndex.value = stepIndex;
 
-    const result = cb?.computeModelUpToStep(activeModel, stepIndex);
+    const result = callbacks?.computeModelUpToStep(activeModel, stepIndex);
     if (!result) {
       throw new Error('Failed to compute model');
     }
@@ -139,7 +113,7 @@ export async function applyJsonEdit(this: LegacyApp | void): Promise<void> {
     AppStore.columns.value = result.columns;
     AppStore.viewingSchema.value = result.schema;
     AppStore.viewingIntermediate.value = false;
-    cb?.updatePagination();
+    callbacks?.updatePagination();
 
     // 3. Trigger Side Effects (Persistence & Dependencies)
     const { PersistenceService } = await import('../services/PersistenceService');
@@ -150,20 +124,9 @@ export async function applyJsonEdit(this: LegacyApp | void): Promise<void> {
     AppStore.jsonEditMode.value = false;
     AppStore.jsonEditError.value = null;
 
-    // Use notification handler or legacy method
-    if (legacyApp?.showSuccess) {
-      legacyApp.showSuccess('JSON configuration applied successfully');
-    } else {
-      showSuccess('JSON configuration applied successfully');
-    }
+    showSuccess('JSON configuration applied successfully');
   } catch (error: any) {
     AppStore.jsonEditError.value = error.message;
-
-    // Use notification handler or legacy method
-    if (legacyApp?.showError) {
-      legacyApp.showError('Failed to apply JSON changes', error.message, { duration: 0 });
-    } else {
-      showError('Failed to apply JSON changes', error.message, { duration: 0 });
-    }
+    showError('Failed to apply JSON changes', error.message, { duration: 0 });
   }
 }

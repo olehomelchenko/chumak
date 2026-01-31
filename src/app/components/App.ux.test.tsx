@@ -12,6 +12,7 @@ import { AppStore } from '../stores/AppStore';
 import { SytoApp } from '../../syto-app';
 import { DialogStore } from '../stores/DialogStore';
 import { previewTypeConversion } from '../handlers/interaction-handlers';
+import { setEdaCallbacks } from '../handlers/eda-handlers';
 
 describe('App UX Interactions', () => {
   let app: SytoApp;
@@ -56,6 +57,13 @@ describe('App UX Interactions', () => {
       ],
       steps: [],
     };
+
+    // Set up EDA callbacks since tests don't call init()
+    setEdaCallbacks({
+      updateToolbarPosition: () => app.updateToolbarPosition(),
+      applyFilterTransform: async () => {},
+      clearColumnSelection: () => app.clearColumnSelection(),
+    });
   });
 
   describe('Column Header Interactions', () => {

@@ -46,20 +46,18 @@ import {
   DependencyImpactDialog,
 } from './index';
 import { JsonEditorModal } from './JsonEditorModal';
-// Import handlers for helpers
+// Import pure helper functions (no 'this' context needed)
 import {
-  getDialogTitle,
-  getDialogButtonText,
-  getAboutContent,
+  hasPreviewData,
   getPreviewTitle,
   getPreviewStats,
-  hasPreviewData,
-  isNewPreviewColumn,
   getPreviewColumns,
   getPreviewRows,
+  isNewPreviewColumn,
   formatPreviewCell,
-  activeDialogError,
-} from '../handlers/dialog-handlers';
+  activeDialogHasError,
+} from '../orchestration/DialogCoordinator';
+import { getDialogTitle, getDialogButtonText, getAboutContent } from '../handlers/dialog-handlers';
 import {
   getModelMeta,
   getTypeIcon,
@@ -77,14 +75,14 @@ interface AppProps {
 export function App({ app }: AppProps) {
   const activeDialog = AppStore.activeDialog.value;
 
-  // Helper Wrappers
-  const previewStats = getPreviewStats.call(app);
-  const previewTitle = getPreviewTitle.call(app);
-  const dialogTitle = getDialogTitle.call(app);
-  const buttonText = getDialogButtonText.call(app);
-  const aboutHtml = activeDialog === 'about' ? getAboutContent.call(app) : '';
-  const hasPreview = hasPreviewData.call(app);
-  const dialogError = activeDialogError.call(app);
+  // Helper Wrappers - pure functions that access stores directly
+  const previewStats = getPreviewStats();
+  const previewTitle = getPreviewTitle();
+  const dialogTitle = getDialogTitle();
+  const buttonText = getDialogButtonText();
+  const aboutHtml = activeDialog === 'about' ? getAboutContent() : '';
+  const hasPreview = hasPreviewData();
+  const dialogError = activeDialogHasError();
 
   // Props Construction
   const sidebarProps = {
@@ -100,7 +98,7 @@ export function App({ app }: AppProps) {
     onViewFinalResult: () => app.viewFinalResult(),
     onGetStepsJson: () => app.getStepsJson(),
     onEnterJsonEditMode: () => app.enterJsonEditMode(),
-    getModelMeta: (m: any) => getModelMeta.call(app, m),
+    getModelMeta: (m: any) => getModelMeta(m),
   };
 
   const mainContentProps = {
@@ -135,9 +133,9 @@ export function App({ app }: AppProps) {
     // DataTable
     getPaginatedData: () => (app.getPaginatedData ? app.getPaginatedData() : []),
     getColumnType: (c: string) => app.getColumnType(c),
-    getTypeIcon: (c: string) => getTypeIcon.call(app, c),
-    formatCellValue: (v: any) => formatCellValue.call(app, v),
-    formatCellValueForTooltip: (v: any) => formatCellValueForTooltip.call(app, v),
+    getTypeIcon: (c: string) => getTypeIcon(c),
+    formatCellValue: (v: any) => formatCellValue(v),
+    formatCellValueForTooltip: (v: any) => formatCellValueForTooltip(v),
     onSelectColumn: (c: string, e: MouseEvent) => {
       e.stopPropagation();
       app.selectColumn(c);
@@ -288,10 +286,10 @@ export function App({ app }: AppProps) {
                   <table class={tableStyles.dataTable}>
                     <thead>
                       <tr>
-                        {getPreviewColumns.call(app).map((col: string) => (
+                        {getPreviewColumns().map((col: string) => (
                           <th
                             key={col}
-                            class={`${tableStyles.dataTable__header} ${isNewPreviewColumn.call(app, col) ? styles.previewNewCol : ''}`}
+                            class={`${tableStyles.dataTable__header} ${isNewPreviewColumn(col) ? styles.previewNewCol : ''}`}
                           >
                             {col}
                           </th>
@@ -299,12 +297,12 @@ export function App({ app }: AppProps) {
                       </tr>
                     </thead>
                     <tbody>
-                      {getPreviewRows.call(app).map((row: any, i: number) => (
+                      {getPreviewRows().map((row: any, i: number) => (
                         <tr
                           key={i}
                           class={`${tableStyles.dataTable__row} ${row._removed ? tableStyles.removed : ''} ${row._hasError ? tableStyles.error : ''}`}
                         >
-                          {getPreviewColumns.call(app).map((col: string) => {
+                          {getPreviewColumns().map((col: string) => {
                             const isRemovedColumn =
                               row._removedColumns && row._removedColumns.includes(col);
                             const cellValue = row[col];
@@ -316,10 +314,10 @@ export function App({ app }: AppProps) {
                             return (
                               <td
                                 key={col}
-                                class={`${tableStyles.cell} ${row._removed || isRemovedColumn ? tableStyles.removed : ''} ${isNewPreviewColumn.call(app, col) ? styles.previewNewCol : ''} ${isError ? tableStyles.error : ''}`}
+                                class={`${tableStyles.cell} ${row._removed || isRemovedColumn ? tableStyles.removed : ''} ${isNewPreviewColumn(col) ? styles.previewNewCol : ''} ${isError ? tableStyles.error : ''}`}
                                 title={isError ? cellValue.message : undefined}
                               >
-                                {formatPreviewCell.call(app, row, col)}
+                                {formatPreviewCell(row, col)}
                               </td>
                             );
                           })}

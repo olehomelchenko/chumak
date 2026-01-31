@@ -367,23 +367,25 @@ describe('import-handlers', () => {
 
   describe('showImportUrlDialog', () => {
     it('initializes URL dialog state', () => {
-      const mockApp = createMockApp();
+      // Set some initial values in DialogStore
+      DialogStore.importUrlState.url.value = 'previous-url';
+      DialogStore.importUrlState.isFetching.value = true;
+      DialogStore.importUrlState.error.value = 'previous-error';
 
-      // Set some initial values
-      mockApp.importUrlDialogState = {
-        url: 'previous-url',
-        isFetching: true,
-        error: 'previous-error',
-      };
-
-      ImportHandlers.showImportUrlDialog.call(mockApp);
-
-      expect(mockApp.importUrlDialogState).toEqual({
-        url: '',
-        isFetching: false,
-        error: null,
+      // Set up callbacks to capture openDialog call
+      const openDialogSpy = vi.fn();
+      ImportHandlers.setImportCallbacks({
+        openDialog: openDialogSpy,
+        closeDialog: vi.fn(),
+        createSource: vi.fn(),
       });
-      expect(mockApp.openDialog).toHaveBeenCalledWith('import-url');
+
+      ImportHandlers.showImportUrlDialog();
+
+      expect(DialogStore.importUrlState.url.value).toBe('');
+      expect(DialogStore.importUrlState.isFetching.value).toBe(false);
+      expect(DialogStore.importUrlState.error.value).toBe(null);
+      expect(openDialogSpy).toHaveBeenCalledWith('import-url');
     });
   });
 

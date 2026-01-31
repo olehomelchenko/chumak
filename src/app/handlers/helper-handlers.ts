@@ -106,34 +106,27 @@ export function createExecutionCallbacks(app?: LegacySytoApp): ExecutionCallback
 
 /**
  * Runs a transform using StepService.
- * @deprecated Use store-based pattern with setTransformCallbacks instead
+ * Uses stored callbacks set via setTransformCallbacks().
  */
 export async function runTransform(
-  this: LegacySytoApp | void,
   label: string,
   transform: any,
   closeDialog = true
 ): Promise<boolean> {
-  // Support both old (this-bound) and new (store-based) patterns
-  const callbacks = this
-    ? createExecutionCallbacks(this as LegacySytoApp)
-    : createExecutionCallbacks();
+  const callbacks = createExecutionCallbacks();
   return StepService.runTransform(label, transform, callbacks, closeDialog);
 }
 
 /**
- * @deprecated Use StepService.applyStepResult directly with callbacks
- * Kept for backward compatibility during migration
+ * Apply a step result using StepService.
+ * Uses stored callbacks set via setTransformCallbacks().
  */
 export async function applyStepResult(
-  this: LegacySytoApp | void,
   transform: any,
   resultTable: any,
   closeDialogAfter = true
 ): Promise<void> {
-  const callbacks = this
-    ? createExecutionCallbacks(this as LegacySytoApp)
-    : createExecutionCallbacks();
+  const callbacks = createExecutionCallbacks();
   return StepService.applyStepResult(transform, resultTable, callbacks, closeDialogAfter);
 }
 

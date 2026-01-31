@@ -13,15 +13,15 @@ import * as DateHandlers from '../handlers/date-handlers';
 import { GeneratorService } from '../services/GeneratorService';
 
 export type DialogCallbacks = {
-  initializeJoinDialog: () => void;
-  initializeAppendDialog: () => void;
-  initializePivotDialog: () => void;
-  detectDelimiter: (column: string) => { char: string; isRegex: boolean; name: string } | null;
-  debouncedUpdateSplitPreview: () => void;
-  updateDedupePreview: () => void;
+  initializeJoinDialog?: () => void;
+  initializeAppendDialog?: () => void;
+  initializePivotDialog?: () => void;
+  detectDelimiter?: (column: string) => { char: string; isRegex: boolean; name: string } | null;
+  debouncedUpdateSplitPreview?: () => void;
+  updateDedupePreview?: () => void;
   updateImputePreview?: () => void;
-  clearColumnSelection: () => void;
-  confirm: (message: string) => Promise<boolean>;
+  clearColumnSelection?: () => void;
+  confirm?: (message: string) => Promise<boolean>;
 };
 
 let callbacks: DialogCallbacks | null = null;
@@ -224,11 +224,11 @@ export function initDialogState(dialogName: string, section?: string): void {
       break;
 
     case 'join':
-      callbacks?.initializeJoinDialog();
+      callbacks?.initializeJoinDialog?.();
       break;
 
     case 'append':
-      callbacks?.initializeAppendDialog();
+      callbacks?.initializeAppendDialog?.();
       break;
 
     case 'derive':
@@ -317,7 +317,7 @@ export function initDialogState(dialogName: string, section?: string): void {
       break;
 
     case 'pivot':
-      callbacks?.initializePivotDialog();
+      callbacks?.initializePivotDialog?.();
       break;
 
     case 'replace': {
@@ -438,7 +438,7 @@ export function initDialogState(dialogName: string, section?: string): void {
 export function openDialog(dialogName: string, section?: string): void {
   AppStore.activeDialog.value = dialogName as DialogName;
   initDialogState(dialogName, section);
-  callbacks?.clearColumnSelection();
+  callbacks?.clearColumnSelection?.();
   snapshotDialogState();
 
   // Update URL for navigable pages
@@ -452,7 +452,7 @@ export async function closeDialog(force = false): Promise<void> {
   const dialog = AppStore.activeDialog.value;
 
   if (!force && hasUnsavedChanges()) {
-    const confirmed = await callbacks?.confirm(
+    const confirmed = await callbacks?.confirm?.(
       'You have unsaved changes. Are you sure you want to discard them?'
     );
     if (!confirmed) return;

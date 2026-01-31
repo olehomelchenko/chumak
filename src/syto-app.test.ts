@@ -1,5 +1,8 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { SytoApp } from './syto-app';
+import { setImportCallbacks } from './app/handlers/import-handlers';
+import { DialogStore } from './app/stores/DialogStore';
+import { AppStore } from './app/stores/AppStore';
 
 describe('SytoApp URL Import', () => {
   let app: SytoApp;
@@ -10,10 +13,23 @@ describe('SytoApp URL Import', () => {
     // Mock console.error to keep test output clean
     vi.spyOn(console, 'error').mockImplementation(() => {});
 
+    // Reset stores
+    DialogStore.resetAll();
+    AppStore.activeDialog.value = null;
+
     app = new SytoApp();
     // Mock methods called by fetchAndImportFromUrl
     app.closeDialog = vi.fn();
     app.showImportDialog = vi.fn();
+
+    // Set up import callbacks since tests don't call init()
+    setImportCallbacks({
+      openDialog: (name) => {
+        AppStore.activeDialog.value = name as any;
+      },
+      closeDialog: (force) => app.closeDialog(force),
+      createSource: vi.fn(),
+    });
   });
 
   it('should initialize with empty URL state', () => {
@@ -38,18 +54,18 @@ describe('SytoApp URL Import', () => {
       text: () => Promise.resolve(mockCsv),
     });
 
-    app.importUrlDialogState.url = 'https://example.com/data.csv';
+    DialogStore.importUrlState.url.value = 'https://example.com/data.csv';
     await app.fetchAndImportFromUrl();
 
     expect(global.fetch).toHaveBeenCalledWith('https://example.com/data.csv');
-    expect(app.importUrlDialogState.isFetching).toBe(false);
-    expect(app.importUrlDialogState.error).toBeNull();
+    expect(DialogStore.importUrlState.isFetching.value).toBe(false);
+    expect(DialogStore.importUrlState.error.value).toBeNull();
 
     expect(app.closeDialog).toHaveBeenCalled();
-    expect(app.showImportDialog).toHaveBeenCalledWith(expect.any(File));
-
-    const passedFile = (app.showImportDialog as any).mock.calls[0][0];
-    expect(passedFile.name).toBe('data.csv');
+    // showImportDialog is now called directly within the handler, not through app
+    // Verify it was called by checking importFileData was set
+    expect(AppStore.importFileData.value).not.toBeNull();
+    expect(AppStore.importFileData.value?.file.name).toBe('data.csv');
   });
 
   it('should handle fetch errors', async () => {
@@ -83,11 +99,12 @@ describe('SytoApp URL Import', () => {
       text: () => Promise.resolve('test'),
     });
 
-    app.importUrlDialogState.url = 'https://api.example.com/v1/export/users.CSV?token=123';
+    DialogStore.importUrlState.url.value = 'https://api.example.com/v1/export/users.CSV?token=123';
     await app.fetchAndImportFromUrl();
 
-    const passedFile = (app.showImportDialog as any).mock.calls[0][0];
-    expect(passedFile.name).toBe('users.CSV');
+    // showImportDialog is called directly within the handler
+    // Verify it was called by checking importFileData
+    expect(AppStore.importFileData.value?.file.name).toBe('users.CSV');
   });
 
   it('should fetch JSON data and handle it correctly', async () => {
@@ -97,12 +114,13 @@ describe('SytoApp URL Import', () => {
       text: () => Promise.resolve(mockJson),
     });
 
-    app.importUrlDialogState.url = 'https://example.com/data.json';
+    DialogStore.importUrlState.url.value = 'https://example.com/data.json';
     await app.fetchAndImportFromUrl();
 
-    expect(app.showImportDialog).toHaveBeenCalledWith(expect.any(File));
-    const passedFile = (app.showImportDialog as any).mock.calls[0][0];
-    expect(passedFile.name).toBe('data.json');
+    // showImportDialog is called directly within the handler
+    // Verify it was called by checking importFileData
+    expect(AppStore.importFileData.value).not.toBeNull();
+    expect(AppStore.importFileData.value?.file.name).toBe('data.json');
     // Note: showImportDialog will internally handle the .json extension logic
   });
 

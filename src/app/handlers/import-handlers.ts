@@ -8,31 +8,6 @@ import { ReplaceSourceService } from '../services/ReplaceSourceService';
 import { alert, confirm } from './notification-handlers';
 
 /**
- * Import dialog state structure
- * Note: Types are permissive to support backward compatibility with SytoApp
- */
-export interface ImportDialogState {
-  fileName: string;
-  sourceName: string;
-  rawPreviewData: string[][];
-  previewHeaders: string[];
-  previewDataRows: any[][];
-  headerMode: string;
-  delimiter: string;
-  originalHeaders: string[];
-  customHeaders: string[];
-  duplicateWarning: string;
-  isJson?: boolean;
-  jsonData?: any[] | null;
-  fullJsonData?: any;
-  jsonPath?: string;
-  jsonRawValuePreview?: string;
-  suggestedJsonKeys?: string[];
-  flattenJson?: boolean;
-  serializeNested?: boolean;
-}
-
-/**
  * Callbacks for import operations
  */
 export type ImportCallbacks = {
@@ -57,43 +32,6 @@ let callbacks: ImportCallbacks | null = null;
  */
 export function setImportCallbacks(cb: ImportCallbacks): void {
   callbacks = cb;
-}
-
-/**
- * Legacy SytoApp interface for backward compatibility
- */
-interface LegacyApp extends ImportCallbacks {
-  isDragging: boolean;
-  importFileData: { file: File } | null;
-  importDialogState: ImportDialogState;
-  importUrlDialogState: any;
-  alert: (message: string) => Promise<boolean>;
-  confirm: (message: string, title?: string) => Promise<boolean>;
-  showImportDialog: (file: File) => void;
-  handleJsonPreview: (file: File, data: any, path?: string) => void;
-  handleCsvPreview: (file: File) => void;
-  updateJsonPath: () => void;
-  resolvePath: (obj: any, path: string) => any;
-  getSuggestedKeys: (obj: any) => string[];
-  flattenData: (data: any[]) => any[];
-  serializeNestedData: (data: any[]) => any[];
-  updateHeadersForPreview: () => void;
-  resolveDuplicateHeaders: (headers: string[]) => { resolvedHeaders: string[]; warning: string };
-  computeSchemaDiffForPreview: (
-    oldSchema: ColumnSchema[],
-    previewColumns: string[],
-    previewData: any[][]
-  ) => void;
-}
-
-/**
- * Get callbacks from legacy app or stored callbacks
- */
-function getCallbacks(legacyApp?: LegacyApp): ImportCallbacks | null {
-  if (legacyApp) {
-    return legacyApp;
-  }
-  return callbacks;
 }
 
 // ============================================================================
@@ -235,51 +173,31 @@ export function computeSchemaDiffForPreview(
 // Event Handlers
 // ============================================================================
 
-export function handleFileSelect(this: LegacyApp | void, event: Event): void {
-  const legacyApp = this as LegacyApp | undefined;
+export function handleFileSelect(event: Event): void {
   const target = event.target as HTMLInputElement;
   const file = target.files?.[0];
   if (!file) return;
 
-  if (legacyApp) {
-    legacyApp.showImportDialog(file);
-  } else {
-    showImportDialog(file);
-  }
+  showImportDialog(file);
   target.value = '';
 }
 
-export async function handleFileDrop(this: LegacyApp | void, event: DragEvent): Promise<void> {
-  const legacyApp = this as LegacyApp | undefined;
-
-  if (legacyApp) {
-    legacyApp.isDragging = false;
-  } else {
-    AppStore.isDragging.value = false;
-  }
+export async function handleFileDrop(event: DragEvent): Promise<void> {
+  AppStore.isDragging.value = false;
 
   const files = event.dataTransfer?.files;
   if (!files || files.length === 0) return;
   const file = files[0];
   const fileName = file.name.toLowerCase();
   if (!fileName.endsWith('.csv') && !fileName.endsWith('.json')) {
-    if (legacyApp?.alert) {
-      await legacyApp.alert('Please drop a CSV or JSON file');
-    } else {
-      await alert('Please drop a CSV or JSON file');
-    }
+    await alert('Please drop a CSV or JSON file');
     return;
   }
 
-  if (legacyApp) {
-    legacyApp.showImportDialog(file);
-  } else {
-    showImportDialog(file);
-  }
+  showImportDialog(file);
 }
 
-export async function handlePaste(this: LegacyApp | void, event: ClipboardEvent): Promise<void> {
-  const legacyApp = this as LegacyApp | undefined;
+export async function handlePaste(event: ClipboardEvent): Promise<void> {
   const target = event.target as HTMLElement;
   if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)
     return;
@@ -295,11 +213,7 @@ export async function handlePaste(this: LegacyApp | void, event: ClipboardEvent)
       file.type === 'application/json' ||
       file.type === 'text/plain'
     ) {
-      if (legacyApp) {
-        legacyApp.showImportDialog(file);
-      } else {
-        showImportDialog(file);
-      }
+      showImportDialog(file);
       return;
     }
   }
@@ -312,17 +226,11 @@ export async function handlePaste(this: LegacyApp | void, event: ClipboardEvent)
     const file = new File([pastedText], isLikelyJson ? 'Pasted Data.json' : 'Pasted Data.csv', {
       type: isLikelyJson ? 'application/json' : 'text/csv',
     });
-    if (legacyApp) {
-      legacyApp.showImportDialog(file);
-    } else {
-      showImportDialog(file);
-    }
+    showImportDialog(file);
   }
 }
 
-export async function promptPaste(this: LegacyApp | void): Promise<void> {
-  const legacyApp = this as LegacyApp | undefined;
-
+export async function promptPaste(): Promise<void> {
   try {
     if (navigator.clipboard && navigator.clipboard.readText) {
       const text = await navigator.clipboard.readText();
@@ -334,37 +242,20 @@ export async function promptPaste(this: LegacyApp | void): Promise<void> {
         const file = new File([text], isLikelyJson ? 'Pasted Data.json' : 'Pasted Data.csv', {
           type: isLikelyJson ? 'application/json' : 'text/csv',
         });
-        if (legacyApp) {
-          legacyApp.showImportDialog(file);
-        } else {
-          showImportDialog(file);
-        }
+        showImportDialog(file);
       } else {
-        const msg =
-          'Clipboard is empty or does not contain text. Try copying some CSV or JSON data first.';
-        if (legacyApp?.alert) {
-          await legacyApp.alert(msg);
-        } else {
-          await alert(msg);
-        }
+        await alert(
+          'Clipboard is empty or does not contain text. Try copying some CSV or JSON data first.'
+        );
       }
     } else {
-      const msg =
-        'Your browser does not support direct clipboard access. Please use Ctrl+V to paste data.';
-      if (legacyApp?.alert) {
-        await legacyApp.alert(msg);
-      } else {
-        await alert(msg);
-      }
+      await alert(
+        'Your browser does not support direct clipboard access. Please use Ctrl+V to paste data.'
+      );
     }
   } catch (err) {
     console.warn('Clipboard access denied:', err);
-    const msg = 'Please press Ctrl+V to paste your data directly.';
-    if (legacyApp?.alert) {
-      await legacyApp.alert(msg);
-    } else {
-      await alert(msg);
-    }
+    await alert('Please press Ctrl+V to paste your data directly.');
   }
 }
 
@@ -372,14 +263,8 @@ export async function promptPaste(this: LegacyApp | void): Promise<void> {
 // Import Dialog Functions
 // ============================================================================
 
-export function showImportDialog(this: LegacyApp | void, file: File): void {
-  const legacyApp = this as LegacyApp | undefined;
-
-  if (legacyApp) {
-    legacyApp.importFileData = { file };
-  } else {
-    AppStore.importFileData.value = { file };
-  }
+export function showImportDialog(file: File): void {
+  AppStore.importFileData.value = { file };
 
   const fileName = file.name.toLowerCase();
 
@@ -389,33 +274,18 @@ export function showImportDialog(this: LegacyApp | void, file: File): void {
       try {
         const content = e.target?.result as string;
         const data = JSON.parse(content);
-        if (legacyApp) {
-          legacyApp.handleJsonPreview(file, data);
-        } else {
-          handleJsonPreview(file, data);
-        }
+        handleJsonPreview(file, data);
       } catch (err) {
-        if (legacyApp) {
-          legacyApp.handleCsvPreview(file);
-        } else {
-          handleCsvPreview(file);
-        }
+        handleCsvPreview(file);
       }
     };
     reader.readAsText(file);
   } else {
-    if (legacyApp) {
-      legacyApp.handleCsvPreview(file);
-    } else {
-      handleCsvPreview(file);
-    }
+    handleCsvPreview(file);
   }
 }
 
-export function handleJsonPreview(this: LegacyApp | void, file: File, data: any, path = ''): void {
-  const legacyApp = this as LegacyApp | undefined;
-  const cb = getCallbacks(legacyApp);
-
+export function handleJsonPreview(file: File, data: any, path = ''): void {
   const defaultName = file.name.replace(/\.json$/i, '');
   let resolvedData = data;
 
@@ -433,119 +303,69 @@ export function handleJsonPreview(this: LegacyApp | void, file: File, data: any,
   const previewData = isValidArray ? resolvedData.slice(0, previewLimit) : [];
   const headers = isValidArray ? Object.keys(previewData[0]) : [];
 
-  const prevState = legacyApp?.importDialogState;
-  const newState: ImportDialogState = {
-    fileName: file.name,
-    sourceName: defaultName,
-    rawPreviewData: [],
-    previewHeaders: headers,
-    previewDataRows: previewData.map((row: any) => headers.map((h) => row[h])),
-    headerMode: 'first-row',
-    delimiter: ',',
-    originalHeaders: headers,
-    customHeaders: [...headers],
-    duplicateWarning: '',
-    isJson: true,
-    jsonData: isValidArray ? resolvedData : null,
-    fullJsonData: data,
-    jsonPath: path,
-    jsonRawValuePreview: resolvedData ? JSON.stringify(resolvedData, null, 2).slice(0, 1000) : '',
-    suggestedJsonKeys: getSuggestedKeys(resolvedData),
-    flattenJson: prevState?.flattenJson ?? false,
-    serializeNested: prevState?.serializeNested ?? true,
-  };
+  // Get previous flatten/serialize state from store
+  const s = DialogStore.importCsvState;
+  const prevFlatten = s.flattenJson.value;
+  const prevSerialize = s.serializeNested.value;
 
-  if (legacyApp) {
-    legacyApp.importDialogState = newState;
-  } else {
-    // Update DialogStore signals
-    const s = DialogStore.importCsvState;
-    s.sourceName.value = newState.sourceName;
-    s.isJson.value = newState.isJson ?? false;
-    s.jsonPath.value = newState.jsonPath || '';
-    s.jsonRawValuePreview.value = newState.jsonRawValuePreview || '';
-    s.suggestedJsonKeys.value = newState.suggestedJsonKeys || [];
-    s.flattenJson.value = newState.flattenJson || false;
-    s.serializeNested.value = newState.serializeNested ?? true;
-    s.jsonData.value = newState.jsonData ?? null;
-    s.delimiter.value = newState.delimiter;
-    s.headerMode.value = newState.headerMode as 'first-row' | 'auto-generate' | 'manual';
-    s.customHeaders.value = newState.customHeaders;
-    s.duplicateWarning.value = newState.duplicateWarning;
-    s.previewHeaders.value = newState.previewHeaders;
-    s.previewDataRows.value = newState.previewDataRows;
-  }
+  // Update DialogStore signals
+  s.fileName.value = file.name;
+  s.sourceName.value = defaultName;
+  s.isJson.value = true;
+  s.jsonPath.value = path;
+  s.jsonRawValuePreview.value = resolvedData
+    ? JSON.stringify(resolvedData, null, 2).slice(0, 1000)
+    : '';
+  s.suggestedJsonKeys.value = getSuggestedKeys(resolvedData);
+  s.flattenJson.value = prevFlatten;
+  s.serializeNested.value = prevSerialize !== false; // Default to true
+  s.jsonData.value = isValidArray ? resolvedData : null;
+  s.fullJsonData.value = data;
+  s.delimiter.value = ',';
+  s.headerMode.value = 'first-row';
+  s.originalHeaders.value = headers;
+  s.customHeaders.value = [...headers];
+  s.duplicateWarning.value = '';
+  s.previewHeaders.value = headers;
+  s.previewDataRows.value = previewData.map((row: any) => headers.map((h) => row[h]));
 
   // If in replace mode, compute schema diff
-  if (DialogStore.importCsvState.isReplaceMode.value) {
-    const sourceId = DialogStore.importCsvState.targetSourceId.value;
-    const source = AppStore.sources.value.find((s) => s.id === sourceId);
+  if (s.isReplaceMode.value) {
+    const sourceId = s.targetSourceId.value;
+    const source = AppStore.sources.value.find((src) => src.id === sourceId);
     if (source) {
       computeSchemaDiffForPreview(source.columns, headers, previewData);
     }
   }
 
-  cb?.openDialog('import-csv');
+  callbacks?.openDialog('import-csv');
 }
 
-export function updateJsonPath(this: LegacyApp | void): void {
-  const legacyApp = this as LegacyApp | undefined;
-
-  let fullJsonData: any;
-  let jsonPath: string;
-  let fileName: string;
-
-  if (legacyApp) {
-    fullJsonData = legacyApp.importDialogState.fullJsonData;
-    jsonPath = legacyApp.importDialogState.jsonPath || '';
-    fileName = legacyApp.importDialogState.fileName;
-  } else {
-    // For store-based, we'd need to track fullJsonData somewhere
-    // For now, this path is primarily used with legacy app
-    return;
-  }
+export function updateJsonPath(): void {
+  const s = DialogStore.importCsvState;
+  const fullJsonData = s.fullJsonData.value;
+  const jsonPath = s.jsonPath.value;
+  const fileName = s.fileName.value;
 
   if (!fullJsonData) return;
 
   const fileMock = { name: fileName } as File;
-  if (legacyApp) {
-    legacyApp.handleJsonPreview(fileMock, fullJsonData, jsonPath);
-  } else {
-    handleJsonPreview(fileMock, fullJsonData, jsonPath);
-  }
+  handleJsonPreview(fileMock, fullJsonData, jsonPath);
 }
 
-export function selectJsonPathSegment(this: LegacyApp | void, segment: string): void {
-  const legacyApp = this as LegacyApp | undefined;
-
-  if (legacyApp) {
-    const currentPath = legacyApp.importDialogState.jsonPath || '';
-    const newPath = currentPath ? `${currentPath}.${segment}` : segment;
-    legacyApp.importDialogState.jsonPath = newPath;
-    legacyApp.updateJsonPath();
-  } else {
-    const currentPath = DialogStore.importCsvState.jsonPath.value;
-    const newPath = currentPath ? `${currentPath}.${segment}` : segment;
-    DialogStore.importCsvState.jsonPath.value = newPath;
-    updateJsonPath();
-  }
+export function selectJsonPathSegment(segment: string): void {
+  const currentPath = DialogStore.importCsvState.jsonPath.value;
+  const newPath = currentPath ? `${currentPath}.${segment}` : segment;
+  DialogStore.importCsvState.jsonPath.value = newPath;
+  updateJsonPath();
 }
 
-export function resetJsonPath(this: LegacyApp | void): void {
-  const legacyApp = this as LegacyApp | undefined;
-
-  if (legacyApp) {
-    legacyApp.importDialogState.jsonPath = '';
-    legacyApp.updateJsonPath();
-  } else {
-    DialogStore.importCsvState.jsonPath.value = '';
-    updateJsonPath();
-  }
+export function resetJsonPath(): void {
+  DialogStore.importCsvState.jsonPath.value = '';
+  updateJsonPath();
 }
 
-export function handleCsvPreview(this: LegacyApp | void, file: File): void {
-  const legacyApp = this as LegacyApp | undefined;
-  const cb = getCallbacks(legacyApp);
+export function handleCsvPreview(file: File): void {
   const previewLimit = AppStore.uxSettings.value.preview.rowLimit;
 
   Papa.parse(file, {
@@ -558,86 +378,52 @@ export function handleCsvPreview(this: LegacyApp | void, file: File): void {
       const defaultName = file.name.replace(/\.csv$/i, '');
       const initialHeaders = firstRow.map((cell, i) => cell || `Column ${i + 1}`);
 
-      const newState: ImportDialogState = {
-        fileName: file.name,
-        sourceName: defaultName,
-        rawPreviewData: data,
-        previewHeaders: [],
-        previewDataRows: [],
-        headerMode: 'first-row',
-        delimiter: previewResult.meta.delimiter || ',',
-        originalHeaders: initialHeaders,
-        customHeaders: initialHeaders,
-        duplicateWarning: '',
-        isJson: false,
-        jsonData: null,
-      };
+      const s = DialogStore.importCsvState;
+      s.fileName.value = file.name;
+      s.sourceName.value = defaultName;
+      s.isJson.value = false;
+      s.delimiter.value = previewResult.meta.delimiter || ',';
+      s.headerMode.value = 'first-row';
+      s.originalHeaders.value = initialHeaders;
+      s.customHeaders.value = initialHeaders;
+      s.rawPreviewData.value = data;
+      s.duplicateWarning.value = '';
+      s.jsonData.value = null;
+      s.fullJsonData.value = null;
 
-      if (legacyApp) {
-        legacyApp.importDialogState = newState;
-        legacyApp.updateHeadersForPreview();
-      } else {
-        const s = DialogStore.importCsvState;
-        s.sourceName.value = newState.sourceName;
-        s.isJson.value = false;
-        s.delimiter.value = newState.delimiter;
-        s.headerMode.value = newState.headerMode as 'first-row' | 'auto-generate' | 'manual';
-        s.customHeaders.value = newState.customHeaders;
-        s.previewHeaders.value = newState.previewHeaders;
-        s.previewDataRows.value = newState.previewDataRows;
-        updateHeadersForPreview();
-      }
+      updateHeadersForPreview();
 
       // If in replace mode, compute schema diff
-      if (DialogStore.importCsvState.isReplaceMode.value) {
-        const sourceId = DialogStore.importCsvState.targetSourceId.value;
-        const source = AppStore.sources.value.find((s) => s.id === sourceId);
+      if (s.isReplaceMode.value) {
+        const sourceId = s.targetSourceId.value;
+        const source = AppStore.sources.value.find((src) => src.id === sourceId);
         if (source) {
-          const previewHeaders =
-            legacyApp?.importDialogState.previewHeaders ??
-            DialogStore.importCsvState.previewHeaders.value;
-          const previewDataRows =
-            legacyApp?.importDialogState.previewDataRows ??
-            DialogStore.importCsvState.previewDataRows.value;
-          computeSchemaDiffForPreview(source.columns, previewHeaders, previewDataRows);
+          computeSchemaDiffForPreview(
+            source.columns,
+            s.previewHeaders.value,
+            s.previewDataRows.value
+          );
         }
       }
 
-      cb?.openDialog('import-csv');
+      callbacks?.openDialog('import-csv');
     },
     error: async (error) => {
       console.error('CSV preview error:', error);
-      if (legacyApp?.alert) {
-        await legacyApp.alert('Error reading CSV: ' + error.message);
-      } else {
-        await alert('Error reading CSV: ' + error.message);
-      }
+      await alert('Error reading CSV: ' + error.message);
     },
   });
 }
 
-export function showImportUrlDialog(this: LegacyApp | void): void {
-  const legacyApp = this as LegacyApp | undefined;
-  const cb = getCallbacks(legacyApp);
+export function showImportUrlDialog(): void {
+  DialogStore.importUrlState.url.value = '';
+  DialogStore.importUrlState.isFetching.value = false;
+  DialogStore.importUrlState.error.value = null;
 
-  if (legacyApp) {
-    legacyApp.importUrlDialogState = {
-      url: '',
-      isFetching: false,
-      error: null,
-    };
-  } else {
-    DialogStore.importUrlState.url.value = '';
-    DialogStore.importUrlState.isFetching.value = false;
-    DialogStore.importUrlState.error.value = null;
-  }
-
-  cb?.openDialog('import-url');
+  callbacks?.openDialog('import-url');
 }
 
-export async function fetchAndImportFromUrl(this: LegacyApp | void): Promise<void> {
-  const legacyApp = this as LegacyApp | undefined;
-  const cb = getCallbacks(legacyApp);
+export async function fetchAndImportFromUrl(): Promise<void> {
   const { url } = DialogStore.importUrlState;
   const currentUrl = url.value;
 
@@ -687,13 +473,8 @@ export async function fetchAndImportFromUrl(this: LegacyApp | void): Promise<voi
 
     const file = new File([text], fileName, { type: fileType });
 
-    cb?.closeDialog(true);
-
-    if (legacyApp) {
-      legacyApp.showImportDialog(file);
-    } else {
-      showImportDialog(file);
-    }
+    callbacks?.closeDialog(true);
+    showImportDialog(file);
   } catch (error: any) {
     console.error('URL import error:', error);
     DialogStore.importUrlState.error.value =
@@ -703,7 +484,7 @@ export async function fetchAndImportFromUrl(this: LegacyApp | void): Promise<voi
   }
 }
 
-export function showReplaceSourceDialog(this: LegacyApp | void, source: Source): void {
+export function showReplaceSourceDialog(source: Source): void {
   DialogStore.importCsvState.isReplaceMode.value = true;
   DialogStore.importCsvState.targetSourceId.value = source.id;
   DialogStore.importCsvState.sourceName.value = source.name;
@@ -712,53 +493,23 @@ export function showReplaceSourceDialog(this: LegacyApp | void, source: Source):
   input?.click();
 }
 
-export async function confirmImport(this: LegacyApp | void): Promise<void> {
-  const legacyApp = this as LegacyApp | undefined;
-  const cb = getCallbacks(legacyApp);
-
-  let headerMode: string;
-  let delimiter: string;
-  let customHeaders: string[];
-  let sourceName: string;
-  let isJson: boolean;
-  let jsonData: any[] | null;
-  let flattenJsonFlag: boolean;
-  let serializeNestedFlag: boolean;
-  let importFileData: { file: File } | null;
-
-  if (legacyApp) {
-    const state = legacyApp.importDialogState;
-    headerMode = state.headerMode;
-    delimiter = state.delimiter;
-    customHeaders = state.customHeaders;
-    sourceName = state.sourceName;
-    isJson = state.isJson ?? false;
-    jsonData = state.jsonData ?? null;
-    flattenJsonFlag = state.flattenJson ?? false;
-    serializeNestedFlag = state.serializeNested ?? true;
-    importFileData = legacyApp.importFileData;
-  } else {
-    const s = DialogStore.importCsvState;
-    headerMode = s.headerMode.value;
-    delimiter = s.delimiter.value;
-    customHeaders = s.customHeaders.value;
-    sourceName = s.sourceName.value;
-    isJson = s.isJson.value;
-    jsonData = s.jsonData.value;
-    flattenJsonFlag = s.flattenJson.value;
-    serializeNestedFlag = s.serializeNested.value;
-    importFileData = AppStore.importFileData.value;
-  }
+export async function confirmImport(): Promise<void> {
+  const s = DialogStore.importCsvState;
+  const headerMode = s.headerMode.value;
+  const delimiter = s.delimiter.value;
+  const customHeaders = s.customHeaders.value;
+  const sourceName = s.sourceName.value;
+  const isJson = s.isJson.value;
+  const jsonData = s.jsonData.value;
+  const flattenJsonFlag = s.flattenJson.value;
+  const serializeNestedFlag = s.serializeNested.value;
+  const importFileData = AppStore.importFileData.value;
 
   if (!importFileData) return;
   const file = importFileData.file;
 
   if (!sourceName || sourceName.trim() === '') {
-    if (legacyApp?.alert) {
-      await legacyApp.alert('Please enter a source name');
-    } else {
-      await alert('Please enter a source name');
-    }
+    await alert('Please enter a source name');
     return;
   }
 
@@ -775,9 +526,9 @@ export async function confirmImport(this: LegacyApp | void): Promise<void> {
 
     const columns = processedData.length > 0 ? Object.keys(processedData[0]) : customHeaders;
 
-    if (DialogStore.importCsvState.isReplaceMode.value) {
-      const sourceId = DialogStore.importCsvState.targetSourceId.value!;
-      const schemaDiff = DialogStore.importCsvState.schemaDiff.value;
+    if (s.isReplaceMode.value) {
+      const sourceId = s.targetSourceId.value!;
+      const schemaDiff = s.schemaDiff.value;
 
       const executeReplacement = async () => {
         const fullColumns = SchemaEngine.createPhysicalSchema(processedData);
@@ -787,17 +538,15 @@ export async function confirmImport(this: LegacyApp | void): Promise<void> {
           delimiter: ',',
         });
 
-        DialogStore.importCsvState.isReplaceMode.value = false;
-        DialogStore.importCsvState.targetSourceId.value = null;
-        DialogStore.importCsvState.schemaDiff.value = null;
-        cb?.closeDialog();
+        s.isReplaceMode.value = false;
+        s.targetSourceId.value = null;
+        s.schemaDiff.value = null;
+        callbacks?.closeDialog();
       };
 
       if (schemaDiff && schemaDiff.missingColumns.length > 0) {
         const msg = `⚠️ Warning: The new data is missing ${schemaDiff.missingColumns.length} column(s) that exist in the current source:\n\n${schemaDiff.missingColumns.join(', ')}\n\nDependent models may break when recomputed. Are you sure you want to proceed?`;
-        const confirmed = legacyApp?.confirm
-          ? await legacyApp.confirm(msg, 'Confirm Replacement')
-          : await confirm(msg, 'Confirm Replacement');
+        const confirmed = await confirm(msg, 'Confirm Replacement');
         if (confirmed) {
           await executeReplacement();
         }
@@ -805,7 +554,7 @@ export async function confirmImport(this: LegacyApp | void): Promise<void> {
         await executeReplacement();
       }
     } else {
-      await cb?.createSource(
+      await callbacks?.createSource(
         file,
         sourceName.trim(),
         columns,
@@ -827,11 +576,7 @@ export async function confirmImport(this: LegacyApp | void): Promise<void> {
     complete: async (results) => {
       const rawData = results.data as unknown[][];
       if (!rawData || rawData.length === 0) {
-        if (legacyApp?.alert) {
-          await legacyApp.alert('Error: CSV file is empty');
-        } else {
-          await alert('Error: CSV file is empty');
-        }
+        await alert('Error: CSV file is empty');
         return;
       }
 
@@ -866,9 +611,9 @@ export async function confirmImport(this: LegacyApp | void): Promise<void> {
         });
       }
 
-      if (DialogStore.importCsvState.isReplaceMode.value) {
-        const sourceId = DialogStore.importCsvState.targetSourceId.value!;
-        const schemaDiff = DialogStore.importCsvState.schemaDiff.value;
+      if (s.isReplaceMode.value) {
+        const sourceId = s.targetSourceId.value!;
+        const schemaDiff = s.schemaDiff.value;
 
         const executeReplacement = async () => {
           const fullColumns = SchemaEngine.createPhysicalSchema(data);
@@ -878,17 +623,15 @@ export async function confirmImport(this: LegacyApp | void): Promise<void> {
             delimiter,
           });
 
-          DialogStore.importCsvState.isReplaceMode.value = false;
-          DialogStore.importCsvState.targetSourceId.value = null;
-          DialogStore.importCsvState.schemaDiff.value = null;
-          cb?.closeDialog();
+          s.isReplaceMode.value = false;
+          s.targetSourceId.value = null;
+          s.schemaDiff.value = null;
+          callbacks?.closeDialog();
         };
 
         if (schemaDiff && schemaDiff.missingColumns.length > 0) {
           const msg = `⚠️ Warning: The new data is missing ${schemaDiff.missingColumns.length} column(s) that exist in the current source:\n\n${schemaDiff.missingColumns.join(', ')}\n\nDependent models may break when recomputed. Are you sure you want to proceed?`;
-          const confirmed = legacyApp?.confirm
-            ? await legacyApp.confirm(msg, 'Confirm Replacement')
-            : await confirm(msg, 'Confirm Replacement');
+          const confirmed = await confirm(msg, 'Confirm Replacement');
           if (confirmed) {
             await executeReplacement();
           }
@@ -898,7 +641,7 @@ export async function confirmImport(this: LegacyApp | void): Promise<void> {
         return;
       }
 
-      await cb?.createSource(
+      await callbacks?.createSource(
         file,
         sourceName.trim(),
         columns,
@@ -910,28 +653,14 @@ export async function confirmImport(this: LegacyApp | void): Promise<void> {
     },
     error: async (error) => {
       console.error('CSV parsing error:', error);
-      if (legacyApp?.alert) {
-        await legacyApp.alert('Error parsing CSV: ' + error.message);
-      } else {
-        await alert('Error parsing CSV: ' + error.message);
-      }
+      await alert('Error parsing CSV: ' + error.message);
     },
   });
 }
 
-export function updateImportPreview(this: LegacyApp | void): void {
-  const legacyApp = this as LegacyApp | undefined;
-
-  let importFileData: { file: File } | null;
-  let delimiter: string;
-
-  if (legacyApp) {
-    importFileData = legacyApp.importFileData;
-    delimiter = legacyApp.importDialogState.delimiter;
-  } else {
-    importFileData = AppStore.importFileData.value;
-    delimiter = DialogStore.importCsvState.delimiter.value;
-  }
+export function updateImportPreview(): void {
+  const importFileData = AppStore.importFileData.value;
+  const delimiter = DialogStore.importCsvState.delimiter.value;
 
   if (!importFileData) return;
   const file = importFileData.file;
@@ -946,63 +675,29 @@ export function updateImportPreview(this: LegacyApp | void): void {
       const firstRow = data[0] || [];
       const newHeaders = firstRow.map((cell, i) => cell || `Column ${i + 1}`);
 
-      if (legacyApp) {
-        legacyApp.importDialogState.rawPreviewData = data;
-        legacyApp.importDialogState.originalHeaders = newHeaders;
-        legacyApp.importDialogState.customHeaders = newHeaders;
-        legacyApp.updateHeadersForPreview();
-      } else {
-        // For store-based, update individual signals
-        DialogStore.importCsvState.customHeaders.value = newHeaders;
-        updateHeadersForPreview();
-      }
+      const s = DialogStore.importCsvState;
+      s.rawPreviewData.value = data;
+      s.originalHeaders.value = newHeaders;
+      s.customHeaders.value = newHeaders;
+      updateHeadersForPreview();
     },
     error: async (error) => {
       console.error('CSV preview error:', error);
-      if (legacyApp?.alert) {
-        await legacyApp.alert('Error parsing CSV with selected delimiter: ' + error.message);
-      } else {
-        await alert('Error parsing CSV with selected delimiter: ' + error.message);
-      }
+      await alert('Error parsing CSV with selected delimiter: ' + error.message);
     },
   });
 }
 
-export function updateHeadersForPreview(this: LegacyApp | void): void {
-  const legacyApp = this as LegacyApp | undefined;
-
-  let rawPreviewData: string[][];
-  let headerMode: string;
-  let originalHeaders: string[];
-  let customHeaders: string[];
-  let isJson: boolean;
-  let jsonData: any[] | null;
-  let flattenJsonFlag: boolean;
-  let serializeNestedFlag: boolean;
-
-  if (legacyApp) {
-    const state = legacyApp.importDialogState;
-    rawPreviewData = state.rawPreviewData;
-    headerMode = state.headerMode;
-    originalHeaders = state.originalHeaders;
-    customHeaders = state.customHeaders;
-    isJson = state.isJson ?? false;
-    jsonData = state.jsonData ?? null;
-    flattenJsonFlag = state.flattenJson ?? false;
-    serializeNestedFlag = state.serializeNested ?? true;
-  } else {
-    const s = DialogStore.importCsvState;
-    // For store-based mode, we don't have rawPreviewData tracked
-    // This is a limitation - would need to extend DialogStore
-    rawPreviewData = [];
-    headerMode = s.headerMode.value;
-    originalHeaders = [];
-    customHeaders = s.customHeaders.value;
-    isJson = s.isJson.value;
-    jsonData = s.jsonData.value;
-    flattenJsonFlag = s.flattenJson.value;
-    serializeNestedFlag = s.serializeNested.value;
-  }
+export function updateHeadersForPreview(): void {
+  const s = DialogStore.importCsvState;
+  const rawPreviewData = s.rawPreviewData.value;
+  const headerMode = s.headerMode.value;
+  const originalHeaders = s.originalHeaders.value;
+  const customHeaders = s.customHeaders.value;
+  const isJson = s.isJson.value;
+  const jsonData = s.jsonData.value;
+  const flattenJsonFlag = s.flattenJson.value;
+  const serializeNestedFlag = s.serializeNested.value;
 
   if (isJson && jsonData) {
     const previewLimit = AppStore.uxSettings.value.preview.rowLimit;
@@ -1019,32 +714,16 @@ export function updateHeadersForPreview(this: LegacyApp | void): void {
     const headers = processedData.length > 0 ? Object.keys(processedData[0]) : customHeaders;
     const { resolvedHeaders, warning } = resolveDuplicateHeaders(headers);
 
-    if (legacyApp) {
-      legacyApp.importDialogState.previewHeaders = resolvedHeaders;
-      legacyApp.importDialogState.previewDataRows = processedData.map((row: any) =>
-        resolvedHeaders.map((h) => row[h])
-      );
-      legacyApp.importDialogState.duplicateWarning = warning;
-      legacyApp.importDialogState.customHeaders = resolvedHeaders;
-    } else {
-      DialogStore.importCsvState.previewHeaders.value = resolvedHeaders;
-      DialogStore.importCsvState.previewDataRows.value = processedData.map((row: any) =>
-        resolvedHeaders.map((h) => row[h])
-      );
-      DialogStore.importCsvState.duplicateWarning.value = warning;
-      DialogStore.importCsvState.customHeaders.value = resolvedHeaders;
-    }
+    s.previewHeaders.value = resolvedHeaders;
+    s.previewDataRows.value = processedData.map((row: any) => resolvedHeaders.map((h) => row[h]));
+    s.duplicateWarning.value = warning;
+    s.customHeaders.value = resolvedHeaders;
     return;
   }
 
   if (rawPreviewData.length === 0) {
-    if (legacyApp) {
-      legacyApp.importDialogState.previewHeaders = [];
-      legacyApp.importDialogState.previewDataRows = [];
-    } else {
-      DialogStore.importCsvState.previewHeaders.value = [];
-      DialogStore.importCsvState.previewDataRows.value = [];
-    }
+    s.previewHeaders.value = [];
+    s.previewDataRows.value = [];
     return;
   }
 
@@ -1065,42 +744,24 @@ export function updateHeadersForPreview(this: LegacyApp | void): void {
     previewDataRows = rawPreviewData;
   }
 
-  if (legacyApp) {
-    legacyApp.importDialogState.previewDataRows = previewDataRows;
-  } else {
-    DialogStore.importCsvState.previewDataRows.value = previewDataRows;
-  }
+  s.previewDataRows.value = previewDataRows;
 
   if (headers && headers.length > 0) {
     const { resolvedHeaders, warning } = resolveDuplicateHeaders(headers);
 
-    if (legacyApp) {
-      legacyApp.importDialogState.previewHeaders = resolvedHeaders;
-      legacyApp.importDialogState.duplicateWarning = warning;
-      if (headerMode === 'first-row' || headerMode === 'manual') {
-        legacyApp.importDialogState.customHeaders = resolvedHeaders;
-      }
-    } else {
-      DialogStore.importCsvState.previewHeaders.value = resolvedHeaders;
-      DialogStore.importCsvState.duplicateWarning.value = warning;
-      if (headerMode === 'first-row' || headerMode === 'manual') {
-        DialogStore.importCsvState.customHeaders.value = resolvedHeaders;
-      }
+    s.previewHeaders.value = resolvedHeaders;
+    s.duplicateWarning.value = warning;
+    if (headerMode === 'first-row' || headerMode === 'manual') {
+      s.customHeaders.value = resolvedHeaders;
     }
   }
 
   // Re-compute schema diff if in replace mode
-  if (DialogStore.importCsvState.isReplaceMode.value) {
-    const sourceId = DialogStore.importCsvState.targetSourceId.value;
-    const source = AppStore.sources.value.find((s) => s.id === sourceId);
+  if (s.isReplaceMode.value) {
+    const sourceId = s.targetSourceId.value;
+    const source = AppStore.sources.value.find((src) => src.id === sourceId);
     if (source) {
-      const previewHeaders =
-        legacyApp?.importDialogState.previewHeaders ??
-        DialogStore.importCsvState.previewHeaders.value;
-      const previewRows =
-        legacyApp?.importDialogState.previewDataRows ??
-        DialogStore.importCsvState.previewDataRows.value;
-      computeSchemaDiffForPreview(source.columns, previewHeaders, previewRows);
+      computeSchemaDiffForPreview(source.columns, s.previewHeaders.value, s.previewDataRows.value);
     }
   }
 }

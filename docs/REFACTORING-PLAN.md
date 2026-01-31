@@ -3,7 +3,7 @@
 > Architectural assessment and refactoring roadmap for the `src/app/` layer
 
 **Date:** 2026-01-31
-**Status:** In Progress (Phase 3 Foundation Complete)
+**Status:** In Progress (Phase 4 Started)
 
 ---
 
@@ -383,9 +383,15 @@ Each handler has:
 - `TypeConversionDialog` migrated from app prop to store-based pattern
 - `App.tsx` remains the orchestration root (receives app for callbacks)
 
-### Phase 4: Polish (Week 7)
+### Phase 4: Polish (Week 7) ⏳ IN PROGRESS
 
-- [ ] Remove AppStore proxy pattern from SytoApp (54 getter/setter pairs)
+- [x] Remove `.call(app, ...)` pattern from App.tsx helpers
+- [x] Update App.tsx to import from DialogCoordinator directly
+- [x] Refactor `init()` method to use AppStore directly
+- [x] Refactor internal methods (`syncUrlState`, `switchToModel`, `showModelInfo`, etc.)
+- [x] Remove `.call(this, ...)` from ALL handler method wrappers in SytoApp
+- [x] Refactor all handlers to use stores directly (removed `legacyApp` fallback pattern)
+- [ ] Remove proxy getter/setter pairs from SytoApp (unblocked, needs incremental migration)
 - [ ] Split oversized components
 - [ ] Address remaining test gaps
 - [ ] Update documentation (SPECIFICATION.md)
@@ -393,12 +399,54 @@ Each handler has:
 
 **Deliverable**: Maintainable component structure
 
-**AppStore proxy removal notes:**
+**Completed in Phase 4:**
 
-- 54 proxy pairs in SytoApp that forward to AppStore signals
-- Used by legacy code in dialog-handlers.ts (fallback when legacyApp provided)
-- Components already use stores directly - proxies only for SytoApp internal methods
-- Can be removed incrementally without affecting components
+- App.tsx now imports pure helper functions from `DialogCoordinator` directly
+- Removed all `.call(app, ...)` patterns for helper functions in App.tsx
+- **Refactored `init()` to use AppStore directly** - no longer uses `this.property` syntax
+- **Refactored internal methods to use AppStore directly:**
+  - `syncUrlState()` - uses `AppStore.activeModel.value`, `AppStore.activeSource.value`
+  - `startTransformation()` / `endTransformation()` - uses `AppStore.isTransforming.value`
+  - `applyTheme()` / `switchTheme()` - uses `AppStore.theme.value`
+  - `updatePreviewRowLimit()` / `getPreviewRowLimit()` - uses `AppStore.uxSettings.value`
+  - `updateAnalyticsOptOut()` - uses `AppStore.uxSettings.value`
+  - `showModelInfo()` - uses `AppStore.activeModel.value`
+  - `createNewModelFromActive()` - uses `AppStore.sources.value`, `AppStore.activeModel.value`
+  - `switchToModel()` - uses `AppStore.ribbonTab.value`
+
+- **Removed `.call(this, ...)` from ALL handler wrappers** (Phase 4 major milestone):
+  - `dialog-handlers` - all functions now use stores directly
+  - `step-handlers` - all functions now use stores directly
+  - `notification-handlers` - all functions use stores directly (already done earlier)
+  - `eda-handlers` - all functions now use stores directly
+  - `helper-handlers` - all functions now use stores directly
+  - `json-handlers` - all functions now use stores directly
+  - `import-handlers` - all functions now use stores directly
+
+- **Handler callback pattern established:**
+  - Each handler module exports `setXxxCallbacks()` for UI integration
+  - Handlers use `callbacks?.method()` for UI operations (openDialog, closeDialog, etc.)
+  - All state access uses `AppStore.xxx.value` or `DialogStore.xxx.value` directly
+
+**Remaining cleanup - SytoApp proxy removal:**
+
+The 54 proxy pairs in `src/syto-app.ts` can now be removed since handlers no longer need them.
+However, removal requires updating any remaining code that accesses state via `app.property`.
+
+| Category      | Properties    | Status                               |
+| ------------- | ------------- | ------------------------------------ |
+| UI State      | 17 properties | Can be removed (handlers use stores) |
+| Dialog State  | 13 properties | Can be removed (handlers use stores) |
+| Data State    | 10 properties | Can be removed (handlers use stores) |
+| App State     | 8 properties  | Can be removed (handlers use stores) |
+| JSON Edit     | 4 properties  | Can be removed (handlers use stores) |
+| Notifications | 4 properties  | Can be removed (handlers use stores) |
+
+**To fully remove proxies (incremental cleanup):**
+
+1. Identify remaining usages of `app.property` in tests and components
+2. Update those usages to `AppStore.property.value` or `DialogStore.xxx.value`
+3. Delete the getter/setter pairs from syto-app.ts
 
 ---
 
@@ -408,37 +456,49 @@ Each handler has:
 | ----------------------------- | ------------ | ---------------- | ------------------ | -------- |
 | Duplicated preview/validation | ✅ Resolved  | ~2,000 LoC duped | 4-5 days           | **Done** |
 | SytoApp God Object            | 🟡 Improving | Blocks testing   | 1-2 weeks          | Phase 4  |
+| SytoApp proxy pattern         | 🟢 Unblocked | ~400 LoC bloat   | 2-3 days           | Ready    |
+| SytoApp.init() uses proxies   | ✅ Resolved  | Hard to test     | 1 day              | **Done** |
 | Handler module explosion      | 🟡 Medium    | Cognitive load   | 3-4 days           | Phase 4  |
 | Oversized components          | 🟡 Medium    | Hard to test     | 3-5 days           | Phase 4  |
 | Handler test coverage (16%)   | ✅ Improved  | Risky refactors  | 5-7 days           | ~24%     |
 | Component test coverage (38%) | 🟡 Medium    | Missing UI tests | 5-7 days           | Phase 4  |
 | DialogStore signal sprawl     | 🟡 Medium    | Scaling problem  | 2-3 days           | Phase 4  |
 | Handler `this` context        | ✅ Resolved  | Hard to test     | 2-3 days           | **Done** |
+| App.tsx `.call()` pattern     | ✅ Resolved  | Indirect calls   | 1 day              | **Done** |
+| Handler `.call(this)` pattern | ✅ Resolved  | Indirect calls   | 1 day              | **Done** |
 
 ---
 
 ## Decision Log
 
-| Date       | Decision                                                   | Rationale                                                  |
-| ---------- | ---------------------------------------------------------- | ---------------------------------------------------------- |
-| 2026-01-31 | Prioritize duplication removal over SytoApp decomposition  | Higher ROI, lower risk, enables future refactoring         |
-| 2026-01-31 | Keep core layer unchanged                                  | Already well-structured, no issues identified              |
-| 2026-01-31 | Phase 1 complete: preview-engine and validation-engine     | 7 handlers migrated, 46 new tests, all tests pass          |
-| 2026-01-31 | Phase 2 migration: 6 additional handlers to preview-engine | 13 total handlers now use shared preview engine            |
-| 2026-01-31 | Defer join-handlers.ts to Phase 3                          | Complex async pattern with dual state needs arch refactor  |
-| 2026-01-31 | Created handler testing framework (test-utils.ts)          | Enables consistent testing patterns, reduces boilerplate   |
-| 2026-01-31 | Added 95 new handler tests (aggregate, import, join)       | Critical handlers now tested, coverage improved to ~24%    |
-| 2026-01-31 | Defer physical handler consolidation to Phase 3            | Better to align with SytoApp decomposition to reduce churn |
-| 2026-01-31 | Phase 2 complete                                           | 232 total handler tests, testing framework established     |
-| 2026-01-31 | Create orchestration module structure                      | Provides foundation for SytoApp decomposition              |
-| 2026-01-31 | Extract EventRouter, UrlStateSync, DialogCoordinator       | Separates concerns into testable modules                   |
-| 2026-01-31 | Refactor pagination-handlers to store-based pattern        | First handler migrated away from `this` context            |
-| 2026-01-31 | Use hybrid callbacks pattern for handlers                  | Keep ExecutionCallbacks for UI, direct imports for state   |
-| 2026-01-31 | Phase 3 foundation complete                                | Orchestration modules created, 1063 tests passing          |
-| 2026-01-31 | Migrate all 8 handler files to dual-mode pattern           | Handlers support both legacy `this` and store-based calls  |
-| 2026-01-31 | Migrate TypeConversionDialog to store-based pattern        | Last component needing app prop for function calls         |
-| 2026-01-31 | Defer AppStore proxy removal to Phase 4                    | Low priority cleanup, not blocking component development   |
-| 2026-01-31 | Phase 3 complete                                           | Handler migration done, components use stores directly     |
+| Date       | Decision                                                   | Rationale                                                   |
+| ---------- | ---------------------------------------------------------- | ----------------------------------------------------------- |
+| 2026-01-31 | Prioritize duplication removal over SytoApp decomposition  | Higher ROI, lower risk, enables future refactoring          |
+| 2026-01-31 | Keep core layer unchanged                                  | Already well-structured, no issues identified               |
+| 2026-01-31 | Phase 1 complete: preview-engine and validation-engine     | 7 handlers migrated, 46 new tests, all tests pass           |
+| 2026-01-31 | Phase 2 migration: 6 additional handlers to preview-engine | 13 total handlers now use shared preview engine             |
+| 2026-01-31 | Defer join-handlers.ts to Phase 3                          | Complex async pattern with dual state needs arch refactor   |
+| 2026-01-31 | Created handler testing framework (test-utils.ts)          | Enables consistent testing patterns, reduces boilerplate    |
+| 2026-01-31 | Added 95 new handler tests (aggregate, import, join)       | Critical handlers now tested, coverage improved to ~24%     |
+| 2026-01-31 | Defer physical handler consolidation to Phase 3            | Better to align with SytoApp decomposition to reduce churn  |
+| 2026-01-31 | Phase 2 complete                                           | 232 total handler tests, testing framework established      |
+| 2026-01-31 | Create orchestration module structure                      | Provides foundation for SytoApp decomposition               |
+| 2026-01-31 | Extract EventRouter, UrlStateSync, DialogCoordinator       | Separates concerns into testable modules                    |
+| 2026-01-31 | Refactor pagination-handlers to store-based pattern        | First handler migrated away from `this` context             |
+| 2026-01-31 | Use hybrid callbacks pattern for handlers                  | Keep ExecutionCallbacks for UI, direct imports for state    |
+| 2026-01-31 | Phase 3 foundation complete                                | Orchestration modules created, 1063 tests passing           |
+| 2026-01-31 | Migrate all 8 handler files to dual-mode pattern           | Handlers support both legacy `this` and store-based calls   |
+| 2026-01-31 | Migrate TypeConversionDialog to store-based pattern        | Last component needing app prop for function calls          |
+| 2026-01-31 | Defer AppStore proxy removal to Phase 4                    | Low priority cleanup, not blocking component development    |
+| 2026-01-31 | Phase 3 complete                                           | Handler migration done, components use stores directly      |
+| 2026-01-31 | Remove `.call(app, ...)` from App.tsx helpers              | Helper functions now called directly, no `this` context     |
+| 2026-01-31 | Import helpers from DialogCoordinator                      | Pure functions that access stores directly                  |
+| 2026-01-31 | Phase 4 started                                            | App.tsx simplified, 1063 tests passing                      |
+| 2026-01-31 | Refactor `init()` to use AppStore directly                 | Core initialization no longer uses proxy pattern            |
+| 2026-01-31 | Refactor internal methods to use AppStore directly         | `syncUrlState`, `switchToModel`, etc. use stores            |
+| 2026-01-31 | Proxy removal blocked by handler wrappers                  | `.call(this, ...)` pattern still used, proxies still needed |
+| 2026-01-31 | Remove `.call(this)` from ALL handler wrappers             | Handlers now use stores directly via callbacks pattern      |
+| 2026-01-31 | Handler proxy removal blocker resolved                     | 54 proxy pairs can now be removed incrementally             |
 
 ---
 
