@@ -146,62 +146,36 @@ src/app/handlers/
 
 ---
 
-## 4. High Priority: Modularize DialogStore
+## ~~4. High Priority: Modularize DialogStore~~ ✅ COMPLETED
 
-**File**: `src/app/stores/DialogStore.ts` (561 lines)
-**Problem**: 20+ dialog state definitions in single file
+**File**: `src/app/stores/DialogStore.ts` (561 → 146 lines)
+**Result**: 33 dialog state files organized into 7 subdirectories
 
-### Current Pattern (repeated 20+ times)
-
-```typescript
-static filterState = {
-  expression: signal(''),
-  previewMode: signal<FilterPreviewMode>('on'),
-  // ...
-};
-static joinState = { /* ... */ };
-static pivotState = { /* ... */ };
-```
-
-### Proposed Solution
-
-**Option A: State Factory Pattern**
-
-```typescript
-// src/app/stores/dialog-state-factory.ts
-interface DialogStateDefinition<T> {
-  defaults: T;
-  reset(): void;
-}
-
-function createDialogState<T>(defaults: T): DialogStateDefinition<T> {
-  const signals = Object.fromEntries(Object.entries(defaults).map(([k, v]) => [k, signal(v)]));
-  return {
-    ...signals,
-    reset() {
-      /* restore defaults */
-    },
-  };
-}
-```
-
-**Option B: Separate State Files**
+### Completed Structure (February 2026)
 
 ```
 src/app/stores/
 ├── AppStore.ts
-├── DialogStore.ts              # Core utilities only
+├── DialogStore.ts              # Core utilities + static re-exports (146 lines)
 └── dialogs/
-    ├── index.ts
-    ├── filter-state.ts
-    ├── join-state.ts
-    ├── aggregate-state.ts
-    └── ...
+    ├── index.ts                # Barrel exports
+    ├── reset-registry.ts       # Central reset function registry
+    ├── transform/              # 9 states: filter, derive, sort, slice, sample, etc.
+    ├── column/                 # 7 states: spread, unroll, merge, split, dedupe, etc.
+    ├── aggregate/              # 3 states: aggregate, pivot, fold
+    ├── combine/                # 2 states: join, append
+    ├── text/                   # 4 states: text, date, regexp-match, regexp-extract
+    ├── pattern/                # 3 states: select, remove, rename patterns
+    └── import/                 # 5 states: csv, url, generate, preview, settings
 ```
 
-### Recommendation
+### Benefits Achieved
 
-Option B is preferred — clearer separation, easier to find dialog-specific state.
+- **75% reduction** in DialogStore.ts size (561 → 146 lines)
+- Clear separation by dialog category
+- Central reset registry for clean state management
+- Backward compatible via static re-exports
+- Each state file is self-contained (~30-60 lines)
 
 ---
 
@@ -277,38 +251,47 @@ export function createMockExecutionCallbacks(
 
 ---
 
-## 7. Medium Priority: Centralize Types
+## 7. Medium Priority: Centralize Types (Partially Complete)
 
-**Current**: Types scattered across components and handlers
+**Status**: Dialog mode types centralized, core types still in `src/app/types.ts`
 
-| Location              | Types Found                 |
-| --------------------- | --------------------------- |
-| `SliceRowsDialog.tsx` | `SliceMode`                 |
-| `UnpivotDialog.tsx`   | `UnpivotMode`               |
-| `FilterDialog.tsx`    | `FilterPreviewMode`         |
-| `JoinDialog.tsx`      | `JoinType`, `JoinTarget`    |
-| `step-handlers.ts`    | `StepCallbacks` (~50 lines) |
-| `DialogStore.ts`      | State interfaces            |
+### Completed (February 2026)
 
-### Proposed Structure
+```
+src/types/
+├── index.ts              # Barrel exports
+└── modes.ts              # ✅ 20+ dialog mode types centralized:
+                          # SliceMode, FilterPreviewMode, UnpivotMode,
+                          # SplitMode, JoinType, JoinTarget, DedupeMode,
+                          # ImputeStrategy, ColumnEditorMode, Theme, etc.
+```
+
+### Remaining Work
+
+| Location           | Types Remaining                                                  |
+| ------------------ | ---------------------------------------------------------------- |
+| `src/app/types.ts` | DataRow, DialogName, Source, Model, Notification, AppState (265) |
+| Services           | ExecutionCallbacks, ComputeResult, ComputeContext                |
+| Orchestration      | DialogCallbacks, EventRouterCallbacks, UrlSyncCallbacks          |
+
+### Proposed Final Structure
 
 ```
 src/types/
 ├── index.ts              # Re-exports all
-├── data.ts               # Source, Model, DataRow, ColumnType
-├── transforms.ts         # TransformStep, TransformOptions
-├── dialogs.ts            # All dialog state interfaces, modes
-├── handlers.ts           # Callback signatures (StepCallbacks, etc.)
-├── ui.ts                 # ViewMode, DialogName, NotificationType
-└── schema.ts             # Schema, ColumnSchema, InferredType
+├── modes.ts              # ✅ Dialog modes (complete)
+├── data.ts               # Source, Model, DataRow
+├── dialogs.ts            # DialogName, dialog state interfaces
+├── handlers.ts           # Callback signatures
+└── ui.ts                 # AppState, Notification, ViewMode
 ```
 
-### Migration
+### Migration (Lower Priority)
 
-- [ ] Create `src/types/` directory structure
-- [ ] Move types from scattered locations
+- [x] Create `src/types/` directory with modes.ts
+- [ ] Move types from `src/app/types.ts`
+- [ ] Extract callback types from services
 - [ ] Update imports across codebase
-- [ ] Remove empty type exports from original files
 
 ---
 
@@ -342,31 +325,32 @@ src/types/
 
 ---
 
-## 9. ast-interpreter.ts Modularization
+## ~~9. ast-interpreter.ts Modularization~~ ✅ COMPLETED
 
-**File**: `src/core/ast-interpreter.ts` (1,214 lines)
-**Issue**: 62 builtin functions in single `FUNCTION_IMPLS` object
+**File**: `src/core/ast-interpreter.ts` (1,214 → 140 lines)
+**Result**: 62 builtin functions extracted into 6 category modules
 
-### Proposed Split
+### Completed Structure (February 2026)
 
 ```
 src/core/
-├── ast-interpreter.ts          # Core interpreter logic (~400 lines)
+├── ast-interpreter.ts          # Core interpreter logic (140 lines)
 └── functions/
-    ├── index.ts                # FUNCTION_IMPLS aggregation
-    ├── string-functions.ts     # ~200 lines
-    ├── math-functions.ts       # ~150 lines
-    ├── date-functions.ts       # ~200 lines
-    ├── type-functions.ts       # ~100 lines
-    ├── regex-functions.ts      # ~100 lines
-    └── array-functions.ts      # ~100 lines
+    ├── index.ts                # FUNCTION_IMPLS aggregation (29 lines)
+    ├── date-functions.ts       # Date extraction, arithmetic, formatting (407 lines)
+    ├── math-functions.ts       # Math operations, trig, rounding (379 lines)
+    ├── string-functions.ts     # Text manipulation, comparison (254 lines)
+    ├── regex-functions.ts      # Pattern matching, extraction (87 lines)
+    ├── json-functions.ts       # JSON parsing, extraction (62 lines)
+    └── type-functions.ts       # Type conversion, validation (52 lines)
 ```
 
-### Benefits
+### Benefits Achieved
 
-- Tree-shakeable (only used functions in bundle)
-- Easier to add new functions
-- Better LLM context when working on specific function category
+- **88% reduction** in ast-interpreter.ts (1,214 → 140 lines)
+- Each category file is focused and maintainable
+- parseToDate re-exported for backward compatibility
+- All 1217 tests passing
 
 ---
 
@@ -388,15 +372,15 @@ src/core/
 4. ~~Reorganize handler directory structure (§3)~~ ✅
 5. ~~Split remaining test monoliths (§2.2, §2.3)~~ ✅
 
-### Phase 3: Store Modernization (2-3 sessions)
+### Phase 3: Store Modernization ✅ MOSTLY COMPLETE
 
-6. Modularize DialogStore (§4)
-7. Centralize types (§7)
+6. ~~Modularize DialogStore (§4)~~ ✅
+7. ~~Centralize types (§7)~~ ✅ Dialog modes done; remaining types are lower priority
 
-### Phase 5: Component Refinement (2-3 sessions)
+### Phase 5: Component Refinement (In Progress)
 
 10. Split large components (§8)
-11. Modularize ast-interpreter (§9)
+11. ~~Modularize ast-interpreter (§9)~~ ✅
 
 ---
 
@@ -421,7 +405,7 @@ src/core/
 | File                                                     | Lines | Action                         | Section |
 | -------------------------------------------------------- | ----- | ------------------------------ | ------- |
 | `src/core/transforms.ts`                                 | 1,320 | Consider splitting by category | —       |
-| `src/core/ast-interpreter.ts`                            | 1,214 | Extract function modules       | §9      |
+| ~~`src/core/ast-interpreter.ts`~~                        | 1,214 | ✅ Modularized to 140 lines    | §9      |
 | ~~`src/core/ast-interpreter.test.ts`~~                   | 1,130 | ✅ Split into 3 files          | §2.2    |
 | ~~`src/app/handlers/core/step-handlers.test.ts`~~        | 791   | ✅ Split into 4 files          | §2.3    |
 | `src/app/handlers/import/import-handlers.ts`             | 767   | Split by import type           | —       |
@@ -429,17 +413,19 @@ src/core/
 | `src/app/orchestration/DialogCoordinator.ts`             | 702   | Extract snapshot service       | §8.3    |
 | `src/app/orchestration/AppController.ts`                 | ~700  | New file (central dispatcher)  | —       |
 | `src/app/handlers/transform/join-handlers.ts`            | 652   | Consider splitting             | —       |
-| `src/app/stores/DialogStore.ts`                          | 561   | Modularize                     | §4      |
+| ~~`src/app/stores/DialogStore.ts`~~                      | 561   | ✅ Modularized to 146 lines    | §4      |
 | `src/app/services/GeneratorService.ts`                   | 545   | Consider splitting             | —       |
 
 ### Completed Refactoring
 
-| File                               | Before | After              | Section |
-| ---------------------------------- | ------ | ------------------ | ------- |
-| `src/syto-app.ts`                  | 1,195  | 285                | §1 ✅   |
-| `src/core/transforms.test.ts`      | 2,075  | 6 files (~350 avg) | §2.1 ✅ |
-| `src/core/ast-interpreter.test.ts` | 1,130  | 3 files (~300 avg) | §2.2 ✅ |
-| `step-handlers.test.ts`            | 791    | 4 files (~145 avg) | §2.3 ✅ |
+| File                               | Before | After                | Section |
+| ---------------------------------- | ------ | -------------------- | ------- |
+| `src/syto-app.ts`                  | 1,195  | 285                  | §1 ✅   |
+| `src/core/transforms.test.ts`      | 2,075  | 6 files (~350 avg)   | §2.1 ✅ |
+| `src/core/ast-interpreter.test.ts` | 1,130  | 3 files (~300 avg)   | §2.2 ✅ |
+| `step-handlers.test.ts`            | 791    | 4 files (~145 avg)   | §2.3 ✅ |
+| `src/app/stores/DialogStore.ts`    | 561    | 146 + 33 state files | §4 ✅   |
+| `src/core/ast-interpreter.ts`      | 1,214  | 140 + 6 fn modules   | §9 ✅   |
 
 ### What's Working Well (No Action Needed)
 
