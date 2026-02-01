@@ -8,11 +8,8 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { AppStore } from '../stores/AppStore';
 import { DialogStore } from '../stores/DialogStore';
 import * as DialogHandlers from './dialog-handlers';
-import { SytoApp } from '../../syto-app';
 
 describe('Dialog Handlers', () => {
-  let app: SytoApp;
-
   beforeEach(() => {
     // Reset all stores
     AppStore.reset();
@@ -21,16 +18,6 @@ describe('Dialog Handlers', () => {
     // Mock console methods
     vi.spyOn(console, 'error').mockImplementation(() => {});
     vi.spyOn(console, 'warn').mockImplementation(() => {});
-
-    // Create app instance
-    app = new SytoApp();
-
-    // Mock dialog methods
-    app.alert = vi.fn().mockResolvedValue(undefined);
-    app.confirm = vi.fn().mockResolvedValue(true);
-    app.prompt = vi.fn().mockResolvedValue('test');
-    app.closeDialog = vi.fn();
-    app.openDialog = vi.fn();
 
     // Set up default UX settings
     AppStore.uxSettings.value = {
@@ -47,82 +34,75 @@ describe('Dialog Handlers', () => {
 
   describe('isSlidePanel', () => {
     it('should return true for import-csv dialog', () => {
-      app.activeDialog = 'import-csv';
-      expect(DialogHandlers.isSlidePanel.call(app, 'import-csv')).toBe(true);
+      expect(DialogHandlers.isSlidePanel('import-csv')).toBe(true);
     });
 
     it('should return true for import-url dialog', () => {
-      app.activeDialog = 'import-url';
-      expect(DialogHandlers.isSlidePanel.call(app, 'import-url')).toBe(true);
+      expect(DialogHandlers.isSlidePanel('import-url')).toBe(true);
     });
 
     it('should return false for settings dialog', () => {
-      app.activeDialog = 'settings';
-      expect(DialogHandlers.isSlidePanel.call(app, 'settings')).toBe(false);
+      expect(DialogHandlers.isSlidePanel('settings')).toBe(false);
     });
 
     it('should return false for null dialog', () => {
-      app.activeDialog = null;
-      expect(DialogHandlers.isSlidePanel.call(app, null)).toBe(false);
+      expect(DialogHandlers.isSlidePanel(null)).toBe(false);
     });
   });
 
   describe('isCenteredModal', () => {
     it('should return false for import-csv dialog', () => {
-      app.activeDialog = 'import-csv';
-      expect(DialogHandlers.isCenteredModal.call(app, 'import-csv')).toBe(false);
+      expect(DialogHandlers.isCenteredModal('import-csv')).toBe(false);
     });
 
     it('should return true for settings dialog', () => {
-      app.activeDialog = 'settings';
-      expect(DialogHandlers.isCenteredModal.call(app, 'settings')).toBe(true);
+      expect(DialogHandlers.isCenteredModal('settings')).toBe(true);
     });
 
     it('should return false for null dialog', () => {
-      app.activeDialog = null;
-      expect(DialogHandlers.isCenteredModal.call(app, null)).toBe(false);
+      expect(DialogHandlers.isCenteredModal(null)).toBe(false);
     });
   });
 
   describe('hasPreviewData', () => {
     it('should return true for import-csv when preview data exists', () => {
-      app.activeDialog = 'import-csv';
+      AppStore.activeDialog.value = 'import-csv';
       DialogStore.importCsvState.previewDataRows.value = [
         ['a', 'b'],
         ['c', 'd'],
       ];
-      expect(DialogHandlers.hasPreviewData.call(app)).toBe(true);
+      expect(DialogHandlers.hasPreviewData()).toBe(true);
     });
 
     it('should return false for import-csv when preview data is empty', () => {
-      app.activeDialog = 'import-csv';
+      AppStore.activeDialog.value = 'import-csv';
       DialogStore.importCsvState.previewDataRows.value = [];
-      expect(DialogHandlers.hasPreviewData.call(app)).toBe(false);
+      expect(DialogHandlers.hasPreviewData()).toBe(false);
     });
 
     it('should use previewState for non-import-csv dialogs', () => {
-      app.activeDialog = 'filter';
+      AppStore.activeDialog.value = 'filter';
       DialogStore.previewState.rows.value = [{ col1: 'value1' }];
-      expect(DialogHandlers.hasPreviewData.call(app)).toBe(true);
+      expect(DialogHandlers.hasPreviewData()).toBe(true);
     });
   });
 
   describe('getPreviewTitle', () => {
     it('should return "Import Preview" for import-csv dialog', () => {
-      app.activeDialog = 'import-csv';
-      expect(DialogHandlers.getPreviewTitle.call(app)).toBe('Import Preview');
+      AppStore.activeDialog.value = 'import-csv';
+      expect(DialogHandlers.getPreviewTitle()).toBe('Import Preview');
     });
 
     it('should use previewState title for other dialogs', () => {
-      app.activeDialog = 'filter';
+      AppStore.activeDialog.value = 'filter';
       DialogStore.previewState.title.value = 'Filter Preview';
-      expect(DialogHandlers.getPreviewTitle.call(app)).toBe('Filter Preview');
+      expect(DialogHandlers.getPreviewTitle()).toBe('Filter Preview');
     });
   });
 
   describe('getPreviewStats', () => {
     it('should generate stats for import-csv dialog with correct row limit', () => {
-      app.activeDialog = 'import-csv';
+      AppStore.activeDialog.value = 'import-csv';
       DialogStore.importCsvState.previewHeaders.value = ['col1', 'col2', 'col3'];
       DialogStore.importCsvState.previewDataRows.value = [
         ['a', 'b', 'c'],
@@ -131,52 +111,52 @@ describe('Dialog Handlers', () => {
       ];
       AppStore.uxSettings.value.preview.rowLimit = 10;
 
-      const stats = DialogHandlers.getPreviewStats.call(app);
+      const stats = DialogHandlers.getPreviewStats();
       expect(stats).toBe('3 rows, 3 columns (first 3 rows shown)');
     });
 
     it('should respect row limit when data exceeds limit', () => {
-      app.activeDialog = 'import-csv';
+      AppStore.activeDialog.value = 'import-csv';
       DialogStore.importCsvState.previewHeaders.value = ['col1'];
       // Create 15 rows
       DialogStore.importCsvState.previewDataRows.value = Array(15).fill(['data']);
       AppStore.uxSettings.value.preview.rowLimit = 10;
 
-      const stats = DialogHandlers.getPreviewStats.call(app);
+      const stats = DialogHandlers.getPreviewStats();
       expect(stats).toBe('15 rows, 1 columns (first 10 rows shown)');
     });
 
     it('should use previewState stats for other dialogs', () => {
-      app.activeDialog = 'filter';
+      AppStore.activeDialog.value = 'filter';
       DialogStore.previewState.stats.value = '5 rows filtered';
-      expect(DialogHandlers.getPreviewStats.call(app)).toBe('5 rows filtered');
+      expect(DialogHandlers.getPreviewStats()).toBe('5 rows filtered');
     });
   });
 
   describe('getPreviewColumns', () => {
     it('should return headers from importCsvState for import-csv dialog', () => {
-      app.activeDialog = 'import-csv';
+      AppStore.activeDialog.value = 'import-csv';
       DialogStore.importCsvState.previewHeaders.value = ['header1', 'header2', 'header3'];
-      expect(DialogHandlers.getPreviewColumns.call(app)).toEqual(['header1', 'header2', 'header3']);
+      expect(DialogHandlers.getPreviewColumns()).toEqual(['header1', 'header2', 'header3']);
     });
 
     it('should use previewState columns for other dialogs', () => {
-      app.activeDialog = 'filter';
+      AppStore.activeDialog.value = 'filter';
       DialogStore.previewState.columns.value = ['col1', 'col2'];
-      expect(DialogHandlers.getPreviewColumns.call(app)).toEqual(['col1', 'col2']);
+      expect(DialogHandlers.getPreviewColumns()).toEqual(['col1', 'col2']);
     });
   });
 
   describe('getPreviewRows', () => {
     it('should convert array rows to object rows for import-csv dialog', () => {
-      app.activeDialog = 'import-csv';
+      AppStore.activeDialog.value = 'import-csv';
       DialogStore.importCsvState.previewHeaders.value = ['name', 'age'];
       DialogStore.importCsvState.previewDataRows.value = [
         ['Alice', '30'],
         ['Bob', '25'],
       ];
 
-      const rows = DialogHandlers.getPreviewRows.call(app);
+      const rows = DialogHandlers.getPreviewRows();
       expect(rows).toEqual([
         { name: 'Alice', age: '30' },
         { name: 'Bob', age: '25' },
@@ -184,56 +164,56 @@ describe('Dialog Handlers', () => {
     });
 
     it('should handle empty rows for import-csv dialog', () => {
-      app.activeDialog = 'import-csv';
+      AppStore.activeDialog.value = 'import-csv';
       DialogStore.importCsvState.previewHeaders.value = ['col1'];
       DialogStore.importCsvState.previewDataRows.value = [];
 
-      const rows = DialogHandlers.getPreviewRows.call(app);
+      const rows = DialogHandlers.getPreviewRows();
       expect(rows).toEqual([]);
     });
 
     it('should use previewState rows for other dialogs', () => {
-      app.activeDialog = 'filter';
+      AppStore.activeDialog.value = 'filter';
       const testRows = [{ col1: 'value1' }, { col1: 'value2' }];
       DialogStore.previewState.rows.value = testRows;
-      expect(DialogHandlers.getPreviewRows.call(app)).toEqual(testRows);
+      expect(DialogHandlers.getPreviewRows()).toEqual(testRows);
     });
   });
 
   describe('formatPreviewCell', () => {
     it('should return "—" for null values', () => {
       const row = { col1: null };
-      expect(DialogHandlers.formatPreviewCell.call(app, row, 'col1')).toBe('—');
+      expect(DialogHandlers.formatPreviewCell(row, 'col1')).toBe('—');
     });
 
     it('should return "—" for empty strings', () => {
       const row = { col1: '' };
-      expect(DialogHandlers.formatPreviewCell.call(app, row, 'col1')).toBe('—');
+      expect(DialogHandlers.formatPreviewCell(row, 'col1')).toBe('—');
     });
 
     it('should return "✓" for true booleans', () => {
       const row = { col1: true };
-      expect(DialogHandlers.formatPreviewCell.call(app, row, 'col1')).toBe('✓');
+      expect(DialogHandlers.formatPreviewCell(row, 'col1')).toBe('✓');
     });
 
     it('should return "✗" for false booleans', () => {
       const row = { col1: false };
-      expect(DialogHandlers.formatPreviewCell.call(app, row, 'col1')).toBe('✗');
+      expect(DialogHandlers.formatPreviewCell(row, 'col1')).toBe('✗');
     });
 
     it('should stringify object values', () => {
       const row = { col1: { nested: 'value' } };
-      expect(DialogHandlers.formatPreviewCell.call(app, row, 'col1')).toBe('{"nested":"value"}');
+      expect(DialogHandlers.formatPreviewCell(row, 'col1')).toBe('{"nested":"value"}');
     });
 
     it('should convert numbers to strings', () => {
       const row = { col1: 42 };
-      expect(DialogHandlers.formatPreviewCell.call(app, row, 'col1')).toBe('42');
+      expect(DialogHandlers.formatPreviewCell(row, 'col1')).toBe('42');
     });
 
     it('should return strings as-is', () => {
       const row = { col1: 'test value' };
-      expect(DialogHandlers.formatPreviewCell.call(app, row, 'col1')).toBe('test value');
+      expect(DialogHandlers.formatPreviewCell(row, 'col1')).toBe('test value');
     });
 
     it('should format Date objects using local time (avoiding timezone shift)', () => {
@@ -241,25 +221,25 @@ describe('Dialog Handlers', () => {
       const date = new Date(2024, 0, 15); // January 15, 2024, 00:00:00 local time
       const row = { col1: date };
       // Should format as YYYY-MM-DD using local time, not UTC
-      expect(DialogHandlers.formatPreviewCell.call(app, row, 'col1')).toBe('2024-01-15');
+      expect(DialogHandlers.formatPreviewCell(row, 'col1')).toBe('2024-01-15');
     });
 
     it('should format Date objects correctly regardless of column name', () => {
       // Test that dates are formatted consistently whether column is "date", "Year (after)", etc.
       const date = new Date(1970, 0, 1); // January 1, 1970 local midnight
       const row = { 'Year (after)': date };
-      expect(DialogHandlers.formatPreviewCell.call(app, row, 'Year (after)')).toBe('1970-01-01');
+      expect(DialogHandlers.formatPreviewCell(row, 'Year (after)')).toBe('1970-01-01');
     });
 
     it('should return "Invalid Date" for invalid Date objects', () => {
       const row = { col1: new Date('invalid') };
-      expect(DialogHandlers.formatPreviewCell.call(app, row, 'col1')).toBe('Invalid Date');
+      expect(DialogHandlers.formatPreviewCell(row, 'col1')).toBe('Invalid Date');
     });
   });
 
   describe('initDialogState - replace dialog', () => {
     beforeEach(() => {
-      app.columns = ['col1', 'col2', 'col3'];
+      AppStore.columns.value = ['col1', 'col2', 'col3'];
     });
 
     it('should initialize replace dialog state when findValue is empty', () => {
@@ -267,7 +247,7 @@ describe('Dialog Handlers', () => {
       DialogStore.replaceState.column.value = '';
       DialogStore.replaceState.replaceValue.value = '';
 
-      DialogHandlers.initDialogState.call(app, 'replace');
+      DialogHandlers.initDialogState('replace');
 
       expect(DialogStore.replaceState.column.value).toBe('col1');
       expect(DialogStore.replaceState.findValue.value).toBe('');
@@ -280,7 +260,7 @@ describe('Dialog Handlers', () => {
       DialogStore.replaceState.findValue.value = 'Alice';
       DialogStore.replaceState.replaceValue.value = '';
 
-      DialogHandlers.initDialogState.call(app, 'replace');
+      DialogHandlers.initDialogState('replace');
 
       // Values should be preserved
       expect(DialogStore.replaceState.column.value).toBe('col2');
@@ -293,7 +273,7 @@ describe('Dialog Handlers', () => {
       DialogStore.replaceState.findValue.value = 'some value';
       DialogStore.replaceState.replaceValue.value = '';
 
-      DialogHandlers.initDialogState.call(app, 'replace');
+      DialogHandlers.initDialogState('replace');
 
       expect(DialogStore.replaceState.column.value).toBe('col1');
       expect(DialogStore.replaceState.findValue.value).toBe('some value');
@@ -301,12 +281,12 @@ describe('Dialog Handlers', () => {
     });
 
     it('should handle empty columns array gracefully', () => {
-      app.columns = [];
+      AppStore.columns.value = [];
       DialogStore.replaceState.findValue.value = '';
       DialogStore.replaceState.column.value = '';
       DialogStore.replaceState.replaceValue.value = '';
 
-      DialogHandlers.initDialogState.call(app, 'replace');
+      DialogHandlers.initDialogState('replace');
 
       expect(DialogStore.replaceState.column.value).toBe('');
       expect(DialogStore.replaceState.findValue.value).toBe('');

@@ -13,7 +13,7 @@
 
 import type { ComponentType } from 'preact';
 import type { DialogName } from './types';
-import type { SytoApp } from '../syto-app';
+import { DialogStore } from './stores/DialogStore';
 
 // Dialog type determines rendering location and style
 export type DialogType = 'slide-panel' | 'centered-modal' | 'full-page';
@@ -25,7 +25,7 @@ export interface DialogConfig {
   type: DialogType;
   component?: ComponentType<any>; // Optional: can be lazy-loaded
   buttonText?: string; // Custom button text (defaults to "Apply")
-  initState?: (app: SytoApp, section?: string) => void; // Optional initialization logic
+  initState?: (section?: string) => void; // Optional initialization logic
   isUrlNavigable?: boolean; // Whether dialog should update URL hash
 }
 
@@ -299,11 +299,11 @@ export function isCenteredModal(dialogName: DialogName): boolean {
   return config?.type === 'centered-modal';
 }
 
-export function getDialogTitle(dialogName: DialogName, app?: SytoApp): string {
+export function getDialogTitle(dialogName: DialogName): string {
   if (!dialogName) return '';
 
   // Special case: import-csv title changes based on file type
-  if (dialogName === 'import-csv' && app?.importDialogState?.isJson) {
+  if (dialogName === 'import-csv' && DialogStore.importCsvState.isJson.value) {
     return 'Import JSON';
   }
 

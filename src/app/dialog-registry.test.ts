@@ -10,6 +10,7 @@ import {
   getDialogsByType,
   getUrlNavigableDialogs,
 } from './dialog-registry';
+import { DialogStore } from './stores/DialogStore';
 import type { DialogName } from './types';
 
 describe('Dialog Registry', () => {
@@ -145,12 +146,12 @@ describe('Dialog Registry', () => {
       expect(getDialogTitle('invalid' as DialogName)).toBe('');
     });
 
-    it('handles import-csv special case with app context', () => {
-      const mockApp = { importDialogState: { isJson: true } } as any;
-      expect(getDialogTitle('import-csv', mockApp)).toBe('Import JSON');
+    it('handles import-csv special case based on isJson state', () => {
+      DialogStore.importCsvState.isJson.value = true;
+      expect(getDialogTitle('import-csv')).toBe('Import JSON');
 
-      const mockAppCsv = { importDialogState: { isJson: false } } as any;
-      expect(getDialogTitle('import-csv', mockAppCsv)).toBe('Import CSV');
+      DialogStore.importCsvState.isJson.value = false;
+      expect(getDialogTitle('import-csv')).toBe('Import CSV');
     });
   });
 

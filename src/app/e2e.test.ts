@@ -1,9 +1,10 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { SytoApp } from '../syto-app';
 import { AppStore } from './stores/AppStore';
 import { ImportService } from './services/ImportService';
 import { ExportService } from './services/ExportService';
 import { StepService } from './services/StepService';
+import * as PaginationHandlers from './handlers/pagination-handlers';
+import * as DialogHandlers from './handlers/dialog-handlers';
 import Papa from 'papaparse';
 
 /**
@@ -15,8 +16,6 @@ import Papa from 'papaparse';
  * a full browser environment, using Vitest with HappyDOM.
  */
 describe('E2E Critical Path', () => {
-  let app: SytoApp;
-
   beforeEach(() => {
     // Reset store state before each test
     AppStore.reset();
@@ -24,13 +23,6 @@ describe('E2E Critical Path', () => {
     // Mock console methods to keep output clean
     vi.spyOn(console, 'error').mockImplementation(() => {});
     vi.spyOn(console, 'warn').mockImplementation(() => {});
-
-    // Create app instance
-    app = new SytoApp();
-
-    // Mock dialog methods
-    app.alert = vi.fn().mockResolvedValue(undefined);
-    app.closeDialog = vi.fn();
   });
 
   it('should complete critical path: Import CSV -> Filter -> Derive -> Export CSV', async () => {
@@ -65,8 +57,8 @@ David,2000,9000,5000`;
       ',',
       null,
       'file',
-      () => app.updatePagination(),
-      () => app.closeDialog()
+      () => PaginationHandlers.updatePagination(),
+      () => DialogHandlers.closeDialog()
     );
 
     // Verify import
@@ -83,17 +75,28 @@ David,2000,9000,5000`;
       cost: 3000,
     });
 
+    // Callbacks for transforms
+    const transformCallbacks = {
+      onTransformStart: () => {
+        AppStore.isTransforming.value = true;
+      },
+      onTransformEnd: () => {
+        AppStore.isTransforming.value = false;
+      },
+      onError: vi.fn(),
+      updatePagination: () => PaginationHandlers.updatePagination(),
+    };
+
     // Step 2: Apply Filter (sales > 1000)
     const filterTransform = {
       filter: 'sales > 1000',
     };
 
-    const filterSuccess = await StepService.runTransform('Filter', filterTransform as any, {
-      onTransformStart: (label) => app.startTransformation(label),
-      onTransformEnd: () => app.endTransformation(),
-      onError: (msg) => app.alert(msg),
-      updatePagination: () => app.updatePagination(),
-    });
+    const filterSuccess = await StepService.runTransform(
+      'Filter',
+      filterTransform as any,
+      transformCallbacks
+    );
 
     expect(filterSuccess).toBe(true);
 
@@ -110,12 +113,11 @@ David,2000,9000,5000`;
       derive: { profit: 'revenue - cost' },
     };
 
-    const deriveSuccess = await StepService.runTransform('Derive', deriveTransform as any, {
-      onTransformStart: (label) => app.startTransformation(label),
-      onTransformEnd: () => app.endTransformation(),
-      onError: (msg) => app.alert(msg),
-      updatePagination: () => app.updatePagination(),
-    });
+    const deriveSuccess = await StepService.runTransform(
+      'Derive',
+      deriveTransform as any,
+      transformCallbacks
+    );
 
     expect(deriveSuccess).toBe(true);
 
@@ -129,7 +131,7 @@ David,2000,9000,5000`;
     expect(firstRow.profit).toBe(firstRow.revenue - firstRow.cost);
 
     // Step 4: Export CSV
-    const exportedCsv = await ExportService.exportCSV((msg) => app.alert(msg));
+    const exportedCsv = await ExportService.exportCSV(vi.fn());
 
     // Verify export format
     expect(exportedCsv).toBeTruthy();

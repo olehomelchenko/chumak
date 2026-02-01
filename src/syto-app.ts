@@ -1,1030 +1,164 @@
-import { loadUXSettings, updateUXSetting } from './core/ux-settings';
+/**
+ * SytoApp - Application Initializer
+ *
+ * This class handles application initialization and callback setup.
+ * All UI actions are now handled by AppController (see src/app/orchestration/AppController.ts).
+ *
+ * Usage:
+ *   const app = new SytoApp();
+ *   await app.init();
+ */
+
+import { loadUXSettings } from './core/ux-settings';
 import { loadInitialData } from './core/storage';
 import { getUrlState, setUrlState } from './core/url-state';
-import { Transformation } from './app/decorators';
-import * as FilterHandlers from './app/handlers/filter-handlers';
-import * as DeriveHandlers from './app/handlers/derive-handlers';
-import * as AggregateHandlers from './app/handlers/aggregate-handlers';
-import * as JoinHandlers from './app/handlers/join-handlers';
-import * as AppendHandlers from './app/handlers/append-handlers';
-import * as PivotHandlers from './app/handlers/pivot-handlers';
-import * as FoldHandlers from './app/handlers/fold-handlers';
-import * as SplitHandlers from './app/handlers/split-handlers';
-import * as MergeHandlers from './app/handlers/merge-handlers';
-import * as DedupeHandlers from './app/handlers/dedupe-handlers';
-import * as RegexpHandlers from './app/handlers/regexp-handlers';
-import * as SimpleHandlers from './app/handlers/simple-handlers';
-import * as ImportHandlers from './app/handlers/import-handlers';
-import * as GenerateHandlers from './app/handlers/generate-handlers';
-import * as SampleHandlers from './app/handlers/sample-handlers';
-import * as SpreadHandlers from './app/handlers/spread-handlers';
-import * as UnrollHandlers from './app/handlers/unroll-handlers';
-import * as KeyboardHandlers from './app/handlers/keyboard-handlers';
-import * as StepHandlers from './app/handlers/step-handlers';
+import { SchemaEngine } from './core/schema-engine';
+import { AppStore } from './app/stores/AppStore';
+import { ModelService } from './app/services/ModelService';
+
+// Handler callback setup functions
 import { setStepCallbacks } from './app/handlers/step-handlers';
-import * as DialogHandlers from './app/handlers/dialog-handlers';
 import { setDialogHandlerCallbacks } from './app/handlers/dialog-handlers';
-import * as NotificationHandlers from './app/handlers/notification-handlers';
-import * as EDAHandlers from './app/handlers/eda-handlers';
 import { setEdaCallbacks } from './app/handlers/eda-handlers';
-import * as InteractionHandlers from './app/handlers/interaction-handlers';
-import * as PaginationHandlers from './app/handlers/pagination-handlers';
-import * as HelperHandlers from './app/handlers/helper-handlers';
 import { setTransformCallbacks } from './app/handlers/helper-handlers';
-import * as JsonHandlers from './app/handlers/json-handlers';
 import { setJsonEditCallbacks } from './app/handlers/json-handlers';
 import { setImportCallbacks } from './app/handlers/import-handlers';
-import { SchemaEngine, ColumnSchema } from './core/schema-engine';
-import { AppStore } from './app/stores/AppStore';
-import { DialogStore } from './app/stores/DialogStore';
-import { ModelService } from './app/services/ModelService';
-import { ImportService } from './app/services/ImportService';
-import { ExportService } from './app/services/ExportService';
+import * as SimpleHandlers from './app/handlers/simple-handlers';
+import * as KeyboardHandlers from './app/handlers/keyboard-handlers';
 
-import { Source, Model, ImportDialogState, ImportUrlDialogState } from './app/types';
+// AppController for all actions
+import { AppController } from './app/orchestration/AppController';
 
 export class SytoApp {
-  // ============================================================
-  // Test-compatibility proxies (used by test files)
-  // These 4 proxies are kept for backwards compatibility with tests.
-  // New code should use AppStore/DialogStore directly.
-  // ============================================================
-
-  get importDialogState(): ImportDialogState {
-    return DialogStore.createSignalProxy(DialogStore.importCsvState);
-  }
-  set importDialogState(val: ImportDialogState) {
-    Object.assign(this.importDialogState, val);
-  }
-
-  get importUrlDialogState(): ImportUrlDialogState {
-    return DialogStore.createSignalProxy(DialogStore.importUrlState);
-  }
-  set importUrlDialogState(val: ImportUrlDialogState) {
-    Object.assign(this.importUrlDialogState, val);
-  }
-
-  get activeDialog() {
-    return AppStore.activeDialog.value as any;
-  }
-  set activeDialog(val) {
-    AppStore.activeDialog.value = val as any;
-  }
-
-  get columns() {
-    return AppStore.columns.value;
-  }
-  set columns(val) {
-    AppStore.columns.value = val;
-  }
-
-  // Filter handlers
-  validateFilterExpression() {
-    return FilterHandlers.validateFilterExpression();
-  }
-  debouncedUpdateFilterPreview() {
-    return FilterHandlers.debouncedUpdateFilterPreview();
-  }
-  updateFilterPreview() {
-    return FilterHandlers.updateFilterPreview();
-  }
-  toggleFilterPreviewMode() {
-    return FilterHandlers.toggleFilterPreviewMode();
-  }
-  applyFilterTransform() {
-    return FilterHandlers.applyFilterTransform(HelperHandlers.createExecutionCallbacks(this));
-  }
-
-  // Derive handlers
-  validateDeriveExpression() {
-    return DeriveHandlers.validateDeriveExpression();
-  }
-  debouncedUpdateDerivePreview() {
-    return DeriveHandlers.debouncedUpdateDerivePreview();
-  }
-  updateDerivePreview() {
-    return DeriveHandlers.updateDerivePreview();
-  }
-  applyDeriveTransform() {
-    return DeriveHandlers.applyDeriveTransform(HelperHandlers.createExecutionCallbacks(this), this);
-  }
-
-  // Aggregate handlers
-  addAggregation() {
-    return AggregateHandlers.addAggregation();
-  }
-  removeAggregation(index: number) {
-    return AggregateHandlers.removeAggregation(index);
-  }
-  updateAggregateOutputName(index: number) {
-    return AggregateHandlers.updateAggregateOutputName(index);
-  }
-  constructAggregateStep() {
-    return AggregateHandlers.constructAggregateStep();
-  }
-  updateAggregatePreview() {
-    return AggregateHandlers.updateAggregatePreview();
-  }
-  applyAggregateTransform() {
-    return AggregateHandlers.applyAggregateTransform(HelperHandlers.createExecutionCallbacks(this));
-  }
-
-  // Join handlers
-  initializeJoinDialog() {
-    return JoinHandlers.initializeJoinDialog();
-  }
-  getColumnsForTarget(targetId: string) {
-    return JoinHandlers.getColumnsForTarget(targetId);
-  }
-  onJoinTargetChange() {
-    return JoinHandlers.onJoinTargetChange();
-  }
-  addJoinKeyPair() {
-    return JoinHandlers.addJoinKeyPair();
-  }
-  removeJoinKeyPair(index: number) {
-    return JoinHandlers.removeJoinKeyPair(index);
-  }
-  previewJoin() {
-    return JoinHandlers.previewJoin();
-  }
-  applyJoinTransform() {
-    return JoinHandlers.applyJoinTransform(HelperHandlers.createExecutionCallbacks(this), this);
-  }
-
-  // Append handlers
-  initializeAppendDialog() {
-    return AppendHandlers.initializeAppendDialog();
-  }
-  onAppendLeftModelChange() {
-    return AppendHandlers.onAppendLeftModelChange();
-  }
-  onAppendTargetChange() {
-    return AppendHandlers.onAppendTargetChange();
-  }
-  applyAppendTransform() {
-    return AppendHandlers.applyAppendTransform(HelperHandlers.createExecutionCallbacks(this));
-  }
-
-  // Pivot handlers
-  initializePivotDialog() {
-    // This is a reset - can just set signals or call a handler
-    const state = DialogStore.pivotState;
-    state.rowColumns.value = [];
-    state.columnColumn.value = '';
-    state.valueColumn.value = '';
-    state.aggregation.value = 'sum';
-    state.options.value = { sort: true, limit: null };
-    state.uniqueValueCount.value = 0;
-    state.previewData.value = null;
-    state.previewError.value = null;
-    state.isPreviewing.value = false;
-  }
-  onPivotConfigChange() {
-    return PivotHandlers.onPivotConfigChange();
-  }
-  constructPivotStep() {
-    return PivotHandlers.constructPivotStep();
-  }
-  previewPivot() {
-    return PivotHandlers.previewPivot();
-  }
-  applyPivotTransform() {
-    return PivotHandlers.applyPivotTransform(HelperHandlers.createExecutionCallbacks(this));
-  }
-
-  // Fold handlers
-  toggleColumnForFold(index: number) {
-    return FoldHandlers.toggleColumnForFold(index);
-  }
-  toggleFoldMode() {
-    return FoldHandlers.toggleFoldMode();
-  }
-  getColumnsToFold() {
-    return FoldHandlers.getColumnsToFold();
-  }
-  selectAllForFold() {
-    return FoldHandlers.selectAllForFold();
-  }
-  selectNoneForFold() {
-    return FoldHandlers.selectNoneForFold();
-  }
-  updateFoldPreview() {
-    return FoldHandlers.updateFoldPreview();
-  }
-  applyFoldTransform() {
-    return FoldHandlers.applyFoldTransform(HelperHandlers.createExecutionCallbacks(this));
-  }
-
-  // Split handlers
-  detectDelimiter(column: string) {
-    return SplitHandlers.detectDelimiter(column);
-  }
-  debouncedUpdateSplitPreview() {
-    return SplitHandlers.debouncedUpdateSplitPreview();
-  }
-  selectSplitColumn(col: string) {
-    return SplitHandlers.selectSplitColumn(col);
-  }
-  updateSplitPreview() {
-    return SplitHandlers.updateSplitPreview();
-  }
-  applySplitTransform() {
-    return SplitHandlers.applySplitTransform(HelperHandlers.createExecutionCallbacks(this));
-  }
-
-  // Merge handlers
-  selectMergeColumns(columns: string[]) {
-    return MergeHandlers.selectMergeColumns(columns);
-  }
-  applyMergeTransform() {
-    return MergeHandlers.applyMergeTransform(HelperHandlers.createExecutionCallbacks(this), this);
-  }
-
-  // Dedupe handlers
-  toggleDedupeAllColumns(useAll: boolean) {
-    return DedupeHandlers.toggleDedupeAllColumns(useAll);
-  }
-  toggleDedupeColumn(index: number) {
-    return DedupeHandlers.toggleDedupeColumn(index);
-  }
-  selectAllForDedupe() {
-    return DedupeHandlers.selectAllForDedupe();
-  }
-  selectNoneForDedupe() {
-    return DedupeHandlers.selectNoneForDedupe();
-  }
-  getDedupeColumns() {
-    return DedupeHandlers.getDedupeColumns();
-  }
-  findDuplicateRows(data: any[], columns: string[]) {
-    return DedupeHandlers.findDuplicateRows(data, columns);
-  }
-  updateDedupePreview() {
-    return DedupeHandlers.updateDedupePreview();
-  }
-  findAllDuplicateRowCount(data: any[], columns: string[]) {
-    return DedupeHandlers.findAllDuplicateRowCount(data, columns);
-  }
-  @Transformation('Duplicates')
-  applyDedupeTransform() {
-    return DedupeHandlers.applyDedupeTransform(HelperHandlers.createExecutionCallbacks(this));
-  }
-
-  // Column Editor handlers
-
-  // Regexp handlers
-  validateRegexpPattern(pattern: string) {
-    return RegexpHandlers.validateRegexpPattern(pattern);
-  }
-  validateRegexpMatchExpression() {
-    return RegexpHandlers.validateRegexpMatchExpression();
-  }
-  debouncedUpdateRegexpMatchPreview() {
-    return RegexpHandlers.debouncedUpdateRegexpMatchPreview();
-  }
-  updateRegexpMatchPreview() {
-    return RegexpHandlers.updateRegexpMatchPreview();
-  }
-  applyRegexpMatchTransform() {
-    return RegexpHandlers.applyRegexpMatchTransform(
-      HelperHandlers.createExecutionCallbacks(this),
-      this
-    );
-  }
-  validateRegexpExtractExpression() {
-    return RegexpHandlers.validateRegexpExtractExpression();
-  }
-  debouncedUpdateRegexpExtractPreview() {
-    return RegexpHandlers.debouncedUpdateRegexpExtractPreview();
-  }
-  updateRegexpExtractPreview() {
-    return RegexpHandlers.updateRegexpExtractPreview();
-  }
-  applyRegexpExtractTransform() {
-    return RegexpHandlers.applyRegexpExtractTransform(
-      HelperHandlers.createExecutionCallbacks(this),
-      this
-    );
-  }
-
-  // Simple handlers
-  applyReplaceTransform() {
-    return SimpleHandlers.applyReplaceTransform(
-      HelperHandlers.createExecutionCallbacks(this),
-      this
-    );
-  }
-  applySortTransform() {
-    return SimpleHandlers.applySortTransform(HelperHandlers.createExecutionCallbacks(this));
-  }
-  applySliceRowsTransform() {
-    return SimpleHandlers.applySliceRowsTransform(HelperHandlers.createExecutionCallbacks(this));
-  }
-  applyIndexTransform() {
-    return SimpleHandlers.applyIndexTransform(HelperHandlers.createExecutionCallbacks(this));
-  }
-  applyImputeTransform() {
-    return SimpleHandlers.applyImputeTransform(HelperHandlers.createExecutionCallbacks(this));
-  }
-  applySampleTransform() {
-    return SampleHandlers.applySampleTransform(HelperHandlers.createExecutionCallbacks(this));
-  }
-  applySpreadTransform() {
-    return SpreadHandlers.applySpreadTransform(HelperHandlers.createExecutionCallbacks(this));
-  }
-  applyUnrollTransform() {
-    return UnrollHandlers.applyUnrollTransform(HelperHandlers.createExecutionCallbacks(this));
-  }
-
-  // Export handlers
-  exportCSV() {
-    return ExportService.exportCSV((msg) => this.alert(msg));
-  }
-  exportWorkflowJSON() {
-    return ExportService.exportWorkflowJSON((msg) => this.alert(msg));
-  }
-  exportDataJSON() {
-    return ExportService.exportDataJSON((msg) => this.alert(msg));
-  }
-  copyCSVToClipboard() {
-    return ExportService.copyCSVToClipboard(
-      () => this.getPaginatedData(),
-      (msg) => this.alert(msg)
-    );
-  }
-  copyJSONToClipboard() {
-    return ExportService.copyJSONToClipboard(
-      () => this.getPaginatedData(),
-      (msg) => this.alert(msg)
-    );
-  }
-
-  // Import handlers (now use stores directly, no 'this' context needed)
-  handleFileSelect(event: Event) {
-    return ImportHandlers.handleFileSelect(event);
-  }
-  handleFileDrop(event: DragEvent) {
-    return ImportHandlers.handleFileDrop(event);
-  }
-  handlePaste(event: ClipboardEvent) {
-    return ImportHandlers.handlePaste(event);
-  }
-  promptPaste() {
-    return ImportHandlers.promptPaste();
-  }
-  handleUploadClick() {
-    const fileInput = document.getElementById('file-input') as HTMLInputElement;
-    if (fileInput) {
-      fileInput.click();
-    }
-  }
-  handlePasteClick() {
-    return this.promptPaste();
-  }
-  showImportDialog(file: File) {
-    return ImportHandlers.showImportDialog(file);
-  }
-  handleJsonPreview(file: File, data: any, path = '') {
-    return ImportHandlers.handleJsonPreview(file, data, path);
-  }
-  updateJsonPath() {
-    return ImportHandlers.updateJsonPath();
-  }
-  resolvePath(obj: any, path: string) {
-    return ImportHandlers.resolvePath(obj, path);
-  }
-  getSuggestedKeys(obj: any) {
-    return ImportHandlers.getSuggestedKeys(obj);
-  }
-  selectJsonPathSegment(segment: string) {
-    return ImportHandlers.selectJsonPathSegment(segment);
-  }
-  resetJsonPath() {
-    return ImportHandlers.resetJsonPath();
-  }
-  flattenData(data: any[]) {
-    return ImportHandlers.flattenData(data);
-  }
-  serializeNestedData(data: any[]) {
-    return ImportHandlers.serializeNestedData(data);
-  }
-  handleCsvPreview(file: File) {
-    return ImportHandlers.handleCsvPreview(file);
-  }
-  showImportUrlDialog() {
-    return ImportHandlers.showImportUrlDialog();
-  }
-  fetchAndImportFromUrl() {
-    return ImportHandlers.fetchAndImportFromUrl();
-  }
-  confirmImport() {
-    return ImportHandlers.confirmImport();
-  }
-  showReplaceSourceDialog(source: Source) {
-    return ImportHandlers.showReplaceSourceDialog(source);
-  }
-  async restoreSourceBackup(source: Source) {
-    const { ReplaceSourceService } = await import('./app/services/ReplaceSourceService');
-    await ReplaceSourceService.restoreBackup(source.id);
-  }
-  computeSchemaDiffForPreview(
-    oldSchema: ColumnSchema[],
-    previewColumns: string[],
-    previewData: any[][]
-  ) {
-    return ImportHandlers.computeSchemaDiffForPreview(oldSchema, previewColumns, previewData);
-  }
-  generateData() {
-    return GenerateHandlers.generateData.call(this);
-  }
-  debouncedUpdateGeneratePreview() {
-    return GenerateHandlers.debouncedUpdateGeneratePreview();
-  }
-  createSource(
-    file: File,
-    sourceName: string,
-    columns: string[],
-    data: any[],
-    headerMode: string,
-    delimiter: string,
-    customHeaders: string[] | null = null,
-    origin = 'file'
-  ) {
-    return ImportService.createSource(
-      file,
-      sourceName,
-      columns,
-      data,
-      headerMode,
-      delimiter,
-      customHeaders,
-      origin,
-      () => this.updatePagination(),
-      (force) => this.closeDialog(force)
-    );
-  }
-  updateImportPreview() {
-    return ImportHandlers.updateImportPreview();
-  }
-  updateHeadersForPreview() {
-    return ImportHandlers.updateHeadersForPreview();
-  }
-  resolveDuplicateHeaders(headers: string[]) {
-    return ImportHandlers.resolveDuplicateHeaders(headers);
-  }
-
-  // Model & Source handlers
-
-  switchToSource(source: Source) {
-    ModelService.switchToSource(source, () => this.clearColumnSelection());
-    // Update URL when switching to a source
-    setUrlState({ sourceId: source.id });
-  }
-  switchToModel(model: Model) {
-    ModelService.switchToModel(
-      model,
-      () => this.clearColumnSelection(),
-      () => this.updatePagination(),
-      AppStore.ribbonTab.value,
-      (tab) => {
-        AppStore.ribbonTab.value = tab;
-      }
-    );
-    // Update URL when switching to a model
-    setUrlState({ sourceId: model.sourceId, modelId: model.id });
-  }
-  showModelInfo() {
-    const activeModel = AppStore.activeModel.value;
-    if (!activeModel) return;
-    ModelService.showModelInfo(activeModel, () => this.clearColumnSelection());
-    // Update URL when showing model info
-    setUrlState({
-      sourceId: activeModel.sourceId,
-      modelId: activeModel.id,
-      section: 'info',
-    });
-  }
-  showDatasetInfo(source: Source) {
-    ModelService.showDatasetInfo(source, () => this.clearColumnSelection());
-    // Update URL when showing dataset info
-    setUrlState({ sourceId: source.id, section: 'info' });
-  }
-  createNewModel(source: Source) {
-    return ModelService.createNewModel(
-      source,
-      (msg, def) => this.prompt(msg, def),
-      (msg) => this.alert(msg),
-      (model) => this.switchToModel(model)
-    );
-  }
-  createNewModelFromActive() {
-    const sources = AppStore.sources.value;
-    const activeModel = AppStore.activeModel.value;
-    const source = sources.find((s) => s.id === activeModel?.sourceId);
-    if (!source) {
-      this.alert('Source not found for current model');
-      return;
-    }
-    return this.createNewModel(source);
-  }
-  copyCurrentModel() {
-    return ModelService.copyCurrentModel(
-      (msg, def) => this.prompt(msg, def),
-      (msg) => this.alert(msg),
-      (model) => this.switchToModel(model)
-    );
-  }
-  renameCurrentModel() {
-    return ModelService.renameCurrentModel(
-      (msg, def) => this.prompt(msg, def),
-      (msg) => this.alert(msg)
-    );
-  }
-  deleteCurrentModel() {
-    return ModelService.deleteCurrentModel(
-      (msg) => this.confirm(msg),
-      (msg) => this.alert(msg),
-      (model) => this.switchToModel(model)
-    );
-  }
-  renameSource(source: Source) {
-    return ModelService.renameSource(source, (msg, def) => this.prompt(msg, def));
-  }
-  deleteSource(source: Source) {
-    return ModelService.deleteSource(
-      source,
-      (msg) => this.confirm(msg),
-      (msg) => this.alert(msg)
-    );
-  }
-  clearAllData() {
-    return ModelService.clearAllData(
-      (msg) => this.confirm(msg),
-      (msg) => this.alert(msg)
-    );
-  }
-
-  // Step handlers (now use stores directly, no 'this' context needed)
-  async applyActiveTransform() {
-    return StepHandlers.applyActiveTransform();
-  }
-  computeModelUpToStep(model: Model, stepIndex: number) {
-    return StepHandlers.computeModelUpToStep(model, stepIndex);
-  }
-  computeUpToStep(stepIndex: number) {
-    return StepHandlers.computeUpToStep(stepIndex);
-  }
-  viewStep(stepIndex: number) {
-    return StepHandlers.viewStep(stepIndex);
-  }
-  viewFinalResult() {
-    return StepHandlers.viewFinalResult();
-  }
-  editStep(stepIndex: number) {
-    return StepHandlers.editStep(stepIndex);
-  }
-  cancelEdit() {
-    return StepHandlers.cancelEdit();
-  }
-  removeStep(stepIndex: number) {
-    return StepHandlers.removeStep(stepIndex);
-  }
-  showStepRemovalModal(stepIndex: number) {
-    return StepHandlers.showStepRemovalModal(stepIndex);
-  }
-  closeStepRemovalModal(confirmed: boolean) {
-    return StepHandlers.closeStepRemovalModal(confirmed);
-  }
-  executeStepRemoval(stepIndex: number, mode: 'single' | 'all') {
-    return StepHandlers.executeStepRemoval(stepIndex, mode);
-  }
-  updateStep(stepIndex: number, newTransform: any) {
-    return StepHandlers.updateStep(stepIndex, newTransform);
-  }
-
-  // Dialog handlers (now use stores directly, no 'this' context needed)
-  getDialogState(dialog: string) {
-    return DialogHandlers.getDialogState(dialog);
-  }
-  reSnapshot() {
-    return DialogHandlers.reSnapshot();
-  }
-  openDialog(dialogName: string, section?: string) {
-    return DialogHandlers.openDialog(dialogName, section);
-  }
-  handleHashChange() {
-    return DialogHandlers.handleHashChange();
-  }
-  initDialogState(dialogName: string, section?: string) {
-    return DialogHandlers.initDialogState(dialogName, section);
-  }
-  isSlidePanel(dialog: string | null) {
-    return DialogHandlers.isSlidePanel(dialog);
-  }
-  isCenteredModal(dialog: string | null) {
-    return DialogHandlers.isCenteredModal(dialog);
-  }
-  getAboutContent() {
-    return DialogHandlers.getAboutContent();
-  }
-  getDialogTitle() {
-    return DialogHandlers.getDialogTitle();
-  }
-  getDialogButtonText() {
-    return DialogHandlers.getDialogButtonText();
-  }
-  hasPreviewData() {
-    return DialogHandlers.hasPreviewData();
-  }
-  getPreviewTitle() {
-    return DialogHandlers.getPreviewTitle();
-  }
-  getPreviewStats() {
-    return DialogHandlers.getPreviewStats();
-  }
-  getPreviewColumns() {
-    return DialogHandlers.getPreviewColumns();
-  }
-  getPreviewRows() {
-    return DialogHandlers.getPreviewRows();
-  }
-  formatPreviewCell(row: any, col: string) {
-    return DialogHandlers.formatPreviewCell(row, col);
-  }
-  clearPreview() {
-    return DialogHandlers.clearPreview();
-  }
-  isNewPreviewColumn(col: string) {
-    return DialogHandlers.isNewPreviewColumn(col);
-  }
-  activeDialogError() {
-    return DialogHandlers.activeDialogError();
-  }
-  hasUnsavedChanges() {
-    return DialogHandlers.hasUnsavedChanges();
-  }
-  closeDialog(force = false) {
-    return DialogHandlers.closeDialog(force);
-  }
-  resetDialogStates() {
-    return DialogHandlers.resetDialogStates();
-  }
-
-  // Notification handlers (now use stores directly, no 'this' context needed)
-  showError(title: string, message: string, options: any = {}) {
-    return NotificationHandlers.showError(title, message, options);
-  }
-  showWarning(title: string, message: string, options: any = {}) {
-    return NotificationHandlers.showWarning(title, message, options);
-  }
-  showSuccess(message: string, options: any = {}) {
-    return NotificationHandlers.showSuccess(message, options);
-  }
-  _addNotification(
-    type: string,
-    title: string,
-    message: string,
-    stepInfo: string | null,
-    duration: number
-  ) {
-    return NotificationHandlers._addNotification(type, title, message, stepInfo, duration);
-  }
-  dismissNotification(id: number) {
-    return NotificationHandlers.dismissNotification(id);
-  }
-  getNotificationIcon(type: string) {
-    return NotificationHandlers.getNotificationIcon(type);
-  }
-  alert(message: string, title = 'Alert') {
-    return NotificationHandlers.alert(message, title);
-  }
-  confirm(message: string, title = 'Confirm') {
-    return NotificationHandlers.confirm(message, title);
-  }
-  prompt(message: string, defaultValue = '', title = 'Prompt') {
-    return NotificationHandlers.prompt(message, defaultValue, title);
-  }
-  closeMessageBox(result: boolean) {
-    return NotificationHandlers.closeMessageBox(result);
-  }
-  getMessageBoxIcon() {
-    return NotificationHandlers.getMessageBoxIcon();
-  }
-
-  // EDA & Chart handlers (now use stores directly, no 'this' context needed)
-  selectColumn(col: string) {
-    return EDAHandlers.selectColumn(col);
-  }
-  selectEdaStat(label: string, rawValue: any, event: any) {
-    return EDAHandlers.selectEdaStat(label, rawValue, event);
-  }
-  setEdaChartView(view: 'boxplot' | 'histogram') {
-    return EDAHandlers.setEdaChartView(view);
-  }
-  setEdaDateTreatment(treatment: 'temporal' | 'categorical') {
-    return EDAHandlers.setEdaDateTreatment(treatment);
-  }
-  handleBrushSelection(selection: any) {
-    return EDAHandlers.handleBrushSelection(selection);
-  }
-  applyBrushFilter() {
-    return EDAHandlers.applyBrushFilter();
-  }
-  handleBodyClick(event: any) {
-    return InteractionHandlers.handleBodyClick(event);
-  }
-  openTypeMenu(col: string, event: any) {
-    return InteractionHandlers.openTypeMenu(col, event);
-  }
-  changeColumnType(col: string, newType: string) {
-    return InteractionHandlers.changeColumnType(col, newType, {
-      updatePagination: () => this.updatePagination(),
-    });
-  }
-  autoDetectSchema() {
-    return InteractionHandlers.autoDetectSchema({
-      updatePagination: () => this.updatePagination(),
-    });
-  }
-  clearColumnSelection() {
-    return InteractionHandlers.clearColumnSelection();
-  }
-  calculateToolbarPosition(rect: DOMRect, toolbarWidth: number) {
-    return InteractionHandlers.calculateToolbarPosition(rect, toolbarWidth);
-  }
-  updateToolbarPosition() {
-    return InteractionHandlers.updateToolbarPosition();
-  }
-
-  // Interaction handlers
-  selectCell(col: string, value: any, rowIdx: number) {
-    return InteractionHandlers.selectCell(col, value, rowIdx);
-  }
-  applyQuickCellFilter(op: string) {
-    return InteractionHandlers.applyQuickCellFilter(op, {
-      onTransformStart: (label: string) => this.startTransformation(label),
-      onTransformEnd: () => this.endTransformation(),
-      onError: (msg: string) => this.alert(msg),
-      updatePagination: () => this.updatePagination(),
-    });
-  }
-  quickSort(order: 'asc' | 'desc') {
-    return InteractionHandlers.quickSort(order, {
-      onTransformStart: (label: string) => this.startTransformation(label),
-      onTransformEnd: () => this.endTransformation(),
-      onError: (msg: string) => this.alert(msg),
-      updatePagination: () => this.updatePagination(),
-    });
-  }
-  quickFilter() {
-    return InteractionHandlers.quickFilter((name) => this.openDialog(name));
-  }
-  quickRename() {
-    return InteractionHandlers.quickRename(
-      (msg, def) => this.prompt(msg, def),
-      (msg) => this.alert(msg),
-      {
-        onTransformStart: (label: string) => this.startTransformation(label),
-        onTransformEnd: () => this.endTransformation(),
-        onError: (msg: string) => this.alert(msg),
-        updatePagination: () => this.updatePagination(),
-      }
-    );
-  }
-  quickRemove() {
-    return InteractionHandlers.quickRemove({
-      onTransformStart: (label: string) => this.startTransformation(label),
-      onTransformEnd: () => this.endTransformation(),
-      onError: (msg: string) => this.alert(msg),
-      updatePagination: () => this.updatePagination(),
-    });
-  }
-  quickDate() {
-    return InteractionHandlers.quickDate((name) => this.openDialog(name));
-  }
-  quickSplit() {
-    return InteractionHandlers.quickSplit((name) => this.openDialog(name));
-  }
-  quickReplace() {
-    return InteractionHandlers.quickReplace((name) => this.openDialog(name));
-  }
-  quickDedupe() {
-    return InteractionHandlers.quickDedupe((name) => this.openDialog(name));
-  }
-
-  // Pagination handlers (now use stores directly, no 'this' context needed)
-  updatePagination() {
-    return PaginationHandlers.updatePagination();
-  }
-  getPaginatedData() {
-    return PaginationHandlers.getPaginatedData();
-  }
-  getPaginationInfo() {
-    return PaginationHandlers.getPaginationInfo();
-  }
-  previousPage() {
-    return PaginationHandlers.previousPage();
-  }
-  nextPage() {
-    return PaginationHandlers.nextPage();
-  }
-  goToFirstPage() {
-    return PaginationHandlers.goToFirstPage();
-  }
-  goToLastPage() {
-    return PaginationHandlers.goToLastPage();
-  }
-  updatePageSize(newSize: number | string) {
-    return PaginationHandlers.updatePageSize(newSize);
-  }
-
-  // Helper handlers (now use stores directly, no 'this' context needed)
-  getModelMeta(model: any) {
-    return HelperHandlers.getModelMeta(model);
-  }
-  describeTransform(transform: any) {
-    return HelperHandlers.describeTransformWrapper(transform);
-  }
-  async applyStepResult(transform: any, resultTable: any, closeDialogAfter = true) {
-    return HelperHandlers.applyStepResult(transform, resultTable, closeDialogAfter);
-  }
-  async runTransform(label: string, transform: any, closeDialog = true) {
-    return HelperHandlers.runTransform(label, transform, closeDialog);
-  }
-  validateExpression(expr: string) {
-    return HelperHandlers.validateExpression(expr);
-  }
-  getColumnType(colName: string) {
-    return HelperHandlers.getColumnType(colName);
-  }
-  isComparable(type?: string) {
-    return HelperHandlers.isComparable(type);
-  }
-  isDateType(type?: string) {
-    return HelperHandlers.isDateType(type);
-  }
-  getTypeIcon(colName: string) {
-    return HelperHandlers.getTypeIcon(colName);
-  }
-  formatCellValue(value: any) {
-    return HelperHandlers.formatCellValue(value);
-  }
-  getTypeIndicator(colName: string) {
-    return HelperHandlers.getTypeIndicator(colName);
-  }
-  quoteColumnRef(colName: string) {
-    return HelperHandlers.quoteColumnRef(colName);
-  }
-  escapePattern(pattern: string) {
-    return HelperHandlers.escapePattern(pattern);
-  }
-  formatLiteral(value: any, type?: string) {
-    return HelperHandlers.formatLiteral(value, type);
-  }
-  preparePreviewData(table: any, limit = 100) {
-    return HelperHandlers.preparePreviewData(table, limit);
-  }
-  getActiveSchema() {
-    return HelperHandlers.getActiveSchema();
-  }
-
-  // JSON handlers (now use stores directly, no 'this' context needed)
-  getStepsJson() {
-    return JsonHandlers.getStepsJson();
-  }
-  enterJsonEditMode() {
-    return JsonHandlers.enterJsonEditMode();
-  }
-  cancelJsonEdit() {
-    return JsonHandlers.cancelJsonEdit();
-  }
-  async applyJsonEdit() {
-    return JsonHandlers.applyJsonEdit();
-  }
-  validateJsonEdit() {
-    return JsonHandlers.validateJsonEdit();
-  }
-
   constructor() {
-    // All handlers integrated into the class
+    // Initialization happens in init()
   }
 
   async init() {
     console.log('Initializing Syto App...');
 
-    // Set up dialog handler callbacks
+    // Set up dialog handler callbacks using AppController
     setDialogHandlerCallbacks({
-      confirm: (msg) => this.confirm(msg),
-      clearColumnSelection: () => this.clearColumnSelection(),
-      openDialog: (dialog, section) => this.openDialog(dialog, section),
-      switchToModel: (model) => this.switchToModel(model),
-      switchToSource: (source) => this.switchToSource(source),
-      showModelInfo: () => this.showModelInfo(),
-      showDatasetInfo: (source) => this.showDatasetInfo(source),
-      initializeJoinDialog: () => this.initializeJoinDialog(),
-      initializeAppendDialog: () => this.initializeAppendDialog(),
-      initializePivotDialog: () => this.initializePivotDialog(),
-      detectDelimiter: (col) => this.detectDelimiter(col),
-      debouncedUpdateSplitPreview: () => this.debouncedUpdateSplitPreview(),
-      updateDedupePreview: () => this.updateDedupePreview(),
+      confirm: (msg) => AppController.confirm(msg),
+      clearColumnSelection: () => AppController.clearColumnSelection(),
+      openDialog: (dialog, section) => AppController.openDialog(dialog, section),
+      switchToModel: (model) => AppController.switchToModel(model),
+      switchToSource: (source) => AppController.switchToSource(source),
+      showModelInfo: () => AppController.showModelInfo(),
+      showDatasetInfo: (source) => AppController.showDatasetInfo(source),
+      initializeJoinDialog: () => AppController.initializeJoinDialog(),
+      initializeAppendDialog: () => AppController.initializeAppendDialog(),
+      initializePivotDialog: () => AppController.initializePivotDialog(),
+      detectDelimiter: (col) => AppController.detectDelimiter(col),
+      debouncedUpdateSplitPreview: () => AppController.debouncedUpdateSplitPreview(),
+      updateDedupePreview: () => AppController.updateDedupePreview(),
       updateImputePreview: () => SimpleHandlers.updateImputePreview(),
     });
 
-    // Set up step handler callbacks
+    // Set up step handler callbacks using AppController
     setStepCallbacks({
-      updatePagination: () => this.updatePagination(),
-      openDialog: (name, section) => this.openDialog(name, section),
-      closeDialog: (force) => this.closeDialog(force),
-      onJoinTargetChange: () => this.onJoinTargetChange(),
-      onAppendTargetChange: () => this.onAppendTargetChange(),
-      onPivotConfigChange: () => this.onPivotConfigChange(),
-      updateSplitPreview: () => this.updateSplitPreview(),
-      updateDedupePreview: () => this.updateDedupePreview(),
-      applyFilterTransform: () => this.applyFilterTransform(),
-      applySortTransform: () => this.applySortTransform(),
-      applySliceRowsTransform: () => this.applySliceRowsTransform(),
-      applySampleTransform: () => this.applySampleTransform(),
-      applySpreadTransform: () => this.applySpreadTransform(),
-      applyUnrollTransform: () => this.applyUnrollTransform(),
-      applyIndexTransform: () => this.applyIndexTransform(),
-      applySplitTransform: () => this.applySplitTransform(),
-      applyMergeTransform: () => this.applyMergeTransform(),
-      applyDeriveTransform: () => this.applyDeriveTransform(),
-      applyRegexpMatchTransform: () => this.applyRegexpMatchTransform(),
-      applyRegexpExtractTransform: () => this.applyRegexpExtractTransform(),
-      applyFoldTransform: () => this.applyFoldTransform(),
-      applyPivotTransform: () => this.applyPivotTransform(),
-      applyAggregateTransform: () => this.applyAggregateTransform(),
-      applyJoinTransform: () => this.applyJoinTransform(),
-      applyAppendTransform: () => this.applyAppendTransform(),
-      applyReplaceTransform: () => this.applyReplaceTransform(),
-      applyDedupeTransform: () => this.applyDedupeTransform(),
-      applyImputeTransform: () => this.applyImputeTransform(),
-      confirmImport: () => this.confirmImport(),
-      fetchAndImportFromUrl: () => this.fetchAndImportFromUrl(),
-      generateData: () => this.generateData(),
-      runTransform: (name, config, close) => this.runTransform(name, config, close),
+      updatePagination: () => AppController.updatePagination(),
+      openDialog: (name, section) => AppController.openDialog(name, section),
+      closeDialog: (force) => AppController.closeDialog(force),
+      onJoinTargetChange: () => AppController.onJoinTargetChange(),
+      onAppendTargetChange: () => AppController.onAppendTargetChange(),
+      onPivotConfigChange: () => AppController.onPivotConfigChange(),
+      updateSplitPreview: () => AppController.updateSplitPreview(),
+      updateDedupePreview: () => AppController.updateDedupePreview(),
+      applyFilterTransform: () => AppController.applyFilterTransform(),
+      applySortTransform: () => AppController.applySortTransform(),
+      applySliceRowsTransform: () => AppController.applySliceRowsTransform(),
+      applySampleTransform: () => AppController.applySampleTransform(),
+      applySpreadTransform: () => AppController.applySpreadTransform(),
+      applyUnrollTransform: () => AppController.applyUnrollTransform(),
+      applyIndexTransform: () => AppController.applyIndexTransform(),
+      applySplitTransform: () => AppController.applySplitTransform(),
+      applyMergeTransform: () => AppController.applyMergeTransform(),
+      applyDeriveTransform: () => AppController.applyDeriveTransform(),
+      applyRegexpMatchTransform: () => AppController.applyRegexpMatchTransform(),
+      applyRegexpExtractTransform: () => AppController.applyRegexpExtractTransform(),
+      applyFoldTransform: () => AppController.applyFoldTransform(),
+      applyPivotTransform: () => AppController.applyPivotTransform(),
+      applyAggregateTransform: () => AppController.applyAggregateTransform(),
+      applyJoinTransform: () => AppController.applyJoinTransform(),
+      applyAppendTransform: () => AppController.applyAppendTransform(),
+      applyReplaceTransform: () => AppController.applyReplaceTransform(),
+      applyDedupeTransform: () => AppController.applyDedupeTransform(),
+      applyImputeTransform: () => AppController.applyImputeTransform(),
+      confirmImport: () => AppController.confirmImport(),
+      fetchAndImportFromUrl: () => AppController.fetchAndImportFromUrl(),
+      generateData: () => AppController.generateData(),
+      runTransform: (name, config, close) => AppController.runTransform(name, config, close),
     });
 
-    // Set up EDA handler callbacks
+    // Set up EDA handler callbacks using AppController
     setEdaCallbacks({
-      updateToolbarPosition: () => this.updateToolbarPosition(),
-      applyFilterTransform: () => this.applyFilterTransform(),
-      clearColumnSelection: () => this.clearColumnSelection(),
+      updateToolbarPosition: () => AppController.updateToolbarPosition(),
+      applyFilterTransform: () => AppController.applyFilterTransform(),
+      clearColumnSelection: () => AppController.clearColumnSelection(),
     });
 
-    // Set up transform callbacks (for helper-handlers)
+    // Set up transform callbacks using AppController
     setTransformCallbacks({
-      startTransformation: (label) => this.startTransformation(label),
-      endTransformation: () => this.endTransformation(),
-      alert: (msg) => this.alert(msg),
-      closeDialog: (clearPreview) => this.closeDialog(clearPreview),
-      updatePagination: () => this.updatePagination(),
+      startTransformation: (label) => AppController.startTransformation(label),
+      endTransformation: () => AppController.endTransformation(),
+      alert: (msg) => AppController.alert(msg),
+      closeDialog: (clearPreview) => AppController.closeDialog(clearPreview),
+      updatePagination: () => AppController.updatePagination(),
     });
 
-    // Set up JSON edit callbacks
+    // Set up JSON edit callbacks using AppController
     setJsonEditCallbacks({
-      computeModelUpToStep: (model, stepIndex) => this.computeModelUpToStep(model, stepIndex),
-      updatePagination: () => this.updatePagination(),
+      computeModelUpToStep: (model, stepIndex) =>
+        AppController.computeModelUpToStep(model, stepIndex),
+      updatePagination: () => AppController.updatePagination(),
     });
 
-    // Set up import callbacks
+    // Set up import callbacks using AppController
     setImportCallbacks({
-      openDialog: (name, section) => this.openDialog(name, section),
-      closeDialog: (force) => this.closeDialog(force),
+      openDialog: (name, section) => AppController.openDialog(name, section),
+      closeDialog: (force) => AppController.closeDialog(force),
       createSource: (file, name, columns, data, headerMode, delimiter, customHeaders, format) =>
-        this.createSource(file, name, columns, data, headerMode, delimiter, customHeaders, format),
+        AppController.createSource(
+          file,
+          name,
+          columns,
+          data,
+          headerMode,
+          delimiter,
+          customHeaders,
+          format
+        ),
     });
 
+    // Load UX settings
     const uxSettings = loadUXSettings();
     AppStore.uxSettings.value = uxSettings;
     AppStore.pageSize.value = uxSettings.pagination.pageSize;
     AppStore.theme.value = uxSettings.theme;
-    this.applyTheme();
+    AppController.applyTheme();
 
+    // Load initial data from IndexedDB
     const { sources, models } = await loadInitialData();
     AppStore.sources.value = sources;
     AppStore.models.value = models;
 
+    // Restore URL state
     const urlState = getUrlState();
     let restored = false;
 
     // Handle page routes (about, reference, expressions, settings)
     if (urlState.page) {
-      this.openDialog(urlState.page, urlState.section);
-      // Ensure URL is set after restoration (in case it was cleared)
+      AppController.openDialog(urlState.page, urlState.section);
       setUrlState({ page: urlState.page, section: urlState.section });
       restored = true;
     } else if (urlState.modelId) {
       const model = models.find((m) => m.id === urlState.modelId);
       if (model) {
         if (urlState.section === 'info') {
-          // Show model info view
-          ModelService.showModelInfo(model, () => this.clearColumnSelection());
+          ModelService.showModelInfo(model, () => AppController.clearColumnSelection());
           setUrlState({ sourceId: model.sourceId, modelId: model.id, section: 'info' });
         } else {
-          // Show model view
           AppStore.activeModel.value = model;
           AppStore.currentData.value = model.data;
           AppStore.viewMode.value = 'model';
@@ -1036,11 +170,9 @@ export class SytoApp {
       const source = sources.find((s) => s.id === urlState.sourceId);
       if (source) {
         if (urlState.section === 'info') {
-          // Show dataset info view
-          ModelService.showDatasetInfo(source, () => this.clearColumnSelection());
+          ModelService.showDatasetInfo(source, () => AppController.clearColumnSelection());
           setUrlState({ sourceId: source.id, section: 'info' });
         } else {
-          // Show dataset info view (default for source)
           AppStore.activeSource.value = source;
           AppStore.currentData.value = source.data;
           AppStore.viewMode.value = 'dataset-info';
@@ -1051,16 +183,17 @@ export class SytoApp {
     }
 
     // Listen for hash changes (browser back/forward)
-    window.addEventListener('hashchange', () => this.handleHashChange());
+    window.addEventListener('hashchange', () => AppController.handleHashChange());
 
+    // Set default view if nothing restored
     if (!restored && models.length > 0) {
       AppStore.activeModel.value = models[0];
       AppStore.currentData.value = models[0].data;
       AppStore.viewMode.value = 'model';
-      // Set URL for default model
       setUrlState({ sourceId: models[0].sourceId, modelId: models[0].id });
     }
 
+    // Initialize step index
     const activeModel = AppStore.activeModel.value;
     if (activeModel) {
       AppStore.activeStepIndex.value =
@@ -1068,11 +201,11 @@ export class SytoApp {
       AppStore.viewingIntermediate.value = false;
     }
 
+    // Initialize schema if needed
     const currentData = AppStore.currentData.value;
     const activeSource = AppStore.activeSource.value;
     if (currentData && currentData.length > 0) {
       if (activeModel && (!activeModel.schema || activeModel.schema.length === 0)) {
-        // Fallback: infer logical types for model (models use logical types, not physical)
         activeModel.schema = SchemaEngine.createLogicalSchema(activeModel.data);
       }
 
@@ -1085,20 +218,22 @@ export class SytoApp {
       }
     }
 
-    this.updatePagination();
+    // Initialize pagination
+    AppController.updatePagination();
 
     // Sync URL state after initial render
     setTimeout(() => this.syncUrlState(), 0);
 
+    // Set up keyboard shortcuts
     window.addEventListener('keydown', (e) => {
       // Handle Escape key first (highest priority)
       if (e.key === 'Escape') {
         if (AppStore.messageBox.value.visible) {
-          this.closeMessageBox(false);
+          AppController.closeMessageBox(false);
           return;
         }
         if (AppStore.activeDialog.value) {
-          this.closeDialog();
+          AppController.closeDialog();
           return;
         }
         if (AppStore.typeMenuOpen.value) {
@@ -1106,7 +241,7 @@ export class SytoApp {
           return;
         }
         if (AppStore.selectedColumn.value || AppStore.selectedCell.value) {
-          this.clearColumnSelection();
+          AppController.clearColumnSelection();
           return;
         }
       }
@@ -1115,12 +250,14 @@ export class SytoApp {
       KeyboardHandlers.handleKeyDown(this, e);
     });
 
-    window.addEventListener('paste', (e) => this.handlePaste(e));
-    window.addEventListener('click', (e) => this.handleBodyClick(e));
-
-    // await this.loadTemplates(); // Templates are gone
+    // Global event listeners
+    window.addEventListener('paste', (e) => AppController.handlePaste(e));
+    window.addEventListener('click', (e) => AppController.handleBodyClick(e));
   }
 
+  /**
+   * Sync URL state with current app state
+   */
   syncUrlState() {
     const activeModel = AppStore.activeModel.value;
     const activeSource = AppStore.activeSource.value;
@@ -1130,66 +267,29 @@ export class SytoApp {
     });
   }
 
-  async startTransformation(message: string) {
-    AppStore.isTransforming.value = true;
-    AppStore.transformMessage.value = message;
-    // Allow UI to update before continuing
-    await new Promise((resolve) => requestAnimationFrame(() => resolve(undefined)));
-    await new Promise((resolve) => setTimeout(resolve, 50));
-  }
-
-  endTransformation() {
-    AppStore.isTransforming.value = false;
-    AppStore.transformMessage.value = '';
-  }
-
-  applyTheme() {
-    document.documentElement.setAttribute('data-theme', AppStore.theme.value);
-  }
-
-  switchTheme(theme: 'blues' | 'syto') {
-    AppStore.theme.value = theme;
-    this.applyTheme();
-    updateUXSetting('theme', '', theme);
-  }
-
-  updatePreviewRowLimit(value: string) {
-    const limit = Math.max(10, Math.min(10000, parseInt(value, 10) || 100));
-    AppStore.uxSettings.value = { ...AppStore.uxSettings.value, preview: { rowLimit: limit } };
-    updateUXSetting('preview', 'rowLimit', limit);
-  }
-
-  getPreviewRowLimit(): number {
-    return AppStore.uxSettings.value.preview?.rowLimit || 100;
-  }
-
-  updateAnalyticsOptOut(optOut: boolean) {
-    AppStore.uxSettings.value = { ...AppStore.uxSettings.value, analyticsOptOut: optOut };
-    updateUXSetting('analyticsOptOut', '', optOut);
-    // If opting out, remove any existing GoatCounter script and stop tracking
-    if (optOut) {
-      const existingScript = document.querySelector('script[data-goatcounter]');
-      if (existingScript) {
-        existingScript.remove();
-      }
-      // Also disable GoatCounter if it's already loaded (stops any pending requests)
-      if (typeof (window as any).goatcounter !== 'undefined') {
-        (window as any).goatcounter = { count: () => {} }; // Replace with no-op function
-      }
-    }
-  }
-
   // ============================================================
-  // Model & Source Management
+  // Legacy compatibility methods for keyboard handlers
+  // These are used by KeyboardHandlers which needs a SytoApp-like object
+  // TODO: Refactor keyboard handlers to use AppController directly
   // ============================================================
 
-  // ============================================================
-  // Import Handlers
-  // ============================================================
+  alert(message: string, title = 'Alert') {
+    return AppController.alert(message, title);
+  }
 
-  // ============================================================
-  // Export Handlers
-  // ============================================================
+  showSuccess(message: string, options: any = {}) {
+    return AppController.showSuccess(message, options);
+  }
 
-  // ============================================================
+  showError(title: string, message: string, options: any = {}) {
+    return AppController.showError(title, message, options);
+  }
+
+  removeStep(stepIndex: number) {
+    return AppController.removeStep(stepIndex);
+  }
+
+  viewStep(stepIndex: number) {
+    return AppController.viewStep(stepIndex);
+  }
 }

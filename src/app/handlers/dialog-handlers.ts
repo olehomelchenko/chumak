@@ -172,7 +172,7 @@ export function isCenteredModal(dialog: string | null): boolean {
  */
 export function getDialogTitle(): string {
   const activeDialog = AppStore.activeDialog.value;
-  return registryGetDialogTitle(activeDialog as any, undefined);
+  return registryGetDialogTitle(activeDialog as any);
 }
 
 /**
