@@ -1,50 +1,50 @@
 /**
  * Syto Performance Logger
+ *
+ * @deprecated Use metricsCollector from './metrics' instead.
+ * This module is kept for backward compatibility but delegates to the metrics system.
  */
+
+import { metricsCollector, getDataShape } from './metrics';
 
 export interface DataShape {
   rows: number;
   cols: number;
 }
 
+/**
+ * @deprecated Use metricsCollector.record() instead
+ */
 export const perfLogger = {
   enabled: true,
 
   /**
    * Log an operation with timing and data shape
+   * @deprecated Use metricsCollector.record() instead
    */
   log(name: string, input: any, output: any, duration: number): void {
     if (!this.enabled) return;
 
-    const inputShape = this.getShape(input);
-    const outputShape = this.getShape(output);
-    const icon = duration < 50 ? '⚡' : duration < 200 ? '✓' : duration < 500 ? '⏱️' : '⚠️';
+    const inputShape = getDataShape(input);
+    const outputShape = getDataShape(output);
 
-    console.log(
-      `${icon} ${name} — ${duration.toFixed(1)}ms`,
-      `\n  ${inputShape.rows.toLocaleString()}×${inputShape.cols} → ${outputShape.rows.toLocaleString()}×${outputShape.cols}`
-    );
+    // Delegate to new metrics system
+    metricsCollector.record({
+      transformType: name,
+      durationMs: duration,
+      success: true,
+      inputRows: inputShape.rows,
+      inputCols: inputShape.cols,
+      outputRows: outputShape.rows,
+      outputCols: outputShape.cols,
+    });
   },
 
   /**
    * Get data shape (rows × cols)
+   * @deprecated Use getDataShape from './metrics' instead
    */
   getShape(data: any): DataShape {
-    if (!data) return { rows: 0, cols: 0 };
-
-    // Arquero table
-    if (typeof data.numRows === 'function') {
-      return { rows: data.numRows(), cols: data.numCols() };
-    }
-
-    // Array
-    if (Array.isArray(data)) {
-      return {
-        rows: data.length,
-        cols: data.length > 0 ? Object.keys(data[0]).length : 0,
-      };
-    }
-
-    return { rows: 0, cols: 0 };
+    return getDataShape(data);
   },
 };

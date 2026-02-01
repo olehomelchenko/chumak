@@ -11,7 +11,7 @@ export const settingsState = {
 export function resetSettingsState() {
   settingsState.theme.value = 'syto';
   settingsState.rowLimit.value = 100;
-  // Note: analyticsOptOut is not reset as it's a user preference
+  // Note: analyticsOptOut is not reset as it is a user preference
 }
 
 registerResetFunction(resetSettingsState);

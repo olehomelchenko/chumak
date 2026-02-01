@@ -9,10 +9,12 @@ import { AppStore } from '../stores/AppStore';
  */
 export class PersistenceService {
   /**
-   * Triggers an auto-save of all current sources and models from AppStore
+   * Triggers an auto-save of all current sources and models from AppStore.
+   * Virtual sources (like metrics) are filtered out - they are not persisted.
    */
   static async autoSave(): Promise<void> {
-    const sources = AppStore.sources.value;
+    // Filter out virtual sources - they should not be persisted
+    const sources = AppStore.sources.value.filter((s: any) => !s.isVirtual);
     const models = AppStore.models.value;
     await autoSave(sources, models);
   }

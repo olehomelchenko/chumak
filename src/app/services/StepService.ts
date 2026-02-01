@@ -1,13 +1,29 @@
 import * as aq from 'arquero';
 import { applyTransform, describeTransform } from '../../core/transforms';
 import { TransformResult } from '../../core/transform-result';
-import { perfLogger } from '../../core/performance-logger';
+import { metricsCollector, getDataShape } from '../../core/metrics';
 import { PersistenceService } from './PersistenceService';
 import { DependencyService } from './DependencyService';
 import { Model, Source } from '../types';
 import { ColumnSchema, TransformStep } from '../../core/schema-engine';
 import { AppStore } from '../stores/AppStore';
 import { convertDatesForStorage } from '../../core/storage';
+
+/**
+ * Extract the transform type from a step object.
+ * TransformStep has a single primary key indicating the type.
+ */
+function getTransformType(step: TransformStep): string {
+  // Special markers that aren't transform types
+  const nonTransformKeys = ['import'];
+
+  for (const key of Object.keys(step)) {
+    if (!nonTransformKeys.includes(key)) {
+      return key;
+    }
+  }
+  return 'unknown';
+}
 
 export interface ComputeResult {
   data: any[];
@@ -184,13 +200,49 @@ export class StepService {
       const step = model.steps[i];
       if (step.import) continue;
 
+      const stepStart = performance.now();
+      const inputShape = getDataShape(table);
+      const transformType = getTransformType(step);
+
       try {
         table = applyTransform(table, step, columns, context);
 
         const stepResult = TransformResult.create(table, schema, step);
         schema = stepResult.schema;
         columns = stepResult.columns;
+
+        // Record per-step metrics
+        const outputShape = getDataShape(table);
+        metricsCollector.record({
+          transformType,
+          durationMs: performance.now() - stepStart,
+          success: true,
+          inputRows: inputShape.rows,
+          inputCols: inputShape.cols,
+          outputRows: outputShape.rows,
+          outputCols: outputShape.cols,
+          metadata: {
+            modelId: model.id,
+            stepIndex: i,
+          },
+        });
       } catch (error: any) {
+        // Record failed step metrics
+        metricsCollector.record({
+          transformType,
+          durationMs: performance.now() - stepStart,
+          success: false,
+          inputRows: inputShape.rows,
+          inputCols: inputShape.cols,
+          outputRows: 0,
+          outputCols: 0,
+          metadata: {
+            modelId: model.id,
+            stepIndex: i,
+            errorMessage: error.message,
+          },
+        });
+
         console.error(`Error applying step ${i}:`, error);
         const stepDescription = describeTransform(step);
         const enhancedError = new Error(
@@ -213,12 +265,25 @@ export class StepService {
       console.warn('computeModelUpToStep: Result validation warnings', validation.errors);
     }
 
-    perfLogger.log(
-      `Compute model '${model.name}' to step ${stepIndex + 1}`,
-      source.data,
-      result.data,
-      performance.now() - start
-    );
+    const duration = performance.now() - start;
+    const inputShape = getDataShape(source.data);
+    const outputShape = getDataShape(result.data);
+
+    // Record metrics for the pipeline computation
+    metricsCollector.record({
+      transformType: 'pipeline',
+      durationMs: duration,
+      success: true,
+      inputRows: inputShape.rows,
+      inputCols: inputShape.cols,
+      outputRows: outputShape.rows,
+      outputCols: outputShape.cols,
+      metadata: {
+        modelId: model.id,
+        stepIndex: stepIndex,
+      },
+    });
+
     return result;
   }
 
