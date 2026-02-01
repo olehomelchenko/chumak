@@ -26,7 +26,6 @@
 - **[BACKLOG.md](docs/BACKLOG.md)**: Feature backlog and future enhancements
 - **[TRANSFORM-ARCHITECTURE-REVIEW.md](docs/TRANSFORM-ARCHITECTURE-REVIEW.md)**: Transform design analysis and improvement roadmap
 - **[MULTI-MODEL-ARCHITECTURE.md](docs/MULTI-MODEL-ARCHITECTURE.md)**: Dependency graph system, staleness tracking, and multi-model operations
-- **[REFACTORING-PLAN.md](docs/REFACTORING-PLAN.md)**: Codebase assessment and actionable refactoring roadmap
 
 ### Reference
 
@@ -139,7 +138,6 @@ npm run format   # Prettier
 | UI component patterns | [UX-SPECIFICATION.md](docs/UX-SPECIFICATION.md) §3         |
 | What's safe to change | [FUTURE-PROOFING.md](docs/FUTURE-PROOFING.md)              |
 | CSS debugging         | [DEBUGGING.md](docs/DEBUGGING.md)                          |
-| Refactoring roadmap   | [REFACTORING-PLAN.md](docs/REFACTORING-PLAN.md)            |
 | Project philosophy    | [SOUL.md](SOUL.md)                                         |
 
 ---

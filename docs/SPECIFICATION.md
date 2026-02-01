@@ -136,46 +136,96 @@ Handles type conversion between column types with Power Query-style error cells.
 
 ```
 src/
-├── core/           # Data engine (transforms, expressions, schema, storage)
+├── core/                    # Data engine (modular structure)
+│   ├── transforms/          # Transform implementations
+│   │   ├── handlers/        # Transform logic by category
+│   │   └── describers/      # Human-readable descriptions
+│   └── functions/           # Expression function implementations
 ├── app/
-│   ├── components/ # Preact UI components with co-located CSS Modules
-│   │   ├── join/           # Join dialog sub-components
-│   │   ├── generate/       # Generate dialog sub-components
-│   │   ├── eda/            # EDA panel sub-components
-│   │   └── column-selector/  # Shared column selection components
-│   ├── stores/         # Signal-based state management
-│   ├── services/       # Business logic (import, export, persistence)
-│   ├── handlers/       # Event handlers, preview engine, validation
-│   ├── orchestration/  # App lifecycle and coordination modules
-│   └── types.ts        # Application-wide TypeScript definitions
-├── content/        # Markdown content (about, expressions help)
-styles/             # Global CSS (variables, base, layout, buttons)
-docs/               # Project documentation
+│   ├── components/          # Preact UI components with co-located CSS Modules
+│   │   ├── join/            # Join dialog sub-components
+│   │   ├── generate/        # Generate dialog sub-components
+│   │   ├── eda/             # EDA panel sub-components
+│   │   └── column-selector/ # Shared column selection components
+│   ├── stores/              # Signal-based state management
+│   │   └── dialogs/         # Per-dialog state (7 category folders)
+│   ├── services/            # Business logic (import, export, persistence)
+│   ├── handlers/            # Event handlers (organized by category)
+│   │   ├── transform/       # Transform operation handlers
+│   │   ├── import/          # Data import handlers
+│   │   ├── dialog/          # Dialog-specific handlers
+│   │   └── core/            # Core interaction handlers
+│   ├── orchestration/       # App lifecycle and coordination modules
+│   └── types.ts             # Application-wide TypeScript definitions
+├── content/                 # Markdown content (about, expressions help)
+styles/                      # Global CSS (variables, base, layout, buttons)
+docs/                        # Project documentation
 ```
 
 #### Core Engine (`src/core/`)
 
-| File                   | Purpose                                             |
-| ---------------------- | --------------------------------------------------- |
-| `expression-parser.ts` | jsep wrapper, converts expression strings to AST    |
-| `ast-validator.ts`     | Security whitelist, arity checks, schema validation |
-| `ast-interpreter.ts`   | Safe AST execution against row data                 |
-| `transforms.ts`        | Transform implementations wrapping Arquero          |
-| `schema-engine.ts`     | Type inference and schema propagation               |
-| `type-converter.ts`    | Column type conversion with error cells             |
-| `eda-engine.ts`        | Statistical profiling and column analysis           |
-| `charts.ts`            | Vega-Lite specification generator                   |
-| `vega-themes.ts`       | Theme configurations for visualizations             |
-| `storage.ts`           | IndexedDB persistence layer                         |
-| `url-state.ts`         | URL hash state management                           |
-| `ux-settings.ts`       | User preferences (theme, performance)               |
+| File/Directory         | Purpose                                                          |
+| ---------------------- | ---------------------------------------------------------------- |
+| `expression-parser.ts` | jsep wrapper, converts expression strings to AST                 |
+| `ast-validator.ts`     | Security whitelist, arity checks, schema validation              |
+| `ast-interpreter.ts`   | Safe AST execution, delegates to `functions/`                    |
+| `functions/`           | Function implementations (date, math, string, regex, json, type) |
+| `transforms/`          | Modular transform system (see below)                             |
+| `schema-engine.ts`     | Type inference and schema propagation                            |
+| `type-converter.ts`    | Column type conversion with error cells                          |
+| `eda-engine.ts`        | Statistical profiling and column analysis                        |
+| `charts.ts`            | Vega-Lite specification generator                                |
+| `vega-themes.ts`       | Theme configurations for visualizations                          |
+| `storage.ts`           | IndexedDB persistence layer                                      |
+| `url-state.ts`         | URL hash state management                                        |
+| `ux-settings.ts`       | User preferences (theme, performance)                            |
+
+**Transforms Module** (`transforms/`):
+
+```
+transforms/
+├── index.ts              # Barrel exports
+├── apply-transform.ts    # Transform dispatcher
+├── describe-transform.ts # Description aggregator
+├── types.ts              # Interfaces and constants
+├── utils.ts              # Shared utilities
+├── handlers/             # Transform logic by category
+│   ├── basic.ts          # select, remove, rename, sort
+│   ├── filter.ts         # filter, conditional, replace
+│   ├── derive.ts         # derive
+│   ├── reshape.ts        # fold, pivot, split, spread, unroll
+│   ├── join.ts           # join, semijoin, antijoin, lookup
+│   └── ...               # (11 handler files total)
+└── describers/           # Human-readable transform descriptions
+```
+
+**Functions Module** (`functions/`):
+
+```
+functions/
+├── index.ts              # FUNCTION_IMPLS aggregation
+├── date-functions.ts     # Date extraction, arithmetic, formatting
+├── math-functions.ts     # Math operations, trig, rounding
+├── string-functions.ts   # Text manipulation, comparison
+├── regex-functions.ts    # Pattern matching, extraction
+├── json-functions.ts     # JSON parsing, extraction
+└── type-functions.ts     # Type conversion, validation
+```
 
 #### Application Layer (`src/app/`)
 
 **State Management** (`stores/`):
 
 - `AppStore.ts` — Centralized application state (sources, models, UI state)
-- `DialogStore.ts` — Dialog/modal state management
+- `DialogStore.ts` — Core utilities and static re-exports
+- `dialogs/` — Per-dialog state organized by category:
+  - `transform/` — filter, derive, sort, slice, sample, etc.
+  - `column/` — spread, unroll, merge, split, dedupe, etc.
+  - `aggregate/` — aggregate, pivot, fold
+  - `combine/` — join, append
+  - `text/` — text, date, regexp-match, regexp-extract
+  - `pattern/` — select, remove, rename patterns
+  - `import/` — csv, url, generate, preview, settings
 
 **Services** (`services/`):
 
@@ -189,17 +239,25 @@ docs/               # Project documentation
 **Orchestration** (`orchestration/`):
 
 - `AppOrchestrator.ts` — App initialization, theme management, transformation state
+- `AppController.ts` — Central action dispatcher
 - `EventRouter.ts` — Keyboard shortcuts, paste, and click event routing
 - `UrlStateSync.ts` — URL hash synchronization for navigation state
 - `DialogCoordinator.ts` — Dialog lifecycle, snapshots, and state management
 
 **Handlers** (`handlers/`):
 
-- **Shared utilities**: `preview-engine.ts` (debounced preview), `validation-engine.ts` (expression/regex validation)
-- **Transform-specific**: `filter-handlers.ts`, `derive-handlers.ts`, `join-handlers.ts`, etc.
-- **UI interaction**: `interaction-handlers.ts`, `column-editor-handlers.ts`
-- **Import/export**: `import-handlers.ts`, `json-handlers.ts`
-- **Testing utilities**: `test-utils.ts` (shared test fixtures and helpers)
+Organized into subdirectories by category:
+
+- `transform/` — aggregate, derive, filter, join, pivot handlers, etc.
+- `import/` — csv, json, generate handlers
+- `dialog/` — column-editor, interaction handlers
+- `core/` — step, keyboard, notification handlers
+
+Shared utilities at root level:
+
+- `preview-engine.ts` — Debounced preview with `createDebouncedPreview()`
+- `validation-engine.ts` — Expression/regex validation
+- `test-utils.ts` — Test fixtures (`createMockStepCallbacks()`, `TestData.*`)
 
 **Types** (`types.ts`):
 

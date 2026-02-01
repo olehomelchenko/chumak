@@ -25,18 +25,19 @@ Adding a transform requires changes across multiple files. Use this checklist:
 
 ### 1.1 Checklist
 
-| Step | File                             | What to Add                        |
-| ---- | -------------------------------- | ---------------------------------- |
-| 1    | `src/core/transforms.ts`         | Transform implementation           |
-| 2    | `src/core/schema-engine.ts`      | Schema propagation logic           |
-| 3    | `src/app/types.ts`               | Dialog state interface (if needed) |
-| 4    | `src/app/stores/DialogStore.ts`  | Dialog state signals               |
-| 5    | `src/app/components/*Dialog.tsx` | Dialog UI component                |
-| 6    | `src/app/handlers/*-handlers.ts` | Event handlers                     |
-| 7    | `src/app/components/Ribbon.tsx`  | Ribbon button (if new action)      |
-| 8    | `src/core/transforms.test.ts`    | Core logic tests                   |
-| 9    | `src/app/handlers/*`             | Cycle check (if external ref)      |
-| 10   | `docs/DATA-SPECIFICATION.md`     | Transform documentation            |
+| Step | File                                        | What to Add                        |
+| ---- | ------------------------------------------- | ---------------------------------- |
+| 1    | `src/core/transforms/handlers/*.ts`         | Transform implementation           |
+| 2    | `src/core/transforms/describers/*.ts`       | Human-readable description         |
+| 3    | `src/core/schema-engine.ts`                 | Schema propagation logic           |
+| 4    | `src/app/types.ts`                          | Dialog state interface (if needed) |
+| 5    | `src/app/stores/dialogs/<category>/*.ts`    | Dialog state signals               |
+| 6    | `src/app/components/*Dialog.tsx`            | Dialog UI component                |
+| 7    | `src/app/handlers/<category>/*-handlers.ts` | Event handlers                     |
+| 8    | `src/app/components/Ribbon.tsx`             | Ribbon button (if new action)      |
+| 9    | `src/core/transforms/*.test.ts`             | Core logic tests                   |
+| 10   | `src/app/handlers/*`                        | Cycle check (if external ref)      |
+| 11   | `docs/DATA-SPECIFICATION.md`                | Transform documentation            |
 
 ---
 
@@ -48,18 +49,22 @@ Syto is built on the principle of **non-destructive data wrangling**. Developers
 2. **Explicit Replacement with Backups**: If a user explicitly replaces a source's data, the application must maintain a `.backup` of the previous state to allow restoration (Undo/Redo).
 3. **Transforms return new tables**: Always use Arquero verbs that return a new table instance or create a new set of objects.
 4. **Traceability**: Every user action that changes data must be represented as a `TransformStep` in a `Model`. This allows the application to "replay" the pipeline from the raw source at any time.
-5. **No Side Effects**: Transformation logic in `src/core/transforms.ts` must be pure and rely only on the input table, transform parameters, and schema.
+5. **No Side Effects**: Transformation logic in `src/core/transforms/` must be pure and rely only on the input table, transform parameters, and schema.
 
 This pattern enables technical rollback, experimental workflows, and reproducibility—core pillars of the Syto philosophy.
 
-### 1.2 Core Implementation (`transforms.ts`)
+### 1.2 Core Implementation (`transforms/handlers/`)
 
-Pattern for transform logic:
+Transforms are organized into category files in `src/core/transforms/handlers/`. Pattern for transform logic:
 
 ```typescript
-// In applyTransform() switch or handler
-if (transform.yourTransform) {
-  const { param1, param2 } = transform.yourTransform;
+// In src/core/transforms/handlers/your-category.ts
+export function applyYourTransform(
+  table: ColumnTable,
+  params: YourTransformParams,
+  schema: ColumnSchema[]
+): ColumnTable {
+  const { param1, param2 } = params;
 
   // 1. Validate inputs
   if (!param1) {
@@ -67,12 +72,14 @@ if (transform.yourTransform) {
   }
 
   // 2. Apply transformation using Arquero
-  result = table.derive({ newCol: (d) => d.existingCol * 2 });
+  const result = table.derive({ newCol: (d) => d.existingCol * 2 });
 
   // 3. Return modified table
   return result;
 }
 ```
+
+Then register in `src/core/transforms/handlers/index.ts` and add a describer in `src/core/transforms/describers/`.
 
 Key conventions:
 
@@ -101,28 +108,32 @@ if (transform.yourTransform) {
 }
 ```
 
-### 1.4 Dialog State (`DialogStore.ts`)
+### 1.4 Dialog State (`stores/dialogs/`)
 
-Add signals for dialog form state:
+Dialog states are organized in `src/app/stores/dialogs/` by category (transform, column, aggregate, combine, text, pattern, import). Create a new state file in the appropriate category:
 
 ```typescript
-// Add to DialogStore class
-static yourTransformState = {
+// In src/app/stores/dialogs/<category>/your-transform-state.ts
+import { signal } from '@preact/signals';
+import { registerReset } from '../reset-registry';
+
+export const yourTransformState = {
   param1: signal(''),
   param2: signal<string[]>([]),
   error: signal<string | null>(null),
   previewData: signal<DataRow[] | null>(null),
 };
 
-// Add to resetAll()
-static resetAll() {
-  // ... existing resets
-  this.yourTransformState.param1.value = '';
-  this.yourTransformState.param2.value = [];
-  this.yourTransformState.error.value = null;
-  this.yourTransformState.previewData.value = null;
-}
+// Register reset function
+registerReset(() => {
+  yourTransformState.param1.value = '';
+  yourTransformState.param2.value = [];
+  yourTransformState.error.value = null;
+  yourTransformState.previewData.value = null;
+});
 ```
+
+Then export from the category's `index.ts` and the main `dialogs/index.ts`.
 
 ### 1.5 Dialog Component
 
@@ -172,12 +183,19 @@ export function YourTransformDialog() {
 
 ### 1.6 Handler Functions
 
-Handlers use stores directly and leverage shared utilities from `preview-engine.ts` and `validation-engine.ts`.
+Handlers are organized in `src/app/handlers/` subdirectories by category:
+
+- `transform/` — aggregate, derive, filter, join, pivot handlers, etc.
+- `import/` — csv, json, generate handlers
+- `dialog/` — column-editor, interaction handlers
+- `core/` — step, keyboard, notification handlers
+
+Handlers use stores directly and leverage shared utilities from `preview-engine.ts` and `validation-engine.ts` at the handlers root.
 
 **Using Preview Engine** (recommended for new handlers):
 
 ```typescript
-// In src/app/handlers/your-transform-handlers.ts
+// In src/app/handlers/<category>/your-transform-handlers.ts
 import { createDebouncedPreview, clearPreview } from './preview-engine';
 import { validateExpression } from './validation-engine';
 import { DialogStore } from '../stores/DialogStore';
