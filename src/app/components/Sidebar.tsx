@@ -3,7 +3,7 @@ import { useComputed } from '@preact/signals';
 import { useState } from 'preact/hooks';
 import { AppStore } from '../stores/AppStore';
 import { describeTransform } from '../../core/transforms';
-import { getDependencyTooltip } from '../handlers/helper-handlers';
+import { getDependencyTooltip } from '../handlers/core/helper-handlers';
 import type { Source, Model } from '../types';
 import styles from './Sidebar.module.css';
 

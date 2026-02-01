@@ -5,7 +5,7 @@ import joinStyles from './JoinDialog.module.css';
 import tableStyles from './DataTable.module.css';
 import { JoinTreeSelector } from './JoinTreeSelector';
 import { TablePreviewModal } from './TablePreviewModal';
-import * as AppendHandlers from '../handlers/append-handlers';
+import * as AppendHandlers from '../handlers/transform/append-handlers';
 
 export function AppendDialog() {
   const {

@@ -4,7 +4,7 @@ import { ColumnSelector } from './column-selector';
 import {
   validateRegexpExtractExpression,
   debouncedUpdateRegexpExtractPreview,
-} from '../handlers/regexp-handlers';
+} from '../handlers/transform/regexp-handlers';
 import styles from './TransformDialog.module.css';
 
 export function RegexpExtractDialog() {

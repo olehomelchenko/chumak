@@ -3,7 +3,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { AggregateDialog } from './AggregateDialog';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
-import * as AggregateHandlers from '../handlers/aggregate-handlers';
+import * as AggregateHandlers from '../handlers/transform/aggregate-handlers';
 
 describe('AggregateDialog', () => {
   const columns = ['dept', 'salary', 'age'];

@@ -1,5 +1,5 @@
 import { useComputed } from '@preact/signals';
-import * as PivotHandlers from '../handlers/pivot-handlers';
+import * as PivotHandlers from '../handlers/transform/pivot-handlers';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 import { ColumnSelector } from './column-selector';

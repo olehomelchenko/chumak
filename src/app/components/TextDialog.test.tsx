@@ -7,7 +7,7 @@ import { render, screen, fireEvent } from '@testing-library/preact';
 import { TextDialog } from './TextDialog';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
-import * as TextHandlers from '../handlers/text-handlers';
+import * as TextHandlers from '../handlers/transform/text-handlers';
 
 describe('TextDialog', () => {
   const testColumns = ['Name', 'Description'];

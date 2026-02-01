@@ -7,7 +7,7 @@ import { render, screen, fireEvent } from '@testing-library/preact';
 import { PivotDialog } from './PivotDialog';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
-import * as PivotHandlers from '../handlers/pivot-handlers';
+import * as PivotHandlers from '../handlers/transform/pivot-handlers';
 
 describe('PivotDialog', () => {
   const testColumns = ['Year', 'Region', 'Sales', 'Category'];

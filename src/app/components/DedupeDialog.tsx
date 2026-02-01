@@ -1,7 +1,7 @@
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 import { ColumnSelector } from './column-selector';
-import { toggleDedupeAllColumns, updateDedupePreview } from '../handlers/dedupe-handlers';
+import { toggleDedupeAllColumns, updateDedupePreview } from '../handlers/transform/dedupe-handlers';
 import styles from './TransformDialog.module.css';
 
 export function DedupeDialog() {

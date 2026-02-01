@@ -18,32 +18,35 @@ import { ModelService } from '../services/ModelService';
 import { ImportService } from '../services/ImportService';
 import { ExportService } from '../services/ExportService';
 
-// Handler imports
-import * as FilterHandlers from '../handlers/filter-handlers';
-import * as DeriveHandlers from '../handlers/derive-handlers';
-import * as AggregateHandlers from '../handlers/aggregate-handlers';
-import * as JoinHandlers from '../handlers/join-handlers';
-import * as AppendHandlers from '../handlers/append-handlers';
-import * as PivotHandlers from '../handlers/pivot-handlers';
-import * as FoldHandlers from '../handlers/fold-handlers';
-import * as SplitHandlers from '../handlers/split-handlers';
-import * as MergeHandlers from '../handlers/merge-handlers';
-import * as DedupeHandlers from '../handlers/dedupe-handlers';
-import * as RegexpHandlers from '../handlers/regexp-handlers';
-import * as SimpleHandlers from '../handlers/simple-handlers';
-import * as ImportHandlers from '../handlers/import-handlers';
-import * as GenerateHandlers from '../handlers/generate-handlers';
-import * as SampleHandlers from '../handlers/sample-handlers';
-import * as SpreadHandlers from '../handlers/spread-handlers';
-import * as UnrollHandlers from '../handlers/unroll-handlers';
-import * as StepHandlers from '../handlers/step-handlers';
-import * as DialogHandlers from '../handlers/dialog-handlers';
-import * as NotificationHandlers from '../handlers/notification-handlers';
-import * as EDAHandlers from '../handlers/eda-handlers';
-import * as InteractionHandlers from '../handlers/interaction-handlers';
-import * as PaginationHandlers from '../handlers/pagination-handlers';
-import * as HelperHandlers from '../handlers/helper-handlers';
-import * as JsonHandlers from '../handlers/json-handlers';
+// Handler imports - Transform
+import * as FilterHandlers from '../handlers/transform/filter-handlers';
+import * as DeriveHandlers from '../handlers/transform/derive-handlers';
+import * as AggregateHandlers from '../handlers/transform/aggregate-handlers';
+import * as JoinHandlers from '../handlers/transform/join-handlers';
+import * as AppendHandlers from '../handlers/transform/append-handlers';
+import * as PivotHandlers from '../handlers/transform/pivot-handlers';
+import * as FoldHandlers from '../handlers/transform/fold-handlers';
+import * as SplitHandlers from '../handlers/transform/split-handlers';
+import * as MergeHandlers from '../handlers/transform/merge-handlers';
+import * as DedupeHandlers from '../handlers/transform/dedupe-handlers';
+import * as RegexpHandlers from '../handlers/transform/regexp-handlers';
+import * as SimpleHandlers from '../handlers/transform/simple-handlers';
+import * as SampleHandlers from '../handlers/transform/sample-handlers';
+import * as SpreadHandlers from '../handlers/transform/spread-handlers';
+import * as UnrollHandlers from '../handlers/transform/unroll-handlers';
+// Handler imports - Import
+import * as ImportHandlers from '../handlers/import/import-handlers';
+import * as GenerateHandlers from '../handlers/import/generate-handlers';
+import * as JsonHandlers from '../handlers/import/json-handlers';
+// Handler imports - Dialog
+import * as DialogHandlers from '../handlers/dialog/dialog-handlers';
+// Handler imports - Core
+import * as StepHandlers from '../handlers/core/step-handlers';
+import * as NotificationHandlers from '../handlers/core/notification-handlers';
+import * as EDAHandlers from '../handlers/core/eda-handlers';
+import * as InteractionHandlers from '../handlers/core/interaction-handlers';
+import * as PaginationHandlers from '../handlers/core/pagination-handlers';
+import * as HelperHandlers from '../handlers/core/helper-handlers';
 
 import type { Source, Model, ColumnSchema } from '../types';
 

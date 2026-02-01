@@ -7,7 +7,7 @@ import { render, screen, fireEvent } from '@testing-library/preact';
 import { DateDialog } from './DateDialog';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
-import * as DateHandlers from '../handlers/date-handlers';
+import * as DateHandlers from '../handlers/transform/date-handlers';
 
 describe('DateDialog', () => {
   const testColumns = ['Order Date', 'Ship Date'];

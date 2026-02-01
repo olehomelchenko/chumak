@@ -3,8 +3,8 @@ import { AppStore } from './stores/AppStore';
 import { ImportService } from './services/ImportService';
 import { ExportService } from './services/ExportService';
 import { StepService } from './services/StepService';
-import * as PaginationHandlers from './handlers/pagination-handlers';
-import * as DialogHandlers from './handlers/dialog-handlers';
+import * as PaginationHandlers from './handlers/core/pagination-handlers';
+import * as DialogHandlers from './handlers/dialog/dialog-handlers';
 import Papa from 'papaparse';
 
 /**

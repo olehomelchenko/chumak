@@ -1,4 +1,4 @@
-import * as AggregateHandlers from '../handlers/aggregate-handlers';
+import * as AggregateHandlers from '../handlers/transform/aggregate-handlers';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 import { ColumnSelector } from './column-selector';

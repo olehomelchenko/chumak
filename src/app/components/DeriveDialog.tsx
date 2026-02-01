@@ -1,7 +1,7 @@
 import { useSignalEffect } from '@preact/signals';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
-import * as DeriveHandlers from '../handlers/derive-handlers';
+import * as DeriveHandlers from '../handlers/transform/derive-handlers';
 import styles from './TransformDialog.module.css';
 
 export function DeriveDialog() {

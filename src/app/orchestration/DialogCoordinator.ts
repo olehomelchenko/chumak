@@ -9,7 +9,7 @@ import { AppStore } from '../stores/AppStore';
 import { DialogStore } from '../stores/DialogStore';
 import { DialogName } from '../types';
 import { syncDialogToUrl, clearDialogFromUrl } from './UrlStateSync';
-import * as DateHandlers from '../handlers/date-handlers';
+import * as DateHandlers from '../handlers/transform/date-handlers';
 import { GeneratorService } from '../services/GeneratorService';
 
 export type DialogCallbacks = {

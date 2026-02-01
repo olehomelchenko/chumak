@@ -23,7 +23,7 @@ import {
   UrlSyncCallbacks,
 } from './UrlStateSync';
 import { setDialogCallbacks, DialogCallbacks } from './DialogCoordinator';
-import * as PaginationHandlers from '../handlers/pagination-handlers';
+import * as PaginationHandlers from '../handlers/core/pagination-handlers';
 
 export type OrchestratorCallbacks = EventRouterCallbacks &
   UrlSyncCallbacks &

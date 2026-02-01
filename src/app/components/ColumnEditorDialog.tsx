@@ -4,7 +4,7 @@ import { AppStore } from '../stores/AppStore';
 import { useComputed } from '@preact/signals';
 import { ColumnSelector } from './column-selector';
 import styles from './TransformDialog.module.css';
-import * as Handlers from '../handlers/column-editor-handlers';
+import * as Handlers from '../handlers/dialog/column-editor-handlers';
 
 export interface ColumnEditorItem {
   original: string;

@@ -5,7 +5,7 @@ import joinStyles from './JoinDialog.module.css';
 import { JoinTreeSelector } from './JoinTreeSelector';
 import { TablePreviewModal } from './TablePreviewModal';
 import { JoinTypeSelector, JoinKeysEditor, JoinColumnSelector } from './join';
-import * as JoinHandlers from '../handlers/join-handlers';
+import * as JoinHandlers from '../handlers/transform/join-handlers';
 
 export type JoinType = 'inner' | 'left' | 'right' | 'full' | 'cross' | 'semi' | 'anti' | 'lookup';
 

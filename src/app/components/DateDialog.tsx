@@ -6,7 +6,7 @@ import { useComputed, useSignalEffect } from '@preact/signals';
 import styles from './TransformDialog.module.css';
 import { ColumnSelector } from './column-selector';
 import { DialogStore } from '../stores/DialogStore';
-import * as DateHandlers from '../handlers/date-handlers';
+import * as DateHandlers from '../handlers/transform/date-handlers';
 
 export type DateOperation = 'extract' | 'truncate';
 

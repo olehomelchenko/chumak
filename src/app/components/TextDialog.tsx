@@ -6,7 +6,7 @@ import { useSignalEffect } from '@preact/signals';
 import styles from './TransformDialog.module.css';
 import { ColumnSelector } from './column-selector';
 import { DialogStore } from '../stores/DialogStore';
-import * as TextHandlers from '../handlers/text-handlers';
+import * as TextHandlers from '../handlers/transform/text-handlers';
 
 export function TextDialog() {
   const state = DialogStore.textState;

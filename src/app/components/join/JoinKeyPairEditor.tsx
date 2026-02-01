@@ -1,7 +1,7 @@
 import { DialogStore } from '../../stores/DialogStore';
 import styles from '../TransformDialog.module.css';
 import joinStyles from '../JoinDialog.module.css';
-import * as JoinHandlers from '../../handlers/join-handlers';
+import * as JoinHandlers from '../../handlers/transform/join-handlers';
 
 export interface KeyPairAnalysis {
   leftCol: string | null;

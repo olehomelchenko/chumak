@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'preact/hooks';
 import { AppStore } from '../stores/AppStore';
-import { getDependencyTooltip } from '../handlers/helper-handlers';
+import { getDependencyTooltip } from '../handlers/core/helper-handlers';
 import type { Source, Model } from '../types';
 import { PersistenceService } from '../services/PersistenceService';
 import { TypeIndicator } from './TypeIndicator';

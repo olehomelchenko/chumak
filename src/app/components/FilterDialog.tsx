@@ -5,7 +5,7 @@
 import { useSignalEffect } from '@preact/signals';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
-import * as FilterHandlers from '../handlers/filter-handlers';
+import * as FilterHandlers from '../handlers/transform/filter-handlers';
 import styles from './TransformDialog.module.css';
 
 export type FilterPreviewMode = 'all' | 'matching';

@@ -1,7 +1,7 @@
 import { useSignalEffect } from '@preact/signals';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
-import { updateImputePreview } from '../handlers/simple-handlers';
+import { updateImputePreview } from '../handlers/transform/simple-handlers';
 import styles from './TransformDialog.module.css';
 
 /**

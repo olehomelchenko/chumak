@@ -2,7 +2,7 @@ import { useSignalEffect } from '@preact/signals';
 import { DialogStore } from '../stores/DialogStore';
 import { GeneratorService, GeneratorType } from '../services/GeneratorService';
 import { GeneratorTypeSelector, GeneratorConfigEditor } from './generate';
-import * as GenerateHandlers from '../handlers/generate-handlers';
+import * as GenerateHandlers from '../handlers/import/generate-handlers';
 import styles from './TransformDialog.module.css';
 
 export function GenerateDialog() {

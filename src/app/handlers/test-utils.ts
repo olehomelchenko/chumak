@@ -10,7 +10,7 @@ import { AppStore } from '../stores/AppStore';
 import { DialogStore } from '../stores/DialogStore';
 import type { DataRow } from '../types';
 import type { SytoApp } from '../../syto-app';
-import type { StepCallbacks } from './step-handlers';
+import type { StepCallbacks } from './core/step-handlers';
 import type { ExecutionCallbacks } from '../services/StepService';
 
 /**

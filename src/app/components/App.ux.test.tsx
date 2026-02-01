@@ -10,8 +10,8 @@ import { render, fireEvent, waitFor } from '@testing-library/preact';
 import { App } from './App';
 import { AppStore } from '../stores/AppStore';
 import { DialogStore } from '../stores/DialogStore';
-import { previewTypeConversion } from '../handlers/interaction-handlers';
-import { setEdaCallbacks } from '../handlers/eda-handlers';
+import { previewTypeConversion } from '../handlers/core/interaction-handlers';
+import { setEdaCallbacks } from '../handlers/core/eda-handlers';
 import { AppController } from '../orchestration/AppController';
 
 describe('App UX Interactions', () => {

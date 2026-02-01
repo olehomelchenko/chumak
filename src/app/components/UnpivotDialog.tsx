@@ -1,7 +1,7 @@
 import { useComputed } from '@preact/signals';
 import styles from './TransformDialog.module.css';
 import { ColumnSelector } from './column-selector';
-import * as FoldHandlers from '../handlers/fold-handlers';
+import * as FoldHandlers from '../handlers/transform/fold-handlers';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 

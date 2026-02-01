@@ -6,7 +6,7 @@ import { useSignalEffect } from '@preact/signals';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 import { ColumnSelector } from './column-selector/ColumnSelector';
-import * as MergeHandlers from '../handlers/merge-handlers';
+import * as MergeHandlers from '../handlers/transform/merge-handlers';
 import styles from './TransformDialog.module.css';
 
 export function MergeDialog() {

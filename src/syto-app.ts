@@ -17,14 +17,14 @@ import { AppStore } from './app/stores/AppStore';
 import { ModelService } from './app/services/ModelService';
 
 // Handler callback setup functions
-import { setStepCallbacks } from './app/handlers/step-handlers';
-import { setDialogHandlerCallbacks } from './app/handlers/dialog-handlers';
-import { setEdaCallbacks } from './app/handlers/eda-handlers';
-import { setTransformCallbacks } from './app/handlers/helper-handlers';
-import { setJsonEditCallbacks } from './app/handlers/json-handlers';
-import { setImportCallbacks } from './app/handlers/import-handlers';
-import * as SimpleHandlers from './app/handlers/simple-handlers';
-import * as KeyboardHandlers from './app/handlers/keyboard-handlers';
+import { setStepCallbacks } from './app/handlers/core/step-handlers';
+import { setDialogHandlerCallbacks } from './app/handlers/dialog/dialog-handlers';
+import { setEdaCallbacks } from './app/handlers/core/eda-handlers';
+import { setTransformCallbacks } from './app/handlers/core/helper-handlers';
+import { setJsonEditCallbacks } from './app/handlers/import/json-handlers';
+import { setImportCallbacks } from './app/handlers/import/import-handlers';
+import * as SimpleHandlers from './app/handlers/transform/simple-handlers';
+import * as KeyboardHandlers from './app/handlers/core/keyboard-handlers';
 
 // AppController for all actions
 import { AppController } from './app/orchestration/AppController';

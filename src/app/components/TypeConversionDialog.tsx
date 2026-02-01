@@ -1,6 +1,6 @@
 import { useEffect } from 'preact/hooks';
 import { DialogStore } from '../stores/DialogStore';
-import { previewTypeConversion } from '../handlers/interaction-handlers';
+import { previewTypeConversion } from '../handlers/core/interaction-handlers';
 import {
   getPreviewColumns,
   getPreviewRows,

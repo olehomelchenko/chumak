@@ -57,13 +57,17 @@ import {
   formatPreviewCell,
   activeDialogHasError,
 } from '../orchestration/DialogCoordinator';
-import { getDialogTitle, getDialogButtonText, getAboutContent } from '../handlers/dialog-handlers';
+import {
+  getDialogTitle,
+  getDialogButtonText,
+  getAboutContent,
+} from '../handlers/dialog/dialog-handlers';
 import {
   getModelMeta,
   getTypeIcon,
   formatCellValue,
   formatCellValueForTooltip,
-} from '../handlers/helper-handlers';
+} from '../handlers/core/helper-handlers';
 import { AppController } from '../orchestration/AppController';
 import styles from './App.module.css';
 
