@@ -61,19 +61,19 @@ Assessment of the Syto codebase (47.6K lines, 64 test files) reveals a moderatel
 
 ## 2. High Priority: Split Test Monoliths
 
-### 2.1 transforms.test.ts (2,075 lines)
+### ~~2.1 transforms.test.ts (2,075 lines)~~ ✅ COMPLETED
 
-**Current**: Single file testing all 62 transform operations
-**Target**: 6 focused test files
+**Previous**: Single file testing all 62 transform operations
+**Result**: 6 focused test files (120 tests total)
 
-| New File                      | Content                                  | Est. Lines |
-| ----------------------------- | ---------------------------------------- | ---------- |
-| `transforms-math.test.ts`     | Numeric operations, rounding, arithmetic | ~300       |
-| `transforms-string.test.ts`   | Text manipulation, trim, case, replace   | ~350       |
-| `transforms-date.test.ts`     | Date parsing, formatting, arithmetic     | ~300       |
-| `transforms-regex.test.ts`    | Pattern matching, extract, replace       | ~250       |
-| `transforms-type.test.ts`     | Type conversion, coercion, null handling | ~300       |
-| `transforms-advanced.test.ts` | Join, pivot, aggregate, window           | ~400       |
+| File                           | Content                                    | Lines |
+| ------------------------------ | ------------------------------------------ | ----- |
+| `transforms-basic.test.ts`     | SELECT, FILTER, DERIVE, SLICE, INDEX       | ~350  |
+| `transforms-type.test.ts`      | Type conversion, SchemaEngine              | ~260  |
+| `transforms-aggregate.test.ts` | AGGREGATE, SPLIT, PIVOT, IMPUTE            | ~280  |
+| `transforms-pattern.test.ts`   | Pattern matching, CONDITIONAL, RENAME      | ~200  |
+| `transforms-combine.test.ts`   | CONCAT, UNION, SAMPLE                      | ~230  |
+| `transforms-join.test.ts`      | SEMIJOIN, ANTIJOIN, LOOKUP, SPREAD, UNROLL | ~350  |
 
 ### 2.2 ast-interpreter.test.ts (1,130 lines)
 
@@ -200,75 +200,72 @@ Option B is preferred — clearer separation, easier to find dialog-specific sta
 
 ---
 
-## 5. Medium Priority: Extract Debounce Utilities
+## 5. ~~Medium Priority: Extract Debounce Utilities~~ ✅ ALREADY SOLVED
 
-**Occurrences**: 49 across handlers
-**Duplicated Pattern**:
+**Occurrences**: Previously 49 duplicates
+**Current State**: Already centralized in `src/app/handlers/preview-engine.ts`
 
-```typescript
-let debounceTimer: any;
-export function debouncedUpdatePreview() {
-  clearTimeout(debounceTimer);
-  debounceTimer = setTimeout(() => updatePreview(), 300);
-}
-```
-
-### Proposed Utility
+### Existing Solution
 
 ```typescript
-// src/app/utils/debounce.ts
-export function createDebouncedHandler<T extends (...args: any[]) => any>(
-  fn: T,
-  delay: number = 300
-): T & { cancel(): void } {
-  let timer: ReturnType<typeof setTimeout>;
-  const debounced = ((...args) => {
-    clearTimeout(timer);
-    timer = setTimeout(() => fn(...args), delay);
-  }) as T & { cancel(): void };
-  debounced.cancel = () => clearTimeout(timer);
-  return debounced;
-}
+// src/app/handlers/preview-engine.ts
+export function createDebouncedPreview<TState>(config: {
+  compute: () => PreviewResult | null;
+  delay?: number; // Default: 150ms
+}): {
+  trigger: () => void; // Debounced
+  compute: () => void; // Immediate
+  cancel: () => void;
+  clear: () => void;
+};
 
 // Usage in handlers:
-export const debouncedUpdatePreview = createDebouncedHandler(updatePreview, 300);
+const filterPreview = createDebouncedPreview({
+  compute: (): PreviewResult | null => {
+    /* ... */
+  },
+});
+
+export function debouncedUpdateFilterPreview() {
+  filterPreview.trigger();
+}
 ```
 
-**Impact**: Eliminates ~100 lines of duplication
+**Impact**: Already achieved ~100 lines of deduplication
 
 ---
 
-## 6. Medium Priority: Test Fixtures Factory
+## 6. ~~Medium Priority: Test Fixtures Factory~~ ✅ COMPLETED
 
 **Problem**: Every handler test rebuilds callback objects
 
-```typescript
-// Repeated 30+ times per test file:
-const callbacks = {
-  updatePagination: () => {},
-  onError: (msg) => {},
-  onTransformStart: () => {},
-  // ...
-};
-```
+### Completed (February 2026)
 
-### Proposed Solution
+Added to `src/app/handlers/test-utils.ts`:
 
 ```typescript
-// src/app/handlers/__tests__/fixtures/callbacks.ts
-export function createMockCallbacks(overrides?: Partial<StepCallbacks>): StepCallbacks {
+export function createMockStepCallbacks(overrides?: Partial<StepCallbacks>): StepCallbacks {
   return {
     updatePagination: vi.fn(),
-    onError: vi.fn(),
-    onTransformStart: vi.fn(),
-    onTransformComplete: vi.fn(),
-    // ... all callback fields with defaults
+    openDialog: vi.fn(),
+    closeDialog: vi.fn(),
+    // ... all 25+ callback fields with defaults
     ...overrides,
   };
 }
 
-// Usage:
-const callbacks = createMockCallbacks({ onError: customErrorHandler });
+export function createMockExecutionCallbacks(
+  overrides?: Partial<ExecutionCallbacks>
+): ExecutionCallbacks {
+  return {
+    onTransformStart: vi.fn(),
+    onTransformEnd: vi.fn(),
+    onError: vi.fn().mockResolvedValue(undefined),
+    onDialogClose: vi.fn(),
+    updatePagination: vi.fn(),
+    ...overrides,
+  };
+}
 ```
 
 **Impact**: Eliminates ~200 lines of test setup duplication
@@ -375,11 +372,11 @@ src/core/
 8. ~~Remove SytoApp facade (§1)~~ ✅
 9. ~~Update all component imports~~ ✅
 
-### Phase 1: Quick Wins (1-2 sessions)
+### ~~Phase 1: Quick Wins~~ ✅ COMPLETED
 
-1. Extract debounce utility (§5)
-2. Create test fixtures factory (§6)
-3. Split `transforms.test.ts` (§2.1)
+1. ~~Extract debounce utility (§5)~~ ✅ Already centralized in `preview-engine.ts`
+2. ~~Create test fixtures factory (§6)~~ ✅ Added `createMockStepCallbacks()` and `createMockExecutionCallbacks()` to `test-utils.ts`
+3. ~~Split `transforms.test.ts` (§2.1)~~ ✅ Split into 6 focused files (120 tests total)
 
 ### Phase 2: Handler Organization (2-3 sessions)
 
@@ -400,15 +397,15 @@ src/core/
 
 ## Success Metrics
 
-| Metric                          | Before         | Current        | Target        |
-| ------------------------------- | -------------- | -------------- | ------------- |
-| Max file size                   | 2,075 lines    | 2,075 lines    | <600 lines    |
-| SytoApp facade                  | 1,195 lines    | 285 lines ✅   | <300 lines    |
-| Avg imports/file                | 8.5            | 8.5            | 5-6           |
-| Duplicate debounce code         | 49 occurrences | 49 occurrences | 1 utility     |
-| Test callback setup duplication | ~200 lines     | ~200 lines     | 1 factory     |
-| Handler directory depth         | 1 (flat)       | 1 (flat)       | 2 (organized) |
-| LLM context per file            | ~12KB avg      | ~12KB avg      | ~6KB avg      |
+| Metric                          | Before         | Current                   | Target        |
+| ------------------------------- | -------------- | ------------------------- | ------------- |
+| Max file size                   | 2,075 lines    | 1,320 lines ✅            | <600 lines    |
+| SytoApp facade                  | 1,195 lines    | 285 lines ✅              | <300 lines    |
+| Avg imports/file                | 8.5            | 8.5                       | 5-6           |
+| Duplicate debounce code         | 49 occurrences | 1 utility ✅              | 1 utility     |
+| Test callback setup duplication | ~200 lines     | 1 factory ✅              | 1 factory     |
+| Handler directory depth         | 1 (flat)       | 1 (flat)                  | 2 (organized) |
+| LLM context per file            | ~12KB avg      | ~8KB avg (tests split) ✅ | ~6KB avg      |
 
 ---
 
@@ -418,7 +415,6 @@ src/core/
 
 | File                                              | Lines | Action                         | Section |
 | ------------------------------------------------- | ----- | ------------------------------ | ------- |
-| `src/core/transforms.test.ts`                     | 2,075 | Split into 6 files             | §2.1    |
 | `src/core/transforms.ts`                          | 1,320 | Consider splitting by category | —       |
 | `src/core/ast-interpreter.ts`                     | 1,214 | Extract function modules       | §9      |
 | `src/core/ast-interpreter.test.ts`                | 1,130 | Split into 3 files             | §2.2    |
@@ -433,9 +429,10 @@ src/core/
 
 ### Completed Refactoring
 
-| File              | Before | After | Section |
-| ----------------- | ------ | ----- | ------- |
-| `src/syto-app.ts` | 1,195  | 285   | §1 ✅   |
+| File                          | Before | After              | Section |
+| ----------------------------- | ------ | ------------------ | ------- |
+| `src/syto-app.ts`             | 1,195  | 285                | §1 ✅   |
+| `src/core/transforms.test.ts` | 2,075  | 6 files (~350 avg) | §2.1 ✅ |
 
 ### What's Working Well (No Action Needed)
 

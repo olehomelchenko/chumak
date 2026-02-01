@@ -10,6 +10,8 @@ import { AppStore } from '../stores/AppStore';
 import { DialogStore } from '../stores/DialogStore';
 import type { DataRow } from '../types';
 import type { SytoApp } from '../../syto-app';
+import type { StepCallbacks } from './step-handlers';
+import type { ExecutionCallbacks } from '../services/StepService';
 
 /**
  * Standard test data for handler tests
@@ -249,6 +251,65 @@ export function createCsvString(data: { columns: string[]; rows: DataRow[] }): s
  */
 export function createTestFile(content: string, name = 'test.csv', type = 'text/csv'): File {
   return new File([content], name, { type });
+}
+
+/**
+ * Create mock StepCallbacks for handler tests.
+ * All methods are vi.fn() mocks that can be inspected for calls.
+ */
+export function createMockStepCallbacks(overrides?: Partial<StepCallbacks>): StepCallbacks {
+  return {
+    updatePagination: vi.fn(),
+    openDialog: vi.fn(),
+    closeDialog: vi.fn(),
+    onJoinTargetChange: vi.fn(),
+    onAppendTargetChange: vi.fn(),
+    onPivotConfigChange: vi.fn(),
+    updateSplitPreview: vi.fn(),
+    updateDedupePreview: vi.fn(),
+    applyFilterTransform: vi.fn().mockResolvedValue(undefined),
+    applySortTransform: vi.fn().mockResolvedValue(undefined),
+    applySliceRowsTransform: vi.fn().mockResolvedValue(undefined),
+    applySampleTransform: vi.fn().mockResolvedValue(undefined),
+    applySpreadTransform: vi.fn().mockResolvedValue(undefined),
+    applyUnrollTransform: vi.fn().mockResolvedValue(undefined),
+    applyIndexTransform: vi.fn().mockResolvedValue(undefined),
+    applySplitTransform: vi.fn().mockResolvedValue(undefined),
+    applyMergeTransform: vi.fn().mockResolvedValue(undefined),
+    applyDeriveTransform: vi.fn().mockResolvedValue(undefined),
+    applyRegexpMatchTransform: vi.fn().mockResolvedValue(undefined),
+    applyRegexpExtractTransform: vi.fn().mockResolvedValue(undefined),
+    applyFoldTransform: vi.fn().mockResolvedValue(undefined),
+    applyPivotTransform: vi.fn().mockResolvedValue(undefined),
+    applyAggregateTransform: vi.fn().mockResolvedValue(undefined),
+    applyJoinTransform: vi.fn().mockResolvedValue(undefined),
+    applyAppendTransform: vi.fn().mockResolvedValue(undefined),
+    applyReplaceTransform: vi.fn().mockResolvedValue(undefined),
+    applyDedupeTransform: vi.fn().mockResolvedValue(undefined),
+    applyImputeTransform: vi.fn().mockResolvedValue(undefined),
+    confirmImport: vi.fn(),
+    fetchAndImportFromUrl: vi.fn().mockResolvedValue(undefined),
+    generateData: vi.fn().mockResolvedValue(undefined),
+    runTransform: vi.fn().mockResolvedValue(true),
+    ...overrides,
+  };
+}
+
+/**
+ * Create mock ExecutionCallbacks for transform execution tests.
+ * All methods are vi.fn() mocks that can be inspected for calls.
+ */
+export function createMockExecutionCallbacks(
+  overrides?: Partial<ExecutionCallbacks>
+): ExecutionCallbacks {
+  return {
+    onTransformStart: vi.fn(),
+    onTransformEnd: vi.fn(),
+    onError: vi.fn().mockResolvedValue(undefined),
+    onDialogClose: vi.fn(),
+    updatePagination: vi.fn(),
+    ...overrides,
+  };
 }
 
 // expect is imported at the top and used by assertion helpers
