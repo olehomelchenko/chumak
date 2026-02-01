@@ -4,8 +4,10 @@ import { ColumnSelector } from './column-selector';
 import * as FoldHandlers from '../handlers/transform/fold-handlers';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
+import type { UnpivotMode } from '../../types/modes';
 
-export type UnpivotMode = 'keep' | 'fold';
+// Re-export for backward compatibility
+export type { UnpivotMode } from '../../types/modes';
 
 export function UnpivotDialog() {
   const { keyName, valueName, mode, selectedColumns } = DialogStore.foldState;

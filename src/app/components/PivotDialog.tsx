@@ -4,8 +4,10 @@ import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 import { ColumnSelector } from './column-selector';
 import styles from './TransformDialog.module.css';
+import type { PivotAggregation } from '../../types/modes';
 
-export type PivotAggregation = 'sum' | 'mean' | 'count' | 'min' | 'max' | 'any';
+// Re-export for backward compatibility
+export type { PivotAggregation } from '../../types/modes';
 
 export function PivotDialog() {
   const {

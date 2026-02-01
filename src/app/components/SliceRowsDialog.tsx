@@ -3,7 +3,8 @@ import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 import styles from './TransformDialog.module.css';
 
-export type SliceMode = 'first' | 'last' | 'removeFirst' | 'removeLast';
+// Re-export for backward compatibility
+export type { SliceMode } from '../../types/modes';
 
 export function SliceRowsDialog() {
   const { count, mode } = DialogStore.sliceRowsState;

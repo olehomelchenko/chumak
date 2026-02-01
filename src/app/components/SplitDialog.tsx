@@ -9,7 +9,8 @@ import { ColumnSelector } from './column-selector';
 import * as SplitHandlers from '../handlers/transform/split-handlers';
 import styles from './TransformDialog.module.css';
 
-export type SplitMode = 'spread' | 'left' | 'right' | 'firstN' | 'lastN';
+// Re-export for backward compatibility
+export type { SplitMode } from '../../types/modes';
 
 export function SplitDialog() {
   const {

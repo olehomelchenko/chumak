@@ -6,15 +6,10 @@ import { JoinTreeSelector } from './JoinTreeSelector';
 import { TablePreviewModal } from './TablePreviewModal';
 import { JoinTypeSelector, JoinKeysEditor, JoinColumnSelector } from './join';
 import * as JoinHandlers from '../handlers/transform/join-handlers';
+import type { JoinType } from '../../types/modes';
 
-export type JoinType = 'inner' | 'left' | 'right' | 'full' | 'cross' | 'semi' | 'anti' | 'lookup';
-
-export interface JoinTarget {
-  id: string;
-  name: string;
-  type: 'model' | 'source';
-  sourceName?: string;
-}
+// Re-export for backward compatibility
+export type { JoinType, JoinTarget } from '../../types/modes';
 
 export function JoinDialog() {
   const {

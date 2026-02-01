@@ -8,7 +8,8 @@ import { ColumnSelector } from './column-selector';
 import { DialogStore } from '../stores/DialogStore';
 import * as DateHandlers from '../handlers/transform/date-handlers';
 
-export type DateOperation = 'extract' | 'truncate';
+// Re-export for backward compatibility
+export type { DateOperation } from '../../types/modes';
 
 export function DateDialog() {
   const state = DialogStore.dateState;

@@ -8,7 +8,8 @@ import { AppStore } from '../stores/AppStore';
 import * as FilterHandlers from '../handlers/transform/filter-handlers';
 import styles from './TransformDialog.module.css';
 
-export type FilterPreviewMode = 'all' | 'matching';
+// Re-export for backward compatibility
+export type { FilterPreviewMode } from '../../types/modes';
 
 export function FilterDialog() {
   const { expression, error, previewMode } = DialogStore.filterState;
