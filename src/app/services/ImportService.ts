@@ -4,6 +4,7 @@ import { SchemaEngine } from '../../core/schema-engine';
 import { PersistenceService } from './PersistenceService';
 import { StepService } from './StepService';
 import { convertDatesForStorage } from '../../core/storage';
+import { showSuccess } from '../handlers/core/notification-handlers';
 
 /**
  * ImportService
@@ -113,6 +114,7 @@ export class ImportService {
       } (${(file.size / 1024).toFixed(1)} KB)`
     );
 
+    showSuccess(`Imported "${file.name}" (${cleanData.length.toLocaleString()} rows)`);
     closeDialog(true);
   }
 }

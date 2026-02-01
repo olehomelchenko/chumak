@@ -136,6 +136,30 @@ In replace mode, the Import Dialog displays:
 - **Auto-updating (debounced)**: filter, derive, regexp-match, regexp-extract, date, select-columns, impute
 - **Button-triggered**: aggregate, join, pivot (expensive operations)
 
+### 3.6 Toast Notifications
+
+Toast notifications provide non-blocking feedback for user actions. They appear in the top-right corner and use the `ToastContainer` component.
+
+**Notification Types**:
+
+| Type        | Behavior                 | Duration | Use Case                                       |
+| ----------- | ------------------------ | -------- | ---------------------------------------------- |
+| **Success** | Auto-dismisses           | 3 sec    | Operation completed (import, export, rename)   |
+| **Warning** | Auto-dismisses           | 6 sec    | Caution needed but not blocking                |
+| **Error**   | Persists until dismissed | Manual   | Operation failed, requires user acknowledgment |
+
+**Success Notifications** are shown for:
+
+- Data import completion (with row count)
+- Export operations (CSV, JSON, workflow)
+- Model operations (create, copy, rename, delete)
+- Source operations (rename, delete)
+- Transform application
+- Step removal and updates
+- Clipboard copy operations
+
+**Error Notifications** include step context when applicable (e.g., "Step 3: Filter: sales > 1000") to help users identify which transformation failed.
+
 ---
 
 ## 4. Typography & Scaling
@@ -267,12 +291,13 @@ Complex dialogs are split into focused sub-components organized in directories:
 
 ### 7.6 Shared Components
 
-| Component           | Purpose                               |
-| ------------------- | ------------------------------------- |
-| `ColumnToolbar.tsx` | Floating actions on column header     |
-| `CellToolbar.tsx`   | Floating actions on cell click        |
-| `TypeIndicator.tsx` | Column type indicator with icon       |
-| `GlobalUI.tsx`      | Toast notifications and global modals |
+| Component            | Purpose                                          |
+| -------------------- | ------------------------------------------------ |
+| `ColumnToolbar.tsx`  | Floating actions on column header                |
+| `CellToolbar.tsx`    | Floating actions on cell click                   |
+| `TypeIndicator.tsx`  | Column type indicator with icon                  |
+| `GlobalUI.tsx`       | Toast notifications (see §3.6) and global modals |
+| `ToastContainer.tsx` | Renders toast notification stack                 |
 
 ---
 

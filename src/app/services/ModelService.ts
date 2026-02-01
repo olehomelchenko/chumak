@@ -5,6 +5,7 @@ import { PersistenceService } from './PersistenceService';
 import { DependencyService } from './DependencyService';
 import { StepService } from './StepService';
 import { convertDatesForStorage } from '../../core/storage';
+import { showSuccess } from '../handlers/core/notification-handlers';
 
 /**
  * ModelService
@@ -177,6 +178,7 @@ export class ModelService {
     switchToModelFn(newModel);
 
     await PersistenceService.autoSave();
+    showSuccess(`Model "${name}" created`);
   }
 
   /**
@@ -219,6 +221,7 @@ export class ModelService {
     AppStore.models.value = [...AppStore.models.value, copiedModel];
     switchToModelFn(copiedModel);
     await PersistenceService.autoSave();
+    showSuccess(`Model copied as "${name}"`);
   }
 
   /**
@@ -251,6 +254,7 @@ export class ModelService {
     activeModel.name = name;
     AppStore.models.value = [...AppStore.models.value]; // Trigger reactivity
     await PersistenceService.autoSave();
+    showSuccess(`Model renamed to "${name}"`);
   }
 
   /**
@@ -287,6 +291,7 @@ export class ModelService {
 
     if (!(await confirm(`Delete model "${activeModel.name}"?\n\nThis cannot be undone.`))) return;
 
+    const deletedModelName = activeModel.name;
     const deletedModelId = activeModel.id;
     const sourceId = activeModel.sourceId;
     AppStore.models.value = AppStore.models.value.filter((m) => m.id !== deletedModelId);
@@ -302,6 +307,7 @@ export class ModelService {
     }
 
     await PersistenceService.autoSave();
+    showSuccess(`Model "${deletedModelName}" deleted`);
   }
 
   /**
@@ -319,6 +325,7 @@ export class ModelService {
     source.name = name;
     AppStore.sources.value = [...AppStore.sources.value]; // Trigger reactivity
     await PersistenceService.autoSave();
+    showSuccess(`Source renamed to "${name}"`);
   }
 
   /**
@@ -351,6 +358,7 @@ export class ModelService {
 
     if (!(await confirm(message))) return;
 
+    const deletedSourceName = source.name;
     try {
       AppStore.models.value = AppStore.models.value.filter((m) => m.sourceId !== source.id);
       AppStore.sources.value = AppStore.sources.value.filter((s) => s.id !== source.id);
@@ -367,6 +375,7 @@ export class ModelService {
       }
 
       await PersistenceService.autoSave();
+      showSuccess(`Source "${deletedSourceName}" deleted`);
     } catch (error: any) {
       console.error('Error deleting source:', error);
       await alert('Failed to delete source: ' + error.message);

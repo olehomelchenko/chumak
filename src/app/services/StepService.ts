@@ -8,6 +8,7 @@ import { Model, Source } from '../types';
 import { ColumnSchema, TransformStep } from '../../core/schema-engine';
 import { AppStore } from '../stores/AppStore';
 import { convertDatesForStorage } from '../../core/storage';
+import { showSuccess } from '../handlers/core/notification-handlers';
 
 /**
  * Extract the transform type from a step object.
@@ -171,6 +172,7 @@ export class StepService {
     }
 
     await PersistenceService.autoSave();
+    showSuccess(describeTransform(transform));
 
     if (closeDialogAfter) {
       callbacks.onDialogClose?.(true);
@@ -345,6 +347,7 @@ export class StepService {
       await StepService.handleDependencyImpact(model.id);
 
       await PersistenceService.autoSave();
+      showSuccess('Step removed');
     } catch (error: any) {
       callbacks.onError(error);
     }
@@ -390,6 +393,7 @@ export class StepService {
       await StepService.handleDependencyImpact(model.id);
 
       await PersistenceService.autoSave();
+      showSuccess('Step updated');
     } catch (error: any) {
       callbacks.onError(error, backup);
     }

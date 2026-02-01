@@ -1,6 +1,7 @@
 import { AppStore } from '../stores/AppStore';
 import Papa from 'papaparse';
 import { convertDatesForStorage } from '../../core/storage';
+import { showSuccess } from '../handlers/core/notification-handlers';
 
 /**
  * ExportService
@@ -38,6 +39,7 @@ export class ExportService {
       document.body.removeChild(link);
 
       console.log(`⚡ Export CSV — ${(performance.now() - start).toFixed(1)}ms — ${filename}`);
+      showSuccess(`Exported "${filename}"`);
       return csv;
     } catch (error: any) {
       console.error('CSV export error:', error);
@@ -90,6 +92,7 @@ export class ExportService {
       document.body.removeChild(link);
 
       console.log('Exported workflow JSON:', filename);
+      showSuccess(`Exported workflow "${filename}"`);
     } catch (error: any) {
       console.error('Workflow export error:', error);
       await alert('Failed to export workflow: ' + error.message);
@@ -124,6 +127,7 @@ export class ExportService {
       document.body.removeChild(link);
 
       console.log(`⚡ Export JSON — ${(performance.now() - start).toFixed(1)}ms — ${filename}`);
+      showSuccess(`Exported "${filename}"`);
     } catch (error: any) {
       console.error('JSON export error:', error);
       await alert('Failed to export JSON: ' + error.message);
@@ -146,7 +150,7 @@ export class ExportService {
     try {
       const csv = Papa.unparse(pageData);
       await navigator.clipboard.writeText(csv);
-      await alert('Current page data copied to clipboard (CSV)!');
+      showSuccess('Copied to clipboard (CSV)');
     } catch (error: any) {
       console.error('Copy to clipboard error:', error);
       await alert('Failed to copy to clipboard: ' + error.message);
@@ -169,7 +173,7 @@ export class ExportService {
     try {
       const json = JSON.stringify(convertDatesForStorage(pageData), null, 2);
       await navigator.clipboard.writeText(json);
-      await alert('Current page data copied to clipboard (JSON)!');
+      showSuccess('Copied to clipboard (JSON)');
     } catch (error: any) {
       console.error('Copy to clipboard error:', error);
       await alert('Failed to copy to clipboard: ' + error.message);
