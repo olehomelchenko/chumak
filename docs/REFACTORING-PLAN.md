@@ -75,64 +75,69 @@ Assessment of the Syto codebase (47.6K lines, 64 test files) reveals a moderatel
 | `transforms-combine.test.ts`   | CONCAT, UNION, SAMPLE                      | ~230  |
 | `transforms-join.test.ts`      | SEMIJOIN, ANTIJOIN, LOOKUP, SPREAD, UNROLL | ~350  |
 
-### 2.2 ast-interpreter.test.ts (1,130 lines)
+### ~~2.2 ast-interpreter.test.ts (1,130 lines)~~ ✅ COMPLETED
 
-**Target**: 3 focused test files
+**Previous**: Single file testing interpreter and all functions
+**Result**: 3 focused test files (177 tests total)
 
-| New File                         | Content                              | Est. Lines |
-| -------------------------------- | ------------------------------------ | ---------- |
-| `interpreter-functions.test.ts`  | All 62 builtin functions by category | ~600       |
-| `interpreter-operators.test.ts`  | Binary, unary, ternary operators     | ~300       |
-| `interpreter-edge-cases.test.ts` | Null handling, type coercion, errors | ~230       |
+| File                                 | Content                                         | Lines |
+| ------------------------------------ | ----------------------------------------------- | ----- |
+| `interpreter-operators.test.ts`      | Literals, identifiers, operators, null handling | ~100  |
+| `interpreter-date-functions.test.ts` | Date functions, parseToDate edge cases          | ~320  |
+| `interpreter-functions.test.ts`      | String, math, type, JSON, regex functions       | ~500  |
 
-### 2.3 step-handlers.test.ts (791 lines)
+### ~~2.3 step-handlers.test.ts (791 lines)~~ ✅ COMPLETED
 
-**Target**: 4 focused test files by transform category
+**Previous**: Single file testing all step handler operations
+**Result**: 4 focused test files (28 tests total)
+
+| File                               | Content                          | Lines |
+| ---------------------------------- | -------------------------------- | ----- |
+| `step-handlers-core.test.ts`       | Setup, dispatch, computeUpToStep | ~145  |
+| `step-handlers-navigation.test.ts` | viewStep, viewFinalResult        | ~115  |
+| `step-handlers-editing.test.ts`    | editStep, cancelEdit             | ~220  |
+| `step-handlers-removal.test.ts`    | showStepRemovalModal, closeModal | ~100  |
 
 ---
 
-## 3. High Priority: Reorganize Handler Directory
+## ~~3. High Priority: Reorganize Handler Directory~~ ✅ COMPLETED
 
-**Current**: 47 flat files in `src/app/handlers/`
-**Problem**: Poor discoverability, hard to find related handlers
+**Previous**: 47 flat files in `src/app/handlers/`
+**Result**: Organized into 4 subdirectories with barrel exports
 
-### Proposed Structure
+### Completed Structure (February 2026)
 
 ```
 src/app/handlers/
 ├── index.ts                    # Barrel exports
-├── transform/
+├── preview-engine.ts           # Shared debounce utility
+├── validation-engine.ts        # Shared validation utility
+├── test-utils.ts               # Test fixtures factory
+├── transform/                  # Transform operation handlers
 │   ├── index.ts
-│   ├── filter-handlers.ts
-│   ├── derive-handlers.ts
 │   ├── aggregate-handlers.ts
+│   ├── derive-handlers.ts
+│   ├── filter-handlers.ts
 │   ├── join-handlers.ts
 │   ├── pivot-handlers.ts
-│   ├── sort-handlers.ts
 │   └── ...
-├── import/
+├── import/                     # Data import handlers
 │   ├── index.ts
 │   ├── csv-handlers.ts
 │   ├── json-handlers.ts
-│   ├── url-handlers.ts
 │   └── generate-handlers.ts
-├── dialog/
+├── dialog/                     # Dialog-specific handlers
 │   ├── index.ts
 │   ├── column-editor-handlers.ts
 │   └── ...
-├── core/
-│   ├── index.ts
-│   ├── interaction-handlers.ts
-│   ├── keyboard-handlers.ts
-│   ├── notification-handlers.ts
-│   └── helper-handlers.ts
-└── __tests__/
-    ├── fixtures/
-    │   └── callbacks.ts        # Shared test fixtures
-    └── ...
+└── core/                       # Core interaction handlers
+    ├── index.ts
+    ├── step-handlers.ts
+    ├── keyboard-handlers.ts
+    └── notification-handlers.ts
 ```
 
-### Benefits
+### Benefits Achieved
 
 - 60% faster file discovery
 - Clear ownership boundaries
@@ -380,8 +385,8 @@ src/core/
 
 ### Phase 2: Handler Organization (2-3 sessions)
 
-4. Reorganize handler directory structure (§3)
-5. Split remaining test monoliths (§2.2, §2.3)
+4. ~~Reorganize handler directory structure (§3)~~ ✅
+5. ~~Split remaining test monoliths (§2.2, §2.3)~~ ✅
 
 ### Phase 3: Store Modernization (2-3 sessions)
 
@@ -404,7 +409,7 @@ src/core/
 | Avg imports/file                | 8.5            | 8.5                       | 5-6           |
 | Duplicate debounce code         | 49 occurrences | 1 utility ✅              | 1 utility     |
 | Test callback setup duplication | ~200 lines     | 1 factory ✅              | 1 factory     |
-| Handler directory depth         | 1 (flat)       | 1 (flat)                  | 2 (organized) |
+| Handler directory depth         | 1 (flat)       | 2 (organized) ✅          | 2 (organized) |
 | LLM context per file            | ~12KB avg      | ~8KB avg (tests split) ✅ | ~6KB avg      |
 
 ---
@@ -413,26 +418,28 @@ src/core/
 
 ### Oversized Files (Action Required)
 
-| File                                              | Lines | Action                         | Section |
-| ------------------------------------------------- | ----- | ------------------------------ | ------- |
-| `src/core/transforms.ts`                          | 1,320 | Consider splitting by category | —       |
-| `src/core/ast-interpreter.ts`                     | 1,214 | Extract function modules       | §9      |
-| `src/core/ast-interpreter.test.ts`                | 1,130 | Split into 3 files             | §2.2    |
-| `src/app/handlers/step-handlers.test.ts`          | 791   | Split into 4 files             | §2.3    |
-| `src/app/handlers/import-handlers.ts`             | 767   | Split by import type           | —       |
-| `src/app/handlers/column-editor-handlers.test.ts` | 745   | Split by feature               | —       |
-| `src/app/orchestration/DialogCoordinator.ts`      | 702   | Extract snapshot service       | §8.3    |
-| `src/app/orchestration/AppController.ts`          | ~700  | New file (central dispatcher)  | —       |
-| `src/app/handlers/join-handlers.ts`               | 652   | Consider splitting             | —       |
-| `src/app/stores/DialogStore.ts`                   | 561   | Modularize                     | §4      |
-| `src/app/services/GeneratorService.ts`            | 545   | Consider splitting             | —       |
+| File                                                     | Lines | Action                         | Section |
+| -------------------------------------------------------- | ----- | ------------------------------ | ------- |
+| `src/core/transforms.ts`                                 | 1,320 | Consider splitting by category | —       |
+| `src/core/ast-interpreter.ts`                            | 1,214 | Extract function modules       | §9      |
+| ~~`src/core/ast-interpreter.test.ts`~~                   | 1,130 | ✅ Split into 3 files          | §2.2    |
+| ~~`src/app/handlers/core/step-handlers.test.ts`~~        | 791   | ✅ Split into 4 files          | §2.3    |
+| `src/app/handlers/import/import-handlers.ts`             | 767   | Split by import type           | —       |
+| `src/app/handlers/dialog/column-editor-handlers.test.ts` | 745   | Split by feature               | —       |
+| `src/app/orchestration/DialogCoordinator.ts`             | 702   | Extract snapshot service       | §8.3    |
+| `src/app/orchestration/AppController.ts`                 | ~700  | New file (central dispatcher)  | —       |
+| `src/app/handlers/transform/join-handlers.ts`            | 652   | Consider splitting             | —       |
+| `src/app/stores/DialogStore.ts`                          | 561   | Modularize                     | §4      |
+| `src/app/services/GeneratorService.ts`                   | 545   | Consider splitting             | —       |
 
 ### Completed Refactoring
 
-| File                          | Before | After              | Section |
-| ----------------------------- | ------ | ------------------ | ------- |
-| `src/syto-app.ts`             | 1,195  | 285                | §1 ✅   |
-| `src/core/transforms.test.ts` | 2,075  | 6 files (~350 avg) | §2.1 ✅ |
+| File                               | Before | After              | Section |
+| ---------------------------------- | ------ | ------------------ | ------- |
+| `src/syto-app.ts`                  | 1,195  | 285                | §1 ✅   |
+| `src/core/transforms.test.ts`      | 2,075  | 6 files (~350 avg) | §2.1 ✅ |
+| `src/core/ast-interpreter.test.ts` | 1,130  | 3 files (~300 avg) | §2.2 ✅ |
+| `step-handlers.test.ts`            | 791    | 4 files (~145 avg) | §2.3 ✅ |
 
 ### What's Working Well (No Action Needed)
 
