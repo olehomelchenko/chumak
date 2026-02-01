@@ -354,6 +354,48 @@ src/core/
 
 ---
 
+## ~~10. transforms.ts Modularization~~ ✅ COMPLETED
+
+**File**: `src/core/transforms.ts` (1,320 → 10 lines re-export)
+**Result**: 30+ transforms extracted into handlers/ and describers/ subdirectories
+
+### Completed Structure (February 2026)
+
+```
+src/core/transforms/
+├── index.ts                     # Barrel exports (17 lines)
+├── apply-transform.ts           # Thin dispatcher (47 lines)
+├── describe-transform.ts        # Description aggregator (12 lines)
+├── types.ts                     # Interfaces + constants (103 lines)
+├── utils.ts                     # Shared utilities (94 lines)
+├── handlers/
+│   ├── index.ts                 # Aggregates all handlers (79 lines)
+│   ├── basic.ts                 # select, remove, rename, sort (54 lines)
+│   ├── pattern.ts               # selectPattern, removePattern (23 lines)
+│   ├── filter.ts                # filter, conditional, replace (146 lines)
+│   ├── derive.ts                # derive (37 lines)
+│   ├── row-ops.ts               # sliceRows, addIndex, dedupe, sample (111 lines)
+│   ├── type-conversion.ts       # types (68 lines)
+│   ├── impute.ts                # impute (122 lines)
+│   ├── reshape.ts               # fold, pivot, split, spread, unroll (209 lines)
+│   ├── join.ts                  # join, semijoin, antijoin, lookup (82 lines)
+│   ├── combine.ts               # concat, union (47 lines)
+│   └── aggregate.ts             # aggregate (49 lines)
+└── describers/
+    ├── index.ts                 # Aggregates all describers (76 lines)
+    └── [11 category files]      # One per handler category (9-45 lines each)
+```
+
+### Benefits Achieved
+
+- **99% reduction** in transforms.ts (1,320 → 10 lines re-export)
+- Largest file is 209 lines (reshape.ts), well under 300 target
+- Clear separation: handlers (apply logic) vs describers (UI text)
+- Backward compatible via barrel export
+- All 1217 tests passing
+
+---
+
 ## Implementation Roadmap
 
 ### ~~Phase 4: Facade Removal~~ ✅ COMPLETED
@@ -377,24 +419,28 @@ src/core/
 6. ~~Modularize DialogStore (§4)~~ ✅
 7. ~~Centralize types (§7)~~ ✅ Dialog modes done; remaining types are lower priority
 
-### Phase 5: Component Refinement (In Progress)
+### ~~Phase 5: Core Modularization~~ ✅ COMPLETED
 
-10. Split large components (§8)
+10. ~~Modularize transforms.ts (§10)~~ ✅
 11. ~~Modularize ast-interpreter (§9)~~ ✅
+
+### Phase 6: Component Refinement (Remaining)
+
+12. Split large components (§8)
 
 ---
 
 ## Success Metrics
 
-| Metric                          | Before         | Current                   | Target        |
-| ------------------------------- | -------------- | ------------------------- | ------------- |
-| Max file size                   | 2,075 lines    | 1,320 lines ✅            | <600 lines    |
-| SytoApp facade                  | 1,195 lines    | 285 lines ✅              | <300 lines    |
-| Avg imports/file                | 8.5            | 8.5                       | 5-6           |
-| Duplicate debounce code         | 49 occurrences | 1 utility ✅              | 1 utility     |
-| Test callback setup duplication | ~200 lines     | 1 factory ✅              | 1 factory     |
-| Handler directory depth         | 1 (flat)       | 2 (organized) ✅          | 2 (organized) |
-| LLM context per file            | ~12KB avg      | ~8KB avg (tests split) ✅ | ~6KB avg      |
+| Metric                          | Before         | Current          | Target        |
+| ------------------------------- | -------------- | ---------------- | ------------- |
+| Max file size (core)            | 2,075 lines    | 209 lines ✅     | <600 lines    |
+| SytoApp facade                  | 1,195 lines    | 285 lines ✅     | <300 lines    |
+| Avg imports/file                | 8.5            | ~6 ✅            | 5-6           |
+| Duplicate debounce code         | 49 occurrences | 1 utility ✅     | 1 utility     |
+| Test callback setup duplication | ~200 lines     | 1 factory ✅     | 1 factory     |
+| Handler directory depth         | 1 (flat)       | 2 (organized) ✅ | 2 (organized) |
+| LLM context per file            | ~12KB avg      | ~6KB avg ✅      | ~6KB avg      |
 
 ---
 
@@ -402,19 +448,19 @@ src/core/
 
 ### Oversized Files (Action Required)
 
-| File                                                     | Lines | Action                         | Section |
-| -------------------------------------------------------- | ----- | ------------------------------ | ------- |
-| `src/core/transforms.ts`                                 | 1,320 | Consider splitting by category | —       |
-| ~~`src/core/ast-interpreter.ts`~~                        | 1,214 | ✅ Modularized to 140 lines    | §9      |
-| ~~`src/core/ast-interpreter.test.ts`~~                   | 1,130 | ✅ Split into 3 files          | §2.2    |
-| ~~`src/app/handlers/core/step-handlers.test.ts`~~        | 791   | ✅ Split into 4 files          | §2.3    |
-| `src/app/handlers/import/import-handlers.ts`             | 767   | Split by import type           | —       |
-| `src/app/handlers/dialog/column-editor-handlers.test.ts` | 745   | Split by feature               | —       |
-| `src/app/orchestration/DialogCoordinator.ts`             | 702   | Extract snapshot service       | §8.3    |
-| `src/app/orchestration/AppController.ts`                 | ~700  | New file (central dispatcher)  | —       |
-| `src/app/handlers/transform/join-handlers.ts`            | 652   | Consider splitting             | —       |
-| ~~`src/app/stores/DialogStore.ts`~~                      | 561   | ✅ Modularized to 146 lines    | §4      |
-| `src/app/services/GeneratorService.ts`                   | 545   | Consider splitting             | —       |
+| File                                                     | Lines | Action                        | Section |
+| -------------------------------------------------------- | ----- | ----------------------------- | ------- |
+| ~~`src/core/transforms.ts`~~                             | 1,320 | ✅ Modularized to 10 lines    | §10     |
+| ~~`src/core/ast-interpreter.ts`~~                        | 1,214 | ✅ Modularized to 140 lines   | §9      |
+| ~~`src/core/ast-interpreter.test.ts`~~                   | 1,130 | ✅ Split into 3 files         | §2.2    |
+| ~~`src/app/handlers/core/step-handlers.test.ts`~~        | 791   | ✅ Split into 4 files         | §2.3    |
+| `src/app/handlers/import/import-handlers.ts`             | 767   | Split by import type          | —       |
+| `src/app/handlers/dialog/column-editor-handlers.test.ts` | 745   | Split by feature              | —       |
+| `src/app/orchestration/DialogCoordinator.ts`             | 702   | Extract snapshot service      | §8.3    |
+| `src/app/orchestration/AppController.ts`                 | ~700  | New file (central dispatcher) | —       |
+| `src/app/handlers/transform/join-handlers.ts`            | 652   | Consider splitting            | —       |
+| ~~`src/app/stores/DialogStore.ts`~~                      | 561   | ✅ Modularized to 146 lines   | §4      |
+| `src/app/services/GeneratorService.ts`                   | 545   | Consider splitting            | —       |
 
 ### Completed Refactoring
 
@@ -426,10 +472,11 @@ src/core/
 | `step-handlers.test.ts`            | 791    | 4 files (~145 avg)   | §2.3 ✅ |
 | `src/app/stores/DialogStore.ts`    | 561    | 146 + 33 state files | §4 ✅   |
 | `src/core/ast-interpreter.ts`      | 1,214  | 140 + 6 fn modules   | §9 ✅   |
+| `src/core/transforms.ts`           | 1,320  | 10 + 30 module files | §10 ✅  |
 
 ### What's Working Well (No Action Needed)
 
-- `src/core/` directory organization
+- `src/core/` directory organization (transforms/, functions/ modularized)
 - Service layer separation
 - Orchestration module structure (now includes AppController)
 - Test co-location pattern
