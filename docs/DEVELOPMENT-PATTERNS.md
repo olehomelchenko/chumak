@@ -775,10 +775,60 @@ Syto uses a centralized dialog registry ([`dialog-registry.ts`](../src/app/dialo
 4. **[`index.ts`](../src/app/components/index.ts)** - Export component
 5. **[`App.tsx`](../src/app/components/App.tsx)** - Render dialog
 6. **[`DialogStore.ts`](../src/app/stores/DialogStore.ts)** - Add state (if needed)
-7. **[`dialog-handlers.ts`](../src/app/handlers/dialog-handlers.ts)** - Add init logic (if needed)
-8. **[`step-handlers.ts`](../src/app/handlers/step-handlers.ts)** - Add transform handler (if transform)
+7. **[`dialog-handlers.ts`](../src/app/handlers/dialog/dialog-handlers.ts)** - Add init logic (if needed)
+8. **Wire up Apply button** (if transform dialog) - see below
 
 The registry eliminates the need to update `isSlidePanel()`, `getDialogTitle()`, etc. - these are auto-generated from metadata.
+
+#### Step 8: Wiring Transform Apply Button
+
+For transform dialogs, the Apply button must be connected through the callback chain. This requires updates in **5 files**:
+
+| File                                       | What to Add                                                 |
+| ------------------------------------------ | ----------------------------------------------------------- |
+| `src/app/handlers/transform/*-handlers.ts` | `applyYourTransform(callbacks)` function                    |
+| `src/app/handlers/core/step-handlers.ts`   | Add `applyYourTransform` to `StepCallbacks` interface       |
+| `src/app/handlers/core/step-handlers.ts`   | Add `case 'yourDialog':` in `applyActiveTransform()` switch |
+| `src/app/orchestration/AppController.ts`   | Import handlers and expose `applyYourTransform` method      |
+| `src/syto-app.ts`                          | Wire callback in `setStepCallbacks({...})`                  |
+| `src/app/handlers/test-utils.ts`           | Add mock to `createMockStepCallbacks()`                     |
+
+**Example flow:**
+
+```typescript
+// 1. Handler (src/app/handlers/transform/your-handlers.ts)
+export async function applyYourTransform(callbacks: ExecutionCallbacks) {
+  const transform = constructYourStep();
+  await StepService.runTransform('Your Transform', transform, callbacks);
+}
+
+// 2. StepCallbacks interface (src/app/handlers/core/step-handlers.ts)
+export type StepCallbacks = {
+  // ... existing callbacks
+  applyYourTransform: () => Promise<void>;
+};
+
+// 3. Switch case (src/app/handlers/core/step-handlers.ts)
+case 'yourDialog':
+  await callbacks?.applyYourTransform();
+  break;
+
+// 4. AppController (src/app/orchestration/AppController.ts)
+import * as YourHandlers from '../handlers/transform/your-handlers';
+// ...
+async applyYourTransform(): Promise<void> {
+  await YourHandlers.applyYourTransform(createExecutionCallbacks());
+},
+
+// 5. syto-app.ts
+setStepCallbacks({
+  // ... existing callbacks
+  applyYourTransform: () => AppController.applyYourTransform(),
+});
+
+// 6. test-utils.ts - createMockStepCallbacks()
+applyYourTransform: vi.fn().mockResolvedValue(undefined),
+```
 
 ### 7.2 Adding a New Function
 

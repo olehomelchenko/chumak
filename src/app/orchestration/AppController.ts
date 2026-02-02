@@ -22,6 +22,7 @@ import { ExportService } from '../services/ExportService';
 import * as FilterHandlers from '../handlers/transform/filter-handlers';
 import * as DeriveHandlers from '../handlers/transform/derive-handlers';
 import * as AggregateHandlers from '../handlers/transform/aggregate-handlers';
+import * as WindowHandlers from '../handlers/transform/window-handlers';
 import * as JoinHandlers from '../handlers/transform/join-handlers';
 import * as AppendHandlers from '../handlers/transform/append-handlers';
 import * as PivotHandlers from '../handlers/transform/pivot-handlers';
@@ -509,6 +510,13 @@ export const AppController = {
   updateAggregatePreview: AggregateHandlers.updateAggregatePreview,
   async applyAggregateTransform(): Promise<void> {
     await AggregateHandlers.applyAggregateTransform(createExecutionCallbacks());
+  },
+
+  // Window
+  updateWindowPreview: WindowHandlers.updateWindowPreview,
+  debouncedUpdateWindowPreview: WindowHandlers.debouncedUpdateWindowPreview,
+  async applyWindowTransform(): Promise<void> {
+    await WindowHandlers.applyWindowTransform(createExecutionCallbacks());
   },
 
   // Join

@@ -84,7 +84,9 @@ function extractFunctions(sourceCode: string): FunctionMetadata[] {
   const functions: FunctionMetadata[] = [];
 
   // Match function declarations with JSDoc
-  const functionRegex = /\/\*\*\s*([\s\S]*?)\s*\*\/\s*(\w+):\s*\(([^)]*)\)\s*=>/g;
+  // Supports both old format (name: () =>) and new format (export const name = () =>)
+  const functionRegex =
+    /\/\*\*\s*([\s\S]*?)\s*\*\/\s*(?:export\s+const\s+)?(\w+)(?::\s*|\s*=\s*)\(([^)]*)\)\s*(?::\s*\w+\s*)?=>/g;
 
   let match;
   while ((match = functionRegex.exec(sourceCode)) !== null) {
@@ -294,15 +296,19 @@ function generateJSONSchema(functions: FunctionMetadata[]): any {
 
 // Main execution
 function main() {
-  const sourceFile = path.join(__dirname, '../src/core/ast-interpreter.ts');
+  const functionsDir = path.join(__dirname, '../src/core/functions');
   const outputDir = path.join(__dirname, '../src/content/functions');
   const schemaDir = path.join(__dirname, '../src/schemas');
 
-  // Read source file
-  const sourceCode = fs.readFileSync(sourceFile, 'utf-8');
+  // Read all function files from the functions directory
+  const functionFiles = fs.readdirSync(functionsDir).filter((f) => f.endsWith('.ts'));
+  let allSourceCode = '';
+  for (const file of functionFiles) {
+    allSourceCode += fs.readFileSync(path.join(functionsDir, file), 'utf-8') + '\n';
+  }
 
-  // Extract functions
-  const allFunctions = extractFunctions(sourceCode);
+  // Extract functions from all source files
+  const allFunctions = extractFunctions(allSourceCode);
 
   console.log(`✓ Extracted ${allFunctions.length} functions`);
 

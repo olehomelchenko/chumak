@@ -2,6 +2,874 @@
   "version": "1.0.0",
   "functions": [
     {
+      "name": "year",
+      "category": "Date",
+      "description": "Extracts the year from a date value",
+      "signature": "year(value)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Date value or date string"
+        }
+      ],
+      "returns": "Year as number (e.g., 2024), or null if invalid",
+      "examples": [
+        {
+          "expression": "year(order_date)"
+        },
+        {
+          "expression": "year(\"2024-01-15\") -> 2024"
+        }
+      ]
+    },
+    {
+      "name": "month",
+      "category": "Date",
+      "description": "Extracts the month from a date value",
+      "signature": "month(value)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Date value or date string"
+        }
+      ],
+      "returns": "Month as number (1-12), or null if invalid",
+      "examples": [
+        {
+          "expression": "month(created_at)"
+        },
+        {
+          "expression": "month(\"2024-03-15\") -> 3"
+        }
+      ]
+    },
+    {
+      "name": "day",
+      "category": "Date",
+      "description": "Extracts the day of month from a date value",
+      "signature": "day(value)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Date value or date string"
+        }
+      ],
+      "returns": "Day as number (1-31), or null if invalid",
+      "examples": [
+        {
+          "expression": "day(birth_date)"
+        },
+        {
+          "expression": "day(\"2024-01-15\") -> 15"
+        }
+      ]
+    },
+    {
+      "name": "hour",
+      "category": "Date",
+      "description": "Extracts the hour from a datetime value",
+      "signature": "hour(value)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Datetime value or datetime string"
+        }
+      ],
+      "returns": "Hour as number (0-23), or null if invalid",
+      "examples": [
+        {
+          "expression": "hour(timestamp)"
+        },
+        {
+          "expression": "hour(\"2024-01-15T14:30:00\") -> 14"
+        }
+      ]
+    },
+    {
+      "name": "minute",
+      "category": "Date",
+      "description": "Extracts the minute from a datetime value",
+      "signature": "minute(value)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Datetime value or datetime string"
+        }
+      ],
+      "returns": "Minute as number (0-59), or null if invalid",
+      "examples": [
+        {
+          "expression": "minute(timestamp)"
+        },
+        {
+          "expression": "minute(\"2024-01-15T14:30:00\") -> 30"
+        }
+      ]
+    },
+    {
+      "name": "second",
+      "category": "Date",
+      "description": "Extracts the second from a datetime value",
+      "signature": "second(value)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Datetime value or datetime string"
+        }
+      ],
+      "returns": "Second as number (0-59), or null if invalid",
+      "examples": [
+        {
+          "expression": "second(timestamp)"
+        },
+        {
+          "expression": "second(\"2024-01-15T14:30:45\") -> 45"
+        }
+      ]
+    },
+    {
+      "name": "weekday",
+      "category": "Date",
+      "description": "Returns the day of week (ISO 8601: 0=Monday, 6=Sunday)",
+      "signature": "weekday(value)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Date value or date string"
+        }
+      ],
+      "returns": "Day of week as number (0-6), or null if invalid",
+      "examples": [
+        {
+          "expression": "weekday(date)"
+        },
+        {
+          "expression": "weekday(\"2024-01-15\") -> 0 // Monday"
+        }
+      ]
+    },
+    {
+      "name": "week",
+      "category": "Date",
+      "description": "Returns the ISO week number of the year",
+      "signature": "week(value)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Date value or date string"
+        }
+      ],
+      "returns": "Week number (1-53), or null if invalid",
+      "examples": [
+        {
+          "expression": "week(order_date)"
+        },
+        {
+          "expression": "week(\"2024-01-15\") -> 3"
+        }
+      ]
+    },
+    {
+      "name": "quarter",
+      "category": "Date",
+      "description": "Returns the quarter of the year",
+      "signature": "quarter(value)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Date value or date string"
+        }
+      ],
+      "returns": "Quarter as number (1-4), or null if invalid",
+      "examples": [
+        {
+          "expression": "quarter(sale_date)"
+        },
+        {
+          "expression": "quarter(\"2024-03-15\") -> 1"
+        }
+      ]
+    },
+    {
+      "name": "today",
+      "category": "Date",
+      "description": "Returns the current date in YYYY-MM-DD format",
+      "signature": "today()",
+      "params": [],
+      "returns": "Current date as string",
+      "examples": [
+        {
+          "expression": "order_date == today()"
+        },
+        {
+          "expression": "today() -> \"2024-01-15\""
+        }
+      ]
+    },
+    {
+      "name": "now",
+      "category": "Date",
+      "description": "Returns the current datetime in ISO format",
+      "signature": "now()",
+      "params": [],
+      "returns": "Current datetime as string",
+      "examples": [
+        {
+          "expression": "created_at < now()"
+        },
+        {
+          "expression": "now() -> \"2024-01-15T14:30:45\""
+        }
+      ]
+    },
+    {
+      "name": "days_between",
+      "category": "Date",
+      "description": "Calculates the number of days between two dates",
+      "signature": "days_between(date1, date2)",
+      "params": [
+        {
+          "name": "date1",
+          "description": "Start date"
+        },
+        {
+          "name": "date2",
+          "description": "End date"
+        }
+      ],
+      "returns": "Number of days from date1 to date2, or null if either date is invalid",
+      "examples": [
+        {
+          "expression": "days_between(start, end)"
+        },
+        {
+          "expression": "days_between(\"2024-01-01\", \"2024-01-15\") -> 14"
+        }
+      ]
+    },
+    {
+      "name": "date_add",
+      "category": "Date",
+      "description": "Adds a time interval to a date",
+      "signature": "date_add(value, amount, unit)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Date value or date string"
+        },
+        {
+          "name": "amount",
+          "description": "Number of units to add (can be negative)"
+        },
+        {
+          "name": "unit",
+          "description": "Time unit: \"days\", \"months\", \"years\", \"hours\", \"minutes\", \"seconds\""
+        }
+      ],
+      "returns": "New date/datetime as string, or null if invalid",
+      "examples": [
+        {
+          "expression": "date_add(order_date, 30, \"days\")"
+        },
+        {
+          "expression": "date_add(\"2024-01-15\", 2, \"months\") -> \"2024-03-15\""
+        }
+      ]
+    },
+    {
+      "name": "date_trunc",
+      "category": "Date",
+      "description": "Truncates a date to the start of a time period",
+      "signature": "date_trunc(value, unit)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Date value or date string"
+        },
+        {
+          "name": "unit",
+          "description": "Truncation unit: \"year\", \"quarter\", \"month\", \"week\", \"day\", \"hour\", \"minute\", \"second\""
+        }
+      ],
+      "returns": "Truncated date/datetime as string, or null if invalid",
+      "examples": [
+        {
+          "expression": "date_trunc(timestamp, \"month\")"
+        },
+        {
+          "expression": "date_trunc(\"2024-01-15\", \"month\") -> \"2024-01-01\""
+        }
+      ]
+    },
+    {
+      "name": "format_date",
+      "category": "Date",
+      "description": "Formats a date using a custom format string",
+      "signature": "format_date(value, format)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Date value or date string"
+        },
+        {
+          "name": "format",
+          "description": "Format string using tokens (YYYY, MM, DD, HH, mm, ss, etc.)"
+        }
+      ],
+      "returns": "Formatted date string, or null if invalid",
+      "examples": [
+        {
+          "expression": "format_date(date, \"DD/MM/YYYY\")"
+        },
+        {
+          "expression": "format_date(\"2024-01-15\", \"MM/DD/YYYY\") -> \"01/15/2024\""
+        }
+      ]
+    },
+    {
+      "name": "is_json",
+      "category": "JSON",
+      "description": "Tests if a string contains valid JSON",
+      "signature": "is_json(value)",
+      "params": [
+        {
+          "name": "value",
+          "description": "String value to test"
+        }
+      ],
+      "returns": "true if valid JSON, false otherwise, null if input is null",
+      "examples": [
+        {
+          "expression": "is_json('{\"name\": \"Alice\"}')"
+        },
+        {
+          "expression": "is_json('{\"valid\": true}') -> true"
+        },
+        {
+          "expression": "is_json('invalid') -> false"
+        }
+      ]
+    },
+    {
+      "name": "json_extract",
+      "category": "JSON",
+      "description": "Parses JSON string and extracts value at specified path",
+      "signature": "json_extract(value, path)",
+      "params": [
+        {
+          "name": "value",
+          "description": "String containing JSON"
+        },
+        {
+          "name": "path",
+          "description": "Dot-notation path (e.g., \"user.name\" or \"items.0.price\")"
+        }
+      ],
+      "returns": "Extracted value, or null if path not found or JSON invalid",
+      "examples": [
+        {
+          "expression": "json_extract('{\"name\":\"Alice\"}', \"name\")"
+        },
+        {
+          "expression": "json_extract('{\"name\":\"Alice\"}', \"name\") -> \"Alice\""
+        },
+        {
+          "expression": "json_extract('{\"user\":{\"email\":\"a@b.com\"}}', \"user.email\") -> \"a@b.com\""
+        },
+        {
+          "expression": "json_extract('{\"items\":[{\"price\":10}]}', \"items.0.price\") -> 10"
+        }
+      ]
+    },
+    {
+      "name": "abs",
+      "category": "Math",
+      "description": "Returns the absolute value of a number",
+      "signature": "abs(value)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Numeric value"
+        }
+      ],
+      "returns": "Absolute value, or null if input is null/invalid",
+      "examples": [
+        {
+          "expression": "abs(-5)"
+        },
+        {
+          "expression": "abs(-5) -> 5"
+        }
+      ]
+    },
+    {
+      "name": "pow",
+      "category": "Math",
+      "description": "Returns the base raised to the power of the exponent",
+      "signature": "pow(base, exponent)",
+      "params": [
+        {
+          "name": "base",
+          "description": "The base number"
+        },
+        {
+          "name": "exponent",
+          "description": "The exponent"
+        }
+      ],
+      "returns": "Base raised to the power of exponent, or null if invalid",
+      "examples": [
+        {
+          "expression": "pow(2, 3) -> 8"
+        }
+      ]
+    },
+    {
+      "name": "sqrt",
+      "category": "Math",
+      "description": "Returns the square root of a number",
+      "signature": "sqrt(value)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Numeric value"
+        }
+      ],
+      "returns": "Square root, or null if number is negative or invalid",
+      "examples": [
+        {
+          "expression": "sqrt(16) -> 4"
+        }
+      ]
+    },
+    {
+      "name": "cbrt",
+      "category": "Math",
+      "description": "Returns the cube root of a number",
+      "signature": "cbrt(value)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Numeric value"
+        }
+      ],
+      "returns": "Cube root, or null if invalid",
+      "examples": [
+        {
+          "expression": "cbrt(27) -> 3"
+        }
+      ]
+    },
+    {
+      "name": "exp",
+      "category": "Math",
+      "description": "Returns e raised to the power of the value",
+      "signature": "exp(value)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Numeric value"
+        }
+      ],
+      "returns": "e^value, or null if invalid",
+      "examples": [
+        {
+          "expression": "exp(1) -> 2.71828..."
+        }
+      ]
+    },
+    {
+      "name": "ln",
+      "category": "Math",
+      "description": "Returns the natural logarithm (base e) of a number",
+      "signature": "ln(value)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Numeric value"
+        }
+      ],
+      "returns": "Natural logarithm, or null if value <= 0 or invalid",
+      "examples": [
+        {
+          "expression": "ln(2.71828) -> 1"
+        }
+      ]
+    },
+    {
+      "name": "log10",
+      "category": "Math",
+      "description": "Returns the base 10 logarithm of a number",
+      "signature": "log10(value)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Numeric value"
+        }
+      ],
+      "returns": "Base 10 logarithm, or null if value <= 0 or invalid",
+      "examples": [
+        {
+          "expression": "log10(100) -> 2"
+        }
+      ]
+    },
+    {
+      "name": "log2",
+      "category": "Math",
+      "description": "Returns the base 2 logarithm of a number",
+      "signature": "log2(value)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Numeric value"
+        }
+      ],
+      "returns": "Base 2 logarithm, or null if value <= 0 or invalid",
+      "examples": [
+        {
+          "expression": "log2(8) -> 3"
+        }
+      ]
+    },
+    {
+      "name": "sin",
+      "category": "Math",
+      "description": "Returns the sine of an angle (in radians)",
+      "signature": "sin(value)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Angle in radians"
+        }
+      ],
+      "returns": "Sine of the angle, or null if invalid",
+      "examples": [
+        {
+          "expression": "sin(pi() / 2) -> 1"
+        }
+      ]
+    },
+    {
+      "name": "cos",
+      "category": "Math",
+      "description": "Returns the cosine of an angle (in radians)",
+      "signature": "cos(value)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Angle in radians"
+        }
+      ],
+      "returns": "Cosine of the angle, or null if invalid",
+      "examples": [
+        {
+          "expression": "cos(0) -> 1"
+        }
+      ]
+    },
+    {
+      "name": "tan",
+      "category": "Math",
+      "description": "Returns the tangent of an angle (in radians)",
+      "signature": "tan(value)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Angle in radians"
+        }
+      ],
+      "returns": "Tangent of the angle, or null if invalid",
+      "examples": [
+        {
+          "expression": "tan(0) -> 0"
+        }
+      ]
+    },
+    {
+      "name": "asin",
+      "category": "Math",
+      "description": "Returns the arcsine (in radians) of a number",
+      "signature": "asin(value)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Number between -1 and 1"
+        }
+      ],
+      "returns": "Arcsine in radians, or null if value is outside [-1, 1] or invalid",
+      "examples": [
+        {
+          "expression": "asin(1) -> 1.57079..."
+        }
+      ]
+    },
+    {
+      "name": "acos",
+      "category": "Math",
+      "description": "Returns the arccosine (in radians) of a number",
+      "signature": "acos(value)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Number between -1 and 1"
+        }
+      ],
+      "returns": "Arccosine in radians, or null if value is outside [-1, 1] or invalid",
+      "examples": [
+        {
+          "expression": "acos(1) -> 0"
+        }
+      ]
+    },
+    {
+      "name": "atan",
+      "category": "Math",
+      "description": "Returns the arctangent (in radians) of a number",
+      "signature": "atan(value)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Numeric value"
+        }
+      ],
+      "returns": "Arctangent in radians, or null if invalid",
+      "examples": [
+        {
+          "expression": "atan(0) -> 0"
+        }
+      ]
+    },
+    {
+      "name": "atan2",
+      "category": "Math",
+      "description": "Returns the angle (in radians) from the X-axis to a point (x, y)",
+      "signature": "atan2(y, x)",
+      "params": [
+        {
+          "name": "y",
+          "description": "Y-coordinate"
+        },
+        {
+          "name": "x",
+          "description": "X-coordinate"
+        }
+      ],
+      "returns": "Angle in radians, or null if invalid",
+      "examples": [
+        {
+          "expression": "atan2(1, 1) -> 0.78539..."
+        }
+      ]
+    },
+    {
+      "name": "radians",
+      "category": "Math",
+      "description": "Converts degrees to radians",
+      "signature": "radians(value)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Angle in degrees"
+        }
+      ],
+      "returns": "Angle in radians, or null if invalid",
+      "examples": [
+        {
+          "expression": "radians(180) -> 3.14159..."
+        }
+      ]
+    },
+    {
+      "name": "degrees",
+      "category": "Math",
+      "description": "Converts radians to degrees",
+      "signature": "degrees(value)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Angle in radians"
+        }
+      ],
+      "returns": "Angle in degrees, or null if invalid",
+      "examples": [
+        {
+          "expression": "degrees(pi()) -> 180"
+        }
+      ]
+    },
+    {
+      "name": "sign",
+      "category": "Math",
+      "description": "Returns the sign of a number, indicating whether it is positive (1), negative (-1), or zero (0)",
+      "signature": "sign(value)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Numeric value"
+        }
+      ],
+      "returns": "1, -1, 0, or null if invalid",
+      "examples": [
+        {
+          "expression": "sign(-5) -> -1"
+        }
+      ]
+    },
+    {
+      "name": "trunc",
+      "category": "Math",
+      "description": "Returns the integer part of a number by removing any fractional digits",
+      "signature": "trunc(value)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Numeric value"
+        }
+      ],
+      "returns": "Integer part, or null if invalid",
+      "examples": [
+        {
+          "expression": "trunc(13.37) -> 13"
+        }
+      ]
+    },
+    {
+      "name": "pi",
+      "category": "Math",
+      "description": "Returns the value of PI (approximately 3.14159)",
+      "signature": "pi()",
+      "params": [],
+      "returns": "PI",
+      "examples": [
+        {
+          "expression": "pi() -> 3.14159..."
+        }
+      ]
+    },
+    {
+      "name": "e",
+      "category": "Math",
+      "description": "Returns Euler's number E (approximately 2.71828)",
+      "signature": "e()",
+      "params": [],
+      "returns": "E",
+      "examples": [
+        {
+          "expression": "e() -> 2.71828..."
+        }
+      ]
+    },
+    {
+      "name": "round",
+      "category": "Math",
+      "description": "Rounds a number to specified decimal places",
+      "signature": "round(value, decimals)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Numeric value"
+        },
+        {
+          "name": "decimals",
+          "description": "Number of decimal places (default: 0)"
+        }
+      ],
+      "returns": "Rounded number, or null if input is null/invalid",
+      "examples": [
+        {
+          "expression": "round(3.7)"
+        },
+        {
+          "expression": "round(3.14159, 2) -> 3.14"
+        }
+      ]
+    },
+    {
+      "name": "floor",
+      "category": "Math",
+      "description": "Rounds a number down to the nearest integer",
+      "signature": "floor(value)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Numeric value"
+        }
+      ],
+      "returns": "Floored number, or null if input is null/invalid",
+      "examples": [
+        {
+          "expression": "floor(3.9)"
+        },
+        {
+          "expression": "floor(3.9) -> 3"
+        }
+      ]
+    },
+    {
+      "name": "ceil",
+      "category": "Math",
+      "description": "Rounds a number up to the nearest integer",
+      "signature": "ceil(value)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Numeric value"
+        }
+      ],
+      "returns": "Ceiled number, or null if input is null/invalid",
+      "examples": [
+        {
+          "expression": "ceil(3.1)"
+        },
+        {
+          "expression": "ceil(3.1) -> 4"
+        }
+      ]
+    },
+    {
+      "name": "min",
+      "category": "Math",
+      "description": "Returns the minimum value from a list of numbers",
+      "signature": "min(args)",
+      "params": [
+        {
+          "name": "args",
+          "description": "Variable number of numeric values"
+        }
+      ],
+      "returns": "Minimum value, or null if all inputs are null/invalid",
+      "examples": [
+        {
+          "expression": "min(price, cost, 100)"
+        },
+        {
+          "expression": "min(10, 5, 20) -> 5"
+        }
+      ]
+    },
+    {
+      "name": "max",
+      "category": "Math",
+      "description": "Returns the maximum value from a list of numbers",
+      "signature": "max(args)",
+      "params": [
+        {
+          "name": "args",
+          "description": "Variable number of numeric values"
+        }
+      ],
+      "returns": "Maximum value, or null if all inputs are null/invalid",
+      "examples": [
+        {
+          "expression": "max(price, cost)"
+        },
+        {
+          "expression": "max(10, 5, 20) -> 20"
+        }
+      ]
+    },
+    {
       "name": "regexp_match",
       "category": "Regex",
       "description": "Tests if a value matches a regular expression pattern",
@@ -83,348 +951,7 @@
           "expression": "regexp_replace(text, \"(?i)hello\", \"Hi\") // Case-insensitive replacement"
         },
         {
-          "expression": "regexp_replace(\"foo bar foo\", \"foo\", \"baz\")",
-          "result": "\"baz bar baz\""
-        }
-      ]
-    },
-    {
-      "name": "year",
-      "category": "Date",
-      "description": "Extracts the year from a date value",
-      "signature": "year(value)",
-      "params": [
-        {
-          "name": "value",
-          "description": "Date value or date string"
-        }
-      ],
-      "returns": "Year as number (e.g., 2024), or null if invalid",
-      "examples": [
-        {
-          "expression": "year(order_date)"
-        },
-        {
-          "expression": "year(\"2024-01-15\")",
-          "result": "2024"
-        }
-      ]
-    },
-    {
-      "name": "month",
-      "category": "Date",
-      "description": "Extracts the month from a date value",
-      "signature": "month(value)",
-      "params": [
-        {
-          "name": "value",
-          "description": "Date value or date string"
-        }
-      ],
-      "returns": "Month as number (1-12), or null if invalid",
-      "examples": [
-        {
-          "expression": "month(created_at)"
-        },
-        {
-          "expression": "month(\"2024-03-15\")",
-          "result": "3"
-        }
-      ]
-    },
-    {
-      "name": "day",
-      "category": "Date",
-      "description": "Extracts the day of month from a date value",
-      "signature": "day(value)",
-      "params": [
-        {
-          "name": "value",
-          "description": "Date value or date string"
-        }
-      ],
-      "returns": "Day as number (1-31), or null if invalid",
-      "examples": [
-        {
-          "expression": "day(birth_date)"
-        },
-        {
-          "expression": "day(\"2024-01-15\")",
-          "result": "15"
-        }
-      ]
-    },
-    {
-      "name": "hour",
-      "category": "Date",
-      "description": "Extracts the hour from a datetime value",
-      "signature": "hour(value)",
-      "params": [
-        {
-          "name": "value",
-          "description": "Datetime value or datetime string"
-        }
-      ],
-      "returns": "Hour as number (0-23), or null if invalid",
-      "examples": [
-        {
-          "expression": "hour(timestamp)"
-        },
-        {
-          "expression": "hour(\"2024-01-15T14:30:00\")",
-          "result": "14"
-        }
-      ]
-    },
-    {
-      "name": "minute",
-      "category": "Date",
-      "description": "Extracts the minute from a datetime value",
-      "signature": "minute(value)",
-      "params": [
-        {
-          "name": "value",
-          "description": "Datetime value or datetime string"
-        }
-      ],
-      "returns": "Minute as number (0-59), or null if invalid",
-      "examples": [
-        {
-          "expression": "minute(timestamp)"
-        },
-        {
-          "expression": "minute(\"2024-01-15T14:30:00\")",
-          "result": "30"
-        }
-      ]
-    },
-    {
-      "name": "second",
-      "category": "Date",
-      "description": "Extracts the second from a datetime value",
-      "signature": "second(value)",
-      "params": [
-        {
-          "name": "value",
-          "description": "Datetime value or datetime string"
-        }
-      ],
-      "returns": "Second as number (0-59), or null if invalid",
-      "examples": [
-        {
-          "expression": "second(timestamp)"
-        },
-        {
-          "expression": "second(\"2024-01-15T14:30:45\")",
-          "result": "45"
-        }
-      ]
-    },
-    {
-      "name": "weekday",
-      "category": "Date",
-      "description": "Returns the day of week (ISO 8601: 0=Monday, 6=Sunday)",
-      "signature": "weekday(value)",
-      "params": [
-        {
-          "name": "value",
-          "description": "Date value or date string"
-        }
-      ],
-      "returns": "Day of week as number (0-6), or null if invalid",
-      "examples": [
-        {
-          "expression": "weekday(date)"
-        },
-        {
-          "expression": "weekday(\"2024-01-15\")",
-          "result": "0 // Monday"
-        }
-      ]
-    },
-    {
-      "name": "week",
-      "category": "Date",
-      "description": "Returns the ISO week number of the year",
-      "signature": "week(value)",
-      "params": [
-        {
-          "name": "value",
-          "description": "Date value or date string"
-        }
-      ],
-      "returns": "Week number (1-53), or null if invalid",
-      "examples": [
-        {
-          "expression": "week(order_date)"
-        },
-        {
-          "expression": "week(\"2024-01-15\")",
-          "result": "3"
-        }
-      ]
-    },
-    {
-      "name": "quarter",
-      "category": "Date",
-      "description": "Returns the quarter of the year",
-      "signature": "quarter(value)",
-      "params": [
-        {
-          "name": "value",
-          "description": "Date value or date string"
-        }
-      ],
-      "returns": "Quarter as number (1-4), or null if invalid",
-      "examples": [
-        {
-          "expression": "quarter(sale_date)"
-        },
-        {
-          "expression": "quarter(\"2024-03-15\")",
-          "result": "1"
-        }
-      ]
-    },
-    {
-      "name": "today",
-      "category": "Date",
-      "description": "Returns the current date in YYYY-MM-DD format",
-      "signature": "today()",
-      "params": [],
-      "returns": "Current date as string",
-      "examples": [
-        {
-          "expression": "order_date == today()"
-        },
-        {
-          "expression": "today()",
-          "result": "\"2024-01-15\""
-        }
-      ]
-    },
-    {
-      "name": "now",
-      "category": "Date",
-      "description": "Returns the current datetime in ISO format",
-      "signature": "now()",
-      "params": [],
-      "returns": "Current datetime as string",
-      "examples": [
-        {
-          "expression": "created_at < now()"
-        },
-        {
-          "expression": "now()",
-          "result": "\"2024-01-15T14:30:45\""
-        }
-      ]
-    },
-    {
-      "name": "days_between",
-      "category": "Date",
-      "description": "Calculates the number of days between two dates",
-      "signature": "days_between(date1, date2)",
-      "params": [
-        {
-          "name": "date1",
-          "description": "Start date"
-        },
-        {
-          "name": "date2",
-          "description": "End date"
-        }
-      ],
-      "returns": "Number of days from date1 to date2, or null if either date is invalid",
-      "examples": [
-        {
-          "expression": "days_between(start, end)"
-        },
-        {
-          "expression": "days_between(\"2024-01-01\", \"2024-01-15\")",
-          "result": "14"
-        }
-      ]
-    },
-    {
-      "name": "date_add",
-      "category": "Date",
-      "description": "Adds a time interval to a date",
-      "signature": "date_add(value, amount, unit)",
-      "params": [
-        {
-          "name": "value",
-          "description": "Date value or date string"
-        },
-        {
-          "name": "amount",
-          "description": "Number of units to add (can be negative)"
-        },
-        {
-          "name": "unit",
-          "description": "Time unit: \"days\", \"months\", \"years\", \"hours\", \"minutes\", \"seconds\""
-        }
-      ],
-      "returns": "New date/datetime as string, or null if invalid",
-      "examples": [
-        {
-          "expression": "date_add(order_date, 30, \"days\")"
-        },
-        {
-          "expression": "date_add(\"2024-01-15\", 2, \"months\")",
-          "result": "\"2024-03-15\""
-        }
-      ]
-    },
-    {
-      "name": "date_trunc",
-      "category": "Date",
-      "description": "Truncates a date to the start of a time period",
-      "signature": "date_trunc(value, unit)",
-      "params": [
-        {
-          "name": "value",
-          "description": "Date value or date string"
-        },
-        {
-          "name": "unit",
-          "description": "Truncation unit: \"year\", \"quarter\", \"month\", \"week\", \"day\", \"hour\", \"minute\", \"second\""
-        }
-      ],
-      "returns": "Truncated date/datetime as string, or null if invalid",
-      "examples": [
-        {
-          "expression": "date_trunc(timestamp, \"month\")"
-        },
-        {
-          "expression": "date_trunc(\"2024-01-15\", \"month\")",
-          "result": "\"2024-01-01\""
-        }
-      ]
-    },
-    {
-      "name": "format_date",
-      "category": "Date",
-      "description": "Formats a date using a custom format string",
-      "signature": "format_date(value, format)",
-      "params": [
-        {
-          "name": "value",
-          "description": "Date value or date string"
-        },
-        {
-          "name": "format",
-          "description": "Format string using tokens (YYYY, MM, DD, HH, mm, ss, etc.)"
-        }
-      ],
-      "returns": "Formatted date string, or null if invalid",
-      "examples": [
-        {
-          "expression": "format_date(date, \"DD/MM/YYYY\")"
-        },
-        {
-          "expression": "format_date(\"2024-01-15\", \"MM/DD/YYYY\")",
-          "result": "\"01/15/2024\""
+          "expression": "regexp_replace(\"foo bar foo\", \"foo\", \"baz\") -> \"baz bar baz\""
         }
       ]
     },
@@ -445,8 +972,7 @@
           "expression": "upper(name)"
         },
         {
-          "expression": "upper(\"john doe\")",
-          "result": "\"JOHN DOE\""
+          "expression": "upper(\"john doe\") -> \"JOHN DOE\""
         }
       ]
     },
@@ -467,8 +993,7 @@
           "expression": "lower(name)"
         },
         {
-          "expression": "lower(\"JOHN DOE\")",
-          "result": "\"john doe\""
+          "expression": "lower(\"JOHN DOE\") -> \"john doe\""
         }
       ]
     },
@@ -489,8 +1014,7 @@
           "expression": "titlecase(name)"
         },
         {
-          "expression": "titlecase(\"john doe\")",
-          "result": "\"John Doe\""
+          "expression": "titlecase(\"john doe\") -> \"John Doe\""
         }
       ]
     },
@@ -511,8 +1035,7 @@
           "expression": "trim(padded)"
         },
         {
-          "expression": "trim(\"  hello  \")",
-          "result": "\"hello\""
+          "expression": "trim(\"  hello  \") -> \"hello\""
         }
       ]
     },
@@ -541,8 +1064,7 @@
           "expression": "substring(name, 5)"
         },
         {
-          "expression": "substring(\"John Doe\", 0, 4)",
-          "result": "\"John\""
+          "expression": "substring(\"John Doe\", 0, 4) -> \"John\""
         }
       ]
     },
@@ -563,8 +1085,7 @@
           "expression": "len(name)"
         },
         {
-          "expression": "len(\"John Doe\")",
-          "result": "8"
+          "expression": "len(\"John Doe\") -> 8"
         }
       ]
     },
@@ -593,12 +1114,10 @@
           "expression": "split(\"a,b,c\", \",\")"
         },
         {
-          "expression": "split(\"a,b,c\", \",\", 2)",
-          "result": "\"c\""
+          "expression": "split(\"a,b,c\", \",\", 2) -> \"c\""
         },
         {
-          "expression": "split(\"a,b,c\", \",\", -1)",
-          "result": "\"c\""
+          "expression": "split(\"a,b,c\", \",\", -1) -> \"c\""
         }
       ]
     },
@@ -623,8 +1142,7 @@
           "expression": "equals(name, \"Alice\")"
         },
         {
-          "expression": "equals(\"Alice\", \"alice\")",
-          "result": "false"
+          "expression": "equals(\"Alice\", \"alice\") -> false"
         }
       ]
     },
@@ -649,8 +1167,7 @@
           "expression": "contains(code, \"ABC\")"
         },
         {
-          "expression": "contains(\"ABCDEF\", \"BCD\")",
-          "result": "true"
+          "expression": "contains(\"ABCDEF\", \"BCD\") -> true"
         }
       ]
     },
@@ -675,8 +1192,7 @@
           "expression": "starts_with(code, \"AB\")"
         },
         {
-          "expression": "starts_with(\"ABCDEF\", \"ABC\")",
-          "result": "true"
+          "expression": "starts_with(\"ABCDEF\", \"ABC\") -> true"
         }
       ]
     },
@@ -701,8 +1217,7 @@
           "expression": "ends_with(file, \".csv\")"
         },
         {
-          "expression": "ends_with(\"data.csv\", \".csv\")",
-          "result": "true"
+          "expression": "ends_with(\"data.csv\", \".csv\") -> true"
         }
       ]
     },
@@ -727,8 +1242,7 @@
           "expression": "equals_ci(name, \"alice\")"
         },
         {
-          "expression": "equals_ci(\"Alice\", \"ALICE\")",
-          "result": "true"
+          "expression": "equals_ci(\"Alice\", \"ALICE\") -> true"
         }
       ]
     },
@@ -753,8 +1267,7 @@
           "expression": "contains_ci(code, \"abc\")"
         },
         {
-          "expression": "contains_ci(\"ABCDEF\", \"bcd\")",
-          "result": "true"
+          "expression": "contains_ci(\"ABCDEF\", \"bcd\") -> true"
         }
       ]
     },
@@ -779,8 +1292,7 @@
           "expression": "starts_with_ci(code, \"ab\")"
         },
         {
-          "expression": "starts_with_ci(\"ABCDEF\", \"abc\")",
-          "result": "true"
+          "expression": "starts_with_ci(\"ABCDEF\", \"abc\") -> true"
         }
       ]
     },
@@ -805,522 +1317,7 @@
           "expression": "ends_with_ci(file, \".CSV\")"
         },
         {
-          "expression": "ends_with_ci(\"data.csv\", \".CSV\")",
-          "result": "true"
-        }
-      ]
-    },
-    {
-      "name": "abs",
-      "category": "Math",
-      "description": "Returns the absolute value of a number",
-      "signature": "abs(value)",
-      "params": [
-        {
-          "name": "value",
-          "description": "Numeric value"
-        }
-      ],
-      "returns": "Absolute value, or null if input is null/invalid",
-      "examples": [
-        {
-          "expression": "abs(-5)"
-        },
-        {
-          "expression": "abs(-5)",
-          "result": "5"
-        }
-      ]
-    },
-    {
-      "name": "pow",
-      "category": "Math",
-      "description": "Returns the base raised to the power of the exponent",
-      "signature": "pow(base, exponent)",
-      "params": [
-        {
-          "name": "base",
-          "description": "The base number"
-        },
-        {
-          "name": "exponent",
-          "description": "The exponent"
-        }
-      ],
-      "returns": "Base raised to the power of exponent, or null if invalid",
-      "examples": [
-        {
-          "expression": "pow(2, 3)",
-          "result": "8"
-        }
-      ]
-    },
-    {
-      "name": "sqrt",
-      "category": "Math",
-      "description": "Returns the square root of a number",
-      "signature": "sqrt(value)",
-      "params": [
-        {
-          "name": "value",
-          "description": "Numeric value"
-        }
-      ],
-      "returns": "Square root, or null if number is negative or invalid",
-      "examples": [
-        {
-          "expression": "sqrt(16)",
-          "result": "4"
-        }
-      ]
-    },
-    {
-      "name": "cbrt",
-      "category": "Math",
-      "description": "Returns the cube root of a number",
-      "signature": "cbrt(value)",
-      "params": [
-        {
-          "name": "value",
-          "description": "Numeric value"
-        }
-      ],
-      "returns": "Cube root, or null if invalid",
-      "examples": [
-        {
-          "expression": "cbrt(27)",
-          "result": "3"
-        }
-      ]
-    },
-    {
-      "name": "exp",
-      "category": "Math",
-      "description": "Returns e raised to the power of the value",
-      "signature": "exp(value)",
-      "params": [
-        {
-          "name": "value",
-          "description": "Numeric value"
-        }
-      ],
-      "returns": "e^value, or null if invalid",
-      "examples": [
-        {
-          "expression": "exp(1)",
-          "result": "2.71828..."
-        }
-      ]
-    },
-    {
-      "name": "ln",
-      "category": "Math",
-      "description": "Returns the natural logarithm (base e) of a number",
-      "signature": "ln(value)",
-      "params": [
-        {
-          "name": "value",
-          "description": "Numeric value"
-        }
-      ],
-      "returns": "Natural logarithm, or null if value <= 0 or invalid",
-      "examples": [
-        {
-          "expression": "ln(2.71828)",
-          "result": "1"
-        }
-      ]
-    },
-    {
-      "name": "log10",
-      "category": "Math",
-      "description": "Returns the base 10 logarithm of a number",
-      "signature": "log10(value)",
-      "params": [
-        {
-          "name": "value",
-          "description": "Numeric value"
-        }
-      ],
-      "returns": "Base 10 logarithm, or null if value <= 0 or invalid",
-      "examples": [
-        {
-          "expression": "log10(100)",
-          "result": "2"
-        }
-      ]
-    },
-    {
-      "name": "log2",
-      "category": "Math",
-      "description": "Returns the base 2 logarithm of a number",
-      "signature": "log2(value)",
-      "params": [
-        {
-          "name": "value",
-          "description": "Numeric value"
-        }
-      ],
-      "returns": "Base 2 logarithm, or null if value <= 0 or invalid",
-      "examples": [
-        {
-          "expression": "log2(8)",
-          "result": "3"
-        }
-      ]
-    },
-    {
-      "name": "sin",
-      "category": "Math",
-      "description": "Returns the sine of an angle (in radians)",
-      "signature": "sin(value)",
-      "params": [
-        {
-          "name": "value",
-          "description": "Angle in radians"
-        }
-      ],
-      "returns": "Sine of the angle, or null if invalid",
-      "examples": [
-        {
-          "expression": "sin(pi() / 2)",
-          "result": "1"
-        }
-      ]
-    },
-    {
-      "name": "cos",
-      "category": "Math",
-      "description": "Returns the cosine of an angle (in radians)",
-      "signature": "cos(value)",
-      "params": [
-        {
-          "name": "value",
-          "description": "Angle in radians"
-        }
-      ],
-      "returns": "Cosine of the angle, or null if invalid",
-      "examples": [
-        {
-          "expression": "cos(0)",
-          "result": "1"
-        }
-      ]
-    },
-    {
-      "name": "tan",
-      "category": "Math",
-      "description": "Returns the tangent of an angle (in radians)",
-      "signature": "tan(value)",
-      "params": [
-        {
-          "name": "value",
-          "description": "Angle in radians"
-        }
-      ],
-      "returns": "Tangent of the angle, or null if invalid",
-      "examples": [
-        {
-          "expression": "tan(0)",
-          "result": "0"
-        }
-      ]
-    },
-    {
-      "name": "asin",
-      "category": "Math",
-      "description": "Returns the arcsine (in radians) of a number",
-      "signature": "asin(value)",
-      "params": [
-        {
-          "name": "value",
-          "description": "Number between -1 and 1"
-        }
-      ],
-      "returns": "Arcsine in radians, or null if value is outside [-1, 1] or invalid",
-      "examples": [
-        {
-          "expression": "asin(1)",
-          "result": "1.57079..."
-        }
-      ]
-    },
-    {
-      "name": "acos",
-      "category": "Math",
-      "description": "Returns the arccosine (in radians) of a number",
-      "signature": "acos(value)",
-      "params": [
-        {
-          "name": "value",
-          "description": "Number between -1 and 1"
-        }
-      ],
-      "returns": "Arccosine in radians, or null if value is outside [-1, 1] or invalid",
-      "examples": [
-        {
-          "expression": "acos(1)",
-          "result": "0"
-        }
-      ]
-    },
-    {
-      "name": "atan",
-      "category": "Math",
-      "description": "Returns the arctangent (in radians) of a number",
-      "signature": "atan(value)",
-      "params": [
-        {
-          "name": "value",
-          "description": "Numeric value"
-        }
-      ],
-      "returns": "Arctangent in radians, or null if invalid",
-      "examples": [
-        {
-          "expression": "atan(0)",
-          "result": "0"
-        }
-      ]
-    },
-    {
-      "name": "atan2",
-      "category": "Math",
-      "description": "Returns the angle (in radians) from the X-axis to a point (x, y)",
-      "signature": "atan2(y, x)",
-      "params": [
-        {
-          "name": "y",
-          "description": "Y-coordinate"
-        },
-        {
-          "name": "x",
-          "description": "X-coordinate"
-        }
-      ],
-      "returns": "Angle in radians, or null if invalid",
-      "examples": [
-        {
-          "expression": "atan2(1, 1)",
-          "result": "0.78539..."
-        }
-      ]
-    },
-    {
-      "name": "radians",
-      "category": "Math",
-      "description": "Converts degrees to radians",
-      "signature": "radians(value)",
-      "params": [
-        {
-          "name": "value",
-          "description": "Angle in degrees"
-        }
-      ],
-      "returns": "Angle in radians, or null if invalid",
-      "examples": [
-        {
-          "expression": "radians(180)",
-          "result": "3.14159..."
-        }
-      ]
-    },
-    {
-      "name": "degrees",
-      "category": "Math",
-      "description": "Converts radians to degrees",
-      "signature": "degrees(value)",
-      "params": [
-        {
-          "name": "value",
-          "description": "Angle in radians"
-        }
-      ],
-      "returns": "Angle in degrees, or null if invalid",
-      "examples": [
-        {
-          "expression": "degrees(pi())",
-          "result": "180"
-        }
-      ]
-    },
-    {
-      "name": "sign",
-      "category": "Math",
-      "description": "Returns the sign of a number, indicating whether it is positive (1), negative (-1), or zero (0)",
-      "signature": "sign(value)",
-      "params": [
-        {
-          "name": "value",
-          "description": "Numeric value"
-        }
-      ],
-      "returns": "1, -1, 0, or null if invalid",
-      "examples": [
-        {
-          "expression": "sign(-5)",
-          "result": "-1"
-        }
-      ]
-    },
-    {
-      "name": "trunc",
-      "category": "Math",
-      "description": "Returns the integer part of a number by removing any fractional digits",
-      "signature": "trunc(value)",
-      "params": [
-        {
-          "name": "value",
-          "description": "Numeric value"
-        }
-      ],
-      "returns": "Integer part, or null if invalid",
-      "examples": [
-        {
-          "expression": "trunc(13.37)",
-          "result": "13"
-        }
-      ]
-    },
-    {
-      "name": "pi",
-      "category": "Math",
-      "description": "Returns the value of PI (approximately 3.14159)",
-      "signature": "pi()",
-      "params": [],
-      "returns": "PI",
-      "examples": [
-        {
-          "expression": "pi()",
-          "result": "3.14159..."
-        }
-      ]
-    },
-    {
-      "name": "e",
-      "category": "Math",
-      "description": "Returns Euler's number E (approximately 2.71828)",
-      "signature": "e()",
-      "params": [],
-      "returns": "E",
-      "examples": [
-        {
-          "expression": "e()",
-          "result": "2.71828..."
-        }
-      ]
-    },
-    {
-      "name": "round",
-      "category": "Math",
-      "description": "Rounds a number to specified decimal places",
-      "signature": "round(value, decimals)",
-      "params": [
-        {
-          "name": "value",
-          "description": "Numeric value"
-        },
-        {
-          "name": "decimals",
-          "description": "Number of decimal places (default: 0)"
-        }
-      ],
-      "returns": "Rounded number, or null if input is null/invalid",
-      "examples": [
-        {
-          "expression": "round(3.7)"
-        },
-        {
-          "expression": "round(3.14159, 2)",
-          "result": "3.14"
-        }
-      ]
-    },
-    {
-      "name": "floor",
-      "category": "Math",
-      "description": "Rounds a number down to the nearest integer",
-      "signature": "floor(value)",
-      "params": [
-        {
-          "name": "value",
-          "description": "Numeric value"
-        }
-      ],
-      "returns": "Floored number, or null if input is null/invalid",
-      "examples": [
-        {
-          "expression": "floor(3.9)"
-        },
-        {
-          "expression": "floor(3.9)",
-          "result": "3"
-        }
-      ]
-    },
-    {
-      "name": "ceil",
-      "category": "Math",
-      "description": "Rounds a number up to the nearest integer",
-      "signature": "ceil(value)",
-      "params": [
-        {
-          "name": "value",
-          "description": "Numeric value"
-        }
-      ],
-      "returns": "Ceiled number, or null if input is null/invalid",
-      "examples": [
-        {
-          "expression": "ceil(3.1)"
-        },
-        {
-          "expression": "ceil(3.1)",
-          "result": "4"
-        }
-      ]
-    },
-    {
-      "name": "min",
-      "category": "Math",
-      "description": "Returns the minimum value from a list of numbers",
-      "signature": "min(args)",
-      "params": [
-        {
-          "name": "args",
-          "description": "Variable number of numeric values"
-        }
-      ],
-      "returns": "Minimum value, or null if all inputs are null/invalid",
-      "examples": [
-        {
-          "expression": "min(price, cost, 100)"
-        },
-        {
-          "expression": "min(10, 5, 20)",
-          "result": "5"
-        }
-      ]
-    },
-    {
-      "name": "max",
-      "category": "Math",
-      "description": "Returns the maximum value from a list of numbers",
-      "signature": "max(args)",
-      "params": [
-        {
-          "name": "args",
-          "description": "Variable number of numeric values"
-        }
-      ],
-      "returns": "Maximum value, or null if all inputs are null/invalid",
-      "examples": [
-        {
-          "expression": "max(price, cost)"
-        },
-        {
-          "expression": "max(10, 5, 20)",
-          "result": "20"
+          "expression": "ends_with_ci(\"data.csv\", \".CSV\") -> true"
         }
       ]
     },
@@ -1341,8 +1338,7 @@
           "expression": "parse_int(\"42\")"
         },
         {
-          "expression": "parse_int(\"42\")",
-          "result": "42"
+          "expression": "parse_int(\"42\") -> 42"
         }
       ]
     },
@@ -1363,8 +1359,7 @@
           "expression": "parse_float(\"3.14\")"
         },
         {
-          "expression": "parse_float(\"3.14\")",
-          "result": "3.14"
+          "expression": "parse_float(\"3.14\") -> 3.14"
         }
       ]
     },
@@ -1385,68 +1380,7 @@
           "expression": "is_nan(\"abc\")"
         },
         {
-          "expression": "is_nan(\"abc\")",
-          "result": "true"
-        }
-      ]
-    },
-    {
-      "name": "is_json",
-      "category": "JSON",
-      "description": "Tests if a string contains valid JSON",
-      "signature": "is_json(value)",
-      "params": [
-        {
-          "name": "value",
-          "description": "String value to test"
-        }
-      ],
-      "returns": "true if valid JSON, false otherwise, null if input is null",
-      "examples": [
-        {
-          "expression": "is_json('{\"name\": \"Alice\"}')"
-        },
-        {
-          "expression": "is_json('{\"valid\": true}')",
-          "result": "true"
-        },
-        {
-          "expression": "is_json('invalid')",
-          "result": "false"
-        }
-      ]
-    },
-    {
-      "name": "json_extract",
-      "category": "JSON",
-      "description": "Parses JSON string and extracts value at specified path",
-      "signature": "json_extract(value, path)",
-      "params": [
-        {
-          "name": "value",
-          "description": "String containing JSON"
-        },
-        {
-          "name": "path",
-          "description": "Dot-notation path (e.g., \"user.name\" or \"items.0.price\")"
-        }
-      ],
-      "returns": "Extracted value, or null if path not found or JSON invalid",
-      "examples": [
-        {
-          "expression": "json_extract('{\"name\":\"Alice\"}', \"name\")"
-        },
-        {
-          "expression": "json_extract('{\"name\":\"Alice\"}', \"name\")",
-          "result": "\"Alice\""
-        },
-        {
-          "expression": "json_extract('{\"user\":{\"email\":\"a@b.com\"}}', \"user.email\")",
-          "result": "\"a@b.com\""
-        },
-        {
-          "expression": "json_extract('{\"items\":[{\"price\":10}]}', \"items.0.price\")",
-          "result": "10"
+          "expression": "is_nan(\"abc\") -> true"
         }
       ]
     }

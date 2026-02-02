@@ -121,6 +121,11 @@ export interface TransformStep {
   lookup?: { right: string; on: [string, string][]; values: string[] };
   spread?: { column: string; limit?: number; keepOriginal?: boolean };
   unroll?: { column: string; indices?: boolean; keepOriginal?: boolean };
+  window?: {
+    orderBy: Array<{ field: string; order: 'asc' | 'desc' }>;
+    partitionBy?: string[];
+    derive: Record<string, string>;
+  };
 }
 
 export const SchemaEngine = {
@@ -867,6 +872,70 @@ export const SchemaEngine = {
       }
     }
 
+    // 14. WINDOW: Add new columns from window functions
+    if (transform.window) {
+      const { derive } = transform.window;
+      const nextSchema = [...currentSchema];
+
+      for (const [newColName, exprString] of Object.entries(derive)) {
+        const existingIndex = nextSchema.findIndex((c) => c.name === newColName);
+
+        // Infer type from function name
+        let type: ColumnType = 'float'; // Default for most window functions
+        const funcMatch = typeof exprString === 'string' ? exprString.match(/^op\.(\w+)/) : null;
+        const funcName = funcMatch ? funcMatch[1] : '';
+
+        // row_number, rank, dense_rank, ntile return integers
+        if (['row_number', 'rank', 'dense_rank', 'ntile'].includes(funcName)) {
+          type = 'integer';
+        }
+        // percent_rank, cume_dist, avg_rank return floats
+        else if (['percent_rank', 'cume_dist', 'avg_rank'].includes(funcName)) {
+          type = 'float';
+        }
+        // lag, lead, first_value, last_value, nth_value, fill_down, fill_up inherit from source column
+        else if (
+          [
+            'lag',
+            'lead',
+            'first_value',
+            'last_value',
+            'nth_value',
+            'fill_down',
+            'fill_up',
+          ].includes(funcName)
+        ) {
+          const colMatch =
+            typeof exprString === 'string' ? exprString.match(/\(['"]?([^'",]+)['"]?/) : null;
+          if (colMatch) {
+            const sourceCol = currentSchema.find((c) => c.name === colMatch[1]);
+            if (sourceCol) type = sourceCol.type;
+          }
+        }
+
+        // Override with sample data if available
+        if (sampleData && sampleData.length > 0) {
+          const sampleValues = sampleData.map((row) => row[newColName]);
+          type = this.inferType(sampleValues);
+        }
+
+        const newColSchema: ColumnSchema = {
+          name: newColName,
+          type,
+          format: {},
+          originalPosition:
+            existingIndex !== -1 ? nextSchema[existingIndex].originalPosition : nextSchema.length,
+        };
+
+        if (existingIndex !== -1) {
+          nextSchema[existingIndex] = newColSchema;
+        } else {
+          nextSchema.push(newColSchema);
+        }
+      }
+      return nextSchema;
+    }
+
     // Future-proofing: Check for unknown transform keys
     // Note: 'import', 'replace', 'sliceRows', 'addIndex', 'dedupe' don't change schema,
     // so they may not have explicit handlers above
@@ -901,6 +970,7 @@ export const SchemaEngine = {
       'lookup',
       'spread',
       'unroll',
+      'window',
     ];
     const transformKeys = Object.keys(transform).filter((k) => k !== '__v'); // Ignore version field
     const unknownKey = transformKeys.find((k) => !knownKeys.includes(k));

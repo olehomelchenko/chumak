@@ -9,6 +9,7 @@ import { reshapeDescribers } from './reshape';
 import { joinDescribers } from './join';
 import { combineDescribers } from './combine';
 import { aggregateDescribers } from './aggregate';
+import { windowDescribers } from './window';
 import { importDescribers } from './import';
 
 /**
@@ -73,4 +74,7 @@ export const TRANSFORM_DESCRIBERS: Record<string, TransformDescriber> = {
 
   // Aggregate describers
   aggregate: aggregateDescribers.aggregate,
+
+  // Window describers
+  window: windowDescribers.window,
 };

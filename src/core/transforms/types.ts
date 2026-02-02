@@ -64,6 +64,11 @@ export interface FullTransformStep extends TransformStep {
   lookup?: { right: string; on: [string, string][]; values: string[] };
   spread?: { column: string; limit?: number; keepOriginal?: boolean };
   unroll?: { column: string; indices?: boolean; keepOriginal?: boolean };
+  window?: {
+    orderBy: Array<{ field: string; order: 'asc' | 'desc' }>;
+    partitionBy?: string[];
+    derive: Record<string, string>;
+  };
 }
 
 /**
@@ -100,4 +105,5 @@ export const KNOWN_TRANSFORM_KEYS: readonly string[] = [
   'lookup',
   'spread',
   'unroll',
+  'window',
 ] as const;

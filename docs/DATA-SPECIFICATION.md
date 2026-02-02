@@ -339,6 +339,13 @@ interface TransformStep {
   // Advanced operations
   impute?: { column: string; strategy: string; value?: any };
   sample?: { count: number; seed?: number };
+
+  // Window operations
+  window?: {
+    orderBy: Array<{ field: string; order: 'asc' | 'desc' }>;
+    partitionBy?: string[];
+    derive: Record<string, string>;  // column -> op.func() expression
+  };
 }
 ```
 
@@ -389,6 +396,37 @@ With regex pattern (e.g., format phone numbers):
   }
 }
 ```
+
+**Window** — Apply window functions with ordering and optional partitioning:
+
+```json
+{
+  "window": {
+    "orderBy": [{ "field": "date", "order": "asc" }],
+    "partitionBy": ["category"],
+    "derive": {
+      "prev_value": "op.lag('value', 1)",
+      "next_value": "op.lead('value', 1)",
+      "row_num": "op.row_number()",
+      "rank": "op.rank()"
+    }
+  }
+}
+```
+
+Available window functions:
+
+- `op.lag('column', offset)` — Previous row value
+- `op.lead('column', offset)` — Next row value
+- `op.row_number()` — Sequential row numbers
+- `op.rank()` — Rank with gaps for ties
+- `op.dense_rank()` — Rank without gaps
+- `op.percent_rank()` — Percentage rank (0-1)
+- `op.ntile(n)` — Distribute into N buckets
+- `op.first_value('column')` — First value in partition
+- `op.last_value('column')` — Last value in partition
+- `op.fill_down('column')` — Fill nulls with preceding value
+- `op.fill_up('column')` — Fill nulls with following value
 
 **Join** — Combine with another model:
 

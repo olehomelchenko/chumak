@@ -16,7 +16,7 @@ Returns the absolute value of a number
 
 ```
 abs(-5)
-abs(-5) → 5
+abs(-5) -> 5
 ```
 
 ---
@@ -35,7 +35,7 @@ Returns the base raised to the power of the exponent
 **Examples:**
 
 ```
-pow(2, 3) → 8
+pow(2, 3) -> 8
 ```
 
 ---
@@ -53,7 +53,7 @@ Returns the square root of a number
 **Examples:**
 
 ```
-sqrt(16) → 4
+sqrt(16) -> 4
 ```
 
 ---
@@ -71,7 +71,7 @@ Returns the cube root of a number
 **Examples:**
 
 ```
-cbrt(27) → 3
+cbrt(27) -> 3
 ```
 
 ---
@@ -89,7 +89,7 @@ Returns e raised to the power of the value
 **Examples:**
 
 ```
-exp(1) → 2.71828...
+exp(1) -> 2.71828...
 ```
 
 ---
@@ -107,7 +107,7 @@ Returns the natural logarithm (base e) of a number
 **Examples:**
 
 ```
-ln(2.71828) → 1
+ln(2.71828) -> 1
 ```
 
 ---
@@ -125,7 +125,7 @@ Returns the base 10 logarithm of a number
 **Examples:**
 
 ```
-log10(100) → 2
+log10(100) -> 2
 ```
 
 ---
@@ -143,7 +143,7 @@ Returns the base 2 logarithm of a number
 **Examples:**
 
 ```
-log2(8) → 3
+log2(8) -> 3
 ```
 
 ---
@@ -161,7 +161,7 @@ Returns the sine of an angle (in radians)
 **Examples:**
 
 ```
-sin(pi() / 2) → 1
+sin(pi() / 2) -> 1
 ```
 
 ---
@@ -179,7 +179,7 @@ Returns the cosine of an angle (in radians)
 **Examples:**
 
 ```
-cos(0) → 1
+cos(0) -> 1
 ```
 
 ---
@@ -197,7 +197,7 @@ Returns the tangent of an angle (in radians)
 **Examples:**
 
 ```
-tan(0) → 0
+tan(0) -> 0
 ```
 
 ---
@@ -215,7 +215,7 @@ Returns the arcsine (in radians) of a number
 **Examples:**
 
 ```
-asin(1) → 1.57079...
+asin(1) -> 1.57079...
 ```
 
 ---
@@ -233,7 +233,7 @@ Returns the arccosine (in radians) of a number
 **Examples:**
 
 ```
-acos(1) → 0
+acos(1) -> 0
 ```
 
 ---
@@ -251,7 +251,7 @@ Returns the arctangent (in radians) of a number
 **Examples:**
 
 ```
-atan(0) → 0
+atan(0) -> 0
 ```
 
 ---
@@ -270,7 +270,7 @@ Returns the angle (in radians) from the X-axis to a point (x, y)
 **Examples:**
 
 ```
-atan2(1, 1) → 0.78539...
+atan2(1, 1) -> 0.78539...
 ```
 
 ---
@@ -288,7 +288,7 @@ Converts degrees to radians
 **Examples:**
 
 ```
-radians(180) → 3.14159...
+radians(180) -> 3.14159...
 ```
 
 ---
@@ -306,7 +306,7 @@ Converts radians to degrees
 **Examples:**
 
 ```
-degrees(pi()) → 180
+degrees(pi()) -> 180
 ```
 
 ---
@@ -324,7 +324,7 @@ Returns the sign of a number, indicating whether it is positive (1), negative (-
 **Examples:**
 
 ```
-sign(-5) → -1
+sign(-5) -> -1
 ```
 
 ---
@@ -342,7 +342,7 @@ Returns the integer part of a number by removing any fractional digits
 **Examples:**
 
 ```
-trunc(13.37) → 13
+trunc(13.37) -> 13
 ```
 
 ---
@@ -356,7 +356,7 @@ Returns the value of PI (approximately 3.14159)
 **Examples:**
 
 ```
-pi() → 3.14159...
+pi() -> 3.14159...
 ```
 
 ---
@@ -370,7 +370,7 @@ Returns Euler's number E (approximately 2.71828)
 **Examples:**
 
 ```
-e() → 2.71828...
+e() -> 2.71828...
 ```
 
 ---
@@ -390,7 +390,7 @@ Rounds a number to specified decimal places
 
 ```
 round(3.7)
-round(3.14159, 2) → 3.14
+round(3.14159, 2) -> 3.14
 ```
 
 ---
@@ -409,7 +409,7 @@ Rounds a number down to the nearest integer
 
 ```
 floor(3.9)
-floor(3.9) → 3
+floor(3.9) -> 3
 ```
 
 ---
@@ -428,7 +428,7 @@ Rounds a number up to the nearest integer
 
 ```
 ceil(3.1)
-ceil(3.1) → 4
+ceil(3.1) -> 4
 ```
 
 ---
@@ -447,7 +447,7 @@ Returns the minimum value from a list of numbers
 
 ```
 min(price, cost, 100)
-min(10, 5, 20) → 5
+min(10, 5, 20) -> 5
 ```
 
 ---
@@ -466,7 +466,7 @@ Returns the maximum value from a list of numbers
 
 ```
 max(price, cost)
-max(10, 5, 20) → 20
+max(10, 5, 20) -> 20
 ```
 
 ---

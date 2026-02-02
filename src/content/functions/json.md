@@ -16,8 +16,8 @@ Tests if a string contains valid JSON
 
 ```
 is_json('{"name": "Alice"}')
-is_json('{"valid": true}') → true
-is_json('invalid') → false
+is_json('{"valid": true}') -> true
+is_json('invalid') -> false
 ```
 
 ---
@@ -37,9 +37,9 @@ Parses JSON string and extracts value at specified path
 
 ```
 json_extract('{"name":"Alice"}', "name")
-json_extract('{"name":"Alice"}', "name") → "Alice"
-json_extract('{"user":{"email":"a@b.com"}}', "user.email") → "a@b.com"
-json_extract('{"items":[{"price":10}]}', "items.0.price") → 10
+json_extract('{"name":"Alice"}', "name") -> "Alice"
+json_extract('{"user":{"email":"a@b.com"}}', "user.email") -> "a@b.com"
+json_extract('{"items":[{"price":10}]}', "items.0.price") -> 10
 ```
 
 ---

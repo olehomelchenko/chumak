@@ -20,6 +20,7 @@ export type DialogName =
   | 'join'
   | 'append'
   | 'aggregate'
+  | 'window'
   | 'import-csv'
   | 'import-url'
   | 'generate'

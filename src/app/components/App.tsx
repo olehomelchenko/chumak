@@ -29,6 +29,7 @@ import {
   JoinDialog,
   AppendDialog,
   AggregateDialog,
+  WindowDialog,
   ImportCsvDialog,
   ImportUrlDialog,
   GenerateDialog,
@@ -234,6 +235,7 @@ export function App() {
                 {activeDialog === 'join' && <JoinDialog />}
                 {activeDialog === 'append' && <AppendDialog />}
                 {activeDialog === 'aggregate' && <AggregateDialog />}
+                {activeDialog === 'window' && <WindowDialog />}
                 {activeDialog === 'column-editor' && <ColumnEditorDialog />}
                 {activeDialog === 'import-csv' && (
                   <ImportCsvDialog

@@ -287,6 +287,7 @@ export function createMockStepCallbacks(overrides?: Partial<StepCallbacks>): Ste
     applyReplaceTransform: vi.fn().mockResolvedValue(undefined),
     applyDedupeTransform: vi.fn().mockResolvedValue(undefined),
     applyImputeTransform: vi.fn().mockResolvedValue(undefined),
+    applyWindowTransform: vi.fn().mockResolvedValue(undefined),
     confirmImport: vi.fn(),
     fetchAndImportFromUrl: vi.fn().mockResolvedValue(undefined),
     generateData: vi.fn().mockResolvedValue(undefined),

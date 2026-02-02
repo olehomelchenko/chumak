@@ -44,6 +44,8 @@ export { AppendDialog } from './AppendDialog';
 export { AggregateDialog } from './AggregateDialog';
 export type { Aggregation } from './AggregateDialog';
 
+export { WindowDialog } from './WindowDialog';
+
 export { ImportCsvDialog } from './ImportCsvDialog';
 export type { ImportCsvDialogProps } from './ImportCsvDialog';
 

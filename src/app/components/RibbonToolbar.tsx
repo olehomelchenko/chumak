@@ -189,6 +189,12 @@ export function RibbonToolbar({ onOpenDialog, onAutoDetectSchema }: RibbonToolba
                 title="Group rows and calculate aggregates"
                 onClick={() => onOpenDialog('aggregate')}
               />
+              <RibbonButton
+                icon="carbon:chart-stepper"
+                label="Window"
+                title="Window functions (lag, lead, rank, row_number)"
+                onClick={() => onOpenDialog('window')}
+              />
             </RibbonGroup>
 
             <RibbonDivider />

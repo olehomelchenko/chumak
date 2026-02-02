@@ -85,6 +85,7 @@ export class SytoApp {
       applyReplaceTransform: () => AppController.applyReplaceTransform(),
       applyDedupeTransform: () => AppController.applyDedupeTransform(),
       applyImputeTransform: () => AppController.applyImputeTransform(),
+      applyWindowTransform: () => AppController.applyWindowTransform(),
       confirmImport: () => AppController.confirmImport(),
       fetchAndImportFromUrl: () => AppController.fetchAndImportFromUrl(),
       generateData: () => AppController.generateData(),

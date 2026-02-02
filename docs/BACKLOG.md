@@ -85,6 +85,27 @@ Drag columns in the data table to reorder. Would generate a `select` step with t
 
 ---
 
+### Transform Handler Simplification
+
+**Status**: Proposed
+**Effort**: Medium
+**Reference**: [TRANSFORM-HANDLER-SIMPLIFICATION.md](future/TRANSFORM-HANDLER-SIMPLIFICATION.md)
+
+Reduce the number of files required to add a new transform dialog from 11-12 to 8-9 by eliminating callback indirection.
+
+**Current Problem**: Adding a transform dialog requires updating `StepCallbacks` interface, `applyActiveTransform()` switch, `AppController`, `syto-app.ts` callbacks, and `test-utils.ts` mocks. This is error-prone (the window transform bug was caused by missing wiring).
+
+**Proposed Solution**: Registry-driven dispatch - register the apply handler function directly in `dialog-registry.ts` and have `applyActiveTransform()` look it up dynamically instead of using a giant switch statement.
+
+**Benefits**:
+
+- Single registration point (dialog-registry.ts)
+- Eliminates 4 files of boilerplate per transform
+- Reduces risk of missing wiring
+- Incremental migration possible
+
+---
+
 ### Native Date Object Support
 
 **Status:** Analysis Complete / Implementation Planned
@@ -215,7 +236,7 @@ These have been considered and explicitly excluded:
 
 2. Step reordering
 3. Column reordering (`reorder`, `moveColumn`)
-4. Window functions (`cumsum`, `lag`, `rank`) — Future
+4. Transform handler simplification — developer experience improvement
 
 ---
 

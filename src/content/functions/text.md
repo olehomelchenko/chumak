@@ -16,7 +16,7 @@ Converts text to uppercase
 
 ```
 upper(name)
-upper("john doe") → "JOHN DOE"
+upper("john doe") -> "JOHN DOE"
 ```
 
 ---
@@ -35,7 +35,7 @@ Converts text to lowercase
 
 ```
 lower(name)
-lower("JOHN DOE") → "john doe"
+lower("JOHN DOE") -> "john doe"
 ```
 
 ---
@@ -54,7 +54,7 @@ Converts text to title case (capitalizes first letter of each word)
 
 ```
 titlecase(name)
-titlecase("john doe") → "John Doe"
+titlecase("john doe") -> "John Doe"
 ```
 
 ---
@@ -73,7 +73,7 @@ Removes leading and trailing whitespace
 
 ```
 trim(padded)
-trim("  hello  ") → "hello"
+trim("  hello  ") -> "hello"
 ```
 
 ---
@@ -94,7 +94,7 @@ Extracts a substring from text
 
 ```
 substring(name, 5)
-substring("John Doe", 0, 4) → "John"
+substring("John Doe", 0, 4) -> "John"
 ```
 
 ---
@@ -113,7 +113,7 @@ Returns the length of a string
 
 ```
 len(name)
-len("John Doe") → 8
+len("John Doe") -> 8
 ```
 
 ---
@@ -134,8 +134,8 @@ Splits text by delimiter and returns segment at index
 
 ```
 split("a,b,c", ",")
-split("a,b,c", ",", 2) → "c"
-split("a,b,c", ",", -1) → "c"
+split("a,b,c", ",", 2) -> "c"
+split("a,b,c", ",", -1) -> "c"
 ```
 
 ---
@@ -155,7 +155,7 @@ Tests if two values are equal (case-sensitive)
 
 ```
 equals(name, "Alice")
-equals("Alice", "alice") → false
+equals("Alice", "alice") -> false
 ```
 
 ---
@@ -175,7 +175,7 @@ Tests if text contains a substring (case-sensitive)
 
 ```
 contains(code, "ABC")
-contains("ABCDEF", "BCD") → true
+contains("ABCDEF", "BCD") -> true
 ```
 
 ---
@@ -195,7 +195,7 @@ Tests if text starts with a prefix (case-sensitive)
 
 ```
 starts_with(code, "AB")
-starts_with("ABCDEF", "ABC") → true
+starts_with("ABCDEF", "ABC") -> true
 ```
 
 ---
@@ -215,7 +215,7 @@ Tests if text ends with a suffix (case-sensitive)
 
 ```
 ends_with(file, ".csv")
-ends_with("data.csv", ".csv") → true
+ends_with("data.csv", ".csv") -> true
 ```
 
 ---
@@ -235,7 +235,7 @@ Tests if two values are equal (case-insensitive)
 
 ```
 equals_ci(name, "alice")
-equals_ci("Alice", "ALICE") → true
+equals_ci("Alice", "ALICE") -> true
 ```
 
 ---
@@ -255,7 +255,7 @@ Tests if text contains a substring (case-insensitive)
 
 ```
 contains_ci(code, "abc")
-contains_ci("ABCDEF", "bcd") → true
+contains_ci("ABCDEF", "bcd") -> true
 ```
 
 ---
@@ -275,7 +275,7 @@ Tests if text starts with a prefix (case-insensitive)
 
 ```
 starts_with_ci(code, "ab")
-starts_with_ci("ABCDEF", "abc") → true
+starts_with_ci("ABCDEF", "abc") -> true
 ```
 
 ---
@@ -295,7 +295,7 @@ Tests if text ends with a suffix (case-insensitive)
 
 ```
 ends_with_ci(file, ".CSV")
-ends_with_ci("data.csv", ".CSV") → true
+ends_with_ci("data.csv", ".CSV") -> true
 ```
 
 ---

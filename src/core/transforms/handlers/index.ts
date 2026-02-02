@@ -9,6 +9,7 @@ import { reshapeHandlers } from './reshape';
 import { joinHandlers } from './join';
 import { combineHandlers } from './combine';
 import { aggregateHandlers } from './aggregate';
+import { windowHandlers } from './window';
 
 import type { FullTransformStep, TransformContext } from '../types';
 
@@ -76,4 +77,7 @@ export const TRANSFORM_HANDLERS: Record<string, TransformHandler> = {
 
   // Aggregate handlers
   aggregate: aggregateHandlers.aggregate,
+
+  // Window handlers
+  window: windowHandlers.window,
 };

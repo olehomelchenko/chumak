@@ -16,7 +16,7 @@ Extracts the year from a date value
 
 ```
 year(order_date)
-year("2024-01-15") → 2024
+year("2024-01-15") -> 2024
 ```
 
 ---
@@ -35,7 +35,7 @@ Extracts the month from a date value
 
 ```
 month(created_at)
-month("2024-03-15") → 3
+month("2024-03-15") -> 3
 ```
 
 ---
@@ -54,7 +54,7 @@ Extracts the day of month from a date value
 
 ```
 day(birth_date)
-day("2024-01-15") → 15
+day("2024-01-15") -> 15
 ```
 
 ---
@@ -73,7 +73,7 @@ Extracts the hour from a datetime value
 
 ```
 hour(timestamp)
-hour("2024-01-15T14:30:00") → 14
+hour("2024-01-15T14:30:00") -> 14
 ```
 
 ---
@@ -92,7 +92,7 @@ Extracts the minute from a datetime value
 
 ```
 minute(timestamp)
-minute("2024-01-15T14:30:00") → 30
+minute("2024-01-15T14:30:00") -> 30
 ```
 
 ---
@@ -111,7 +111,7 @@ Extracts the second from a datetime value
 
 ```
 second(timestamp)
-second("2024-01-15T14:30:45") → 45
+second("2024-01-15T14:30:45") -> 45
 ```
 
 ---
@@ -130,7 +130,7 @@ Returns the day of week (ISO 8601: 0=Monday, 6=Sunday)
 
 ```
 weekday(date)
-weekday("2024-01-15") → 0 // Monday
+weekday("2024-01-15") -> 0 // Monday
 ```
 
 ---
@@ -149,7 +149,7 @@ Returns the ISO week number of the year
 
 ```
 week(order_date)
-week("2024-01-15") → 3
+week("2024-01-15") -> 3
 ```
 
 ---
@@ -168,7 +168,7 @@ Returns the quarter of the year
 
 ```
 quarter(sale_date)
-quarter("2024-03-15") → 1
+quarter("2024-03-15") -> 1
 ```
 
 ---
@@ -183,7 +183,7 @@ Returns the current date in YYYY-MM-DD format
 
 ```
 order_date == today()
-today() → "2024-01-15"
+today() -> "2024-01-15"
 ```
 
 ---
@@ -198,7 +198,7 @@ Returns the current datetime in ISO format
 
 ```
 created_at < now()
-now() → "2024-01-15T14:30:45"
+now() -> "2024-01-15T14:30:45"
 ```
 
 ---
@@ -218,7 +218,7 @@ Calculates the number of days between two dates
 
 ```
 days_between(start, end)
-days_between("2024-01-01", "2024-01-15") → 14
+days_between("2024-01-01", "2024-01-15") -> 14
 ```
 
 ---
@@ -239,7 +239,7 @@ Adds a time interval to a date
 
 ```
 date_add(order_date, 30, "days")
-date_add("2024-01-15", 2, "months") → "2024-03-15"
+date_add("2024-01-15", 2, "months") -> "2024-03-15"
 ```
 
 ---
@@ -259,7 +259,7 @@ Truncates a date to the start of a time period
 
 ```
 date_trunc(timestamp, "month")
-date_trunc("2024-01-15", "month") → "2024-01-01"
+date_trunc("2024-01-15", "month") -> "2024-01-01"
 ```
 
 ---
@@ -279,7 +279,7 @@ Formats a date using a custom format string
 
 ```
 format_date(date, "DD/MM/YYYY")
-format_date("2024-01-15", "MM/DD/YYYY") → "01/15/2024"
+format_date("2024-01-15", "MM/DD/YYYY") -> "01/15/2024"
 ```
 
 ---

@@ -146,6 +146,12 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     type: 'slide-panel',
   },
 
+  window: {
+    name: 'window',
+    title: 'Window Functions',
+    type: 'slide-panel',
+  },
+
   join: {
     name: 'join',
     title: 'Join Data',

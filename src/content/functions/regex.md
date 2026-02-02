@@ -60,7 +60,7 @@ Replaces text matching a regular expression pattern
 ```
 regexp_replace(phone, "(\\d{3})-(\\d{4})", "($1) $2")
 regexp_replace(text, "(?i)hello", "Hi") // Case-insensitive replacement
-regexp_replace("foo bar foo", "foo", "baz") → "baz bar baz"
+regexp_replace("foo bar foo", "foo", "baz") -> "baz bar baz"
 ```
 
 ---

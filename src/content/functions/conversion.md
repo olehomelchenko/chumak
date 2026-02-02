@@ -16,7 +16,7 @@ Parses a value as an integer
 
 ```
 parse_int("42")
-parse_int("42") → 42
+parse_int("42") -> 42
 ```
 
 ---
@@ -35,7 +35,7 @@ Parses a value as a floating-point number
 
 ```
 parse_float("3.14")
-parse_float("3.14") → 3.14
+parse_float("3.14") -> 3.14
 ```
 
 ---
@@ -54,7 +54,7 @@ Tests if a value is not a valid number
 
 ```
 is_nan("abc")
-is_nan("abc") → true
+is_nan("abc") -> true
 ```
 
 ---

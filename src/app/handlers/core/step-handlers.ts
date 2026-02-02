@@ -45,6 +45,7 @@ export type StepCallbacks = {
   applyReplaceTransform: () => Promise<void>;
   applyDedupeTransform: () => Promise<void>;
   applyImputeTransform: () => Promise<void>;
+  applyWindowTransform: () => Promise<void>;
   confirmImport: () => void;
   fetchAndImportFromUrl: () => Promise<void>;
   generateData: () => Promise<void>;
@@ -118,6 +119,9 @@ export async function applyActiveTransform(): Promise<void> {
       break;
     case 'aggregate':
       await callbacks?.applyAggregateTransform();
+      break;
+    case 'window':
+      await callbacks?.applyWindowTransform();
       break;
     case 'join':
       await callbacks?.applyJoinTransform();
@@ -443,6 +447,61 @@ export function editStep(stepIndex: number): void {
     DialogStore.appendState.selectedLeftColumns.value = step.union.columns || [];
     DialogStore.appendState.selectedRightColumns.value = step.union.targetColumns || [];
     callbacks?.onAppendTargetChange();
+  } else if (step.window) {
+    callbacks?.openDialog('window');
+    const state = DialogStore.windowState;
+    state.orderBy.value = [...step.window.orderBy];
+    state.partitionBy.value = [...(step.window.partitionBy || [])];
+
+    // Parse window expressions back to WindowFunction objects
+    const windowFunctions = Object.entries(step.window.derive).map(([output, exprString]) => {
+      // Match expressions like op.func('col', offset, default) or op.func()
+      const match = (exprString as string).match(/^op\.(\w+)\(([^)]*)\)$/);
+      if (!match) {
+        return { func: 'row_number', sourceCol: '', offset: 1, defaultValue: '', output };
+      }
+
+      const func = match[1];
+      const argsStr = match[2].trim();
+
+      // Parse arguments
+      let sourceCol = '';
+      let offset = 1;
+      let defaultValue = '';
+
+      if (argsStr) {
+        const args = argsStr.match(/(?:[^,'"]+|'[^']*'|"[^"]*")+/g) || [];
+
+        // First argument is typically the column name (quoted)
+        if (args[0]) {
+          const trimmed = args[0].trim();
+          if (
+            (trimmed.startsWith("'") && trimmed.endsWith("'")) ||
+            (trimmed.startsWith('"') && trimmed.endsWith('"'))
+          ) {
+            sourceCol = trimmed.slice(1, -1);
+          }
+        }
+
+        // Second argument is typically the offset (numeric)
+        if (args[1]) {
+          const numVal = parseInt(args[1].trim(), 10);
+          if (!isNaN(numVal)) {
+            offset = numVal;
+          }
+        }
+
+        // Third argument is the default value
+        if (args[2]) {
+          defaultValue = args[2].trim();
+        }
+      }
+
+      return { func, sourceCol, offset, defaultValue, output };
+    });
+
+    state.windowFunctions.value = windowFunctions;
+    state.isPreviewing.value = false;
   }
 }
 
