@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, fireEvent } from '@testing-library/preact';
 import { MergeDialog } from './MergeDialog';
 import { DialogStore } from '../stores/DialogStore';
@@ -46,18 +46,21 @@ describe('MergeDialog', () => {
   });
 
   it('auto-generates column name from selected columns', async () => {
+    vi.useFakeTimers();
     render(<MergeDialog />);
 
     // Simulate column selection
     DialogStore.mergeState.columns.value = ['first_name', 'last_name'];
 
-    // Wait for effect to run
-    await new Promise((resolve) => setTimeout(resolve, 10));
+    // Flush microtasks and advance timers for signal effects to propagate
+    await vi.advanceTimersByTimeAsync(10);
 
     expect(DialogStore.mergeState.columnName.value).toBe('first_name_last_name_merged');
+    vi.useRealTimers();
   });
 
   it('does not overwrite manually entered column name', async () => {
+    vi.useFakeTimers();
     render(<MergeDialog />);
 
     // Manually set column name first
@@ -66,11 +69,12 @@ describe('MergeDialog', () => {
     // Then select columns
     DialogStore.mergeState.columns.value = ['first_name', 'last_name'];
 
-    // Wait for effect
-    await new Promise((resolve) => setTimeout(resolve, 10));
+    // Flush microtasks and advance timers for signal effects to propagate
+    await vi.advanceTimersByTimeAsync(10);
 
     // Should keep manual name
     expect(DialogStore.mergeState.columnName.value).toBe('full_name');
+    vi.useRealTimers();
   });
 
   it('allows editing output column name', () => {

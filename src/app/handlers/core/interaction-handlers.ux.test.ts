@@ -12,6 +12,7 @@ import { DialogStore } from '../../stores/DialogStore';
 import * as InteractionHandlers from './interaction-handlers';
 import * as EDAHandlers from './eda-handlers';
 import { SytoApp } from '../../../syto-app';
+import { createTestModel, createTestSchema } from '../test-utils';
 
 describe('Interaction Handlers UX', () => {
   let app: SytoApp;
@@ -43,18 +44,13 @@ describe('Interaction Handlers UX', () => {
     AppStore.columns.value = ['name', 'age', 'sales'];
     AppStore.currentData.value = testData;
     AppStore.viewMode.value = 'model';
-    AppStore.activeModel.value = {
+    AppStore.activeModel.value = createTestModel({
       id: 'test-model',
-      name: 'Test Model',
       sourceId: 'test-source',
       data: testData,
-      schema: [
-        { name: 'name', type: 'string' },
-        { name: 'age', type: 'integer' },
-        { name: 'sales', type: 'float' },
-      ],
+      schema: createTestSchema(['name', 'string'], ['age', 'integer'], ['sales', 'float']),
       steps: [],
-    } as any;
+    });
 
     // Mock DOM elements for toolbar positioning
     const mockElement = {
@@ -113,15 +109,17 @@ describe('Interaction Handlers UX', () => {
       expect(AppStore.selectedCell.value).toBeNull();
     });
 
-    it('should update toolbar position when column is selected', async () => {
+    it('should update toolbar position when column is selected', () => {
+      vi.useFakeTimers();
       EDAHandlers.selectColumn.call(app, 'name');
 
-      // Wait for requestAnimationFrame to complete
-      await new Promise((resolve) => setTimeout(resolve, 10));
+      // Advance past requestAnimationFrame (one frame = 16ms)
+      vi.advanceTimersByTime(16);
 
       // Toolbar position should be calculated (if DOM element exists)
       // In test environment, position might be 0 if element not found, which is OK
       expect(AppStore.columnToolbarPos.value).toBeDefined();
+      vi.useRealTimers();
     });
   });
 
@@ -155,15 +153,17 @@ describe('Interaction Handlers UX', () => {
       expect(selectedCell?.value).toBe(30);
     });
 
-    it('should update toolbar position when cell is selected', async () => {
+    it('should update toolbar position when cell is selected', () => {
+      vi.useFakeTimers();
       InteractionHandlers.selectCell('sales', 1500, 1);
 
-      // Wait for requestAnimationFrame to complete
-      await new Promise((resolve) => setTimeout(resolve, 10));
+      // Advance past requestAnimationFrame (one frame = 16ms)
+      vi.advanceTimersByTime(16);
 
       // Toolbar position should be calculated (if DOM element exists)
       // In test environment, position might be 0 if element not found, which is OK
       expect(AppStore.cellToolbarPos.value).toBeDefined();
+      vi.useRealTimers();
     });
   });
 
@@ -272,20 +272,19 @@ describe('Interaction Handlers UX', () => {
         { id: 4, status: 'pending', count: '30', price: '200.00', enabled: 'yes' },
       ];
       AppStore.columns.value = ['id', 'status', 'count', 'price', 'enabled'];
-      AppStore.activeModel.value = {
+      AppStore.activeModel.value = createTestModel({
         id: 'test-model',
-        name: 'Test Model',
         sourceId: 'test-source',
-        schema: [
-          { name: 'id', type: 'integer' },
-          { name: 'status', type: 'string' },
-          { name: 'count', type: 'string' },
-          { name: 'price', type: 'string' },
-          { name: 'enabled', type: 'string' },
-        ],
-        data: AppStore.currentData.value,
+        schema: createTestSchema(
+          ['id', 'integer'],
+          ['status', 'string'],
+          ['count', 'string'],
+          ['price', 'string'],
+          ['enabled', 'string']
+        ),
+        data: AppStore.currentData.value!,
         steps: [],
-      } as any;
+      });
     });
 
     it('should generate preview with unique values only', () => {
@@ -353,10 +352,10 @@ describe('Interaction Handlers UX', () => {
       ];
       AppStore.columns.value = ['col'];
       // Update model schema so fromType is different from toType
-      AppStore.activeModel.value = {
-        ...AppStore.activeModel.value,
-        schema: [{ name: 'col', type: 'integer' }],
-      } as any;
+      AppStore.activeModel.value = createTestModel({
+        ...AppStore.activeModel.value!,
+        schema: createTestSchema(['col', 'integer']),
+      });
 
       InteractionHandlers.previewTypeConversion('col', 'string');
 
@@ -386,10 +385,10 @@ describe('Interaction Handlers UX', () => {
       ];
       AppStore.columns.value = ['order'];
       // Update model schema so fromType is different from toType
-      AppStore.activeModel.value = {
-        ...AppStore.activeModel.value,
-        schema: [{ name: 'order', type: 'integer' }],
-      } as any;
+      AppStore.activeModel.value = createTestModel({
+        ...AppStore.activeModel.value!,
+        schema: createTestSchema(['order', 'integer']),
+      });
 
       InteractionHandlers.previewTypeConversion('order', 'string');
 
@@ -410,10 +409,10 @@ describe('Interaction Handlers UX', () => {
       ];
       AppStore.columns.value = ['col'];
       // Update model schema so fromType is different from toType
-      AppStore.activeModel.value = {
-        ...AppStore.activeModel.value,
-        schema: [{ name: 'col', type: 'integer' }],
-      } as any;
+      AppStore.activeModel.value = createTestModel({
+        ...AppStore.activeModel.value!,
+        schema: createTestSchema(['col', 'integer']),
+      });
 
       InteractionHandlers.previewTypeConversion('col', 'string');
 

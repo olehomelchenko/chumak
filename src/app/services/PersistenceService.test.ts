@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { AppStore } from '../stores/AppStore';
+import { createTestSource, createTestModel } from '../handlers/test-utils';
 
 vi.mock('../../core/storage', () => ({
   autoSave: vi.fn().mockResolvedValue(undefined),
@@ -17,8 +18,8 @@ describe('PersistenceService', () => {
 
   describe('autoSave', () => {
     it('passes sources and models to storage', async () => {
-      const source = { id: 'src_1', name: 'Test' } as any;
-      const model = { id: 'mdl_1', name: 'Model' } as any;
+      const source = createTestSource();
+      const model = createTestModel();
       AppStore.sources.value = [source];
       AppStore.models.value = [model];
 
@@ -28,8 +29,12 @@ describe('PersistenceService', () => {
     });
 
     it('filters out virtual sources', async () => {
-      const realSource = { id: 'src_1', name: 'Real' } as any;
-      const virtualSource = { id: 'src_v', name: 'Virtual', isVirtual: true } as any;
+      const realSource = createTestSource({ name: 'Real' });
+      const virtualSource = createTestSource({
+        id: 'src_v',
+        name: 'Virtual',
+        isVirtual: true,
+      } as any);
       AppStore.sources.value = [realSource, virtualSource];
       AppStore.models.value = [];
 
@@ -49,7 +54,7 @@ describe('PersistenceService', () => {
     it('calls storage, resets store, and alerts on confirm', async () => {
       const confirm = vi.fn().mockResolvedValue(true);
       const alert = vi.fn().mockResolvedValue(undefined);
-      AppStore.sources.value = [{ id: 'src_1' } as any];
+      AppStore.sources.value = [createTestSource()];
 
       await PersistenceService.clearAllData(confirm, alert);
 
@@ -64,7 +69,7 @@ describe('PersistenceService', () => {
     it('does nothing when user cancels', async () => {
       const confirm = vi.fn().mockResolvedValue(false);
       const alert = vi.fn();
-      AppStore.sources.value = [{ id: 'src_1' } as any];
+      AppStore.sources.value = [createTestSource()];
 
       await PersistenceService.clearAllData(confirm, alert);
 

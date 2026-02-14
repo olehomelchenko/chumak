@@ -5,6 +5,8 @@ import {
   suppressConsole,
   TestData,
   createMockExecutionCallbacks,
+  createTestModel,
+  createTestSchema,
 } from '../test-utils';
 import { AppStore } from '../../stores/AppStore';
 import { DialogStore } from '../../stores/DialogStore';
@@ -25,14 +27,14 @@ describe('filter-handlers', () => {
     consoleSpy = suppressConsole();
     vi.clearAllMocks();
 
-    AppStore.activeModel.value = {
-      id: 'mdl_1',
+    AppStore.activeModel.value = createTestModel({
       name: 'Test',
-      sourceId: 'src_1',
       steps: [],
-      schema: TestData.simple.columns.map((c) => ({ name: c, type: 'string' })),
+      schema: createTestSchema(
+        ...TestData.simple.columns.map((c) => [c, 'string'] as [string, 'string'])
+      ),
       data: TestData.simple.rows,
-    } as any;
+    });
   });
 
   afterEach(() => {

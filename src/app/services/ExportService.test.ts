@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { AppStore } from '../stores/AppStore';
+import { createTestModel, createTestSource } from '../handlers/test-utils';
 
 vi.mock('../handlers/core/notification-handlers', () => ({
   showSuccess: vi.fn(),
@@ -66,7 +67,7 @@ describe('ExportService', () => {
 
     it('calls showSuccess on successful export', async () => {
       AppStore.currentData.value = [{ name: 'Alice' }];
-      AppStore.activeModel.value = { id: 'mdl_1', name: 'TestModel' } as any;
+      AppStore.activeModel.value = createTestModel({ name: 'TestModel' });
 
       await ExportService.exportCSV(alert);
 
@@ -96,13 +97,11 @@ describe('ExportService', () => {
     });
 
     it('exports workflow with correct structure', async () => {
-      const source = { id: 'src_1', name: 'Sales', columns: ['a', 'b'] } as any;
-      const model = {
-        id: 'mdl_1',
+      const source = createTestSource({ name: 'Sales' });
+      const model = createTestModel({
         name: 'Clean',
-        sourceId: 'src_1',
         steps: [{ filter: 'x > 0' }],
-      } as any;
+      });
       AppStore.sources.value = [source];
       AppStore.activeModel.value = model;
 

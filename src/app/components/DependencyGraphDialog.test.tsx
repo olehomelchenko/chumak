@@ -6,33 +6,7 @@ import { describe, it, expect, beforeEach } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/preact';
 import { DependencyGraphDialog } from './DependencyGraphDialog';
 import { AppStore } from '../stores/AppStore';
-import { Source, Model } from '../types';
-
-// Helper to create test sources
-function createSource(id: string, name: string): Source {
-  return {
-    id,
-    name,
-    columns: [],
-    data: [],
-    headerMode: 'first-row',
-    delimiter: ',',
-    customHeaders: null,
-    origin: 'test',
-  };
-}
-
-// Helper to create test models
-function createModel(id: string, name: string, sourceId: string, steps: any[] = []): Model {
-  return {
-    id,
-    name,
-    sourceId,
-    steps,
-    schema: [],
-    data: [],
-  };
-}
+import { createTestSource, createTestModel } from '../handlers/test-utils';
 
 describe('DependencyGraphDialog', () => {
   beforeEach(() => {
@@ -60,8 +34,10 @@ describe('DependencyGraphDialog', () => {
   });
 
   it('disables upstream/downstream buttons when no active model', () => {
-    AppStore.sources.value = [createSource('src_1', 'Source 1')];
-    AppStore.models.value = [createModel('mdl_1', 'Model 1', 'src_1')];
+    AppStore.sources.value = [createTestSource({ id: 'src_1', name: 'Source 1' })];
+    AppStore.models.value = [
+      createTestModel({ id: 'mdl_1', name: 'Model 1', sourceId: 'src_1', steps: [] }),
+    ];
     AppStore.activeModel.value = null;
 
     render(<DependencyGraphDialog />);
@@ -74,8 +50,8 @@ describe('DependencyGraphDialog', () => {
   });
 
   it('enables upstream/downstream buttons when active model exists', () => {
-    const source = createSource('src_1', 'Source 1');
-    const model = createModel('mdl_1', 'Model 1', 'src_1');
+    const source = createTestSource({ id: 'src_1', name: 'Source 1' });
+    const model = createTestModel({ id: 'mdl_1', name: 'Model 1', sourceId: 'src_1', steps: [] });
 
     AppStore.sources.value = [source];
     AppStore.models.value = [model];
@@ -91,8 +67,8 @@ describe('DependencyGraphDialog', () => {
   });
 
   it('toggles view mode when buttons are clicked', () => {
-    const source = createSource('src_1', 'Source 1');
-    const model = createModel('mdl_1', 'Model 1', 'src_1');
+    const source = createTestSource({ id: 'src_1', name: 'Source 1' });
+    const model = createTestModel({ id: 'mdl_1', name: 'Model 1', sourceId: 'src_1', steps: [] });
 
     AppStore.sources.value = [source];
     AppStore.models.value = [model];
@@ -141,8 +117,8 @@ describe('DependencyGraphDialog', () => {
   });
 
   it('handles graph rendering with simple dependency', async () => {
-    const source = createSource('src_1', 'Source 1');
-    const model = createModel('mdl_1', 'Model 1', 'src_1');
+    const source = createTestSource({ id: 'src_1', name: 'Source 1' });
+    const model = createTestModel({ id: 'mdl_1', name: 'Model 1', sourceId: 'src_1', steps: [] });
 
     AppStore.sources.value = [source];
     AppStore.models.value = [model];
@@ -161,12 +137,15 @@ describe('DependencyGraphDialog', () => {
   });
 
   it('handles graph rendering with join dependency', async () => {
-    const source1 = createSource('src_1', 'Source 1');
-    const source2 = createSource('src_2', 'Source 2');
-    const model1 = createModel('mdl_1', 'Model 1', 'src_1');
-    const model2 = createModel('mdl_2', 'Model 2', 'src_2', [
-      { join: { right: 'mdl_1', on: [['id', 'id']], how: 'inner' } },
-    ]);
+    const source1 = createTestSource({ id: 'src_1', name: 'Source 1' });
+    const source2 = createTestSource({ id: 'src_2', name: 'Source 2' });
+    const model1 = createTestModel({ id: 'mdl_1', name: 'Model 1', sourceId: 'src_1', steps: [] });
+    const model2 = createTestModel({
+      id: 'mdl_2',
+      name: 'Model 2',
+      sourceId: 'src_2',
+      steps: [{ join: { right: 'mdl_1', on: [['id', 'id']], how: 'inner' } }],
+    });
 
     AppStore.sources.value = [source1, source2];
     AppStore.models.value = [model1, model2];
@@ -183,11 +162,14 @@ describe('DependencyGraphDialog', () => {
   });
 
   it('updates graph when view mode changes', async () => {
-    const source = createSource('src_1', 'Source 1');
-    const model1 = createModel('mdl_1', 'Model 1', 'src_1');
-    const model2 = createModel('mdl_2', 'Model 2', 'src_1', [
-      { join: { right: 'mdl_1', on: [['id', 'id']], how: 'inner' } },
-    ]);
+    const source = createTestSource({ id: 'src_1', name: 'Source 1' });
+    const model1 = createTestModel({ id: 'mdl_1', name: 'Model 1', sourceId: 'src_1', steps: [] });
+    const model2 = createTestModel({
+      id: 'mdl_2',
+      name: 'Model 2',
+      sourceId: 'src_1',
+      steps: [{ join: { right: 'mdl_1', on: [['id', 'id']], how: 'inner' } }],
+    });
 
     AppStore.sources.value = [source];
     AppStore.models.value = [model1, model2];

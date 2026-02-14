@@ -1,8 +1,11 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { AppStore } from '../stores/AppStore';
-import { resetStores, suppressConsole } from '../handlers/test-utils';
-import type { Model, Source } from '../types';
-import type { ColumnSchema } from '../../core/schema-engine';
+import {
+  resetStores,
+  suppressConsole,
+  createTestSource,
+  createTestModel,
+} from '../handlers/test-utils';
 
 vi.mock('./PersistenceService', () => ({
   PersistenceService: {
@@ -33,47 +36,9 @@ import { PersistenceService } from './PersistenceService';
 import { DependencyService } from './DependencyService';
 import { showSuccess } from '../handlers/core/notification-handlers';
 
-function createSource(overrides: Partial<Source> = {}): Source {
-  return {
-    id: 'src_1',
-    name: 'Test Source',
-    columns: [
-      { name: 'name', type: 'string' },
-      { name: 'age', type: 'integer' },
-    ] as ColumnSchema[],
-    data: [
-      { name: 'Alice', age: 30 },
-      { name: 'Bob', age: 25 },
-    ],
-    headerMode: 'first-row',
-    delimiter: ',',
-    customHeaders: null,
-    origin: 'file',
-    ...overrides,
-  } as Source;
-}
-
-function createModel(overrides: Partial<Model> = {}): Model {
-  return {
-    id: 'mdl_1',
-    name: 'Model A',
-    sourceId: 'src_1',
-    steps: [{ import: { source: 'Test Source' } }],
-    schema: [
-      { name: 'name', type: 'string' },
-      { name: 'age', type: 'integer' },
-    ] as ColumnSchema[],
-    data: [
-      { name: 'Alice', age: 30 },
-      { name: 'Bob', age: 25 },
-    ],
-    ...overrides,
-  } as Model;
-}
-
 describe('ModelService', () => {
-  let source: Source;
-  let model: Model;
+  let source: ReturnType<typeof createTestSource>;
+  let model: ReturnType<typeof createTestModel>;
   let consoleSpy: ReturnType<typeof suppressConsole>;
   const clearColumnSelection = vi.fn();
 
@@ -82,8 +47,8 @@ describe('ModelService', () => {
     vi.clearAllMocks();
     consoleSpy = suppressConsole();
 
-    source = createSource();
-    model = createModel();
+    source = createTestSource();
+    model = createTestModel({ name: 'Model A' });
 
     AppStore.sources.value = [source];
     AppStore.models.value = [model];
@@ -304,7 +269,7 @@ describe('ModelService', () => {
     });
 
     it('alerts on duplicate name (case-insensitive)', async () => {
-      const model2 = createModel({ id: 'mdl_2', name: 'Existing' });
+      const model2 = createTestModel({ id: 'mdl_2', name: 'Existing' });
       AppStore.models.value = [model, model2];
 
       const prompt = vi.fn().mockResolvedValue('existing');
@@ -339,7 +304,7 @@ describe('ModelService', () => {
     });
 
     it('alerts when model has dependents', async () => {
-      const model2 = createModel({ id: 'mdl_2', name: 'Model B' });
+      const model2 = createTestModel({ id: 'mdl_2', name: 'Model B' });
       AppStore.models.value = [model, model2];
       vi.mocked(DependencyService.canDeleteModel).mockReturnValueOnce({
         canDelete: false,
@@ -355,7 +320,7 @@ describe('ModelService', () => {
     });
 
     it('does nothing when user declines confirm', async () => {
-      const model2 = createModel({ id: 'mdl_2', name: 'Model B' });
+      const model2 = createTestModel({ id: 'mdl_2', name: 'Model B' });
       AppStore.models.value = [model, model2];
 
       const confirm = vi.fn().mockResolvedValue(false);
@@ -367,7 +332,7 @@ describe('ModelService', () => {
     });
 
     it('deletes model and switches to remaining one', async () => {
-      const model2 = createModel({ id: 'mdl_2', name: 'Model B' });
+      const model2 = createTestModel({ id: 'mdl_2', name: 'Model B' });
       AppStore.models.value = [model, model2];
 
       const confirm = vi.fn().mockResolvedValue(true);

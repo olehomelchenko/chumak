@@ -8,7 +8,8 @@
 import { vi, expect } from 'vitest';
 import { AppStore } from '../stores/AppStore';
 import { DialogStore } from '../stores/DialogStore';
-import type { DataRow } from '../types';
+import type { DataRow, Source, Model } from '../types';
+import type { ColumnSchema, ColumnType } from '../../core/schema-engine';
 import type { SytoApp } from '../../syto-app';
 import type { StepCallbacks } from './core/step-handlers';
 import type { ExecutionCallbacks } from '../services/StepService';
@@ -311,6 +312,69 @@ export function createMockExecutionCallbacks(
     updatePagination: vi.fn(),
     ...overrides,
   };
+}
+
+/**
+ * Create a typed Source object with sensible defaults.
+ * Override any field via the overrides parameter.
+ */
+export function createTestSource(overrides: Partial<Source> = {}): Source {
+  return {
+    id: 'src_1',
+    name: 'Test Source',
+    columns: [
+      { name: 'name', type: 'string' },
+      { name: 'age', type: 'integer' },
+    ] as ColumnSchema[],
+    data: [
+      { name: 'Alice', age: 30 },
+      { name: 'Bob', age: 25 },
+    ],
+    headerMode: 'first-row',
+    delimiter: ',',
+    customHeaders: null,
+    origin: 'file',
+    ...overrides,
+  };
+}
+
+/**
+ * Create a typed Model object with sensible defaults.
+ * Override any field via the overrides parameter.
+ */
+export function createTestModel(overrides: Partial<Model> = {}): Model {
+  return {
+    id: 'mdl_1',
+    name: 'Test Model',
+    sourceId: 'src_1',
+    steps: [
+      {
+        import: {
+          source: 'Test Source',
+          fileName: 'test.csv',
+          delimiter: ',',
+          headerMode: 'first-row',
+        },
+      },
+    ],
+    schema: [
+      { name: 'name', type: 'string' },
+      { name: 'age', type: 'integer' },
+    ] as ColumnSchema[],
+    data: [
+      { name: 'Alice', age: 30 },
+      { name: 'Bob', age: 25 },
+    ],
+    ...overrides,
+  };
+}
+
+/**
+ * Create a typed ColumnSchema array from name/type pairs.
+ * Usage: createTestSchema(['name', 'string'], ['age', 'integer'])
+ */
+export function createTestSchema(...cols: [string, ColumnType][]): ColumnSchema[] {
+  return cols.map(([name, type]) => ({ name, type }));
 }
 
 // expect is imported at the top and used by assertion helpers

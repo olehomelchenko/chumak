@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach } from 'vitest';
 import { AppStore } from './AppStore';
+import { createTestSource, createTestModel, createTestSchema } from '../handlers/test-utils';
 
 describe('AppStore', () => {
   beforeEach(() => {
@@ -52,10 +53,10 @@ describe('AppStore', () => {
 
   describe('reset', () => {
     it('restores data signals after mutation', () => {
-      AppStore.sources.value = [{ id: 'src_1' } as any];
-      AppStore.models.value = [{ id: 'mdl_1' } as any];
-      AppStore.activeSource.value = { id: 'src_1' } as any;
-      AppStore.activeModel.value = { id: 'mdl_1' } as any;
+      AppStore.sources.value = [createTestSource()];
+      AppStore.models.value = [createTestModel()];
+      AppStore.activeSource.value = createTestSource();
+      AppStore.activeModel.value = createTestModel();
       AppStore.currentData.value = [{ a: 1 }];
       AppStore.columns.value = ['a'];
 
@@ -106,7 +107,9 @@ describe('AppStore', () => {
     });
 
     it('restores notification signals after mutation', () => {
-      AppStore.notifications.value = [{ id: 1, message: 'test' } as any];
+      AppStore.notifications.value = [
+        { id: 1, type: 'success', title: 'Test', message: 'test', stepInfo: null, visible: true },
+      ];
       AppStore.notificationIdCounter.value = 5;
 
       AppStore.reset();
@@ -168,7 +171,7 @@ describe('AppStore', () => {
     it('restores type menu and viewing schema signals', () => {
       AppStore.typeMenuOpen.value = true;
       AppStore.typeMenuCol.value = 'age';
-      AppStore.viewingSchema.value = [{ name: 'col', type: 'string' } as any];
+      AppStore.viewingSchema.value = createTestSchema(['col', 'string']);
 
       AppStore.reset();
 
@@ -178,7 +181,7 @@ describe('AppStore', () => {
     });
 
     it('is idempotent — calling twice produces same state', () => {
-      AppStore.sources.value = [{ id: 'src_1' } as any];
+      AppStore.sources.value = [createTestSource()];
       AppStore.reset();
       const stateAfterFirst = {
         sources: AppStore.sources.value,
@@ -199,12 +202,12 @@ describe('AppStore', () => {
     });
 
     it('returns true when sources has entries', () => {
-      AppStore.sources.value = [{ id: 'src_1' } as any];
+      AppStore.sources.value = [createTestSource()];
       expect(AppStore.hasData.value).toBe(true);
     });
 
     it('returns false after sources is emptied', () => {
-      AppStore.sources.value = [{ id: 'src_1' } as any];
+      AppStore.sources.value = [createTestSource()];
       expect(AppStore.hasData.value).toBe(true);
 
       AppStore.sources.value = [];
@@ -214,7 +217,7 @@ describe('AppStore', () => {
 
   describe('signal independence', () => {
     it('mutating one signal does not affect others', () => {
-      AppStore.activeModel.value = { id: 'mdl_1' } as any;
+      AppStore.activeModel.value = createTestModel();
 
       expect(AppStore.currentData.value).toBeNull();
       expect(AppStore.columns.value).toEqual([]);

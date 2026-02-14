@@ -1,8 +1,12 @@
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { AppStore } from '../stores/AppStore';
-import { resetStores, suppressConsole } from '../handlers/test-utils';
-import type { Model, Source } from '../types';
-import type { ColumnSchema, TransformStep } from '../../core/schema-engine';
+import {
+  resetStores,
+  suppressConsole,
+  createTestSource,
+  createTestModel,
+} from '../handlers/test-utils';
+import type { ColumnSchema } from '../../core/schema-engine';
 
 vi.mock('./PersistenceService', () => ({
   PersistenceService: { autoSave: vi.fn().mockResolvedValue(undefined) },
@@ -26,56 +30,21 @@ import { StepService } from './StepService';
 import { PersistenceService } from './PersistenceService';
 import { showSuccess } from '../handlers/core/notification-handlers';
 
-// Helper to create a minimal source with data
-function createTestSource(overrides: Partial<Source> = {}): Source {
-  return {
-    id: 'src_1',
-    name: 'Test Source',
-    columns: [
-      { name: 'name', type: 'string' },
-      { name: 'age', type: 'integer' },
-      { name: 'city', type: 'string' },
-    ] as ColumnSchema[],
-    data: [
-      { name: 'Alice', age: 30, city: 'Boston' },
-      { name: 'Bob', age: 25, city: 'Austin' },
-      { name: 'Carol', age: 35, city: 'Seattle' },
-    ],
-    headerMode: 'first-row',
-    delimiter: ',',
-    customHeaders: null,
-    origin: 'file',
-    ...overrides,
-  } as Source;
-}
+const threeColSchema = [
+  { name: 'name', type: 'string' },
+  { name: 'age', type: 'integer' },
+  { name: 'city', type: 'string' },
+] as ColumnSchema[];
 
-function createTestModel(overrides: Partial<Model> = {}): Model {
-  return {
-    id: 'mdl_1',
-    name: 'Test Model',
-    sourceId: 'src_1',
-    steps: [
-      {
-        import: { sourceId: 'src_1', sourceName: 'Test Source', columns: ['name', 'age', 'city'] },
-      },
-    ],
-    schema: [
-      { name: 'name', type: 'string' },
-      { name: 'age', type: 'integer' },
-      { name: 'city', type: 'string' },
-    ] as ColumnSchema[],
-    data: [
-      { name: 'Alice', age: 30, city: 'Boston' },
-      { name: 'Bob', age: 25, city: 'Austin' },
-      { name: 'Carol', age: 35, city: 'Seattle' },
-    ],
-    ...overrides,
-  } as Model;
-}
+const threeColData = [
+  { name: 'Alice', age: 30, city: 'Boston' },
+  { name: 'Bob', age: 25, city: 'Austin' },
+  { name: 'Carol', age: 35, city: 'Seattle' },
+];
 
 describe('StepService', () => {
-  let source: Source;
-  let model: Model;
+  let source: ReturnType<typeof createTestSource>;
+  let model: ReturnType<typeof createTestModel>;
   let consoleSpy: ReturnType<typeof suppressConsole>;
 
   beforeEach(() => {
@@ -83,8 +52,20 @@ describe('StepService', () => {
     vi.clearAllMocks();
     consoleSpy = suppressConsole();
 
-    source = createTestSource();
-    model = createTestModel();
+    source = createTestSource({ columns: threeColSchema, data: threeColData });
+    model = createTestModel({
+      steps: [
+        {
+          import: {
+            sourceId: 'src_1',
+            sourceName: 'Test Source',
+            columns: ['name', 'age', 'city'],
+          },
+        },
+      ],
+      schema: threeColSchema,
+      data: threeColData,
+    });
 
     AppStore.sources.value = [source];
     AppStore.models.value = [model];

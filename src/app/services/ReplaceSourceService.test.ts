@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { ReplaceSourceService } from './ReplaceSourceService';
 import { AppStore } from '../stores/AppStore';
 import { PersistenceService } from './PersistenceService';
+import { createTestSource, createTestModel, createTestSchema } from '../handlers/test-utils';
 
 vi.mock('./PersistenceService', () => ({
   PersistenceService: {
@@ -20,25 +21,19 @@ describe('ReplaceSourceService', () => {
   });
 
   it('replaces source data and metadata and creates backup', async () => {
-    const source = {
-      id: 'src_1',
+    const source = createTestSource({
       name: 'Old Source',
       data: [{ a: 1 }],
-      columns: [{ name: 'a', type: 'integer' }],
-      headerMode: 'first-row',
-      delimiter: ',',
+      columns: createTestSchema(['a', 'integer']),
       rowCount: 1,
-    } as any;
+    });
     AppStore.sources.value = [source];
 
     const newData = [
       { a: 1, b: 2 },
       { a: 3, b: 4 },
     ];
-    const newColumns = [
-      { name: 'a', type: 'integer' },
-      { name: 'b', type: 'integer' },
-    ] as any;
+    const newColumns = createTestSchema(['a', 'integer'], ['b', 'integer']);
 
     await ReplaceSourceService.replaceSource('src_1', newData, newColumns, {
       fileName: 'new.csv',
@@ -56,22 +51,23 @@ describe('ReplaceSourceService', () => {
   });
 
   it('restores source from backup', async () => {
-    const source = {
-      id: 'src_1',
+    const source = createTestSource({
       name: 'New Name',
       data: [{ x: 100 }],
-      columns: [{ name: 'x', type: 'integer' }],
+      columns: createTestSchema(['x', 'integer']),
       rowCount: 1,
       backup: {
         id: 'src_1',
         name: 'Old Name',
         data: [{ a: 1 }, { a: 2 }],
-        columns: [{ name: 'a', type: 'integer' }],
+        columns: createTestSchema(['a', 'integer']),
         rowCount: 2,
         headerMode: 'first-row',
         delimiter: ',',
+        customHeaders: null,
+        origin: 'file',
       },
-    } as any;
+    });
     AppStore.sources.value = [source];
 
     await ReplaceSourceService.restoreBackup('src_1');
@@ -85,8 +81,8 @@ describe('ReplaceSourceService', () => {
   });
 
   it('marks dependent models as stale on replace and restore', async () => {
-    const source = { id: 'src_1', name: 'S1', data: [], columns: [] } as any;
-    const model = { id: 'mdl_1', name: 'M1', sourceId: 'src_1', steps: [], isStale: false } as any;
+    const source = createTestSource({ name: 'S1', data: [], columns: [] });
+    const model = createTestModel({ name: 'M1', steps: [], isStale: false });
 
     AppStore.sources.value = [source];
     AppStore.models.value = [model];
@@ -103,12 +99,12 @@ describe('ReplaceSourceService', () => {
   });
 
   it('updates AppStore.activeSource if it is the current source', async () => {
-    const source = { id: 'src_1', name: 'S1', data: [], columns: [] } as any;
+    const source = createTestSource({ name: 'S1', data: [], columns: [] });
     AppStore.sources.value = [source];
     AppStore.activeSource.value = { ...source };
 
     const newData = [{ x: 1 }];
-    const newColumns = [{ name: 'x', type: 'integer' }] as any;
+    const newColumns = createTestSchema(['x', 'integer']);
 
     await ReplaceSourceService.replaceSource('src_1', newData, newColumns, {
       headerMode: 'first-row',
@@ -121,7 +117,7 @@ describe('ReplaceSourceService', () => {
   });
 
   it('shows notifications', async () => {
-    const source = { id: 'src_1', name: 'S1', data: [], columns: [] } as any;
+    const source = createTestSource({ name: 'S1', data: [], columns: [] });
     AppStore.sources.value = [source];
 
     await ReplaceSourceService.replaceSource('src_1', [], [], {

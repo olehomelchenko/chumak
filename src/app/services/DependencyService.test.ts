@@ -1,38 +1,14 @@
 import { describe, it, expect } from 'vitest';
 import { DependencyService } from './DependencyService';
-import { Model, Source } from '../types';
-
-// Helper to create minimal test sources
-function createSource(id: string, name: string): Source {
-  return {
-    id,
-    name,
-    columns: [],
-    data: [],
-    headerMode: 'first-row',
-    delimiter: ',',
-    customHeaders: null,
-    origin: 'test',
-  };
-}
-
-// Helper to create minimal test models
-function createModel(id: string, name: string, sourceId: string, steps: any[] = []): Model {
-  return {
-    id,
-    name,
-    sourceId,
-    steps,
-    schema: [],
-    data: [],
-  };
-}
+import { createTestSource, createTestModel } from '../handlers/test-utils';
 
 describe('DependencyService', () => {
   describe('buildGraph', () => {
     it('creates nodes for sources and models', () => {
-      const sources = [createSource('src_1', 'Orders')];
-      const models = [createModel('mdl_1', 'Clean Orders', 'src_1')];
+      const sources = [createTestSource({ id: 'src_1', name: 'Orders' })];
+      const models = [
+        createTestModel({ id: 'mdl_1', name: 'Clean Orders', sourceId: 'src_1', steps: [] }),
+      ];
 
       const graph = DependencyService.buildGraph(sources, models);
 
@@ -42,8 +18,10 @@ describe('DependencyService', () => {
     });
 
     it('tracks model -> source dependency', () => {
-      const sources = [createSource('src_1', 'Orders')];
-      const models = [createModel('mdl_1', 'Clean Orders', 'src_1')];
+      const sources = [createTestSource({ id: 'src_1', name: 'Orders' })];
+      const models = [
+        createTestModel({ id: 'mdl_1', name: 'Clean Orders', sourceId: 'src_1', steps: [] }),
+      ];
 
       const graph = DependencyService.buildGraph(sources, models);
 
@@ -56,16 +34,31 @@ describe('DependencyService', () => {
 
     it('tracks join dependencies between models', () => {
       const sources = [
-        createSource('src_orders', 'Orders'),
-        createSource('src_customers', 'Customers'),
+        createTestSource({ id: 'src_orders', name: 'Orders' }),
+        createTestSource({ id: 'src_customers', name: 'Customers' }),
       ];
       const models = [
-        createModel('mdl_orders', 'Clean Orders', 'src_orders'),
-        createModel('mdl_customers', 'Clean Customers', 'src_customers'),
-        createModel('mdl_joined', 'Joined Data', 'src_orders', [
-          { import: { source: 'Orders' } },
-          { join: { right: 'mdl_customers', on: [['id', 'id']], how: 'inner' } },
-        ]),
+        createTestModel({
+          id: 'mdl_orders',
+          name: 'Clean Orders',
+          sourceId: 'src_orders',
+          steps: [],
+        }),
+        createTestModel({
+          id: 'mdl_customers',
+          name: 'Clean Customers',
+          sourceId: 'src_customers',
+          steps: [],
+        }),
+        createTestModel({
+          id: 'mdl_joined',
+          name: 'Joined Data',
+          sourceId: 'src_orders',
+          steps: [
+            { import: { source: 'Orders' } },
+            { join: { right: 'mdl_customers', on: [['id', 'id']], how: 'inner' } },
+          ],
+        }),
       ];
 
       const graph = DependencyService.buildGraph(sources, models);
@@ -80,14 +73,19 @@ describe('DependencyService', () => {
 
     it('handles join to source (not model)', () => {
       const sources = [
-        createSource('src_orders', 'Orders'),
-        createSource('src_lookup', 'Lookup Table'),
+        createTestSource({ id: 'src_orders', name: 'Orders' }),
+        createTestSource({ id: 'src_lookup', name: 'Lookup Table' }),
       ];
       const models = [
-        createModel('mdl_enriched', 'Enriched Orders', 'src_orders', [
-          { import: { source: 'Orders' } },
-          { join: { right: 'src_lookup', on: [['code', 'code']], how: 'left' } },
-        ]),
+        createTestModel({
+          id: 'mdl_enriched',
+          name: 'Enriched Orders',
+          sourceId: 'src_orders',
+          steps: [
+            { import: { source: 'Orders' } },
+            { join: { right: 'src_lookup', on: [['code', 'code']], how: 'left' } },
+          ],
+        }),
       ];
 
       const graph = DependencyService.buildGraph(sources, models);
@@ -107,12 +105,15 @@ describe('DependencyService', () => {
     });
 
     it('returns direct dependents', () => {
-      const sources = [createSource('src_1', 'Source')];
+      const sources = [createTestSource({ id: 'src_1', name: 'Source' })];
       const models = [
-        createModel('mdl_a', 'Model A', 'src_1'),
-        createModel('mdl_b', 'Model B', 'src_1', [
-          { join: { right: 'mdl_a', on: [], how: 'inner' } },
-        ]),
+        createTestModel({ id: 'mdl_a', name: 'Model A', sourceId: 'src_1', steps: [] }),
+        createTestModel({
+          id: 'mdl_b',
+          name: 'Model B',
+          sourceId: 'src_1',
+          steps: [{ join: { right: 'mdl_a', on: [], how: 'inner' } }],
+        }),
       ];
 
       const graph = DependencyService.buildGraph(sources, models);
@@ -125,15 +126,21 @@ describe('DependencyService', () => {
   describe('getAllDependents (transitive)', () => {
     it('finds transitive dependents through chain', () => {
       // src_1 -> mdl_a -> mdl_b -> mdl_c
-      const sources = [createSource('src_1', 'Source')];
+      const sources = [createTestSource({ id: 'src_1', name: 'Source' })];
       const models = [
-        createModel('mdl_a', 'Model A', 'src_1'),
-        createModel('mdl_b', 'Model B', 'src_1', [
-          { join: { right: 'mdl_a', on: [], how: 'inner' } },
-        ]),
-        createModel('mdl_c', 'Model C', 'src_1', [
-          { join: { right: 'mdl_b', on: [], how: 'inner' } },
-        ]),
+        createTestModel({ id: 'mdl_a', name: 'Model A', sourceId: 'src_1', steps: [] }),
+        createTestModel({
+          id: 'mdl_b',
+          name: 'Model B',
+          sourceId: 'src_1',
+          steps: [{ join: { right: 'mdl_a', on: [], how: 'inner' } }],
+        }),
+        createTestModel({
+          id: 'mdl_c',
+          name: 'Model C',
+          sourceId: 'src_1',
+          steps: [{ join: { right: 'mdl_b', on: [], how: 'inner' } }],
+        }),
       ];
 
       const graph = DependencyService.buildGraph(sources, models);
@@ -150,19 +157,30 @@ describe('DependencyService', () => {
       // mdl_b   mdl_c
       //    \     /
       //     mdl_d
-      const sources = [createSource('src_1', 'Source')];
+      const sources = [createTestSource({ id: 'src_1', name: 'Source' })];
       const models = [
-        createModel('mdl_a', 'Model A', 'src_1'),
-        createModel('mdl_b', 'Model B', 'src_1', [
-          { join: { right: 'mdl_a', on: [], how: 'inner' } },
-        ]),
-        createModel('mdl_c', 'Model C', 'src_1', [
-          { join: { right: 'mdl_a', on: [], how: 'inner' } },
-        ]),
-        createModel('mdl_d', 'Model D', 'src_1', [
-          { join: { right: 'mdl_b', on: [], how: 'inner' } },
-          { join: { right: 'mdl_c', on: [], how: 'inner' } },
-        ]),
+        createTestModel({ id: 'mdl_a', name: 'Model A', sourceId: 'src_1', steps: [] }),
+        createTestModel({
+          id: 'mdl_b',
+          name: 'Model B',
+          sourceId: 'src_1',
+          steps: [{ join: { right: 'mdl_a', on: [], how: 'inner' } }],
+        }),
+        createTestModel({
+          id: 'mdl_c',
+          name: 'Model C',
+          sourceId: 'src_1',
+          steps: [{ join: { right: 'mdl_a', on: [], how: 'inner' } }],
+        }),
+        createTestModel({
+          id: 'mdl_d',
+          name: 'Model D',
+          sourceId: 'src_1',
+          steps: [
+            { join: { right: 'mdl_b', on: [], how: 'inner' } },
+            { join: { right: 'mdl_c', on: [], how: 'inner' } },
+          ],
+        }),
       ];
 
       const graph = DependencyService.buildGraph(sources, models);
@@ -177,12 +195,15 @@ describe('DependencyService', () => {
 
   describe('getExecutionOrder', () => {
     it('returns dependencies before dependents', () => {
-      const sources = [createSource('src_1', 'Source')];
+      const sources = [createTestSource({ id: 'src_1', name: 'Source' })];
       const models = [
-        createModel('mdl_a', 'Model A', 'src_1'),
-        createModel('mdl_b', 'Model B', 'src_1', [
-          { join: { right: 'mdl_a', on: [], how: 'inner' } },
-        ]),
+        createTestModel({ id: 'mdl_a', name: 'Model A', sourceId: 'src_1', steps: [] }),
+        createTestModel({
+          id: 'mdl_b',
+          name: 'Model B',
+          sourceId: 'src_1',
+          steps: [{ join: { right: 'mdl_a', on: [], how: 'inner' } }],
+        }),
       ];
 
       const graph = DependencyService.buildGraph(sources, models);
@@ -195,8 +216,10 @@ describe('DependencyService', () => {
     });
 
     it('includes source in execution order', () => {
-      const sources = [createSource('src_1', 'Source')];
-      const models = [createModel('mdl_a', 'Model A', 'src_1')];
+      const sources = [createTestSource({ id: 'src_1', name: 'Source' })];
+      const models = [
+        createTestModel({ id: 'mdl_a', name: 'Model A', sourceId: 'src_1', steps: [] }),
+      ];
 
       const graph = DependencyService.buildGraph(sources, models);
       const order = DependencyService.getExecutionOrder(graph, ['mdl_a']);
@@ -208,12 +231,15 @@ describe('DependencyService', () => {
 
   describe('hasCycle', () => {
     it('returns false for acyclic graph', () => {
-      const sources = [createSource('src_1', 'Source')];
+      const sources = [createTestSource({ id: 'src_1', name: 'Source' })];
       const models = [
-        createModel('mdl_a', 'Model A', 'src_1'),
-        createModel('mdl_b', 'Model B', 'src_1', [
-          { join: { right: 'mdl_a', on: [], how: 'inner' } },
-        ]),
+        createTestModel({ id: 'mdl_a', name: 'Model A', sourceId: 'src_1', steps: [] }),
+        createTestModel({
+          id: 'mdl_b',
+          name: 'Model B',
+          sourceId: 'src_1',
+          steps: [{ join: { right: 'mdl_a', on: [], how: 'inner' } }],
+        }),
       ];
 
       const graph = DependencyService.buildGraph(sources, models);
@@ -223,16 +249,22 @@ describe('DependencyService', () => {
     it('returns true for cyclic graph', () => {
       // Note: In practice, cycles shouldn't occur because you can't join a model
       // that doesn't exist yet. But we test the detection anyway.
-      const sources = [createSource('src_1', 'Source')];
+      const sources = [createTestSource({ id: 'src_1', name: 'Source' })];
 
       // Manually construct a cycle by building graph with circular refs
       const models = [
-        createModel('mdl_a', 'Model A', 'src_1', [
-          { join: { right: 'mdl_b', on: [], how: 'inner' } },
-        ]),
-        createModel('mdl_b', 'Model B', 'src_1', [
-          { join: { right: 'mdl_a', on: [], how: 'inner' } },
-        ]),
+        createTestModel({
+          id: 'mdl_a',
+          name: 'Model A',
+          sourceId: 'src_1',
+          steps: [{ join: { right: 'mdl_b', on: [], how: 'inner' } }],
+        }),
+        createTestModel({
+          id: 'mdl_b',
+          name: 'Model B',
+          sourceId: 'src_1',
+          steps: [{ join: { right: 'mdl_a', on: [], how: 'inner' } }],
+        }),
       ];
 
       const graph = DependencyService.buildGraph(sources, models);
@@ -242,10 +274,10 @@ describe('DependencyService', () => {
 
   describe('canDeleteModel', () => {
     it('allows deletion when no dependents', () => {
-      const sources = [createSource('src_1', 'Source')];
+      const sources = [createTestSource({ id: 'src_1', name: 'Source' })];
       const models = [
-        createModel('mdl_a', 'Model A', 'src_1'),
-        createModel('mdl_b', 'Model B', 'src_1'),
+        createTestModel({ id: 'mdl_a', name: 'Model A', sourceId: 'src_1', steps: [] }),
+        createTestModel({ id: 'mdl_b', name: 'Model B', sourceId: 'src_1', steps: [] }),
       ];
 
       const result = DependencyService.canDeleteModel(models, sources, 'mdl_a');
@@ -254,12 +286,15 @@ describe('DependencyService', () => {
     });
 
     it('blocks deletion when model has dependents', () => {
-      const sources = [createSource('src_1', 'Source')];
+      const sources = [createTestSource({ id: 'src_1', name: 'Source' })];
       const models = [
-        createModel('mdl_a', 'Model A', 'src_1'),
-        createModel('mdl_b', 'Model B', 'src_1', [
-          { join: { right: 'mdl_a', on: [], how: 'inner' } },
-        ]),
+        createTestModel({ id: 'mdl_a', name: 'Model A', sourceId: 'src_1', steps: [] }),
+        createTestModel({
+          id: 'mdl_b',
+          name: 'Model B',
+          sourceId: 'src_1',
+          steps: [{ join: { right: 'mdl_a', on: [], how: 'inner' } }],
+        }),
       ];
 
       const result = DependencyService.canDeleteModel(models, sources, 'mdl_a');
@@ -270,15 +305,21 @@ describe('DependencyService', () => {
     });
 
     it('lists multiple dependent models', () => {
-      const sources = [createSource('src_1', 'Source')];
+      const sources = [createTestSource({ id: 'src_1', name: 'Source' })];
       const models = [
-        createModel('mdl_shared', 'Shared Lookup', 'src_1'),
-        createModel('mdl_x', 'Model X', 'src_1', [
-          { join: { right: 'mdl_shared', on: [], how: 'inner' } },
-        ]),
-        createModel('mdl_y', 'Model Y', 'src_1', [
-          { join: { right: 'mdl_shared', on: [], how: 'inner' } },
-        ]),
+        createTestModel({ id: 'mdl_shared', name: 'Shared Lookup', sourceId: 'src_1', steps: [] }),
+        createTestModel({
+          id: 'mdl_x',
+          name: 'Model X',
+          sourceId: 'src_1',
+          steps: [{ join: { right: 'mdl_shared', on: [], how: 'inner' } }],
+        }),
+        createTestModel({
+          id: 'mdl_y',
+          name: 'Model Y',
+          sourceId: 'src_1',
+          steps: [{ join: { right: 'mdl_shared', on: [], how: 'inner' } }],
+        }),
       ];
 
       const result = DependencyService.canDeleteModel(models, sources, 'mdl_shared');
@@ -290,12 +331,22 @@ describe('DependencyService', () => {
   describe('canDeleteSource', () => {
     it('allows deletion when no external dependents', () => {
       const sources = [
-        createSource('src_orders', 'Orders'),
-        createSource('src_customers', 'Customers'),
+        createTestSource({ id: 'src_orders', name: 'Orders' }),
+        createTestSource({ id: 'src_customers', name: 'Customers' }),
       ];
       const models = [
-        createModel('mdl_orders', 'Clean Orders', 'src_orders'),
-        createModel('mdl_customers', 'Clean Customers', 'src_customers'),
+        createTestModel({
+          id: 'mdl_orders',
+          name: 'Clean Orders',
+          sourceId: 'src_orders',
+          steps: [],
+        }),
+        createTestModel({
+          id: 'mdl_customers',
+          name: 'Clean Customers',
+          sourceId: 'src_customers',
+          steps: [],
+        }),
       ];
 
       const result = DependencyService.canDeleteSource(models, sources, 'src_orders');
@@ -303,12 +354,23 @@ describe('DependencyService', () => {
     });
 
     it('blocks deletion when source models are referenced externally', () => {
-      const sources = [createSource('src_lookup', 'Lookup'), createSource('src_main', 'Main')];
+      const sources = [
+        createTestSource({ id: 'src_lookup', name: 'Lookup' }),
+        createTestSource({ id: 'src_main', name: 'Main' }),
+      ];
       const models = [
-        createModel('mdl_lookup', 'Lookup Model', 'src_lookup'),
-        createModel('mdl_main', 'Main Model', 'src_main', [
-          { join: { right: 'mdl_lookup', on: [], how: 'inner' } },
-        ]),
+        createTestModel({
+          id: 'mdl_lookup',
+          name: 'Lookup Model',
+          sourceId: 'src_lookup',
+          steps: [],
+        }),
+        createTestModel({
+          id: 'mdl_main',
+          name: 'Main Model',
+          sourceId: 'src_main',
+          steps: [{ join: { right: 'mdl_lookup', on: [], how: 'inner' } }],
+        }),
       ];
 
       const result = DependencyService.canDeleteSource(models, sources, 'src_lookup');
@@ -320,15 +382,21 @@ describe('DependencyService', () => {
 
   describe('getModelsToMarkStale', () => {
     it('returns transitive model dependents', () => {
-      const sources = [createSource('src_1', 'Source')];
+      const sources = [createTestSource({ id: 'src_1', name: 'Source' })];
       const models = [
-        createModel('mdl_a', 'Model A', 'src_1'),
-        createModel('mdl_b', 'Model B', 'src_1', [
-          { join: { right: 'mdl_a', on: [], how: 'inner' } },
-        ]),
-        createModel('mdl_c', 'Model C', 'src_1', [
-          { join: { right: 'mdl_b', on: [], how: 'inner' } },
-        ]),
+        createTestModel({ id: 'mdl_a', name: 'Model A', sourceId: 'src_1', steps: [] }),
+        createTestModel({
+          id: 'mdl_b',
+          name: 'Model B',
+          sourceId: 'src_1',
+          steps: [{ join: { right: 'mdl_a', on: [], how: 'inner' } }],
+        }),
+        createTestModel({
+          id: 'mdl_c',
+          name: 'Model C',
+          sourceId: 'src_1',
+          steps: [{ join: { right: 'mdl_b', on: [], how: 'inner' } }],
+        }),
       ];
 
       const stale = DependencyService.getModelsToMarkStale(models, sources, 'mdl_a');
@@ -338,8 +406,10 @@ describe('DependencyService', () => {
     });
 
     it('returns empty array when no dependents', () => {
-      const sources = [createSource('src_1', 'Source')];
-      const models = [createModel('mdl_a', 'Model A', 'src_1')];
+      const sources = [createTestSource({ id: 'src_1', name: 'Source' })];
+      const models = [
+        createTestModel({ id: 'mdl_a', name: 'Model A', sourceId: 'src_1', steps: [] }),
+      ];
 
       const stale = DependencyService.getModelsToMarkStale(models, sources, 'mdl_a');
       expect(stale).toEqual([]);
@@ -348,15 +418,21 @@ describe('DependencyService', () => {
 
   describe('markDependentsStale', () => {
     it('marks transitive dependents as stale', () => {
-      const sources = [createSource('src_1', 'Source')];
+      const sources = [createTestSource({ id: 'src_1', name: 'Source' })];
       const models = [
-        createModel('mdl_a', 'Model A', 'src_1'),
-        createModel('mdl_b', 'Model B', 'src_1', [
-          { join: { right: 'mdl_a', on: [], how: 'inner' } },
-        ]),
-        createModel('mdl_c', 'Model C', 'src_1', [
-          { join: { right: 'mdl_b', on: [], how: 'inner' } },
-        ]),
+        createTestModel({ id: 'mdl_a', name: 'Model A', sourceId: 'src_1', steps: [] }),
+        createTestModel({
+          id: 'mdl_b',
+          name: 'Model B',
+          sourceId: 'src_1',
+          steps: [{ join: { right: 'mdl_a', on: [], how: 'inner' } }],
+        }),
+        createTestModel({
+          id: 'mdl_c',
+          name: 'Model C',
+          sourceId: 'src_1',
+          steps: [{ join: { right: 'mdl_b', on: [], how: 'inner' } }],
+        }),
       ];
 
       const staleIds = DependencyService.markDependentsStale(models, sources, 'mdl_a');
@@ -369,8 +445,10 @@ describe('DependencyService', () => {
     });
 
     it('returns empty array when no dependents', () => {
-      const sources = [createSource('src_1', 'Source')];
-      const models = [createModel('mdl_a', 'Model A', 'src_1')];
+      const sources = [createTestSource({ id: 'src_1', name: 'Source' })];
+      const models = [
+        createTestModel({ id: 'mdl_a', name: 'Model A', sourceId: 'src_1', steps: [] }),
+      ];
 
       const staleIds = DependencyService.markDependentsStale(models, sources, 'mdl_a');
 
@@ -380,7 +458,7 @@ describe('DependencyService', () => {
 
   describe('clearStaleFlag', () => {
     it('clears the stale flag from a model', () => {
-      const model = createModel('mdl_1', 'Model', 'src_1');
+      const model = createTestModel({ id: 'mdl_1', name: 'Model', sourceId: 'src_1', steps: [] });
       model.isStale = true;
 
       DependencyService.clearStaleFlag(model);
@@ -391,12 +469,17 @@ describe('DependencyService', () => {
 
   describe('findOrphanedReferences', () => {
     it('finds join references to deleted models', () => {
-      const sources = [createSource('src_1', 'Source')];
+      const sources = [createTestSource({ id: 'src_1', name: 'Source' })];
       const models = [
-        createModel('mdl_orphan', 'Orphan Model', 'src_1', [
-          { import: { source: 'Source' } },
-          { join: { right: 'mdl_deleted', on: [], how: 'inner' } }, // Target doesn't exist
-        ]),
+        createTestModel({
+          id: 'mdl_orphan',
+          name: 'Orphan Model',
+          sourceId: 'src_1',
+          steps: [
+            { import: { source: 'Source' } },
+            { join: { right: 'mdl_deleted', on: [], how: 'inner' } }, // Target doesn't exist
+          ],
+        }),
       ];
 
       const orphaned = DependencyService.findOrphanedReferences(models, sources);
@@ -407,12 +490,15 @@ describe('DependencyService', () => {
     });
 
     it('returns empty array when all references valid', () => {
-      const sources = [createSource('src_1', 'Source')];
+      const sources = [createTestSource({ id: 'src_1', name: 'Source' })];
       const models = [
-        createModel('mdl_a', 'Model A', 'src_1'),
-        createModel('mdl_b', 'Model B', 'src_1', [
-          { join: { right: 'mdl_a', on: [], how: 'inner' } },
-        ]),
+        createTestModel({ id: 'mdl_a', name: 'Model A', sourceId: 'src_1', steps: [] }),
+        createTestModel({
+          id: 'mdl_b',
+          name: 'Model B',
+          sourceId: 'src_1',
+          steps: [{ join: { right: 'mdl_a', on: [], how: 'inner' } }],
+        }),
       ];
 
       const orphaned = DependencyService.findOrphanedReferences(models, sources);
@@ -420,12 +506,17 @@ describe('DependencyService', () => {
     });
 
     it('finds concat references to deleted models', () => {
-      const sources = [createSource('src_1', 'Source')];
+      const sources = [createTestSource({ id: 'src_1', name: 'Source' })];
       const models = [
-        createModel('mdl_orphan', 'Orphan Model', 'src_1', [
-          { import: { source: 'Source' } },
-          { concat: { with: 'mdl_deleted' } }, // Target doesn't exist
-        ]),
+        createTestModel({
+          id: 'mdl_orphan',
+          name: 'Orphan Model',
+          sourceId: 'src_1',
+          steps: [
+            { import: { source: 'Source' } },
+            { concat: { with: 'mdl_deleted' } }, // Target doesn't exist
+          ],
+        }),
       ];
 
       const orphaned = DependencyService.findOrphanedReferences(models, sources);
@@ -436,12 +527,17 @@ describe('DependencyService', () => {
     });
 
     it('finds union references to deleted models', () => {
-      const sources = [createSource('src_1', 'Source')];
+      const sources = [createTestSource({ id: 'src_1', name: 'Source' })];
       const models = [
-        createModel('mdl_orphan', 'Orphan Model', 'src_1', [
-          { import: { source: 'Source' } },
-          { union: { with: 'mdl_deleted' } }, // Target doesn't exist
-        ]),
+        createTestModel({
+          id: 'mdl_orphan',
+          name: 'Orphan Model',
+          sourceId: 'src_1',
+          steps: [
+            { import: { source: 'Source' } },
+            { union: { with: 'mdl_deleted' } }, // Target doesn't exist
+          ],
+        }),
       ];
 
       const orphaned = DependencyService.findOrphanedReferences(models, sources);
@@ -452,10 +548,15 @@ describe('DependencyService', () => {
     });
 
     it('tracks concat dependencies in graph', () => {
-      const sources = [createSource('src_1', 'Source')];
+      const sources = [createTestSource({ id: 'src_1', name: 'Source' })];
       const models = [
-        createModel('mdl_a', 'Model A', 'src_1'),
-        createModel('mdl_b', 'Model B', 'src_1', [{ concat: { with: 'mdl_a' } }]),
+        createTestModel({ id: 'mdl_a', name: 'Model A', sourceId: 'src_1', steps: [] }),
+        createTestModel({
+          id: 'mdl_b',
+          name: 'Model B',
+          sourceId: 'src_1',
+          steps: [{ concat: { with: 'mdl_a' } }],
+        }),
       ];
 
       const graph = DependencyService.buildGraph(sources, models);
@@ -469,10 +570,15 @@ describe('DependencyService', () => {
     });
 
     it('tracks union dependencies in graph', () => {
-      const sources = [createSource('src_1', 'Source')];
+      const sources = [createTestSource({ id: 'src_1', name: 'Source' })];
       const models = [
-        createModel('mdl_a', 'Model A', 'src_1'),
-        createModel('mdl_b', 'Model B', 'src_1', [{ union: { with: 'mdl_a' } }]),
+        createTestModel({ id: 'mdl_a', name: 'Model A', sourceId: 'src_1', steps: [] }),
+        createTestModel({
+          id: 'mdl_b',
+          name: 'Model B',
+          sourceId: 'src_1',
+          steps: [{ union: { with: 'mdl_a' } }],
+        }),
       ];
 
       const graph = DependencyService.buildGraph(sources, models);
@@ -486,10 +592,15 @@ describe('DependencyService', () => {
     });
 
     it('marks dependents stale when concat source changes', () => {
-      const sources = [createSource('src_1', 'Source')];
+      const sources = [createTestSource({ id: 'src_1', name: 'Source' })];
       const models = [
-        createModel('mdl_a', 'Model A', 'src_1'),
-        createModel('mdl_b', 'Model B', 'src_1', [{ concat: { with: 'mdl_a' } }]),
+        createTestModel({ id: 'mdl_a', name: 'Model A', sourceId: 'src_1', steps: [] }),
+        createTestModel({
+          id: 'mdl_b',
+          name: 'Model B',
+          sourceId: 'src_1',
+          steps: [{ concat: { with: 'mdl_a' } }],
+        }),
       ];
 
       const staleIds = DependencyService.markDependentsStale(models, sources, 'mdl_a');
@@ -500,10 +611,15 @@ describe('DependencyService', () => {
     });
 
     it('marks dependents stale when union source changes', () => {
-      const sources = [createSource('src_1', 'Source')];
+      const sources = [createTestSource({ id: 'src_1', name: 'Source' })];
       const models = [
-        createModel('mdl_a', 'Model A', 'src_1'),
-        createModel('mdl_b', 'Model B', 'src_1', [{ union: { with: 'mdl_a' } }]),
+        createTestModel({ id: 'mdl_a', name: 'Model A', sourceId: 'src_1', steps: [] }),
+        createTestModel({
+          id: 'mdl_b',
+          name: 'Model B',
+          sourceId: 'src_1',
+          steps: [{ union: { with: 'mdl_a' } }],
+        }),
       ];
 
       const staleIds = DependencyService.markDependentsStale(models, sources, 'mdl_a');
@@ -514,10 +630,15 @@ describe('DependencyService', () => {
     });
 
     it('prevents deletion of model referenced by concat', () => {
-      const sources = [createSource('src_1', 'Source')];
+      const sources = [createTestSource({ id: 'src_1', name: 'Source' })];
       const models = [
-        createModel('mdl_a', 'Model A', 'src_1'),
-        createModel('mdl_b', 'Model B', 'src_1', [{ concat: { with: 'mdl_a' } }]),
+        createTestModel({ id: 'mdl_a', name: 'Model A', sourceId: 'src_1', steps: [] }),
+        createTestModel({
+          id: 'mdl_b',
+          name: 'Model B',
+          sourceId: 'src_1',
+          steps: [{ concat: { with: 'mdl_a' } }],
+        }),
       ];
 
       const result = DependencyService.canDeleteModel(models, sources, 'mdl_a');
@@ -529,10 +650,15 @@ describe('DependencyService', () => {
     });
 
     it('prevents deletion of model referenced by union', () => {
-      const sources = [createSource('src_1', 'Source')];
+      const sources = [createTestSource({ id: 'src_1', name: 'Source' })];
       const models = [
-        createModel('mdl_a', 'Model A', 'src_1'),
-        createModel('mdl_b', 'Model B', 'src_1', [{ union: { with: 'mdl_a' } }]),
+        createTestModel({ id: 'mdl_a', name: 'Model A', sourceId: 'src_1', steps: [] }),
+        createTestModel({
+          id: 'mdl_b',
+          name: 'Model B',
+          sourceId: 'src_1',
+          steps: [{ union: { with: 'mdl_a' } }],
+        }),
       ];
 
       const result = DependencyService.canDeleteModel(models, sources, 'mdl_a');
@@ -544,10 +670,15 @@ describe('DependencyService', () => {
     });
 
     it('tracks semijoin dependencies in graph', () => {
-      const sources = [createSource('src_1', 'Source')];
+      const sources = [createTestSource({ id: 'src_1', name: 'Source' })];
       const models = [
-        createModel('mdl_a', 'Model A', 'src_1'),
-        createModel('mdl_b', 'Model B', 'src_1', [{ semijoin: { right: 'mdl_a', on: [] } }]),
+        createTestModel({ id: 'mdl_a', name: 'Model A', sourceId: 'src_1', steps: [] }),
+        createTestModel({
+          id: 'mdl_b',
+          name: 'Model B',
+          sourceId: 'src_1',
+          steps: [{ semijoin: { right: 'mdl_a', on: [] } }],
+        }),
       ];
 
       const graph = DependencyService.buildGraph(sources, models);
@@ -556,10 +687,15 @@ describe('DependencyService', () => {
     });
 
     it('tracks antijoin dependencies in graph', () => {
-      const sources = [createSource('src_1', 'Source')];
+      const sources = [createTestSource({ id: 'src_1', name: 'Source' })];
       const models = [
-        createModel('mdl_a', 'Model A', 'src_1'),
-        createModel('mdl_b', 'Model B', 'src_1', [{ antijoin: { right: 'mdl_a', on: [] } }]),
+        createTestModel({ id: 'mdl_a', name: 'Model A', sourceId: 'src_1', steps: [] }),
+        createTestModel({
+          id: 'mdl_b',
+          name: 'Model B',
+          sourceId: 'src_1',
+          steps: [{ antijoin: { right: 'mdl_a', on: [] } }],
+        }),
       ];
 
       const graph = DependencyService.buildGraph(sources, models);
@@ -568,12 +704,15 @@ describe('DependencyService', () => {
     });
 
     it('tracks lookup dependencies in graph', () => {
-      const sources = [createSource('src_1', 'Source')];
+      const sources = [createTestSource({ id: 'src_1', name: 'Source' })];
       const models = [
-        createModel('mdl_a', 'Model A', 'src_1'),
-        createModel('mdl_b', 'Model B', 'src_1', [
-          { lookup: { right: 'mdl_a', on: [], values: [] } },
-        ]),
+        createTestModel({ id: 'mdl_a', name: 'Model A', sourceId: 'src_1', steps: [] }),
+        createTestModel({
+          id: 'mdl_b',
+          name: 'Model B',
+          sourceId: 'src_1',
+          steps: [{ lookup: { right: 'mdl_a', on: [], values: [] } }],
+        }),
       ];
 
       const graph = DependencyService.buildGraph(sources, models);

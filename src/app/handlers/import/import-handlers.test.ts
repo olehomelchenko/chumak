@@ -7,7 +7,14 @@
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { DialogStore } from '../../stores/DialogStore';
-import { resetStores, setTestData, TestData, suppressConsole, createMockApp } from '../test-utils';
+import {
+  resetStores,
+  setTestData,
+  TestData,
+  suppressConsole,
+  createMockApp,
+  createTestSource,
+} from '../test-utils';
 import * as ImportHandlers from './import-handlers';
 
 describe('import-handlers', () => {
@@ -412,18 +419,13 @@ describe('import-handlers', () => {
   describe('showReplaceSourceDialog', () => {
     it('sets replace mode flags and opens file picker', () => {
       const mockApp = createMockApp();
-      const source = {
-        id: 'source-123',
-        name: 'Test Source',
-        columns: [],
-        data: [],
-      };
+      const source = createTestSource({ id: 'source-123' });
 
       // Mock document.getElementById
       const mockInput = { click: vi.fn() };
       vi.spyOn(document, 'getElementById').mockReturnValue(mockInput as any);
 
-      ImportHandlers.showReplaceSourceDialog.call(mockApp, source as any);
+      ImportHandlers.showReplaceSourceDialog.call(mockApp, source);
 
       expect(DialogStore.importCsvState.isReplaceMode.value).toBe(true);
       expect(DialogStore.importCsvState.targetSourceId.value).toBe('source-123');
