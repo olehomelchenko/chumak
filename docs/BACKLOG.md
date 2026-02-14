@@ -106,37 +106,25 @@ Reduce the number of files required to add a new transform dialog from 11-12 to 
 
 ---
 
-### Native Date Object Support
+### Date Architecture Cleanup
 
-**Status:** Analysis Complete / Implementation Planned
-**Effort:** Medium-Large
+**Status:** Done
+**Effort:** Medium
 **Reference:** [DATE-STORAGE-ARCHITECTURE.md](DATE-STORAGE-ARCHITECTURE.md)
 
-Migrate from string-based date storage to native JavaScript Date objects in runtime memory, with schema-driven serialization at persistence boundaries.
+Investigated and resolved date handling architecture. The native Date object approach was fully implemented and then reverted due to JavaScript's `Date` type causing silent timezone-related date shifting at serialization boundaries (`toISOString()`, `JSON.stringify()`, etc.).
 
-**Current State:** Dates are stored as strings (`"2024-01-15"`) throughout the data layer, with type hints in the schema. This causes data integrity issues due to timezone handling inconsistencies and repeated parsing overhead.
+**Decision:** Dates remain as formatted strings (`"YYYY-MM-DD"`) throughout the entire data layer. Date functions parse strings internally for computation and return formatted strings. See [DATE-STORAGE-ARCHITECTURE.md](DATE-STORAGE-ARCHITECTURE.md) for the full analysis, approaches considered, and developer guide.
 
-**Proposed Solution:**
+**Changes made:**
 
-- Create `data-hydration.ts` module with `hydrateData()` and `serializeData()` functions
-- Hydrate dates (string→Date) immediately after import and on load from persistence
-- Serialize dates (Date→string) only at persistence boundaries (IndexedDB, JSON export)
-- Schema becomes authoritative for type conversion
+- `type-converter.ts`: `convertToDate()`/`convertToDateTime()` return formatted strings, not Date objects
+- `date-functions.ts`: All functions (`today`, `now`, `date_add`, etc.) return formatted strings
+- Removed unnecessary `convertDatesForStorage()` calls from services (no Date objects to convert)
+- Fixed `toISOString()` bugs in debug-helpers, GeneratorService
+- Improved `formatCellValue()` Date display as a safety net
 
-**Benefits:**
-
-- Data integrity: Eliminates timezone-related date shifting
-- Performance: No repeated parsing in expressions
-- Type safety: Date columns contain actual Date objects
-- Native operations: Date comparisons work directly
-
-**Challenges:**
-
-- Bidirectional conversion required at persistence boundaries
-- Expression functions must handle both Date objects and strings during transition
-- Thorough testing needed for timezone edge cases
-
-See [DATE-STORAGE-ARCHITECTURE.md](DATE-STORAGE-ARCHITECTURE.md) for detailed analysis and implementation roadmap.
+**Future:** When the TC39 Temporal API (`Temporal.PlainDate`) reaches broad browser support, it would allow switching to proper date-only objects without timezone issues. The `YYYY-MM-DD` string format is already Temporal-compatible.
 
 ---
 
@@ -224,13 +212,9 @@ These have been considered and explicitly excluded:
 
 ## Priority Summary
 
-### Higher Priority (Data Integrity)
+### Higher Priority (Useful Additions)
 
-1. Native Date Object Support — fixes date corruption/shifting issues
-
-### Medium Priority (Useful Additions)
-
-2. Command Undo/Redo (Ctrl/Cmd+Z)
+1. Command Undo/Redo (Ctrl/Cmd+Z)
 
 ### Lower Priority (Nice to Have)
 

@@ -4,7 +4,6 @@ import { SchemaEngine } from '../../core/schema-engine';
 import { PersistenceService } from './PersistenceService';
 import { DependencyService } from './DependencyService';
 import { StepService } from './StepService';
-import { convertDatesForStorage } from '../../core/storage';
 import { showSuccess } from '../handlers/core/notification-handlers';
 
 /**
@@ -72,7 +71,7 @@ export class ModelService {
         const context = StepService.getContext();
         const result = StepService.computeModelUpToStep(model, model.steps.length - 1, context);
 
-        model.data = JSON.parse(JSON.stringify(convertDatesForStorage(result.data)));
+        model.data = result.data;
         model.schema = result.schema;
         DependencyService.clearStaleFlag(model);
 
@@ -142,7 +141,7 @@ export class ModelService {
       sourceId: source.id,
       steps: [],
       schema: JSON.parse(JSON.stringify(source.columns)),
-      data: JSON.parse(JSON.stringify(convertDatesForStorage(source.data))),
+      data: JSON.parse(JSON.stringify(source.data)),
       __v: 1,
     };
 
@@ -171,7 +170,7 @@ export class ModelService {
     const context = { sources: AppStore.sources.value, models: AppStore.models.value };
     const result = StepService.computeModelUpToStep(newModel, newModel.steps.length - 1, context);
 
-    newModel.data = JSON.parse(JSON.stringify(convertDatesForStorage(result.data)));
+    newModel.data = result.data;
     newModel.schema = result.schema;
 
     AppStore.models.value = [...AppStore.models.value, newModel];
@@ -214,7 +213,7 @@ export class ModelService {
       sourceId: activeModel.sourceId,
       steps: JSON.parse(JSON.stringify(activeModel.steps)),
       schema: activeModel.schema ? JSON.parse(JSON.stringify(activeModel.schema)) : [],
-      data: JSON.parse(JSON.stringify(convertDatesForStorage(activeModel.data))),
+      data: structuredClone(activeModel.data),
       __v: activeModel.__v ?? 1, // Preserve version from original, default to 1
     };
 

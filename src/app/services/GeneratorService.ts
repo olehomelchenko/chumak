@@ -286,8 +286,9 @@ export class GeneratorService {
       );
     }
 
-    // Return ISO date string (YYYY-MM-DD)
-    return date.toISOString().split('T')[0];
+    // Return date string (YYYY-MM-DD) using local time
+    const pad2 = (n: number) => String(n).padStart(2, '0');
+    return `${date.getFullYear()}-${pad2(date.getMonth() + 1)}-${pad2(date.getDate())}`;
   }
 
   /**
@@ -319,12 +320,16 @@ export class GeneratorService {
       config.to.includes('T') ||
       /\s\d{2}:\d{2}/.test(config.to);
 
+    const pad = (n: number) => String(n).padStart(2, '0');
     if (isDateTime) {
-      return date.toISOString().replace('T', ' ').substring(0, 19);
+      return (
+        `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())} ` +
+        `${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`
+      );
     }
 
-    // Return ISO date string (YYYY-MM-DD)
-    return date.toISOString().split('T')[0];
+    // Return date string (YYYY-MM-DD) using local time
+    return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
   }
 
   /**
@@ -520,10 +525,12 @@ export class GeneratorService {
    * Get default config for a generator type
    */
   static getDefaultConfig(type: GeneratorType): GeneratorConfig {
-    const today = new Date().toISOString().split('T')[0];
+    const pad = (n: number) => String(n).padStart(2, '0');
+    const d = new Date();
+    const today = `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
     const nextYear = new Date();
     nextYear.setFullYear(nextYear.getFullYear() + 1);
-    const nextYearStr = nextYear.toISOString().split('T')[0];
+    const nextYearStr = `${nextYear.getFullYear()}-${pad(nextYear.getMonth() + 1)}-${pad(nextYear.getDate())}`;
 
     switch (type) {
       case 'numberSequence':

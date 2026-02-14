@@ -7,7 +7,6 @@ import { DependencyService } from './DependencyService';
 import { Model, Source } from '../types';
 import { ColumnSchema, TransformStep } from '../../core/schema-engine';
 import { AppStore } from '../stores/AppStore';
-import { convertDatesForStorage } from '../../core/storage';
 import { showSuccess } from '../handlers/core/notification-handlers';
 
 /**
@@ -145,7 +144,7 @@ export class StepService {
 
     // Update model
     model.schema = result.schema;
-    model.data = JSON.parse(JSON.stringify(convertDatesForStorage(result.data)));
+    model.data = result.data;
 
     const validation = TransformResult.validate(result);
     if (!validation.valid) {
@@ -338,7 +337,7 @@ export class StepService {
         StepService.getContext()
       );
 
-      model.data = JSON.parse(JSON.stringify(convertDatesForStorage(result.data)));
+      model.data = result.data;
       model.schema = result.schema;
 
       callbacks.onSuccess(result);
@@ -370,7 +369,7 @@ export class StepService {
   ): Promise<void> {
     const backup = {
       steps: JSON.parse(JSON.stringify(model.steps)),
-      data: JSON.parse(JSON.stringify(convertDatesForStorage(model.data))),
+      data: structuredClone(model.data),
       schema: JSON.parse(JSON.stringify(model.schema)),
     };
 
@@ -384,7 +383,7 @@ export class StepService {
         StepService.getContext()
       );
 
-      model.data = JSON.parse(JSON.stringify(convertDatesForStorage(result.data)));
+      model.data = result.data;
       model.schema = result.schema;
 
       callbacks.onSuccess(result);
@@ -470,7 +469,7 @@ export class StepService {
             context
           );
 
-          dependentModel.data = JSON.parse(JSON.stringify(convertDatesForStorage(result.data)));
+          dependentModel.data = result.data;
           dependentModel.schema = result.schema;
           dependentModel.isStale = false;
         } catch (error: any) {

@@ -97,8 +97,8 @@ function convertToString(value: any, _fromType: ColumnType): ConversionResult {
     return value;
   }
   if (value instanceof Date) {
-    // Format as ISO string for dates
-    return value.toISOString().split('T')[0]; // YYYY-MM-DD
+    const pad = (n: number) => String(n).padStart(2, '0');
+    return `${value.getFullYear()}-${pad(value.getMonth() + 1)}-${pad(value.getDate())}`;
   }
   // For boolean, numeric, etc., use String()
   return String(value);
@@ -216,20 +216,43 @@ function convertToBoolean(value: any, _fromType: ColumnType): ConversionResult {
 }
 
 function convertToDate(value: any, _fromType: ColumnType): ConversionResult {
-  // Use existing parseToDate utility
+  // If already a correctly formatted date string, pass through
+  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(value.trim())) {
+    return value.trim();
+  }
+
   const date = parseToDate(value);
   if (date === null) {
-    // parseToDate returns null for invalid dates
     if (value === null || value === undefined || value === '') {
-      return null; // null/empty is acceptable for dates
+      return null;
     }
     return createErrorObject(`Cannot convert "${value}" to date`);
   }
-  return date;
+
+  // Return formatted string (YYYY-MM-DD) — no timezone issues
+  const pad = (n: number) => String(n).padStart(2, '0');
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
 }
 
-function convertToDateTime(value: any, fromType: ColumnType): ConversionResult {
-  // For now, treat datetime same as date (both are Date objects)
-  // In the future, we might want different formatting
-  return convertToDate(value, fromType);
+function convertToDateTime(value: any, _fromType: ColumnType): ConversionResult {
+  // If already a correctly formatted datetime string, pass through
+  if (typeof value === 'string' && /^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}/.test(value.trim())) {
+    return value.trim();
+  }
+
+  const date = parseToDate(value);
+  if (date === null) {
+    if (value === null || value === undefined || value === '') {
+      return null;
+    }
+    return createErrorObject(`Cannot convert "${value}" to datetime`);
+  }
+
+  // Return formatted string — preserves time components, no timezone issues
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const dateStr = `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+  if (date.getHours() !== 0 || date.getMinutes() !== 0 || date.getSeconds() !== 0) {
+    return `${dateStr}T${pad(date.getHours())}:${pad(date.getMinutes())}:${pad(date.getSeconds())}`;
+  }
+  return dateStr;
 }

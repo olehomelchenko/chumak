@@ -253,11 +253,8 @@ describe('Transform Engine - Type Conversions', () => {
       const result = applyTransform(table, transform, ['date', 'name'], null);
 
       const rows = result.objects();
-      expect(rows[0].date).toBeInstanceOf(Date);
-      expect(rows[0].date.getFullYear()).toBe(2024);
-      expect(rows[0].date.getMonth()).toBe(0); // January
-      expect(rows[0].date.getDate()).toBe(15);
-      expect(rows[1].date).toBeInstanceOf(Date);
+      expect(rows[0].date).toBe('2024-01-15');
+      expect(rows[1].date).toBe('2024-12-31');
     });
 
     it('should create error cells for invalid date conversions', () => {
@@ -270,7 +267,7 @@ describe('Transform Engine - Type Conversions', () => {
       const result = applyTransform(table, transform, ['date', 'name'], null);
 
       const rows = result.objects();
-      expect(rows[0].date).toBeInstanceOf(Date);
+      expect(rows[0].date).toBe('2024-01-15');
       expect(rows[1].date).toHaveProperty('type', 'error');
       expect(rows[1].date).toHaveProperty('message');
       expect((rows[1].date as any).message).toContain('Cannot convert');

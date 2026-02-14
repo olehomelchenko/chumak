@@ -223,7 +223,11 @@ export function formatCellValue(value: any): string {
   if (value instanceof Date) {
     if (isNaN(value.getTime())) return 'Invalid Date';
     const pad = (n: number) => String(n).padStart(2, '0');
-    return `${value.getFullYear()}-${pad(value.getMonth() + 1)}-${pad(value.getDate())}`;
+    const dateStr = `${value.getFullYear()}-${pad(value.getMonth() + 1)}-${pad(value.getDate())}`;
+    if (value.getHours() !== 0 || value.getMinutes() !== 0 || value.getSeconds() !== 0) {
+      return `${dateStr} ${pad(value.getHours())}:${pad(value.getMinutes())}:${pad(value.getSeconds())}`;
+    }
+    return dateStr;
   }
 
   // Ensure we return a renderable primitive value
@@ -259,7 +263,11 @@ export function formatCellValueForTooltip(value: any): string {
   if (value instanceof Date) {
     if (isNaN(value.getTime())) return 'Invalid Date';
     const pad = (n: number) => String(n).padStart(2, '0');
-    return `${value.getFullYear()}-${pad(value.getMonth() + 1)}-${pad(value.getDate())}`;
+    const dateStr = `${value.getFullYear()}-${pad(value.getMonth() + 1)}-${pad(value.getDate())}`;
+    if (value.getHours() !== 0 || value.getMinutes() !== 0 || value.getSeconds() !== 0) {
+      return `${dateStr} ${pad(value.getHours())}:${pad(value.getMinutes())}:${pad(value.getSeconds())}`;
+    }
+    return dateStr;
   }
 
   // For other objects, return a readable string representation

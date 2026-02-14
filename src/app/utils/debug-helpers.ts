@@ -55,7 +55,12 @@ function formatValue(value: any): string {
     return `Error: ${value.message}`;
   }
   if (value instanceof Date) {
-    return value.toISOString();
+    const pad = (n: number) => String(n).padStart(2, '0');
+    const dateStr = `${value.getFullYear()}-${pad(value.getMonth() + 1)}-${pad(value.getDate())}`;
+    if (value.getHours() !== 0 || value.getMinutes() !== 0 || value.getSeconds() !== 0) {
+      return `${dateStr}T${pad(value.getHours())}:${pad(value.getMinutes())}:${pad(value.getSeconds())}`;
+    }
+    return dateStr;
   }
   if (typeof value === 'object') {
     return JSON.stringify(value);

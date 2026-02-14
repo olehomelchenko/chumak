@@ -104,8 +104,7 @@ export async function applyJsonEdit(): Promise<void> {
     }
 
     // 1. Update the Model structure (for persistence)
-    const { convertDatesForStorage } = await import('../../../core/storage');
-    activeModel.data = JSON.parse(JSON.stringify(convertDatesForStorage(result.data)));
+    activeModel.data = result.data;
     activeModel.schema = result.schema;
 
     // 2. Update UI Signals (for rendering)

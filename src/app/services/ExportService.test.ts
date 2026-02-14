@@ -6,13 +6,8 @@ vi.mock('../handlers/core/notification-handlers', () => ({
   showSuccess: vi.fn(),
 }));
 
-vi.mock('../../core/storage', () => ({
-  convertDatesForStorage: vi.fn((data: any) => data),
-}));
-
 import { ExportService } from './ExportService';
 import { showSuccess } from '../handlers/core/notification-handlers';
-import { convertDatesForStorage } from '../../core/storage';
 
 describe('ExportService', () => {
   let alert: ReturnType<typeof vi.fn>;
@@ -121,12 +116,11 @@ describe('ExportService', () => {
       expect(alert).toHaveBeenCalledWith('No data to export');
     });
 
-    it('calls convertDatesForStorage before export', async () => {
+    it('exports data as JSON', async () => {
       AppStore.currentData.value = [{ name: 'Alice' }];
 
       await ExportService.exportDataJSON(alert);
 
-      expect(convertDatesForStorage).toHaveBeenCalledWith([{ name: 'Alice' }]);
       expect(showSuccess).toHaveBeenCalled();
     });
   });
@@ -193,12 +187,11 @@ describe('ExportService', () => {
       expect(alert).toHaveBeenCalledWith('No data to copy on this page');
     });
 
-    it('writes JSON to clipboard and calls convertDatesForStorage', async () => {
+    it('writes JSON to clipboard', async () => {
       const getPaginatedData = vi.fn().mockReturnValue([{ name: 'Alice' }]);
 
       await ExportService.copyJSONToClipboard(getPaginatedData, alert);
 
-      expect(convertDatesForStorage).toHaveBeenCalled();
       expect(mockWriteText).toHaveBeenCalled();
       expect(showSuccess).toHaveBeenCalledWith('Copied to clipboard (JSON)');
     });

@@ -3,7 +3,6 @@ import { Source, Model } from '../types';
 import { SchemaEngine } from '../../core/schema-engine';
 import { PersistenceService } from './PersistenceService';
 import { StepService } from './StepService';
-import { convertDatesForStorage } from '../../core/storage';
 import { showSuccess } from '../handlers/core/notification-handlers';
 
 /**
@@ -92,7 +91,7 @@ export class ImportService {
     const context = { sources: AppStore.sources.value, models: AppStore.models.value };
     const result = StepService.computeModelUpToStep(mainModel, mainModel.steps.length - 1, context);
 
-    mainModel.data = JSON.parse(JSON.stringify(convertDatesForStorage(result.data)));
+    mainModel.data = result.data;
     mainModel.schema = result.schema;
 
     AppStore.models.value = [...AppStore.models.value, mainModel];

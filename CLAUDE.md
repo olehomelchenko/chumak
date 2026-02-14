@@ -26,6 +26,7 @@
 - **[BACKLOG.md](docs/BACKLOG.md)**: Feature backlog and future enhancements
 - **[TRANSFORM-ARCHITECTURE-REVIEW.md](docs/TRANSFORM-ARCHITECTURE-REVIEW.md)**: Transform design analysis and improvement roadmap
 - **[MULTI-MODEL-ARCHITECTURE.md](docs/MULTI-MODEL-ARCHITECTURE.md)**: Dependency graph system, staleness tracking, and multi-model operations
+- **[DATE-STORAGE-ARCHITECTURE.md](docs/DATE-STORAGE-ARCHITECTURE.md)**: Date/datetime handling strategy, JavaScript Date pitfalls, and developer rules
 
 ### Reference
 
@@ -126,19 +127,20 @@ npm run format   # Prettier
 
 ## Quick Reference
 
-| Topic                 | Where to Look                                              |
-| --------------------- | ---------------------------------------------------------- |
-| Data structures       | [DATA-SPECIFICATION.md](docs/DATA-SPECIFICATION.md) §1-3   |
-| Expression syntax     | [DATA-SPECIFICATION.md](docs/DATA-SPECIFICATION.md) §4     |
-| Expression functions  | [FUNCTION-DOCS-SYSTEM.md](docs/FUNCTION-DOCS-SYSTEM.md)    |
-| How transforms work   | [SPECIFICATION.md](docs/SPECIFICATION.md) §3, §5           |
-| Adding new transforms | [DEVELOPMENT-PATTERNS.md](docs/DEVELOPMENT-PATTERNS.md) §1 |
-| Testing patterns      | [DEVELOPMENT-PATTERNS.md](docs/DEVELOPMENT-PATTERNS.md) §3 |
-| State management      | [DEVELOPMENT-PATTERNS.md](docs/DEVELOPMENT-PATTERNS.md) §2 |
-| UI component patterns | [UX-SPECIFICATION.md](docs/UX-SPECIFICATION.md) §3         |
-| What's safe to change | [FUTURE-PROOFING.md](docs/FUTURE-PROOFING.md)              |
-| CSS debugging         | [DEBUGGING.md](docs/DEBUGGING.md)                          |
-| Project philosophy    | [SOUL.md](SOUL.md)                                         |
+| Topic                 | Where to Look                                                     |
+| --------------------- | ----------------------------------------------------------------- |
+| Data structures       | [DATA-SPECIFICATION.md](docs/DATA-SPECIFICATION.md) §1-3          |
+| Expression syntax     | [DATA-SPECIFICATION.md](docs/DATA-SPECIFICATION.md) §4            |
+| Expression functions  | [FUNCTION-DOCS-SYSTEM.md](docs/FUNCTION-DOCS-SYSTEM.md)           |
+| How transforms work   | [SPECIFICATION.md](docs/SPECIFICATION.md) §3, §5                  |
+| Adding new transforms | [DEVELOPMENT-PATTERNS.md](docs/DEVELOPMENT-PATTERNS.md) §1        |
+| Testing patterns      | [DEVELOPMENT-PATTERNS.md](docs/DEVELOPMENT-PATTERNS.md) §3        |
+| State management      | [DEVELOPMENT-PATTERNS.md](docs/DEVELOPMENT-PATTERNS.md) §2        |
+| UI component patterns | [UX-SPECIFICATION.md](docs/UX-SPECIFICATION.md) §3                |
+| What's safe to change | [FUTURE-PROOFING.md](docs/FUTURE-PROOFING.md)                     |
+| Date handling rules   | [DATE-STORAGE-ARCHITECTURE.md](docs/DATE-STORAGE-ARCHITECTURE.md) |
+| CSS debugging         | [DEBUGGING.md](docs/DEBUGGING.md)                                 |
+| Project philosophy    | [SOUL.md](SOUL.md)                                                |
 
 ---
 

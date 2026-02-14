@@ -273,16 +273,13 @@ export const date_add = (value: any, amount: number, unit: string) => {
   }
 
   const pad = (n: number) => String(n).padStart(2, '0');
-  const resultDate = new Date(result);
   // If it's a date-level addition, return a date string, otherwise datetime
   if (['day', 'days', 'month', 'months', 'year', 'years'].includes(unitLower)) {
-    return `${resultDate.getFullYear()}-${pad(resultDate.getMonth() + 1)}-${pad(
-      resultDate.getDate()
-    )}`;
+    return `${result.getFullYear()}-${pad(result.getMonth() + 1)}-${pad(result.getDate())}`;
   }
-  return `${resultDate.getFullYear()}-${pad(resultDate.getMonth() + 1)}-${pad(
-    resultDate.getDate()
-  )}T${pad(resultDate.getHours())}:${pad(resultDate.getMinutes())}:${pad(resultDate.getSeconds())}`;
+  return `${result.getFullYear()}-${pad(result.getMonth() + 1)}-${pad(
+    result.getDate()
+  )}T${pad(result.getHours())}:${pad(result.getMinutes())}:${pad(result.getSeconds())}`;
 };
 
 /**

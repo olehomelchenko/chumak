@@ -102,12 +102,9 @@ describe('Type Converter', () => {
     });
 
     describe('Date conversions', () => {
-      it('should convert valid date strings to date', () => {
+      it('should convert valid date strings to formatted date string', () => {
         const result = convertType('2024-01-15', 'string', 'date');
-        expect(result).toBeInstanceOf(Date);
-        expect(result.getFullYear()).toBe(2024);
-        expect(result.getMonth()).toBe(0); // January is 0
-        expect(result.getDate()).toBe(15);
+        expect(result).toBe('2024-01-15');
       });
 
       it('should return error for invalid date strings', () => {
@@ -143,17 +140,16 @@ describe('Type Converter', () => {
     });
 
     describe('Date to String', () => {
-      it('should convert Date to ISO string', () => {
-        // Use UTC date to avoid timezone issues
-        const date = new Date('2024-01-15T00:00:00Z');
+      it('should convert Date to YYYY-MM-DD string using local time', () => {
+        // Use local midnight to avoid timezone shifts
+        const date = new Date(2024, 0, 15); // Jan 15, 2024 local
         const result = convertType(date, 'date', 'string');
         expect(result).toBe('2024-01-15');
       });
 
       it('should format Date objects consistently', () => {
-        const date = new Date('2024-12-31T12:00:00Z');
+        const date = new Date(2024, 11, 31, 12, 0, 0); // Dec 31, 2024 local
         const result = convertType(date, 'date', 'string');
-        // Should extract just the date part (YYYY-MM-DD)
         expect(result).toMatch(/^\d{4}-\d{2}-\d{2}$/);
         expect(result).toBe('2024-12-31');
       });
