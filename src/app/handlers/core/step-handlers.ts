@@ -7,6 +7,7 @@ import { StepService, ComputeResult } from '../../services/StepService';
 import type { PivotAggregation } from '../../components/PivotDialog';
 import * as ColumnEditorHandlers from '../dialog/column-editor-handlers';
 import * as DateHandlers from '../transform/date-handlers';
+import * as ParseDateHandlers from '../transform/parse-date-handlers';
 import * as TextHandlers from '../transform/text-handlers';
 import * as HelperHandlers from './helper-handlers';
 import * as PatternHandlers from '../transform/pattern-handlers';
@@ -107,6 +108,9 @@ export async function applyActiveTransform(): Promise<void> {
       break;
     case 'date':
       await DateHandlers.applyDateTransform(HelperHandlers.createExecutionCallbacks());
+      break;
+    case 'parseDate':
+      await ParseDateHandlers.applyParseDateTransform(HelperHandlers.createExecutionCallbacks());
       break;
     case 'text':
       await TextHandlers.applyTextTransform(HelperHandlers.createExecutionCallbacks());

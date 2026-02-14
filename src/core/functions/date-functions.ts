@@ -388,6 +388,132 @@ export const format_date = (value: any, format: string) => {
   return result;
 };
 
+/**
+ * Token definitions for parse_date: maps format tokens to regex patterns and component names.
+ * Sorted by length descending to match longest tokens first (e.g., YYYY before YY).
+ */
+const PARSE_TOKENS: Array<{ token: string; pattern: string; component: string }> = [
+  { token: 'YYYY', pattern: '(\\d{4})', component: 'year' },
+  { token: 'MM', pattern: '(\\d{2})', component: 'month' },
+  { token: 'DD', pattern: '(\\d{2})', component: 'day' },
+  { token: 'HH', pattern: '(\\d{2})', component: 'hour' },
+  { token: 'mm', pattern: '(\\d{2})', component: 'minute' },
+  { token: 'ss', pattern: '(\\d{2})', component: 'second' },
+  { token: 'YY', pattern: '(\\d{2})', component: 'shortYear' },
+  { token: 'M', pattern: '(\\d{1,2})', component: 'month' },
+  { token: 'D', pattern: '(\\d{1,2})', component: 'day' },
+  { token: 'H', pattern: '(\\d{1,2})', component: 'hour' },
+  { token: 'm', pattern: '(\\d{1,2})', component: 'minute' },
+  { token: 's', pattern: '(\\d{1,2})', component: 'second' },
+];
+
+/**
+ * @category Date
+ * @description Parses a date string using a custom format pattern
+ * @param value - String value to parse
+ * @param format - Format string using tokens (YYYY, MM, DD, HH, mm, ss, YY, M, D, H, m, s)
+ * @returns Parsed date as ISO string ("YYYY-MM-DD" or "YYYY-MM-DDTHH:mm:ss"), or null if invalid
+ * @example parse_date(date_col, "DD/MM/YYYY")
+ * @example parse_date("15/06/2024", "DD/MM/YYYY") -> "2024-06-15"
+ */
+export const parse_date = (value: any, format: any): string | null => {
+  if (value == null || typeof format !== 'string') return null;
+  const input = String(value).trim();
+  if (input === '') return null;
+
+  // Walk the format string, replacing tokens with capture groups and escaping literals
+  let regexStr = '';
+  const components: string[] = [];
+  let pos = 0;
+
+  while (pos < format.length) {
+    let matched = false;
+    for (const { token, pattern, component } of PARSE_TOKENS) {
+      if (format.substring(pos, pos + token.length) === token) {
+        regexStr += pattern;
+        components.push(component);
+        pos += token.length;
+        matched = true;
+        break;
+      }
+    }
+    if (!matched) {
+      regexStr += format[pos].replace(/[-/\\^$*+?.()|[\]{}]/g, '\\$&');
+      pos++;
+    }
+  }
+
+  let regex: RegExp;
+  try {
+    regex = new RegExp('^' + regexStr + '$');
+  } catch {
+    return null;
+  }
+
+  const match = input.match(regex);
+  if (!match) return null;
+
+  // Extract components from capture groups
+  let year: number | null = null;
+  let month: number | null = null;
+  let day: number | null = null;
+  let hour: number | null = null;
+  let minute: number | null = null;
+  let second: number | null = null;
+  let hasTime = false;
+
+  for (let i = 0; i < components.length; i++) {
+    const val = parseInt(match[i + 1], 10);
+    switch (components[i]) {
+      case 'year':
+        year = val;
+        break;
+      case 'shortYear':
+        year = val <= 69 ? 2000 + val : 1900 + val;
+        break;
+      case 'month':
+        month = val;
+        break;
+      case 'day':
+        day = val;
+        break;
+      case 'hour':
+        hour = val;
+        hasTime = true;
+        break;
+      case 'minute':
+        minute = val;
+        hasTime = true;
+        break;
+      case 'second':
+        second = val;
+        hasTime = true;
+        break;
+    }
+  }
+
+  // Validate required components
+  if (year == null || month == null || day == null) return null;
+
+  // Validate ranges
+  if (month < 1 || month > 12) return null;
+  if (day < 1 || day > 31) return null;
+  if (hour != null && (hour < 0 || hour > 23)) return null;
+  if (minute != null && (minute < 0 || minute > 59)) return null;
+  if (second != null && (second < 0 || second > 59)) return null;
+
+  // Validate day against month (basic check)
+  const daysInMonth = new Date(year, month, 0).getDate();
+  if (day > daysInMonth) return null;
+
+  const pad = (n: number, len: number = 2) => String(n).padStart(len, '0');
+
+  if (hasTime) {
+    return `${String(year).padStart(4, '0')}-${pad(month)}-${pad(day)}T${pad(hour ?? 0)}:${pad(minute ?? 0)}:${pad(second ?? 0)}`;
+  }
+  return `${String(year).padStart(4, '0')}-${pad(month)}-${pad(day)}`;
+};
+
 export const dateFunctions = {
   year,
   month,
@@ -404,4 +530,5 @@ export const dateFunctions = {
   date_add,
   date_trunc,
   format_date,
+  parse_date,
 };

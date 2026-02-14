@@ -22,6 +22,7 @@ import {
   FilterDialog,
   PivotDialog,
   DateDialog,
+  ParseDateDialog,
   TextDialog,
   SplitDialog,
   MergeDialog,
@@ -219,6 +220,7 @@ export function App() {
                 {activeDialog === 'regexpMatch' && <RegexpMatchDialog />}
                 {activeDialog === 'regexpExtract' && <RegexpExtractDialog />}
                 {activeDialog === 'date' && <DateDialog />}
+                {activeDialog === 'parseDate' && <ParseDateDialog />}
                 {activeDialog === 'text' && <TextDialog />}
                 {activeDialog === 'dedupe' && <DedupeDialog />}
                 {activeDialog === 'sort' && <SortDialog />}

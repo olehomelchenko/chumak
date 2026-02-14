@@ -36,6 +36,7 @@ import {
   regexpMatchState,
   regexpExtractState,
   dateState,
+  parseDateState,
   // Pattern states
   selectPatternState,
   removePatternState,
@@ -96,6 +97,7 @@ export class DialogStore {
   static regexpMatchState = regexpMatchState;
   static regexpExtractState = regexpExtractState;
   static dateState = dateState;
+  static parseDateState = parseDateState;
 
   // Pattern states
   static selectPatternState = selectPatternState;

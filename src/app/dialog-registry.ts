@@ -116,6 +116,12 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     type: 'slide-panel',
   },
 
+  parseDate: {
+    name: 'parseDate',
+    title: 'Parse Date',
+    type: 'slide-panel',
+  },
+
   text: {
     name: 'text',
     title: 'Text Operations',

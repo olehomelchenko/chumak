@@ -138,6 +138,12 @@ export function RibbonToolbar({ onOpenDialog, onAutoDetectSchema }: RibbonToolba
                 title="Re-run type detection for all columns"
                 onClick={onAutoDetectSchema}
               />
+              <RibbonButton
+                icon="carbon:calendar-add"
+                label="Parse Date"
+                title="Parse date strings into date values using a format pattern"
+                onClick={() => onOpenDialog('parseDate')}
+              />
             </RibbonGroup>
           </div>
         )}

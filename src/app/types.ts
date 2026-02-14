@@ -13,6 +13,7 @@ export type DialogName =
   | 'filter'
   | 'pivot'
   | 'date'
+  | 'parseDate'
   | 'text'
   | 'derive'
   | 'split'

@@ -10,6 +10,7 @@ import { DialogStore } from '../stores/DialogStore';
 import { DialogName } from '../types';
 import { syncDialogToUrl, clearDialogFromUrl } from './UrlStateSync';
 import * as DateHandlers from '../handlers/transform/date-handlers';
+import * as ParseDateHandlers from '../handlers/transform/parse-date-handlers';
 import { GeneratorService } from '../services/GeneratorService';
 
 export type DialogCallbacks = {
@@ -402,6 +403,21 @@ export function initDialogState(dialogName: string, section?: string): void {
       state.outputColumn.value = '';
       state.error.value = null;
       DateHandlers.clearDatePreview();
+      break;
+    }
+
+    case 'parseDate': {
+      const stringColumns = ParseDateHandlers.getStringColumns();
+      const initialCol =
+        selectedColumn && stringColumns.includes(selectedColumn)
+          ? selectedColumn
+          : stringColumns[0] || '';
+
+      const pdState = DialogStore.parseDateState;
+      pdState.column.value = initialCol;
+      pdState.format.value = '';
+      pdState.error.value = null;
+      ParseDateHandlers.clearParseDatePreview();
       break;
     }
 

@@ -73,6 +73,7 @@ const ALLOWED_FUNCTIONS: Record<string, FunctionSpec> = {
   date_add: { minArgs: 3, maxArgs: 3 },
   date_trunc: { minArgs: 2, maxArgs: 2 },
   format_date: { minArgs: 2, maxArgs: 2 },
+  parse_date: { minArgs: 2, maxArgs: 2 },
 
   // String functions
   upper: { minArgs: 1, maxArgs: 1 },

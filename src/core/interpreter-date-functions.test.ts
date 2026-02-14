@@ -325,6 +325,136 @@ describe('Date Functions', () => {
       ).toBe(null);
     });
   });
+
+  describe('parse_date()', () => {
+    it('should parse DD/MM/YYYY format', () => {
+      expect(
+        interpretAST(parseExpression('parse_date(val, "DD/MM/YYYY")'), { val: '15/06/2024' })
+      ).toBe('2024-06-15');
+    });
+
+    it('should parse MM-DD-YYYY format', () => {
+      expect(
+        interpretAST(parseExpression('parse_date(val, "MM-DD-YYYY")'), { val: '06-15-2024' })
+      ).toBe('2024-06-15');
+    });
+
+    it('should parse YYYY.MM.DD format', () => {
+      expect(
+        interpretAST(parseExpression('parse_date(val, "YYYY.MM.DD")'), { val: '2024.06.15' })
+      ).toBe('2024-06-15');
+    });
+
+    it('should parse unpadded tokens M/D/YYYY', () => {
+      expect(
+        interpretAST(parseExpression('parse_date(val, "M/D/YYYY")'), { val: '1/5/2024' })
+      ).toBe('2024-01-05');
+    });
+
+    it('should parse padded values with unpadded tokens', () => {
+      expect(
+        interpretAST(parseExpression('parse_date(val, "M/D/YYYY")'), { val: '12/25/2024' })
+      ).toBe('2024-12-25');
+    });
+
+    it('should parse two-digit year (00-69 → 2000s)', () => {
+      expect(
+        interpretAST(parseExpression('parse_date(val, "DD-MM-YY")'), { val: '15-06-24' })
+      ).toBe('2024-06-15');
+    });
+
+    it('should parse two-digit year (70-99 → 1900s)', () => {
+      expect(
+        interpretAST(parseExpression('parse_date(val, "DD-MM-YY")'), { val: '15-06-95' })
+      ).toBe('1995-06-15');
+    });
+
+    it('should parse with time components', () => {
+      expect(
+        interpretAST(parseExpression('parse_date(val, "DD/MM/YYYY HH:mm:ss")'), {
+          val: '15/06/2024 14:30:45',
+        })
+      ).toBe('2024-06-15T14:30:45');
+    });
+
+    it('should parse with partial time (hour and minute only)', () => {
+      expect(
+        interpretAST(parseExpression('parse_date(val, "YYYY-MM-DD HH:mm")'), {
+          val: '2024-06-15 14:30',
+        })
+      ).toBe('2024-06-15T14:30:00');
+    });
+
+    it('should round-trip with format_date', () => {
+      const row = { d: '2024-06-15' };
+      const formatted = interpretAST(parseExpression('format_date(d, "DD/MM/YYYY")'), row);
+      expect(formatted).toBe('15/06/2024');
+      const parsed = interpretAST(parseExpression('parse_date(val, "DD/MM/YYYY")'), {
+        val: formatted,
+      });
+      expect(parsed).toBe('2024-06-15');
+    });
+
+    it('should return null for null input', () => {
+      expect(interpretAST(parseExpression('parse_date(val, "DD/MM/YYYY")'), { val: null })).toBe(
+        null
+      );
+    });
+
+    it('should return null for empty string', () => {
+      expect(interpretAST(parseExpression('parse_date(val, "DD/MM/YYYY")'), { val: '' })).toBe(
+        null
+      );
+    });
+
+    it('should return null for non-string format', () => {
+      expect(interpretAST(parseExpression('parse_date(val, 123)'), { val: '15/06/2024' })).toBe(
+        null
+      );
+    });
+
+    it('should return null for invalid month (13)', () => {
+      expect(
+        interpretAST(parseExpression('parse_date(val, "DD/MM/YYYY")'), { val: '15/13/2024' })
+      ).toBe(null);
+    });
+
+    it('should return null for invalid day (32)', () => {
+      expect(
+        interpretAST(parseExpression('parse_date(val, "DD/MM/YYYY")'), { val: '32/06/2024' })
+      ).toBe(null);
+    });
+
+    it('should return null for Feb 30', () => {
+      expect(
+        interpretAST(parseExpression('parse_date(val, "DD/MM/YYYY")'), { val: '30/02/2024' })
+      ).toBe(null);
+    });
+
+    it('should accept Feb 29 in leap year', () => {
+      expect(
+        interpretAST(parseExpression('parse_date(val, "DD/MM/YYYY")'), { val: '29/02/2024' })
+      ).toBe('2024-02-29');
+    });
+
+    it('should reject Feb 29 in non-leap year', () => {
+      expect(
+        interpretAST(parseExpression('parse_date(val, "DD/MM/YYYY")'), { val: '29/02/2023' })
+      ).toBe(null);
+    });
+
+    it('should return null for separator mismatch', () => {
+      expect(
+        interpretAST(parseExpression('parse_date(val, "DD/MM/YYYY")'), { val: '15-06-2024' })
+      ).toBe(null);
+    });
+
+    it('should handle literal text in format', () => {
+      expect(
+        interpretAST(parseExpression('parse_date(val, "[YYYY-MM-DD]")'), { val: '[2024-06-15]' })
+      ).toBe('2024-06-15');
+    });
+  });
 });
 
 describe('parseToDate - ISO DateTime handling', () => {
