@@ -14,7 +14,8 @@
       "Bash(npm run docs:generate:*)",
       "Bash(npm run generate:function-docs:*)",
       "Bash(npm run:*)",
-      "Bash(tree:*)"
+      "Bash(tree:*)",
+      "Bash(grep:*)"
     ]
   }
 }
