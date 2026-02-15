@@ -2,13 +2,26 @@
 
 ## Overview
 
-The Syto project now includes an automated documentation generation system that creates both human-readable markdown documentation and machine-readable JSON schema from JSDoc comments in the source code.
+Syto includes an automated documentation generation system that creates both human-readable markdown documentation and machine-readable JSON schema from JSDoc comments in function source files.
 
 ## Architecture
 
 ### 1. Source of Truth: JSDoc Comments
 
-All function metadata is defined using structured JSDoc comments in [src/core/ast-interpreter.ts](../src/core/ast-interpreter.ts):
+Function implementations live in `src/core/functions/`, organized by category:
+
+| File                  | Category   |
+| --------------------- | ---------- |
+| `date-functions.ts`   | Date       |
+| `math-functions.ts`   | Math       |
+| `string-functions.ts` | Text       |
+| `regex-functions.ts`  | Regex      |
+| `json-functions.ts`   | JSON       |
+| `type-functions.ts`   | Conversion |
+
+All are aggregated in `src/core/functions/index.ts` as `FUNCTION_IMPLS`.
+
+Each function uses structured JSDoc:
 
 ```typescript
 /**
@@ -19,15 +32,17 @@ All function metadata is defined using structured JSDoc comments in [src/core/as
  * @example year(order_date)
  * @example year("2024-01-15") → 2024
  */
-year: (value) => { ... }
+export const year = (value: any) => { ... }
 ```
 
 ### 2. Build Script: Documentation Generator
 
 The script [scripts/generate-function-docs.ts](../scripts/generate-function-docs.ts):
 
-- Parses JSDoc comments from the source file
-- Extracts function metadata (name, category, description, params, returns, examples)
+- Reads all function files from `src/core/functions/`
+- Parses JSDoc comments using regex
+- Extracts metadata (name, category, description, params, returns, examples)
+- Auto-generates function signatures from name + params
 - Generates categorized markdown files
 - Generates JSON schema
 
@@ -49,12 +64,16 @@ npm run build  # includes docs:generate
 
 Located in `src/content/functions/`:
 
-- `operators.md` - Arithmetic, comparison, logical, special operators
-- `date.md` - Date extraction, utilities, arithmetic (15 functions)
-- `text.md` - String manipulation and comparison (15 functions)
-- `math.md` - Mathematical operations (6 functions)
-- `regex.md` - Regular expression functions (2 functions)
-- `conversion.md` - Type conversion functions (3 functions)
+- `operators.md` - Arithmetic, comparison, logical, special operators (manually defined in generator)
+- `date.md` - Date extraction, utilities, arithmetic, formatting
+- `text.md` - String manipulation and comparison
+- `math.md` - Mathematical operations, trigonometry, rounding
+- `regex.md` - Regular expression functions
+- `conversion.md` - Type conversion functions
+- `json.md` - JSON parsing and extraction
+- `aggregate.md` - Aggregate functions
+
+These are compiled to HTML at build time via `vite-plugin-markdown` and imported in UI components.
 
 #### JSON Schema
 
@@ -63,120 +82,84 @@ Located at `src/schemas/functions.json`:
 ```json
 {
   "version": "1.0.0",
-  "generated": "2026-01-25T03:49:34.444Z",
+  "generated": "...",
   "functions": [
     {
       "name": "year",
       "category": "Date",
       "description": "Extracts the year from a date value",
       "signature": "year(value)",
-      "params": [...],
+      "params": [{ "name": "value", "description": "Date value or date string" }],
       "returns": "Year as number (e.g., 2024), or null if invalid",
-      "examples": [...]
-    },
-    ...
+      "examples": [
+        { "expression": "year(order_date)" },
+        { "expression": "year(\"2024-01-15\") -> 2024" }
+      ]
+    }
   ]
 }
 ```
+
+**Current consumers:**
+
+- `src/core/expression-language.ts` — imports `functions.json` for autocomplete signatures in ExpressionEditor
+- `src/app/components/FunctionReferenceDialog.tsx` — uses compiled markdown HTML for the full reference viewer
 
 ### 4. Documentation Viewer Component
 
 The [FunctionReferenceDialog](../src/app/components/FunctionReferenceDialog.tsx) component provides:
 
-- Tabbed interface with categories (Operators, Date, Text, Math, Regex, Conversion)
-- Responsive sidebar navigation
-- Styled markdown rendering
-- Accessible via Help menu → "Expression Reference"
+- Sidebar navigation with categorized help sections
+- Categories: Getting Started, Operators, Date, Text, Math, Regex, Conversion, JSON, Aggregate, Shortcuts, What's New
+- Accessible via "Full Reference" button in expression dialogs
+
+### 5. Inline Help in Dialogs
+
+Expression-based dialogs (Derive, Filter) include static inline documentation showing common examples, operators, and function summaries. This is manually maintained in each dialog component (e.g., `DeriveDialog.tsx`, `FilterDialog.tsx`).
 
 ## Adding New Functions
 
-When adding a new function to `FUNCTION_IMPLS`:
+1. **Implement the function** in the appropriate category file (`src/core/functions/<category>-functions.ts`)
+2. **Add JSDoc comment** with all required tags (`@category`, `@description`, `@param`, `@returns`, `@example`)
+3. **Export from category module** and ensure it's included in `FUNCTION_IMPLS` via `functions/index.ts`
+4. **Add to whitelist** in `src/core/ast-validator.ts` (ALLOWED_FUNCTIONS + FUNCTION_ARITY)
+5. **Regenerate documentation:** `npm run docs:generate`
+6. **Verify tests pass:** `npm test -- function-docs-validation.test.ts`
 
-1. **Add JSDoc comment** with all required tags:
+## Valid Categories
 
-   ```typescript
-   /**
-    * @category [Date|Text|Math|Regex|Conversion]
-    * @description Brief description of what the function does
-    * @param paramName - Parameter description
-    * @returns Return value description
-    * @example functionName(arg1)
-    * @example functionName("value") → result
-    */
-   newFunction: (param) => { ... }
-   ```
+`Date` | `Text` | `Math` | `Regex` | `Conversion` | `JSON`
 
-2. **Regenerate documentation:**
-
-   ```bash
-   npm run docs:generate
-   ```
-
-3. **Verify tests pass:**
-   ```bash
-   npm test -- function-docs-validation.test.ts
-   ```
+The generator validates categories against this whitelist. Operators and Aggregate categories are handled separately in the generator script.
 
 ## Validation Tests
 
 The test suite [src/core/function-docs-validation.test.ts](../src/core/function-docs-validation.test.ts) ensures:
 
-✅ JSON schema file exists
-✅ All markdown files exist
-✅ All functions have complete metadata
-✅ All functions have examples
-✅ Valid categories are used
-✅ No duplicate function names
-✅ Function counts match across documentation
+- JSON schema file exists
+- All expected markdown files exist
+- Schema contains sufficient functions
+- Each function has complete metadata (name, category, description, signature, params, returns, examples)
+- Categories are valid (from whitelist)
+- All functions have at least one example
+- Function counts match between schema and markdown
+- No duplicate function names
 
-## Future Enhancements
+## Key Files
 
-The JSON schema can be used for:
-
-- **Autocomplete/IntelliSense** in expression editor
-- **Expression validation** before execution
-- **Function picker** dropdown UI
-- **External tools** (VS Code extensions, API docs)
-- **AI/LLM integration** (Claude helping users write expressions)
+| Path                                             | Purpose                                            |
+| ------------------------------------------------ | -------------------------------------------------- |
+| `src/core/functions/*.ts`                        | Function implementations + JSDoc (source of truth) |
+| `scripts/generate-function-docs.ts`              | JSDoc parser & documentation generator             |
+| `src/schemas/functions.json`                     | Machine-readable metadata (generated)              |
+| `src/content/functions/*.md`                     | Human-readable documentation (generated)           |
+| `src/app/components/FunctionReferenceDialog.tsx` | Full reference viewer UI                           |
+| `src/core/function-docs-validation.test.ts`      | Metadata validation tests                          |
 
 ## Benefits
 
-1. **Single source of truth** - Documentation lives with code
-2. **Always in sync** - Docs regenerate on every build
-3. **Type-safe** - TypeScript validates JSDoc structure
-4. **Machine-readable** - JSON schema enables tooling
-5. **Human-friendly** - Beautiful markdown for users
-6. **Testable** - Validation ensures completeness
-
-## Maintenance
-
-- **Keep JSDoc comments up to date** when modifying functions
-- **Run tests** to ensure documentation completeness
-- **Regenerate docs** after adding/removing functions
-- **Follow JSDoc conventions** for consistency
-
-## Files Changed/Added
-
-### Added:
-
-- `scripts/generate-function-docs.ts` - Documentation generator
-- `src/content/functions/*.md` - Generated markdown docs
-- `src/schemas/functions.json` - Generated JSON schema
-- `src/app/components/FunctionReferenceDialog.tsx` - Documentation viewer
-- `src/app/components/FunctionReferenceDialog.module.css` - Styles
-- `src/core/function-docs-validation.test.ts` - Validation tests
-- `docs/FUNCTION-DOCS-SYSTEM.md` - This document
-
-### Modified:
-
-- `src/core/ast-interpreter.ts` - Added JSDoc to all 41 functions
-- `package.json` - Added `docs:generate` script, tsx dependency
-- `src/app/components/App.tsx` - Integrated FunctionReferenceDialog
-- `src/app/components/index.ts` - Exported FunctionReferenceDialog
-
-## Statistics
-
-- **41 functions documented** (across 5 categories)
-- **6 markdown files** generated
-- **1 JSON schema** with full metadata
-- **789 tests passing** (including 8 new validation tests)
+1. **Single source of truth** — Documentation lives with function code
+2. **Always in sync** — Docs regenerate on every build
+3. **Machine-readable** — JSON schema enables autocomplete and future tooling
+4. **Human-friendly** — Markdown compiled to styled HTML for users
+5. **Testable** — Validation ensures completeness and consistency

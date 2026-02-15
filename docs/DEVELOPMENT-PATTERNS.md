@@ -813,51 +813,47 @@ If the handler needs user confirmation, import `confirm` or `prompt` directly fr
 
 ### 7.2 Adding a New Function
 
-> **Documentation**: When adding functions, follow the JSDoc documentation pattern described in [FUNCTION-DOCS-SYSTEM.md](FUNCTION-DOCS-SYSTEM.md). The documentation system auto-generates markdown and JSON schema from JSDoc comments.
+> **Full details**: See [FUNCTION-DOCS-SYSTEM.md](FUNCTION-DOCS-SYSTEM.md) for the complete documentation pipeline.
 
 To add a whitelisted function:
 
-1. Add to whitelist in `ast-validator.ts`:
-
-```typescript
-const WHITELISTED_FUNCTIONS = [
-  // ... existing functions
-  'your_function',
-];
-```
-
-2. Add arity check in `ast-validator.ts`:
-
-```typescript
-const FUNCTION_ARITY: Record<string, [number, number]> = {
-  // [min, max] arguments
-  your_function: [1, 2],
-};
-```
-
-3. Implement in `ast-interpreter.ts` with JSDoc comments:
+1. **Implement** in the appropriate category file (`src/core/functions/<category>-functions.ts`) with JSDoc:
 
 ```typescript
 /**
- * @category [Date|Text|Math|Regex|Conversion]
+ * @category [Date|Text|Math|Regex|Conversion|JSON]
  * @description Brief description of what the function does
  * @param paramName - Parameter description
  * @returns Return value description
  * @example your_function(arg1)
  * @example your_function("value") → result
  */
-your_function: (arg1, arg2) => {
+export const your_function = (arg1: any, arg2?: any) => {
   // Implementation
 };
 ```
 
-4. Regenerate documentation:
+2. **Export** from `src/core/functions/index.ts` (ensure included in `FUNCTION_IMPLS`)
 
-   ```bash
-   npm run docs:generate
-   ```
+3. **Add to whitelist** in `ast-validator.ts` (both `ALLOWED_FUNCTIONS` and `FUNCTION_ARITY`):
 
-5. Update `DATA-SPECIFICATION.md` §4.3 if adding a new category or significant function group.
+```typescript
+const ALLOWED_FUNCTIONS = [
+  // ... existing functions
+  'your_function',
+];
+
+const FUNCTION_ARITY: Record<string, [number, number]> = {
+  // [min, max] arguments
+  your_function: [1, 2],
+};
+```
+
+4. **Regenerate documentation**: `npm run docs:generate`
+
+5. **Verify**: `npm test -- function-docs-validation.test.ts`
+
+6. Update `DATA-SPECIFICATION.md` §4.3 if adding a new category or significant function group.
 
 ---
 

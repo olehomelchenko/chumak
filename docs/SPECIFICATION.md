@@ -94,14 +94,28 @@ The Schema Engine is responsible for granular type inference and schema propagat
 
 A three-stage pipeline for safe execution of user-defined formulas:
 
-1. **Parsing**: Uses `jsep` to convert string expressions into an Abstract Syntax Tree (AST).
-2. **Validation**: Checks the AST against the current schema for security and correctness.
-3. **Interpretation**: Executes the validated AST against row data in a sandboxed environment.
+1. **Parsing**: Uses `jsep` to convert string expressions into an Abstract Syntax Tree (AST). Bracket notation (`[Column Name]`) is preprocessed to placeholders before parsing and restored after.
+2. **Validation**: Checks the AST against the current schema for security and correctness. Validates node types, operators, function names (whitelist), function arities, and column references. Provides fuzzy-match suggestions for typos.
+3. **Interpretation**: Executes the validated AST against row data in a sandboxed environment. Delegates function calls to `FUNCTION_IMPLS`.
 
 - **Implementation**: `src/core/expression-parser.ts`, `src/core/ast-validator.ts`, `src/core/ast-interpreter.ts`
+- **Function implementations**: `src/core/functions/` (organized by category: date, math, string, regex, json, type)
 - **Tests**: `src/core/expression-parser.test.ts`, `src/core/ast-validator.test.ts`, `src/core/ast-interpreter.test.ts`
 - **Design**: See [docs/archive/PARSER-DESIGN-DECISION.md](archive/PARSER-DESIGN-DECISION.md) for architecture rationale
 - **Function Documentation**: See [FUNCTION-DOCS-SYSTEM.md](FUNCTION-DOCS-SYSTEM.md) for auto-generated function reference and documentation system
+
+**Note**: jsep does not track source positions (`start`/`end`) by default. Error positions come from jsep's parse error index or default to 0.
+
+#### Expression Editor (UI)
+
+The `ExpressionEditor` component (`src/app/components/ExpressionEditor.tsx`) provides a CodeMirror 6-based single-line input for formulas used by Derive, Filter, and Conditional dialogs.
+
+- **Syntax highlighting**: `src/core/expression-language.ts` — StreamLanguage tokenizer that recognizes functions, column names, bracket notation, strings, numbers, operators, and keywords
+- **Autocomplete**: Column names (highest priority), function names with signatures from `src/schemas/functions.json`, and keywords (`true`, `false`, `null`, `and`, `or`, `not`)
+- **Validation**: Real-time via `useSignalEffect` — parses, validates, and updates error signals with debounced preview computation (150ms)
+- **Error display**: `src/core/error-formatter.ts` produces multi-line messages with position pointers and suggestions
+
+Expression dialogs also include static inline help (examples, operator lists, function summaries) and a "Full Reference" button linking to `FunctionReferenceDialog`.
 
 #### Transformation Engine
 
