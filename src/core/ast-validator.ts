@@ -140,8 +140,53 @@ export interface ValidationResult {
     message: string;
     position: number;
     type: string;
+    suggestion?: string;
     [key: string]: any;
   };
+}
+
+/**
+ * Find the closest match to `input` from `candidates` using Levenshtein distance.
+ * Returns the match if within a reasonable threshold, otherwise undefined.
+ */
+export function findClosestMatch(input: string, candidates: string[]): string | undefined {
+  if (candidates.length === 0) return undefined;
+
+  const inputLower = input.toLowerCase();
+  let bestMatch: string | undefined;
+  let bestDistance = Infinity;
+
+  for (const candidate of candidates) {
+    const dist = levenshtein(inputLower, candidate.toLowerCase());
+    if (dist < bestDistance) {
+      bestDistance = dist;
+      bestMatch = candidate;
+    }
+  }
+
+  // Threshold: allow up to 40% of the longer string's length, minimum 1, maximum 3
+  const maxLen = Math.max(input.length, bestMatch?.length ?? 0);
+  const threshold = Math.min(3, Math.max(1, Math.floor(maxLen * 0.4)));
+
+  return bestDistance <= threshold ? bestMatch : undefined;
+}
+
+function levenshtein(a: string, b: string): number {
+  const m = a.length;
+  const n = b.length;
+  const dp: number[] = Array.from({ length: n + 1 }, (_, i) => i);
+
+  for (let i = 1; i <= m; i++) {
+    let prev = dp[0];
+    dp[0] = i;
+    for (let j = 1; j <= n; j++) {
+      const temp = dp[j];
+      dp[j] = a[i - 1] === b[j - 1] ? prev : 1 + Math.min(prev, dp[j], dp[j - 1]);
+      prev = temp;
+    }
+  }
+
+  return dp[n];
 }
 
 export function validateAST(ast: ASTNode, schema: string[]): ValidationResult {
@@ -180,12 +225,14 @@ function validateNode(node: ASTNode, schema: string[]) {
 
     case 'Identifier':
       if (node.name && !schema.includes(node.name)) {
+        const suggestion = findClosestMatch(node.name, schema);
         throw {
           message: `Column '${node.name}' not found`,
           position: node.start || 0,
           type: 'unknown-column',
           columnName: node.name,
           availableColumns: schema,
+          ...(suggestion && { suggestion }),
         };
       }
       break;
@@ -240,10 +287,12 @@ function validateCallExpression(node: ASTNode, schema: string[]) {
   const fnSpec = ALLOWED_FUNCTIONS[fnName];
 
   if (!fnSpec) {
+    const suggestion = findClosestMatch(fnName, Object.keys(ALLOWED_FUNCTIONS));
     throw {
       message: `Function '${fnName}' is not allowed`,
       position: node.callee.start || 0,
       type: 'unknown-function',
+      ...(suggestion && { suggestion }),
     };
   }
 

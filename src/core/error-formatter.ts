@@ -24,7 +24,11 @@ export function formatError(error: FormattableError, expression: string): string
   // Format as multi-line message
   const formatted = [message, expression, spaces + pointer].join('\n');
 
-  // Add available columns if this is a column error
+  // Add suggestion or available columns for unknown identifiers
+  if (error.suggestion) {
+    return formatted + `\n\nDid you mean '${error.suggestion}'?`;
+  }
+
   if (error.type === 'unknown-column' && error.availableColumns) {
     return formatted + '\n\nAvailable columns: ' + error.availableColumns.join(', ');
   }

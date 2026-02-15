@@ -48,7 +48,7 @@ See [custom-icons-setup.md](custom-icons-setup.md) for detailed setup guide and 
 
 ### Keyboard Shortcuts
 
-**Status**: Partial (see Completed Features)
+**Status**: Partial
 **Effort**: Medium
 
 Remaining shortcuts to implement:
@@ -106,28 +106,6 @@ Reduce the number of files required to add a new transform dialog from 11-12 to 
 
 ---
 
-### Date Architecture Cleanup
-
-**Status:** Done
-**Effort:** Medium
-**Reference:** [DATE-STORAGE-ARCHITECTURE.md](DATE-STORAGE-ARCHITECTURE.md)
-
-Investigated and resolved date handling architecture. The native Date object approach was fully implemented and then reverted due to JavaScript's `Date` type causing silent timezone-related date shifting at serialization boundaries (`toISOString()`, `JSON.stringify()`, etc.).
-
-**Decision:** Dates remain as formatted strings (`"YYYY-MM-DD"`) throughout the entire data layer. Date functions parse strings internally for computation and return formatted strings. See [DATE-STORAGE-ARCHITECTURE.md](DATE-STORAGE-ARCHITECTURE.md) for the full analysis, approaches considered, and developer guide.
-
-**Changes made:**
-
-- `type-converter.ts`: `convertToDate()`/`convertToDateTime()` return formatted strings, not Date objects
-- `date-functions.ts`: All functions (`today`, `now`, `date_add`, etc.) return formatted strings
-- Removed unnecessary `convertDatesForStorage()` calls from services (no Date objects to convert)
-- Fixed `toISOString()` bugs in debug-helpers, GeneratorService
-- Improved `formatCellValue()` Date display as a safety net
-
-**Future:** When the TC39 Temporal API (`Temporal.PlainDate`) reaches broad browser support, it would allow switching to proper date-only objects without timezone issues. The `YYYY-MM-DD` string format is already Temporal-compatible.
-
----
-
 ### Performance Profiling & Limits
 
 **Status**: Ongoing
@@ -153,19 +131,6 @@ This would require a proof-of-concept with benchmarks before committing to imple
 
 ---
 
-### Expression Error Messages
-
-**Status**: Ongoing improvement
-**Effort**: Medium
-
-Current errors include position information. Could be better:
-
-- Suggestions for typos ("Did you mean `sales` instead of `sale`?")
-- Schema-aware hints ("Column `price` is string type, did you mean to convert it?")
-- ~~Visual highlighting in expression input~~ — Done (CodeMirror 6 ExpressionEditor with syntax highlighting and autocomplete)
-
----
-
 ### Workflow Format Stability
 
 **Status**: Important for future
@@ -188,12 +153,11 @@ The transformation JSON format needs to be stable enough that:
 
 A comprehensive analysis of Syto's adherence to non-destructive principles was conducted in January 2026. While the core foundation is solid, several infrastructure enhancements are planned to make the "unbreakable" workflow a reality.
 
-| Enhancement               | Description                                               | Severity |
-| ------------------------- | --------------------------------------------------------- | -------- |
-| **Shadow Sources**        | Preserve deleted model states if dependencies exist.      | Medium   |
-| **Error Audit Trail**     | Explicit warnings for records excluded from aggregations. | Low      |
-| **Pre-flight Validation** | Schema integrity checks for manual JSON edits.            | Low      |
-| **Command Undo/Redo**     | First-class UI for undoing/redoing pipeline changes.      | Low      |
+| Enhancement           | Description                                               | Severity |
+| --------------------- | --------------------------------------------------------- | -------- |
+| **Shadow Sources**    | Preserve deleted model states if dependencies exist.      | Medium   |
+| **Error Audit Trail** | Explicit warnings for records excluded from aggregations. | Low      |
+| **Command Undo/Redo** | First-class UI for undoing/redoing pipeline changes.      | Low      |
 
 ---
 
@@ -221,23 +185,6 @@ These have been considered and explicitly excluded:
 2. Step reordering
 3. Column reordering (`reorder`, `moveColumn`)
 4. Transform handler simplification — developer experience improvement
-
----
-
-## Arquero Leverage Notes
-
-Most planned transforms are thin wrappers around existing Arquero verbs:
-
-| Transform    | Arquero Verb       | Wrapper Complexity | Status  |
-| ------------ | ------------------ | ------------------ | ------- |
-| ~~Sample~~   | `table.sample()`   | ~25 lines          | ✅ Done |
-| ~~Spread~~   | `table.spread()`   | ~40 lines          | ✅ Done |
-| ~~Unroll~~   | `table.unroll()`   | ~40 lines          | ✅ Done |
-| ~~Semijoin~~ | `table.semijoin()` | ~30 lines          | ✅ Done |
-| ~~Antijoin~~ | `table.antijoin()` | ~30 lines          | ✅ Done |
-| ~~Lookup~~   | `table.lookup()`   | ~30 lines          | ✅ Done |
-
-The heavy lifting is in expression functions, which require AST validator/interpreter updates rather than new Arquero integration.
 
 ---
 
@@ -270,6 +217,8 @@ Completed features are documented here for posterity:
   - Reduced `syto-app.ts` from 1,579 to 1,200 LoC by removing proxy pattern
   - Added 166 handler tests, improving coverage from 16% to 38%
 - **Expression input syntax highlighting & autocomplete** — February 2026. Replaced plain `<input>` elements in Filter, Derive, and Conditional dialogs with CodeMirror 6 ExpressionEditor component. Provides syntax highlighting for strings, numbers, functions, columns, operators, and keywords. Autocomplete suggests column names, whitelisted functions (with signatures from generated docs), and keywords.
+- **Expression typo suggestions** — February 2026. "Did you mean 'X'?" suggestions for misspelled column names and function names using Levenshtein distance matching.
+- **Pre-flight JSON validation** — February 2026. Advanced JSON Editor with real-time linting validates syntax, transform keys, and expression correctness before application.
 
 ---
 

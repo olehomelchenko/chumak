@@ -1,6 +1,43 @@
 import { describe, it, expect } from 'vitest';
 import { parseExpression } from './expression-parser';
-import { validateAST } from './ast-validator';
+import { validateAST, findClosestMatch } from './ast-validator';
+
+describe('findClosestMatch', () => {
+  const columns = ['sales', 'revenue', 'cost', 'region', 'order_date'];
+
+  it('should find exact match', () => {
+    expect(findClosestMatch('sales', columns)).toBe('sales');
+  });
+
+  it('should find match with one character swapped', () => {
+    expect(findClosestMatch('salse', columns)).toBe('sales');
+  });
+
+  it('should find match with one character missing', () => {
+    expect(findClosestMatch('sles', columns)).toBe('sales');
+  });
+
+  it('should find match with one extra character', () => {
+    expect(findClosestMatch('saless', columns)).toBe('sales');
+  });
+
+  it('should be case-insensitive', () => {
+    expect(findClosestMatch('Sales', columns)).toBe('sales');
+    expect(findClosestMatch('REVENUE', columns)).toBe('revenue');
+  });
+
+  it('should return undefined when no close match', () => {
+    expect(findClosestMatch('zzzzz', columns)).toBeUndefined();
+  });
+
+  it('should return undefined for empty candidates', () => {
+    expect(findClosestMatch('sales', [])).toBeUndefined();
+  });
+
+  it('should handle short strings', () => {
+    expect(findClosestMatch('ab', ['a', 'abc', 'xyz'])).toBe('a');
+  });
+});
 
 describe('AST Validator', () => {
   const testSchema = ['sales', 'revenue', 'cost', 'region', 'status', 'active'];
@@ -172,6 +209,22 @@ describe('AST Validator', () => {
       expect(result.error?.availableColumns).toEqual(testSchema);
     });
 
+    it('should suggest similar column name for typo', () => {
+      const ast = parseExpression('salse > 1000');
+      const result = validateAST(ast, testSchema);
+      expect(result.valid).toBe(false);
+      expect(result.error?.type).toBe('unknown-column');
+      expect(result.error?.suggestion).toBe('sales');
+    });
+
+    it('should not suggest when no column is close enough', () => {
+      const ast = parseExpression('zzzzz > 1000');
+      const result = validateAST(ast, testSchema);
+      expect(result.valid).toBe(false);
+      expect(result.error?.type).toBe('unknown-column');
+      expect(result.error?.suggestion).toBeUndefined();
+    });
+
     it('should reject unknown column in nested expression', () => {
       const ast = parseExpression('sales > 1000 && unknownColumn == "test"');
       const result = validateAST(ast, testSchema);
@@ -231,6 +284,22 @@ describe('AST Validator', () => {
         expect(result.valid).toBe(false);
         expect(result.error?.type).toBe('unknown-function');
         expect(result.error?.message).toContain('alert');
+      });
+
+      it('should suggest similar function name for typo', () => {
+        const ast = parseExpression('uper(region)');
+        const result = validateAST(ast, testSchema);
+        expect(result.valid).toBe(false);
+        expect(result.error?.type).toBe('unknown-function');
+        expect(result.error?.suggestion).toBe('upper');
+      });
+
+      it('should not suggest function when no match is close', () => {
+        const ast = parseExpression('foobar(region)');
+        const result = validateAST(ast, testSchema);
+        expect(result.valid).toBe(false);
+        expect(result.error?.type).toBe('unknown-function');
+        expect(result.error?.suggestion).toBeUndefined();
       });
 
       it('should reject regexp_match with too few arguments', () => {
