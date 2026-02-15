@@ -206,4 +206,7 @@
   &.boolean {
     color: var(--color-green);
   }
+  &.json {
+    color: #e67e22;
+  }
 }

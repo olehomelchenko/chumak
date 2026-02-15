@@ -85,8 +85,9 @@ function extractFunctions(sourceCode: string): FunctionMetadata[] {
 
   // Match function declarations with JSDoc
   // Supports both old format (name: () =>) and new format (export const name = () =>)
+  // Note: (?::[^=]*)? handles compound return types like `: string | null`
   const functionRegex =
-    /\/\*\*\s*([\s\S]*?)\s*\*\/\s*(?:export\s+const\s+)?(\w+)(?::\s*|\s*=\s*)\(([^)]*)\)\s*(?::\s*\w+\s*)?=>/g;
+    /\/\*\*\s*([\s\S]*?)\s*\*\/\s*(?:export\s+const\s+)?(\w+)(?::\s*|\s*=\s*)\(([^)]*)\)\s*(?::[^=]*)?\s*=>/g;
 
   let match;
   while ((match = functionRegex.exec(sourceCode)) !== null) {
@@ -346,7 +347,7 @@ function main() {
   // Generate JSON schema
   const schema = generateJSONSchema(allFunctions);
   const schemaPath = path.join(schemaDir, 'functions.json');
-  fs.writeFileSync(schemaPath, JSON.stringify(schema, null, 2));
+  fs.writeFileSync(schemaPath, JSON.stringify(schema, null, 2) + '\n');
   console.log(`✓ Generated functions.json schema (${allFunctions.length} functions)`);
 
   console.log('\n✅ Documentation generation complete!');

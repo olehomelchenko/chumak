@@ -96,17 +96,18 @@ interface ColumnSchema {
 ### 2.2 Column Types
 
 ```typescript
-type ColumnType = 'string' | 'integer' | 'float' | 'boolean' | 'date' | 'datetime';
+type ColumnType = 'string' | 'integer' | 'float' | 'boolean' | 'date' | 'datetime' | 'json';
 ```
 
-| Type       | Description       | Example Values           |
-| ---------- | ----------------- | ------------------------ |
-| `string`   | Text data         | `"hello"`, `"Product A"` |
-| `integer`  | Whole numbers     | `42`, `-7`, `0`          |
-| `float`    | Decimal numbers   | `3.14`, `-0.5`           |
-| `boolean`  | True/false        | `true`, `false`          |
-| `date`     | Date without time | `"2024-01-15"`           |
-| `datetime` | Date with time    | `"2024-01-15T10:30:00"`  |
+| Type       | Description          | Example Values                  |
+| ---------- | -------------------- | ------------------------------- |
+| `string`   | Text data            | `"hello"`, `"Product A"`        |
+| `integer`  | Whole numbers        | `42`, `-7`, `0`                 |
+| `float`    | Decimal numbers      | `3.14`, `-0.5`                  |
+| `boolean`  | True/false           | `true`, `false`                 |
+| `date`     | Date without time    | `"2024-01-15"`                  |
+| `datetime` | Date with time       | `"2024-01-15T10:30:00"`         |
+| `json`     | Serialized JSON data | `'{"name":"Alice"}'`, `'[1,2]'` |
 
 ### 2.3 Type System: Physical vs Logical Types
 
@@ -696,6 +697,10 @@ Expressions are used in `filter` and `derive` transforms.
 
 - `is_json(s)` — Tests if string contains valid JSON
 - `json_extract(s, path)` — Extracts value from JSON at dot-notation path
+- `json_keys(s)` — Returns array of top-level keys from a JSON object, or null
+- `json_array_length(s)` — Returns length of a JSON array, or null
+- `json_type(s)` — Returns the JSON type: `"object"`, `"array"`, `"string"`, `"number"`, `"boolean"`, `"null"`, or null
+- `json_stringify(value)` — Converts any value to its JSON string representation
 
 ### 4.4 Aggregate Functions (in rollup)
 

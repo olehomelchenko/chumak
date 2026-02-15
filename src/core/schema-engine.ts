@@ -4,7 +4,7 @@
  * Handles granular type inference and schema propagation through transformation steps.
  */
 
-export type ColumnType = 'string' | 'integer' | 'float' | 'boolean' | 'date' | 'datetime';
+export type ColumnType = 'string' | 'integer' | 'float' | 'boolean' | 'date' | 'datetime' | 'json';
 
 // Known column types for validation (future-proofing: handle unknown types gracefully)
 const KNOWN_COLUMN_TYPES: readonly ColumnType[] = [
@@ -14,6 +14,7 @@ const KNOWN_COLUMN_TYPES: readonly ColumnType[] = [
   'boolean',
   'date',
   'datetime',
+  'json',
 ] as const;
 
 export interface ColumnSchema {
@@ -173,6 +174,30 @@ export const SchemaEngine = {
       }
     }
 
+    // 3.5. Check for JSON (strings that look like JSON objects/arrays)
+    if (nonNullValues.every((v) => typeof v === 'string')) {
+      const allLookLikeJson = nonNullValues.every((v) => {
+        const trimmed = (v as string).trim();
+        return (
+          (trimmed.startsWith('{') && trimmed.endsWith('}')) ||
+          (trimmed.startsWith('[') && trimmed.endsWith(']'))
+        );
+      });
+
+      if (allLookLikeJson) {
+        // Verify at least one actually parses as valid JSON
+        const anyValidJson = nonNullValues.some((v) => {
+          try {
+            JSON.parse(v as string);
+            return true;
+          } catch {
+            return false;
+          }
+        });
+        if (anyValidJson) return 'json';
+      }
+    }
+
     // 4. Check for Date/DateTime (strings matching patterns)
     if (nonNullValues.every((v) => typeof v === 'string')) {
       // ISO DateTime: 2024-01-01T12:00:00...
@@ -216,6 +241,11 @@ export const SchemaEngine = {
     // Date promotions
     if (types.has('date') && types.has('datetime')) {
       return 'datetime';
+    }
+
+    // JSON + any other type → string
+    if (types.has('json')) {
+      return 'string';
     }
 
     // Fallback to string if anything is string or incompatible
@@ -279,6 +309,11 @@ export const SchemaEngine = {
     if (nonNullValues.every((v) => typeof v === 'number')) {
       const allIntegers = nonNullValues.every((v) => Number.isInteger(v));
       return allIntegers ? 'integer' : 'float';
+    }
+
+    // Check for native objects/arrays (from JSON import with serializeNested: false)
+    if (nonNullValues.every((v) => typeof v === 'object' && v !== null && !(v instanceof Date))) {
+      return 'json';
     }
 
     // Everything else is a string (including Date objects serialized as strings)

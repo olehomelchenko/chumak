@@ -132,6 +132,10 @@ export const ALLOWED_FUNCTIONS: Record<string, FunctionSpec> = {
   // JSON functions
   is_json: { minArgs: 1, maxArgs: 1 },
   json_extract: { minArgs: 2, maxArgs: 2 },
+  json_keys: { minArgs: 1, maxArgs: 1 },
+  json_array_length: { minArgs: 1, maxArgs: 1 },
+  json_type: { minArgs: 1, maxArgs: 1 },
+  json_stringify: { minArgs: 1, maxArgs: 1 },
 };
 
 export interface ValidationResult {

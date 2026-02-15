@@ -48,8 +48,8 @@ export function convertType(
 
   // Handle null/undefined
   if (value === null || value === undefined) {
-    // For date/datetime, null is acceptable
-    if (toType === 'date' || toType === 'datetime') {
+    // For date/datetime/json, null is acceptable
+    if (toType === 'date' || toType === 'datetime' || toType === 'json') {
       return null;
     }
     // For other types, return error or null based on target type
@@ -64,6 +64,10 @@ export function convertType(
     // Empty string to non-string: return null for most cases, error for strict conversions
     if (toType === 'date' || toType === 'datetime') {
       return null;
+    }
+    // For json, empty string is invalid
+    if (toType === 'json') {
+      return createErrorObject('Cannot convert empty string to json');
     }
     // For numeric/boolean, empty string is invalid
     return createErrorObject(`Cannot convert empty string to ${toType}`);
@@ -84,6 +88,8 @@ export function convertType(
         return convertToDate(value, fromType);
       case 'datetime':
         return convertToDateTime(value, fromType);
+      case 'json':
+        return convertToJson(value, fromType);
       default:
         return createErrorObject(`Unknown target type: ${toType}`);
     }
@@ -99,6 +105,10 @@ function convertToString(value: any, _fromType: ColumnType): ConversionResult {
   if (value instanceof Date) {
     const pad = (n: number) => String(n).padStart(2, '0');
     return `${value.getFullYear()}-${pad(value.getMonth() + 1)}-${pad(value.getDate())}`;
+  }
+  // For objects/arrays (json type), serialize to JSON string
+  if (typeof value === 'object' && value !== null) {
+    return JSON.stringify(value);
   }
   // For boolean, numeric, etc., use String()
   return String(value);
@@ -232,6 +242,30 @@ function convertToDate(value: any, _fromType: ColumnType): ConversionResult {
   // Return formatted string (YYYY-MM-DD) — no timezone issues
   const pad = (n: number) => String(n).padStart(2, '0');
   return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}`;
+}
+
+function convertToJson(value: any, _fromType: ColumnType): ConversionResult {
+  // Native objects/arrays → JSON.stringify
+  if (typeof value === 'object' && value !== null && !(value instanceof Date)) {
+    return JSON.stringify(value);
+  }
+
+  // Strings must parse as valid JSON
+  if (typeof value === 'string') {
+    try {
+      JSON.parse(value);
+      return value; // Already a valid JSON string, pass through
+    } catch {
+      return createErrorObject(`Cannot convert "${value}" to json`);
+    }
+  }
+
+  // Primitives (number, boolean) → JSON.stringify
+  if (typeof value === 'number' || typeof value === 'boolean') {
+    return JSON.stringify(value);
+  }
+
+  return createErrorObject(`Cannot convert ${typeof value} to json`);
 }
 
 function convertToDateTime(value: any, _fromType: ColumnType): ConversionResult {

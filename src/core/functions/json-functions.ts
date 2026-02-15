@@ -56,7 +56,95 @@ export const json_extract = (value: any, path: any) => {
   }
 };
 
+/**
+ * @category JSON
+ * @description Returns an array of top-level keys from a JSON object string
+ * @param value - String containing a JSON object
+ * @returns Array of key names, or null if not a JSON object or input is null
+ * @example json_keys('{"name":"Alice","age":30}')
+ * @example json_keys('{"name":"Alice","age":30}') -> ["name","age"]
+ * @example json_keys('[1,2,3]') -> null
+ */
+export const json_keys = (value: any) => {
+  if (value == null) return null;
+  try {
+    const parsed = JSON.parse(String(value));
+    if (parsed !== null && typeof parsed === 'object' && !Array.isArray(parsed)) {
+      return Object.keys(parsed);
+    }
+    return null;
+  } catch {
+    return null;
+  }
+};
+
+/**
+ * @category JSON
+ * @description Returns the length of a JSON array string
+ * @param value - String containing a JSON array
+ * @returns Length of the array, or null if not a JSON array or input is null
+ * @example json_array_length('[1,2,3]')
+ * @example json_array_length('[1,2,3]') -> 3
+ * @example json_array_length('{"a":1}') -> null
+ */
+export const json_array_length = (value: any) => {
+  if (value == null) return null;
+  try {
+    const parsed = JSON.parse(String(value));
+    if (Array.isArray(parsed)) {
+      return parsed.length;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+};
+
+/**
+ * @category JSON
+ * @description Returns the JSON type of the top-level value in a JSON string
+ * @param value - String containing valid JSON
+ * @returns One of "object", "array", "string", "number", "boolean", "null", or null if invalid
+ * @example json_type('{"a":1}')
+ * @example json_type('{"a":1}') -> "object"
+ * @example json_type('[1,2]') -> "array"
+ * @example json_type('"hello"') -> "string"
+ */
+export const json_type = (value: any) => {
+  if (value == null) return null;
+  try {
+    const parsed = JSON.parse(String(value));
+    if (parsed === null) return 'null';
+    if (Array.isArray(parsed)) return 'array';
+    return typeof parsed;
+  } catch {
+    return null;
+  }
+};
+
+/**
+ * @category JSON
+ * @description Converts any value to its JSON string representation
+ * @param value - Any value to stringify
+ * @returns JSON string representation
+ * @example json_stringify(42)
+ * @example json_stringify(42) -> "42"
+ * @example json_stringify("hello") -> "\"hello\""
+ */
+export const json_stringify = (value: any) => {
+  if (value == null) return null;
+  try {
+    return JSON.stringify(value);
+  } catch {
+    return null;
+  }
+};
+
 export const jsonFunctions = {
   is_json,
   json_extract,
+  json_keys,
+  json_array_length,
+  json_type,
+  json_stringify,
 };

@@ -575,6 +575,126 @@ describe('JSON Functions', () => {
       ).toBe('dev');
     });
   });
+
+  describe('json_keys()', () => {
+    it('should return keys of a JSON object', () => {
+      const result = interpretAST(parseExpression('json_keys(validJson)'), row);
+      expect(result).toEqual(['name', 'age']);
+    });
+
+    it('should return null for JSON arrays', () => {
+      const arrayRow = { arr: '[1, 2, 3]' };
+      expect(interpretAST(parseExpression('json_keys(arr)'), arrayRow)).toBe(null);
+    });
+
+    it('should return null for invalid JSON', () => {
+      expect(interpretAST(parseExpression('json_keys(invalidJson)'), row)).toBe(null);
+    });
+
+    it('should return null for null input', () => {
+      expect(interpretAST(parseExpression('json_keys(nullVal)'), row)).toBe(null);
+    });
+
+    it('should return empty array for empty object', () => {
+      const emptyObjRow = { obj: '{}' };
+      expect(interpretAST(parseExpression('json_keys(obj)'), emptyObjRow)).toEqual([]);
+    });
+
+    it('should return keys for nested objects (top-level only)', () => {
+      const result = interpretAST(parseExpression('json_keys(nestedJson)'), row);
+      expect(result).toEqual(['user']);
+    });
+  });
+
+  describe('json_array_length()', () => {
+    it('should return length of a JSON array', () => {
+      const arrayRow = { arr: '[1, 2, 3]' };
+      expect(interpretAST(parseExpression('json_array_length(arr)'), arrayRow)).toBe(3);
+    });
+
+    it('should return null for JSON objects', () => {
+      expect(interpretAST(parseExpression('json_array_length(validJson)'), row)).toBe(null);
+    });
+
+    it('should return null for invalid JSON', () => {
+      expect(interpretAST(parseExpression('json_array_length(invalidJson)'), row)).toBe(null);
+    });
+
+    it('should return null for null input', () => {
+      expect(interpretAST(parseExpression('json_array_length(nullVal)'), row)).toBe(null);
+    });
+
+    it('should return 0 for empty array', () => {
+      const emptyArrRow = { arr: '[]' };
+      expect(interpretAST(parseExpression('json_array_length(arr)'), emptyArrRow)).toBe(0);
+    });
+
+    it('should handle nested arrays', () => {
+      const nestedRow = { arr: '[[1,2],[3,4],[5]]' };
+      expect(interpretAST(parseExpression('json_array_length(arr)'), nestedRow)).toBe(3);
+    });
+  });
+
+  describe('json_type()', () => {
+    it('should return "object" for JSON objects', () => {
+      expect(interpretAST(parseExpression('json_type(validJson)'), row)).toBe('object');
+    });
+
+    it('should return "array" for JSON arrays', () => {
+      const arrayRow = { arr: '[1, 2, 3]' };
+      expect(interpretAST(parseExpression('json_type(arr)'), arrayRow)).toBe('array');
+    });
+
+    it('should return "string" for JSON strings', () => {
+      const strRow = { s: '"hello"' };
+      expect(interpretAST(parseExpression('json_type(s)'), strRow)).toBe('string');
+    });
+
+    it('should return "number" for JSON numbers', () => {
+      const numRow = { n: '42' };
+      expect(interpretAST(parseExpression('json_type(n)'), numRow)).toBe('number');
+    });
+
+    it('should return "boolean" for JSON booleans', () => {
+      const boolRow = { b: 'true' };
+      expect(interpretAST(parseExpression('json_type(b)'), boolRow)).toBe('boolean');
+    });
+
+    it('should return "null" for JSON null', () => {
+      const nullJsonRow = { n: 'null' };
+      expect(interpretAST(parseExpression('json_type(n)'), nullJsonRow)).toBe('null');
+    });
+
+    it('should return null for invalid JSON', () => {
+      expect(interpretAST(parseExpression('json_type(invalidJson)'), row)).toBe(null);
+    });
+
+    it('should return null for null input', () => {
+      expect(interpretAST(parseExpression('json_type(nullVal)'), row)).toBe(null);
+    });
+  });
+
+  describe('json_stringify()', () => {
+    it('should stringify a number', () => {
+      const numRow = { val: 42 };
+      expect(interpretAST(parseExpression('json_stringify(val)'), numRow)).toBe('42');
+    });
+
+    it('should stringify a string', () => {
+      const strRow = { val: 'hello' };
+      expect(interpretAST(parseExpression('json_stringify(val)'), strRow)).toBe('"hello"');
+    });
+
+    it('should stringify a boolean', () => {
+      const boolRow = { val: true };
+      expect(interpretAST(parseExpression('json_stringify(val)'), boolRow)).toBe('true');
+    });
+
+    it('should return null for null input', () => {
+      const nullRow = { val: null };
+      expect(interpretAST(parseExpression('json_stringify(val)'), nullRow)).toBe(null);
+    });
+  });
 });
 
 describe('Regex Functions - regexp_replace()', () => {

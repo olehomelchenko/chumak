@@ -41,11 +41,18 @@ describe('helper-handlers', () => {
       expect(formatCellValue(3.14)).toBe('3.14');
     });
 
-    it('should stringify unexpected objects', () => {
+    it('should stringify objects as JSON', () => {
       const obj = { a: 1, b: 2 };
       const result = formatCellValue(obj);
       expect(typeof result).toBe('string');
-      expect(result).toContain('[object Object]');
+      expect(result).toBe('{"a":1,"b":2}');
+    });
+
+    it('should truncate long JSON objects', () => {
+      const obj = { name: 'Alice', email: 'alice@example.com', role: 'admin' };
+      const result = formatCellValue(obj);
+      expect(result.length).toBeLessThanOrEqual(54); // 50 + "..."
+      expect(result).toContain('...');
     });
 
     it('should handle arrays', () => {
@@ -89,9 +96,9 @@ describe('helper-handlers', () => {
       expect(formatCellValueForTooltip(3.14)).toBe('3.14');
     });
 
-    it('should format unexpected objects as "Error"', () => {
+    it('should pretty-print objects as JSON', () => {
       const obj = { a: 1, b: 2 };
-      expect(formatCellValueForTooltip(obj)).toBe('Error');
+      expect(formatCellValueForTooltip(obj)).toBe('{\n  "a": 1,\n  "b": 2\n}');
     });
   });
 });

@@ -58,6 +58,65 @@ describe('Schema Engine', () => {
       expect(SchemaEngine.inferType([])).toBe('string');
       expect(SchemaEngine.inferType(null)).toBe('string');
     });
+
+    it('should infer json from JSON object strings', () => {
+      const values = ['{"name":"Alice"}', '{"name":"Bob"}'];
+      expect(SchemaEngine.inferType(values)).toBe('json');
+    });
+
+    it('should infer json from JSON array strings', () => {
+      const values = ['[1,2,3]', '[4,5,6]'];
+      expect(SchemaEngine.inferType(values)).toBe('json');
+    });
+
+    it('should infer json with nulls mixed in', () => {
+      const values = ['{"a":1}', null, '{"b":2}'];
+      expect(SchemaEngine.inferType(values)).toBe('json');
+    });
+
+    it('should not infer json for numeric strings', () => {
+      const values = ['123', '456'];
+      expect(SchemaEngine.inferType(values)).toBe('integer');
+    });
+
+    it('should not infer json for plain strings', () => {
+      const values = ['hello', 'world'];
+      expect(SchemaEngine.inferType(values)).toBe('string');
+    });
+  });
+
+  describe('detectPhysicalType()', () => {
+    it('should detect native objects as json', () => {
+      const values = [{ a: 1 }, { b: 2 }];
+      expect(SchemaEngine.detectPhysicalType(values)).toBe('json');
+    });
+
+    it('should detect native arrays as json', () => {
+      const values = [
+        [1, 2],
+        [3, 4],
+      ];
+      expect(SchemaEngine.detectPhysicalType(values)).toBe('json');
+    });
+
+    it('should not detect Date objects as json', () => {
+      const values = [new Date()];
+      expect(SchemaEngine.detectPhysicalType(values)).toBe('string');
+    });
+  });
+
+  describe('getPromotedType()', () => {
+    it('should return json when both are json', () => {
+      expect(SchemaEngine.getPromotedType('json', 'json')).toBe('json');
+    });
+
+    it('should return string when json mixed with string', () => {
+      expect(SchemaEngine.getPromotedType('json', 'string')).toBe('string');
+    });
+
+    it('should return string when json mixed with integer', () => {
+      expect(SchemaEngine.getPromotedType('json', 'integer')).toBe('string');
+    });
   });
 
   describe('normalizeSchema()', () => {
@@ -74,7 +133,7 @@ describe('Schema Engine', () => {
     it('should convert unknown types to string', () => {
       const schema = [
         { name: 'col1', type: 'string' as const },
-        { name: 'col2', type: 'json' as any }, // Unknown type
+        { name: 'col2', type: 'xml' as any }, // Unknown type
         { name: 'col3', type: 'decimal' as any }, // Unknown type
       ];
       const normalized = SchemaEngine.normalizeSchema(schema);
@@ -82,6 +141,12 @@ describe('Schema Engine', () => {
       expect(normalized[1].type).toBe('string'); // Converted
       expect(normalized[2].type).toBe('string'); // Converted
       expect(normalized[1].name).toBe('col2'); // Preserves other properties
+    });
+
+    it('should preserve json type as valid', () => {
+      const schema = [{ name: 'col1', type: 'json' as const }];
+      const normalized = SchemaEngine.normalizeSchema(schema);
+      expect(normalized[0].type).toBe('json');
     });
 
     it('should handle empty schema', () => {

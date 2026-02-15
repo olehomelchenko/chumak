@@ -10,6 +10,13 @@ The main block contains details about not implemented yet features or fixes; the
 
 > **See also**: [TRANSFORM-ARCHITECTURE-REVIEW.md](TRANSFORM-ARCHITECTURE-REVIEW.md) for comprehensive analysis of transform architecture, identified gaps, and prioritized improvements based on Power Query M limitations research.
 
+### Flatten JSON Transform
+
+**Status**: Planned
+**Effort**: Medium
+
+A new `flatten` transform that expands JSON object keys into separate columns (analogous to `spread` for arrays). Discovers keys from sample data, creates derived columns with configurable prefix. Initially available via JSON editor only.
+
 ---
 
 ## UI/UX Enhancements

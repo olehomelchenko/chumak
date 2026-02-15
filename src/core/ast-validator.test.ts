@@ -534,5 +534,59 @@ describe('AST Validator', () => {
         expect(result.error?.type).toBe('wrong-arity');
       });
     });
+
+    describe('JSON function validation', () => {
+      it('should allow json_keys with 1 argument', () => {
+        const ast = parseExpression('json_keys(region)');
+        const result = validateAST(ast, testSchema);
+        expect(result.valid).toBe(true);
+      });
+
+      it('should reject json_keys with wrong arity', () => {
+        const ast = parseExpression('json_keys()');
+        const result = validateAST(ast, testSchema);
+        expect(result.valid).toBe(false);
+        expect(result.error?.type).toBe('wrong-arity');
+      });
+
+      it('should allow json_array_length with 1 argument', () => {
+        const ast = parseExpression('json_array_length(region)');
+        const result = validateAST(ast, testSchema);
+        expect(result.valid).toBe(true);
+      });
+
+      it('should reject json_array_length with wrong arity', () => {
+        const ast = parseExpression('json_array_length()');
+        const result = validateAST(ast, testSchema);
+        expect(result.valid).toBe(false);
+        expect(result.error?.type).toBe('wrong-arity');
+      });
+
+      it('should allow json_type with 1 argument', () => {
+        const ast = parseExpression('json_type(region)');
+        const result = validateAST(ast, testSchema);
+        expect(result.valid).toBe(true);
+      });
+
+      it('should reject json_type with wrong arity', () => {
+        const ast = parseExpression('json_type()');
+        const result = validateAST(ast, testSchema);
+        expect(result.valid).toBe(false);
+        expect(result.error?.type).toBe('wrong-arity');
+      });
+
+      it('should allow json_stringify with 1 argument', () => {
+        const ast = parseExpression('json_stringify(region)');
+        const result = validateAST(ast, testSchema);
+        expect(result.valid).toBe(true);
+      });
+
+      it('should reject json_stringify with wrong arity', () => {
+        const ast = parseExpression('json_stringify()');
+        const result = validateAST(ast, testSchema);
+        expect(result.valid).toBe(false);
+        expect(result.error?.type).toBe('wrong-arity');
+      });
+    });
   });
 });

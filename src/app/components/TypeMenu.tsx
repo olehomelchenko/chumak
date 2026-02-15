@@ -106,6 +106,9 @@ export function TypeMenu({ onClose, onOpenTypeConversionDialog }: TypeMenuProps)
           </span>
           DateTime
         </button>
+        <button class={styles.item} role="menuitem" onClick={handleTypeClick('json')}>
+          <span class={`${styles.indicator} ${styles.json}`}>{'{}'}</span> JSON
+        </button>
         <div class={styles.divider}></div>
         <button class={styles.item} role="menuitem" onClick={handleTypeClick('auto')}>
           <span class="iconify" data-icon="carbon:flash"></span>

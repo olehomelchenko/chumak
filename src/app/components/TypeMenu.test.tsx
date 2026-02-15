@@ -52,7 +52,7 @@ describe('TypeMenu', () => {
     render(<TypeMenu {...defaultProps} />);
 
     const items = screen.getAllByRole('menuitem');
-    expect(items.length).toBe(7); // string, integer, float, boolean, date, datetime, auto
+    expect(items.length).toBe(8); // string, integer, float, boolean, date, datetime, json, auto
   });
 
   it('should auto-focus the first menu item on mount', () => {

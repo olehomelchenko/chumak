@@ -1,0 +1,7 @@
+id,name,metadata,tags,address
+1,Alice,"{""role"":""admin"",""level"":3,""active"":true}","[""python"",""sql"",""data""]","{""city"":""Kyiv"",""country"":""Ukraine""}"
+2,Bob,"{""role"":""analyst"",""level"":2,""active"":true}","[""excel"",""tableau""]","{""city"":""London"",""country"":""UK""}"
+3,Carol,"{""role"":""engineer"",""level"":4,""active"":false}","[""rust"",""go"",""python"",""docker""]","{""city"":""Berlin"",""country"":""Germany""}"
+4,Dan,"{""role"":""analyst"",""level"":1,""active"":true}","[""sql""]","{""city"":""Lviv"",""country"":""Ukraine""}"
+5,Eve,"{""role"":""admin"",""level"":5,""active"":true}","[""python"",""r"",""sql"",""spark""]","{""city"":""Paris"",""country"":""France""}"
+6,Frank,"{""role"":""engineer"",""level"":2,""active"":false}","[""java"",""kotlin""]","{""city"":""Odesa"",""country"":""Ukraine""}"

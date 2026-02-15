@@ -170,6 +170,8 @@ export function getTypeIcon(colName: string): string {
       return 'ix:data-type-boolean';
     case 'integer':
       return 'ix:data-type-integer';
+    case 'json':
+      return 'mdi:code-json';
     default:
       return 'ix:data-type-string';
   }
@@ -207,8 +209,14 @@ export function formatCellValue(value: any): string {
   // Preact can render: string, number, boolean, null, undefined
   // Preact cannot render: objects, arrays (as children), etc.
   if (typeof value === 'object' && value !== null) {
-    // If it's an unexpected object, stringify it to avoid rendering errors
-    return String(value);
+    // JSON objects/arrays: stringify and truncate for cell display
+    try {
+      const json = JSON.stringify(value);
+      if (json.length > 50) return json.slice(0, 50) + '...';
+      return json;
+    } catch {
+      return String(value);
+    }
   }
 
   // Return primitives as string
@@ -243,9 +251,13 @@ export function formatCellValueForTooltip(value: any): string {
     return dateStr;
   }
 
-  // For other objects, return a readable string representation
+  // For other objects, pretty-print as JSON for tooltip
   if (typeof value === 'object' && value !== null) {
-    return 'Error'; // Default for unexpected objects
+    try {
+      return JSON.stringify(value, null, 2);
+    } catch {
+      return String(value);
+    }
   }
 
   // Return primitives as string
@@ -270,6 +282,8 @@ export function getTypeIndicator(colName: string): string {
       return '📅';
     case 'datetime':
       return '🕒';
+    case 'json':
+      return '{}';
     default:
       return 'Abc';
   }

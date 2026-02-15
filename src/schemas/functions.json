@@ -327,6 +327,31 @@
       ]
     },
     {
+      "name": "parse_date",
+      "category": "Date",
+      "description": "Parses a date string using a custom format pattern",
+      "signature": "parse_date(value, format)",
+      "params": [
+        {
+          "name": "value",
+          "description": "String value to parse"
+        },
+        {
+          "name": "format",
+          "description": "Format string using tokens (YYYY, MM, DD, HH, mm, ss, YY, M, D, H, m, s)"
+        }
+      ],
+      "returns": "Parsed date as ISO string (\"YYYY-MM-DD\" or \"YYYY-MM-DDTHH:mm:ss\"), or null if invalid",
+      "examples": [
+        {
+          "expression": "parse_date(date_col, \"DD/MM/YYYY\")"
+        },
+        {
+          "expression": "parse_date(\"15/06/2024\", \"DD/MM/YYYY\") -> \"2024-06-15\""
+        }
+      ]
+    },
+    {
       "name": "is_json",
       "category": "JSON",
       "description": "Tests if a string contains valid JSON",
@@ -378,6 +403,105 @@
         },
         {
           "expression": "json_extract('{\"items\":[{\"price\":10}]}', \"items.0.price\") -> 10"
+        }
+      ]
+    },
+    {
+      "name": "json_keys",
+      "category": "JSON",
+      "description": "Returns an array of top-level keys from a JSON object string",
+      "signature": "json_keys(value)",
+      "params": [
+        {
+          "name": "value",
+          "description": "String containing a JSON object"
+        }
+      ],
+      "returns": "Array of key names, or null if not a JSON object or input is null",
+      "examples": [
+        {
+          "expression": "json_keys('{\"name\":\"Alice\",\"age\":30}')"
+        },
+        {
+          "expression": "json_keys('{\"name\":\"Alice\",\"age\":30}') -> [\"name\",\"age\"]"
+        },
+        {
+          "expression": "json_keys('[1,2,3]') -> null"
+        }
+      ]
+    },
+    {
+      "name": "json_array_length",
+      "category": "JSON",
+      "description": "Returns the length of a JSON array string",
+      "signature": "json_array_length(value)",
+      "params": [
+        {
+          "name": "value",
+          "description": "String containing a JSON array"
+        }
+      ],
+      "returns": "Length of the array, or null if not a JSON array or input is null",
+      "examples": [
+        {
+          "expression": "json_array_length('[1,2,3]')"
+        },
+        {
+          "expression": "json_array_length('[1,2,3]') -> 3"
+        },
+        {
+          "expression": "json_array_length('{\"a\":1}') -> null"
+        }
+      ]
+    },
+    {
+      "name": "json_type",
+      "category": "JSON",
+      "description": "Returns the JSON type of the top-level value in a JSON string",
+      "signature": "json_type(value)",
+      "params": [
+        {
+          "name": "value",
+          "description": "String containing valid JSON"
+        }
+      ],
+      "returns": "One of \"object\", \"array\", \"string\", \"number\", \"boolean\", \"null\", or null if invalid",
+      "examples": [
+        {
+          "expression": "json_type('{\"a\":1}')"
+        },
+        {
+          "expression": "json_type('{\"a\":1}') -> \"object\""
+        },
+        {
+          "expression": "json_type('[1,2]') -> \"array\""
+        },
+        {
+          "expression": "json_type('\"hello\"') -> \"string\""
+        }
+      ]
+    },
+    {
+      "name": "json_stringify",
+      "category": "JSON",
+      "description": "Converts any value to its JSON string representation",
+      "signature": "json_stringify(value)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Any value to stringify"
+        }
+      ],
+      "returns": "JSON string representation",
+      "examples": [
+        {
+          "expression": "json_stringify(42)"
+        },
+        {
+          "expression": "json_stringify(42) -> \"42\""
+        },
+        {
+          "expression": "json_stringify(\"hello\") -> \"\\\"hello\\\"\""
         }
       ]
     },

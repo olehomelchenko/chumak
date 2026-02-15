@@ -89,6 +89,8 @@ export function ColumnSelector({
         return 'ix:data-type-boolean';
       case 'integer':
         return 'ix:data-type-integer';
+      case 'json':
+        return 'mdi:code-json';
       default:
         return 'ix:data-type-string';
     }

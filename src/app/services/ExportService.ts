@@ -22,7 +22,19 @@ export class ExportService {
 
     const start = performance.now();
     try {
-      const csv = Papa.unparse(data);
+      // Pre-process: serialize any remaining native objects/arrays to JSON strings
+      const processedData = data.map((row: Record<string, any>) => {
+        const newRow: Record<string, any> = {};
+        for (const [key, value] of Object.entries(row)) {
+          if (value !== null && typeof value === 'object' && !(value instanceof Date)) {
+            newRow[key] = JSON.stringify(value);
+          } else {
+            newRow[key] = value;
+          }
+        }
+        return newRow;
+      });
+      const csv = Papa.unparse(processedData);
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');

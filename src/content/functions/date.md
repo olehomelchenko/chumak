@@ -1,6 +1,6 @@
 # Date Functions
 
-15 functions available
+16 functions available
 
 ## year
 
@@ -280,6 +280,26 @@ Formats a date using a custom format string
 ```
 format_date(date, "DD/MM/YYYY")
 format_date("2024-01-15", "MM/DD/YYYY") -> "01/15/2024"
+```
+
+---
+
+## parse_date
+
+Parses a date string using a custom format pattern
+
+**Parameters:**
+
+- `value` — String value to parse
+- `format` — Format string using tokens (YYYY, MM, DD, HH, mm, ss, YY, M, D, H, m, s)
+
+**Returns:** Parsed date as ISO string ("YYYY-MM-DD" or "YYYY-MM-DDTHH:mm:ss"), or null if invalid
+
+**Examples:**
+
+```
+parse_date(date_col, "DD/MM/YYYY")
+parse_date("15/06/2024", "DD/MM/YYYY") -> "2024-06-15"
 ```
 
 ---

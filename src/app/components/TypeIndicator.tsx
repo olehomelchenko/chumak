@@ -26,6 +26,8 @@ export function TypeIndicator({ type, showLabel = true, size = 'medium' }: TypeI
         return { symbol: null, label: 'Date', icon: 'carbon:calendar' };
       case 'datetime':
         return { symbol: null, label: 'DateTime', icon: 'ix:calendar' };
+      case 'json':
+        return { symbol: '{}', label: 'JSON', icon: null };
       default:
         return { symbol: 'Aa', label: 'String', icon: null };
     }

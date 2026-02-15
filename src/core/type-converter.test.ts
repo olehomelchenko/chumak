@@ -172,6 +172,51 @@ describe('Type Converter', () => {
       });
     });
 
+    describe('String to JSON', () => {
+      it('should pass through valid JSON strings', () => {
+        expect(convertType('{"a":1}', 'string', 'json')).toBe('{"a":1}');
+        expect(convertType('[1,2,3]', 'string', 'json')).toBe('[1,2,3]');
+      });
+
+      it('should return error for invalid JSON strings', () => {
+        const result = convertType('not json', 'string', 'json');
+        expect(result).toHaveProperty('type', 'error');
+        expect((result as any).message).toContain('Cannot convert');
+      });
+
+      it('should return error for empty string', () => {
+        const result = convertType('', 'string', 'json');
+        expect(result).toHaveProperty('type', 'error');
+        expect((result as any).message).toContain('empty string');
+      });
+    });
+
+    describe('JSON to String', () => {
+      it('should pass through JSON strings as-is', () => {
+        expect(convertType('{"a":1}', 'json', 'string')).toBe('{"a":1}');
+      });
+    });
+
+    describe('Object to JSON', () => {
+      it('should stringify native objects', () => {
+        expect(convertType({ a: 1 }, 'string', 'json')).toBe('{"a":1}');
+      });
+
+      it('should stringify native arrays', () => {
+        expect(convertType([1, 2, 3], 'string', 'json')).toBe('[1,2,3]');
+      });
+    });
+
+    describe('Primitive to JSON', () => {
+      it('should stringify numbers', () => {
+        expect(convertType(42, 'integer', 'json')).toBe('42');
+      });
+
+      it('should stringify booleans', () => {
+        expect(convertType(true, 'boolean', 'json')).toBe('true');
+      });
+    });
+
     describe('Null handling', () => {
       it('should handle null values', () => {
         expect(convertType(null, 'string', 'integer')).toBe(null);
@@ -185,6 +230,10 @@ describe('Type Converter', () => {
       it('should handle null for date conversions', () => {
         expect(convertType(null, 'string', 'date')).toBe(null);
         expect(convertType(null, 'string', 'datetime')).toBe(null);
+      });
+
+      it('should handle null for json conversions', () => {
+        expect(convertType(null, 'string', 'json')).toBe(null);
       });
     });
   });

@@ -50,6 +50,13 @@ describe('TypeIndicator', () => {
     expect(getByText('DateTime')).toBeTruthy();
   });
 
+  it('renders json type with symbol and label', () => {
+    const { getByText } = render(<TypeIndicator type="json" />);
+
+    expect(getByText('{}')).toBeTruthy();
+    expect(getByText('JSON')).toBeTruthy();
+  });
+
   it('hides label when showLabel is false', () => {
     const { container, queryByText } = render(<TypeIndicator type="string" showLabel={false} />);
 
