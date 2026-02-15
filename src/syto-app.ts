@@ -15,6 +15,8 @@ import { getUrlState, setUrlState } from './core/url-state';
 import { SchemaEngine } from './core/schema-engine';
 import { AppStore } from './app/stores/AppStore';
 import { ModelService } from './app/services/ModelService';
+import { isSlidePanel } from './app/dialog-registry';
+import { activeDialogHasError } from './app/orchestration/DialogCoordinator';
 
 // Handler callback setup functions
 import { setStepCallbacks } from './app/handlers/core/step-handlers';
@@ -220,6 +222,25 @@ export class SytoApp {
         }
         if (AppStore.selectedColumn.value || AppStore.selectedCell.value) {
           AppController.clearColumnSelection();
+          return;
+        }
+      }
+
+      // Handle Enter key for slide panel submit
+      if (e.key === 'Enter' && !e.ctrlKey && !e.metaKey && !e.altKey) {
+        const dialog = AppStore.activeDialog.value;
+        if (dialog && isSlidePanel(dialog)) {
+          const active = document.activeElement;
+          const tag = active?.tagName.toLowerCase();
+          // Skip if in textarea, select, or contenteditable
+          if (tag === 'textarea' || tag === 'select') return;
+          if (active instanceof HTMLElement && active.isContentEditable) return;
+          // Skip if inside a CodeMirror editor
+          if (active?.closest('.cm-editor')) return;
+          // Skip if Apply button is disabled (dialog has error)
+          if (activeDialogHasError()) return;
+          e.preventDefault();
+          AppController.applyActiveTransform();
           return;
         }
       }

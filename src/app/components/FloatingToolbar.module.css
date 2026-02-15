@@ -52,7 +52,8 @@
     transition: all var(--transition-fast);
     font-size: 14px;
 
-    &:hover {
+    &:hover,
+    &:focus-visible {
       background: var(--color-light-gray);
       color: var(--color-cyan);
     }

@@ -41,7 +41,8 @@
   color: var(--color-midnight-blue);
   transition: background var(--transition-fast);
 
-  &:hover {
+  &:hover,
+  &:focus-visible {
     background: var(--color-light-gray);
   }
 

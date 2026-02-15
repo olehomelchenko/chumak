@@ -10,6 +10,7 @@ import { CellToolbar } from './CellToolbar';
 import { GlobalUI } from './GlobalUI';
 import { TypeMenu } from './TypeMenu';
 import { isSlidePanel, isCenteredModal } from '../dialog-registry';
+import { useFocusTrap } from '../hooks/useFocusTrap';
 import {
   SortDialog,
   IndexDialog,
@@ -78,6 +79,10 @@ import tableStyles from './DataTable.module.css';
 export function App() {
   const activeDialog = AppStore.activeDialog.value;
 
+  // Focus traps for dialogs
+  const slidePanelRef = useFocusTrap<HTMLDivElement>(isSlidePanel(activeDialog));
+  const centeredModalRef = useFocusTrap<HTMLDivElement>(isCenteredModal(activeDialog));
+
   // Helper Wrappers - pure functions that access stores directly
   const previewStats = getPreviewStats();
   const previewTitle = getPreviewTitle();
@@ -139,7 +144,7 @@ export function App() {
     getTypeIcon: (c: string) => getTypeIcon(c),
     formatCellValue: (v: any) => formatCellValue(v),
     formatCellValueForTooltip: (v: any) => formatCellValueForTooltip(v),
-    onSelectColumn: (c: string, e: MouseEvent) => {
+    onSelectColumn: (c: string, e: Event) => {
       e.stopPropagation();
       AppController.selectColumn(c);
     },
@@ -206,7 +211,7 @@ export function App() {
             />
 
             {/* Panel */}
-            <div class={`${styles.slidePanel} ${styles.open}`}>
+            <div ref={slidePanelRef} class={`${styles.slidePanel} ${styles.open}`}>
               <div class={styles.slidePanelHeader}>
                 <h3>{dialogTitle}</h3>
                 <button onClick={() => AppController.closeDialog()} class={styles.closeButton}>
@@ -345,6 +350,7 @@ export function App() {
       {isCenteredModal(activeDialog) && (
         <div class={styles.centeredModalBackdrop} onClick={() => AppController.closeDialog()}>
           <div
+            ref={centeredModalRef}
             class={styles.centeredModal}
             style={{ width: activeDialog === 'dependency-graph' ? '66vw' : undefined }}
             onClick={(e) => e.stopPropagation()}

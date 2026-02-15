@@ -9,7 +9,7 @@ export interface DataTableProps {
   getTypeIcon: (column: string) => string;
   formatCellValue: (value: any) => string;
   formatCellValueForTooltip: (value: any) => string;
-  onSelectColumn: (column: string, event: MouseEvent) => void;
+  onSelectColumn: (column: string, event: Event) => void;
   onSelectCell: (column: string, value: any, rowIndex: number, event: MouseEvent) => void;
   onOpenTypeMenu: (column: string, event: MouseEvent) => void;
   onClearColumnSelection: () => void;
@@ -62,6 +62,46 @@ export function DataTable({
     return classes.join(' ');
   };
 
+  const handleHeaderKeyDown = (column: string, e: KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      AppStore.columnToolbarFocusRequested.value = true;
+      onSelectColumn(column, e);
+      return;
+    }
+
+    const arrowKeys = ['ArrowLeft', 'ArrowRight', 'Home', 'End'];
+    if (!arrowKeys.includes(e.key)) return;
+
+    e.preventDefault();
+    const th = e.currentTarget as HTMLElement;
+    const headers = Array.from(th.parentElement!.querySelectorAll<HTMLElement>('th'));
+    const idx = headers.indexOf(th);
+
+    let nextIdx: number;
+    switch (e.key) {
+      case 'ArrowRight':
+        nextIdx = idx < headers.length - 1 ? idx + 1 : 0;
+        break;
+      case 'ArrowLeft':
+        nextIdx = idx > 0 ? idx - 1 : headers.length - 1;
+        break;
+      case 'Home':
+        nextIdx = 0;
+        break;
+      case 'End':
+        nextIdx = headers.length - 1;
+        break;
+      default:
+        return;
+    }
+
+    // Roving tabindex: move the tab stop
+    th.setAttribute('tabindex', '-1');
+    headers[nextIdx].setAttribute('tabindex', '0');
+    headers[nextIdx].focus();
+  };
+
   const isDev = import.meta.env.DEV;
 
   return (
@@ -94,12 +134,16 @@ export function DataTable({
       <table class={styles.dataTable}>
         <thead>
           <tr>
-            {columns.value.map((column) => (
+            {columns.value.map((column, i) => (
               <th
                 key={`${contextKey}-col-${column}`}
                 class={`${styles.dataTable__header} ${selectedColumn.value === column ? styles.selected : ''}`}
                 data-col={column}
-                onClick={(e) => onSelectColumn(column, e as unknown as MouseEvent)}
+                tabIndex={
+                  selectedColumn.value === column ? 0 : !selectedColumn.value && i === 0 ? 0 : -1
+                }
+                onClick={(e) => onSelectColumn(column, e)}
+                onKeyDown={(e) => handleHeaderKeyDown(column, e)}
                 title={`Column: ${column}`}
               >
                 <span

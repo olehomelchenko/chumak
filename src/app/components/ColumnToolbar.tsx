@@ -1,3 +1,4 @@
+import { useRef, useEffect } from 'preact/hooks';
 import { AppStore } from '../stores/AppStore';
 import styles from './FloatingToolbar.module.css';
 
@@ -26,14 +27,70 @@ export function ColumnToolbar({
 }: ColumnToolbarProps) {
   const selectedColumn = AppStore.selectedColumn.value;
   const pos = AppStore.columnToolbarPos.value;
+  const toolbarRef = useRef<HTMLDivElement>(null);
+
+  // Auto-focus first button when opened via keyboard
+  useEffect(() => {
+    if (!selectedColumn || !AppStore.columnToolbarFocusRequested.value) return;
+    AppStore.columnToolbarFocusRequested.value = false;
+    // Wait for toolbar positioning (happens in requestAnimationFrame)
+    requestAnimationFrame(() => {
+      const toolbar = toolbarRef.current;
+      if (!toolbar) return;
+      const firstButton = toolbar.querySelector<HTMLElement>('button');
+      if (firstButton) firstButton.focus();
+    });
+  }, [selectedColumn]);
 
   if (!selectedColumn) return null;
 
   const type = getColumnType(selectedColumn);
   const isDate = ['date', 'datetime'].includes(type);
 
+  const handleKeyDown = (e: KeyboardEvent) => {
+    const toolbar = toolbarRef.current;
+    if (!toolbar) return;
+
+    if (e.key === 'Escape') {
+      // Return focus to the column header
+      const header = document.querySelector<HTMLElement>(`th[data-col="${selectedColumn}"]`);
+      if (header) header.focus();
+      return; // Let global handler clear the selection
+    }
+
+    if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) return;
+    e.preventDefault();
+
+    const buttons = Array.from(toolbar.querySelectorAll<HTMLElement>('button'));
+    if (buttons.length === 0) return;
+
+    const idx = buttons.indexOf(document.activeElement as HTMLElement);
+
+    let nextIdx: number;
+    switch (e.key) {
+      case 'ArrowRight':
+        nextIdx = idx < buttons.length - 1 ? idx + 1 : 0;
+        break;
+      case 'ArrowLeft':
+        nextIdx = idx > 0 ? idx - 1 : buttons.length - 1;
+        break;
+      case 'Home':
+        nextIdx = 0;
+        break;
+      case 'End':
+        nextIdx = buttons.length - 1;
+        break;
+      default:
+        return;
+    }
+    buttons[nextIdx].focus();
+  };
+
   return (
     <div
+      ref={toolbarRef}
+      role="toolbar"
+      aria-label="Column actions"
       class={styles.floatingToolbar}
       style={
         {
@@ -43,6 +100,7 @@ export function ColumnToolbar({
         } as any
       }
       onClick={(e) => e.stopPropagation()}
+      onKeyDown={handleKeyDown}
     >
       <button
         class={styles.floatingToolbar__button}

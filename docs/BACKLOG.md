@@ -2,6 +2,8 @@
 
 This document tracks planned features and enhancements, organized by scope and effort.
 
+The main block contains details about not implemented yet features or fixes; the block "Completed features" below keeps history once they are implemented and removed from the main block.
+
 ---
 
 ## Transform Gaps
@@ -54,6 +56,18 @@ See [custom-icons-setup.md](custom-icons-setup.md) for detailed setup guide and 
 Remaining shortcuts to implement:
 
 - `Ctrl/Cmd + Z` — Undo last step
+
+### Keyboard Accessibility
+
+**Status**: Implemented (February 2026)
+**Effort**: Small
+
+Completed improvements:
+
+- Global `:focus-visible` outline using `--color-cyan` tokens
+- Focus trapping in slide panel and centered modal dialogs (Tab wrapping + focus restoration)
+- Enter-to-submit in slide panel dialogs (with guards for textarea, CodeMirror, etc.)
+- Arrow key navigation in TypeMenu with ARIA `menu`/`menuitem` roles
 
 ---
 

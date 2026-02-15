@@ -8,9 +8,13 @@ disable-model-invocation: true
 
 Review staged or uncommitted code to ensure quality, test coverage, and alignment with project specifications.
 
+## Scope
+
+Determine the review scope using `git diff` (unstaged) and `git diff --staged` (staged). Review all changes in scope. If changes span multiple patterns below, apply all relevant sections.
+
 ## General Instructions
 
-1. **Code Cleanup**: Remove leftover code, unnecessary defensive programming, and simplify over-engineered solutions from iterative development. Proceed with caution; ask for clarification if unsure.
+1. **Code Cleanup**: Remove leftover code, unnecessary defensive programming, and simplify over-engineered solutions from iterative development. Examples: dead code from previous iterations, try/catch around internal calls that can't throw, abstraction layers wrapping a single implementation. Proceed with caution; ask for clarification if unsure.
 
 2. **No Git Staging/Commit**: **NEVER** stage (`git add`) or commit (`git commit`) changes. This is the USER's responsibility. Your task is to modify the files and verify them.
 
@@ -18,11 +22,15 @@ Review staged or uncommitted code to ensure quality, test coverage, and alignmen
 
 4. **Verification**: After changes, run `npm run typecheck` and/or `npm run build` to catch errors.
 
-5. **Clarification**: If unsure or multiple approaches exist, ask the user before proceeding.
+5. **Test Failures**: If tests fail after changes, fix the issue. If the fix is non-trivial or ambiguous, ask the user before proceeding.
 
-6. **Amendment**: These instructions are not strictly prohibitive. If you notice that some guidelines have valid reason to be violated or bypassed, mention it in the summary.
+6. **Clarification**: If unsure or multiple approaches exist, ask the user before proceeding.
 
-7. **Summary**: After performing the instructions, respond with a summary of changes, focusing on what choices were made due to following these instructions and which choices were made when there was more than one way to solve it.
+7. **Priority**: When guidelines conflict, prefer in this order: SOUL.md philosophy > FUTURE-PROOFING.md compatibility > DEVELOPMENT-PATTERNS.md conventions > local cleanup.
+
+8. **Amendment**: These instructions are not strictly prohibitive. If you notice that some guidelines have valid reason to be violated or bypassed, mention it in the summary.
+
+9. **Summary**: After performing the instructions, respond with a summary of changes, focusing on what choices were made due to following these instructions and which choices were made when there was more than one way to solve it.
 
 ---
 
@@ -36,7 +44,7 @@ Review staged or uncommitted code to ensure quality, test coverage, and alignmen
 
 ### Documentation
 
-Update relevant docs if the feature is significant:
+Update relevant internal docs if the feature is significant:
 
 - **[SPECIFICATION.md](docs/SPECIFICATION.md)**: Architecture or feature additions
 - **[DATA-SPECIFICATION.md](docs/DATA-SPECIFICATION.md)**: New data structures or transform schemas
@@ -53,6 +61,14 @@ If adding expression functions:
 For documentation guidance, see **[DOCUMENTATION-GUIDE.md](docs/DOCUMENTATION-GUIDE.md)** - especially the "When to Update Which Doc" table.
 
 The list is not exclusive - if you think another document needs update, proceed with it.
+
+### User-Facing Content
+
+If the feature changes user-visible behavior or adds new capabilities:
+
+- **`src/content/about.md`**: Update feature descriptions or counts if the about page references them
+- **`src/content/functions/*.md`**: Auto-generated via `npm run docs:generate` — do not edit directly
+- **UI copy**: Review labels, tooltips, placeholders, and help text in affected components for accuracy
 
 ### Alignment Check
 
@@ -76,13 +92,16 @@ Usually not required unless:
 
 - The bug revealed incorrect documentation
 - The fix changes documented behavior
+- User-facing content (`src/content/`) described the broken behavior as expected
 
 ### Alignment Check
 
 Verify the fix respects:
 
+- **[SOUL.md](SOUL.md)**: Project philosophy
 - **[FUTURE-PROOFING.md](docs/FUTURE-PROOFING.md)**: Backwards compatibility constraints
 - **[DATA-SPECIFICATION.md](docs/DATA-SPECIFICATION.md)**: Data format consistency
+- **[DEVELOPMENT-PATTERNS.md](docs/DEVELOPMENT-PATTERNS.md)**: Coding conventions
 
 ---
 

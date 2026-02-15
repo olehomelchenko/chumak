@@ -104,9 +104,11 @@ Comments are persisted to IndexedDB and automatically saved when edited.
 
 ### 3.4 Interactive Table Context
 
-- **Column Toolbar**: Clicking a header reveals actions for filtering, sorting, and renaming.
+- **Column Headers**: Keyboard-navigable using roving tabindex — ArrowLeft/Right moves focus between headers (with wrapping), Home/End jump to first/last. Enter or Space selects the column and opens the Column Toolbar.
+- **Column Toolbar**: Clicking or keyboard-selecting a header reveals a floating toolbar (`role="toolbar"`) with actions for sorting, filtering, renaming, splitting, deduplication, imputation, and removal. When opened via keyboard, the first button auto-focuses. ArrowLeft/Right navigates between buttons (with wrapping), Home/End jump to first/last. Escape returns focus to the column header.
 - **Cell Toolbar**: Clicking a cell allows for rapid "Keep only this" or "Exclude this" filtering based on that specific value.
 - **Type Badges**: Visual indicators for data types (Abc, #, 📅), synced with the granular schema engine.
+- **Type Menu**: Keyboard-navigable (`role="menu"`) with arrow key support (Up/Down/Home/End) and auto-focus on open.
 
 ### 3.5 Dialog System
 
@@ -115,6 +117,8 @@ Comments are persisted to IndexedDB and automatically saved when edited.
 **Centered Modal Dialogs**: Settings, downloads, and informational dialogs (about, expressions) use centered modals that overlay the main content.
 
 **Unified Modal Shell**: Both dialog types use a shared component architecture that handles the backdrop, header (title + close button), and footer (actions). This ensures visual consistency and reduces code duplication across all dialogs.
+
+**Keyboard Accessibility**: Both dialog types implement focus trapping via `useFocusTrap` hook — Tab/Shift+Tab cycles within the dialog, and focus is restored to the previously focused element on close. Slide panel dialogs support Enter-to-submit (skipped when focus is in textarea, select, contenteditable, or CodeMirror editors).
 
 **Preview Panel**: Appears in the remaining 2/3 of screen space when preview data exists for slide panel dialogs. Supports highlighting of new/derived columns and shows import previews with configurable row limits via UX settings.
 
@@ -309,7 +313,7 @@ Located in `styles/` directory:
 | File             | Purpose                                           |
 | ---------------- | ------------------------------------------------- |
 | `variables.css`  | Design tokens (colors, spacing, shadows, z-index) |
-| `base.css`       | Resets and global defaults                        |
+| `base.css`       | Resets, global defaults, `:focus-visible` ring    |
 | `typography.css` | Font definitions and text styles                  |
 | `layout.css`     | Grid system and structural layout                 |
 | `buttons.css`    | Button variants and states                        |

@@ -35,6 +35,7 @@ export class AppStore {
   static isTransforming = signal(false);
   static transformMessage = signal('');
   static columnToolbarPos = signal({ x: 0, y: 0, arrowOffset: 0 });
+  static columnToolbarFocusRequested = signal(false);
   static selectedCell = signal<any>(null);
   static cellToolbarPos = signal({ x: 0, y: 0, arrowOffset: 0 });
   static edaStats = signal<any>(null);
