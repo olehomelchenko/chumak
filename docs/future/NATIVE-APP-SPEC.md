@@ -2,6 +2,8 @@
 
 > **Purpose**: Complete functional specification for reimplementing Syto as a native macOS application with DuckDB + Parquet backend.
 
+> **Monetization context**: The full Electron migration described here is a large initiative. The current monetization strategy ([MONETIZATION-STRATEGY.md](MONETIZATION-STRATEGY.md)) favors a lighter path first: integrating DuckDB-WASM into the browser app to get the key performance benefits (larger datasets, Parquet support, faster queries) without Electron overhead. This spec remains the reference if a standalone desktop product is later justified by demand. See "Step 2.5: DuckDB-WASM Performance Tier" in the monetization doc.
+
 ---
 
 ## 1. Core Architecture

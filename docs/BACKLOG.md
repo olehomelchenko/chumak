@@ -163,6 +163,20 @@ A comprehensive analysis of Syto's adherence to non-destructive principles was c
 
 ---
 
+## SEO Landing Pages
+
+**Status**: Planned
+**Effort**: Small per page (content + routing, no new functionality)
+**Reference**: [MONETIZATION-STRATEGY.md](future/MONETIZATION-STRATEGY.md) — Organic Growth section
+
+Create focused landing pages for common data transformation queries (e.g., "pivot CSV online", "remove duplicates", "merge two CSVs"). Each page solves one problem using existing Syto transforms, then funnels users to the full app.
+
+**Priority candidates:** pivot/unpivot, deduplicate, split column, filter rows, join/merge CSVs, JSON-to-CSV, rename columns, aggregate/group-by.
+
+**Why now:** SEO compounds over months. Publishing before monetization builds the audience that the forever pass later converts.
+
+---
+
 ## Not Planned (Out of Scope)
 
 These have been considered and explicitly excluded:
