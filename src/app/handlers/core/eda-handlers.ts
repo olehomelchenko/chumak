@@ -3,13 +3,14 @@ import { EDAEngine } from '../../../core/eda-engine';
 import { ChartsEngine } from '../../../core/charts';
 import { AppStore } from '../../stores/AppStore';
 import { DialogStore } from '../../stores/DialogStore';
+import * as FilterHandlers from '../transform/filter-handlers';
+import * as HelperHandlers from './helper-handlers';
 
 /**
  * Callbacks for EDA operations that need UI interaction
  */
 export type EdaCallbacks = {
   updateToolbarPosition: () => void;
-  applyFilterTransform: () => Promise<void>;
   clearColumnSelection: () => void;
 };
 
@@ -209,6 +210,6 @@ export async function applyBrushFilter(): Promise<void> {
   DialogStore.filterState.expression.value = expr;
   DialogStore.filterState.error.value = null;
 
-  await callbacks?.applyFilterTransform();
+  await FilterHandlers.applyFilterTransform(HelperHandlers.createExecutionCallbacks());
   callbacks?.clearColumnSelection();
 }

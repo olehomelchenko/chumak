@@ -6,9 +6,11 @@ import { EDAEngine } from '../../core/eda-engine';
 import { SchemaEngine } from '../../core/schema-engine';
 import { TypeIndicator } from './TypeIndicator';
 import { EdaOverview, EdaNumericSection, EdaCategoricalSection } from './eda';
+import * as FilterHandlers from '../handlers/transform/filter-handlers';
+import * as HelperHandlers from '../handlers/core/helper-handlers';
 import styles from './EdaPanel.module.css';
 
-export function EdaPanel({ onApplyFilter }: { onApplyFilter?: () => void }) {
+export function EdaPanel() {
   const boxPlotRef = useRef<HTMLDivElement>(null);
   const histogramRef = useRef<HTMLDivElement>(null);
   const temporalChartRef = useRef<HTMLDivElement>(null);
@@ -146,9 +148,7 @@ export function EdaPanel({ onApplyFilter }: { onApplyFilter?: () => void }) {
     DialogStore.filterState.expression.value = expr;
     DialogStore.filterState.error.value = null;
 
-    if (onApplyFilter) {
-      onApplyFilter();
-    }
+    FilterHandlers.applyFilterTransform(HelperHandlers.createExecutionCallbacks());
 
     clearSelection();
   };

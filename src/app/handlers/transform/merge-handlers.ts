@@ -6,6 +6,7 @@ import { DialogStore } from '../../stores/DialogStore';
 import { AppStore } from '../../stores/AppStore';
 import { StepService } from '../../services/StepService';
 import { createDebouncedPreview, clearPreview, PreviewResult } from '../preview-engine';
+import { confirm } from '../core/notification-handlers';
 
 // Preview engine instance for merge operations
 const mergePreview = createDebouncedPreview({
@@ -124,7 +125,7 @@ function escapeColumnName(name: string): string {
 // clearPreview is exported from preview-engine
 export { clearPreview };
 
-export async function applyMergeTransform(callbacks: any, app?: any) {
+export async function applyMergeTransform(callbacks: any) {
   const state = DialogStore.mergeState;
   const { columns, separator, columnName, removeOriginal } = state;
   const allColumns = AppStore.columns.value;
@@ -139,8 +140,8 @@ export async function applyMergeTransform(callbacks: any, app?: any) {
     return;
   }
 
-  if (allColumns.includes(columnName.value) && app) {
-    const confirmed = await app.confirm(
+  if (allColumns.includes(columnName.value)) {
+    const confirmed = await confirm(
       `Column "${columnName.value}" already exists. It will be overwritten. Continue?`
     );
     if (!confirmed) return;

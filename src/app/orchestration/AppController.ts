@@ -31,10 +31,6 @@ import * as SplitHandlers from '../handlers/transform/split-handlers';
 import * as MergeHandlers from '../handlers/transform/merge-handlers';
 import * as DedupeHandlers from '../handlers/transform/dedupe-handlers';
 import * as RegexpHandlers from '../handlers/transform/regexp-handlers';
-import * as SimpleHandlers from '../handlers/transform/simple-handlers';
-import * as SampleHandlers from '../handlers/transform/sample-handlers';
-import * as SpreadHandlers from '../handlers/transform/spread-handlers';
-import * as UnrollHandlers from '../handlers/transform/unroll-handlers';
 // Handler imports - Import
 import * as ImportHandlers from '../handlers/import/import-handlers';
 import * as GenerateHandlers from '../handlers/import/generate-handlers';
@@ -65,16 +61,6 @@ async function startTransformation(message: string): Promise<void> {
 function endTransformation(): void {
   AppStore.isTransforming.value = false;
   AppStore.transformMessage.value = '';
-}
-
-function createExecutionCallbacks() {
-  return HelperHandlers.createExecutionCallbacks({
-    startTransformation,
-    endTransformation,
-    alert: NotificationHandlers.alert,
-    closeDialog: DialogHandlers.closeDialog,
-    updatePagination: PaginationHandlers.updatePagination,
-  });
 }
 
 // ============================================================
@@ -488,19 +474,11 @@ export const AppController = {
   debouncedUpdateFilterPreview: FilterHandlers.debouncedUpdateFilterPreview,
   updateFilterPreview: FilterHandlers.updateFilterPreview,
   toggleFilterPreviewMode: FilterHandlers.toggleFilterPreviewMode,
-  async applyFilterTransform(): Promise<void> {
-    await FilterHandlers.applyFilterTransform(createExecutionCallbacks());
-  },
 
   // Derive
   validateDeriveExpression: DeriveHandlers.validateDeriveExpression,
   debouncedUpdateDerivePreview: DeriveHandlers.debouncedUpdateDerivePreview,
   updateDerivePreview: DeriveHandlers.updateDerivePreview,
-  async applyDeriveTransform(): Promise<void> {
-    await DeriveHandlers.applyDeriveTransform(createExecutionCallbacks(), {
-      columns: AppStore.columns.value,
-    } as any);
-  },
 
   // Aggregate
   addAggregation: AggregateHandlers.addAggregation,
@@ -508,16 +486,10 @@ export const AppController = {
   updateAggregateOutputName: AggregateHandlers.updateAggregateOutputName,
   constructAggregateStep: AggregateHandlers.constructAggregateStep,
   updateAggregatePreview: AggregateHandlers.updateAggregatePreview,
-  async applyAggregateTransform(): Promise<void> {
-    await AggregateHandlers.applyAggregateTransform(createExecutionCallbacks());
-  },
 
   // Window
   updateWindowPreview: WindowHandlers.updateWindowPreview,
   debouncedUpdateWindowPreview: WindowHandlers.debouncedUpdateWindowPreview,
-  async applyWindowTransform(): Promise<void> {
-    await WindowHandlers.applyWindowTransform(createExecutionCallbacks());
-  },
 
   // Join
   initializeJoinDialog: JoinHandlers.initializeJoinDialog,
@@ -526,19 +498,11 @@ export const AppController = {
   addJoinKeyPair: JoinHandlers.addJoinKeyPair,
   removeJoinKeyPair: JoinHandlers.removeJoinKeyPair,
   previewJoin: JoinHandlers.previewJoin,
-  async applyJoinTransform(): Promise<void> {
-    await JoinHandlers.applyJoinTransform(createExecutionCallbacks(), {
-      columns: AppStore.columns.value,
-    } as any);
-  },
 
   // Append
   initializeAppendDialog: AppendHandlers.initializeAppendDialog,
   onAppendLeftModelChange: AppendHandlers.onAppendLeftModelChange,
   onAppendTargetChange: AppendHandlers.onAppendTargetChange,
-  async applyAppendTransform(): Promise<void> {
-    await AppendHandlers.applyAppendTransform(createExecutionCallbacks());
-  },
 
   // Pivot
   initializePivotDialog(): void {
@@ -556,9 +520,6 @@ export const AppController = {
   onPivotConfigChange: PivotHandlers.onPivotConfigChange,
   constructPivotStep: PivotHandlers.constructPivotStep,
   previewPivot: PivotHandlers.previewPivot,
-  async applyPivotTransform(): Promise<void> {
-    await PivotHandlers.applyPivotTransform(createExecutionCallbacks());
-  },
 
   // Fold (Unpivot)
   toggleColumnForFold: FoldHandlers.toggleColumnForFold,
@@ -567,26 +528,15 @@ export const AppController = {
   selectAllForFold: FoldHandlers.selectAllForFold,
   selectNoneForFold: FoldHandlers.selectNoneForFold,
   updateFoldPreview: FoldHandlers.updateFoldPreview,
-  async applyFoldTransform(): Promise<void> {
-    await FoldHandlers.applyFoldTransform(createExecutionCallbacks());
-  },
 
   // Split
   detectDelimiter: SplitHandlers.detectDelimiter,
   debouncedUpdateSplitPreview: SplitHandlers.debouncedUpdateSplitPreview,
   selectSplitColumn: SplitHandlers.selectSplitColumn,
   updateSplitPreview: SplitHandlers.updateSplitPreview,
-  async applySplitTransform(): Promise<void> {
-    await SplitHandlers.applySplitTransform(createExecutionCallbacks());
-  },
 
   // Merge
   selectMergeColumns: MergeHandlers.selectMergeColumns,
-  async applyMergeTransform(): Promise<void> {
-    await MergeHandlers.applyMergeTransform(createExecutionCallbacks(), {
-      columns: AppStore.columns.value,
-    } as any);
-  },
 
   // Dedupe
   toggleDedupeAllColumns: DedupeHandlers.toggleDedupeAllColumns,
@@ -597,56 +547,15 @@ export const AppController = {
   findDuplicateRows: DedupeHandlers.findDuplicateRows,
   updateDedupePreview: DedupeHandlers.updateDedupePreview,
   findAllDuplicateRowCount: DedupeHandlers.findAllDuplicateRowCount,
-  async applyDedupeTransform(): Promise<void> {
-    await DedupeHandlers.applyDedupeTransform(createExecutionCallbacks());
-  },
 
   // Regexp
   validateRegexpPattern: RegexpHandlers.validateRegexpPattern,
   validateRegexpMatchExpression: RegexpHandlers.validateRegexpMatchExpression,
   debouncedUpdateRegexpMatchPreview: RegexpHandlers.debouncedUpdateRegexpMatchPreview,
   updateRegexpMatchPreview: RegexpHandlers.updateRegexpMatchPreview,
-  async applyRegexpMatchTransform(): Promise<void> {
-    await RegexpHandlers.applyRegexpMatchTransform(createExecutionCallbacks(), {
-      columns: AppStore.columns.value,
-    } as any);
-  },
   validateRegexpExtractExpression: RegexpHandlers.validateRegexpExtractExpression,
   debouncedUpdateRegexpExtractPreview: RegexpHandlers.debouncedUpdateRegexpExtractPreview,
   updateRegexpExtractPreview: RegexpHandlers.updateRegexpExtractPreview,
-  async applyRegexpExtractTransform(): Promise<void> {
-    await RegexpHandlers.applyRegexpExtractTransform(createExecutionCallbacks(), {
-      columns: AppStore.columns.value,
-    } as any);
-  },
-
-  // Simple transforms
-  async applyReplaceTransform(): Promise<void> {
-    await SimpleHandlers.applyReplaceTransform(createExecutionCallbacks(), {
-      columns: AppStore.columns.value,
-    } as any);
-  },
-  async applySortTransform(): Promise<void> {
-    await SimpleHandlers.applySortTransform(createExecutionCallbacks());
-  },
-  async applySliceRowsTransform(): Promise<void> {
-    await SimpleHandlers.applySliceRowsTransform(createExecutionCallbacks());
-  },
-  async applyIndexTransform(): Promise<void> {
-    await SimpleHandlers.applyIndexTransform(createExecutionCallbacks());
-  },
-  async applyImputeTransform(): Promise<void> {
-    await SimpleHandlers.applyImputeTransform(createExecutionCallbacks());
-  },
-  async applySampleTransform(): Promise<void> {
-    await SampleHandlers.applySampleTransform(createExecutionCallbacks());
-  },
-  async applySpreadTransform(): Promise<void> {
-    await SpreadHandlers.applySpreadTransform(createExecutionCallbacks());
-  },
-  async applyUnrollTransform(): Promise<void> {
-    await UnrollHandlers.applyUnrollTransform(createExecutionCallbacks());
-  },
 
   // ============================================================
   // Settings & Theme

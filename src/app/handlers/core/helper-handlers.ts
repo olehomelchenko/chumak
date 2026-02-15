@@ -59,37 +59,10 @@ export function setTransformCallbacks(cb: TransformCallbacks): void {
 }
 
 /**
- * SytoApp interface for backward compatibility during migration.
- * This will be removed once all handlers are migrated.
- */
-interface LegacySytoApp {
-  startTransformation: (label: string) => void;
-  endTransformation: () => void;
-  alert: (message: string) => Promise<boolean>;
-  closeDialog: (clearPreview?: boolean) => void;
-  updatePagination: () => void;
-}
-
-/**
  * Creates callbacks for StepService.
- * Accepts optional app parameter for backward compatibility.
- * New code should call setTransformCallbacks() at init and use no argument.
+ * Uses stored callbacks set via setTransformCallbacks().
  */
-export function createExecutionCallbacks(app?: LegacySytoApp): ExecutionCallbacks {
-  // If app is provided (legacy pattern), use it directly
-  if (app) {
-    return {
-      onTransformStart: (label: string) => app.startTransformation(label),
-      onTransformEnd: () => app.endTransformation(),
-      onError: async (message: string) => {
-        await app.alert(message);
-      },
-      onDialogClose: (clearPreview?: boolean) => app.closeDialog(clearPreview),
-      updatePagination: () => app.updatePagination(),
-    };
-  }
-
-  // New pattern: use stored callbacks
+export function createExecutionCallbacks(): ExecutionCallbacks {
   if (!transformCallbacks) {
     throw new Error('Transform callbacks not set. Call setTransformCallbacks first.');
   }

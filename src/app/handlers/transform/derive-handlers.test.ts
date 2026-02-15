@@ -20,7 +20,14 @@ vi.mock('../validation-engine', () => ({
   validateExpression: vi.fn(),
 }));
 
+vi.mock('../core/notification-handlers', () => ({
+  confirm: vi.fn().mockResolvedValue(true),
+  alert: vi.fn().mockResolvedValue(undefined),
+  prompt: vi.fn().mockResolvedValue(''),
+}));
+
 import { applyDeriveTransform, validateDeriveExpression } from './derive-handlers';
+import { confirm } from '../core/notification-handlers';
 import { StepService } from '../../services/StepService';
 import { validateExpression } from '../validation-engine';
 
@@ -95,11 +102,11 @@ describe('derive-handlers', () => {
       DialogStore.deriveState.expression.value = 'age + 1';
       DialogStore.deriveState.error.value = null;
       const callbacks = { onError: vi.fn() };
-      const app = { confirm: vi.fn().mockResolvedValue(false) };
+      vi.mocked(confirm).mockResolvedValueOnce(false);
 
-      await applyDeriveTransform(callbacks, app);
+      await applyDeriveTransform(callbacks);
 
-      expect(app.confirm).toHaveBeenCalledWith(
+      expect(confirm).toHaveBeenCalledWith(
         'Column "age" already exists. It will be overwritten. Continue?'
       );
       expect(StepService.runTransform).not.toHaveBeenCalled();
@@ -110,9 +117,9 @@ describe('derive-handlers', () => {
       DialogStore.deriveState.expression.value = 'age + 1';
       DialogStore.deriveState.error.value = null;
       const callbacks = { onError: vi.fn() };
-      const app = { confirm: vi.fn().mockResolvedValue(true) };
+      vi.mocked(confirm).mockResolvedValueOnce(true);
 
-      await applyDeriveTransform(callbacks, app);
+      await applyDeriveTransform(callbacks);
 
       expect(StepService.runTransform).toHaveBeenCalledWith(
         'Derive',
@@ -136,11 +143,12 @@ describe('derive-handlers', () => {
       );
     });
 
-    it('skips confirmation when no app context provided', async () => {
+    it('proceeds without confirmation for existing column (always confirms)', async () => {
       DialogStore.deriveState.columnName.value = 'age';
       DialogStore.deriveState.expression.value = 'age + 1';
       DialogStore.deriveState.error.value = null;
       const callbacks = { onError: vi.fn() };
+      vi.mocked(confirm).mockResolvedValueOnce(true);
 
       await applyDeriveTransform(callbacks);
 

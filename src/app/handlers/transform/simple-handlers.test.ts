@@ -8,6 +8,12 @@ vi.mock('../../services/StepService', () => ({
   },
 }));
 
+vi.mock('../core/notification-handlers', () => ({
+  confirm: vi.fn().mockResolvedValue(true),
+  alert: vi.fn().mockResolvedValue(undefined),
+  prompt: vi.fn().mockResolvedValue(''),
+}));
+
 import {
   applySortTransform,
   applySliceRowsTransform,
@@ -16,6 +22,7 @@ import {
   applyImputeTransform,
 } from './simple-handlers';
 import { StepService } from '../../services/StepService';
+import { confirm } from '../core/notification-handlers';
 
 describe('simple-handlers', () => {
   let consoleSpy: ReturnType<typeof suppressConsole>;
@@ -149,17 +156,17 @@ describe('simple-handlers', () => {
       expect(callbacks.onError).toHaveBeenCalledWith('Please select a column');
     });
 
-    it('asks confirmation for null/empty replace when app provided', async () => {
+    it('asks confirmation for null/empty replace', async () => {
       DialogStore.replaceState.column.value = 'name';
       DialogStore.replaceState.findValue.value = null as any;
       DialogStore.replaceState.replaceValue.value = 'default';
       DialogStore.replaceState.isRegex.value = false;
       const callbacks = { onError: vi.fn() };
-      const app = { confirm: vi.fn().mockResolvedValue(false) };
+      vi.mocked(confirm).mockResolvedValueOnce(false);
 
-      await applyReplaceTransform(callbacks, app);
+      await applyReplaceTransform(callbacks);
 
-      expect(app.confirm).toHaveBeenCalledWith('Replace null/empty values?');
+      expect(confirm).toHaveBeenCalledWith('Replace null/empty values?');
       expect(StepService.runTransform).not.toHaveBeenCalled();
     });
 

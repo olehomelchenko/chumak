@@ -2,6 +2,7 @@ import * as aq from 'arquero';
 import { DialogStore } from '../../stores/DialogStore';
 import { applyTransform } from '../../../core/transforms';
 import { StepService } from '../../services/StepService';
+import { confirm } from '../core/notification-handlers';
 
 export async function applySortTransform(callbacks: any) {
   const field = DialogStore.sortState.field.value;
@@ -41,17 +42,15 @@ export async function applyIndexTransform(callbacks: any) {
   );
 }
 
-export async function applyReplaceTransform(callbacks: any, app?: any) {
+export async function applyReplaceTransform(callbacks: any) {
   const { column, findValue, replaceValue, isRegex } = DialogStore.replaceState;
   if (!column.value) {
     await callbacks.onError?.('Please select a column');
     return;
   }
   if (!isRegex.value && (findValue.value === undefined || findValue.value === null)) {
-    if (app) {
-      const confirmed = await app.confirm('Replace null/empty values?');
-      if (!confirmed) return;
-    }
+    const confirmed = await confirm('Replace null/empty values?');
+    if (!confirmed) return;
   }
   if (isRegex.value && !findValue.value) {
     await callbacks.onError?.('Please enter a regex pattern');

@@ -4,6 +4,7 @@ import * as HelperHandlers from '../core/helper-handlers';
 import { StepService } from '../../services/StepService';
 import { createDebouncedPreview, clearPreview, PreviewResult } from '../preview-engine';
 import { validateRegexPattern } from '../validation-engine';
+import { confirm } from '../core/notification-handlers';
 
 export function validateRegexpMatchExpression() {
   validateRegexPattern(DialogStore.regexpMatchState.pattern.value, {
@@ -51,7 +52,7 @@ export function updateRegexpMatchPreview() {
   regexpMatchPreview.compute();
 }
 
-export async function applyRegexpMatchTransform(callbacks: any, app?: any) {
+export async function applyRegexpMatchTransform(callbacks: any) {
   const { columnName, sourceColumn, pattern, error } = DialogStore.regexpMatchState;
   const columns = AppStore.columns.value;
 
@@ -72,8 +73,8 @@ export async function applyRegexpMatchTransform(callbacks: any, app?: any) {
     await callbacks.onError?.('Please select a source column');
     return;
   }
-  if (columns.includes(colName) && app) {
-    const confirmed = await app.confirm(
+  if (columns.includes(colName)) {
+    const confirmed = await confirm(
       `Column "${colName}" already exists. It will be overwritten. Continue?`
     );
     if (!confirmed) return;
@@ -146,7 +147,7 @@ export function validateRegexpPattern(pattern: string): string | null {
   return result.error;
 }
 
-export async function applyRegexpExtractTransform(callbacks: any, app?: any) {
+export async function applyRegexpExtractTransform(callbacks: any) {
   const { columnName, sourceColumn, pattern, group, error } = DialogStore.regexpExtractState;
   const columns = AppStore.columns.value;
 
@@ -167,8 +168,8 @@ export async function applyRegexpExtractTransform(callbacks: any, app?: any) {
     await callbacks.onError?.('Please select a source column');
     return;
   }
-  if (columns.includes(colName) && app) {
-    const confirmed = await app.confirm(
+  if (columns.includes(colName)) {
+    const confirmed = await confirm(
       `Column "${colName}" already exists. It will be overwritten. Continue?`
     );
     if (!confirmed) return;

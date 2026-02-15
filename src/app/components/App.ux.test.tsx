@@ -50,7 +50,6 @@ describe('App UX Interactions', () => {
     // Set up EDA callbacks since tests don't call init()
     setEdaCallbacks({
       updateToolbarPosition: () => AppController.updateToolbarPosition(),
-      applyFilterTransform: async () => {},
       clearColumnSelection: () => AppController.clearColumnSelection(),
     });
   });

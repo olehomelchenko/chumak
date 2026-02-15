@@ -5,7 +5,7 @@
  * This single source of truth reduces maintenance burden and prevents inconsistencies.
  *
  * When adding a new dialog:
- * 1. Add entry to DIALOG_REGISTRY below
+ * 1. Add entry to DIALOG_REGISTRY below (including applyHandler if transform dialog)
  * 2. Create dialog component in src/app/components/
  * 3. Add dialog state to DialogStore (if needed)
  * 4. Implement handler function (if transform dialog)
@@ -13,10 +13,37 @@
 
 import type { ComponentType } from 'preact';
 import type { DialogName } from './types';
+import type { ExecutionCallbacks } from './services/StepService';
 import { DialogStore } from './stores/DialogStore';
+
+// Transform handlers
+import * as FilterHandlers from './handlers/transform/filter-handlers';
+import * as DeriveHandlers from './handlers/transform/derive-handlers';
+import * as SimpleHandlers from './handlers/transform/simple-handlers';
+import * as SampleHandlers from './handlers/transform/sample-handlers';
+import * as SpreadHandlers from './handlers/transform/spread-handlers';
+import * as UnrollHandlers from './handlers/transform/unroll-handlers';
+import * as SplitHandlers from './handlers/transform/split-handlers';
+import * as MergeHandlers from './handlers/transform/merge-handlers';
+import * as RegexpHandlers from './handlers/transform/regexp-handlers';
+import * as DateHandlers from './handlers/transform/date-handlers';
+import * as ParseDateHandlers from './handlers/transform/parse-date-handlers';
+import * as TextHandlers from './handlers/transform/text-handlers';
+import * as FoldHandlers from './handlers/transform/fold-handlers';
+import * as PivotHandlers from './handlers/transform/pivot-handlers';
+import * as AggregateHandlers from './handlers/transform/aggregate-handlers';
+import * as WindowHandlers from './handlers/transform/window-handlers';
+import * as JoinHandlers from './handlers/transform/join-handlers';
+import * as AppendHandlers from './handlers/transform/append-handlers';
+import * as DedupeHandlers from './handlers/transform/dedupe-handlers';
+import * as PatternHandlers from './handlers/transform/pattern-handlers';
+import * as ColumnEditorHandlers from './handlers/dialog/column-editor-handlers';
 
 // Dialog type determines rendering location and style
 export type DialogType = 'slide-panel' | 'centered-modal' | 'full-page';
+
+// Apply handler function type
+export type ApplyHandler = (callbacks: ExecutionCallbacks) => Promise<void>;
 
 // Dialog metadata interface
 export interface DialogConfig {
@@ -27,6 +54,7 @@ export interface DialogConfig {
   buttonText?: string; // Custom button text (defaults to "Apply")
   initState?: (section?: string) => void; // Optional initialization logic
   isUrlNavigable?: boolean; // Whether dialog should update URL hash
+  applyHandler?: ApplyHandler; // Handler called when Apply is clicked
 }
 
 /**
@@ -42,120 +70,140 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     name: 'filter',
     title: 'Filter Rows',
     type: 'slide-panel',
+    applyHandler: (cb) => FilterHandlers.applyFilterTransform(cb),
   },
 
   derive: {
     name: 'derive',
     title: 'Derive Column',
     type: 'slide-panel',
+    applyHandler: (cb) => DeriveHandlers.applyDeriveTransform(cb),
   },
 
   sort: {
     name: 'sort',
     title: 'Sort Rows',
     type: 'slide-panel',
+    applyHandler: (cb) => SimpleHandlers.applySortTransform(cb),
   },
 
   sliceRows: {
     name: 'sliceRows',
     title: 'Keep / Remove Rows',
     type: 'slide-panel',
+    applyHandler: (cb) => SimpleHandlers.applySliceRowsTransform(cb),
   },
 
   index: {
     name: 'index',
     title: 'Add Index Column',
     type: 'slide-panel',
+    applyHandler: (cb) => SimpleHandlers.applyIndexTransform(cb),
   },
 
   sample: {
     name: 'sample',
     title: 'Sample Rows',
     type: 'slide-panel',
+    applyHandler: (cb) => SampleHandlers.applySampleTransform(cb),
   },
 
   spread: {
     name: 'spread',
     title: 'Spread Array Column',
     type: 'slide-panel',
+    applyHandler: (cb) => SpreadHandlers.applySpreadTransform(cb),
   },
 
   unroll: {
     name: 'unroll',
     title: 'Unroll Array Column',
     type: 'slide-panel',
+    applyHandler: (cb) => UnrollHandlers.applyUnrollTransform(cb),
   },
 
   split: {
     name: 'split',
     title: 'Split Column',
     type: 'slide-panel',
+    applyHandler: (cb) => SplitHandlers.applySplitTransform(cb),
   },
 
   merge: {
     name: 'merge',
     title: 'Merge Columns',
     type: 'slide-panel',
+    applyHandler: (cb) => MergeHandlers.applyMergeTransform(cb),
   },
 
   regexpMatch: {
     name: 'regexpMatch',
     title: 'Regexp Match',
     type: 'slide-panel',
+    applyHandler: (cb) => RegexpHandlers.applyRegexpMatchTransform(cb),
   },
 
   regexpExtract: {
     name: 'regexpExtract',
     title: 'Regexp Extract',
     type: 'slide-panel',
+    applyHandler: (cb) => RegexpHandlers.applyRegexpExtractTransform(cb),
   },
 
   date: {
     name: 'date',
     title: 'Date Operations',
     type: 'slide-panel',
+    applyHandler: (cb) => DateHandlers.applyDateTransform(cb),
   },
 
   parseDate: {
     name: 'parseDate',
     title: 'Parse Date',
     type: 'slide-panel',
+    applyHandler: (cb) => ParseDateHandlers.applyParseDateTransform(cb),
   },
 
   text: {
     name: 'text',
     title: 'Text Operations',
     type: 'slide-panel',
+    applyHandler: (cb) => TextHandlers.applyTextTransform(cb),
   },
 
   dedupe: {
     name: 'dedupe',
     title: 'Duplicates',
     type: 'slide-panel',
+    applyHandler: (cb) => DedupeHandlers.applyDedupeTransform(cb),
   },
 
   fold: {
     name: 'fold',
     title: 'Unpivot Data (Fold)',
     type: 'slide-panel',
+    applyHandler: (cb) => FoldHandlers.applyFoldTransform(cb),
   },
 
   pivot: {
     name: 'pivot',
     title: 'Pivot Data (Wide)',
     type: 'slide-panel',
+    applyHandler: (cb) => PivotHandlers.applyPivotTransform(cb),
   },
 
   aggregate: {
     name: 'aggregate',
     title: 'Group By',
     type: 'slide-panel',
+    applyHandler: (cb) => AggregateHandlers.applyAggregateTransform(cb),
   },
 
   window: {
     name: 'window',
     title: 'Window Functions',
     type: 'slide-panel',
+    applyHandler: (cb) => WindowHandlers.applyWindowTransform(cb),
   },
 
   join: {
@@ -163,6 +211,7 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     title: 'Join Data',
     type: 'slide-panel',
     buttonText: 'Apply Join',
+    applyHandler: (cb) => JoinHandlers.applyJoinTransform(cb),
   },
 
   append: {
@@ -170,51 +219,57 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     title: 'Append Data',
     type: 'slide-panel',
     buttonText: 'Apply Append',
+    applyHandler: (cb) => AppendHandlers.applyAppendTransform(cb),
   },
 
   replace: {
     name: 'replace',
     title: 'Replace Values',
     type: 'slide-panel',
+    applyHandler: (cb) => SimpleHandlers.applyReplaceTransform(cb),
   },
 
   'column-editor': {
     name: 'column-editor',
     title: 'Edit Columns',
     type: 'slide-panel',
+    applyHandler: (cb) => ColumnEditorHandlers.applyColumnEditorTransform(cb),
   },
 
   impute: {
     name: 'impute',
     title: 'Impute Missing Values',
     type: 'slide-panel',
+    applyHandler: (cb) => SimpleHandlers.applyImputeTransform(cb),
   },
 
-  // Deprecated: Pattern operations are now unified in column-editor dialog
-  // selectPattern: {
-  //   name: 'selectPattern',
-  //   title: 'Select Pattern',
-  //   type: 'slide-panel',
-  // },
-  //
-  // removePattern: {
-  //   name: 'removePattern',
-  //   title: 'Remove Pattern',
-  //   type: 'slide-panel',
-  // },
+  selectPattern: {
+    name: 'selectPattern',
+    title: 'Select Pattern',
+    type: 'slide-panel',
+    applyHandler: (cb) => PatternHandlers.applySelectPatternTransform(cb),
+  },
+
+  removePattern: {
+    name: 'removePattern',
+    title: 'Remove Pattern',
+    type: 'slide-panel',
+    applyHandler: (cb) => PatternHandlers.applyRemovePatternTransform(cb),
+  },
 
   conditional: {
     name: 'conditional',
     title: 'Conditional Column',
     type: 'slide-panel',
+    applyHandler: (cb) => PatternHandlers.applyConditionalTransform(cb),
   },
 
-  // Deprecated: Pattern operations are now unified in column-editor dialog
-  // renamePattern: {
-  //   name: 'renamePattern',
-  //   title: 'Rename Pattern',
-  //   type: 'slide-panel',
-  // },
+  renamePattern: {
+    name: 'renamePattern',
+    title: 'Rename Pattern',
+    type: 'slide-panel',
+    applyHandler: (cb) => PatternHandlers.applyRenamePatternTransform(cb),
+  },
 
   // === Import Dialogs ===
 

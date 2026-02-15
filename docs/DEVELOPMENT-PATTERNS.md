@@ -782,18 +782,16 @@ The registry eliminates the need to update `isSlidePanel()`, `getDialogTitle()`,
 
 #### Step 8: Wiring Transform Apply Button
 
-For transform dialogs, the Apply button must be connected through the callback chain. This requires updates in **5 files**:
+For transform dialogs, register the `applyHandler` directly in the dialog registry. This requires updates in **2 files**:
 
-| File                                       | What to Add                                                 |
-| ------------------------------------------ | ----------------------------------------------------------- |
-| `src/app/handlers/transform/*-handlers.ts` | `applyYourTransform(callbacks)` function                    |
-| `src/app/handlers/core/step-handlers.ts`   | Add `applyYourTransform` to `StepCallbacks` interface       |
-| `src/app/handlers/core/step-handlers.ts`   | Add `case 'yourDialog':` in `applyActiveTransform()` switch |
-| `src/app/orchestration/AppController.ts`   | Import handlers and expose `applyYourTransform` method      |
-| `src/syto-app.ts`                          | Wire callback in `setStepCallbacks({...})`                  |
-| `src/app/handlers/test-utils.ts`           | Add mock to `createMockStepCallbacks()`                     |
+| File                                       | What to Add                                       |
+| ------------------------------------------ | ------------------------------------------------- |
+| `src/app/handlers/transform/*-handlers.ts` | `applyYourTransform(callbacks)` function          |
+| `src/app/dialog-registry.ts`               | Add `applyHandler` to the dialog's registry entry |
 
-**Example flow:**
+The `applyActiveTransform()` function in `step-handlers.ts` automatically looks up the handler from the registry — no switch case, AppController method, syto-app wiring, or test-utils mock needed.
+
+**Example:**
 
 ```typescript
 // 1. Handler (src/app/handlers/transform/your-handlers.ts)
@@ -802,33 +800,16 @@ export async function applyYourTransform(callbacks: ExecutionCallbacks) {
   await StepService.runTransform('Your Transform', transform, callbacks);
 }
 
-// 2. StepCallbacks interface (src/app/handlers/core/step-handlers.ts)
-export type StepCallbacks = {
-  // ... existing callbacks
-  applyYourTransform: () => Promise<void>;
-};
-
-// 3. Switch case (src/app/handlers/core/step-handlers.ts)
-case 'yourDialog':
-  await callbacks?.applyYourTransform();
-  break;
-
-// 4. AppController (src/app/orchestration/AppController.ts)
-import * as YourHandlers from '../handlers/transform/your-handlers';
-// ...
-async applyYourTransform(): Promise<void> {
-  await YourHandlers.applyYourTransform(createExecutionCallbacks());
+// 2. Registry entry (src/app/dialog-registry.ts)
+yourDialog: {
+  name: 'yourDialog',
+  title: 'Your Transform',
+  type: 'slide-panel',
+  applyHandler: (cb) => YourHandlers.applyYourTransform(cb),
 },
-
-// 5. syto-app.ts
-setStepCallbacks({
-  // ... existing callbacks
-  applyYourTransform: () => AppController.applyYourTransform(),
-});
-
-// 6. test-utils.ts - createMockStepCallbacks()
-applyYourTransform: vi.fn().mockResolvedValue(undefined),
 ```
+
+If the handler needs user confirmation, import `confirm` or `prompt` directly from `notification-handlers` instead of passing an `app` parameter.
 
 ### 7.2 Adding a New Function
 

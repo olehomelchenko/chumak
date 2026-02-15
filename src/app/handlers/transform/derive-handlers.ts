@@ -6,6 +6,7 @@ import * as HelperHandlers from '../core/helper-handlers';
 import { StepService } from '../../services/StepService';
 import { createDebouncedPreview, clearPreview, PreviewResult } from '../preview-engine';
 import { validateExpression } from '../validation-engine';
+import { confirm } from '../core/notification-handlers';
 
 export function validateDeriveExpression() {
   validateExpression(DialogStore.deriveState.expression.value, AppStore.columns.value, {
@@ -64,7 +65,7 @@ export function updateDerivePreview() {
 // Re-export clearPreview from preview-engine
 export { clearPreview };
 
-export async function applyDeriveTransform(callbacks: any, app?: any) {
+export async function applyDeriveTransform(callbacks: any) {
   const columnName = DialogStore.deriveState.columnName.value;
   const expression = DialogStore.deriveState.expression.value;
   const error = DialogStore.deriveState.error.value;
@@ -79,12 +80,10 @@ export async function applyDeriveTransform(callbacks: any, app?: any) {
     return;
   }
   if (columns.includes(columnName)) {
-    if (app) {
-      const confirmed = await app.confirm(
-        `Column "${columnName}" already exists. It will be overwritten. Continue?`
-      );
-      if (!confirmed) return;
-    }
+    const confirmed = await confirm(
+      `Column "${columnName}" already exists. It will be overwritten. Continue?`
+    );
+    if (!confirmed) return;
   }
 
   const transform = { derive: { [columnName]: expression } };

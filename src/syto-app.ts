@@ -65,37 +65,14 @@ export class SytoApp {
       onPivotConfigChange: () => AppController.onPivotConfigChange(),
       updateSplitPreview: () => AppController.updateSplitPreview(),
       updateDedupePreview: () => AppController.updateDedupePreview(),
-      applyFilterTransform: () => AppController.applyFilterTransform(),
-      applySortTransform: () => AppController.applySortTransform(),
-      applySliceRowsTransform: () => AppController.applySliceRowsTransform(),
-      applySampleTransform: () => AppController.applySampleTransform(),
-      applySpreadTransform: () => AppController.applySpreadTransform(),
-      applyUnrollTransform: () => AppController.applyUnrollTransform(),
-      applyIndexTransform: () => AppController.applyIndexTransform(),
-      applySplitTransform: () => AppController.applySplitTransform(),
-      applyMergeTransform: () => AppController.applyMergeTransform(),
-      applyDeriveTransform: () => AppController.applyDeriveTransform(),
-      applyRegexpMatchTransform: () => AppController.applyRegexpMatchTransform(),
-      applyRegexpExtractTransform: () => AppController.applyRegexpExtractTransform(),
-      applyFoldTransform: () => AppController.applyFoldTransform(),
-      applyPivotTransform: () => AppController.applyPivotTransform(),
-      applyAggregateTransform: () => AppController.applyAggregateTransform(),
-      applyJoinTransform: () => AppController.applyJoinTransform(),
-      applyAppendTransform: () => AppController.applyAppendTransform(),
-      applyReplaceTransform: () => AppController.applyReplaceTransform(),
-      applyDedupeTransform: () => AppController.applyDedupeTransform(),
-      applyImputeTransform: () => AppController.applyImputeTransform(),
-      applyWindowTransform: () => AppController.applyWindowTransform(),
       confirmImport: () => AppController.confirmImport(),
       fetchAndImportFromUrl: () => AppController.fetchAndImportFromUrl(),
       generateData: () => AppController.generateData(),
-      runTransform: (name, config, close) => AppController.runTransform(name, config, close),
     });
 
     // Set up EDA handler callbacks using AppController
     setEdaCallbacks({
       updateToolbarPosition: () => AppController.updateToolbarPosition(),
-      applyFilterTransform: () => AppController.applyFilterTransform(),
       clearColumnSelection: () => AppController.clearColumnSelection(),
     });
 

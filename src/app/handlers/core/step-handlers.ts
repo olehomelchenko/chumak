@@ -5,16 +5,13 @@ import { DialogStore } from '../../stores/DialogStore';
 import { AppStore } from '../../stores/AppStore';
 import { StepService, ComputeResult } from '../../services/StepService';
 import type { PivotAggregation } from '../../components/PivotDialog';
-import * as ColumnEditorHandlers from '../dialog/column-editor-handlers';
-import * as DateHandlers from '../transform/date-handlers';
-import * as ParseDateHandlers from '../transform/parse-date-handlers';
-import * as TextHandlers from '../transform/text-handlers';
 import * as HelperHandlers from './helper-handlers';
-import * as PatternHandlers from '../transform/pattern-handlers';
 import { showError, showWarning, confirm } from './notification-handlers';
+import { getDialogConfig } from '../../dialog-registry';
 
 /**
- * Callbacks for step operations
+ * Callbacks for step operations.
+ * Transform apply handlers are registered in dialog-registry.ts.
  */
 export type StepCallbacks = {
   updatePagination: () => void;
@@ -25,32 +22,10 @@ export type StepCallbacks = {
   onPivotConfigChange: () => void;
   updateSplitPreview?: () => void;
   updateDedupePreview?: () => void;
-  // Transform application methods
-  applyFilterTransform: () => Promise<void>;
-  applySortTransform: () => Promise<void>;
-  applySliceRowsTransform: () => Promise<void>;
-  applySampleTransform: () => Promise<void>;
-  applySpreadTransform: () => Promise<void>;
-  applyUnrollTransform: () => Promise<void>;
-  applyIndexTransform: () => Promise<void>;
-  applySplitTransform: () => Promise<void>;
-  applyMergeTransform: () => Promise<void>;
-  applyDeriveTransform: () => Promise<void>;
-  applyRegexpMatchTransform: () => Promise<void>;
-  applyRegexpExtractTransform: () => Promise<void>;
-  applyFoldTransform: () => Promise<void>;
-  applyPivotTransform: () => Promise<void>;
-  applyAggregateTransform: () => Promise<void>;
-  applyJoinTransform: () => Promise<void>;
-  applyAppendTransform: () => Promise<void>;
-  applyReplaceTransform: () => Promise<void>;
-  applyDedupeTransform: () => Promise<void>;
-  applyImputeTransform: () => Promise<void>;
-  applyWindowTransform: () => Promise<void>;
+  // Non-transform operations (import, generate)
   confirmImport: () => void;
   fetchAndImportFromUrl: () => Promise<void>;
   generateData: () => Promise<void>;
-  runTransform: (name: string, config: any, close?: boolean) => Promise<boolean>;
 };
 
 let callbacks: StepCallbacks | null = null;
@@ -64,112 +39,28 @@ export function setStepCallbacks(cb: StepCallbacks): void {
 
 /**
  * Dispatches transform application based on the active dialog.
- * Each case calls the corresponding method via callbacks.
+ * Looks up the apply handler from the dialog registry.
  */
 export async function applyActiveTransform(): Promise<void> {
   const activeDialog = AppStore.activeDialog.value;
 
+  // Non-transform dialogs that require special handling
   switch (activeDialog) {
-    case 'filter':
-      await callbacks?.applyFilterTransform();
-      break;
-    case 'sort':
-      await callbacks?.applySortTransform();
-      break;
-    case 'sliceRows':
-      await callbacks?.applySliceRowsTransform();
-      break;
-    case 'sample':
-      await callbacks?.applySampleTransform();
-      break;
-    case 'spread':
-      await callbacks?.applySpreadTransform();
-      break;
-    case 'unroll':
-      await callbacks?.applyUnrollTransform();
-      break;
-    case 'index':
-      await callbacks?.applyIndexTransform();
-      break;
-    case 'split':
-      await callbacks?.applySplitTransform();
-      break;
-    case 'merge':
-      await callbacks?.applyMergeTransform();
-      break;
-    case 'derive':
-      await callbacks?.applyDeriveTransform();
-      break;
-    case 'regexpMatch':
-      await callbacks?.applyRegexpMatchTransform();
-      break;
-    case 'regexpExtract':
-      await callbacks?.applyRegexpExtractTransform();
-      break;
-    case 'date':
-      await DateHandlers.applyDateTransform(HelperHandlers.createExecutionCallbacks());
-      break;
-    case 'parseDate':
-      await ParseDateHandlers.applyParseDateTransform(HelperHandlers.createExecutionCallbacks());
-      break;
-    case 'text':
-      await TextHandlers.applyTextTransform(HelperHandlers.createExecutionCallbacks());
-      break;
-    case 'fold':
-      await callbacks?.applyFoldTransform();
-      break;
-    case 'pivot':
-      await callbacks?.applyPivotTransform();
-      break;
-    case 'aggregate':
-      await callbacks?.applyAggregateTransform();
-      break;
-    case 'window':
-      await callbacks?.applyWindowTransform();
-      break;
-    case 'join':
-      await callbacks?.applyJoinTransform();
-      break;
-    case 'append':
-      await callbacks?.applyAppendTransform();
-      break;
-    case 'replace':
-      await callbacks?.applyReplaceTransform();
-      break;
-    case 'dedupe':
-      await callbacks?.applyDedupeTransform();
-      break;
-    case 'impute':
-      await callbacks?.applyImputeTransform();
-      break;
-    case 'selectPattern':
-      await PatternHandlers.applySelectPatternTransform(HelperHandlers.createExecutionCallbacks());
-      break;
-    case 'removePattern':
-      await PatternHandlers.applyRemovePatternTransform(HelperHandlers.createExecutionCallbacks());
-      break;
-    case 'conditional':
-      await PatternHandlers.applyConditionalTransform(HelperHandlers.createExecutionCallbacks());
-      break;
-    case 'renamePattern':
-      await PatternHandlers.applyRenamePatternTransform(HelperHandlers.createExecutionCallbacks());
-      break;
-    case 'column-editor':
-      await ColumnEditorHandlers.applyColumnEditorTransform({
-        onDialogClose: (force: boolean) => callbacks?.closeDialog(force),
-        runTransform: (name: string, config: any) =>
-          callbacks?.runTransform(name, config) ?? Promise.resolve(false),
-      });
-      break;
     case 'import-csv':
       callbacks?.confirmImport();
-      break;
+      return;
     case 'import-url':
       await callbacks?.fetchAndImportFromUrl();
-      break;
+      return;
     case 'generate':
       await callbacks?.generateData();
-      break;
+      return;
+  }
+
+  // Registry-driven dispatch for all transform dialogs
+  const config = getDialogConfig(activeDialog);
+  if (config?.applyHandler) {
+    await config.applyHandler(HelperHandlers.createExecutionCallbacks());
   }
 }
 

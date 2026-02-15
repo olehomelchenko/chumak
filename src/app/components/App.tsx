@@ -191,7 +191,7 @@ export function App() {
 
         <main class={styles.mainContent}>
           <MainContent {...mainContentProps} />
-          <EdaPanel onApplyFilter={() => AppController.applyFilterTransform()} />
+          <EdaPanel />
         </main>
 
         {/* Slide Panel Shell */}

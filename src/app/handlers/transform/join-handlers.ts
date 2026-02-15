@@ -4,6 +4,7 @@ import { DialogStore } from '../../stores/DialogStore';
 import { AppStore } from '../../stores/AppStore';
 import { StepService } from '../../services/StepService';
 import { DependencyService } from '../../services/DependencyService';
+import { prompt } from '../core/notification-handlers';
 
 export function initializeJoinDialog() {
   const models = AppStore.models.value;
@@ -441,7 +442,7 @@ export async function previewJoin() {
   }
 }
 
-export async function applyJoinTransform(callbacks: any, app?: any) {
+export async function applyJoinTransform(callbacks: any) {
   const state = DialogStore.joinState;
   const leftModelId = state.leftModel.value;
   const rightModel = state.rightModel.value;
@@ -558,11 +559,7 @@ export async function applyJoinTransform(callbacks: any, app?: any) {
       }
 
       const defaultName = `join_${AppStore.models.value.filter((m) => m.sourceId === leftSource.id).length + 1}`;
-      if (!app?.prompt) {
-        await callbacks.onError?.('Cannot create new model: app instance not available');
-        return;
-      }
-      const modelName = await app.prompt('Enter name for new model:', defaultName);
+      const modelName = await prompt('Enter name for new model:', defaultName);
       if (!modelName || modelName.trim() === '') return;
 
       const name = modelName.trim();
@@ -606,19 +603,14 @@ export async function applyJoinTransform(callbacks: any, app?: any) {
       });
 
       AppStore.models.value = [...AppStore.models.value, newModel];
-      if (app?.switchToModel) {
-        app.switchToModel(newModel);
-      } else {
-        // Fallback: use ModelService
-        const { ModelService } = await import('../../services/ModelService');
-        ModelService.switchToModel(
-          newModel,
-          () => {},
-          () => {},
-          'prepare',
-          () => {}
-        );
-      }
+      const { ModelService } = await import('../../services/ModelService');
+      ModelService.switchToModel(
+        newModel,
+        () => {},
+        () => {},
+        'prepare',
+        () => {}
+      );
       await callbacks.onDialogClose?.(true);
     } else {
       // Apply to current model (existing behavior)
