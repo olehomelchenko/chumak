@@ -2,6 +2,7 @@ import { useSignalEffect } from '@preact/signals';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 import * as DeriveHandlers from '../handlers/transform/derive-handlers';
+import { ExpressionEditor } from './ExpressionEditor';
 import styles from './TransformDialog.module.css';
 
 export function DeriveDialog() {
@@ -33,12 +34,11 @@ export function DeriveDialog() {
 
       <div class={styles.group}>
         <label class={styles.label}>Expression:</label>
-        <input
-          type="text"
-          class={styles.input}
+        <ExpressionEditor
           value={expression.value}
-          onInput={(e) => (expression.value = (e.target as HTMLInputElement).value)}
+          onChange={(v) => (expression.value = v)}
           placeholder="e.g., (profit / sales) * 100"
+          columns={AppStore.columns.value}
         />
       </div>
 

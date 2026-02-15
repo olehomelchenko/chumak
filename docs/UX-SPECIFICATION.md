@@ -291,13 +291,14 @@ Complex dialogs are split into focused sub-components organized in directories:
 
 ### 7.6 Shared Components
 
-| Component            | Purpose                                          |
-| -------------------- | ------------------------------------------------ |
-| `ColumnToolbar.tsx`  | Floating actions on column header                |
-| `CellToolbar.tsx`    | Floating actions on cell click                   |
-| `TypeIndicator.tsx`  | Column type indicator with icon                  |
-| `GlobalUI.tsx`       | Toast notifications (see §3.6) and global modals |
-| `ToastContainer.tsx` | Renders toast notification stack                 |
+| Component              | Purpose                                          |
+| ---------------------- | ------------------------------------------------ |
+| `ColumnToolbar.tsx`    | Floating actions on column header                |
+| `CellToolbar.tsx`      | Floating actions on cell click                   |
+| `TypeIndicator.tsx`    | Column type indicator with icon                  |
+| `ExpressionEditor.tsx` | CM6 single-line input with syntax highlighting   |
+| `GlobalUI.tsx`         | Toast notifications (see §3.6) and global modals |
+| `ToastContainer.tsx`   | Renders toast notification stack                 |
 
 ---
 

@@ -40,12 +40,12 @@ const ALLOWED_OPS = {
   unary: new Set(['!', '-', '+', 'not']),
 };
 
-interface FunctionSpec {
+export interface FunctionSpec {
   minArgs: number;
   maxArgs: number;
 }
 
-const ALLOWED_FUNCTIONS: Record<string, FunctionSpec> = {
+export const ALLOWED_FUNCTIONS: Record<string, FunctionSpec> = {
   // Regex functions
   regexp_match: { minArgs: 2, maxArgs: 2 },
   regexp_extract: { minArgs: 2, maxArgs: 3 },

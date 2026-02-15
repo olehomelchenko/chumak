@@ -1,4 +1,6 @@
 import { DialogStore } from '../stores/DialogStore';
+import { AppStore } from '../stores/AppStore';
+import { ExpressionEditor } from './ExpressionEditor';
 import styles from './TransformDialog.module.css';
 
 export function ConditionalDialog() {
@@ -72,28 +74,22 @@ export function ConditionalDialog() {
               <label style={{ fontSize: '0.875rem', display: 'block', marginBottom: '0.25rem' }}>
                 When (expression):
               </label>
-              <input
-                type="text"
-                class={styles.input}
+              <ExpressionEditor
                 value={cond.when}
-                onInput={(e) =>
-                  updateCondition(index, 'when', (e.target as HTMLInputElement).value)
-                }
+                onChange={(v) => updateCondition(index, 'when', v)}
                 placeholder="e.g., sales > 10000"
+                columns={AppStore.columns.value}
               />
             </div>
             <div>
               <label style={{ fontSize: '0.875rem', display: 'block', marginBottom: '0.25rem' }}>
                 Then (expression):
               </label>
-              <input
-                type="text"
-                class={styles.input}
+              <ExpressionEditor
                 value={cond.then}
-                onInput={(e) =>
-                  updateCondition(index, 'then', (e.target as HTMLInputElement).value)
-                }
+                onChange={(v) => updateCondition(index, 'then', v)}
                 placeholder="e.g., 'platinum'"
+                columns={AppStore.columns.value}
               />
             </div>
           </div>
@@ -105,12 +101,11 @@ export function ConditionalDialog() {
 
       <div class={styles.group}>
         <label class={styles.label}>Else (default value):</label>
-        <input
-          type="text"
-          class={styles.input}
+        <ExpressionEditor
           value={elseValue.value}
-          onInput={(e) => (elseValue.value = (e.target as HTMLInputElement).value)}
+          onChange={(v) => (elseValue.value = v)}
           placeholder="e.g., 'bronze'"
+          columns={AppStore.columns.value}
         />
         <p class={styles.helpText}>Value used when no conditions match</p>
       </div>

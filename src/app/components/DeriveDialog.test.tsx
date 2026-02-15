@@ -1,5 +1,18 @@
 import { render, screen, fireEvent, waitFor } from '@testing-library/preact';
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
+
+// Mock ExpressionEditor as a plain input
+vi.mock('./ExpressionEditor', () => ({
+  ExpressionEditor: ({ value, onChange, placeholder }: any) => (
+    <input
+      type="text"
+      value={value}
+      onInput={(e: any) => onChange(e.target.value)}
+      placeholder={placeholder}
+    />
+  ),
+}));
+
 import { DeriveDialog } from './DeriveDialog';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';

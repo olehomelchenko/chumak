@@ -6,6 +6,7 @@ import { useSignalEffect } from '@preact/signals';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 import * as FilterHandlers from '../handlers/transform/filter-handlers';
+import { ExpressionEditor } from './ExpressionEditor';
 import styles from './TransformDialog.module.css';
 
 // Re-export for backward compatibility
@@ -29,12 +30,11 @@ export function FilterDialog() {
   return (
     <div>
       <label class={styles.label}>Keep rows where:</label>
-      <input
-        type="text"
-        class={styles.input}
+      <ExpressionEditor
         value={expression.value}
-        onInput={(e) => (expression.value = (e.target as HTMLInputElement).value)}
+        onChange={(v) => (expression.value = v)}
         placeholder="e.g., sales > 1000"
+        columns={AppStore.columns.value}
       />
 
       {/* Preview mode toggle */}

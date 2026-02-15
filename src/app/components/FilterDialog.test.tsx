@@ -2,8 +2,21 @@
  * FilterDialog Component Tests
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, fireEvent, waitFor } from '@testing-library/preact';
+
+// Mock ExpressionEditor as a plain input
+vi.mock('./ExpressionEditor', () => ({
+  ExpressionEditor: ({ value, onChange, placeholder }: any) => (
+    <input
+      type="text"
+      value={value}
+      onInput={(e: any) => onChange(e.target.value)}
+      placeholder={placeholder}
+    />
+  ),
+}));
+
 import { FilterDialog } from './FilterDialog';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';

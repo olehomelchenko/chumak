@@ -162,7 +162,7 @@ Current errors include position information. Could be better:
 
 - Suggestions for typos ("Did you mean `sales` instead of `sale`?")
 - Schema-aware hints ("Column `price` is string type, did you mean to convert it?")
-- Visual highlighting in expression input
+- ~~Visual highlighting in expression input~~ — Done (CodeMirror 6 ExpressionEditor with syntax highlighting and autocomplete)
 
 ---
 
@@ -269,6 +269,7 @@ Completed features are documented here for posterity:
   - Split oversized components into focused sub-components (`join/`, `generate/`, `eda/`)
   - Reduced `syto-app.ts` from 1,579 to 1,200 LoC by removing proxy pattern
   - Added 166 handler tests, improving coverage from 16% to 38%
+- **Expression input syntax highlighting & autocomplete** — February 2026. Replaced plain `<input>` elements in Filter, Derive, and Conditional dialogs with CodeMirror 6 ExpressionEditor component. Provides syntax highlighting for strings, numbers, functions, columns, operators, and keywords. Autocomplete suggests column names, whitelisted functions (with signatures from generated docs), and keywords.
 
 ---
 
