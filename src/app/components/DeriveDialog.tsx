@@ -1,22 +1,32 @@
-import { useSignalEffect } from '@preact/signals';
+import { useSignal, useSignalEffect } from '@preact/signals';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 import * as DeriveHandlers from '../handlers/transform/derive-handlers';
+import { openDialog } from '../handlers/dialog/dialog-handlers';
+import {
+  computeTokens,
+  EMPTY_TOKENS,
+  type ExpressionTokens,
+} from '../../core/expression-token-extractor';
+import { getActiveSchema } from '../handlers/core/helper-handlers';
 import { ExpressionEditor } from './ExpressionEditor';
+import { ExpressionDocs } from './ExpressionDocs';
 import styles from './TransformDialog.module.css';
 
 export function DeriveDialog() {
   const { columnName, expression, error } = DialogStore.deriveState;
+  const tokens = useSignal<ExpressionTokens>(EMPTY_TOKENS);
 
   useSignalEffect(() => {
     void columnName.value;
-    void expression.value;
+    const expr = expression.value;
     DeriveHandlers.validateDeriveExpression();
     DeriveHandlers.debouncedUpdateDerivePreview();
+    tokens.value = computeTokens(expr, AppStore.columns.value);
   });
 
-  const handleOpenReference = () => {
-    AppStore.activeDialog.value = 'expressions';
+  const openRef = (section?: string) => {
+    openDialog('reference', section);
   };
 
   return (
@@ -45,173 +55,71 @@ export function DeriveDialog() {
       {/* Error message */}
       {error.value && <div class={styles.error}>{error.value}</div>}
 
-      {/* Expression Help Section */}
+      {/* Dynamic expression docs */}
+      <ExpressionDocs
+        functionNames={tokens.value.functions}
+        columnNames={tokens.value.columns}
+        schema={getActiveSchema()}
+      />
+
+      {/* Syntax quick reference */}
       <div class={styles.expressionHelp}>
         <div class={styles.expressionHelpTitle}>
-          <span>Expression Syntax Guide</span>
+          <span>Syntax</span>
           <button
             type="button"
             class="button button--text button--small"
-            onClick={handleOpenReference}
+            onClick={() => openRef()}
             style={{ fontWeight: 500, textDecoration: 'underline' }}
           >
             Full Reference
           </button>
         </div>
 
-        {/* Supported Examples */}
-        <div class={styles.group} style={{ marginBottom: '0.75rem' }}>
-          <div class={styles.exampleTitle}>Examples:</div>
-          <div class={`${styles.exampleGrid} ${styles.mono}`} style={{ display: 'block' }}>
-            <div>
-              <code class={styles.exampleCode}>revenue - cost</code>
-              <span class={styles.exampleDescription}>— subtraction</span>
-            </div>
-            <div>
-              <code class={styles.exampleCode}>price * quantity</code>
-              <span class={styles.exampleDescription}>— multiplication</span>
-            </div>
-            <div>
-              <code class={styles.exampleCode}>(profit / sales) * 100</code>
-              <span class={styles.exampleDescription}>— percentage</span>
-            </div>
-            <div>
-              <code class={styles.exampleCode}>profit {'>'} 0 ? "Gain" : "Loss"</code>
-              <span class={styles.exampleDescription}>— conditional</span>
-            </div>
-            <div>
-              <code class={styles.exampleCode}>discount ?? 0</code>
-              <span class={styles.exampleDescription}>— default for null</span>
-            </div>
-            <div>
-              <code class={styles.exampleCode}>[Total Sales] + [Tax]</code>
-              <span class={styles.exampleDescription}>— columns with spaces</span>
-            </div>
+        <div class={styles.operatorList}>
+          <span class={styles.operatorTag}>+ − * / %</span>
+          <span class={styles.operatorTag}>&gt; &lt; &gt;= &lt;= == !=</span>
+          <span class={styles.operatorTag}>&& || ! ??</span>
+          <span class={styles.operatorTag}>? : ( )</span>
+        </div>
+
+        <div
+          class={`${styles.exampleGrid} ${styles.mono}`}
+          style={{ display: 'block', marginTop: '0.5rem' }}
+        >
+          <div>
+            <code class={styles.exampleCode}>profit {'>'} 0 ? "Gain" : "Loss"</code>
+            <span class={styles.exampleDescription}>— conditional</span>
+          </div>
+          <div>
+            <code class={styles.exampleCode}>discount ?? 0</code>
+            <span class={styles.exampleDescription}>— default for null</span>
+          </div>
+          <div>
+            <code class={styles.exampleCode}>[Total Sales] + [Tax]</code>
+            <span class={styles.exampleDescription}>— columns with spaces</span>
           </div>
         </div>
 
-        {/* Supported Operators */}
-        <div class={styles.group} style={{ marginBottom: '0.75rem' }}>
-          <div class={styles.exampleTitle}>Supported Operators:</div>
-          <div class={styles.operatorList}>
-            <span class={styles.operatorTag}>+ − * / %</span>
-            <span class={styles.operatorTag}>&gt; &lt; &gt;= &lt;= == !=</span>
-            <span class={styles.operatorTag}>&& || ! ??</span>
-            <span class={styles.operatorTag}>? : ( )</span>
-          </div>
-        </div>
-
-        {/* Available Functions */}
-        <div class={styles.group} style={{ marginBottom: '0.75rem' }}>
-          <div class={styles.exampleTitle}>Date Functions:</div>
-          <div class={`${styles.exampleGrid} ${styles.mono}`}>
-            <div>
-              <code class={styles.exampleCode}>year(d)</code>
-              <span class={styles.exampleDescription}>— 2024</span>
-            </div>
-            <div>
-              <code class={styles.exampleCode}>month(d)</code>
-              <span class={styles.exampleDescription}>— 1-12</span>
-            </div>
-            <div>
-              <code class={styles.exampleCode}>day(d)</code>
-              <span class={styles.exampleDescription}>— 1-31</span>
-            </div>
-            <div>
-              <code class={styles.exampleCode}>weekday(d)</code>
-              <span class={styles.exampleDescription}>— 0-6</span>
-            </div>
-            <div>
-              <code class={styles.exampleCode}>quarter(d)</code>
-              <span class={styles.exampleDescription}>— 1-4</span>
-            </div>
-            <div>
-              <code class={styles.exampleCode}>week(d)</code>
-              <span class={styles.exampleDescription}>— ISO week</span>
-            </div>
-            <div>
-              <code class={styles.exampleCode}>hour(d)</code>
-              <span class={styles.exampleDescription}>— 0-23</span>
-            </div>
-            <div>
-              <code class={styles.exampleCode}>minute(d)</code>
-              <span class={styles.exampleDescription}>— 0-59</span>
-            </div>
-            <div>
-              <code class={styles.exampleCode}>today()</code>
-              <span class={styles.exampleDescription}>— current date</span>
-            </div>
-            <div>
-              <code class={styles.exampleCode}>now()</code>
-              <span class={styles.exampleDescription}>— current time</span>
-            </div>
-            <div class={styles.fullSpan}>
-              <code class={styles.exampleCode}>days_between(d1, d2)</code>
-              <span class={styles.exampleDescription}>— difference in days</span>
-            </div>
-            <div class={styles.fullSpan}>
-              <code class={styles.exampleCode}>date_add(d, n, "days")</code>
-              <span class={styles.exampleDescription}>— add days/months/years</span>
-            </div>
-            <div class={styles.fullSpan}>
-              <code class={styles.exampleCode}>format_date(d, "DD/MM/YYYY")</code>
-              <span class={styles.exampleDescription}>— custom format</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Math Functions */}
-        <div class={styles.group} style={{ marginBottom: '0.75rem' }}>
-          <div class={styles.exampleTitle}>Math Functions:</div>
-          <div class={`${styles.exampleGrid} ${styles.mono}`}>
-            <div>
-              <code class={styles.exampleCode}>round(n, 2)</code>
-              <span class={styles.exampleDescription}>— round to 2 decimals</span>
-            </div>
-            <div>
-              <code class={styles.exampleCode}>abs(n)</code>
-              <span class={styles.exampleDescription}>— absolute value</span>
-            </div>
-            <div>
-              <code class={styles.exampleCode}>pow(b, e)</code>
-              <span class={styles.exampleDescription}>— power</span>
-            </div>
-            <div>
-              <code class={styles.exampleCode}>sqrt(n)</code>
-              <span class={styles.exampleDescription}>— square root</span>
-            </div>
-            <div>
-              <code class={styles.exampleCode}>floor(n)</code>
-              <span class={styles.exampleDescription}>— round down</span>
-            </div>
-            <div>
-              <code class={styles.exampleCode}>ceil(n)</code>
-              <span class={styles.exampleDescription}>— round up</span>
-            </div>
-            <div>
-              <code class={styles.exampleCode}>min(a, b, ...)</code>
-              <span class={styles.exampleDescription}>— minimum</span>
-            </div>
-            <div>
-              <code class={styles.exampleCode}>max(a, b, ...)</code>
-              <span class={styles.exampleDescription}>— maximum</span>
-            </div>
-            <div>
-              <code class={styles.exampleCode}>pi()</code>
-              <span class={styles.exampleDescription}>— 3.14159...</span>
-            </div>
-            <div>
-              <code class={styles.exampleCode}>ln(n)</code>
-              <span class={styles.exampleDescription}>— natural log</span>
-            </div>
-          </div>
-        </div>
-
-        {/* Text Functions */}
-        <div class={styles.dashedSeparator}>
-          <strong style={{ color: 'var(--color-dark-gray)' }}>Text:</strong>{' '}
-          <code class={styles.mono}>regexp_match(val, pattern)</code>,{' '}
-          <code class={styles.mono}>regexp_extract(val, pattern)</code>
+        <div class={styles.refLinks}>
+          <button type="button" class={styles.refLink} onClick={() => openRef('date')}>
+            Date
+          </button>
+          <button type="button" class={styles.refLink} onClick={() => openRef('math')}>
+            Math
+          </button>
+          <button type="button" class={styles.refLink} onClick={() => openRef('text')}>
+            Text
+          </button>
+          <button type="button" class={styles.refLink} onClick={() => openRef('regex')}>
+            Regex
+          </button>
+          <button type="button" class={styles.refLink} onClick={() => openRef('json')}>
+            JSON
+          </button>
+          <button type="button" class={styles.refLink} onClick={() => openRef('conversion')}>
+            Conversion
+          </button>
         </div>
       </div>
     </div>

@@ -1,3 +1,5 @@
+// Dynamic expression docs intentionally skipped here due to multi-field layout complexity
+// (multiple when/then/else editors). Can be added later by aggregating tokens across all fields.
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 import { ExpressionEditor } from './ExpressionEditor';

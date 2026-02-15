@@ -8,6 +8,7 @@
 import { AppStore } from '../stores/AppStore';
 import { DialogStore } from '../stores/DialogStore';
 import { DialogName } from '../types';
+import { DIALOG_REGISTRY } from '../dialog-registry';
 import { syncDialogToUrl, clearDialogFromUrl } from './UrlStateSync';
 import * as DateHandlers from '../handlers/transform/date-handlers';
 import * as ParseDateHandlers from '../handlers/transform/parse-date-handlers';
@@ -443,6 +444,13 @@ export function initDialogState(dialogName: string, section?: string): void {
       state.previewRows.value = null;
       state.error.value = null;
       callbacks?.updateImputePreview?.();
+      break;
+    }
+
+    default: {
+      // Delegate to registry initState for dialogs not handled above
+      const config = DIALOG_REGISTRY[dialogName];
+      config?.initState?.(section);
       break;
     }
   }

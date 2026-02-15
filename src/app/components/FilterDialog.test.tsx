@@ -67,12 +67,12 @@ describe('FilterDialog', () => {
     expect(errorElement.tagName).toBe('DIV');
   });
 
-  it('opens expressions dialog when reference button is clicked', () => {
+  it('opens reference dialog when reference button is clicked', () => {
     render(<FilterDialog />);
 
     const refButton = screen.getByText('Full Reference');
     fireEvent.click(refButton);
 
-    expect(AppStore.activeDialog.value).toBe('expressions');
+    expect(AppStore.activeDialog.value).toBe('reference');
   });
 });

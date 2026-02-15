@@ -65,10 +65,10 @@ describe('DeriveDialog', () => {
     expect(errorElement.tagName).toBe('DIV');
   });
 
-  it('opens expressions dialog when reference button is clicked', () => {
+  it('opens reference dialog when reference button is clicked', () => {
     render(<DeriveDialog />);
 
     fireEvent.click(screen.getByText('Full Reference'));
-    expect(AppStore.activeDialog.value).toBe('expressions');
+    expect(AppStore.activeDialog.value).toBe('reference');
   });
 });

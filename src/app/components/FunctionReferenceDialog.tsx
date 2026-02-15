@@ -1,5 +1,6 @@
 import { Fragment } from 'preact';
 import { useState, useEffect } from 'preact/hooks';
+import { syncDialogToUrl } from '../orchestration/UrlStateSync';
 import { html as operatorsHtml } from '../../content/functions/operators.md';
 import { html as regexHtml } from '../../content/functions/regex.md';
 import { html as dateHtml } from '../../content/functions/date.md';
@@ -68,7 +69,10 @@ export function FunctionReferenceDialog({ section }: { section?: string } = {}) 
                   className={`${styles.categoryButton} ${
                     activeCategory === item.id ? styles.active : ''
                   }`}
-                  onClick={() => setActiveCategory(item.id)}
+                  onClick={() => {
+                    setActiveCategory(item.id);
+                    syncDialogToUrl('reference', item.id);
+                  }}
                 >
                   {item.label}
                 </button>

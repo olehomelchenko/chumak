@@ -114,7 +114,7 @@ Comments are persisted to IndexedDB and automatically saved when edited.
 
 **Slide Panel Dialogs**: Transform operations (filter, derive, sort, join, etc.) and import dialogs (CSV/URL) use slide panels that open from the right side, occupying approximately 1/3 of the screen width. These panels support a preview pane that appears to the left when preview data is available.
 
-**Centered Modal Dialogs**: Settings, downloads, and informational dialogs (about, expressions) use centered modals that overlay the main content.
+**Centered Modal Dialogs**: Settings, downloads, and informational dialogs (about, reference) use centered modals that overlay the main content.
 
 **Unified Modal Shell**: Both dialog types use a shared component architecture that handles the backdrop, header (title + close button), and footer (actions). This ensures visual consistency and reduces code duplication across all dialogs.
 
@@ -301,6 +301,7 @@ Complex dialogs are split into focused sub-components organized in directories:
 | `CellToolbar.tsx`      | Floating actions on cell click                   |
 | `TypeIndicator.tsx`    | Column type indicator with icon                  |
 | `ExpressionEditor.tsx` | CM6 single-line input with syntax highlighting   |
+| `ExpressionDocs.tsx`   | Context-aware inline docs for expression dialogs |
 | `GlobalUI.tsx`         | Toast notifications (see §3.6) and global modals |
 | `ToastContainer.tsx`   | Renders toast notification stack                 |
 
