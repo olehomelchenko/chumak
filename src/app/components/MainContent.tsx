@@ -25,6 +25,7 @@ export function MainContent(props: MainContentProps) {
           onPasteClick={props.onPasteClick}
           onUrlClick={props.onUrlClick}
           onFileDrop={props.onFileDrop}
+          onLoadExample={props.onLoadExample}
         />
       )}
 

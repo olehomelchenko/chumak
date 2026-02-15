@@ -279,6 +279,41 @@ export function WindowDialog() {
         </button>
       </div>
 
+      {/* Inline Help */}
+      <div class={styles.expressionHelp}>
+        <div class={styles.expressionHelpTitle}>
+          <span>What are window functions?</span>
+        </div>
+        <div style={{ fontSize: '0.75rem', color: 'var(--color-dark-gray)', lineHeight: 1.8 }}>
+          <p style={{ margin: '0 0 0.5rem' }}>
+            Window functions add computed columns based on the position or neighbors of each row,
+            without reducing the number of rows (unlike Aggregate).
+          </p>
+          <div class={styles.exampleGrid}>
+            <div>
+              <code class={styles.exampleCode}>row_number</code>
+            </div>
+            <div class={styles.exampleDescription}>1, 2, 3, ...</div>
+            <div>
+              <code class={styles.exampleCode}>rank</code>
+            </div>
+            <div class={styles.exampleDescription}>1, 2, 2, 4 (gaps for ties)</div>
+            <div>
+              <code class={styles.exampleCode}>lag / lead</code>
+            </div>
+            <div class={styles.exampleDescription}>Previous / next row value</div>
+            <div>
+              <code class={styles.exampleCode}>fill_down</code>
+            </div>
+            <div class={styles.exampleDescription}>Fill nulls with value above</div>
+          </div>
+          <p style={{ margin: '0.5rem 0 0', fontStyle: 'italic' }}>
+            Use <strong>Order By</strong> to control row sequence. Use <strong>Partition By</strong>{' '}
+            to restart numbering per group.
+          </p>
+        </div>
+      </div>
+
       {/* Preview Button */}
       <div class={styles.group} style={{ marginTop: '1rem' }}>
         <button

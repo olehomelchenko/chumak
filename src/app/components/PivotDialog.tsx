@@ -41,9 +41,34 @@ export function PivotDialog() {
 
   return (
     <div>
-      <p class={styles.helpText} style={{ marginBottom: '1rem' }}>
-        Create a pivot table by selecting row groupings, column headers, and values to aggregate.
-      </p>
+      {/* Inline Help */}
+      <div class={styles.expressionHelp} style={{ marginBottom: '1rem' }}>
+        <div class={styles.expressionHelpTitle}>
+          <span>How Pivot works</span>
+        </div>
+        <div style={{ fontSize: '0.75rem', color: 'var(--color-dark-gray)', lineHeight: 1.8 }}>
+          <p style={{ margin: 0 }}>
+            Pivot transforms long data into wide format. Unique values from the{' '}
+            <strong>Columns</strong> field become new column headers, and cells are filled with the
+            aggregated <strong>Values</strong>.
+          </p>
+          <div
+            class={styles.exampleGrid}
+            style={{ marginTop: '0.5rem', fontFamily: 'var(--font-family)' }}
+          >
+            <div>
+              <strong>Before:</strong> Name, Subject, Score
+            </div>
+            <div>
+              <strong>After:</strong> Name, Math, Science, ...
+            </div>
+          </div>
+          <p style={{ margin: '0.25rem 0 0', fontStyle: 'italic', fontSize: '0.7rem' }}>
+            Use <strong>Rows</strong> for grouping, <strong>Columns</strong> for new headers,
+            <strong> Values</strong> for cell data. Use Unpivot (Fold) to reverse.
+          </p>
+        </div>
+      </div>
 
       {/* Main Layout */}
       <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '1rem' }}>

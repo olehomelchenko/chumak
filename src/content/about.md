@@ -9,10 +9,14 @@ Syto is a browser-based tool for working with tabular data. Think of it as a sim
 ## Key Features
 
 - **Visual Pipeline Builder** — Build transformations step-by-step with instant preview
-- **13+ Transform Operations** — Filter, sort, derive, aggregate, join, pivot, and more
-- **Expression Engine** — Write formulas with familiar syntax: `price * quantity`, `upper(name)`
+- **28+ Transform Operations** — Filter, sort, derive, aggregate, join, pivot, window functions, text operations, regex, date manipulation, and more
+- **Expression Engine** — Write formulas with familiar syntax: `price * quantity`, `upper(name)`, `year(date)`
 - **Smart Type Detection** — Automatic inference of numbers, dates, and text
-- **Interactive Charts** — Quick statistical summaries with boxplots and histograms
+- **Interactive EDA Charts** — Boxplots, histograms, and statistical summaries for exploratory analysis
+- **Multi-Model Pipelines** — Chain multiple data sources and models with dependency tracking
+- **Window Functions** — Row numbering, ranking, lag/lead, running totals, and fill operations
+- **Synthetic Data Generation** — Generate test datasets with realistic data patterns
+- **Keyboard Shortcuts** — Navigate steps, save workflows, and work efficiently with keyboard
 
 ## Local-First & Private
 
@@ -26,7 +30,8 @@ Syto is a browser-based tool for working with tabular data. Think of it as a sim
 
 1. **Import data** — Drag & drop a CSV, paste from clipboard, or import from URL
 2. **Transform** — Use the ribbon toolbar to filter, derive columns, aggregate, and more
-3. **Export** — Download your cleaned data as CSV or JSON
+3. **Explore** — Use the EDA panel to visualize distributions and spot patterns
+4. **Export** — Download your cleaned data as CSV or JSON
 
 ## About the Name
 

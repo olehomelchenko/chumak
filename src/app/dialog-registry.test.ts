@@ -136,6 +136,7 @@ describe('Dialog Registry', () => {
       expect(getDialogTitle('derive')).toBe('Derive Column');
       expect(getDialogTitle('join')).toBe('Join Data');
       expect(getDialogTitle('about')).toBe('About Syto');
+      expect(getDialogTitle('expressions')).toBe('Reference');
     });
 
     it('returns empty string for null', () => {

@@ -84,14 +84,3 @@
   gap: 0.5rem;
   align-items: center;
 }
-
-.clearButton {
-  background: #d33e2c !important;
-  color: white !important;
-  border-color: #d33e2c !important;
-
-  &:hover {
-    background: #b52b1a !important;
-    border-color: #b52b1a !important;
-  }
-}

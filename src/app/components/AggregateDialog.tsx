@@ -124,6 +124,49 @@ export function AggregateDialog() {
         </button>
       </div>
 
+      {/* Inline Help */}
+      <div class={styles.expressionHelp}>
+        <div class={styles.expressionHelpTitle}>
+          <span>How it works</span>
+        </div>
+        <div style={{ fontSize: '0.75rem', color: 'var(--color-dark-gray)', lineHeight: 1.8 }}>
+          <p style={{ margin: '0 0 0.5rem' }}>
+            <strong>Group By</strong> columns define the groups — rows with the same values are
+            combined. <strong>Aggregations</strong> compute a summary value for each group.
+          </p>
+          <div class={styles.exampleGrid}>
+            <div>
+              <code class={styles.exampleCode}>count</code>
+            </div>
+            <div class={styles.exampleDescription}>Number of rows</div>
+            <div>
+              <code class={styles.exampleCode}>sum</code>
+            </div>
+            <div class={styles.exampleDescription}>Total of numeric values</div>
+            <div>
+              <code class={styles.exampleCode}>mean</code>
+            </div>
+            <div class={styles.exampleDescription}>Average value</div>
+            <div>
+              <code class={styles.exampleCode}>median</code>
+            </div>
+            <div class={styles.exampleDescription}>Middle value</div>
+            <div>
+              <code class={styles.exampleCode}>min / max</code>
+            </div>
+            <div class={styles.exampleDescription}>Smallest / largest value</div>
+            <div>
+              <code class={styles.exampleCode}>distinct</code>
+            </div>
+            <div class={styles.exampleDescription}>Count of unique values</div>
+            <div>
+              <code class={styles.exampleCode}>stdev</code>
+            </div>
+            <div class={styles.exampleDescription}>Standard deviation</div>
+          </div>
+        </div>
+      </div>
+
       {/* Preview Button */}
       <div class={styles.group} style={{ marginTop: '1rem' }}>
         <button

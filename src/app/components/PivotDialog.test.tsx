@@ -27,8 +27,8 @@ describe('PivotDialog', () => {
   it('renders with default values', () => {
     render(<PivotDialog />);
 
-    expect(screen.getByText('Create a pivot table by selecting', { exact: false })).toBeDefined();
-    expect(screen.getByText('Rows')).toBeDefined();
+    expect(screen.getByText('How Pivot works')).toBeDefined();
+    expect(screen.getAllByText('Rows')[0]).toBeDefined();
     expect(screen.getAllByText('Columns')[0]).toBeDefined();
     expect(screen.getAllByText('Values')[0]).toBeDefined();
   });

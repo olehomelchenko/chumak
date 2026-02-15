@@ -30,7 +30,11 @@ Determine the review scope using `git diff` (unstaged) and `git diff --staged` (
 
 8. **Amendment**: These instructions are not strictly prohibitive. If you notice that some guidelines have valid reason to be violated or bypassed, mention it in the summary.
 
-9. **Summary**: After performing the instructions, respond with a summary of changes, focusing on what choices were made due to following these instructions and which choices were made when there was more than one way to solve it.
+9. **Code Comments**: Comments should not duplicate what the code already expresses. Remove parroting comments (e.g., `// increment counter` above `counter++`). Instead, ensure comments capture non-obvious design decisions, constraints, "why" reasoning, and gotchas that would be hidden from reading the code alone. Flag missing comments where a reader would reasonably ask "why is this done this way?"
+
+10. **Workarounds**: Flag code that works around a problem rather than solving it (e.g., `// HACK`, `// WORKAROUND`, silent catch-and-ignore, feature detection for internal bugs). If a workaround is justified (e.g., upstream bug, browser quirk, time constraint), ensure it has a comment explaining why and a reference to track resolution. If unjustified, replace it with a proper fix.
+
+11. **Summary**: After performing the instructions, respond with a summary of changes, focusing on what choices were made due to following these instructions and which choices were made when there was more than one way to solve it.
 
 ---
 

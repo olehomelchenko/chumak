@@ -7,10 +7,9 @@ type RibbonTabName = 'prepare' | 'calculate' | 'combine';
 
 export interface AppHeaderProps {
   onOpenDialog: (dialog: DialogName) => void;
-  onClearAllData: () => void;
 }
 
-export function AppHeader({ onOpenDialog, onClearAllData }: AppHeaderProps) {
+export function AppHeader({ onOpenDialog }: AppHeaderProps) {
   const ribbonTab = AppStore.ribbonTab;
   const hasData = useComputed(() => !!AppStore.currentData.value);
 
@@ -73,6 +72,14 @@ export function AppHeader({ onOpenDialog, onClearAllData }: AppHeaderProps) {
           </button>
           <button
             class="button button--secondary button--small"
+            onClick={() => onOpenDialog('reference')}
+            title="Help & Reference"
+          >
+            <span class="iconify" data-icon="carbon:help"></span>
+            <span>Help</span>
+          </button>
+          <button
+            class="button button--secondary button--small"
             onClick={() => onOpenDialog('dependency-graph')}
             title="View dependency graph between sources and models"
           >
@@ -86,13 +93,6 @@ export function AppHeader({ onOpenDialog, onClearAllData }: AppHeaderProps) {
           >
             <span class="iconify" data-icon="carbon:settings"></span>
             <span>Settings</span>
-          </button>
-          <button
-            class={`button button--secondary button--small ${styles.clearButton}`}
-            onClick={onClearAllData}
-            title="Clear all data from IndexedDB (for debugging)"
-          >
-            Clear All Data
           </button>
         </div>
       </div>

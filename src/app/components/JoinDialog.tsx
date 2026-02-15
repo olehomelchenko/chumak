@@ -240,6 +240,45 @@ export function JoinDialog() {
         </label>
       </div>
 
+      {/* Inline Help */}
+      <div class={styles.expressionHelp}>
+        <div class={styles.expressionHelpTitle}>
+          <span>Join Types</span>
+        </div>
+        <div class={styles.exampleGrid} style={{ fontFamily: 'var(--font-family)' }}>
+          <div>
+            <strong>Left</strong>
+          </div>
+          <div class={styles.exampleDescription}>
+            Keep all left rows, match right where possible
+          </div>
+          <div>
+            <strong>Right</strong>
+          </div>
+          <div class={styles.exampleDescription}>
+            Keep all right rows, match left where possible
+          </div>
+          <div>
+            <strong>Inner</strong>
+          </div>
+          <div class={styles.exampleDescription}>Only rows that match in both tables</div>
+          <div>
+            <strong>Full</strong>
+          </div>
+          <div class={styles.exampleDescription}>Keep all rows from both tables</div>
+          <div>
+            <strong>Semi</strong>
+          </div>
+          <div class={styles.exampleDescription}>
+            Left rows that have a match (no right columns)
+          </div>
+          <div>
+            <strong>Anti</strong>
+          </div>
+          <div class={styles.exampleDescription}>Left rows with no match in right</div>
+        </div>
+      </div>
+
       {/* Preview Button */}
       <div class={styles.group}>
         <button

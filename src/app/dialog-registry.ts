@@ -327,7 +327,7 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
 
   expressions: {
     name: 'expressions',
-    title: 'Expression Reference',
+    title: 'Reference',
     type: 'centered-modal',
     isUrlNavigable: true,
   },
@@ -337,6 +337,13 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     title: 'Reference',
     type: 'centered-modal',
     isUrlNavigable: true,
+    // Workaround: globalThis is used because initState runs before the component mounts,
+    // so a prop/signal can't reach FunctionReferenceDialog in time. Cleaned up on mount.
+    initState: (section?: string) => {
+      if (section) {
+        (globalThis as any).__referenceSection = section;
+      }
+    },
   },
 
   'dependency-graph': {

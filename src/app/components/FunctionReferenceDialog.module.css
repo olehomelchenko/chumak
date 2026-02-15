@@ -20,6 +20,12 @@
   gap: var(--space-xs);
 }
 
+.categorySeparator {
+  border: none;
+  border-top: 1px solid var(--border-color);
+  margin: var(--space-xs) 0;
+}
+
 .categoryButton {
   padding: var(--space-sm) var(--space-md);
   text-align: left;

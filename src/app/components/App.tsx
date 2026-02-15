@@ -115,6 +115,7 @@ export function App() {
     onPasteClick: () => AppController.handlePasteClick(),
     onUrlClick: () => AppController.openDialog('import-url'),
     onFileDrop: (e: DragEvent) => AppController.handleFileDrop(e),
+    onLoadExample: () => AppController.loadExampleData(),
     // DatasetInfo
     onRenameSource: (s: any) => AppController.renameSource(s),
     onDeleteSource: (s: any) => AppController.deleteSource(s),
@@ -182,10 +183,7 @@ export function App() {
         onChange={(e) => AppController.handleFileSelect(e)}
       />
 
-      <AppHeader
-        onOpenDialog={(d: any) => AppController.openDialog(d)}
-        onClearAllData={() => AppController.clearAllData()}
-      />
+      <AppHeader onOpenDialog={(d: any) => AppController.openDialog(d)} />
       <RibbonToolbar
         onOpenDialog={(d: any) => AppController.openDialog(d)}
         onAutoDetectSchema={() => AppController.autoDetectSchema()}
@@ -352,7 +350,14 @@ export function App() {
           <div
             ref={centeredModalRef}
             class={styles.centeredModal}
-            style={{ width: activeDialog === 'dependency-graph' ? '66vw' : undefined }}
+            style={{
+              width:
+                activeDialog === 'dependency-graph'
+                  ? '66vw'
+                  : activeDialog === 'expressions' || activeDialog === 'reference'
+                    ? '80vw'
+                    : undefined,
+            }}
             onClick={(e) => e.stopPropagation()}
           >
             {activeDialog === 'type-conversion' ? (
@@ -401,6 +406,7 @@ export function App() {
                       onAnalyticsOptOutChange={(optOut) =>
                         AppController.updateAnalyticsOptOut(optOut)
                       }
+                      onClearAllData={() => AppController.clearAllData()}
                     />
                   </div>
                   <div style={{ display: activeDialog === 'download' ? 'block' : 'none' }}>
@@ -413,12 +419,19 @@ export function App() {
                       dangerouslySetInnerHTML={{ __html: aboutHtml }}
                     ></div>
                   )}
-                  {activeDialog === 'expressions' && <FunctionReferenceDialog />}
+                  {(activeDialog === 'expressions' || activeDialog === 'reference') && (
+                    <FunctionReferenceDialog />
+                  )}
                   {activeDialog === 'dependency-graph' && <DependencyGraphDialog />}
                 </div>
-                {!['about', 'expressions', 'download', 'settings', 'dependency-graph'].includes(
-                  activeDialog || ''
-                ) && (
+                {![
+                  'about',
+                  'expressions',
+                  'reference',
+                  'download',
+                  'settings',
+                  'dependency-graph',
+                ].includes(activeDialog || '') && (
                   <div class={styles.centeredModalFooter}>
                     <button
                       class="button button--secondary"

@@ -6,6 +6,7 @@ export interface EmptyStateProps {
   onPasteClick: () => void;
   onUrlClick: () => void;
   onFileDrop: (e: DragEvent) => void;
+  onLoadExample: () => void;
 }
 
 export function EmptyState({
@@ -13,6 +14,7 @@ export function EmptyState({
   onPasteClick,
   onUrlClick,
   onFileDrop,
+  onLoadExample,
 }: EmptyStateProps) {
   const isDragging = AppStore.isDragging;
 
@@ -58,7 +60,7 @@ export function EmptyState({
             <span class="iconify" data-icon="carbon:link"></span>
             Import from URL
           </button>
-          <button class="button button--secondary" disabled title="Coming soon">
+          <button class="button button--secondary" onClick={onLoadExample}>
             <span class="iconify" data-icon="carbon:data-table"></span>
             Load Example
           </button>

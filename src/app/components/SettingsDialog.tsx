@@ -6,12 +6,14 @@ export interface SettingsDialogProps {
   onThemeChange?: (theme: 'syto' | 'blues') => void;
   onRowLimitChange?: (limit: number) => void;
   onAnalyticsOptOutChange?: (optOut: boolean) => void;
+  onClearAllData?: () => void;
 }
 
 export function SettingsDialog({
   onThemeChange,
   onRowLimitChange,
   onAnalyticsOptOutChange,
+  onClearAllData,
 }: SettingsDialogProps = {}) {
   const { theme, rowLimit, analyticsOptOut } = DialogStore.settingsState;
 
@@ -149,6 +151,39 @@ export function SettingsDialog({
         <strong>Note:</strong> Some interface elements use the primary theme color. The "Syto" theme
         also uses custom typography and removes border radiuses for a sharper look.
       </div>
+
+      {/* Danger Zone */}
+      {onClearAllData && (
+        <div
+          style={{
+            marginTop: '2rem',
+            paddingTop: '1.5rem',
+            borderTop: '1px solid var(--border-color)',
+          }}
+        >
+          <div
+            style={{
+              fontWeight: 600,
+              color: 'var(--color-dark-red)',
+              marginBottom: '0.5rem',
+              fontSize: '0.9rem',
+            }}
+          >
+            Danger Zone
+          </div>
+          <div class={styles.helpText} style={{ marginBottom: '0.75rem' }}>
+            This will permanently delete all sources, models, and steps from your browser's storage.
+            This action cannot be undone.
+          </div>
+          <button
+            class="button button--secondary button--small"
+            style={{ color: 'var(--color-dark-red)', borderColor: 'var(--color-dark-red)' }}
+            onClick={onClearAllData}
+          >
+            Clear All Data
+          </button>
+        </div>
+      )}
     </div>
   );
 }
