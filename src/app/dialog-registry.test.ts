@@ -58,7 +58,6 @@ describe('Dialog Registry', () => {
     });
 
     it('contains all info page dialogs', () => {
-      expect(DIALOG_REGISTRY.about).toBeDefined();
       expect(DIALOG_REGISTRY.expressions).toBeDefined();
       expect(DIALOG_REGISTRY.reference).toBeDefined();
     });
@@ -103,7 +102,6 @@ describe('Dialog Registry', () => {
 
     it('returns false for centered modal dialogs', () => {
       expect(isSlidePanel('settings')).toBe(false);
-      expect(isSlidePanel('about')).toBe(false);
       expect(isSlidePanel('download')).toBe(false);
     });
 
@@ -115,7 +113,6 @@ describe('Dialog Registry', () => {
   describe('isCenteredModal', () => {
     it('returns true for centered modal dialogs', () => {
       expect(isCenteredModal('settings')).toBe(true);
-      expect(isCenteredModal('about')).toBe(true);
       expect(isCenteredModal('download')).toBe(true);
       expect(isCenteredModal('type-conversion')).toBe(true);
     });
@@ -135,7 +132,6 @@ describe('Dialog Registry', () => {
       expect(getDialogTitle('filter')).toBe('Filter Rows');
       expect(getDialogTitle('derive')).toBe('Derive Column');
       expect(getDialogTitle('join')).toBe('Join Data');
-      expect(getDialogTitle('about')).toBe('About Syto');
       expect(getDialogTitle('expressions')).toBe('Reference');
     });
 
@@ -177,7 +173,6 @@ describe('Dialog Registry', () => {
 
   describe('isUrlNavigableDialog', () => {
     it('returns true for URL-navigable dialogs', () => {
-      expect(isUrlNavigableDialog('about')).toBe(true);
       expect(isUrlNavigableDialog('expressions')).toBe(true);
       expect(isUrlNavigableDialog('settings')).toBe(true);
       expect(isUrlNavigableDialog('reference')).toBe(true);
@@ -207,9 +202,8 @@ describe('Dialog Registry', () => {
     it('returns all centered modal dialogs', () => {
       const centeredModals = getDialogsByType('centered-modal');
       expect(centeredModals).toContain('settings');
-      expect(centeredModals).toContain('about');
       expect(centeredModals).toContain('download');
-      expect(centeredModals.length).toBeGreaterThan(4);
+      expect(centeredModals.length).toBeGreaterThan(3);
     });
 
     it('does not mix dialog types', () => {
@@ -225,7 +219,6 @@ describe('Dialog Registry', () => {
   describe('getUrlNavigableDialogs', () => {
     it('returns all URL-navigable dialogs', () => {
       const navigable = getUrlNavigableDialogs();
-      expect(navigable).toContain('about');
       expect(navigable).toContain('expressions');
       expect(navigable).toContain('settings');
       expect(navigable).toContain('reference');
@@ -277,7 +270,6 @@ describe('Dialog Registry', () => {
       const expectedCenteredModals = [
         'settings',
         'download',
-        'about',
         'expressions',
         'reference',
         'type-conversion',

@@ -60,11 +60,7 @@ import {
   formatPreviewCell,
   activeDialogHasError,
 } from '../orchestration/DialogCoordinator';
-import {
-  getDialogTitle,
-  getDialogButtonText,
-  getAboutContent,
-} from '../handlers/dialog/dialog-handlers';
+import { getDialogTitle, getDialogButtonText } from '../handlers/dialog/dialog-handlers';
 import {
   getModelMeta,
   getTypeIcon,
@@ -88,7 +84,6 @@ export function App() {
   const previewTitle = getPreviewTitle();
   const dialogTitle = getDialogTitle();
   const buttonText = getDialogButtonText();
-  const aboutHtml = activeDialog === 'about' ? getAboutContent() : '';
   const hasPreview = hasPreviewData();
   const dialogError = activeDialogHasError();
 
@@ -413,25 +408,14 @@ export function App() {
                     <DownloadDialog />
                   </div>
 
-                  {activeDialog === 'about' && (
-                    <div
-                      id="about-modal-container"
-                      dangerouslySetInnerHTML={{ __html: aboutHtml }}
-                    ></div>
-                  )}
                   {(activeDialog === 'expressions' || activeDialog === 'reference') && (
                     <FunctionReferenceDialog />
                   )}
                   {activeDialog === 'dependency-graph' && <DependencyGraphDialog />}
                 </div>
-                {![
-                  'about',
-                  'expressions',
-                  'reference',
-                  'download',
-                  'settings',
-                  'dependency-graph',
-                ].includes(activeDialog || '') && (
+                {!['expressions', 'reference', 'download', 'settings', 'dependency-graph'].includes(
+                  activeDialog || ''
+                ) && (
                   <div class={styles.centeredModalFooter}>
                     <button
                       class="button button--secondary"

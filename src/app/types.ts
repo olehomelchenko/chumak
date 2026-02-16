@@ -31,7 +31,6 @@ export type DialogName =
   | 'regexpMatch'
   | 'regexpExtract'
   | 'dedupe'
-  | 'about'
   | 'expressions'
   | 'reference'
   | 'type-conversion'

@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "npm run docs:generate && tsc && vite build",
+    "build": "npm run docs:generate && tsc && vite build && tsx scripts/build-content-pages.ts",
     "preview": "vite preview",
     "test": "vitest --run",
     "typecheck": "tsc --noEmit",
@@ -47,6 +47,7 @@
     "happy-dom": "^15.11.7",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
+    "marked": "^17.0.2",
     "postcss": "^8.4.49",
     "postcss-nested": "^7.0.2",
     "prettier": "^3.7.4",

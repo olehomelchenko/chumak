@@ -5,7 +5,6 @@
  * Functions are pure (no 'this' context needed).
  */
 
-import { html as aboutHtml } from '../../../content/about.md';
 import { AppStore } from '../../stores/AppStore';
 import { DialogStore } from '../../stores/DialogStore';
 import {
@@ -184,13 +183,6 @@ export function getDialogButtonText(): string {
 }
 
 /**
- * Get the about page content
- */
-export function getAboutContent(): string {
-  return aboutHtml;
-}
-
-/**
  * Clear the preview state
  */
 export function clearPreview(): void {
@@ -306,7 +298,7 @@ export function handleHashChange(): void {
   const activeSource = AppStore.activeSource.value;
   const activeDialog = AppStore.activeDialog.value;
 
-  // Handle page routes (about, reference, expressions, settings)
+  // Handle page routes (reference, expressions, settings)
   if (urlState.page) {
     if (activeDialog !== urlState.page) {
       dialogHandlerCallbacks.openDialog?.(urlState.page, urlState.section);

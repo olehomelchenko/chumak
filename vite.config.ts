@@ -4,7 +4,8 @@ import nested from 'postcss-nested';
 import autoprefixer from 'autoprefixer';
 import { plugin as markdown, Mode } from 'vite-plugin-markdown';
 import { VitePWA } from 'vite-plugin-pwa';
-import path from 'path';
+import path, { resolve } from 'path';
+import { contentPagesDevPlugin } from './scripts/vite-plugin-content-pages';
 
 export default defineConfig(({ mode }) => {
   const isDev = mode === 'development';
@@ -13,6 +14,10 @@ export default defineConfig(({ mode }) => {
     // For Cloudflare Pages: use root path
     // Change '/' to '/syto/' for GitHub Pages subdirectory
     base: '/',
+    // MPA mode — no SPA catch-all fallback.
+    // Landing page served from index.html, SPA from app/index.html,
+    // content pages served by contentPagesDevPlugin (dev) or static HTML (prod).
+    appType: 'mpa',
     plugins: [
       preact({
         // Only process JSX/TSX files, not regular TS (which may use decorators)
@@ -20,13 +25,15 @@ export default defineConfig(({ mode }) => {
       }),
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       markdown({ mode: [Mode.HTML] }) as any,
+      // Serve content pages (/about/, /docs/*) during development
+      contentPagesDevPlugin(),
       VitePWA({
         registerType: 'autoUpdate',
         workbox: {
           globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
-          // Ensure navigation requests (page loads) use cache
-          navigateFallback: '/index.html',
-          navigateFallbackDenylist: [/^\/_/, /\/[^/?]+\.[^/]+$/],
+          // SPA fallback only for /app/ routes
+          navigateFallback: '/app/index.html',
+          navigateFallbackAllowlist: [/^\/app(\/|$)/],
           runtimeCaching: [
             // Cache external fonts (Google Fonts)
             {
@@ -131,6 +138,10 @@ export default defineConfig(({ mode }) => {
       // Increase chunk size warning limit - Vega is legitimately large
       chunkSizeWarningLimit: 700,
       rollupOptions: {
+        input: {
+          main: resolve(__dirname, 'index.html'),
+          app: resolve(__dirname, 'app/index.html'),
+        },
         output: {
           manualChunks: (id) => {
             // Split Vega libraries (large visualization libraries)

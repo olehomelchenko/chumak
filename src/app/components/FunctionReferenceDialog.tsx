@@ -59,6 +59,9 @@ export function FunctionReferenceDialog({ section }: { section?: string } = {}) 
   return (
     <div className={styles.container}>
       <div className={styles.sidebar}>
+        <a href="/docs/" target="_blank" rel="noopener noreferrer" className={styles.openInNewTab}>
+          Open in new tab &#8599;
+        </a>
         <div className={styles.categoryList}>
           {sidebarGroups.map((group, groupIndex) => (
             <Fragment key={groupIndex}>

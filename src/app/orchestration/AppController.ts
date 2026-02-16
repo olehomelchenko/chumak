@@ -81,7 +81,6 @@ export const AppController = {
   resetDialogStates: DialogHandlers.resetDialogStates,
   isSlidePanel: DialogHandlers.isSlidePanel,
   isCenteredModal: DialogHandlers.isCenteredModal,
-  getAboutContent: DialogHandlers.getAboutContent,
   getDialogTitle: DialogHandlers.getDialogTitle,
   getDialogButtonText: DialogHandlers.getDialogButtonText,
   hasPreviewData: DialogHandlers.hasPreviewData,

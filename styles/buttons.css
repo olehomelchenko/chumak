@@ -7,6 +7,7 @@
   cursor: pointer;
   transition: all var(--transition-fast);
   border: none;
+  text-decoration: none;
 
   &--primary {
     background: var(--color-button-primary);

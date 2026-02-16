@@ -38,19 +38,35 @@ Located in `docs/`:
 
 Located in `src/content/`:
 
-#### Help Content
+#### Content Pages
 
-- **about.md** - User-facing "About Syto" content shown in the app
-- **functions/\*.md** - Auto-generated function reference (operators, date, text, math, regex, conversion)
+Markdown files that are rendered as standalone static HTML pages on the site:
 
-#### Generation System
+- **about.md** — About page (`/about/`)
+- **getting-started.md** — Docs index (`/docs/`)
+- **shortcuts.md** — Keyboard shortcuts (`/docs/shortcuts/`)
+- **whats-new.md** — Changelog (`/docs/whats-new/`)
+- **functions/\*.md** — Auto-generated function reference (`/docs/operators/`, `/docs/date/`, etc.)
 
-User function documentation is **auto-generated** from JSDoc comments in `src/core/ast-interpreter.ts`:
+These pages are also available in-app via `FunctionReferenceDialog.tsx` (Help → Expression Reference).
+
+#### Content Pages System
+
+Content pages are generated from markdown at build time by `scripts/build-content-pages.ts`. The page list and sidebar structure are defined in `scripts/content-pages-config.ts`. During development, `scripts/vite-plugin-content-pages.ts` serves them on-the-fly.
+
+To add a new content page:
+
+1. Create a markdown file in `src/content/`
+2. Add a `PageDef` entry in `scripts/content-pages-config.ts`
+3. If it's a docs page, add a sidebar entry in the same config file
+
+#### Function Docs Generation
+
+Function documentation is **auto-generated** from JSDoc comments in `src/core/ast-interpreter.ts`:
 
 - Source: JSDoc tags in code
 - Build: `npm run docs:generate`
 - Output: `src/content/functions/*.md` + `src/schemas/functions.json`
-- Viewer: `FunctionReferenceDialog.tsx` component (Help → Expression Reference)
 
 See **FUNCTION-DOCS-SYSTEM.md** for complete details.
 
@@ -66,8 +82,9 @@ Each type of information has ONE authoritative location:
 - **Architecture overview** → SPECIFICATION.md
 - **Data structures** → DATA-SPECIFICATION.md
 - **UI patterns** → UX-SPECIFICATION.md
-- **User help** → src/content/about.md
+- **User help** → src/content/ (about, getting-started, shortcuts, whats-new)
 - **Function reference** → JSDoc in ast-interpreter.ts (auto-generated docs)
+- **Content page config** → scripts/content-pages-config.ts
 
 ### 2. Stability over Specifics
 
@@ -108,7 +125,8 @@ Function and expression documentation is generated from code:
 | Make key design decision      | Create ADR in docs/archive/ (if foundational)                      |
 | Change codebase structure     | SPECIFICATION.md                                                   |
 | Add new import/export format  | DATA-SPECIFICATION.md                                              |
-| Update user help content      | src/content/about.md                                               |
+| Update user help content      | src/content/\*.md                                                  |
+| Add new content page          | scripts/content-pages-config.ts + src/content/\*.md                |
 
 ### Writing Guidelines
 

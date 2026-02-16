@@ -62,14 +62,10 @@ export function AppHeader({ onOpenDialog }: AppHeaderProps) {
 
         {/* Action Buttons */}
         <div class={styles.actions}>
-          <button
-            class="button button--secondary button--small"
-            onClick={() => onOpenDialog('about')}
-            title="About Syto"
-          >
+          <a class="button button--secondary button--small" href="/about/" title="About Syto">
             <span class="iconify" data-icon="carbon:information"></span>
             <span>About</span>
-          </button>
+          </a>
           <button
             class="button button--secondary button--small"
             onClick={() => onOpenDialog('reference')}

@@ -1,0 +1,58 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>{{title}} — Syto</title>
+    <meta name="description" content="{{description}}" />
+    <link rel="canonical" href="{{canonical}}" />
+
+    <!-- Normalize -->
+    <link rel="stylesheet" href="https://unpkg.com/normalize.css@8/normalize.css" />
+
+    <!-- Content page styles (processed at build time) -->
+    <link rel="stylesheet" href="{{css-href}}" />
+
+    <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+
+    <!-- Fonts (same as app) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Finlandica:ital,wght@0,400..700;1,400..700&family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=IBM+Plex+Sans:ital,wght@0,100..700;1,100..700&display=swap"
+      rel="stylesheet"
+    />
+
+    {{analytics}}
+  </head>
+
+  <body data-theme="syto">
+    <header class="site-header">
+      <div class="site-header__inner">
+        <a href="/" class="site-header__logo">
+          <img src="/logo.svg" alt="Syto" />
+          <span>Syto</span>
+        </a>
+        <nav class="site-header__nav">
+          <a href="/about/" {{nav-about}}>About</a>
+          <a href="/docs/" {{nav-docs}}>Docs</a>
+          <a href="/app/" class="site-header__cta">Open App</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="page-layout {{layout-class}}">
+      {{sidebar}}
+      <article class="article">
+        <div class="article-content">{{content}}</div>
+      </article>
+    </main>
+
+    <footer class="site-footer">
+      <p>
+        Syto — Data wrangling in the browser.
+        <a href="https://github.com/omelchenko-oleh/syto">Open source</a> under MIT License.
+      </p>
+    </footer>
+  </body>
+</html>

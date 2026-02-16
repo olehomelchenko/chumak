@@ -154,6 +154,20 @@
   margin: var(--space-md) 0;
 }
 
+.openInNewTab {
+  display: block;
+  padding: var(--space-sm) var(--space-md);
+  margin-bottom: var(--space-xs);
+  font-size: var(--font-size-xs);
+  color: var(--color-cyan);
+  text-decoration: none;
+  text-align: right;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
 /* Responsive */
 @media (max-width: 768px) {
   .container {

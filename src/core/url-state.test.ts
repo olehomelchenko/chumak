@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, afterEach } from 'vitest';
-import { getUrlState, setUrlState, URLState } from './url-state';
+import { getUrlState } from './url-state';
 
 describe('URL State', () => {
   const originalLocation = window.location;
@@ -60,9 +60,9 @@ describe('URL State', () => {
     });
 
     it('should handle special pages', () => {
-      window.location.hash = '#/about';
+      window.location.hash = '#/reference';
       const state = getUrlState();
-      expect(state.page).toBe('about');
+      expect(state.page).toBe('reference');
       expect(state.sourceId).toBeUndefined();
     });
 

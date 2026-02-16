@@ -5,7 +5,7 @@
 export interface URLState {
   sourceId?: string;
   modelId?: string;
-  page?: string; // 'about', 'reference', 'expressions', 'settings'
+  page?: string; // 'reference', 'expressions', 'settings'
   section?: string; // e.g., 'filter' for reference/filter, 'info' for dataset/model info
 }
 
@@ -20,12 +20,7 @@ export function getUrlState(): URLState {
     const parts = hash.split('/').filter((p) => p !== '');
 
     // Check for special pages first
-    if (
-      parts[0] === 'about' ||
-      parts[0] === 'reference' ||
-      parts[0] === 'expressions' ||
-      parts[0] === 'settings'
-    ) {
+    if (parts[0] === 'reference' || parts[0] === 'expressions' || parts[0] === 'settings') {
       state.page = parts[0];
       if (parts.length >= 2) {
         state.section = parts[1];

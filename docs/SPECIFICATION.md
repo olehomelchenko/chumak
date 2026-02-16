@@ -64,7 +64,8 @@ Syto is a browser-based data wrangling tool for cleaning and transforming tabula
 | Execution       | Browser only, no backend                                      |
 | Build Tool      | **Vite**                                                      |
 | Language        | **TypeScript (TS)**                                           |
-| Deployment      | Static hosting (GitHub Pages compatible)                      |
+| App Type        | MPA (landing page + SPA app + static content pages)           |
+| Deployment      | Static hosting (Cloudflare Pages)                             |
 | Theme Engine    | Custom themes (Syto, Blues) with Vega integration             |
 | Browser support | Chrome and Safari (latest 2 versions)                         |
 | Offline         | Core functionality works offline; URL imports require network |
@@ -138,13 +139,28 @@ Handles type conversion between column types with Power Query-style error cells.
 
 ### 3.4 Storage
 
-| Storage Type     | Purpose                                                                  |
-| ---------------- | ------------------------------------------------------------------------ |
-| **localStorage** | User preferences, active theme selection                                 |
-| **IndexedDB**    | Datasets (raw + cached previews), workflows, step snapshots              |
-| **URL Hash**     | Active Source and Model state (for shareability and refresh persistence) |
+| Storage Type     | Purpose                                                     |
+| ---------------- | ----------------------------------------------------------- |
+| **localStorage** | User preferences, active theme selection                    |
+| **IndexedDB**    | Datasets (raw + cached previews), workflows, step snapshots |
+| **URL Hash**     | Active Source and Model state in the app (at `/app/`)       |
 
-### 3.5 Codebase Map
+### 3.5 Site Structure
+
+The site is a multi-page application (MPA) with three layers:
+
+| Route     | Source             | Type                    | Purpose                            |
+| --------- | ------------------ | ----------------------- | ---------------------------------- |
+| `/`       | `index.html`       | Static landing page     | Hero page with CTA to app and docs |
+| `/app/`   | `app/index.html`   | Preact SPA              | The data wrangling application     |
+| `/about/` | `src/content/*.md` | Static HTML (generated) | About page                         |
+| `/docs/*` | `src/content/*.md` | Static HTML (generated) | Function reference and user guides |
+
+Content pages (`/about/`, `/docs/*`) are zero-JS static HTML generated from markdown at build time by `scripts/build-content-pages.ts`. During development, the Vite plugin `scripts/vite-plugin-content-pages.ts` serves them on-the-fly. Page definitions and sidebar structure are shared via `scripts/content-pages-config.ts`.
+
+The SPA at `/app/` uses hash-based routing for navigation state (source, model, dialog). Content pages use file-based routing with clean URLs.
+
+### 3.6 Codebase Map
 
 #### Directory Structure
 
@@ -171,9 +187,13 @@ src/
 │   │   └── core/            # Core interaction handlers
 │   ├── orchestration/       # App lifecycle and coordination modules
 │   └── types.ts             # Application-wide TypeScript definitions
-├── content/                 # Markdown content (about, expressions help)
+├── content/                 # Markdown content (about, docs, functions)
+│   ├── functions/           # Auto-generated function reference docs
+│   └── templates/           # HTML shell template for content pages
+app/                         # SPA entry point (app/index.html)
 styles/                      # Global CSS (variables, base, layout, buttons)
-docs/                        # Project documentation
+scripts/                     # Build scripts (function docs, content pages)
+docs/                        # Project documentation (internal)
 ```
 
 #### Core Engine (`src/core/`)

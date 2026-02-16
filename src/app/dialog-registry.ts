@@ -318,13 +318,6 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
 
   // === Info Pages (Centered Modals, URL Navigable) ===
 
-  about: {
-    name: 'about',
-    title: 'About Syto',
-    type: 'centered-modal',
-    isUrlNavigable: true,
-  },
-
   expressions: {
     name: 'expressions',
     title: 'Reference',

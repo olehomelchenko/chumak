@@ -53,7 +53,7 @@ function handleHashChange(): void {
 
   const urlState = getUrlState();
 
-  // Handle page routes (about, reference, expressions, settings)
+  // Handle page routes (reference, expressions, settings)
   if (urlState.page) {
     if (AppStore.activeDialog.value !== urlState.page) {
       callbacks.openDialog(urlState.page, urlState.section);

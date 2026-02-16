@@ -9,7 +9,7 @@
       content="Browser-based data wrangling tool for cleaning and transforming tabular data. No installation required."
     />
     <link rel="stylesheet" href="https://unpkg.com/normalize.css@8/normalize.css" />
-    <link rel="stylesheet" href="/styles/content.css" />
+    <link rel="stylesheet" href="/styles/index.css" />
     <link rel="icon" type="image/svg+xml" href="/logo.svg" />
 
     <!-- Fonts -->
@@ -19,6 +19,10 @@
       href="https://fonts.googleapis.com/css2?family=Finlandica:ital,wght@0,400..700;1,400..700&family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=IBM+Plex+Sans:ital,wght@0,100..700;1,100..700&display=swap"
       rel="stylesheet"
     />
+
+    <!-- Core Infrastructure -->
+    <script src="https://code.iconify.design/3/3.1.0/iconify.min.js"></script>
+    <script type="module" src="/src/main.tsx"></script>
 
     <!-- GoatCounter Analytics - Privacy-respecting, GDPR-compliant (production only) -->
     <script type="module">
@@ -42,41 +46,7 @@
     </script>
   </head>
 
-  <body data-theme="syto">
-    <header class="site-header">
-      <div class="site-header__inner">
-        <a href="/" class="site-header__logo">
-          <img src="/logo.svg" alt="Syto" />
-          <span>Syto</span>
-        </a>
-        <nav class="site-header__nav">
-          <a href="/about/">About</a>
-          <a href="/docs/">Docs</a>
-          <a href="/app/" class="site-header__cta">Open App</a>
-        </nav>
-      </div>
-    </header>
-
-    <main class="hero">
-      <h1 class="hero__title">Syto</h1>
-      <p class="hero__subtitle">
-        Data wrangling in the browser — clean, transform, and prepare your data without installing
-        anything.
-      </p>
-      <div class="hero__actions">
-        <a href="/app/" class="hero__cta">Open App</a>
-        <a href="/docs/" class="hero__link">Read the docs</a>
-      </div>
-      <p class="hero__note">
-        No installation, no accounts, no uploads. Your data stays in your browser.
-      </p>
-    </main>
-
-    <footer class="site-footer">
-      <p>
-        Syto — Data wrangling in the browser.
-        <a href="https://github.com/omelchenko-oleh/syto">Open source</a> under MIT License.
-      </p>
-    </footer>
+  <body>
+    <div id="app-root"></div>
   </body>
 </html>
