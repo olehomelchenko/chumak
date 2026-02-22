@@ -1,0 +1,431 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Syto Background Animation Prototype</title>
+    <style>
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+      body {
+        background: #f5f5f5;
+        overflow: hidden;
+        font-family:
+          'IBM Plex Sans',
+          Arial,
+          -apple-system,
+          sans-serif;
+      }
+      canvas {
+        display: block;
+        width: 100vw;
+        height: 100vh;
+      }
+    </style>
+  </head>
+  <body>
+    <canvas id="c"></canvas>
+    <script>
+      // ── Config ──────────────────────────────────────────────────────
+      const CFG = {
+        // Colors (from Syto theme)
+        bgColor: '#f5f5f5',
+        sieveColor: '#003964',
+        sieveAlpha: 0.12,
+        charColor: '#003964',
+        charAlpha: 1.0,
+        brickAlpha: 1.0,
+        brickColors: ['#003964', '#00bbce', '#a7c539', '#f15b43', '#e4e541'],
+
+        // Sieve position (fraction of canvas height)
+        sieveY: 0.42,
+        sieveThickness: 3,
+        sieveGapWidth: 18,
+        sieveBarWidth: 30,
+
+        // Falling characters
+        spawnRate: 0.42, // probability per frame of spawning a new char
+        charFallSpeed: [0.48, 1.44], // min/max pixels per frame (before DPR)
+        charSize: [12, 22], // font size range
+        charDrift: 0.3, // horizontal wobble
+
+        // Bricks
+        brickSize: 16,
+        brickFallSpeed: [1.2, 2.4],
+        brickSettleFrames: 12,
+
+        // Normal distribution
+        distributionSigma: 0.14, // as fraction of canvas width
+        distributionCenter: 0.5, // center of canvas
+
+        // Performance
+        maxFallingChars: 80,
+        maxFallingBricks: 120,
+        maxSettledBricks: 3000,
+        bricksPerChar: 2, // how many bricks spawn per character passing through
+      };
+
+      // ── Characters to use as "data" ─────────────────────────────────
+      const DATA_CHARS = '0123456789ABCDEFabcdef#$%&@?!+-=<>{}[]();:,.πΣμσ∑∫√∞≈≠±×÷'.split('');
+      const DATA_FRAGMENTS = [
+        'NULL',
+        'N/A',
+        'true',
+        'false',
+        '42',
+        '3.14',
+        'NaN',
+        'csv',
+        '2024',
+        '100%',
+        'id:',
+        'key',
+        'val',
+        'sum',
+        'avg',
+        'min',
+        'max',
+        'USD',
+        'EUR',
+        'OK',
+        '404',
+        'utf8',
+        'row',
+        'col',
+        'err',
+        '0xFF',
+      ];
+
+      // ── Canvas setup ────────────────────────────────────────────────
+      const canvas = document.getElementById('c');
+      const ctx = canvas.getContext('2d');
+      let W, H, DPR;
+
+      function resize() {
+        DPR = window.devicePixelRatio || 1;
+        W = window.innerWidth;
+        H = window.innerHeight;
+        canvas.width = W * DPR;
+        canvas.height = H * DPR;
+        canvas.style.width = W + 'px';
+        canvas.style.height = H + 'px';
+        ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+
+        // Rebuild sieve gaps
+        buildSieve();
+        // Reset settled bricks when resizing
+        settledBricks = [];
+        brickGrid = {};
+        colColors = {};
+        stackFull = false;
+      }
+      window.addEventListener('resize', resize);
+
+      // ── Sieve ───────────────────────────────────────────────────────
+      let sieveGaps = []; // [{x, width}] - gaps where things fall through
+
+      function buildSieve() {
+        sieveGaps = [];
+        const y = H * CFG.sieveY;
+        let x = 0;
+        // Alternating: bar, gap, bar, gap...
+        // Start with a partial bar for visual variety
+        x = -(Math.random() * CFG.sieveBarWidth);
+        while (x < W) {
+          // bar
+          x += CFG.sieveBarWidth + Math.random() * 10;
+          // gap
+          const gapW = CFG.sieveGapWidth + Math.random() * 8;
+          sieveGaps.push({ x: x, width: gapW });
+          x += gapW;
+        }
+      }
+
+      function isInSieveGap(px) {
+        for (const gap of sieveGaps) {
+          if (px >= gap.x && px <= gap.x + gap.width) return true;
+        }
+        return false;
+      }
+
+      // ── Gaussian random (Box-Muller) ────────────────────────────────
+      function gaussRandom(mean, sigma) {
+        let u, v, s;
+        do {
+          u = Math.random() * 2 - 1;
+          v = Math.random() * 2 - 1;
+          s = u * u + v * v;
+        } while (s >= 1 || s === 0);
+        s = Math.sqrt((-2 * Math.log(s)) / s);
+        return mean + sigma * u * s;
+      }
+
+      // ── Falling characters ──────────────────────────────────────────
+      let fallingChars = [];
+
+      function spawnChar() {
+        const isFragment = Math.random() < 0.2;
+        const text = isFragment
+          ? DATA_FRAGMENTS[Math.floor(Math.random() * DATA_FRAGMENTS.length)]
+          : DATA_CHARS[Math.floor(Math.random() * DATA_CHARS.length)];
+        const size = CFG.charSize[0] + Math.random() * (CFG.charSize[1] - CFG.charSize[0]);
+
+        return {
+          text,
+          x: Math.random() * W,
+          y: -size - Math.random() * 60,
+          speed:
+            CFG.charFallSpeed[0] + Math.random() * (CFG.charFallSpeed[1] - CFG.charFallSpeed[0]),
+          size,
+          drift: (Math.random() - 0.5) * CFG.charDrift,
+          alpha: CFG.charAlpha,
+          rotation: (Math.random() - 0.5) * 0.4,
+          rotSpeed: (Math.random() - 0.5) * 0.005,
+        };
+      }
+
+      function updateFallingChars() {
+        const sieveY = H * CFG.sieveY;
+
+        // Spawn (stop when stack is full)
+        if (
+          !stackFull &&
+          fallingChars.length < CFG.maxFallingChars &&
+          Math.random() < CFG.spawnRate
+        ) {
+          fallingChars.push(spawnChar());
+        }
+
+        for (let i = fallingChars.length - 1; i >= 0; i--) {
+          const c = fallingChars[i];
+          c.y += c.speed;
+          c.x += c.drift;
+          c.rotation += c.rotSpeed;
+
+          // Disappear zone: above the sieve (fade out before reaching it)
+          const fadeZone = sieveY - 40;
+          if (c.y >= fadeZone) {
+            // Spawn bricks only once per character
+            if (!c.spawned && isInSieveGap(c.x)) {
+              c.spawned = true;
+              for (let b = 0; b < CFG.bricksPerChar; b++) {
+                spawnBrick(c.x + (Math.random() - 0.5) * 12, sieveY + 6 + Math.random() * 8);
+              }
+            }
+            // All chars fade out above the sieve
+            c.alpha -= 0.02;
+            c.speed *= 0.9;
+            if (c.alpha <= 0 || c.y >= sieveY) {
+              fallingChars.splice(i, 1);
+            }
+          }
+        }
+      }
+
+      function drawFallingChars() {
+        for (const c of fallingChars) {
+          ctx.save();
+          ctx.translate(c.x, c.y);
+          ctx.rotate(c.rotation);
+          ctx.font = `${Math.round(c.size)}px 'SF Mono', Consolas, Monaco, monospace`;
+          ctx.fillStyle = CFG.charColor;
+          ctx.globalAlpha = c.alpha;
+          ctx.textAlign = 'center';
+          ctx.textBaseline = 'middle';
+          ctx.fillText(c.text, 0, 0);
+          ctx.restore();
+        }
+      }
+
+      // ── Bricks ──────────────────────────────────────────────────────
+      let fallingBricks = [];
+      let settledBricks = [];
+      let brickGrid = {}; // track settled positions: "col" -> topY
+      let colColors = {}; // fixed color per column
+      let stackFull = false; // true when any column reaches the sieve
+
+      function spawnBrick(x, y) {
+        if (stackFull) return;
+        if (fallingBricks.length >= CFG.maxFallingBricks) return;
+        if (settledBricks.length >= CFG.maxSettledBricks) return;
+
+        // Target x: gaussian distribution around center
+        const targetX = gaussRandom(W * CFG.distributionCenter, W * CFG.distributionSigma);
+        // Clamp to canvas
+        const clampedX = Math.max(CFG.brickSize, Math.min(W - CFG.brickSize, targetX));
+        // Snap to grid
+        const col = Math.round(clampedX / CFG.brickSize);
+        const finalX = col * CFG.brickSize;
+
+        // Assign a fixed color per column (consistent vertical stacks)
+        if (colColors[col] === undefined) {
+          colColors[col] = CFG.brickColors[Math.floor(Math.random() * CFG.brickColors.length)];
+        }
+        const color = colColors[col];
+
+        fallingBricks.push({
+          x: finalX,
+          y: y,
+          col: col,
+          speed:
+            CFG.brickFallSpeed[0] + Math.random() * (CFG.brickFallSpeed[1] - CFG.brickFallSpeed[0]),
+          color: color,
+          alpha: 0,
+          targetAlpha: CFG.brickAlpha,
+          settled: false,
+          settleTimer: 0,
+          scale: 0.3,
+        });
+      }
+
+      function updateBricks() {
+        const floorY = H - CFG.brickSize;
+
+        for (let i = fallingBricks.length - 1; i >= 0; i--) {
+          const b = fallingBricks[i];
+
+          if (!b.settled) {
+            // Fall straight down
+            b.y += b.speed;
+            b.speed += 0.03; // gravity
+            b.alpha = Math.min(b.targetAlpha, b.alpha + 0.005);
+            b.scale = Math.min(1, b.scale + 0.03);
+
+            // Check if reached stack height for this column
+            const gridKey = String(b.col);
+            const stackTop = brickGrid[gridKey] !== undefined ? brickGrid[gridKey] : floorY;
+
+            if (b.y >= stackTop - CFG.brickSize) {
+              b.y = stackTop - CFG.brickSize;
+              b.settled = true;
+              b.scale = 1;
+            }
+          } else {
+            b.settleTimer++;
+            if (b.settleTimer > CFG.brickSettleFrames) {
+              // Move to settled array
+              const gridKey = String(b.col);
+              brickGrid[gridKey] = b.y;
+
+              // Check if stack reached the sieve
+              const sieveY = H * CFG.sieveY;
+              if (b.y <= sieveY + CFG.brickSize) {
+                stackFull = true;
+              }
+
+              settledBricks.push({
+                x: b.x,
+                y: b.y,
+                color: b.color,
+                alpha: b.targetAlpha,
+              });
+
+              fallingBricks.splice(i, 1);
+
+              // No trimming — bricks stay permanently
+            }
+          }
+        }
+      }
+
+      function rebuildGrid() {
+        brickGrid = {};
+        const floorY = H - CFG.brickSize;
+        for (const b of settledBricks) {
+          const col = Math.round(b.x / CFG.brickSize);
+          const gridKey = String(col);
+          if (brickGrid[gridKey] === undefined || b.y < brickGrid[gridKey]) {
+            brickGrid[gridKey] = b.y;
+          }
+        }
+      }
+
+      function drawBricks() {
+        const bs = CFG.brickSize;
+        const gap = 1;
+
+        // Settled bricks
+        for (const b of settledBricks) {
+          ctx.globalAlpha = b.alpha;
+          ctx.fillStyle = b.color;
+          ctx.fillRect(b.x + gap, b.y + gap, bs - gap * 2, bs - gap * 2);
+        }
+
+        // Falling bricks
+        for (const b of fallingBricks) {
+          ctx.save();
+          ctx.globalAlpha = b.alpha;
+          ctx.fillStyle = b.color;
+          const s = bs * b.scale;
+          const offset = (bs - s) / 2;
+          ctx.fillRect(b.x + offset + gap, b.y + offset + gap, s - gap * 2, s - gap * 2);
+          ctx.restore();
+        }
+      }
+
+      // ── Sieve drawing ───────────────────────────────────────────────
+      function drawSieve() {
+        const y = H * CFG.sieveY;
+        ctx.globalAlpha = CFG.sieveAlpha;
+        ctx.fillStyle = CFG.sieveColor;
+
+        // Draw bars between gaps
+        let prevEnd = 0;
+        for (const gap of sieveGaps) {
+          const barWidth = gap.x - prevEnd;
+          if (barWidth > 0) {
+            ctx.fillRect(prevEnd, y - CFG.sieveThickness / 2, barWidth, CFG.sieveThickness);
+          }
+          prevEnd = gap.x + gap.width;
+        }
+        // Final bar to edge
+        if (prevEnd < W) {
+          ctx.fillRect(prevEnd, y - CFG.sieveThickness / 2, W - prevEnd, CFG.sieveThickness);
+        }
+
+        // Small tick marks on bars for texture
+        ctx.globalAlpha = CFG.sieveAlpha * 0.5;
+        prevEnd = 0;
+        for (const gap of sieveGaps) {
+          const barStart = prevEnd;
+          const barEnd = gap.x;
+          // Vertical ticks
+          for (let tx = barStart + 4; tx < barEnd - 2; tx += 6) {
+            ctx.fillRect(tx, y - CFG.sieveThickness / 2 - 2, 1, CFG.sieveThickness + 4);
+          }
+          prevEnd = gap.x + gap.width;
+        }
+      }
+
+      // ── Animation loop ──────────────────────────────────────────────
+      function frame() {
+        // Clear
+        ctx.globalAlpha = 1;
+        ctx.fillStyle = CFG.bgColor;
+        ctx.fillRect(0, 0, W, H);
+
+        updateFallingChars();
+        updateBricks();
+
+        drawSettledDistribution();
+        drawBricks();
+        drawSieve();
+        drawFallingChars();
+
+        requestAnimationFrame(frame);
+      }
+
+      // Faint distribution outline for reference (optional, very subtle)
+      function drawSettledDistribution() {
+        // Draw nothing — the bricks themselves form the shape
+      }
+
+      // ── Init ────────────────────────────────────────────────────────
+      resize();
+      frame();
+    </script>
+  </body>
+</html>

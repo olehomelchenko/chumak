@@ -57,20 +57,23 @@
       </div>
     </header>
 
-    <main class="hero">
-      <h1 class="hero__title">Syto</h1>
-      <p class="hero__subtitle">
-        Data wrangling in the browser — clean, transform, and prepare your data without installing
-        anything.
-      </p>
-      <div class="hero__actions">
-        <a href="/app/" class="hero__cta">Open App</a>
-        <a href="/docs/" class="hero__link">Read the docs</a>
-      </div>
-      <p class="hero__note">
-        No installation, no accounts, no uploads. Your data stays in your browser.
-      </p>
-    </main>
+    <div class="hero-wrapper">
+      <canvas id="sieve-animation"></canvas>
+      <main class="hero">
+        <h1 class="hero__title">Syto</h1>
+        <p class="hero__subtitle">
+          Data wrangling in the browser — clean, transform, and prepare your data without installing
+          anything.
+        </p>
+        <div class="hero__actions">
+          <a href="/app/" class="hero__cta">Open App</a>
+          <a href="/docs/" class="hero__link">Read the docs</a>
+        </div>
+        <p class="hero__note">
+          No installation, no accounts, no uploads. Your data stays in your browser.
+        </p>
+      </main>
+    </div>
 
     <footer class="site-footer">
       <p>
@@ -78,5 +81,307 @@
         <a href="https://github.com/omelchenko-oleh/syto">Open source</a> under MIT License.
       </p>
     </footer>
+    <script>
+      (function () {
+        var CFG = {
+          sieveColor: '#003964',
+          sieveAlpha: 0.12,
+          charColor: '#003964',
+          charAlpha: 1.0,
+          brickAlpha: 1.0,
+          brickColors: ['#003964', '#00bbce', '#a7c539', '#f15b43', '#e4e541'],
+          sieveY: 0.42,
+          sieveThickness: 3,
+          sieveGapWidth: 18,
+          sieveBarWidth: 30,
+          spawnRate: 0.42,
+          charFallSpeed: [0.48, 1.44],
+          charSize: [12, 22],
+          charDrift: 0.3,
+          brickSize: 16,
+          brickFallSpeed: [1.2, 2.4],
+          brickSettleFrames: 12,
+          distributionSigma: 0.14,
+          distributionCenter: 0.5,
+          maxFallingChars: 80,
+          maxFallingBricks: 120,
+          maxSettledBricks: 3000,
+          bricksPerChar: 2,
+        };
+
+        var DATA_CHARS = '0123456789ABCDEFabcdef#$%&@?!+-=<>{}[]();:,.πΣμσ∑∫√∞≈≠±×÷'.split('');
+        var DATA_FRAGMENTS = [
+          'NULL',
+          'N/A',
+          'true',
+          'false',
+          '42',
+          '3.14',
+          'NaN',
+          'csv',
+          '2024',
+          '100%',
+          'id:',
+          'key',
+          'val',
+          'sum',
+          'avg',
+          'min',
+          'max',
+          'USD',
+          'EUR',
+          'OK',
+          '404',
+          'utf8',
+          'row',
+          'col',
+          'err',
+          '0xFF',
+        ];
+
+        var canvas = document.getElementById('sieve-animation');
+        var ctx = canvas.getContext('2d');
+        var wrapper = canvas.parentElement;
+        var W, H;
+
+        var sieveGaps = [];
+        var fallingChars = [];
+        var fallingBricks = [];
+        var settledBricks = [];
+        var brickGrid = {};
+        var colColors = {};
+        var stackFull = false;
+
+        function resize() {
+          var DPR = window.devicePixelRatio || 1;
+          var rect = wrapper.getBoundingClientRect();
+          W = rect.width;
+          H = rect.height;
+          canvas.width = W * DPR;
+          canvas.height = H * DPR;
+          canvas.style.width = W + 'px';
+          canvas.style.height = H + 'px';
+          ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+          buildSieve();
+          settledBricks = [];
+          brickGrid = {};
+          colColors = {};
+          stackFull = false;
+        }
+
+        function buildSieve() {
+          sieveGaps = [];
+          var x = -(Math.random() * CFG.sieveBarWidth);
+          while (x < W) {
+            x += CFG.sieveBarWidth + Math.random() * 10;
+            var gapW = CFG.sieveGapWidth + Math.random() * 8;
+            sieveGaps.push({ x: x, width: gapW });
+            x += gapW;
+          }
+        }
+
+        function isInSieveGap(px) {
+          for (var i = 0; i < sieveGaps.length; i++) {
+            if (px >= sieveGaps[i].x && px <= sieveGaps[i].x + sieveGaps[i].width) return true;
+          }
+          return false;
+        }
+
+        function gaussRandom(mean, sigma) {
+          var u, v, s;
+          do {
+            u = Math.random() * 2 - 1;
+            v = Math.random() * 2 - 1;
+            s = u * u + v * v;
+          } while (s >= 1 || s === 0);
+          s = Math.sqrt((-2 * Math.log(s)) / s);
+          return mean + sigma * u * s;
+        }
+
+        function spawnChar() {
+          var isFragment = Math.random() < 0.2;
+          var text = isFragment
+            ? DATA_FRAGMENTS[Math.floor(Math.random() * DATA_FRAGMENTS.length)]
+            : DATA_CHARS[Math.floor(Math.random() * DATA_CHARS.length)];
+          var size = CFG.charSize[0] + Math.random() * (CFG.charSize[1] - CFG.charSize[0]);
+          return {
+            text: text,
+            x: Math.random() * W,
+            y: -size - Math.random() * 60,
+            speed:
+              CFG.charFallSpeed[0] + Math.random() * (CFG.charFallSpeed[1] - CFG.charFallSpeed[0]),
+            size: size,
+            drift: (Math.random() - 0.5) * CFG.charDrift,
+            alpha: CFG.charAlpha,
+            rotation: (Math.random() - 0.5) * 0.4,
+            rotSpeed: (Math.random() - 0.5) * 0.005,
+            spawned: false,
+          };
+        }
+
+        function spawnBrick(x, y) {
+          if (stackFull) return;
+          if (fallingBricks.length >= CFG.maxFallingBricks) return;
+          if (settledBricks.length >= CFG.maxSettledBricks) return;
+          var targetX = gaussRandom(W * CFG.distributionCenter, W * CFG.distributionSigma);
+          var clampedX = Math.max(CFG.brickSize, Math.min(W - CFG.brickSize, targetX));
+          var col = Math.round(clampedX / CFG.brickSize);
+          var finalX = col * CFG.brickSize;
+          if (colColors[col] === undefined) {
+            colColors[col] = CFG.brickColors[Math.floor(Math.random() * CFG.brickColors.length)];
+          }
+          fallingBricks.push({
+            x: finalX,
+            y: y,
+            col: col,
+            speed:
+              CFG.brickFallSpeed[0] +
+              Math.random() * (CFG.brickFallSpeed[1] - CFG.brickFallSpeed[0]),
+            color: colColors[col],
+            alpha: 0,
+            targetAlpha: CFG.brickAlpha,
+            settled: false,
+            settleTimer: 0,
+            scale: 0.3,
+          });
+        }
+
+        function updateFallingChars() {
+          var sieveY = H * CFG.sieveY;
+          if (
+            !stackFull &&
+            fallingChars.length < CFG.maxFallingChars &&
+            Math.random() < CFG.spawnRate
+          ) {
+            fallingChars.push(spawnChar());
+          }
+          for (var i = fallingChars.length - 1; i >= 0; i--) {
+            var c = fallingChars[i];
+            c.y += c.speed;
+            c.x += c.drift;
+            c.rotation += c.rotSpeed;
+            var fadeZone = sieveY - 40;
+            if (c.y >= fadeZone) {
+              if (!c.spawned && isInSieveGap(c.x)) {
+                c.spawned = true;
+                for (var b = 0; b < CFG.bricksPerChar; b++) {
+                  spawnBrick(c.x + (Math.random() - 0.5) * 12, sieveY + 6 + Math.random() * 8);
+                }
+              }
+              c.alpha -= 0.02;
+              c.speed *= 0.9;
+              if (c.alpha <= 0 || c.y >= sieveY) fallingChars.splice(i, 1);
+            }
+          }
+        }
+
+        function updateBricks() {
+          var floorY = H - CFG.brickSize;
+          for (var i = fallingBricks.length - 1; i >= 0; i--) {
+            var b = fallingBricks[i];
+            if (!b.settled) {
+              b.y += b.speed;
+              b.speed += 0.03;
+              b.alpha = Math.min(b.targetAlpha, b.alpha + 0.005);
+              b.scale = Math.min(1, b.scale + 0.03);
+              var gridKey = String(b.col);
+              var stackTop = brickGrid[gridKey] !== undefined ? brickGrid[gridKey] : floorY;
+              if (b.y >= stackTop - CFG.brickSize) {
+                b.y = stackTop - CFG.brickSize;
+                b.settled = true;
+                b.scale = 1;
+              }
+            } else {
+              b.settleTimer++;
+              if (b.settleTimer > CFG.brickSettleFrames) {
+                var gk = String(b.col);
+                brickGrid[gk] = b.y;
+                var sieveY = H * CFG.sieveY;
+                if (b.y <= sieveY + CFG.brickSize) stackFull = true;
+                settledBricks.push({ x: b.x, y: b.y, color: b.color, alpha: b.targetAlpha });
+                fallingBricks.splice(i, 1);
+              }
+            }
+          }
+        }
+
+        function drawFallingChars() {
+          for (var i = 0; i < fallingChars.length; i++) {
+            var c = fallingChars[i];
+            ctx.save();
+            ctx.translate(c.x, c.y);
+            ctx.rotate(c.rotation);
+            ctx.font = Math.round(c.size) + "px 'SF Mono', Consolas, Monaco, monospace";
+            ctx.fillStyle = CFG.charColor;
+            ctx.globalAlpha = c.alpha;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            ctx.fillText(c.text, 0, 0);
+            ctx.restore();
+          }
+        }
+
+        function drawBricks() {
+          var bs = CFG.brickSize,
+            gap = 1;
+          for (var i = 0; i < settledBricks.length; i++) {
+            var b = settledBricks[i];
+            ctx.globalAlpha = b.alpha;
+            ctx.fillStyle = b.color;
+            ctx.fillRect(b.x + gap, b.y + gap, bs - gap * 2, bs - gap * 2);
+          }
+          for (var i = 0; i < fallingBricks.length; i++) {
+            var b = fallingBricks[i];
+            ctx.save();
+            ctx.globalAlpha = b.alpha;
+            ctx.fillStyle = b.color;
+            var s = bs * b.scale,
+              offset = (bs - s) / 2;
+            ctx.fillRect(b.x + offset + gap, b.y + offset + gap, s - gap * 2, s - gap * 2);
+            ctx.restore();
+          }
+        }
+
+        function drawSieve() {
+          var y = H * CFG.sieveY;
+          ctx.globalAlpha = CFG.sieveAlpha;
+          ctx.fillStyle = CFG.sieveColor;
+          var prevEnd = 0;
+          for (var i = 0; i < sieveGaps.length; i++) {
+            var barWidth = sieveGaps[i].x - prevEnd;
+            if (barWidth > 0)
+              ctx.fillRect(prevEnd, y - CFG.sieveThickness / 2, barWidth, CFG.sieveThickness);
+            prevEnd = sieveGaps[i].x + sieveGaps[i].width;
+          }
+          if (prevEnd < W)
+            ctx.fillRect(prevEnd, y - CFG.sieveThickness / 2, W - prevEnd, CFG.sieveThickness);
+          ctx.globalAlpha = CFG.sieveAlpha * 0.5;
+          prevEnd = 0;
+          for (var i = 0; i < sieveGaps.length; i++) {
+            var barStart = prevEnd,
+              barEnd = sieveGaps[i].x;
+            for (var tx = barStart + 4; tx < barEnd - 2; tx += 6) {
+              ctx.fillRect(tx, y - CFG.sieveThickness / 2 - 2, 1, CFG.sieveThickness + 4);
+            }
+            prevEnd = sieveGaps[i].x + sieveGaps[i].width;
+          }
+        }
+
+        function frame() {
+          ctx.globalAlpha = 1;
+          ctx.clearRect(0, 0, W, H);
+          updateFallingChars();
+          updateBricks();
+          drawBricks();
+          drawSieve();
+          drawFallingChars();
+          requestAnimationFrame(frame);
+        }
+
+        resize();
+        frame();
+        window.addEventListener('resize', resize);
+      })();
+    </script>
   </body>
 </html>
