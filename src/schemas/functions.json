@@ -279,8 +279,8 @@
     {
       "name": "date_trunc",
       "category": "Date",
-      "description": "Truncates a date to the start of a time period",
-      "signature": "date_trunc(value, unit)",
+      "description": "Truncates a date to the start of a time period, with optional interval binning",
+      "signature": "date_trunc(value, unit, interval)",
       "params": [
         {
           "name": "value",
@@ -289,6 +289,10 @@
         {
           "name": "unit",
           "description": "Truncation unit: \"year\", \"quarter\", \"month\", \"week\", \"day\", \"hour\", \"minute\", \"second\""
+        },
+        {
+          "name": "interval",
+          "description": "Optional bin size for hour/minute/second (default 1). E.g., 5 for 5-minute bins"
         }
       ],
       "returns": "Truncated date/datetime as string, or null if invalid",
@@ -298,6 +302,12 @@
         },
         {
           "expression": "date_trunc(\"2024-01-15\", \"month\") -> \"2024-01-01\""
+        },
+        {
+          "expression": "date_trunc(\"2024-01-15T14:37:00\", \"minute\", 5) -> \"2024-01-15T14:35:00\""
+        },
+        {
+          "expression": "date_trunc(\"2024-01-15T14:37:00\", \"hour\", 4) -> \"2024-01-15T12:00:00\""
         }
       ]
     },

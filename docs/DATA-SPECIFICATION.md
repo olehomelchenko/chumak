@@ -684,7 +684,7 @@ Expressions are used in `filter` and `derive` transforms.
 - `year(d)`, `month(d)`, `day(d)`, `hour(d)`, `minute(d)`, `second(d)`
 - `weekday(d)`, `week(d)`, `quarter(d)`
 - `today()`, `now()`
-- `days_between(d1, d2)`, `date_add(d, amount, unit)`, `date_trunc(d, unit)`
+- `days_between(d1, d2)`, `date_add(d, amount, unit)`, `date_trunc(d, unit, interval?)`
 - `format_date(d, format)`
 
 **Regex functions:**

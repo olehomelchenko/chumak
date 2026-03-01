@@ -284,19 +284,24 @@ export const date_add = (value: any, amount: number, unit: string) => {
 
 /**
  * @category Date
- * @description Truncates a date to the start of a time period
+ * @description Truncates a date to the start of a time period, with optional interval binning
  * @param value - Date value or date string
  * @param unit - Truncation unit: "year", "quarter", "month", "week", "day", "hour", "minute", "second"
+ * @param interval - Optional bin size for hour/minute/second (default 1). E.g., 5 for 5-minute bins
  * @returns Truncated date/datetime as string, or null if invalid
  * @example date_trunc(timestamp, "month")
  * @example date_trunc("2024-01-15", "month") -> "2024-01-01"
+ * @example date_trunc("2024-01-15T14:37:00", "minute", 5) -> "2024-01-15T14:35:00"
+ * @example date_trunc("2024-01-15T14:37:00", "hour", 4) -> "2024-01-15T12:00:00"
  */
-export const date_trunc = (value: any, unit: string) => {
+export const date_trunc = (value: any, unit: string, interval?: number) => {
   const date = parseToDate(value);
   if (!date) return null;
 
   const result = new Date(date);
   const unitLower = String(unit).toLowerCase();
+  const step =
+    interval != null && typeof interval === 'number' && interval >= 1 ? Math.floor(interval) : 1;
 
   switch (unitLower) {
     case 'year':
@@ -324,13 +329,13 @@ export const date_trunc = (value: any, unit: string) => {
       result.setHours(0, 0, 0, 0);
       break;
     case 'hour':
-      result.setMinutes(0, 0, 0);
+      result.setHours(Math.floor(result.getHours() / step) * step, 0, 0, 0);
       break;
     case 'minute':
-      result.setSeconds(0, 0);
+      result.setMinutes(Math.floor(result.getMinutes() / step) * step, 0, 0);
       break;
     case 'second':
-      result.setMilliseconds(0);
+      result.setSeconds(Math.floor(result.getSeconds() / step) * step, 0);
       break;
     default:
       return { type: 'error', message: `Unknown truncation unit: ${unit}` };

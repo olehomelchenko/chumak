@@ -36,15 +36,54 @@ export function getExtractParts() {
 
 export function getTruncateUnits() {
   return [
-    { value: 'year', label: 'Year' },
-    { value: 'quarter', label: 'Quarter' },
-    { value: 'month', label: 'Month' },
-    { value: 'week', label: 'Week' },
-    { value: 'day', label: 'Day' },
-    { value: 'hour', label: 'Hour' },
-    { value: 'minute', label: 'Minute' },
-    { value: 'second', label: 'Second' },
+    { value: 'year', label: 'Year', supportsInterval: false, max: 1 },
+    { value: 'quarter', label: 'Quarter', supportsInterval: false, max: 1 },
+    { value: 'month', label: 'Month', supportsInterval: false, max: 1 },
+    { value: 'week', label: 'Week', supportsInterval: false, max: 1 },
+    { value: 'day', label: 'Day', supportsInterval: false, max: 1 },
+    { value: 'hour', label: 'Hour', supportsInterval: true, max: 23 },
+    { value: 'minute', label: 'Minute', supportsInterval: true, max: 59 },
+    { value: 'second', label: 'Second', supportsInterval: true, max: 59 },
   ];
+}
+
+const UNIT_ABBREVIATIONS: Record<string, string> = {
+  second: 'sec',
+  minute: 'min',
+  hour: 'hr',
+};
+
+function getIntervalForUnit(unit: string): number {
+  const intervals = DialogStore.dateState.truncateIntervals.value;
+  return intervals[unit] ?? 1;
+}
+
+function buildTruncExpression(colRef: string, unit: string, interval: number): string {
+  if (interval > 1) {
+    return `date_trunc(${colRef}, "${unit}", ${interval})`;
+  }
+  return `date_trunc(${colRef}, "${unit}")`;
+}
+
+function buildTruncOutputName(col: string, unit: string, interval: number): string {
+  if (interval > 1) {
+    const abbr = UNIT_ABBREVIATIONS[unit] || unit;
+    return `${col}_${interval}${abbr}_trunc`;
+  }
+  return `${col}_${unit}_trunc`;
+}
+
+export function setTruncateInterval(unit: string, interval: number) {
+  const state = DialogStore.dateState;
+  const current = { ...state.truncateIntervals.value };
+  const clamped = Math.max(1, Math.floor(interval));
+  if (clamped === 1) {
+    delete current[unit];
+  } else {
+    current[unit] = clamped;
+  }
+  state.truncateIntervals.value = current;
+  updateDatePreview();
 }
 
 export function toggleDateSelection(value: string, event?: MouseEvent) {
@@ -168,8 +207,9 @@ const datePreview = createDebouncedPreview({
 
       // Process truncate units
       for (const unit of truncateUnitsList) {
-        const outputName = `${colVal}_${unit}_trunc`;
-        const expression = `date_trunc(${colRef}, "${unit}")`;
+        const interval = getIntervalForUnit(unit);
+        const outputName = buildTruncOutputName(colVal, unit, interval);
+        const expression = buildTruncExpression(colRef, unit, interval);
 
         try {
           const ast = parseExpression(expression);
@@ -255,7 +295,8 @@ export function getDatePartPreview(
     if (operationType === 'extract') {
       expression = `${partValue}(${colRef})`;
     } else {
-      expression = `date_trunc(${colRef}, "${partValue}")`;
+      const interval = getIntervalForUnit(partValue);
+      expression = buildTruncExpression(colRef, partValue, interval);
     }
 
     const ast = parseExpression(expression);
@@ -298,9 +339,10 @@ export async function applyDateTransform(callbacks: any, app?: any) {
 
   // Process truncate units
   for (const unit of truncateUnitsList) {
-    const unitOutputName = `${colVal}_${unit}_trunc`;
+    const interval = getIntervalForUnit(unit);
+    const unitOutputName = buildTruncOutputName(colVal, unit, interval);
     columnsToCheck.push(unitOutputName);
-    deriveSpecs[unitOutputName] = `date_trunc(${colRef}, "${unit}")`;
+    deriveSpecs[unitOutputName] = buildTruncExpression(colRef, unit, interval);
   }
 
   // Check for existing columns

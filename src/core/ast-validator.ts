@@ -71,7 +71,7 @@ export const ALLOWED_FUNCTIONS: Record<string, FunctionSpec> = {
   // Date arithmetic - Phase 4
   days_between: { minArgs: 2, maxArgs: 2 },
   date_add: { minArgs: 3, maxArgs: 3 },
-  date_trunc: { minArgs: 2, maxArgs: 2 },
+  date_trunc: { minArgs: 2, maxArgs: 3 },
   format_date: { minArgs: 2, maxArgs: 2 },
   parse_date: { minArgs: 2, maxArgs: 2 },
 

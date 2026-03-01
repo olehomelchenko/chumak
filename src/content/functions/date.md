@@ -246,12 +246,13 @@ date_add("2024-01-15", 2, "months") -> "2024-03-15"
 
 ## date_trunc
 
-Truncates a date to the start of a time period
+Truncates a date to the start of a time period, with optional interval binning
 
 **Parameters:**
 
 - `value` — Date value or date string
 - `unit` — Truncation unit: "year", "quarter", "month", "week", "day", "hour", "minute", "second"
+- `interval` — Optional bin size for hour/minute/second (default 1). E.g., 5 for 5-minute bins
 
 **Returns:** Truncated date/datetime as string, or null if invalid
 
@@ -260,6 +261,8 @@ Truncates a date to the start of a time period
 ```
 date_trunc(timestamp, "month")
 date_trunc("2024-01-15", "month") -> "2024-01-01"
+date_trunc("2024-01-15T14:37:00", "minute", 5) -> "2024-01-15T14:35:00"
+date_trunc("2024-01-15T14:37:00", "hour", 4) -> "2024-01-15T12:00:00"
 ```
 
 ---

@@ -7,6 +7,7 @@ export const dateState = {
   operation: signal<DateOperation>('extract'),
   extractParts: signal<string[]>([]),
   truncateUnits: signal<string[]>([]),
+  truncateIntervals: signal<Record<string, number>>({}),
   outputColumn: signal(''),
   removeOrigin: signal(false),
   error: signal<string | null>(null),
@@ -18,6 +19,7 @@ export function resetDateState() {
   dateState.operation.value = 'extract';
   dateState.extractParts.value = ['year'];
   dateState.truncateUnits.value = ['month'];
+  dateState.truncateIntervals.value = {};
   dateState.outputColumn.value = '';
   dateState.removeOrigin.value = false;
   dateState.error.value = null;

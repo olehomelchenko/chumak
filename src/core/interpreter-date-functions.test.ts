@@ -263,6 +263,163 @@ describe('Date Functions', () => {
     });
   });
 
+  describe('date_trunc() with interval', () => {
+    const row = { ts: '2024-06-15T14:37:47' };
+
+    describe('minute intervals', () => {
+      it('should truncate to 5-minute intervals', () => {
+        expect(interpretAST(parseExpression('date_trunc(ts, "minute", 5)'), row)).toBe(
+          '2024-06-15T14:35:00'
+        );
+      });
+
+      it('should truncate to 10-minute intervals', () => {
+        expect(interpretAST(parseExpression('date_trunc(ts, "minute", 10)'), row)).toBe(
+          '2024-06-15T14:30:00'
+        );
+      });
+
+      it('should truncate to 15-minute intervals', () => {
+        expect(interpretAST(parseExpression('date_trunc(ts, "minute", 15)'), row)).toBe(
+          '2024-06-15T14:30:00'
+        );
+      });
+
+      it('should truncate to 30-minute intervals', () => {
+        expect(interpretAST(parseExpression('date_trunc(ts, "minute", 30)'), row)).toBe(
+          '2024-06-15T14:30:00'
+        );
+      });
+
+      it('should handle minute=0 correctly', () => {
+        expect(
+          interpretAST(parseExpression('date_trunc(ts, "minute", 5)'), {
+            ts: '2024-06-15T14:00:22',
+          })
+        ).toBe('2024-06-15T14:00:00');
+      });
+
+      it('should handle minute=59 correctly', () => {
+        expect(
+          interpretAST(parseExpression('date_trunc(ts, "minute", 5)'), {
+            ts: '2024-06-15T14:59:22',
+          })
+        ).toBe('2024-06-15T14:55:00');
+      });
+
+      it('interval=1 should behave same as no interval', () => {
+        const withInterval = interpretAST(parseExpression('date_trunc(ts, "minute", 1)'), row);
+        const without = interpretAST(parseExpression('date_trunc(ts, "minute")'), row);
+        expect(withInterval).toBe(without);
+      });
+    });
+
+    describe('hour intervals', () => {
+      it('should truncate to 4-hour intervals', () => {
+        // 14 → floor(14/4)*4 = 12
+        expect(interpretAST(parseExpression('date_trunc(ts, "hour", 4)'), row)).toBe(
+          '2024-06-15T12:00:00'
+        );
+      });
+
+      it('should truncate to 6-hour intervals', () => {
+        // 14 → floor(14/6)*6 = 12
+        expect(interpretAST(parseExpression('date_trunc(ts, "hour", 6)'), row)).toBe(
+          '2024-06-15T12:00:00'
+        );
+      });
+
+      it('should truncate to 2-hour intervals', () => {
+        // 14 → floor(14/2)*2 = 14
+        expect(interpretAST(parseExpression('date_trunc(ts, "hour", 2)'), row)).toBe(
+          '2024-06-15T14:00:00'
+        );
+      });
+
+      it('should truncate to 3-hour intervals', () => {
+        // 14 → floor(14/3)*3 = 12
+        expect(interpretAST(parseExpression('date_trunc(ts, "hour", 3)'), row)).toBe(
+          '2024-06-15T12:00:00'
+        );
+      });
+
+      it('should handle hour=0 correctly', () => {
+        expect(
+          interpretAST(parseExpression('date_trunc(ts, "hour", 4)'), {
+            ts: '2024-06-15T00:30:00',
+          })
+        ).toBe('2024-06-15T00:00:00');
+      });
+
+      it('should handle hour=23 correctly', () => {
+        expect(
+          interpretAST(parseExpression('date_trunc(ts, "hour", 4)'), {
+            ts: '2024-06-15T23:30:00',
+          })
+        ).toBe('2024-06-15T20:00:00');
+      });
+
+      it('should truncate to 12-hour intervals', () => {
+        // 14 → floor(14/12)*12 = 12
+        expect(interpretAST(parseExpression('date_trunc(ts, "hour", 12)'), row)).toBe(
+          '2024-06-15T12:00:00'
+        );
+        // 8 → floor(8/12)*12 = 0
+        expect(
+          interpretAST(parseExpression('date_trunc(ts, "hour", 12)'), {
+            ts: '2024-06-15T08:30:00',
+          })
+        ).toBe('2024-06-15T00:00:00');
+      });
+    });
+
+    describe('second intervals', () => {
+      it('should truncate to 15-second intervals', () => {
+        // 47 → floor(47/15)*15 = 45
+        expect(interpretAST(parseExpression('date_trunc(ts, "second", 15)'), row)).toBe(
+          '2024-06-15T14:37:45'
+        );
+      });
+
+      it('should truncate to 30-second intervals', () => {
+        // 47 → floor(47/30)*30 = 30
+        expect(interpretAST(parseExpression('date_trunc(ts, "second", 30)'), row)).toBe(
+          '2024-06-15T14:37:30'
+        );
+      });
+
+      it('should truncate to 5-second intervals', () => {
+        // 47 → floor(47/5)*5 = 45
+        expect(interpretAST(parseExpression('date_trunc(ts, "second", 5)'), row)).toBe(
+          '2024-06-15T14:37:45'
+        );
+      });
+    });
+
+    describe('backward compatibility', () => {
+      it('should work identically without interval parameter', () => {
+        expect(interpretAST(parseExpression('date_trunc(ts, "hour")'), row)).toBe(
+          '2024-06-15T14:00:00'
+        );
+        expect(interpretAST(parseExpression('date_trunc(ts, "minute")'), row)).toBe(
+          '2024-06-15T14:37:00'
+        );
+        expect(interpretAST(parseExpression('date_trunc(ts, "second")'), row)).toBe(
+          '2024-06-15T14:37:47'
+        );
+      });
+
+      it('should ignore interval for non-time units', () => {
+        expect(interpretAST(parseExpression('date_trunc(ts, "year", 3)'), row)).toBe('2024-01-01');
+        expect(interpretAST(parseExpression('date_trunc(ts, "month", 2)'), row)).toBe('2024-06-01');
+      });
+
+      it('should return null for null input with interval', () => {
+        expect(interpretAST(parseExpression('date_trunc(d, "minute", 5)'), { d: null })).toBe(null);
+      });
+    });
+  });
+
   describe('format_date()', () => {
     it('should format with YYYY-MM-DD', () => {
       const result = interpretAST(

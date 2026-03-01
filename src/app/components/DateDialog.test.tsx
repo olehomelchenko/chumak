@@ -18,6 +18,7 @@ describe('DateDialog', () => {
     DialogStore.dateState.operation.value = 'extract';
     DialogStore.dateState.extractParts.value = ['year'];
     DialogStore.dateState.truncateUnits.value = ['month'];
+    DialogStore.dateState.truncateIntervals.value = {};
     DialogStore.dateState.outputColumn.value = '';
     DialogStore.dateState.error.value = null;
     AppStore.columns.value = testColumns;

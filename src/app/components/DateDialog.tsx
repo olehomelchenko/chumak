@@ -13,7 +13,8 @@ export type { DateOperation } from '../../types/modes';
 
 export function DateDialog() {
   const state = DialogStore.dateState;
-  const { column, operation, extractParts, truncateUnits, removeOrigin, error } = state;
+  const { column, operation, extractParts, truncateUnits, truncateIntervals, removeOrigin, error } =
+    state;
 
   const dateColumns = DateHandlers.getDateColumns();
 
@@ -21,6 +22,7 @@ export function DateDialog() {
   useSignalEffect(() => {
     void extractParts.value;
     void truncateUnits.value;
+    void truncateIntervals.value;
     // Update if user has made any selections
     if ((extractParts.value.length > 0 || truncateUnits.value.length > 0) && column.value) {
       DateHandlers.updateDatePreview();
@@ -98,8 +100,9 @@ export function DateDialog() {
             )}
             {operation.value === 'truncate' && (
               <div style={{ fontSize: '0.75rem', color: 'var(--color-text)', lineHeight: 1.5 }}>
-                Rounds down a date/datetime to the start of the specified period. Useful for
-                bucketing data (e.g., grouping timestamps into daily or monthly buckets).
+                Rounds down a date/datetime to the start of the specified period. For hours,
+                minutes, and seconds you can set a custom interval (e.g., every 5 minutes, every 4
+                hours).
               </div>
             )}
           </div>
@@ -177,13 +180,15 @@ export function DateDialog() {
               <table class={styles.dateOptionsTable}>
                 <thead>
                   <tr>
-                    <th style={{ width: '60%' }}>Unit</th>
-                    <th style={{ width: '40%' }}>Preview</th>
+                    <th style={{ width: '35%' }}>Unit</th>
+                    <th style={{ width: '30%' }}>Interval</th>
+                    <th style={{ width: '35%' }}>Preview</th>
                   </tr>
                 </thead>
                 <tbody>
                   {DateHandlers.getTruncateUnits().map((unit) => {
                     const isSelected = truncateUnits.value.includes(unit.value);
+                    const interval = truncateIntervals.value[unit.value] ?? 1;
                     return (
                       <tr
                         key={unit.value}
@@ -213,6 +218,45 @@ export function DateDialog() {
                               {unit.label}
                             </span>
                           </div>
+                        </td>
+                        <td>
+                          {unit.supportsInterval ? (
+                            <div
+                              style={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '0.375rem',
+                                opacity: !isSelected ? 0.4 : 1,
+                              }}
+                            >
+                              <span
+                                style={{ fontSize: '0.75rem', color: 'var(--color-dark-gray)' }}
+                              >
+                                every
+                              </span>
+                              <input
+                                type="number"
+                                class={styles.input}
+                                min={1}
+                                max={unit.max}
+                                value={interval}
+                                onInput={(e) => {
+                                  const val = parseInt((e.target as HTMLInputElement).value, 10);
+                                  if (!isNaN(val) && val >= 1) {
+                                    DateHandlers.setTruncateInterval(
+                                      unit.value,
+                                      Math.min(val, unit.max)
+                                    );
+                                  }
+                                }}
+                                style={{
+                                  width: '3rem',
+                                  padding: '0.125rem 0.25rem',
+                                  textAlign: 'center',
+                                }}
+                              />
+                            </div>
+                          ) : null}
                         </td>
                         <td>
                           <span
