@@ -41,7 +41,7 @@ export interface TransformStep {
   rename?: Record<string, string>;
   derive?: Record<string, string>;
   filter?: string;
-  sort?: { field: string; order: 'asc' | 'desc' };
+  sort?: { field: string; order: 'asc' | 'desc' } | Array<{ field: string; order: 'asc' | 'desc' }>;
   replace?: { column: string; find: any; replace: any; isRegex?: boolean };
   dedupe?: { columns?: string[]; mode?: 'remove' | 'keep' };
   join?: any;

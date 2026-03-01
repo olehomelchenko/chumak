@@ -40,18 +40,19 @@ describe('simple-handlers', () => {
 
   describe('applySortTransform', () => {
     it('errors when no field selected', async () => {
-      DialogStore.sortState.field.value = '';
+      DialogStore.sortState.fields.value = [{ field: '', order: 'asc' }];
       const callbacks = { onError: vi.fn() };
 
       await applySortTransform(callbacks);
 
-      expect(callbacks.onError).toHaveBeenCalledWith('Please select a column to sort by');
+      expect(callbacks.onError).toHaveBeenCalledWith(
+        'Please select at least one column to sort by'
+      );
       expect(StepService.runTransform).not.toHaveBeenCalled();
     });
 
     it('runs transform with field and order', async () => {
-      DialogStore.sortState.field.value = 'age';
-      DialogStore.sortState.order.value = 'desc';
+      DialogStore.sortState.fields.value = [{ field: 'age', order: 'desc' }];
       const callbacks = { onError: vi.fn() };
 
       await applySortTransform(callbacks);

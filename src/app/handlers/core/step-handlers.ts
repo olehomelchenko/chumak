@@ -223,8 +223,8 @@ export function editStep(stepIndex: number): void {
     state.draggedIndex.value = null;
   } else if (step.sort) {
     callbacks?.openDialog('sort');
-    DialogStore.sortState.field.value = step.sort.field;
-    DialogStore.sortState.order.value = step.sort.order;
+    const sortFields = Array.isArray(step.sort) ? step.sort : [step.sort];
+    DialogStore.sortState.fields.value = sortFields;
   } else if (step.sample) {
     callbacks?.openDialog('sample');
     DialogStore.sampleState.count.value = step.sample.count;

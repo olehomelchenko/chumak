@@ -443,4 +443,94 @@ describe('Transform Engine - Basic Operations', () => {
       spy.mockRestore();
     });
   });
+
+  describe('applyTransform() - SORT', () => {
+    it('should sort ascending by single field (object form)', () => {
+      const table = createTestTable();
+      const result = applyTransform(table, { sort: { field: 'sales', order: 'asc' } }, ['sales']);
+      const rows = result.objects();
+      expect(rows[0].sales).toBe(500);
+      expect(rows[rows.length - 1].sales).toBe(2000);
+    });
+
+    it('should sort descending by single field (object form)', () => {
+      const table = createTestTable();
+      const result = applyTransform(table, { sort: { field: 'sales', order: 'desc' } }, ['sales']);
+      const rows = result.objects();
+      expect(rows[0].sales).toBe(2000);
+      expect(rows[rows.length - 1].sales).toBe(500);
+    });
+
+    it('should sort by single field (array form)', () => {
+      const table = createTestTable();
+      const result = applyTransform(table, { sort: [{ field: 'sales', order: 'asc' }] }, ['sales']);
+      const rows = result.objects();
+      expect(rows[0].sales).toBe(500);
+      expect(rows[rows.length - 1].sales).toBe(2000);
+    });
+
+    it('should sort by multiple fields', () => {
+      const table = createTestTable();
+      const result = applyTransform(
+        table,
+        {
+          sort: [
+            { field: 'region', order: 'asc' },
+            { field: 'sales', order: 'desc' },
+          ],
+        },
+        ['region', 'sales']
+      );
+      const rows = result.objects();
+      // East first, then North (sorted by sales desc within group), South, West
+      expect(rows[0].region).toBe('East');
+      expect(rows[1].region).toBe('North');
+      expect(rows[1].sales).toBe(1000); // higher North sales first (desc)
+      expect(rows[2].region).toBe('North');
+      expect(rows[2].sales).toBe(800);
+    });
+
+    it('should handle mixed asc/desc in multi-field sort', () => {
+      const table = createTestTable();
+      const result = applyTransform(
+        table,
+        {
+          sort: [
+            { field: 'status', order: 'desc' },
+            { field: 'sales', order: 'asc' },
+          ],
+        },
+        ['status', 'sales']
+      );
+      const rows = result.objects();
+      // 'pending' > 'inactive' > 'active' (desc), then sales asc within
+      expect(rows[0].status).toBe('pending');
+      expect(rows[rows.length - 1].status).toBe('active');
+    });
+  });
+
+  describe('describeTransform() - SORT', () => {
+    it('should describe single-field sort (object form)', () => {
+      expect(describeTransform({ sort: { field: 'name', order: 'asc' } })).toBe(
+        'Sort: name \u2191'
+      );
+    });
+
+    it('should describe single-field sort (array form)', () => {
+      expect(describeTransform({ sort: [{ field: 'name', order: 'desc' }] })).toBe(
+        'Sort: name \u2193'
+      );
+    });
+
+    it('should describe multi-field sort', () => {
+      expect(
+        describeTransform({
+          sort: [
+            { field: 'region', order: 'asc' },
+            { field: 'sales', order: 'desc' },
+          ],
+        })
+      ).toBe('Sort: region \u2191, sales \u2193');
+    });
+  });
 });

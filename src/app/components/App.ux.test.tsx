@@ -344,7 +344,7 @@ describe('App UX Interactions', () => {
 
       // Should trigger quickSort which opens sort dialog
       await waitFor(() => {
-        expect(DialogStore.sortState.field.value).toBe('sales');
+        expect(DialogStore.sortState.fields.value[0].field).toBe('sales');
       });
     });
 

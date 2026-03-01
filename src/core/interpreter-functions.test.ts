@@ -758,3 +758,72 @@ describe('Regex Functions - regexp_replace()', () => {
     );
   });
 });
+
+describe('if() function', () => {
+  const row = { score: 85, name: 'Alice', nullVal: null };
+
+  it('should return then_value when condition is true', () => {
+    expect(interpretAST(parseExpression('if(true, "yes", "no")'), {})).toBe('yes');
+  });
+
+  it('should return else_value when condition is false', () => {
+    expect(interpretAST(parseExpression('if(false, "yes", "no")'), {})).toBe('no');
+  });
+
+  it('should evaluate condition expression', () => {
+    expect(interpretAST(parseExpression('if(score > 50, "pass", "fail")'), row)).toBe('pass');
+    expect(interpretAST(parseExpression('if(score > 90, "A", "B")'), row)).toBe('B');
+  });
+
+  it('should treat null condition as falsy', () => {
+    expect(interpretAST(parseExpression('if(nullVal, "a", "b")'), row)).toBe('b');
+  });
+
+  it('should treat 0 as falsy', () => {
+    expect(interpretAST(parseExpression('if(0, "a", "b")'), {})).toBe('b');
+  });
+
+  it('should support nested if()', () => {
+    const row2 = { x: 25 };
+    expect(
+      interpretAST(parseExpression('if(x > 20, if(x > 30, "high", "mid"), "low")'), row2)
+    ).toBe('mid');
+  });
+
+  it('should work with column references in branches', () => {
+    expect(interpretAST(parseExpression('if(score > 80, name, "Unknown")'), row)).toBe('Alice');
+  });
+});
+
+describe('coalesce() function', () => {
+  const row = { a: null, b: undefined, c: 'hello', d: 0, e: '', nullVal: null };
+
+  it('should return first non-null value', () => {
+    expect(interpretAST(parseExpression('coalesce(a, b, c)'), row)).toBe('hello');
+  });
+
+  it('should return first argument when non-null', () => {
+    expect(interpretAST(parseExpression('coalesce(c, a)'), row)).toBe('hello');
+  });
+
+  it('should treat 0 as non-null', () => {
+    expect(interpretAST(parseExpression('coalesce(a, b, d)'), row)).toBe(0);
+  });
+
+  it('should treat empty string as non-null', () => {
+    expect(interpretAST(parseExpression('coalesce(a, b, e)'), row)).toBe('');
+  });
+
+  it('should return null when all values are null', () => {
+    expect(interpretAST(parseExpression('coalesce(a, nullVal)'), row)).toBe(null);
+  });
+
+  it('should work with a single argument', () => {
+    expect(interpretAST(parseExpression('coalesce(c)'), row)).toBe('hello');
+    expect(interpretAST(parseExpression('coalesce(a)'), row)).toBe(null);
+  });
+
+  it('should work with literal fallback', () => {
+    expect(interpretAST(parseExpression('coalesce(a, b, "fallback")'), row)).toBe('fallback');
+  });
+});

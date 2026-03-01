@@ -16,9 +16,9 @@ for (const fn of functionDocs.functions) {
 }
 
 const TYPE_SUGGESTIONS: Record<string, string[]> = {
-  string: ['upper', 'lower', 'trim', 'len', 'contains', 'starts_with', 'split', 'substring'],
-  integer: ['round', 'abs', 'min', 'max', 'pow'],
-  float: ['round', 'floor', 'ceil', 'abs', 'min', 'max'],
+  string: ['upper', 'lower', 'trim', 'len', 'contains', 'starts_with', 'split', 'coalesce'],
+  integer: ['round', 'abs', 'min', 'max', 'pow', 'coalesce', 'if'],
+  float: ['round', 'floor', 'ceil', 'abs', 'min', 'max', 'coalesce', 'if'],
   date: ['year', 'month', 'day', 'weekday', 'days_between', 'date_add', 'format_date'],
   datetime: ['year', 'month', 'day', 'hour', 'minute', 'days_between', 'date_add', 'format_date'],
   json: ['json_extract', 'json_keys', 'json_array_length', 'json_type', 'is_json'],

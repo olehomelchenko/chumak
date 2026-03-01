@@ -89,8 +89,7 @@ export function getDialogState(dialog: string): any {
       };
     case 'sort':
       return {
-        field: DialogStore.sortState.field.value,
-        order: DialogStore.sortState.order.value,
+        fields: DialogStore.sortState.fields.value,
       };
     case 'sample':
       return {
@@ -238,8 +237,7 @@ export function initDialogState(dialogName: string, section?: string): void {
       break;
 
     case 'sort':
-      DialogStore.sortState.field.value = columns[0] || '';
-      DialogStore.sortState.order.value = 'asc';
+      DialogStore.sortState.fields.value = [{ field: columns[0] || '', order: 'asc' }];
       break;
 
     case 'sliceRows':

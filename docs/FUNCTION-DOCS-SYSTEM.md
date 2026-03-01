@@ -120,7 +120,7 @@ Expression-based dialogs (Derive, Filter) include static inline documentation sh
 ## Adding New Functions
 
 1. **Implement the function** in the appropriate category file (`src/core/functions/<category>-functions.ts`)
-2. **Add JSDoc comment** with all required tags (`@category`, `@description`, `@param`, `@returns`, `@example`)
+2. **Add JSDoc comment** with all required tags (`@category`, `@description`, `@param`, `@returns`, `@example`). Use `@name` to override the display name if the JS identifier differs (e.g., `if_` → `if`)
 3. **Export from category module** and ensure it's included in `FUNCTION_IMPLS` via `functions/index.ts`
 4. **Add to whitelist** in `src/core/ast-validator.ts` (ALLOWED_FUNCTIONS + FUNCTION_ARITY)
 5. **Regenerate documentation:** `npm run docs:generate`

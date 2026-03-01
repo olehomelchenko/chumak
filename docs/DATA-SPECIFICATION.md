@@ -311,7 +311,8 @@ interface TransformStep {
 
   // Row operations
   filter?: string;                    // Expression string
-  sort?: { field: string; order: 'asc' | 'desc' };
+  sort?: { field: string; order: 'asc' | 'desc' }   // Single field
+      | Array<{ field: string; order: 'asc' | 'desc' }>;  // Multi-field
   dedupe?: { columns?: string[]; mode?: 'remove' | 'keep' };
   sliceRows?: { count: number; mode: 'first' | 'last' | 'removeFirst' | 'removeLast' };
 

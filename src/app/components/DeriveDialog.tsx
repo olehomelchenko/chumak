@@ -88,12 +88,12 @@ export function DeriveDialog() {
           style={{ display: 'block', marginTop: '0.5rem' }}
         >
           <div>
-            <code class={styles.exampleCode}>profit {'>'} 0 ? "Gain" : "Loss"</code>
+            <code class={styles.exampleCode}>if(profit {'>'} 0, "Gain", "Loss")</code>
             <span class={styles.exampleDescription}>— conditional</span>
           </div>
           <div>
-            <code class={styles.exampleCode}>discount ?? 0</code>
-            <span class={styles.exampleDescription}>— default for null</span>
+            <code class={styles.exampleCode}>coalesce(discount, 0)</code>
+            <span class={styles.exampleDescription}>— first non-null</span>
           </div>
           <div>
             <code class={styles.exampleCode}>[Total Sales] + [Tax]</code>

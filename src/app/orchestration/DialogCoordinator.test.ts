@@ -124,11 +124,10 @@ describe('DialogCoordinator', () => {
     });
 
     it('returns sort state', () => {
-      DialogStore.sortState.field.value = 'name';
-      DialogStore.sortState.order.value = 'desc';
+      DialogStore.sortState.fields.value = [{ field: 'name', order: 'desc' }];
 
       const state = getDialogState('sort');
-      expect(state).toEqual({ field: 'name', order: 'desc' });
+      expect(state).toEqual({ fields: [{ field: 'name', order: 'desc' }] });
     });
 
     it('returns sample state', () => {
@@ -731,12 +730,13 @@ describe('DialogCoordinator', () => {
   describe('snapshotDialogState', () => {
     it('captures current dialog state as JSON', () => {
       AppStore.activeDialog.value = 'sort';
-      DialogStore.sortState.field.value = 'name';
-      DialogStore.sortState.order.value = 'desc';
+      DialogStore.sortState.fields.value = [{ field: 'name', order: 'desc' }];
 
       snapshotDialogState();
 
-      expect(AppStore.dialogSnapshot.value).toBe(JSON.stringify({ field: 'name', order: 'desc' }));
+      expect(AppStore.dialogSnapshot.value).toBe(
+        JSON.stringify({ fields: [{ field: 'name', order: 'desc' }] })
+      );
     });
 
     it('does nothing when no dialog is active', () => {

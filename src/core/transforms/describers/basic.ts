@@ -18,7 +18,9 @@ export function describeRename(transform: any): string | null {
 
 export function describeSort(transform: any): string | null {
   if (!transform.sort) return null;
-  return `Sort: ${transform.sort.field}`;
+  const fields = Array.isArray(transform.sort) ? transform.sort : [transform.sort];
+  const parts = fields.map((f: any) => `${f.field} ${f.order === 'desc' ? '\u2193' : '\u2191'}`);
+  return `Sort: ${parts.join(', ')}`;
 }
 
 export function describeRenamePattern(transform: any): string | null {

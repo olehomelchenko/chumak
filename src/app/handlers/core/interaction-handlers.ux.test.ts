@@ -190,8 +190,8 @@ describe('Interaction Handlers UX', () => {
       await InteractionHandlers.quickSort('asc', callbacks);
 
       // Sort state should be set
-      expect(DialogStore.sortState.field.value).toBe('sales');
-      expect(DialogStore.sortState.order.value).toBe('asc');
+      expect(DialogStore.sortState.fields.value[0].field).toBe('sales');
+      expect(DialogStore.sortState.fields.value[0].order).toBe('asc');
       expect(AppStore.selectedColumn.value).toBeNull(); // Should clear after action
     });
 

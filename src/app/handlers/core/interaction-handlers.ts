@@ -278,8 +278,7 @@ export async function applyQuickCellFilter(op: string, callbacks: any) {
 export async function quickSort(order: 'asc' | 'desc', callbacks: any) {
   const selectedColumn = AppStore.selectedColumn.value;
   if (!selectedColumn) return;
-  DialogStore.sortState.field.value = selectedColumn;
-  DialogStore.sortState.order.value = order;
+  DialogStore.sortState.fields.value = [{ field: selectedColumn, order }];
   await SimpleHandlers.applySortTransform(callbacks);
   AppStore.selectedColumn.value = null;
 }

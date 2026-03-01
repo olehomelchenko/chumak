@@ -208,8 +208,7 @@ describe('Generic Dialog Behavior', () => {
       render(<App />);
 
       // Set up valid sort selection
-      DialogStore.sortState.field.value = 'age';
-      DialogStore.sortState.order.value = 'asc';
+      DialogStore.sortState.fields.value = [{ field: 'age', order: 'asc' }];
 
       const footer = await waitFor(() => {
         const f = document.querySelector('[class*="slidePanelFooter"]');
@@ -228,8 +227,7 @@ describe('Generic Dialog Behavior', () => {
 
       // Sort dialog auto-selects first field, so field is already selected
       // Verify we can change the order
-      DialogStore.sortState.field.value = 'age';
-      DialogStore.sortState.order.value = 'asc';
+      DialogStore.sortState.fields.value = [{ field: 'age', order: 'asc' }];
 
       await waitFor(() => {
         const footer = document.querySelector('[class*="slidePanelFooter"]');

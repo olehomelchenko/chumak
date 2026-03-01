@@ -1517,6 +1517,56 @@
           "expression": "is_nan(\"abc\") -> true"
         }
       ]
+    },
+    {
+      "name": "if",
+      "category": "Conversion",
+      "description": "Returns one of two values based on a condition (if-then-else)",
+      "signature": "if(condition, then_value, else_value)",
+      "params": [
+        {
+          "name": "condition",
+          "description": "Expression that evaluates to true or false"
+        },
+        {
+          "name": "then_value",
+          "description": "Value returned when condition is true"
+        },
+        {
+          "name": "else_value",
+          "description": "Value returned when condition is false"
+        }
+      ],
+      "returns": "then_value if condition is truthy, else_value otherwise",
+      "examples": [
+        {
+          "expression": "if(age >= 18, \"adult\", \"minor\")"
+        },
+        {
+          "expression": "if(score > 90, \"A\", \"B\") -> \"A\" (when score is 95)"
+        }
+      ]
+    },
+    {
+      "name": "coalesce",
+      "category": "Conversion",
+      "description": "Returns the first non-null value from a list of arguments",
+      "signature": "coalesce(args)",
+      "params": [
+        {
+          "name": "args",
+          "description": "Variable number of values to check"
+        }
+      ],
+      "returns": "First non-null/non-undefined value, or null if all are null",
+      "examples": [
+        {
+          "expression": "coalesce(preferred_name, first_name, \"Unknown\")"
+        },
+        {
+          "expression": "coalesce(null, null, \"fallback\") -> \"fallback\""
+        }
+      ]
     }
   ]
 }

@@ -14,8 +14,10 @@ export function handleRename(table: any, transform: FullTransformStep): any {
 }
 
 export function handleSort(table: any, transform: FullTransformStep): any {
-  const { field, order } = transform.sort!;
-  return order === 'desc' ? table.orderby((aq as any).desc(field)) : table.orderby(field);
+  const sortSpec = transform.sort!;
+  const fields = Array.isArray(sortSpec) ? sortSpec : [sortSpec];
+  const orderArgs = fields.map((f) => (f.order === 'desc' ? (aq as any).desc(f.field) : f.field));
+  return table.orderby(...orderArgs);
 }
 
 export function handleRenamePattern(table: any, transform: FullTransformStep): any {

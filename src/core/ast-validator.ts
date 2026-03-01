@@ -128,6 +128,8 @@ export const ALLOWED_FUNCTIONS: Record<string, FunctionSpec> = {
   parse_int: { minArgs: 1, maxArgs: 1 },
   parse_float: { minArgs: 1, maxArgs: 1 },
   is_nan: { minArgs: 1, maxArgs: 1 },
+  if: { minArgs: 3, maxArgs: 3 },
+  coalesce: { minArgs: 1, maxArgs: Infinity },
 
   // JSON functions
   is_json: { minArgs: 1, maxArgs: 1 },

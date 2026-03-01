@@ -145,6 +145,15 @@ export function ImputeDialog() {
         </div>
       </div>
 
+      {(state.strategy.value === 'forwardFill' ||
+        state.strategy.value === 'backwardFill' ||
+        state.strategy.value === 'linearInterpolation') && (
+        <p className={styles.helpText} style={{ marginTop: 0 }}>
+          Tip: This strategy is order-dependent. Consider adding a Sort step before this one to
+          ensure rows are in the expected order.
+        </p>
+      )}
+
       <div className={styles.group}>
         <label className={styles.checkboxLabel}>
           <input

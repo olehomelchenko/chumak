@@ -5,13 +5,13 @@ import { StepService } from '../../services/StepService';
 import { confirm } from '../core/notification-handlers';
 
 export async function applySortTransform(callbacks: any) {
-  const field = DialogStore.sortState.field.value;
-  const order = DialogStore.sortState.order.value;
-  if (!field) {
-    await callbacks.onError?.('Please select a column to sort by');
+  const fields = DialogStore.sortState.fields.value.filter((f) => f.field !== '');
+  if (fields.length === 0) {
+    await callbacks.onError?.('Please select at least one column to sort by');
     return;
   }
-  await StepService.runTransform('Sort', { sort: { field, order } }, callbacks);
+  const sort = fields.length === 1 ? fields[0] : fields;
+  await StepService.runTransform('Sort', { sort }, callbacks);
 }
 
 export async function applySliceRowsTransform(callbacks: any) {

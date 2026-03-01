@@ -48,7 +48,9 @@ function parseJSDoc(comment: string): Partial<FunctionMetadata> {
   };
 
   for (const line of lines) {
-    if (line.startsWith('@category ')) {
+    if (line.startsWith('@name ')) {
+      metadata.name = line.replace('@name ', '').trim();
+    } else if (line.startsWith('@category ')) {
       metadata.category = line.replace('@category ', '').trim();
     } else if (line.startsWith('@description ')) {
       metadata.description = line.replace('@description ', '').trim();
@@ -87,7 +89,7 @@ function extractFunctions(sourceCode: string): FunctionMetadata[] {
   // Supports both old format (name: () =>) and new format (export const name = () =>)
   // Note: (?::[^=]*)? handles compound return types like `: string | null`
   const functionRegex =
-    /\/\*\*\s*([\s\S]*?)\s*\*\/\s*(?:export\s+const\s+)?(\w+)(?::\s*|\s*=\s*)\(([^)]*)\)\s*(?::[^=]*)?\s*=>/g;
+    /\/\*\*\s*([\s\S]*?)\s*\*\/\s*(?:export\s+)?(?:const\s+)?(\w+)(?::\s*|\s*=\s*)\(([^)]*)\)\s*(?::[^=]*)?\s*=>/g;
 
   let match;
   while ((match = functionRegex.exec(sourceCode)) !== null) {
@@ -97,7 +99,7 @@ function extractFunctions(sourceCode: string): FunctionMetadata[] {
 
     if (metadata.category && metadata.description) {
       functions.push({
-        name: functionName,
+        name: metadata.name || functionName,
         category: metadata.category,
         description: metadata.description,
         params: metadata.params || [],

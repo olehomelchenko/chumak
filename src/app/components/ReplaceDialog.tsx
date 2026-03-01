@@ -67,6 +67,13 @@ export function ReplaceDialog() {
             : 'New value to use (leave empty to replace with null)'}
         </p>
       </div>
+
+      {isRegex.value && (
+        <p class={styles.helpText}>
+          Tip: If you're cleaning numeric data (e.g., removing $ or ,), follow this with a Type
+          Conversion step to convert the column to a number.
+        </p>
+      )}
     </div>
   );
 }

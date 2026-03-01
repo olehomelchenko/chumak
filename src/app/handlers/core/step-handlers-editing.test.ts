@@ -123,8 +123,8 @@ describe('step-handlers - editing', () => {
 
       expect(AppStore.editingStepIndex.value).toBe(1);
       expect(callbacks.openDialog).toHaveBeenCalledWith('sort');
-      expect(DialogStore.sortState.field.value).toBe('age');
-      expect(DialogStore.sortState.order.value).toBe('desc');
+      expect(DialogStore.sortState.fields.value[0].field).toBe('age');
+      expect(DialogStore.sortState.fields.value[0].order).toBe('desc');
     });
 
     it('opens sample dialog and sets state for sample step', () => {

@@ -45,8 +45,41 @@ export const is_nan = (value: any) => {
   return Number.isNaN(Number(value));
 };
 
-export const typeFunctions = {
+/**
+ * @name if
+ * @category Conversion
+ * @description Returns one of two values based on a condition (if-then-else)
+ * @param condition - Expression that evaluates to true or false
+ * @param then_value - Value returned when condition is true
+ * @param else_value - Value returned when condition is false
+ * @returns then_value if condition is truthy, else_value otherwise
+ * @example if(age >= 18, "adult", "minor")
+ * @example if(score > 90, "A", "B") -> "A" (when score is 95)
+ */
+// Both branches are eagerly evaluated (no short-circuit). Use ternary `? :` when branches may error.
+const if_ = (condition: any, thenValue: any, elseValue: any) => {
+  return condition ? thenValue : elseValue;
+};
+
+/**
+ * @category Conversion
+ * @description Returns the first non-null value from a list of arguments
+ * @param args - Variable number of values to check
+ * @returns First non-null/non-undefined value, or null if all are null
+ * @example coalesce(preferred_name, first_name, "Unknown")
+ * @example coalesce(null, null, "fallback") -> "fallback"
+ */
+export const coalesce = (...args: any[]) => {
+  for (const arg of args) {
+    if (arg !== null && arg !== undefined) return arg;
+  }
+  return null;
+};
+
+export const typeFunctions: Record<string, (...args: any[]) => any> = {
   parse_int,
   parse_float,
   is_nan,
+  if: if_,
+  coalesce,
 };

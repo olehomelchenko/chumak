@@ -14,13 +14,11 @@ describe('SortDialog', () => {
   const testColumns = ['name', 'age', 'city'];
 
   beforeEach(() => {
-    // Reset store state before each test
-    DialogStore.sortState.field.value = '';
-    DialogStore.sortState.order.value = 'asc';
+    DialogStore.sortState.fields.value = [{ field: '', order: 'asc' }];
     AppStore.columns.value = testColumns;
   });
 
-  it('renders all column chips', () => {
+  it('renders column options in the select dropdown', () => {
     render(<SortDialog />);
 
     testColumns.forEach((col) => {
@@ -28,42 +26,67 @@ describe('SortDialog', () => {
     });
   });
 
-  it('selects a column when clicked', () => {
+  it('selects a column via the dropdown', () => {
     render(<SortDialog />);
 
-    const ageButton = screen.getByText('age').closest('button');
-    expect(ageButton).toBeDefined();
+    const select = screen.getByDisplayValue('Select column…') as HTMLSelectElement;
+    fireEvent.change(select, { target: { value: 'age' } });
 
-    fireEvent.click(ageButton!);
-    expect(DialogStore.sortState.field.value).toBe('age');
-  });
-
-  it('highlights the selected column', () => {
-    DialogStore.sortState.field.value = 'name';
-    render(<SortDialog />);
-
-    const nameButton = screen.getByText('name').closest('button');
-    expect(nameButton?.className).toContain('active');
+    expect(DialogStore.sortState.fields.value[0].field).toBe('age');
   });
 
   it('toggles between ascending and descending order', () => {
-    DialogStore.sortState.field.value = 'name';
+    DialogStore.sortState.fields.value = [{ field: 'name', order: 'asc' }];
     render(<SortDialog />);
 
-    // Find the descending radio button
-    const descendingRadio = screen.getByText('Descending')
-      .previousElementSibling as HTMLInputElement;
-    expect(descendingRadio).toBeDefined();
+    const toggleButton = screen.getByTitle('Ascending');
+    fireEvent.click(toggleButton);
 
-    fireEvent.click(descendingRadio);
-    expect(DialogStore.sortState.order.value).toBe('desc');
+    expect(DialogStore.sortState.fields.value[0].order).toBe('desc');
   });
 
-  it('shows ascending as default checked', () => {
-    DialogStore.sortState.field.value = 'name';
+  it('shows ascending as default', () => {
+    DialogStore.sortState.fields.value = [{ field: 'name', order: 'asc' }];
     render(<SortDialog />);
 
-    const ascendingRadio = screen.getByText('Ascending').previousElementSibling as HTMLInputElement;
-    expect(ascendingRadio.checked).toBe(true);
+    const toggleButton = screen.getByTitle('Ascending');
+    expect(toggleButton.textContent).toContain('Asc');
+  });
+
+  it('shows add sort level button', () => {
+    render(<SortDialog />);
+
+    expect(screen.getByText('+ Add sort level')).toBeDefined();
+  });
+
+  it('adds a second sort level', () => {
+    DialogStore.sortState.fields.value = [{ field: 'name', order: 'asc' }];
+    render(<SortDialog />);
+
+    fireEvent.click(screen.getByText('+ Add sort level'));
+
+    expect(DialogStore.sortState.fields.value).toHaveLength(2);
+    expect(DialogStore.sortState.fields.value[1]).toEqual({ field: '', order: 'asc' });
+  });
+
+  it('shows remove button when multiple levels exist', () => {
+    DialogStore.sortState.fields.value = [
+      { field: 'name', order: 'asc' },
+      { field: 'age', order: 'desc' },
+    ];
+    render(<SortDialog />);
+
+    const removeButtons = screen.getAllByTitle('Remove sort level');
+    expect(removeButtons).toHaveLength(2);
+  });
+
+  it('shows help text when multiple levels exist', () => {
+    DialogStore.sortState.fields.value = [
+      { field: 'name', order: 'asc' },
+      { field: 'age', order: 'desc' },
+    ];
+    render(<SortDialog />);
+
+    expect(screen.getByText(/ties are broken by subsequent/)).toBeDefined();
   });
 });
