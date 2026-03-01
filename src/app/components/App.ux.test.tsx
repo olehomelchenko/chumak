@@ -558,7 +558,7 @@ describe('App UX Interactions', () => {
     });
 
     it('should open sample dialog when ribbon sample button is clicked', async () => {
-      AppStore.ribbonTab.value = 'prepare';
+      AppStore.ribbonTab.value = 'rows';
       render(<App />);
 
       // Find sample button by its icon

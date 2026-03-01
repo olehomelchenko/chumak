@@ -24,7 +24,7 @@ describe('AppStore', () => {
     });
 
     it('UI signals start at defaults', () => {
-      expect(AppStore.ribbonTab.value).toBe('prepare');
+      expect(AppStore.ribbonTab.value).toBe('rows');
       expect(AppStore.activeTab.value).toBe('steps');
       expect(AppStore.activeDialog.value).toBeNull();
       expect(AppStore.isDragging.value).toBe(false);
@@ -87,7 +87,7 @@ describe('AppStore', () => {
       expect(AppStore.viewMode.value).toBe('empty');
       expect(AppStore.activeStepIndex.value).toBeNull();
       expect(AppStore.viewingIntermediate.value).toBe(false);
-      expect(AppStore.ribbonTab.value).toBe('prepare');
+      expect(AppStore.ribbonTab.value).toBe('rows');
       expect(AppStore.activeTab.value).toBe('steps');
       expect(AppStore.activeDialog.value).toBeNull();
       expect(AppStore.isDragging.value).toBe(false);

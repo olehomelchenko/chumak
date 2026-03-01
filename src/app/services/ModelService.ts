@@ -97,7 +97,7 @@ export class ModelService {
     clearColumnSelection();
 
     if (ribbonTab === 'data' || !ribbonTab) {
-      setRibbonTab('prepare');
+      setRibbonTab('rows');
     }
 
     if (AppStore.currentData.value && AppStore.currentData.value.length > 0) {

@@ -608,7 +608,7 @@ export async function applyJoinTransform(callbacks: any) {
         newModel,
         () => {},
         () => {},
-        'prepare',
+        'rows',
         () => {}
       );
       await callbacks.onDialogClose?.(true);

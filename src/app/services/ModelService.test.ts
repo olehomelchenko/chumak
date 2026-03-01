@@ -128,7 +128,7 @@ describe('ModelService', () => {
         setRibbonTab
       );
 
-      expect(setRibbonTab).toHaveBeenCalledWith('prepare');
+      expect(setRibbonTab).toHaveBeenCalledWith('rows');
     });
 
     it('does not change ribbon tab when already on valid tab', () => {
@@ -136,7 +136,7 @@ describe('ModelService', () => {
         model,
         clearColumnSelection,
         updatePagination,
-        'prepare',
+        'rows',
         setRibbonTab
       );
 
@@ -148,7 +148,7 @@ describe('ModelService', () => {
         model,
         clearColumnSelection,
         updatePagination,
-        'prepare',
+        'rows',
         setRibbonTab
       );
 
@@ -163,7 +163,7 @@ describe('ModelService', () => {
         model,
         clearColumnSelection,
         updatePagination,
-        'prepare',
+        'rows',
         setRibbonTab
       );
 

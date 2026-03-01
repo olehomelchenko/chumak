@@ -26,7 +26,7 @@ export class AppStore {
   static viewingIntermediate = signal(false);
 
   // UI State
-  static ribbonTab = signal('prepare');
+  static ribbonTab = signal('rows');
   static activeTab = signal('steps');
   static activeDialog = signal<DialogName>(null);
   static isDragging = signal(false);
@@ -123,6 +123,10 @@ export class AppStore {
   static typeMenuPos = signal({ x: 0, y: 0 });
   static typeMenuCol = signal<string | null>(null);
 
+  // Ribbon Popover State
+  static ribbonPopover = signal<string | null>(null);
+  static ribbonPopoverRect = signal<DOMRect | null>(null);
+
   // Computed properties
   static hasData = computed(() => AppStore.sources.value.length > 0);
 
@@ -139,7 +143,7 @@ export class AppStore {
     this.viewMode.value = 'empty';
     this.activeStepIndex.value = null;
     this.viewingIntermediate.value = false;
-    this.ribbonTab.value = 'prepare';
+    this.ribbonTab.value = 'rows';
     this.activeTab.value = 'steps';
     this.activeDialog.value = null;
     this.isDragging.value = false;
@@ -175,5 +179,7 @@ export class AppStore {
     this.viewingSchema.value = null;
     this.typeMenuOpen.value = false;
     this.typeMenuCol.value = null;
+    this.ribbonPopover.value = null;
+    this.ribbonPopoverRect.value = null;
   }
 }

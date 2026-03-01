@@ -3,7 +3,7 @@ import { AppStore } from '../stores/AppStore';
 import { DialogName } from '../types';
 import styles from './AppHeader.module.css';
 
-type RibbonTabName = 'prepare' | 'calculate' | 'combine';
+type RibbonTabName = 'rows' | 'columns' | 'table';
 
 export interface AppHeaderProps {
   onOpenDialog: (dialog: DialogName) => void;
@@ -38,25 +38,25 @@ export function AppHeader({ onOpenDialog }: AppHeaderProps) {
         {/* Ribbon Tabs */}
         <div class={styles.tabs}>
           <button
-            class={getTabClass('prepare')}
+            class={getTabClass('rows')}
             disabled={!hasData.value}
-            onClick={() => setTab('prepare')}
+            onClick={() => setTab('rows')}
           >
-            Prepare
+            Rows
           </button>
           <button
-            class={getTabClass('calculate')}
+            class={getTabClass('columns')}
             disabled={!hasData.value}
-            onClick={() => setTab('calculate')}
+            onClick={() => setTab('columns')}
           >
-            Calculate
+            Columns
           </button>
           <button
-            class={getTabClass('combine')}
+            class={getTabClass('table')}
             disabled={!hasData.value}
-            onClick={() => setTab('combine')}
+            onClick={() => setTab('table')}
           >
-            Combine
+            Table
           </button>
         </div>
 

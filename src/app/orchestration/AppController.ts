@@ -31,6 +31,7 @@ import * as SplitHandlers from '../handlers/transform/split-handlers';
 import * as MergeHandlers from '../handlers/transform/merge-handlers';
 import * as DedupeHandlers from '../handlers/transform/dedupe-handlers';
 import * as RegexpHandlers from '../handlers/transform/regexp-handlers';
+import * as ShortcutHandlers from '../handlers/transform/shortcut-handlers';
 // Handler imports - Import
 import * as ImportHandlers from '../handlers/import/import-handlers';
 import * as GenerateHandlers from '../handlers/import/generate-handlers';
@@ -61,6 +62,15 @@ async function startTransformation(message: string): Promise<void> {
 function endTransformation(): void {
   AppStore.isTransforming.value = false;
   AppStore.transformMessage.value = '';
+}
+
+function shortcutCallbacks() {
+  return {
+    onTransformStart: startTransformation,
+    onTransformEnd: endTransformation,
+    onError: NotificationHandlers.alert,
+    updatePagination: () => PaginationHandlers.updatePagination(),
+  };
 }
 
 // ============================================================
@@ -459,6 +469,47 @@ export const AppController = {
   quickDedupe(): void {
     return InteractionHandlers.quickDedupe((name) => DialogHandlers.openDialog(name));
   },
+
+  // ============================================================
+  // Ribbon Popover & Shortcut Actions
+  // ============================================================
+
+  openRibbonPopover(category: string, rect: DOMRect) {
+    AppStore.ribbonPopover.value = category;
+    AppStore.ribbonPopoverRect.value = rect;
+  },
+
+  closeRibbonPopover() {
+    AppStore.ribbonPopover.value = null;
+    AppStore.ribbonPopoverRect.value = null;
+  },
+
+  // Shortcut actions (text, date, number, convert)
+  quickUpper: () => ShortcutHandlers.quickUpper(shortcutCallbacks()),
+  quickLower: () => ShortcutHandlers.quickLower(shortcutCallbacks()),
+  quickTitlecase: () => ShortcutHandlers.quickTitlecase(shortcutCallbacks()),
+  quickTrim: () => ShortcutHandlers.quickTrim(shortcutCallbacks()),
+  quickLen: () => ShortcutHandlers.quickLen(shortcutCallbacks()),
+  quickExtractYear: () => ShortcutHandlers.quickExtractYear(shortcutCallbacks()),
+  quickExtractMonth: () => ShortcutHandlers.quickExtractMonth(shortcutCallbacks()),
+  quickExtractDay: () => ShortcutHandlers.quickExtractDay(shortcutCallbacks()),
+  quickExtractQuarter: () => ShortcutHandlers.quickExtractQuarter(shortcutCallbacks()),
+  quickExtractWeekday: () => ShortcutHandlers.quickExtractWeekday(shortcutCallbacks()),
+  quickExtractWeek: () => ShortcutHandlers.quickExtractWeek(shortcutCallbacks()),
+  quickTruncYear: () => ShortcutHandlers.quickTruncYear(shortcutCallbacks()),
+  quickTruncMonth: () => ShortcutHandlers.quickTruncMonth(shortcutCallbacks()),
+  quickTruncWeek: () => ShortcutHandlers.quickTruncWeek(shortcutCallbacks()),
+  quickTruncDay: () => ShortcutHandlers.quickTruncDay(shortcutCallbacks()),
+  quickRound: () => ShortcutHandlers.quickRound(shortcutCallbacks()),
+  quickFloor: () => ShortcutHandlers.quickFloor(shortcutCallbacks()),
+  quickCeil: () => ShortcutHandlers.quickCeil(shortcutCallbacks()),
+  quickTruncNum: () => ShortcutHandlers.quickTrunc(shortcutCallbacks()),
+  quickAbs: () => ShortcutHandlers.quickAbs(shortcutCallbacks()),
+  quickSign: () => ShortcutHandlers.quickSign(shortcutCallbacks()),
+  quickConvertToString: () => ShortcutHandlers.quickConvertToString(shortcutCallbacks()),
+  quickConvertToNumber: () => ShortcutHandlers.quickConvertToNumber(shortcutCallbacks()),
+  quickConvertToInteger: () => ShortcutHandlers.quickConvertToInteger(shortcutCallbacks()),
+  quickConvertToDate: () => ShortcutHandlers.quickConvertToDate(shortcutCallbacks()),
 
   // ============================================================
   // JSON Editor
