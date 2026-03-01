@@ -385,7 +385,36 @@ export const AppController = {
   // Interaction & Selection
   // ============================================================
 
-  selectColumn: EDAHandlers.selectColumn,
+  selectColumn(col: string, modifiers?: { shift?: boolean; meta?: boolean }): void {
+    EDAHandlers.selectColumn(col, modifiers);
+  },
+
+  selectRow(rowIndex: number, modifiers?: { shift?: boolean; meta?: boolean }): void {
+    InteractionHandlers.selectRow(rowIndex, modifiers);
+  },
+
+  async removeSelectedRows() {
+    await InteractionHandlers.removeSelectedRows({
+      onTransformStart: startTransformation,
+      onTransformEnd: endTransformation,
+      onError: NotificationHandlers.alert,
+      updatePagination: () => PaginationHandlers.updatePagination(),
+    });
+  },
+
+  async keepSelectedRows() {
+    await InteractionHandlers.keepSelectedRows({
+      onTransformStart: startTransformation,
+      onTransformEnd: endTransformation,
+      onError: NotificationHandlers.alert,
+      updatePagination: () => PaginationHandlers.updatePagination(),
+    });
+  },
+
+  async extractSelectedRows() {
+    await InteractionHandlers.extractSelectedRows(shortcutCallbacks());
+  },
+
   selectEdaStat: EDAHandlers.selectEdaStat,
   setEdaChartView: EDAHandlers.setEdaChartView,
   setEdaDateTreatment: EDAHandlers.setEdaDateTreatment,
@@ -443,6 +472,15 @@ export const AppController = {
         updatePagination: () => PaginationHandlers.updatePagination(),
       }
     );
+  },
+
+  async quickRemoveMultiple() {
+    await InteractionHandlers.quickRemoveMultiple({
+      onTransformStart: startTransformation,
+      onTransformEnd: endTransformation,
+      onError: NotificationHandlers.alert,
+      updatePagination: () => PaginationHandlers.updatePagination(),
+    });
   },
 
   async quickRemove() {

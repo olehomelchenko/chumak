@@ -22,7 +22,7 @@ describe('DataTable - header keyboard navigation', () => {
     onSelectColumn: vi.fn(),
     onSelectCell: vi.fn(),
     onOpenTypeMenu: vi.fn(),
-    onClearColumnSelection: vi.fn(),
+    onSelectRow: vi.fn(),
     onScroll: vi.fn(),
   };
 
@@ -35,7 +35,7 @@ describe('DataTable - header keyboard navigation', () => {
   });
 
   function getHeaders() {
-    return Array.from(document.querySelectorAll<HTMLElement>('th'));
+    return Array.from(document.querySelectorAll<HTMLElement>('th[data-col]'));
   }
 
   it('should make the first header tabbable when no column is selected', () => {

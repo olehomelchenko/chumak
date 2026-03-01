@@ -127,6 +127,8 @@ export interface TransformStep {
     partitionBy?: string[];
     derive: Record<string, string>;
   };
+  removeRows?: { indices: number[] };
+  keepRows?: { indices: number[] };
 }
 
 export const SchemaEngine = {
@@ -1006,6 +1008,8 @@ export const SchemaEngine = {
       'spread',
       'unroll',
       'window',
+      'removeRows',
+      'keepRows',
     ];
     const transformKeys = Object.keys(transform).filter((k) => k !== '__v'); // Ignore version field
     const unknownKey = transformKeys.find((k) => !knownKeys.includes(k));

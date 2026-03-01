@@ -74,8 +74,13 @@ function handleKeyDown(e: KeyboardEvent): void {
       return;
     }
 
-    // 4. Column/cell selection
-    if (AppStore.selectedColumn.value || AppStore.selectedCell.value) {
+    // 4. Column/cell/row selection
+    if (
+      AppStore.selectedColumn.value ||
+      AppStore.selectedCell.value ||
+      AppStore.selectedColumns.value.length > 0 ||
+      AppStore.selectedRows.value.length > 0
+    ) {
       callbacks.clearColumnSelection();
       return;
     }

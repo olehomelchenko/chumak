@@ -48,6 +48,8 @@ export const TRANSFORM_DESCRIBERS: Record<string, TransformDescriber> = {
   addIndex: rowOpsDescribers.addIndex,
   dedupe: rowOpsDescribers.dedupe,
   sample: rowOpsDescribers.sample,
+  removeRows: rowOpsDescribers.removeRows,
+  keepRows: rowOpsDescribers.keepRows,
 
   // Type conversion describers
   types: typeDescribers.types,

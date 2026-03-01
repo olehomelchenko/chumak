@@ -19,6 +19,7 @@ describe('ColumnToolbar - keyboard navigation', () => {
     onDedupe: vi.fn(),
     onImpute: vi.fn(),
     onRemove: vi.fn(),
+    onRemoveMultiple: vi.fn(),
     getColumnType: () => 'string',
   };
 

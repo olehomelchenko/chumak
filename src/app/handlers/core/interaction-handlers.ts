@@ -11,9 +11,14 @@ import { StepService } from '../../services/StepService';
 import { convertType } from '../../../core/type-converter';
 
 export function handleBodyClick(event: any) {
+  const hasSelection =
+    AppStore.selectedColumn.value ||
+    AppStore.selectedColumns.value.length > 0 ||
+    AppStore.selectedRows.value.length > 0;
   if (
-    AppStore.selectedColumn.value &&
+    hasSelection &&
     !event.target.closest('.data-table__header') &&
+    !event.target.closest('[data-row-gutter]') &&
     !event.target.closest('.floating-toolbar') &&
     !event.target.closest('.slide-panel') &&
     !event.target.closest('.centered-modal') &&
@@ -21,6 +26,10 @@ export function handleBodyClick(event: any) {
     !event.target.closest('[class*="edaPanel"]')
   ) {
     AppStore.selectedColumn.value = null;
+    AppStore.selectedColumns.value = [];
+    AppStore.columnSelectionAnchor.value = null;
+    AppStore.selectedRows.value = [];
+    AppStore.rowSelectionAnchor.value = null;
   }
   if (
     AppStore.typeMenuOpen.value &&
@@ -187,7 +196,11 @@ export async function autoDetectSchema(callbacks: any) {
 
 export function clearColumnSelection() {
   AppStore.selectedColumn.value = null;
+  AppStore.selectedColumns.value = [];
+  AppStore.columnSelectionAnchor.value = null;
   AppStore.selectedCell.value = null;
+  AppStore.selectedRows.value = [];
+  AppStore.rowSelectionAnchor.value = null;
   AppStore.edaStats.value = null;
   AppStore.edaBrushSelection.value = null;
 }
@@ -211,9 +224,37 @@ export function calculateToolbarPosition(rect: DOMRect, toolbarWidth: number) {
 
 export function updateToolbarPosition() {
   const selectedColumn = AppStore.selectedColumn.value;
+  const selectedColumns = AppStore.selectedColumns.value;
   const selectedCell = AppStore.selectedCell.value;
 
-  if (selectedColumn) {
+  if (selectedColumns.length > 1) {
+    // Multi-column: position above the combined bounding box of all selected headers
+    let left = Infinity,
+      right = -Infinity,
+      top = Infinity,
+      bottom = -Infinity;
+    for (const col of selectedColumns) {
+      const header = document.querySelector(`th[data-col="${col}"]`);
+      if (header) {
+        const r = header.getBoundingClientRect();
+        left = Math.min(left, r.left);
+        right = Math.max(right, r.right);
+        top = Math.min(top, r.top);
+        bottom = Math.max(bottom, r.bottom);
+      }
+    }
+    if (left < Infinity) {
+      const combinedRect = {
+        left,
+        right,
+        top,
+        bottom,
+        width: right - left,
+        height: bottom - top,
+      } as DOMRect;
+      AppStore.columnToolbarPos.value = calculateToolbarPosition(combinedRect, 140);
+    }
+  } else if (selectedColumn) {
     // Use data-col attribute selector which is more reliable than CSS class
     const header = document.querySelector(`th[data-col="${selectedColumn}"]`);
     if (header) {
@@ -235,8 +276,65 @@ export function updateToolbarPosition() {
   }
 }
 
+export function selectRow(rowIndex: number, modifiers?: { shift?: boolean; meta?: boolean }) {
+  AppStore.selectedColumn.value = null;
+  AppStore.selectedColumns.value = [];
+  AppStore.columnSelectionAnchor.value = null;
+  AppStore.selectedCell.value = null;
+  AppStore.typeMenuOpen.value = false;
+  AppStore.edaStats.value = null;
+  AppStore.edaBrushSelection.value = null;
+
+  if (modifiers?.meta) {
+    // Toggle row in selection
+    const current = [...AppStore.selectedRows.value];
+    const idx = current.indexOf(rowIndex);
+    if (idx >= 0) {
+      current.splice(idx, 1);
+    } else {
+      current.push(rowIndex);
+    }
+    AppStore.selectedRows.value = current;
+    AppStore.rowSelectionAnchor.value = rowIndex;
+  } else if (modifiers?.shift && AppStore.rowSelectionAnchor.value !== null) {
+    // Range selection
+    const anchor = AppStore.rowSelectionAnchor.value;
+    const min = Math.min(anchor, rowIndex);
+    const max = Math.max(anchor, rowIndex);
+    AppStore.selectedRows.value = Array.from({ length: max - min + 1 }, (_, i) => min + i);
+  } else {
+    // Plain click
+    AppStore.selectedRows.value = [rowIndex];
+    AppStore.rowSelectionAnchor.value = rowIndex;
+  }
+
+  requestAnimationFrame(() => updateRowToolbarPosition());
+}
+
+export function updateRowToolbarPosition() {
+  const selectedRows = AppStore.selectedRows.value;
+  if (selectedRows.length === 0) return;
+
+  // Position near the last selected row's gutter cell
+  const lastRow = selectedRows[selectedRows.length - 1];
+  const pageOffset = (AppStore.currentPage.value - 1) * AppStore.pageSize.value;
+  const viewRow = lastRow - pageOffset;
+
+  // Find the gutter cell for this row
+  const gutterCells = document.querySelectorAll<HTMLElement>('[data-row-gutter]');
+  const cell = gutterCells[viewRow];
+  if (cell) {
+    const rect = cell.getBoundingClientRect();
+    AppStore.rowToolbarPos.value = calculateToolbarPosition(rect, 160);
+  }
+}
+
 export function selectCell(col: string, value: any, rowIdx: number) {
   AppStore.selectedColumn.value = null;
+  AppStore.selectedColumns.value = [];
+  AppStore.columnSelectionAnchor.value = null;
+  AppStore.selectedRows.value = [];
+  AppStore.rowSelectionAnchor.value = null;
   AppStore.typeMenuOpen.value = false;
   let type = 'string';
   const model = AppStore.activeModel.value;
@@ -339,6 +437,19 @@ export async function quickRemove(callbacks: any) {
   }
 }
 
+export async function quickRemoveMultiple(callbacks: any) {
+  const cols = AppStore.selectedColumns.value;
+  if (cols.length === 0) return;
+  const confirmed = await NotificationHandlers.confirm.call(
+    null as any,
+    `Remove ${cols.length} columns: ${cols.join(', ')}?`
+  );
+  if (confirmed) {
+    await StepService.runTransform('Remove Columns', { remove: [...cols] }, callbacks);
+    clearColumnSelection();
+  }
+}
+
 export function quickDate(onOpenDialog: (name: string) => void) {
   if (!AppStore.selectedColumn.value) return;
   onOpenDialog('date');
@@ -388,4 +499,36 @@ export function quickDedupe(onOpenDialog: (name: string) => void) {
 
   onOpenDialog('dedupe');
   DedupeHandlers.updateDedupePreview();
+}
+
+export async function removeSelectedRows(callbacks: any) {
+  const indices = AppStore.selectedRows.value;
+  if (indices.length === 0) return;
+  const confirmed = await NotificationHandlers.confirm.call(
+    null as any,
+    `Remove ${indices.length} selected row${indices.length !== 1 ? 's' : ''}?`
+  );
+  if (!confirmed) return;
+  await StepService.runTransform(
+    'Remove Rows',
+    { removeRows: { indices: [...indices] } },
+    callbacks
+  );
+  clearColumnSelection();
+}
+
+export async function keepSelectedRows(callbacks: any) {
+  const indices = AppStore.selectedRows.value;
+  if (indices.length === 0) return;
+  await StepService.runTransform('Keep Rows', { keepRows: { indices: [...indices] } }, callbacks);
+  clearColumnSelection();
+}
+
+// TODO: Extract selected rows to a new model
+// Needs: create new model from current source, copy only selected rows,
+// switch to the new model. Requires ModelService integration.
+export async function extractSelectedRows(_callbacks: any) {
+  const indices = AppStore.selectedRows.value;
+  if (indices.length === 0) return;
+  await NotificationHandlers.alert('Extract to model is not yet implemented.');
 }

@@ -244,6 +244,67 @@ describe('Transform Engine - Basic Operations', () => {
     });
   });
 
+  describe('applyTransform() - REMOVE ROWS', () => {
+    it('should remove rows by indices', () => {
+      const table = createTestTable();
+      const cols = ['sales', 'revenue', 'cost', 'region', 'status'];
+      const result = applyTransform(table, { removeRows: { indices: [1, 3] } }, cols);
+
+      expect(result.numRows()).toBe(3);
+      const rows = result.objects();
+      expect(rows[0].sales).toBe(1000);
+      expect(rows[1].sales).toBe(800);
+      expect(rows[2].sales).toBe(500);
+    });
+
+    it('should handle removing all rows', () => {
+      const table = createTestTable();
+      const cols = ['sales', 'revenue', 'cost', 'region', 'status'];
+      const result = applyTransform(table, { removeRows: { indices: [0, 1, 2, 3, 4] } }, cols);
+
+      expect(result.numRows()).toBe(0);
+    });
+
+    it('should handle empty indices array', () => {
+      const table = createTestTable();
+      const cols = ['sales', 'revenue', 'cost', 'region', 'status'];
+      const result = applyTransform(table, { removeRows: { indices: [] } }, cols);
+
+      expect(result.numRows()).toBe(5);
+    });
+  });
+
+  describe('applyTransform() - KEEP ROWS', () => {
+    it('should keep only specified rows', () => {
+      const table = createTestTable();
+      const cols = ['sales', 'revenue', 'cost', 'region', 'status'];
+      const result = applyTransform(table, { keepRows: { indices: [0, 2, 4] } }, cols);
+
+      expect(result.numRows()).toBe(3);
+      const rows = result.objects();
+      expect(rows[0].sales).toBe(1000);
+      expect(rows[1].sales).toBe(800);
+      expect(rows[2].sales).toBe(500);
+    });
+
+    it('should handle keeping a single row', () => {
+      const table = createTestTable();
+      const cols = ['sales', 'revenue', 'cost', 'region', 'status'];
+      const result = applyTransform(table, { keepRows: { indices: [2] } }, cols);
+
+      expect(result.numRows()).toBe(1);
+      expect(result.objects()[0].region).toBe('North');
+    });
+
+    it('should handle empty indices array', () => {
+      const table = createTestTable();
+      const cols = ['sales', 'revenue', 'cost', 'region', 'status'];
+      const result = applyTransform(table, { keepRows: { indices: [] } }, cols);
+
+      expect(result.numRows()).toBe(0);
+    });
+  });
+
   describe('applyTransform() - ADD INDEX', () => {
     it('should add index column starting from 1', () => {
       const table = createTestTable();
@@ -377,6 +438,16 @@ describe('Transform Engine - Basic Operations', () => {
       expect(describeTransform({ addIndex: { columnName: 'idx', startFrom: 0 } })).toBe(
         'Add Index: idx'
       );
+    });
+
+    it('should describe removeRows transform', () => {
+      expect(describeTransform({ removeRows: { indices: [0, 2, 4] } })).toBe('Remove 3 rows');
+      expect(describeTransform({ removeRows: { indices: [1] } })).toBe('Remove 1 row');
+    });
+
+    it('should describe keepRows transform', () => {
+      expect(describeTransform({ keepRows: { indices: [0, 1] } })).toBe('Keep 2 rows');
+      expect(describeTransform({ keepRows: { indices: [3] } })).toBe('Keep 1 row');
     });
   });
 

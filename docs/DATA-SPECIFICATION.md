@@ -315,6 +315,8 @@ interface TransformStep {
       | Array<{ field: string; order: 'asc' | 'desc' }>;  // Multi-field
   dedupe?: { columns?: string[]; mode?: 'remove' | 'keep' };
   sliceRows?: { count: number; mode: 'first' | 'last' | 'removeFirst' | 'removeLast' };
+  removeRows?: { indices: number[] };   // Remove specific rows by index
+  keepRows?: { indices: number[] };     // Keep only specific rows by index
 
   // Value operations
   derive?: Record<string, string>;    // column -> expression
@@ -382,6 +384,18 @@ With regex pattern (e.g., format phone numbers):
     "isRegex": true
   }
 }
+```
+
+**Remove Rows** — Remove specific rows by index:
+
+```json
+{ "removeRows": { "indices": [0, 3, 7] } }
+```
+
+**Keep Rows** — Keep only specific rows by index:
+
+```json
+{ "keepRows": { "indices": [1, 2, 5] } }
 ```
 
 **Aggregate** — Group and summarize:

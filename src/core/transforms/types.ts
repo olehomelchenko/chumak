@@ -106,4 +106,6 @@ export const KNOWN_TRANSFORM_KEYS: readonly string[] = [
   'spread',
   'unroll',
   'window',
+  'removeRows',
+  'keepRows',
 ] as const;

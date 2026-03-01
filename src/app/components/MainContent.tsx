@@ -70,8 +70,8 @@ export function MainContent(props: MainContentProps) {
             formatCellValueForTooltip={props.formatCellValueForTooltip}
             onSelectColumn={props.onSelectColumn}
             onSelectCell={props.onSelectCell}
+            onSelectRow={props.onSelectRow}
             onOpenTypeMenu={props.onOpenTypeMenu}
-            onClearColumnSelection={props.onClearColumnSelection}
             onScroll={props.onScroll}
             onErrorCellClick={props.onErrorCellClick}
           />

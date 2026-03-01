@@ -7,7 +7,7 @@
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
   padding: 2px;
   gap: 1px;
-  z-index: 1000;
+  z-index: 1200;
   pointer-events: auto;
   transform: translateX(-50%);
 
@@ -104,5 +104,15 @@
     font-size: 14px;
     font-weight: bold;
     font-family: var(--font-family-mono);
+  }
+
+  &__label {
+    display: flex;
+    align-items: center;
+    padding: 0 8px;
+    font-size: var(--font-size-sm);
+    font-weight: var(--font-weight-medium);
+    color: var(--color-midnight-blue);
+    white-space: nowrap;
   }
 }

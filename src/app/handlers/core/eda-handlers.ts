@@ -26,18 +26,66 @@ export function setEdaCallbacks(cb: EdaCallbacks): void {
 /**
  * Select a column for EDA analysis
  */
-export function selectColumn(col: string): void {
+export function selectColumn(col: string, modifiers?: { shift?: boolean; meta?: boolean }): void {
   AppStore.selectedCell.value = null;
   AppStore.typeMenuOpen.value = false;
 
-  // Toggle selection if clicking the same column
-  if (AppStore.selectedColumn.value === col) {
-    AppStore.selectedColumn.value = null;
-    return;
-  }
+  if (modifiers?.meta) {
+    // Cmd/Ctrl+Click: toggle column in multi-selection
+    const current = [...AppStore.selectedColumns.value];
+    const idx = current.indexOf(col);
+    if (idx >= 0) {
+      current.splice(idx, 1);
+      if (current.length === 0) {
+        AppStore.selectedColumn.value = null;
+        AppStore.selectedColumns.value = [];
+        AppStore.columnSelectionAnchor.value = null;
+        AppStore.edaStats.value = null;
+        AppStore.edaBrushSelection.value = null;
+        return;
+      }
+      AppStore.selectedColumns.value = current;
+      // Set primary to last remaining
+      AppStore.selectedColumn.value = current[current.length - 1];
+    } else {
+      current.push(col);
+      AppStore.selectedColumns.value = current;
+      AppStore.selectedColumn.value = col;
+      AppStore.columnSelectionAnchor.value = col;
+    }
+    AppStore.selectedRows.value = [];
+    AppStore.rowSelectionAnchor.value = null;
+    requestAnimationFrame(() => callbacks?.updateToolbarPosition());
+  } else if (modifiers?.shift && AppStore.columnSelectionAnchor.value) {
+    // Shift+Click: range selection from anchor to clicked column
+    const allCols = AppStore.columns.value;
+    const anchorIdx = allCols.indexOf(AppStore.columnSelectionAnchor.value);
+    const clickIdx = allCols.indexOf(col);
+    if (anchorIdx >= 0 && clickIdx >= 0) {
+      const min = Math.min(anchorIdx, clickIdx);
+      const max = Math.max(anchorIdx, clickIdx);
+      AppStore.selectedColumns.value = allCols.slice(min, max + 1);
+      AppStore.selectedColumn.value = col;
+      AppStore.selectedRows.value = [];
+      AppStore.rowSelectionAnchor.value = null;
+    }
+    requestAnimationFrame(() => callbacks?.updateToolbarPosition());
+  } else {
+    // Plain click: single selection (toggle if same column)
+    if (AppStore.selectedColumn.value === col && AppStore.selectedColumns.value.length <= 1) {
+      AppStore.selectedColumn.value = null;
+      AppStore.selectedColumns.value = [];
+      AppStore.columnSelectionAnchor.value = null;
+      return;
+    }
 
-  AppStore.selectedColumn.value = col;
-  requestAnimationFrame(() => callbacks?.updateToolbarPosition());
+    AppStore.selectedColumn.value = col;
+    AppStore.selectedColumns.value = [col];
+    AppStore.columnSelectionAnchor.value = col;
+    AppStore.selectedRows.value = [];
+    AppStore.rowSelectionAnchor.value = null;
+    requestAnimationFrame(() => callbacks?.updateToolbarPosition());
+  }
 
   const currentData = AppStore.currentData.value;
   const selectedColumn = AppStore.selectedColumn.value;

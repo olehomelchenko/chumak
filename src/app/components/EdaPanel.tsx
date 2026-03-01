@@ -124,7 +124,7 @@ export function EdaPanel() {
     isCategorical,
   ]);
 
-  if (!selectedColumn || !edaStats) return null;
+  if (!selectedColumn || !edaStats || AppStore.selectedColumns.value.length > 1) return null;
 
   const clearSelection = () => {
     AppStore.selectedColumn.value = null;

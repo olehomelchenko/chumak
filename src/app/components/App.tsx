@@ -7,6 +7,7 @@ import { MainContent } from './MainContent';
 import { EdaPanel } from './EdaPanel';
 import { ColumnToolbar } from './ColumnToolbar';
 import { CellToolbar } from './CellToolbar';
+import { RowToolbar } from './RowToolbar';
 import { GlobalUI } from './GlobalUI';
 import { TypeMenu } from './TypeMenu';
 import { isSlidePanel, isCenteredModal } from '../dialog-registry';
@@ -140,17 +141,20 @@ export function App() {
     getTypeIcon: (c: string) => getTypeIcon(c),
     formatCellValue: (v: any) => formatCellValue(v),
     formatCellValueForTooltip: (v: any) => formatCellValueForTooltip(v),
-    onSelectColumn: (c: string, e: Event) => {
+    onSelectColumn: (c: string, e: MouseEvent) => {
       e.stopPropagation();
-      AppController.selectColumn(c);
+      AppController.selectColumn(c, { shift: e.shiftKey, meta: e.metaKey || e.ctrlKey });
     },
     onSelectCell: (c: string, value: any, i: number, e: MouseEvent) => {
       e.stopPropagation();
       AppController.selectCell(c, value, i);
     },
+    onSelectRow: (absoluteIdx: number, e: MouseEvent) => {
+      e.stopPropagation();
+      AppController.selectRow(absoluteIdx, { shift: e.shiftKey, meta: e.metaKey || e.ctrlKey });
+    },
     onOpenTypeMenu: (c: string, pos: { x: number; y: number }) =>
       AppController.openTypeMenu(c, pos),
-    onClearColumnSelection: () => AppController.clearColumnSelection(),
     onScroll: () => {}, // Table scroll handler removed - not needed
     onErrorCellClick: (message: string) => {
       AppController.alert(message, 'Conversion Error');
@@ -448,11 +452,17 @@ export function App() {
         onDedupe={() => AppController.quickDedupe()}
         onImpute={() => AppController.openDialog('impute')}
         onRemove={() => AppController.quickRemove()}
+        onRemoveMultiple={() => AppController.quickRemoveMultiple()}
         getColumnType={(col: string) => AppController.getColumnType(col)}
       />
       <CellToolbar
         onFilter={(op: any) => AppController.applyQuickCellFilter(op)}
         onReplace={() => AppController.quickReplace()}
+      />
+      <RowToolbar
+        onRemoveRows={() => AppController.removeSelectedRows()}
+        onKeepRows={() => AppController.keepSelectedRows()}
+        onExtractToModel={() => AppController.extractSelectedRows()}
       />
       <TypeMenu {...typeMenuProps} />
       <GlobalUI />

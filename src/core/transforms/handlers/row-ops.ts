@@ -103,9 +103,23 @@ export function handleSample(table: any, transform: FullTransformStep): any {
   return table.sample(sampleSize);
 }
 
+export function handleRemoveRows(table: any, transform: FullTransformStep): any {
+  const indexSet = new Set(transform.removeRows!.indices);
+  const rows = table.objects();
+  return (aq as any).from(rows.filter((_: any, i: number) => !indexSet.has(i)));
+}
+
+export function handleKeepRows(table: any, transform: FullTransformStep): any {
+  const indexSet = new Set(transform.keepRows!.indices);
+  const rows = table.objects();
+  return (aq as any).from(rows.filter((_: any, i: number) => indexSet.has(i)));
+}
+
 export const rowOpsHandlers = {
   sliceRows: handleSliceRows,
   addIndex: handleAddIndex,
   dedupe: handleDedupe,
   sample: handleSample,
+  removeRows: handleRemoveRows,
+  keepRows: handleKeepRows,
 };

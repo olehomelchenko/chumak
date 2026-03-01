@@ -11,6 +11,7 @@ interface ColumnToolbarProps {
   onDedupe: () => void;
   onImpute: () => void;
   onRemove: () => void;
+  onRemoveMultiple: () => void;
   getColumnType: (col: string) => string;
 }
 
@@ -23,11 +24,14 @@ export function ColumnToolbar({
   onDedupe,
   onImpute,
   onRemove,
+  onRemoveMultiple,
   getColumnType,
 }: ColumnToolbarProps) {
   const selectedColumn = AppStore.selectedColumn.value;
+  const selectedColumns = AppStore.selectedColumns.value;
   const pos = AppStore.columnToolbarPos.value;
   const toolbarRef = useRef<HTMLDivElement>(null);
+  const isMulti = selectedColumns.length > 1;
 
   // Auto-focus first button when opened via keyboard
   useEffect(() => {
@@ -42,10 +46,7 @@ export function ColumnToolbar({
     });
   }, [selectedColumn]);
 
-  if (!selectedColumn) return null;
-
-  const type = getColumnType(selectedColumn);
-  const isDate = ['date', 'datetime'].includes(type);
+  if (!selectedColumn && selectedColumns.length === 0) return null;
 
   const handleKeyDown = (e: KeyboardEvent) => {
     const toolbar = toolbarRef.current;
@@ -85,6 +86,45 @@ export function ColumnToolbar({
     }
     buttons[nextIdx].focus();
   };
+
+  // Multi-column toolbar: show count + remove only
+  if (isMulti) {
+    return (
+      <div
+        ref={toolbarRef}
+        role="toolbar"
+        aria-label="Multi-column actions"
+        class={styles.floatingToolbar}
+        style={
+          {
+            left: `${pos.x}px`,
+            top: `${pos.y}px`,
+            '--arrow-offset': `${pos.arrowOffset}px`,
+          } as any
+        }
+        onClick={(e) => e.stopPropagation()}
+        onKeyDown={handleKeyDown}
+      >
+        <span class={styles.floatingToolbar__label}>{selectedColumns.length} columns</span>
+        <div class={styles.floatingToolbar__divider}></div>
+        <button
+          class={`${styles.floatingToolbar__button} ${styles.danger}`}
+          onClick={onRemoveMultiple}
+          title={`Remove ${selectedColumns.length} columns`}
+        >
+          <span
+            class="iconify"
+            data-icon="carbon:trash-can"
+            style="width: 24px; height: 24px;"
+          ></span>
+        </button>
+      </div>
+    );
+  }
+
+  // Single-column toolbar
+  const type = getColumnType(selectedColumn!);
+  const isDate = ['date', 'datetime'].includes(type);
 
   return (
     <div

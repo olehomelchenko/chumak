@@ -37,9 +37,23 @@ export function describeSample(transform: any): string | null {
   return seed !== undefined ? `Sample: ${count} rows (seed: ${seed})` : `Sample: ${count} rows`;
 }
 
+export function describeRemoveRows(transform: any): string | null {
+  if (!transform.removeRows) return null;
+  const count = transform.removeRows.indices.length;
+  return `Remove ${count} row${count !== 1 ? 's' : ''}`;
+}
+
+export function describeKeepRows(transform: any): string | null {
+  if (!transform.keepRows) return null;
+  const count = transform.keepRows.indices.length;
+  return `Keep ${count} row${count !== 1 ? 's' : ''}`;
+}
+
 export const rowOpsDescribers = {
   sliceRows: describeSliceRows,
   addIndex: describeAddIndex,
   dedupe: describeDedupe,
   sample: describeSample,
+  removeRows: describeRemoveRows,
+  keepRows: describeKeepRows,
 };

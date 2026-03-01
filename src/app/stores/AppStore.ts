@@ -31,6 +31,10 @@ export class AppStore {
   static activeDialog = signal<DialogName>(null);
   static isDragging = signal(false);
   static selectedColumn = signal<string | null>(null);
+  static selectedColumns = signal<string[]>([]);
+  static columnSelectionAnchor = signal<string | null>(null);
+  static selectedRows = signal<number[]>([]);
+  static rowSelectionAnchor = signal<number | null>(null);
   static theme = signal<'syto' | 'blues'>('syto');
   static isTransforming = signal(false);
   static transformMessage = signal('');
@@ -38,6 +42,7 @@ export class AppStore {
   static columnToolbarFocusRequested = signal(false);
   static selectedCell = signal<any>(null);
   static cellToolbarPos = signal({ x: 0, y: 0, arrowOffset: 0 });
+  static rowToolbarPos = signal({ x: 0, y: 0, arrowOffset: 0 });
   static edaStats = signal<any>(null);
   static edaChartView = signal<'boxplot' | 'histogram'>('boxplot');
   static edaBrushSelection = signal<{ min: number; max: number } | null>(null);
@@ -148,6 +153,10 @@ export class AppStore {
     this.activeDialog.value = null;
     this.isDragging.value = false;
     this.selectedColumn.value = null;
+    this.selectedColumns.value = [];
+    this.columnSelectionAnchor.value = null;
+    this.selectedRows.value = [];
+    this.rowSelectionAnchor.value = null;
     this.isTransforming.value = false;
     this.transformMessage.value = '';
     this.jsonEditMode.value = false;

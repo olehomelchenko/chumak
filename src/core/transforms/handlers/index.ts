@@ -51,6 +51,8 @@ export const TRANSFORM_HANDLERS: Record<string, TransformHandler> = {
   addIndex: rowOpsHandlers.addIndex,
   dedupe: rowOpsHandlers.dedupe,
   sample: rowOpsHandlers.sample,
+  removeRows: rowOpsHandlers.removeRows,
+  keepRows: rowOpsHandlers.keepRows,
 
   // Type conversion handlers
   types: typeHandlers.types,

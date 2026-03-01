@@ -169,6 +169,65 @@
   }
 }
 
+.rowGutter {
+  width: 40px;
+  min-width: 40px;
+  max-width: 40px;
+  text-align: center;
+  color: var(--color-dark-gray);
+  font-size: var(--font-size-sm);
+  background: var(--color-light-gray);
+  border-right: 1px solid var(--border-color);
+  border-bottom: var(--border-width) solid var(--border-color);
+  cursor: default;
+  user-select: none;
+  padding: var(--space-xs);
+  position: sticky;
+  top: 0;
+  left: 0;
+  z-index: 11;
+}
+
+.rowGutterCell {
+  width: 40px;
+  min-width: 40px;
+  max-width: 40px;
+  text-align: center;
+  color: var(--color-dark-gray);
+  font-size: var(--font-size-sm);
+  background: var(--color-light-gray);
+  border-right: 1px solid var(--border-color);
+  border-bottom: var(--border-width) solid var(--color-light-gray);
+  cursor: pointer;
+  user-select: none;
+  padding: var(--space-xs);
+  position: sticky;
+  left: 0;
+  z-index: 1;
+
+  &:hover {
+    background: rgba(var(--color-cyan-rgb), 0.15);
+    color: var(--color-cyan);
+  }
+}
+
+.rowGutterSelected {
+  background: var(--color-cyan) !important;
+  color: var(--color-white) !important;
+}
+
+.selectedRow {
+  background-color: rgba(var(--color-cyan-rgb), 0.08) !important;
+
+  &:hover {
+    background-color: rgba(var(--color-cyan-rgb), 0.12) !important;
+  }
+}
+
+.selectedColumn {
+  background-color: rgba(var(--color-cyan-rgb), 0.06);
+}
+
 .typeIndicator {
   display: inline-flex;
   align-items: center;

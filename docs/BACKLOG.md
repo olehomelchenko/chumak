@@ -55,6 +55,18 @@ See [custom-icons-setup.md](custom-icons-setup.md) for detailed setup guide and 
 
 ---
 
+### Multi-Select Enhancements
+
+**Status**: Partial (placeholders in code)
+**Effort**: Small–Medium
+
+Deferred items from multi-column/multi-row selection feature:
+
+- **Extract to new model**: Create a new model from selected rows. Button present in RowToolbar (shows alert placeholder). Needs ModelService integration to create model, copy selected rows, and switch view.
+- **Shift+Arrow column range selection**: Extend column selection via keyboard. TODO in `DataTable.tsx` `handleHeaderKeyDown`. Should select from anchor to target column, matching Shift+Click behavior.
+
+---
+
 ### Keyboard Shortcuts
 
 **Status**: Partial

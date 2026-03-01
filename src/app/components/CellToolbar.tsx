@@ -10,7 +10,7 @@ export function CellToolbar({ onFilter, onReplace }: CellToolbarProps) {
   const selectedCell = AppStore.selectedCell.value;
   const pos = AppStore.cellToolbarPos.value;
 
-  if (!selectedCell) return null;
+  if (!selectedCell || AppStore.selectedRows.value.length > 0) return null;
 
   const { type, isEda } = selectedCell;
   const isComparable = ['number', 'integer', 'float', 'date', 'datetime'].includes(type);

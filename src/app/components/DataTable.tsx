@@ -9,10 +9,10 @@ export interface DataTableProps {
   getTypeIcon: (column: string) => string;
   formatCellValue: (value: any) => string;
   formatCellValueForTooltip: (value: any) => string;
-  onSelectColumn: (column: string, event: Event) => void;
+  onSelectColumn: (column: string, event: MouseEvent) => void;
   onSelectCell: (column: string, value: any, rowIndex: number, event: MouseEvent) => void;
   onOpenTypeMenu: (column: string, event: MouseEvent) => void;
-  onClearColumnSelection: () => void;
+  onSelectRow: (absoluteRowIndex: number, event: MouseEvent) => void;
   onScroll: () => void;
   onErrorCellClick?: (message: string) => void;
 }
@@ -26,7 +26,7 @@ export function DataTable({
   onSelectColumn,
   onSelectCell,
   onOpenTypeMenu,
-  onClearColumnSelection,
+  onSelectRow,
   onScroll,
   onErrorCellClick,
 }: DataTableProps) {
@@ -36,8 +36,10 @@ export function DataTable({
   const activeSource = AppStore.activeSource;
   const activeStepIndex = AppStore.activeStepIndex;
   const currentPage = AppStore.currentPage;
+  const selectedRows = AppStore.selectedRows;
 
   const contextKey = `${activeModel.value?.id || activeSource.value?.id}-${activeStepIndex.value}-${columns.value.length}-${currentPage.value}`;
+  const pageOffset = (currentPage.value - 1) * AppStore.pageSize.value;
 
   const getCellClassName = (value: any, column: string, row: DataRow) => {
     const type = getColumnType(column);
@@ -59,6 +61,10 @@ export function DataTable({
       classes.push(styles.removed);
     }
 
+    if (AppStore.selectedColumns.value.includes(column)) {
+      classes.push(styles.selectedColumn);
+    }
+
     return classes.join(' ');
   };
 
@@ -66,7 +72,7 @@ export function DataTable({
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
       AppStore.columnToolbarFocusRequested.value = true;
-      onSelectColumn(column, e);
+      onSelectColumn(column, e as unknown as MouseEvent);
       return;
     }
 
@@ -75,7 +81,7 @@ export function DataTable({
 
     e.preventDefault();
     const th = e.currentTarget as HTMLElement;
-    const headers = Array.from(th.parentElement!.querySelectorAll<HTMLElement>('th'));
+    const headers = Array.from(th.parentElement!.querySelectorAll<HTMLElement>('th[data-col]'));
     const idx = headers.indexOf(th);
 
     let nextIdx: number;
@@ -95,6 +101,9 @@ export function DataTable({
       default:
         return;
     }
+
+    // TODO: Shift+Arrow should extend column range selection
+    // (select from anchor to nextIdx, similar to Shift+Click)
 
     // Roving tabindex: move the tab stop
     th.setAttribute('tabindex', '-1');
@@ -128,20 +137,26 @@ export function DataTable({
           }}
           title="Debug: Log current page data to console (Dev only)"
         >
-          🔍 Debug Page
+          Debug Page
         </button>
       )}
       <table class={styles.dataTable}>
         <thead>
           <tr>
+            <th class={styles.rowGutter}></th>
             {columns.value.map((column, i) => (
               <th
                 key={`${contextKey}-col-${column}`}
-                class={`${styles.dataTable__header} ${selectedColumn.value === column ? styles.selected : ''}`}
+                class={`${styles.dataTable__header} ${AppStore.selectedColumns.value.includes(column) ? styles.selected : ''}`}
                 data-col={column}
                 tabIndex={
-                  selectedColumn.value === column ? 0 : !selectedColumn.value && i === 0 ? 0 : -1
+                  selectedColumn.value === column
+                    ? 0
+                    : !selectedColumn.value && !AppStore.selectedColumns.value.length && i === 0
+                      ? 0
+                      : -1
                 }
+                aria-selected={AppStore.selectedColumns.value.includes(column) || undefined}
                 onClick={(e) => onSelectColumn(column, e)}
                 onKeyDown={(e) => handleHeaderKeyDown(column, e)}
                 title={`Column: ${column}`}
@@ -162,57 +177,72 @@ export function DataTable({
           </tr>
         </thead>
         <tbody>
-          {getPaginatedData().map((row, rowIndex) => (
-            <tr
-              key={`${contextKey}-${rowIndex}`}
-              class={`${styles.dataTable__row} ${row._removed ? styles.removed : ''} ${row._duplicate ? styles.duplicate : ''}`}
-              onClick={onClearColumnSelection}
-            >
-              {columns.value.map((column) => {
-                const cellValue = row[column];
-                const isError =
-                  cellValue && typeof cellValue === 'object' && cellValue.type === 'error';
-                const isBoolean = typeof cellValue === 'boolean';
+          {getPaginatedData().map((row, rowIndex) => {
+            const absoluteIndex = pageOffset + rowIndex;
+            const isRowSelected = selectedRows.value.includes(absoluteIndex);
 
-                return (
-                  <td
-                    key={column}
-                    class={getCellClassName(cellValue, column, row)}
-                    data-col={column}
-                    data-row={rowIndex}
-                    title={`${column}: ${formatCellValueForTooltip(cellValue)}`}
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      // If it's an error cell and we have a click handler, show the error message
-                      if (isError && onErrorCellClick && cellValue.message) {
-                        onErrorCellClick(cellValue.message);
-                      } else {
-                        onSelectCell(column, cellValue, rowIndex, e as unknown as MouseEvent);
-                      }
-                    }}
-                  >
-                    {isError ? (
-                      <span class={styles.errorCell}>
-                        <span class="iconify" data-icon="carbon:warning-filled"></span>
-                        <span>{formatCellValue(cellValue)}</span>
-                      </span>
-                    ) : isBoolean ? (
-                      <span
-                        style={{
-                          color: cellValue ? 'var(--color-green)' : 'var(--color-red)',
-                          fontSize: '1.25rem',
-                        }}
-                      >
-                        {formatCellValue(cellValue)}
-                      </span>
-                    ) : (
-                      formatCellValue(cellValue)
-                    )}
-                  </td>
-                );
-              })}
-            </tr>
-          ))}
+            return (
+              <tr
+                key={`${contextKey}-${rowIndex}`}
+                class={`${styles.dataTable__row} ${row._removed ? styles.removed : ''} ${row._duplicate ? styles.duplicate : ''} ${isRowSelected ? styles.selectedRow : ''}`}
+                aria-selected={isRowSelected || undefined}
+              >
+                <td
+                  class={`${styles.rowGutterCell} ${isRowSelected ? styles.rowGutterSelected : ''}`}
+                  data-row-gutter="true"
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    onSelectRow(absoluteIndex, e as unknown as MouseEvent);
+                  }}
+                >
+                  {absoluteIndex + 1}
+                </td>
+                {columns.value.map((column) => {
+                  const cellValue = row[column];
+                  const isError =
+                    cellValue && typeof cellValue === 'object' && cellValue.type === 'error';
+                  const isBoolean = typeof cellValue === 'boolean';
+
+                  return (
+                    <td
+                      key={column}
+                      class={getCellClassName(cellValue, column, row)}
+                      data-col={column}
+                      data-row={rowIndex}
+                      title={`${column}: ${formatCellValueForTooltip(cellValue)}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        // If it's an error cell and we have a click handler, show the error message
+                        if (isError && onErrorCellClick && cellValue.message) {
+                          onErrorCellClick(cellValue.message);
+                        } else {
+                          onSelectCell(column, cellValue, rowIndex, e as unknown as MouseEvent);
+                        }
+                      }}
+                    >
+                      {isError ? (
+                        <span class={styles.errorCell}>
+                          <span class="iconify" data-icon="carbon:warning-filled"></span>
+                          <span>{formatCellValue(cellValue)}</span>
+                        </span>
+                      ) : isBoolean ? (
+                        <span
+                          style={{
+                            color: cellValue ? 'var(--color-green)' : 'var(--color-red)',
+                            fontSize: '1.25rem',
+                          }}
+                        >
+                          {formatCellValue(cellValue)}
+                        </span>
+                      ) : (
+                        formatCellValue(cellValue)
+                      )}
+                    </td>
+                  );
+                })}
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>
