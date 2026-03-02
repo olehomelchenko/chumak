@@ -100,6 +100,8 @@ export function App() {
     onEditStep: (i: number) => AppController.editStep(i),
     onRemoveStep: (i: number) => AppController.removeStep(i),
     onViewFinalResult: () => AppController.viewFinalResult(),
+    onUndo: () => AppController.undo(),
+    onRedo: () => AppController.redo(),
     onGetStepsJson: () => AppController.getStepsJson(),
     onEnterJsonEditMode: () => AppController.enterJsonEditMode(),
     getModelMeta: (m: any) => getModelMeta(m),

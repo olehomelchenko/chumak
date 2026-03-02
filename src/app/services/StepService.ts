@@ -6,8 +6,10 @@ import { PersistenceService } from './PersistenceService';
 import { DependencyService } from './DependencyService';
 import { Model, Source } from '../types';
 import { ColumnSchema, TransformStep } from '../../core/schema-engine';
-import { AppStore } from '../stores/AppStore';
+import { AppStore, HistoryStack } from '../stores/AppStore';
 import { showSuccess } from '../handlers/core/notification-handlers';
+
+const MAX_HISTORY_SIZE = 50;
 
 /**
  * Extract the transform type from a step object.
@@ -127,6 +129,9 @@ export class StepService {
       callbacks.onDialogClose?.(true);
       return;
     }
+
+    // Snapshot for undo before mutation
+    StepService.pushSnapshot(model, describeTransform(transform));
 
     // Add new step
     model.steps.push(transform);
@@ -323,6 +328,13 @@ export class StepService {
       onError: (error: Error) => void;
     }
   ): Promise<void> {
+    // Snapshot for undo before mutation
+    const removedDesc =
+      mode === 'all'
+        ? `Remove steps ${stepIndex + 1}+`
+        : `Remove ${describeTransform(model.steps[stepIndex])}`;
+    StepService.pushSnapshot(model, removedDesc);
+
     try {
       if (mode === 'all') {
         model.steps.splice(stepIndex);
@@ -367,6 +379,9 @@ export class StepService {
       ) => void;
     }
   ): Promise<void> {
+    // Snapshot for undo before mutation
+    StepService.pushSnapshot(model, `Edit ${describeTransform(model.steps[stepIndex])}`);
+
     const backup = {
       steps: JSON.parse(JSON.stringify(model.steps)),
       data: structuredClone(model.data),
@@ -498,6 +513,128 @@ export class StepService {
     if (staleIds.length > 0) {
       // Trigger reactivity to update any UI showing stale state
       AppStore.models.value = [...models];
+    }
+  }
+
+  // --- Undo/Redo History ---
+
+  private static getHistory(modelId: string): HistoryStack {
+    const map = AppStore.history.value;
+    let stack = map.get(modelId);
+    if (!stack) {
+      stack = { undo: [], redo: [] };
+      map.set(modelId, stack);
+    }
+    return stack;
+  }
+
+  static pushSnapshot(model: Model, description: string): void {
+    const history = StepService.getHistory(model.id);
+    history.undo.push({
+      steps: JSON.parse(JSON.stringify(model.steps)),
+      description,
+    });
+    if (history.undo.length > MAX_HISTORY_SIZE) {
+      history.undo.shift();
+    }
+    history.redo = [];
+    // Trigger signal reactivity
+    AppStore.history.value = new Map(AppStore.history.value);
+  }
+
+  static canUndo(modelId: string): boolean {
+    const stack = AppStore.history.value.get(modelId);
+    return !!stack && stack.undo.length > 0;
+  }
+
+  static canRedo(modelId: string): boolean {
+    const stack = AppStore.history.value.get(modelId);
+    return !!stack && stack.redo.length > 0;
+  }
+
+  static async undo(
+    model: Model,
+    callbacks: {
+      onSuccess: (result: ComputeResult) => void;
+      onError: (error: Error) => void;
+    }
+  ): Promise<string | null> {
+    const history = StepService.getHistory(model.id);
+    const entry = history.undo.pop();
+    if (!entry) return null;
+
+    // Push current state to redo
+    history.redo.push({
+      steps: JSON.parse(JSON.stringify(model.steps)),
+      description: entry.description,
+    });
+
+    // Restore steps from snapshot (already a fresh array from JSON.parse)
+    model.steps = entry.steps;
+
+    try {
+      const result = StepService.computeModelUpToStep(
+        model,
+        model.steps.length - 1,
+        StepService.getContext()
+      );
+
+      model.data = result.data;
+      model.schema = result.schema;
+      callbacks.onSuccess(result);
+
+      // Silently mark dependents stale (no dialog)
+      StepService.markDependentsStale(model.id);
+
+      await PersistenceService.autoSave();
+      AppStore.history.value = new Map(AppStore.history.value);
+      return entry.description;
+    } catch (error: any) {
+      callbacks.onError(error);
+      return null;
+    }
+  }
+
+  static async redo(
+    model: Model,
+    callbacks: {
+      onSuccess: (result: ComputeResult) => void;
+      onError: (error: Error) => void;
+    }
+  ): Promise<string | null> {
+    const history = StepService.getHistory(model.id);
+    const entry = history.redo.pop();
+    if (!entry) return null;
+
+    // Push current state to undo
+    history.undo.push({
+      steps: JSON.parse(JSON.stringify(model.steps)),
+      description: entry.description,
+    });
+
+    // Restore steps from snapshot (already a fresh array from JSON.parse)
+    model.steps = entry.steps;
+
+    try {
+      const result = StepService.computeModelUpToStep(
+        model,
+        model.steps.length - 1,
+        StepService.getContext()
+      );
+
+      model.data = result.data;
+      model.schema = result.schema;
+      callbacks.onSuccess(result);
+
+      // Silently mark dependents stale (no dialog)
+      StepService.markDependentsStale(model.id);
+
+      await PersistenceService.autoSave();
+      AppStore.history.value = new Map(AppStore.history.value);
+      return entry.description;
+    } catch (error: any) {
+      callbacks.onError(error);
+      return null;
     }
   }
 }

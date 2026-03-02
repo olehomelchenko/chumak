@@ -147,6 +147,39 @@
   gap: 0;
   border-bottom: var(--border-width) solid var(--border-color);
   margin-bottom: var(--space-sm);
+  align-items: center;
+}
+
+.undoRedo {
+  display: flex;
+  gap: 2px;
+  margin-left: auto;
+  padding-right: 4px;
+}
+
+.undoRedoButton {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  padding: 0;
+  background: transparent;
+  border: none;
+  border-radius: var(--border-radius);
+  color: var(--color-cyan);
+  cursor: pointer;
+  transition: all var(--transition-fast);
+
+  &:hover:not(:disabled) {
+    background: rgba(var(--color-cyan-rgb), 0.1);
+  }
+
+  &:disabled {
+    color: var(--color-dark-gray);
+    opacity: 0.3;
+    cursor: default;
+  }
 }
 
 .tab {

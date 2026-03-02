@@ -6,7 +6,7 @@ import { AppStore } from '../../stores/AppStore';
 import { StepService, ComputeResult } from '../../services/StepService';
 import type { PivotAggregation } from '../../components/PivotDialog';
 import * as HelperHandlers from './helper-handlers';
-import { showError, showWarning, confirm } from './notification-handlers';
+import { showError, showWarning, showSuccess, confirm } from './notification-handlers';
 import { getDialogConfig } from '../../dialog-registry';
 
 /**
@@ -517,4 +517,52 @@ export async function updateStep(stepIndex: number, newTransform: TransformStep)
       showError('Error updating step', error.message);
     },
   });
+}
+
+/**
+ * Undoes the last pipeline operation on the active model.
+ */
+export async function undo(): Promise<void> {
+  const activeModel = AppStore.activeModel.value;
+  if (!activeModel) return;
+  if (!StepService.canUndo(activeModel.id)) return;
+
+  const description = await StepService.undo(activeModel, {
+    onSuccess(result: ComputeResult) {
+      AppStore.currentData.value = activeModel.data;
+      AppStore.columns.value = result.columns;
+      viewFinalResult();
+    },
+    onError(error: Error) {
+      showError('Undo failed', error.message);
+    },
+  });
+
+  if (description) {
+    showSuccess(`Undone: ${description}`);
+  }
+}
+
+/**
+ * Redoes the last undone pipeline operation on the active model.
+ */
+export async function redo(): Promise<void> {
+  const activeModel = AppStore.activeModel.value;
+  if (!activeModel) return;
+  if (!StepService.canRedo(activeModel.id)) return;
+
+  const description = await StepService.redo(activeModel, {
+    onSuccess(result: ComputeResult) {
+      AppStore.currentData.value = activeModel.data;
+      AppStore.columns.value = result.columns;
+      viewFinalResult();
+    },
+    onError(error: Error) {
+      showError('Redo failed', error.message);
+    },
+  });
+
+  if (description) {
+    showSuccess(`Redone: ${description}`);
+  }
 }

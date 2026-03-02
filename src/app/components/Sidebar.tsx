@@ -21,6 +21,8 @@ export interface SidebarProps {
   onEditStep: (index: number) => void;
   onRemoveStep: (index: number) => void;
   onViewFinalResult: () => void;
+  onUndo: () => void;
+  onRedo: () => void;
   // JSON edit
   onGetStepsJson: () => string;
   onEnterJsonEditMode: () => void;
@@ -52,6 +54,8 @@ export function Sidebar({
   onEditStep,
   onRemoveStep,
   onViewFinalResult,
+  onUndo,
+  onRedo,
   onGetStepsJson,
   onEnterJsonEditMode,
 }: SidebarProps) {
@@ -64,11 +68,27 @@ export function Sidebar({
   const viewingIntermediate = AppStore.viewingIntermediate;
 
   const [activeTab, setActiveTab] = useState<'steps' | 'json'>('steps');
+  const mod = /Mac|iPhone|iPad|iPod/.test(navigator.platform) ? '⌘' : 'Ctrl';
 
   const hasData = useComputed(() => !!currentData.value);
   const hasSteps = useComputed(() => {
     const model = activeModel.value;
     return model?.steps && model.steps.length > 0;
+  });
+
+  const canUndo = useComputed(() => {
+    const id = activeModel.value?.id;
+    const history = AppStore.history.value;
+    if (!id) return false;
+    const stack = history.get(id);
+    return !!stack && stack.undo.length > 0;
+  });
+  const canRedo = useComputed(() => {
+    const id = activeModel.value?.id;
+    const history = AppStore.history.value;
+    if (!id) return false;
+    const stack = history.get(id);
+    return !!stack && stack.redo.length > 0;
   });
 
   return (
@@ -166,6 +186,32 @@ export function Sidebar({
           >
             JSON
           </button>
+          <div class={styles.undoRedo}>
+            <button
+              class={styles.undoRedoButton}
+              onClick={onUndo}
+              disabled={!canUndo.value}
+              title={`Undo (${mod}+Z)`}
+            >
+              <span
+                class="iconify"
+                data-icon="carbon:undo"
+                style={{ width: '16px', height: '16px' }}
+              ></span>
+            </button>
+            <button
+              class={styles.undoRedoButton}
+              onClick={onRedo}
+              disabled={!canRedo.value}
+              title={`Redo (${mod}+Shift+Z)`}
+            >
+              <span
+                class="iconify"
+                data-icon="carbon:redo"
+                style={{ width: '16px', height: '16px' }}
+              ></span>
+            </button>
+          </div>
         </div>
 
         {/* Steps List */}

@@ -11,11 +11,13 @@ Quick reference for keyboard shortcuts available in Syto. Shortcuts are active w
 
 ## Actions
 
-| Shortcut           | Action                          |
-| ------------------ | ------------------------------- |
-| `Ctrl+S` / `Cmd+S` | Download workflow as JSON       |
-| `Delete`           | Remove the last step            |
-| `Escape`           | Close dialog or clear selection |
+| Shortcut                       | Action                          |
+| ------------------------------ | ------------------------------- |
+| `Ctrl+Z` / `Cmd+Z`             | Undo last pipeline operation    |
+| `Ctrl+Shift+Z` / `Cmd+Shift+Z` | Redo last undone operation      |
+| `Ctrl+S` / `Cmd+S`             | Download workflow as JSON       |
+| `Delete`                       | Remove the last step            |
+| `Escape`                       | Close dialog or clear selection |
 
 ## Data Import
 
@@ -23,6 +25,16 @@ Quick reference for keyboard shortcuts available in Syto. Shortcuts are active w
 | ------------------ | ------------------------------------- |
 | `Ctrl+V` / `Cmd+V` | Paste tabular data from clipboard     |
 | Drag & Drop        | Drop CSV files onto the app to import |
+
+## Data Table
+
+| Shortcut                 | Action                            |
+| ------------------------ | --------------------------------- |
+| `Arrow Left/Right`       | Navigate between column headers   |
+| `Shift+Arrow Left/Right` | Extend column range selection     |
+| `Arrow Up/Down`          | Navigate between row gutter cells |
+| `Shift+Arrow Up/Down`    | Extend row range selection        |
+| `Enter` / `Space`        | Select column header or row       |
 
 ## Inside Dialogs
 

@@ -264,7 +264,7 @@ functions/
 **Services** (`services/`):
 
 - `ModelService.ts` — Model CRUD, step management
-- `StepService.ts` — Transform step execution and validation
+- `StepService.ts` — Transform step execution, validation, and undo/redo history
 - `ImportService.ts` — CSV/URL/clipboard import logic
 - `ReplaceSourceService.ts` — Data replacement and backup restoration
 - `ExportService.ts` — CSV/JSON/workflow export

@@ -8,6 +8,7 @@ import * as SimpleHandlers from '../transform/simple-handlers';
 import * as SplitHandlers from '../transform/split-handlers';
 import * as DedupeHandlers from '../transform/dedupe-handlers';
 import { StepService } from '../../services/StepService';
+import { PersistenceService } from '../../services/PersistenceService';
 import { convertType } from '../../../core/type-converter';
 
 export function handleBodyClick(event: any) {
@@ -524,11 +525,67 @@ export async function keepSelectedRows(callbacks: any) {
   clearColumnSelection();
 }
 
-// TODO: Extract selected rows to a new model
-// Needs: create new model from current source, copy only selected rows,
-// switch to the new model. Requires ModelService integration.
-export async function extractSelectedRows(_callbacks: any) {
+/**
+ * Extracts selected rows into a new model.
+ * Creates a new model on the same source with the current pipeline + a keepRows step.
+ */
+export async function extractSelectedRows(switchToModel: (model: any) => void): Promise<void> {
   const indices = AppStore.selectedRows.value;
   if (indices.length === 0) return;
-  await NotificationHandlers.alert('Extract to model is not yet implemented.');
+
+  const activeModel = AppStore.activeModel.value;
+  if (!activeModel) return;
+
+  const source = AppStore.sources.value.find((s) => s.id === activeModel.sourceId);
+  if (!source) return;
+
+  const defaultName = `${activeModel.name}_extract`;
+  const modelName = await NotificationHandlers.prompt(
+    'Enter name for extracted model:',
+    defaultName
+  );
+  if (!modelName || modelName.trim() === '') return;
+  const name = modelName.trim();
+
+  const existing = AppStore.models.value.find(
+    (m) => m.sourceId === source.id && m.name.toLowerCase() === name.toLowerCase()
+  );
+  if (existing) {
+    await NotificationHandlers.alert('A model with this name already exists for this source.');
+    return;
+  }
+
+  // Copy current steps and append keepRows
+  const steps = JSON.parse(JSON.stringify(activeModel.steps));
+  steps.push({ keepRows: { indices: [...indices] } });
+
+  const newModel = {
+    id: `mdl_${Date.now()}`,
+    name,
+    sourceId: activeModel.sourceId,
+    steps,
+    schema: [] as any[],
+    data: [] as any[],
+    __v: activeModel.__v ?? 1,
+  };
+
+  // Compute the full pipeline
+  try {
+    const context = { sources: AppStore.sources.value, models: AppStore.models.value };
+    const result = StepService.computeModelUpToStep(newModel as any, steps.length - 1, context);
+    newModel.data = result.data;
+    newModel.schema = result.schema as any;
+  } catch (error: any) {
+    await NotificationHandlers.alert(`Failed to create extracted model: ${error.message}`);
+    return;
+  }
+
+  AppStore.models.value = [...AppStore.models.value, newModel as any];
+  switchToModel(newModel);
+  clearColumnSelection();
+
+  await PersistenceService.autoSave();
+  NotificationHandlers.showSuccess(
+    `Model "${name}" created with ${indices.length} row${indices.length !== 1 ? 's' : ''}`
+  );
 }

@@ -1,6 +1,7 @@
 import type { SytoApp } from '../../../syto-app';
 import { AppStore } from '../../stores/AppStore';
 import { ExportService } from '../../services/ExportService';
+import * as StepHandlers from './step-handlers';
 
 /**
  * Keyboard Shortcuts Handler
@@ -129,6 +130,20 @@ export function handleKeyDown(app: SytoApp, event: KeyboardEvent) {
   // Ctrl/Cmd + S: Save workflow
   if (modKey && event.key.toLowerCase() === 's') {
     handleSave(app, event);
+    return;
+  }
+
+  // Ctrl/Cmd + Shift + Z: Redo
+  if (modKey && event.shiftKey && event.key.toLowerCase() === 'z') {
+    event.preventDefault();
+    StepHandlers.redo();
+    return;
+  }
+
+  // Ctrl/Cmd + Z: Undo
+  if (modKey && event.key.toLowerCase() === 'z') {
+    event.preventDefault();
+    StepHandlers.undo();
     return;
   }
 

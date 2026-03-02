@@ -104,11 +104,11 @@ Comments are persisted to IndexedDB and automatically saved when edited.
 
 ### 3.4 Interactive Table Context
 
-- **Column Headers**: Keyboard-navigable using roving tabindex — ArrowLeft/Right moves focus between headers (with wrapping), Home/End jump to first/last. Enter or Space selects the column and opens the Column Toolbar.
+- **Column Headers**: Keyboard-navigable using roving tabindex — ArrowLeft/Right moves focus between headers (with wrapping), Home/End jump to first/last. Enter or Space selects the column and opens the Column Toolbar. Shift+ArrowLeft/Right extends column range selection (clamped at boundaries, no wrapping).
 - **Column Toolbar**: Clicking or keyboard-selecting a header reveals a floating toolbar (`role="toolbar"`) with actions for sorting, filtering, renaming, splitting, deduplication, imputation, and removal. When opened via keyboard, the first button auto-focuses. ArrowLeft/Right navigates between buttons (with wrapping), Home/End jump to first/last. Escape returns focus to the column header.
 - **Multi-Column Selection**: Cmd/Ctrl+Click toggles individual columns in a multi-selection; Shift+Click selects a range from the last anchor column. Multi-column toolbar shows count and bulk remove action.
-- **Row Gutter**: A sticky left column displays 1-based row numbers. Clicking a gutter cell selects the row; Cmd/Ctrl+Click toggles rows; Shift+Click selects a contiguous range.
-- **Row Toolbar**: Floating toolbar (`role="toolbar"`) appears when rows are selected, offering Keep (filter to selected), Remove (delete selected), and Extract to Model (placeholder). Supports ArrowLeft/Right keyboard navigation.
+- **Row Gutter**: A sticky left column displays 1-based row numbers. Clicking a gutter cell selects the row; Cmd/Ctrl+Click toggles rows; Shift+Click selects a contiguous range. Keyboard-navigable using roving tabindex — ArrowUp/Down moves focus between rows (with wrapping), Shift+ArrowUp/Down extends range selection (clamped at page boundaries).
+- **Row Toolbar**: Floating toolbar (`role="toolbar"`) appears when rows are selected, offering Keep (filter to selected), Remove (delete selected), and Extract to Model (creates a new model with selected rows and current pipeline). Supports ArrowLeft/Right keyboard navigation.
 - **Cell Toolbar**: Clicking a cell allows for rapid "Keep only this" or "Exclude this" filtering based on that specific value.
 - **Type Badges**: Visual indicators for data types (Abc, #, 📅), synced with the granular schema engine.
 - **Type Menu**: Keyboard-navigable (`role="menu"`) with arrow key support (Up/Down/Home/End) and auto-focus on open.

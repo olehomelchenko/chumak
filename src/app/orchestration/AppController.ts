@@ -135,6 +135,8 @@ export const AppController = {
   closeStepRemovalModal: StepHandlers.closeStepRemovalModal,
   executeStepRemoval: StepHandlers.executeStepRemoval,
   updateStep: StepHandlers.updateStep,
+  undo: StepHandlers.undo,
+  redo: StepHandlers.redo,
 
   // ============================================================
   // Model & Source Management
@@ -412,7 +414,7 @@ export const AppController = {
   },
 
   async extractSelectedRows() {
-    await InteractionHandlers.extractSelectedRows(shortcutCallbacks());
+    await InteractionHandlers.extractSelectedRows((model) => AppController.switchToModel(model));
   },
 
   selectEdaStat: EDAHandlers.selectEdaStat,

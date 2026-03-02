@@ -387,4 +387,200 @@ describe('StepService', () => {
       expect(() => StepService.computeUpToStep(0)).toThrow('No active model');
     });
   });
+
+  describe('undo/redo history', () => {
+    it('pushSnapshot creates undo entry and clears redo', () => {
+      StepService.pushSnapshot(model, 'Add filter');
+
+      expect(StepService.canUndo(model.id)).toBe(true);
+      expect(StepService.canRedo(model.id)).toBe(false);
+    });
+
+    it('canUndo returns false for model with no history', () => {
+      expect(StepService.canUndo(model.id)).toBe(false);
+    });
+
+    it('canRedo returns false for model with no history', () => {
+      expect(StepService.canRedo(model.id)).toBe(false);
+    });
+
+    it('pushSnapshot stores deep copy of steps', () => {
+      const originalSteps = JSON.parse(JSON.stringify(model.steps));
+      StepService.pushSnapshot(model, 'Before mutation');
+
+      // Mutate model steps after snapshot
+      model.steps.push({ filter: 'age > 25' });
+
+      // Undo should restore original steps
+      const history = AppStore.history.value.get(model.id)!;
+      expect(history.undo[0].steps).toEqual(originalSteps);
+    });
+
+    it('pushSnapshot clears redo stack', () => {
+      // Create some redo entries by doing push + undo
+      model.steps.push({ filter: 'age > 25' });
+      StepService.pushSnapshot(model, 'Add filter');
+
+      // Manually put something in redo
+      const history = AppStore.history.value.get(model.id)!;
+      history.redo.push({ steps: [], description: 'test' });
+
+      // New push should clear redo
+      StepService.pushSnapshot(model, 'Add derive');
+      const updatedHistory = AppStore.history.value.get(model.id)!;
+      expect(updatedHistory.redo).toHaveLength(0);
+    });
+
+    it('pushSnapshot respects MAX_HISTORY_SIZE (50)', () => {
+      for (let i = 0; i < 55; i++) {
+        StepService.pushSnapshot(model, `Step ${i}`);
+      }
+
+      const history = AppStore.history.value.get(model.id)!;
+      expect(history.undo.length).toBe(50);
+      // Oldest entry should have been shifted out
+      expect(history.undo[0].description).toBe('Step 5');
+    });
+
+    it('undo restores previous steps and calls onSuccess', async () => {
+      const originalSteps = JSON.parse(JSON.stringify(model.steps));
+
+      // Snapshot before adding filter
+      StepService.pushSnapshot(model, 'Add filter');
+      model.steps.push({ filter: 'age > 25' });
+
+      const onSuccess = vi.fn();
+      const onError = vi.fn();
+
+      const desc = await StepService.undo(model, { onSuccess, onError });
+
+      expect(desc).toBe('Add filter');
+      expect(model.steps).toEqual(originalSteps);
+      expect(onSuccess).toHaveBeenCalled();
+      expect(onError).not.toHaveBeenCalled();
+      expect(PersistenceService.autoSave).toHaveBeenCalled();
+    });
+
+    it('undo returns null when no history', async () => {
+      const onSuccess = vi.fn();
+      const onError = vi.fn();
+
+      const desc = await StepService.undo(model, { onSuccess, onError });
+
+      expect(desc).toBeNull();
+      expect(onSuccess).not.toHaveBeenCalled();
+    });
+
+    it('undo pushes current state to redo stack', async () => {
+      StepService.pushSnapshot(model, 'Add filter');
+      model.steps.push({ filter: 'age > 25' });
+      const stepsBeforeUndo = JSON.parse(JSON.stringify(model.steps));
+
+      await StepService.undo(model, { onSuccess: vi.fn(), onError: vi.fn() });
+
+      expect(StepService.canRedo(model.id)).toBe(true);
+      const history = AppStore.history.value.get(model.id)!;
+      expect(history.redo[0].steps).toEqual(stepsBeforeUndo);
+    });
+
+    it('redo restores previously undone steps', async () => {
+      StepService.pushSnapshot(model, 'Add filter');
+      model.steps.push({ filter: 'age > 25' });
+
+      await StepService.undo(model, { onSuccess: vi.fn(), onError: vi.fn() });
+      expect(model.steps).toHaveLength(1); // just import
+
+      const onSuccess = vi.fn();
+      const desc = await StepService.redo(model, { onSuccess, onError: vi.fn() });
+
+      expect(desc).toBe('Add filter');
+      expect(model.steps).toHaveLength(2); // import + filter
+      expect(onSuccess).toHaveBeenCalled();
+    });
+
+    it('redo returns null when no redo history', async () => {
+      const desc = await StepService.redo(model, { onSuccess: vi.fn(), onError: vi.fn() });
+
+      expect(desc).toBeNull();
+    });
+
+    it('undo then redo produces same data', async () => {
+      // Add filter step
+      StepService.pushSnapshot(model, 'Add filter');
+      model.steps.push({ filter: 'age > 25' });
+      model.data = StepService.computeModelUpToStep(model, 1, StepService.getContext()).data;
+      const dataAfterFilter = [...model.data];
+
+      // Undo
+      await StepService.undo(model, { onSuccess: vi.fn(), onError: vi.fn() });
+      expect(model.data).toHaveLength(3); // all rows restored
+
+      // Redo
+      await StepService.redo(model, { onSuccess: vi.fn(), onError: vi.fn() });
+      expect(model.data).toEqual(dataAfterFilter);
+    });
+
+    it('undo calls onError when recomputation fails', async () => {
+      // Push a snapshot with valid steps, then corrupt the snapshot
+      StepService.pushSnapshot(model, 'Bad step');
+      const history = AppStore.history.value.get(model.id)!;
+      // Replace the snapshot steps with something that will fail
+      history.undo[0].steps = [
+        model.steps[0], // import
+        { filter: 'nonexistent_col > 5' },
+      ];
+
+      const onError = vi.fn();
+      const desc = await StepService.undo(model, { onSuccess: vi.fn(), onError });
+
+      expect(desc).toBeNull();
+      expect(onError).toHaveBeenCalled();
+    });
+
+    it('history is per-model (isolated)', () => {
+      const model2 = createTestModel({ id: 'mdl_2', name: 'Model 2' });
+      AppStore.models.value = [model, model2];
+
+      StepService.pushSnapshot(model, 'model1 change');
+
+      expect(StepService.canUndo(model.id)).toBe(true);
+      expect(StepService.canUndo(model2.id)).toBe(false);
+    });
+
+    it('history is cleared on AppStore reset', () => {
+      StepService.pushSnapshot(model, 'some change');
+      expect(StepService.canUndo(model.id)).toBe(true);
+
+      AppStore.reset();
+
+      expect(StepService.canUndo(model.id)).toBe(false);
+    });
+
+    it('executeStepRemoval pushes undo snapshot', async () => {
+      model.steps.push({ filter: 'age > 25' });
+
+      await StepService.executeStepRemoval(model, 1, 'single', {
+        onSuccess: vi.fn(),
+        onError: vi.fn(),
+      });
+
+      expect(StepService.canUndo(model.id)).toBe(true);
+    });
+
+    it('updateStep pushes undo snapshot', async () => {
+      model.steps.push({ filter: 'age > 25' });
+
+      await StepService.updateStep(
+        model,
+        1,
+        { filter: 'age > 30' },
+        {
+          onSuccess: vi.fn(),
+          onError: vi.fn(),
+        }
+      );
+
+      expect(StepService.canUndo(model.id)).toBe(true);
+    });
+  });
 });

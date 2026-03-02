@@ -1,7 +1,17 @@
 import { signal, computed } from '@preact/signals';
 import { Source, Model, DataRow, DialogName, Notification } from '../types';
-import { ColumnSchema } from '../../core/schema-engine';
+import { ColumnSchema, TransformStep } from '../../core/schema-engine';
 import { UXSettings } from '../../core/ux-settings';
+
+export interface HistoryEntry {
+  steps: TransformStep[];
+  description: string;
+}
+
+export interface HistoryStack {
+  undo: HistoryEntry[];
+  redo: HistoryEntry[];
+}
 
 export type ViewMode = 'empty' | 'dataset-info' | 'model' | 'model-info';
 
@@ -128,6 +138,9 @@ export class AppStore {
   static typeMenuPos = signal({ x: 0, y: 0 });
   static typeMenuCol = signal<string | null>(null);
 
+  // Undo/Redo History (per model, session-only)
+  static history = signal<Map<string, HistoryStack>>(new Map());
+
   // Ribbon Popover State
   static ribbonPopover = signal<string | null>(null);
   static ribbonPopoverRect = signal<DOMRect | null>(null);
@@ -188,6 +201,7 @@ export class AppStore {
     this.viewingSchema.value = null;
     this.typeMenuOpen.value = false;
     this.typeMenuCol.value = null;
+    this.history.value = new Map();
     this.ribbonPopover.value = null;
     this.ribbonPopoverRect.value = null;
   }

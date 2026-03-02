@@ -85,30 +85,100 @@ export function DataTable({
     const idx = headers.indexOf(th);
 
     let nextIdx: number;
-    switch (e.key) {
-      case 'ArrowRight':
-        nextIdx = idx < headers.length - 1 ? idx + 1 : 0;
-        break;
-      case 'ArrowLeft':
-        nextIdx = idx > 0 ? idx - 1 : headers.length - 1;
-        break;
-      case 'Home':
-        nextIdx = 0;
-        break;
-      case 'End':
-        nextIdx = headers.length - 1;
-        break;
-      default:
-        return;
+    if (e.shiftKey && (e.key === 'ArrowRight' || e.key === 'ArrowLeft')) {
+      // Clamp at boundaries during range selection (no wrapping)
+      if (e.key === 'ArrowRight') {
+        if (idx >= headers.length - 1) return;
+        nextIdx = idx + 1;
+      } else {
+        if (idx <= 0) return;
+        nextIdx = idx - 1;
+      }
+      const nextCol = headers[nextIdx].dataset.col;
+      if (nextCol) {
+        onSelectColumn(nextCol, {
+          shiftKey: true,
+          metaKey: false,
+          ctrlKey: false,
+          stopPropagation() {},
+        } as unknown as MouseEvent);
+      }
+    } else {
+      switch (e.key) {
+        case 'ArrowRight':
+          nextIdx = idx < headers.length - 1 ? idx + 1 : 0;
+          break;
+        case 'ArrowLeft':
+          nextIdx = idx > 0 ? idx - 1 : headers.length - 1;
+          break;
+        case 'Home':
+          nextIdx = 0;
+          break;
+        case 'End':
+          nextIdx = headers.length - 1;
+          break;
+        default:
+          return;
+      }
     }
-
-    // TODO: Shift+Arrow should extend column range selection
-    // (select from anchor to nextIdx, similar to Shift+Click)
 
     // Roving tabindex: move the tab stop
     th.setAttribute('tabindex', '-1');
-    headers[nextIdx].setAttribute('tabindex', '0');
-    headers[nextIdx].focus();
+    headers[nextIdx!].setAttribute('tabindex', '0');
+    headers[nextIdx!].focus();
+  };
+
+  const handleGutterKeyDown = (absoluteIndex: number, e: KeyboardEvent) => {
+    if (e.key === 'Enter' || e.key === ' ') {
+      e.preventDefault();
+      onSelectRow(absoluteIndex, {
+        shiftKey: false,
+        metaKey: false,
+        ctrlKey: false,
+        stopPropagation() {},
+      } as unknown as MouseEvent);
+      return;
+    }
+
+    if (e.key !== 'ArrowUp' && e.key !== 'ArrowDown') return;
+    e.preventDefault();
+
+    const td = e.currentTarget as HTMLElement;
+    const gutters = Array.from(
+      td.closest('tbody')!.querySelectorAll<HTMLElement>('td[data-row-gutter]')
+    );
+    const idx = gutters.indexOf(td);
+
+    let nextIdx: number;
+    if (e.shiftKey) {
+      // Clamp at boundaries during range selection (no wrapping)
+      if (e.key === 'ArrowDown') {
+        if (idx >= gutters.length - 1) return;
+        nextIdx = idx + 1;
+      } else {
+        if (idx <= 0) return;
+        nextIdx = idx - 1;
+      }
+      const nextAbsoluteIndex = pageOffset + nextIdx;
+      onSelectRow(nextAbsoluteIndex, {
+        shiftKey: true,
+        metaKey: false,
+        ctrlKey: false,
+        stopPropagation() {},
+      } as unknown as MouseEvent);
+    } else {
+      // Wrap around for plain navigation
+      if (e.key === 'ArrowDown') {
+        nextIdx = idx < gutters.length - 1 ? idx + 1 : 0;
+      } else {
+        nextIdx = idx > 0 ? idx - 1 : gutters.length - 1;
+      }
+    }
+
+    // Roving tabindex
+    td.setAttribute('tabindex', '-1');
+    gutters[nextIdx!].setAttribute('tabindex', '0');
+    gutters[nextIdx!].focus();
   };
 
   const isDev = import.meta.env.DEV;
@@ -190,10 +260,14 @@ export function DataTable({
                 <td
                   class={`${styles.rowGutterCell} ${isRowSelected ? styles.rowGutterSelected : ''}`}
                   data-row-gutter="true"
+                  tabIndex={rowIndex === 0 ? 0 : -1}
                   onClick={(e) => {
                     e.stopPropagation();
                     onSelectRow(absoluteIndex, e as unknown as MouseEvent);
                   }}
+                  onKeyDown={(e) =>
+                    handleGutterKeyDown(absoluteIndex, e as unknown as KeyboardEvent)
+                  }
                 >
                   {absoluteIndex + 1}
                 </td>
