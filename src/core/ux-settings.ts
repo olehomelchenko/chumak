@@ -13,6 +13,7 @@ export interface UXSettings {
   };
   theme: 'blues' | 'syto';
   analyticsOptOut: boolean;
+  language: 'en' | 'uk';
 }
 
 // Default settings
@@ -25,6 +26,7 @@ const DEFAULT_SETTINGS: UXSettings = {
   },
   theme: 'syto',
   analyticsOptOut: false, // Analytics enabled by default
+  language: 'en',
 };
 
 /**
@@ -46,6 +48,7 @@ export function loadUXSettings(): UXSettings {
         },
         theme: parsed.theme || DEFAULT_SETTINGS.theme,
         analyticsOptOut: parsed.analyticsOptOut ?? DEFAULT_SETTINGS.analyticsOptOut,
+        language: parsed.language || DEFAULT_SETTINGS.language,
       };
     }
   } catch (error) {

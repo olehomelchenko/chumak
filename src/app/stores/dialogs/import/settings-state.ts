@@ -6,12 +6,13 @@ export const settingsState = {
   theme: signal<Theme>('syto'),
   rowLimit: signal(100),
   analyticsOptOut: signal(false),
+  language: signal<'en' | 'uk'>('en'),
 };
 
 export function resetSettingsState() {
   settingsState.theme.value = 'syto';
   settingsState.rowLimit.value = 100;
-  // Note: analyticsOptOut is not reset as it is a user preference
+  // Note: analyticsOptOut and language are not reset as they are user preferences
 }
 
 registerResetFunction(resetSettingsState);

@@ -131,6 +131,7 @@ export class AppStore {
     preview: { rowLimit: 100 },
     theme: 'syto',
     analyticsOptOut: false,
+    language: 'en',
   });
 
   // Type Menu State

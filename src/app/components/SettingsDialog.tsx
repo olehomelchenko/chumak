@@ -1,11 +1,13 @@
 import { DialogStore } from '../stores/DialogStore';
 import styles from './TransformDialog.module.css';
+import { useTranslation } from 'preact-i18next';
 
 // Props interface kept for reference/testing
 export interface SettingsDialogProps {
   onThemeChange?: (theme: 'syto' | 'blues') => void;
   onRowLimitChange?: (limit: number) => void;
   onAnalyticsOptOutChange?: (optOut: boolean) => void;
+  onLanguageChange?: (language: 'en' | 'uk') => void;
   onClearAllData?: () => void;
 }
 
@@ -13,9 +15,11 @@ export function SettingsDialog({
   onThemeChange,
   onRowLimitChange,
   onAnalyticsOptOutChange,
+  onLanguageChange,
   onClearAllData,
 }: SettingsDialogProps = {}) {
-  const { theme, rowLimit, analyticsOptOut } = DialogStore.settingsState;
+  const { t } = useTranslation('settings');
+  const { theme, rowLimit, analyticsOptOut, language } = DialogStore.settingsState;
 
   const handleThemeChange = (newTheme: 'syto' | 'blues') => {
     theme.value = newTheme;
@@ -42,12 +46,53 @@ export function SettingsDialog({
     }
   };
 
+  const handleLanguageChange = (newLang: 'en' | 'uk') => {
+    language.value = newLang;
+    if (onLanguageChange) {
+      onLanguageChange(newLang);
+    }
+  };
+
   return (
     <div>
+      {/* Language Selector */}
+      <div style={{ marginBottom: '2rem' }}>
+        <label class={styles.label} style={{ marginBottom: '1rem', display: 'block' }}>
+          {t('language.label')}
+        </label>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          {/* English */}
+          <div
+            onClick={() => handleLanguageChange('en')}
+            class={`${styles.themeOption} ${language.value === 'en' ? styles.active : ''}`}
+          >
+            <div class={styles.radioCircle}>
+              {language.value === 'en' && <div class={styles.radioDot} />}
+            </div>
+            <div>
+              <div class={styles.themeName}>English</div>
+            </div>
+          </div>
+
+          {/* Ukrainian */}
+          <div
+            onClick={() => handleLanguageChange('uk')}
+            class={`${styles.themeOption} ${language.value === 'uk' ? styles.active : ''}`}
+          >
+            <div class={styles.radioCircle}>
+              {language.value === 'uk' && <div class={styles.radioDot} />}
+            </div>
+            <div>
+              <div class={styles.themeName}>Українська</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       {/* Color Scheme */}
       <div style={{ marginBottom: '2rem' }}>
         <label class={styles.label} style={{ marginBottom: '1rem', display: 'block' }}>
-          Color Scheme
+          {t('theme.label')}
         </label>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           {/* Syto Theme */}
@@ -59,8 +104,8 @@ export function SettingsDialog({
               {theme.value === 'syto' && <div class={styles.radioDot} />}
             </div>
             <div>
-              <div class={styles.themeName}>Syto</div>
-              <div class={styles.themeDesc}>Modern vibrant custom palette</div>
+              <div class={styles.themeName}>{t('theme.syto.name')}</div>
+              <div class={styles.themeDesc}>{t('theme.syto.description')}</div>
             </div>
             <div class={styles.swatchGrid}>
               <div class={styles.colorSwatch} style={{ background: '#1789fc' }}></div>
@@ -84,8 +129,8 @@ export function SettingsDialog({
               {theme.value === 'blues' && <div class={styles.radioDot} />}
             </div>
             <div>
-              <div class={styles.themeName}>Blues (KSE)</div>
-              <div class={styles.themeDesc}>Classic KSE professional palette</div>
+              <div class={styles.themeName}>{t('theme.blues.name')}</div>
+              <div class={styles.themeDesc}>{t('theme.blues.description')}</div>
             </div>
             <div class={styles.swatchGrid}>
               <div class={styles.colorSwatch} style={{ background: '#003964' }}></div>
@@ -99,11 +144,10 @@ export function SettingsDialog({
       {/* Preview Row Limit */}
       <div style={{ marginBottom: '2rem' }}>
         <label class={styles.label} style={{ marginBottom: '0.5rem', display: 'block' }}>
-          Preview Row Limit
+          {t('preview.label')}
         </label>
         <div class={styles.helpText} style={{ marginBottom: '0.75rem' }}>
-          Maximum number of rows to show in transform previews. Higher values may slow down previews
-          for complex expressions.
+          {t('preview.description')}
         </div>
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
           <input
@@ -116,7 +160,9 @@ export function SettingsDialog({
             class={styles.input}
             style={{ width: '100px' }}
           />
-          <span style={{ fontSize: '13px', color: 'var(--color-dark-gray)' }}>rows (10-10000)</span>
+          <span style={{ fontSize: '13px', color: 'var(--color-dark-gray)' }}>
+            {t('preview.range')}
+          </span>
         </div>
       </div>
 
@@ -137,19 +183,16 @@ export function SettingsDialog({
             style={{ marginTop: '0.25rem', cursor: 'pointer' }}
           />
           <div>
-            <div style={{ fontWeight: 500, marginBottom: '0.25rem' }}>Opt out of analytics</div>
+            <div style={{ fontWeight: 500, marginBottom: '0.25rem' }}>{t('analytics.label')}</div>
             <div class={styles.helpText} style={{ fontSize: '0.875rem' }}>
-              Syto uses GoatCounter, a privacy-respecting analytics service (no cookies,
-              GDPR-compliant). You can opt out at any time. Your preference is stored locally in
-              your browser.
+              {t('analytics.description')}
             </div>
           </div>
         </label>
       </div>
 
       <div class={styles.noteBox}>
-        <strong>Note:</strong> Some interface elements use the primary theme color. The "Syto" theme
-        also uses custom typography and removes border radiuses for a sharper look.
+        <strong>Note:</strong> {t('note')}
       </div>
 
       {/* Danger Zone */}
@@ -169,18 +212,17 @@ export function SettingsDialog({
               fontSize: '0.9rem',
             }}
           >
-            Danger Zone
+            {t('dangerZone.title')}
           </div>
           <div class={styles.helpText} style={{ marginBottom: '0.75rem' }}>
-            This will permanently delete all sources, models, and steps from your browser's storage.
-            This action cannot be undone.
+            {t('dangerZone.description')}
           </div>
           <button
             class="button button--secondary button--small"
             style={{ color: 'var(--color-dark-red)', borderColor: 'var(--color-dark-red)' }}
             onClick={onClearAllData}
           >
-            Clear All Data
+            {t('dangerZone.button')}
           </button>
         </div>
       )}

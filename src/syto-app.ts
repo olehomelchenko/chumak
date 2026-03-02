@@ -118,6 +118,8 @@ export class SytoApp {
     AppStore.theme.value = uxSettings.theme;
     AppController.applyTheme();
 
+    // Note: i18n language is already initialized from localStorage in src/i18n/index.ts
+
     // Load initial data from IndexedDB
     const { sources, models } = await loadInitialData();
     AppStore.sources.value = sources;

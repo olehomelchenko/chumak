@@ -1,0 +1,30 @@
+{
+  "buttons": {
+    "apply": "Apply",
+    "cancel": "Cancel",
+    "close": "Close",
+    "ok": "OK",
+    "delete": "Delete",
+    "rename": "Rename",
+    "copy": "Copy",
+    "export": "Export",
+    "import": "Import",
+    "about": "About",
+    "help": "Help",
+    "settings": "Settings"
+  },
+  "labels": {
+    "name": "Name",
+    "type": "Type",
+    "column": "Column",
+    "columns": "Columns",
+    "rows": "Rows",
+    "value": "Value"
+  },
+  "tooltips": {
+    "about": "About Syto",
+    "help": "Help & Reference",
+    "graph": "View dependency graph between sources and models",
+    "settings": "Application Settings"
+  }
+}

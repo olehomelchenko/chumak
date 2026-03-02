@@ -17,6 +17,7 @@ import { DialogStore } from '../stores/DialogStore';
 import { ModelService } from '../services/ModelService';
 import { ImportService } from '../services/ImportService';
 import { ExportService } from '../services/ExportService';
+import i18n from '../../i18n';
 
 // Handler imports - Transform
 import * as FilterHandlers from '../handlers/transform/filter-handlers';
@@ -710,6 +711,17 @@ export const AppController = {
         (window as any).goatcounter = { count: () => {} };
       }
     }
+  },
+
+  switchLanguage(language: 'en' | 'uk'): void {
+    // Update i18n
+    i18n.changeLanguage(language);
+
+    // Update app state
+    AppStore.uxSettings.value = { ...AppStore.uxSettings.value, language };
+
+    // Persist to localStorage
+    updateUXSetting('language', '', language);
   },
 
   // ============================================================

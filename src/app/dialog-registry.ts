@@ -15,6 +15,7 @@ import type { ComponentType } from 'preact';
 import type { DialogName } from './types';
 import type { ExecutionCallbacks } from './services/StepService';
 import { DialogStore } from './stores/DialogStore';
+import i18n from '../i18n';
 
 // Transform handlers
 import * as FilterHandlers from './handlers/transform/filter-handlers';
@@ -371,11 +372,30 @@ export function getDialogTitle(dialogName: DialogName): string {
 
   // Special case: import-csv title changes based on file type
   if (dialogName === 'import-csv' && DialogStore.importCsvState.isJson.value) {
-    return 'Import JSON';
+    return i18n.t('dialogs:titles.importJson');
+  }
+  if (dialogName === 'import-csv') {
+    return i18n.t('dialogs:titles.importCsv');
   }
 
+  // Map dialog name to translation key (convert kebab-case to camelCase)
+  const keyMap: Record<string, string> = {
+    'slice-rows': 'sliceRows',
+    'regexp-match': 'regexpMatch',
+    'regexp-extract': 'regexpExtract',
+    'parse-date': 'parseDate',
+    'column-editor': 'columnEditor',
+    'select-pattern': 'selectPattern',
+    'remove-pattern': 'removePattern',
+    'rename-pattern': 'renamePattern',
+    'import-url': 'importUrl',
+    'type-conversion': 'typeConversion',
+    'dependency-graph': 'dependencyGraph',
+  };
+
+  const key = keyMap[dialogName] || dialogName;
   const config = getDialogConfig(dialogName);
-  return config?.title || '';
+  return i18n.t(`dialogs:titles.${key}`, config?.title || '');
 }
 
 export function getDialogButtonText(dialogName: DialogName): string {

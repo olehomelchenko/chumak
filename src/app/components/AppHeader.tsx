@@ -2,6 +2,7 @@ import { useComputed } from '@preact/signals';
 import { AppStore } from '../stores/AppStore';
 import { DialogName } from '../types';
 import styles from './AppHeader.module.css';
+import { useTranslation } from 'preact-i18next';
 
 type RibbonTabName = 'rows' | 'columns' | 'table';
 
@@ -10,6 +11,7 @@ export interface AppHeaderProps {
 }
 
 export function AppHeader({ onOpenDialog }: AppHeaderProps) {
+  const { t } = useTranslation('common');
   const ribbonTab = AppStore.ribbonTab;
   const hasData = useComputed(() => !!AppStore.currentData.value);
 
@@ -62,22 +64,26 @@ export function AppHeader({ onOpenDialog }: AppHeaderProps) {
 
         {/* Action Buttons */}
         <div class={styles.actions}>
-          <a class="button button--secondary button--small" href="/about/" title="About Syto">
+          <a
+            class="button button--secondary button--small"
+            href="/about/"
+            title={t('tooltips.about')}
+          >
             <span class="iconify" data-icon="carbon:information"></span>
-            <span>About</span>
+            <span>{t('buttons.about')}</span>
           </a>
           <button
             class="button button--secondary button--small"
             onClick={() => onOpenDialog('reference')}
-            title="Help & Reference"
+            title={t('tooltips.help')}
           >
             <span class="iconify" data-icon="carbon:help"></span>
-            <span>Help</span>
+            <span>{t('buttons.help')}</span>
           </button>
           <button
             class="button button--secondary button--small"
             onClick={() => onOpenDialog('dependency-graph')}
-            title="View dependency graph between sources and models"
+            title={t('tooltips.graph')}
           >
             <span class="iconify" data-icon="carbon:network-3"></span>
             <span>Graph</span>
@@ -85,10 +91,10 @@ export function AppHeader({ onOpenDialog }: AppHeaderProps) {
           <button
             class="button button--secondary button--small"
             onClick={() => onOpenDialog('settings')}
-            title="Application Settings"
+            title={t('tooltips.settings')}
           >
             <span class="iconify" data-icon="carbon:settings"></span>
-            <span>Settings</span>
+            <span>{t('buttons.settings')}</span>
           </button>
         </div>
       </div>

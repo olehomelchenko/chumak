@@ -31,9 +31,11 @@
     "arquero": "^6.0.1",
     "codemirror": "^6.0.2",
     "dagre": "^0.8.5",
+    "i18next": "^25.8.13",
     "jsep": "^1.4.0",
     "papaparse": "^5.5.1",
     "preact": "^10.28.2",
+    "preact-i18next": "^11.8.5",
     "vega": "^6.2.0",
     "vega-embed": "^7.1.0",
     "vega-lite": "^6.4.2"

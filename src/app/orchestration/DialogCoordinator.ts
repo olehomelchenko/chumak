@@ -177,6 +177,7 @@ export function getDialogState(dialog: string): any {
         theme: AppStore.theme.value,
         rowLimit: AppStore.uxSettings.value.preview?.rowLimit || 100,
         analyticsOptOut: AppStore.uxSettings.value.analyticsOptOut ?? false,
+        language: AppStore.uxSettings.value.language || 'en',
       };
     case 'append':
       return {
@@ -306,6 +307,7 @@ export function initDialogState(dialogName: string, section?: string): void {
       state.theme.value = AppStore.theme.value as any;
       state.rowLimit.value = AppStore.uxSettings.value.preview?.rowLimit || 100;
       state.analyticsOptOut.value = AppStore.uxSettings.value.analyticsOptOut ?? false;
+      state.language.value = AppStore.uxSettings.value.language || 'en';
       break;
     }
 

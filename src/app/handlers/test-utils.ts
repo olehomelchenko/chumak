@@ -101,6 +101,7 @@ export const defaultUxSettings = {
     pageSize: 500,
   },
   analyticsOptOut: false,
+  language: 'en' as const,
 };
 
 /**

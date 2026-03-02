@@ -72,15 +72,17 @@ Syto is a browser-based data wrangling tool for cleaning and transforming tabula
 
 ### 3.2 Libraries
 
-| Library       | Purpose                                            |
-| :------------ | :------------------------------------------------- |
-| **Iconify**   | Unified vector icon framework                      |
-| **PapaParse** | High-performance CSV parsing and export            |
-| **Arquero**   | Data transformation engine (inspired by dplyr)     |
-| **jsep**      | Lightweight Javascript Expression Parser           |
-| **Preact**    | Lightweight framework for all UI components        |
-| **Signals**   | High-performance reactive state management         |
-| **Vega-Lite** | Grammar of Graphics for interactive visualizations |
+| Library            | Purpose                                            |
+| :----------------- | :------------------------------------------------- |
+| **Iconify**        | Unified vector icon framework                      |
+| **PapaParse**      | High-performance CSV parsing and export            |
+| **Arquero**        | Data transformation engine (inspired by dplyr)     |
+| **jsep**           | Lightweight Javascript Expression Parser           |
+| **Preact**         | Lightweight framework for all UI components        |
+| **Signals**        | High-performance reactive state management         |
+| **Vega-Lite**      | Grammar of Graphics for interactive visualizations |
+| **i18next**        | Internationalization framework with plural support |
+| **preact-i18next** | Preact bindings for i18next (Provider + hooks)     |
 
 ### 3.3 Core Components
 
@@ -98,6 +100,25 @@ A three-stage pipeline for safe execution of user-defined formulas:
 1. **Parsing**: Uses `jsep` to convert string expressions into an Abstract Syntax Tree (AST). Bracket notation (`[Column Name]`) is preprocessed to placeholders before parsing and restored after.
 2. **Validation**: Checks the AST against the current schema for security and correctness. Validates node types, operators, function names (whitelist), function arities, and column references. Provides fuzzy-match suggestions for typos.
 3. **Interpretation**: Executes the validated AST against row data in a sandboxed environment. Delegates function calls to `FUNCTION_IMPLS`.
+
+#### Internationalization Engine
+
+The i18n system provides multi-language support using i18next with Preact bindings. Key characteristics:
+
+- **Languages**: English (en, default) and Ukrainian (uk) with automatic plural handling
+- **Namespaces**: `common` (buttons, labels), `settings` (settings dialog), `dialogs` (dialog titles)
+- **Storage**: User's language preference persisted in localStorage via UX settings
+- **Type Safety**: TypeScript type augmentation provides autocomplete for translation keys
+- **Initialization**: Language is loaded from localStorage before i18n initialization to prevent race conditions
+- **Reactivity**: `I18nextProvider` ensures components re-render when language changes
+
+**Implementation**: `src/i18n/index.ts` (configuration), `src/i18n/locales/*/` (translation files)
+
+**Ukrainian Plural Rules**: Ukrainian has 3 plural forms handled automatically by i18next:
+
+- Form 0: ends with 1 (not 11): 1, 21, 31...
+- Form 1: ends with 2-4 (not 12-14): 2, 3, 4, 22...
+- Form 2: all others: 0, 5-20, 25-30...
 
 - **Implementation**: `src/core/expression-parser.ts`, `src/core/ast-validator.ts`, `src/core/ast-interpreter.ts`
 - **Function implementations**: `src/core/functions/` (organized by category: date, math, string, regex, json, type)
