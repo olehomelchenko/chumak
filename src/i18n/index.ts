@@ -115,6 +115,8 @@ i18n.use(initReactI18next).init({
   interpolation: {
     escapeValue: false, // Preact already escapes HTML
   },
+  // Suppress sponsorship notice in console
+  showSupportNotice: false,
 });
 
 export default i18n;
