@@ -5,6 +5,48 @@
  * the Vite dev plugin (vite-plugin-content-pages.ts).
  */
 
+import * as path from 'path';
+
+// ---------------------------------------------------------------------------
+// Locale support
+// ---------------------------------------------------------------------------
+
+export type Locale = 'en' | 'uk';
+export const LOCALES: Locale[] = ['en', 'uk'];
+export const DEFAULT_LOCALE: Locale = 'en';
+
+export interface LocaleStrings {
+  navAbout: string;
+  navDocs: string;
+  navCta: string;
+  footerText: string;
+  footerLinkText: string;
+  langSwitcherLabel: string;
+}
+
+export const localeStrings: Record<Locale, LocaleStrings> = {
+  en: {
+    navAbout: 'About',
+    navDocs: 'Docs',
+    navCta: 'Open App',
+    footerText: 'Syto — Data wrangling in the browser.',
+    footerLinkText: 'Open source',
+    langSwitcherLabel: 'UK',
+  },
+  uk: {
+    navAbout: 'Про Syto',
+    navDocs: 'Документація',
+    navCta: 'Відкрити',
+    footerText: 'Syto — Обробка даних у браузері.',
+    footerLinkText: 'Відкритий код',
+    langSwitcherLabel: 'EN',
+  },
+};
+
+// ---------------------------------------------------------------------------
+// Page definitions
+// ---------------------------------------------------------------------------
+
 export interface PageDef {
   /** Path to markdown source relative to src/content/ */
   markdown: string;
@@ -127,6 +169,68 @@ export const pages: PageDef[] = [
 ];
 
 // ---------------------------------------------------------------------------
+// Ukrainian page metadata (titles + descriptions for <head>)
+// ---------------------------------------------------------------------------
+
+interface LocalePageMeta {
+  title: string;
+  description: string;
+}
+
+/** Keyed by the English markdown filename (serves as page identity). */
+export const ukPageMeta: Record<string, LocalePageMeta> = {
+  'about.md': {
+    title: 'Про Syto',
+    description: 'Syto — інструмент для очищення та трансформації табличних даних у браузері.',
+  },
+  'getting-started.md': {
+    title: 'Початок роботи',
+    description:
+      'Дізнайтеся, як імпортувати, трансформувати та експортувати дані за допомогою Syto.',
+  },
+  'functions/operators.md': {
+    title: 'Оператори',
+    description: 'Арифметичні, порівняльні, логічні та спеціальні оператори у виразах Syto.',
+  },
+  'functions/date.md': {
+    title: 'Функції дати',
+    description: 'Функції розбору, вилучення та маніпуляції датами в Syto.',
+  },
+  'functions/text.md': {
+    title: 'Текстові функції',
+    description: 'Функції обробки рядків та тексту в Syto.',
+  },
+  'functions/math.md': {
+    title: 'Математичні функції',
+    description: 'Математичні та числові функції у виразах Syto.',
+  },
+  'functions/regex.md': {
+    title: 'Функції регулярних виразів',
+    description: 'Функції регулярних виразів для пошуку за шаблоном у Syto.',
+  },
+  'functions/conversion.md': {
+    title: 'Функції конвертації',
+    description: 'Функції перетворення типів у Syto.',
+  },
+  'functions/json.md': {
+    title: 'Функції JSON',
+    description: 'Функції розбору та вилучення даних з JSON у Syto.',
+  },
+  'functions/aggregate.md': {
+    title: 'Агрегатні функції',
+    description: 'Функції агрегації та підсумків у Syto.',
+  },
+  'shortcuts.md': {
+    title: 'Комбінації клавіш',
+    description: 'Комбінації клавіш для ефективної роботи з Syto.',
+  },
+  'whats-new.md': {
+    title: 'Що нового',
+    description: 'Нові функції та оновлення Syto.',
+  },
+};
+
+// ---------------------------------------------------------------------------
 // Sidebar structure (mirrors FunctionReferenceDialog.tsx)
 // ---------------------------------------------------------------------------
 
@@ -154,17 +258,67 @@ export const sidebarGroups: SidebarItem[][] = [
   ],
 ];
 
+/** Ukrainian sidebar labels keyed by sidebar item id. */
+const ukSidebarLabels: Record<string, string> = {
+  'getting-started': 'Початок роботи',
+  operators: 'Оператори',
+  date: 'Дата',
+  text: 'Текст',
+  math: 'Математика',
+  regex: 'Регулярні вирази',
+  conversion: 'Конвертація',
+  json: 'JSON',
+  aggregate: 'Агрегація',
+  shortcuts: 'Комбінації клавіш',
+  'whats-new': 'Що нового',
+};
+
+// ---------------------------------------------------------------------------
+// URL + hreflang helpers (used by both build script and dev plugin)
+// ---------------------------------------------------------------------------
+
+export function pageUrl(page: PageDef, locale: Locale): string {
+  const dir = path.dirname(page.output);
+  const prefix = locale === DEFAULT_LOCALE ? '' : `/${locale}`;
+  return `${SITE_ORIGIN}${prefix}/${dir}/`;
+}
+
+export function buildHreflangTags(page: PageDef): string {
+  const enUrl = pageUrl(page, 'en');
+  const ukUrl = pageUrl(page, 'uk');
+  return [
+    `<link rel="alternate" hreflang="en" href="${enUrl}" />`,
+    `<link rel="alternate" hreflang="uk" href="${ukUrl}" />`,
+    `<link rel="alternate" hreflang="x-default" href="${enUrl}" />`,
+  ].join('\n    ');
+}
+
+export function langSwitchHref(page: PageDef, currentLocale: Locale): string {
+  const dir = path.dirname(page.output);
+  if (currentLocale === 'en') return `/uk/${dir}/`;
+  return `/${dir}/`;
+}
+
+/** Find the PageDef that corresponds to a route's markdown path. */
+export function findPageDef(markdown: string): PageDef | undefined {
+  const key = markdown.replace(/^uk\//, '');
+  return pages.find((p) => p.markdown === key);
+}
+
 // ---------------------------------------------------------------------------
 // Shared rendering helpers
 // ---------------------------------------------------------------------------
 
-export function renderSidebar(activeId: string): string {
+export function renderSidebar(activeId: string, locale: Locale = 'en'): string {
+  const prefix = locale === DEFAULT_LOCALE ? '' : `/${locale}`;
   const parts: string[] = ['<nav class="docs-sidebar">'];
   for (let i = 0; i < sidebarGroups.length; i++) {
     if (i > 0) parts.push('  <hr />');
     for (const item of sidebarGroups[i]) {
       const current = item.id === activeId ? ' aria-current="page"' : '';
-      parts.push(`  <a href="${item.href}"${current}>${item.label}</a>`);
+      const label = locale === 'uk' ? (ukSidebarLabels[item.id] ?? item.label) : item.label;
+      const href = `${prefix}${item.href}`;
+      parts.push(`  <a href="${href}"${current}>${label}</a>`);
     }
   }
   parts.push('</nav>');
@@ -174,28 +328,33 @@ export function renderSidebar(activeId: string): string {
 /**
  * Build a route map from the pages array (used by the dev plugin).
  */
-export function buildRouteMap(): Record<
-  string,
-  {
-    markdown: string;
-    title: string;
-    description: string;
-    activeNav: 'about' | 'docs' | null;
-    sidebarId?: string;
-  }
-> {
-  const routes: Record<string, any> = {};
-  for (const page of pages) {
-    // Derive route from output path: "about/index.html" → "/about/"
-    const dir = page.output.replace(/\/index\.html$/, '');
-    const route = `/${dir}/`;
-    routes[route] = {
-      markdown: page.markdown,
-      title: page.title,
-      description: page.description,
-      activeNav: page.activeNav,
-      sidebarId: page.sidebarId,
-    };
+export interface RouteInfo {
+  markdown: string;
+  title: string;
+  description: string;
+  activeNav: 'about' | 'docs' | null;
+  sidebarId?: string;
+  locale: Locale;
+}
+
+export function buildRouteMap(): Record<string, RouteInfo> {
+  const routes: Record<string, RouteInfo> = {};
+  for (const locale of LOCALES) {
+    const prefix = locale === DEFAULT_LOCALE ? '' : `/${locale}`;
+    for (const page of pages) {
+      const dir = page.output.replace(/\/index\.html$/, '');
+      const route = `${prefix}/${dir}/`;
+
+      const meta = locale === 'uk' ? ukPageMeta[page.markdown] : undefined;
+      routes[route] = {
+        markdown: locale === DEFAULT_LOCALE ? page.markdown : `uk/${page.markdown}`,
+        title: meta?.title ?? page.title,
+        description: meta?.description ?? page.description,
+        activeNav: page.activeNav,
+        sidebarId: page.sidebarId,
+        locale,
+      };
+    }
   }
   return routes;
 }

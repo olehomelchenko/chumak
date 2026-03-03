@@ -71,6 +71,17 @@ Completed improvements:
 
 ## Infrastructure
 
+### Template Landing Page for i18n
+
+**Status**: Planned
+**Effort**: Small
+
+The UK landing page (`/uk/`) is currently derived from the EN `index.html` via ~15 positional string replacements in both `build-content-pages.ts` and `vite-plugin-content-pages.ts`. This is fragile — any change to `index.html` text, whitespace, or element order can silently produce a broken UK page with no build error.
+
+**Proposed fix**: Template `index.html` with `{{placeholder}}` tokens (the same pattern already used by `page-shell.html` for content pages). Add landing-specific strings to `localeStrings` in `content-pages-config.ts`. Use Vite's `transformIndexHtml` hook to fill EN values during both dev and build. For `/uk/`, the dev middleware and build script read the same template and fill UK values — no string-replacement gymnastics.
+
+**Why now matters**: Adding a third locale or changing any hero/footer copy will require updating two separate replacement chains that are already subtly inconsistent (`replace` vs `replaceAll`, exact strings vs regex). Templating eliminates this entire category of bugs.
+
 ---
 
 ---

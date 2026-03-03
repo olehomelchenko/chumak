@@ -119,6 +119,22 @@ h6 {
   }
 }
 
+.site-header__nav a.site-header__lang {
+  background: transparent;
+  border-color: transparent;
+  font-size: var(--font-size-xs);
+  opacity: 0.5;
+  padding: var(--space-xs);
+  margin-left: var(--space-xs);
+  border-left: 1px solid var(--color-midnight-blue);
+  border-radius: 0;
+
+  &:hover {
+    opacity: 1;
+    background: transparent;
+  }
+}
+
 /* === Page Layout === */
 .page-layout {
   max-width: 1100px;
