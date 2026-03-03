@@ -1130,6 +1130,7 @@ const { t } = useTranslation('errors');
 - Both EN and UK files have matching keys
 - No missing translation keys (would show fallback)
 - Plurals work correctly for Ukrainian
+- Run `npm run i18n:check` to validate key parity across all locales (plural-form aware)
 
 ### 9.8 Common Patterns
 

@@ -1416,7 +1416,7 @@ The following areas still contain hardcoded English strings:
 - **Document** plural form rules for future contributors
 - **Add** language detection based on browser locale
 - **Consider** adding more languages (PL, DE, FR) once structure is stable
-- **Implement** automated translation validation in CI/CD
+- ~~**Implement** automated translation validation in CI/CD~~ ✅ **DONE** — `npm run i18n:check` validates key parity with plural-aware comparison
 
 ---
 
