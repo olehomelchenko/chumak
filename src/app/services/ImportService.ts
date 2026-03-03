@@ -4,6 +4,7 @@ import { SchemaEngine } from '../../core/schema-engine';
 import { PersistenceService } from './PersistenceService';
 import { StepService } from './StepService';
 import { showSuccess } from '../handlers/core/notification-handlers';
+import i18n from '../../i18n';
 
 /**
  * ImportService
@@ -113,7 +114,9 @@ export class ImportService {
       } (${(file.size / 1024).toFixed(1)} KB)`
     );
 
-    showSuccess(`Imported "${file.name}" (${cleanData.length.toLocaleString()} rows)`);
+    showSuccess(
+      i18n.t('notifications.imported', { ns: 'common', name: file.name, count: cleanData.length })
+    );
     closeDialog(true);
   }
 }

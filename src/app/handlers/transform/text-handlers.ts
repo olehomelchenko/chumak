@@ -214,12 +214,12 @@ export async function applyTextTransform(callbacks: any, app?: any) {
   const colVal = column.value;
 
   if (!colVal) {
-    await callbacks.onError?.('Please select a source column');
+    await callbacks.onError?.(i18n.t('validation.selection.sourceColumn', { ns: 'errors' }));
     return;
   }
 
   if (operations.value.length === 0) {
-    await callbacks.onError?.('Please select at least one operation');
+    await callbacks.onError?.(i18n.t('validation.selection.operation', { ns: 'errors' }));
     return;
   }
 
@@ -250,7 +250,10 @@ export async function applyTextTransform(callbacks: any, app?: any) {
   // Check for existing column
   const appCols = AppStore.columns.value;
   if (appCols.includes(outputName) && outputName !== colVal && app) {
-    const message = `${i18n.t('validation.duplicate.columnExists', { ns: 'errors', name: outputName })}. It will be overwritten. Continue?`;
+    const message = i18n.t('confirms.overwriteColumn', {
+      ns: 'common',
+      message: i18n.t('validation.duplicate.columnExists', { ns: 'errors', name: outputName }),
+    });
     const confirmed = await app.confirm(message);
     if (!confirmed) return;
   }

@@ -73,16 +73,21 @@ export async function applyDeriveTransform(callbacks: any) {
   const columns = AppStore.columns.value;
 
   if (!columnName || !expression) {
-    await callbacks.onError?.('Please provide both column name and expression');
+    await callbacks.onError?.(
+      i18n.t('validation.required.columnNameAndExpression', { ns: 'errors' })
+    );
     return;
   }
   if (error) {
-    await callbacks.onError?.('Please fix the expression errors before applying');
+    await callbacks.onError?.(i18n.t('validation.invalid.expression', { ns: 'errors' }));
     return;
   }
   if (columns.includes(columnName)) {
     const confirmed = await confirm(
-      `${i18n.t('validation.duplicate.columnExists', { ns: 'errors', name: columnName })}. It will be overwritten. Continue?`
+      i18n.t('confirms.overwriteColumn', {
+        ns: 'common',
+        message: i18n.t('validation.duplicate.columnExists', { ns: 'errors', name: columnName }),
+      })
     );
     if (!confirmed) return;
   }

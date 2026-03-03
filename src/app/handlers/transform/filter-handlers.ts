@@ -6,6 +6,7 @@ import * as HelperHandlers from '../core/helper-handlers';
 import { StepService } from '../../services/StepService';
 import { createDebouncedPreview, clearPreview, PreviewResult } from '../preview-engine';
 import { validateExpression } from '../validation-engine';
+import i18n from '../../../i18n';
 
 export function validateFilterExpression() {
   validateExpression(DialogStore.filterState.expression.value, AppStore.columns.value, {
@@ -98,11 +99,11 @@ export async function applyFilterTransform(callbacks: any) {
   const hasError = DialogStore.filterState.error.value;
 
   if (!expr) {
-    await callbacks.onError?.('Please enter a filter expression');
+    await callbacks.onError?.(i18n.t('validation.required.expression', { ns: 'errors' }));
     return;
   }
   if (hasError) {
-    await callbacks.onError?.('Please fix the expression errors before applying');
+    await callbacks.onError?.(i18n.t('validation.invalid.expression', { ns: 'errors' }));
     return;
   }
 

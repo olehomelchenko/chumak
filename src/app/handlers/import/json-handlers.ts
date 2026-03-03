@@ -1,6 +1,7 @@
 import { AppStore } from '../../stores/AppStore';
 import { showSuccess, showError } from '../core/notification-handlers';
 import { Model } from '../../types';
+import i18n from '../../../i18n';
 
 /**
  * Result from computing model steps
@@ -123,9 +124,11 @@ export async function applyJsonEdit(): Promise<void> {
     AppStore.jsonEditMode.value = false;
     AppStore.jsonEditError.value = null;
 
-    showSuccess('JSON configuration applied successfully');
+    showSuccess(i18n.t('notifications.jsonApplied', { ns: 'common' }));
   } catch (error: any) {
     AppStore.jsonEditError.value = error.message;
-    showError('Failed to apply JSON changes', error.message, { duration: 0 });
+    showError(i18n.t('transform.jsonApplyFailed', { ns: 'errors' }), error.message, {
+      duration: 0,
+    });
   }
 }

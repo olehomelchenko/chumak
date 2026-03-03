@@ -5,6 +5,7 @@ import { interpretAST } from '../../../core/ast-interpreter';
 import * as HelperHandlers from '../core/helper-handlers';
 import { StepService } from '../../services/StepService';
 import { createDebouncedPreview, clearPreview, PreviewResult } from '../preview-engine';
+import i18n from '../../../i18n';
 
 export function getStringColumns(): string[] {
   const schema = HelperHandlers.getActiveSchema.call({
@@ -114,12 +115,12 @@ export async function applyParseDateTransform(callbacks: any) {
   const formatVal = format.value;
 
   if (!colVal) {
-    await callbacks.onError?.('Please select a source column');
+    await callbacks.onError?.(i18n.t('validation.selection.sourceColumn', { ns: 'errors' }));
     return;
   }
 
   if (!formatVal) {
-    await callbacks.onError?.('Please specify a date format');
+    await callbacks.onError?.(i18n.t('validation.required.format', { ns: 'errors' }));
     return;
   }
 

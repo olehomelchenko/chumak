@@ -480,7 +480,7 @@ export async function fetchAndImportFromUrl(): Promise<void> {
   } catch (error: any) {
     console.error('URL import error:', error);
     DialogStore.importUrlState.error.value =
-      error.message || 'An error occurred while fetching data';
+      error.message || i18n.t('import.fetchGenericError', { ns: 'errors' });
   } finally {
     DialogStore.importUrlState.isFetching.value = false;
   }
@@ -511,7 +511,7 @@ export async function confirmImport(): Promise<void> {
   const file = importFileData.file;
 
   if (!sourceName || sourceName.trim() === '') {
-    await alert('Please enter a source name');
+    await alert(i18n.t('validation.required.sourceName', { ns: 'errors' }));
     return;
   }
 
@@ -547,8 +547,15 @@ export async function confirmImport(): Promise<void> {
       };
 
       if (schemaDiff && schemaDiff.missingColumns.length > 0) {
-        const msg = `⚠️ Warning: The new data is missing ${schemaDiff.missingColumns.length} column(s) that exist in the current source:\n\n${schemaDiff.missingColumns.join(', ')}\n\nDependent models may break when recomputed. Are you sure you want to proceed?`;
-        const confirmed = await confirm(msg, 'Confirm Replacement');
+        const msg = i18n.t('confirms.schemaDiffWarning', {
+          ns: 'common',
+          count: schemaDiff.missingColumns.length,
+          columns: schemaDiff.missingColumns.join(', '),
+        });
+        const confirmed = await confirm(
+          msg,
+          i18n.t('confirms.confirmReplacement', { ns: 'common' })
+        );
         if (confirmed) {
           await executeReplacement();
         }
@@ -632,8 +639,15 @@ export async function confirmImport(): Promise<void> {
         };
 
         if (schemaDiff && schemaDiff.missingColumns.length > 0) {
-          const msg = `⚠️ Warning: The new data is missing ${schemaDiff.missingColumns.length} column(s) that exist in the current source:\n\n${schemaDiff.missingColumns.join(', ')}\n\nDependent models may break when recomputed. Are you sure you want to proceed?`;
-          const confirmed = await confirm(msg, 'Confirm Replacement');
+          const msg = i18n.t('confirms.schemaDiffWarning', {
+            ns: 'common',
+            count: schemaDiff.missingColumns.length,
+            columns: schemaDiff.missingColumns.join(', '),
+          });
+          const confirmed = await confirm(
+            msg,
+            i18n.t('confirms.confirmReplacement', { ns: 'common' })
+          );
           if (confirmed) {
             await executeReplacement();
           }

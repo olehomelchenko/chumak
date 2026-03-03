@@ -16,7 +16,12 @@
     "settings": "Налаштування",
     "continue": "Продовжити",
     "undo": "Скасувати",
-    "redo": "Повторити"
+    "redo": "Повторити",
+    "applyJoin": "Застосувати З'єднання",
+    "applyAppend": "Застосувати Додавання",
+    "fetchData": "Отримати Дані",
+    "generate": "Згенерувати",
+    "download": "Завантажити"
   },
   "labels": {
     "name": "Назва",
@@ -73,6 +78,63 @@
   },
   "statusBar": {
     "processing": "Обробка..."
+  },
+  "notifications": {
+    "successTitle": "Успіх",
+    "alertTitle": "Увага",
+    "confirmTitle": "Підтвердження",
+    "promptTitle": "Введення",
+    "stepRemoved": "Крок видалено",
+    "stepUpdated": "Крок оновлено",
+    "undone": "Скасовано: {{description}}",
+    "redone": "Повторено: {{description}}",
+    "exported": "Експортовано \"{{filename}}\"",
+    "exportedWorkflow": "Експортовано робочий процес \"{{filename}}\"",
+    "copiedCsv": "Скопійовано в буфер обміну (CSV)",
+    "copiedJson": "Скопійовано в буфер обміну (JSON)",
+    "imported": "Імпортовано \"{{name}}\" ({{count}} рядків)",
+    "jsonApplied": "Конфігурацію JSON застосовано успішно",
+    "workflowDownloaded": "Робочий процес успішно завантажено",
+    "dataCleared": "Усі дані очищено.",
+    "model": {
+      "created": "Модель \"{{name}}\" створено",
+      "copied": "Модель скопійовано як \"{{name}}\"",
+      "renamed": "Модель перейменовано на \"{{name}}\"",
+      "deleted": "Модель \"{{name}}\" видалено",
+      "extractCreated_one": "Модель \"{{name}}\" створено з {{count}} рядком",
+      "extractCreated_few": "Модель \"{{name}}\" створено з {{count}} рядками",
+      "extractCreated_many": "Модель \"{{name}}\" створено з {{count}} рядками"
+    },
+    "source": {
+      "renamed": "Джерело перейменовано на \"{{name}}\"",
+      "deleted": "Джерело \"{{name}}\" видалено"
+    }
+  },
+  "prompts": {
+    "newModel": "Введіть назву нової моделі:",
+    "copyModel": "Введіть назву скопійованої моделі:",
+    "renameModel": "Введіть нову назву моделі:",
+    "renameSource": "Введіть нову назву джерела:",
+    "renameColumn": "Перейменувати стовпець \"{{name}}\" на:",
+    "extractModel": "Введіть назву моделі для витягування:"
+  },
+  "confirms": {
+    "clearData": "Ви впевнені, що хочете очистити всі дані? Цю дію не можна скасувати.",
+    "deleteModel": "Видалити модель \"{{name}}\"?\n\nЦю дію не можна скасувати.",
+    "deleteSourceWithModels_one": "Видалити джерело \"{{name}}\" та його {{count}} модель? Цю дію не можна скасувати.",
+    "deleteSourceWithModels_few": "Видалити джерело \"{{name}}\" та його {{count}} моделі? Цю дію не можна скасувати.",
+    "deleteSourceWithModels_many": "Видалити джерело \"{{name}}\" та його {{count}} моделей? Цю дію не можна скасувати.",
+    "deleteSource": "Видалити джерело \"{{name}}\"? Цю дію не можна скасувати.",
+    "removeColumn": "Ви впевнені, що хочете видалити стовпець \"{{name}}\"?",
+    "removeColumns": "Видалити {{count}} стовпців: {{names}}?",
+    "removeRows_one": "Видалити {{count}} вибраний рядок?",
+    "removeRows_few": "Видалити {{count}} вибрані рядки?",
+    "removeRows_many": "Видалити {{count}} вибраних рядків?",
+    "removeStep": "Видалити крок \"{{name}}\"?",
+    "replaceNulls": "Замінити null/порожні значення?",
+    "overwriteColumn": "{{message}}. Буде перезаписано. Продовжити?",
+    "confirmReplacement": "Підтвердити Заміну",
+    "schemaDiffWarning": "⚠️ Увага: Нові дані не містять {{count}} стовпців, які є в поточному джерелі:\n\n{{columns}}\n\nЗалежні моделі можуть зламатися при перерахунку. Ви впевнені, що хочете продовжити?"
   },
   "dependencyDialog": {
     "title": "Вплив на залежності",

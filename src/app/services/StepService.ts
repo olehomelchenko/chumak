@@ -85,7 +85,13 @@ export class StepService {
       return true;
     } catch (error: any) {
       console.error(`${label} error:`, error);
-      await callbacks.onError?.(`Error applying ${label.toLowerCase()}: ${error.message}`);
+      await callbacks.onError?.(
+        i18n.t('transform.applyFailed', {
+          ns: 'errors',
+          label: label.toLowerCase(),
+          message: error.message,
+        })
+      );
       return false;
     } finally {
       callbacks.onTransformEnd?.();
@@ -359,7 +365,7 @@ export class StepService {
       await StepService.handleDependencyImpact(model.id);
 
       await PersistenceService.autoSave();
-      showSuccess('Step removed');
+      showSuccess(i18n.t('notifications.stepRemoved', { ns: 'common' }));
     } catch (error: any) {
       callbacks.onError(error);
     }
@@ -408,7 +414,7 @@ export class StepService {
       await StepService.handleDependencyImpact(model.id);
 
       await PersistenceService.autoSave();
-      showSuccess('Step updated');
+      showSuccess(i18n.t('notifications.stepUpdated', { ns: 'common' }));
     } catch (error: any) {
       callbacks.onError(error, backup);
     }

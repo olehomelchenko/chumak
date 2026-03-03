@@ -6,6 +6,7 @@ import { AppStore } from '../../stores/AppStore';
 import { StepService } from '../../services/StepService';
 import * as HelperHandlers from '../core/helper-handlers';
 import { createDebouncedPreview, clearPreview, PreviewResult } from '../preview-engine';
+import i18n from '../../../i18n';
 
 export function onPivotConfigChange() {
   const state = DialogStore.pivotState;
@@ -140,7 +141,9 @@ export async function applyPivotTransform(callbacks: any) {
     }
   } catch (error: any) {
     console.error('Pivot transform error:', error);
-    await callbacks.onError?.('Error applying pivot: ' + error.message);
+    await callbacks.onError?.(
+      i18n.t('transform.pivotFailed', { ns: 'errors', message: error.message })
+    );
   } finally {
     if (callbacks.onTransformEnd) callbacks.onTransformEnd();
   }

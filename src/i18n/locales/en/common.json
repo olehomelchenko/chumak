@@ -16,7 +16,12 @@
     "settings": "Settings",
     "continue": "Continue",
     "undo": "Undo",
-    "redo": "Redo"
+    "redo": "Redo",
+    "applyJoin": "Apply Join",
+    "applyAppend": "Apply Append",
+    "fetchData": "Fetch Data",
+    "generate": "Generate",
+    "download": "Download"
   },
   "labels": {
     "name": "Name",
@@ -72,6 +77,60 @@
   },
   "statusBar": {
     "processing": "Processing..."
+  },
+  "notifications": {
+    "successTitle": "Success",
+    "alertTitle": "Alert",
+    "confirmTitle": "Confirm",
+    "promptTitle": "Prompt",
+    "stepRemoved": "Step removed",
+    "stepUpdated": "Step updated",
+    "undone": "Undone: {{description}}",
+    "redone": "Redone: {{description}}",
+    "exported": "Exported \"{{filename}}\"",
+    "exportedWorkflow": "Exported workflow \"{{filename}}\"",
+    "copiedCsv": "Copied to clipboard (CSV)",
+    "copiedJson": "Copied to clipboard (JSON)",
+    "imported": "Imported \"{{name}}\" ({{count}} rows)",
+    "jsonApplied": "JSON configuration applied successfully",
+    "workflowDownloaded": "Workflow downloaded successfully",
+    "dataCleared": "All data has been cleared.",
+    "model": {
+      "created": "Model \"{{name}}\" created",
+      "copied": "Model copied as \"{{name}}\"",
+      "renamed": "Model renamed to \"{{name}}\"",
+      "deleted": "Model \"{{name}}\" deleted",
+      "extractCreated_one": "Model \"{{name}}\" created with {{count}} row",
+      "extractCreated_other": "Model \"{{name}}\" created with {{count}} rows"
+    },
+    "source": {
+      "renamed": "Source renamed to \"{{name}}\"",
+      "deleted": "Source \"{{name}}\" deleted"
+    }
+  },
+  "prompts": {
+    "newModel": "Enter name for new model:",
+    "copyModel": "Enter name for copied model:",
+    "renameModel": "Enter new name for model:",
+    "renameSource": "Enter new name for source:",
+    "renameColumn": "Rename column \"{{name}}\" to:",
+    "extractModel": "Enter name for extracted model:"
+  },
+  "confirms": {
+    "clearData": "Are you sure you want to clear all data? This cannot be undone.",
+    "deleteModel": "Delete model \"{{name}}\"?\n\nThis cannot be undone.",
+    "deleteSourceWithModels_one": "Delete source \"{{name}}\" and its {{count}} model? This cannot be undone.",
+    "deleteSourceWithModels_other": "Delete source \"{{name}}\" and its {{count}} models? This cannot be undone.",
+    "deleteSource": "Delete source \"{{name}}\"? This cannot be undone.",
+    "removeColumn": "Are you sure you want to remove column \"{{name}}\"?",
+    "removeColumns": "Remove {{count}} columns: {{names}}?",
+    "removeRows_one": "Remove {{count}} selected row?",
+    "removeRows_other": "Remove {{count}} selected rows?",
+    "removeStep": "Remove step \"{{name}}\"?",
+    "replaceNulls": "Replace null/empty values?",
+    "overwriteColumn": "{{message}}. It will be overwritten. Continue?",
+    "confirmReplacement": "Confirm Replacement",
+    "schemaDiffWarning": "⚠️ Warning: The new data is missing {{count}} column(s) that exist in the current source:\n\n{{columns}}\n\nDependent models may break when recomputed. Are you sure you want to proceed?"
   },
   "dependencyDialog": {
     "title": "Dependency Impact",

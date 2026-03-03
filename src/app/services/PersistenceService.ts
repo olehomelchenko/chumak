@@ -1,5 +1,6 @@
 import { autoSave, clearAllData as storageClearAllData } from '../../core/storage';
 import { AppStore } from '../stores/AppStore';
+import i18n from '../../i18n';
 
 /**
  * PersistenceService
@@ -26,18 +27,16 @@ export class PersistenceService {
     confirm: (msg: string) => Promise<boolean>,
     alert: (msg: string) => Promise<void>
   ): Promise<void> {
-    const confirmed = await confirm(
-      'Are you sure you want to clear all data? This cannot be undone.'
-    );
+    const confirmed = await confirm(i18n.t('confirms.clearData', { ns: 'common' }));
     if (!confirmed) return;
 
     try {
       await storageClearAllData();
       AppStore.reset();
-      await alert('All data has been cleared.');
+      await alert(i18n.t('notifications.dataCleared', { ns: 'common' }));
     } catch (error: any) {
       console.error('Failed to clear data:', error);
-      await alert('Failed to clear data: ' + error.message);
+      await alert(i18n.t('system.clearDataFailed', { ns: 'errors', message: error.message }));
     }
   }
 }

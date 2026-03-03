@@ -1,4 +1,5 @@
 import { AppStore } from '../../stores/AppStore';
+import i18n from '../../../i18n';
 
 /**
  * Show an error notification
@@ -33,7 +34,13 @@ export function showWarning(
  */
 export function showSuccess(message: string, options: { duration?: number } = {}): void {
   const { duration = 3000 } = options;
-  _addNotification('success', 'Success', message, null, duration);
+  _addNotification(
+    'success',
+    i18n.t('notifications.successTitle', { ns: 'common' }),
+    message,
+    null,
+    duration
+  );
 }
 
 /**
@@ -108,7 +115,10 @@ export function getNotificationIcon(type: string): string {
 /**
  * Show an alert dialog and wait for user to dismiss it
  */
-export function alert(message: string, title = 'Alert'): Promise<boolean> {
+export function alert(
+  message: string,
+  title = i18n.t('notifications.alertTitle', { ns: 'common' })
+): Promise<boolean> {
   return new Promise((resolve) => {
     AppStore.messageBox.value = {
       visible: true,
@@ -124,7 +134,10 @@ export function alert(message: string, title = 'Alert'): Promise<boolean> {
 /**
  * Show a confirmation dialog and wait for user response
  */
-export function confirm(message: string, title = 'Confirm'): Promise<boolean> {
+export function confirm(
+  message: string,
+  title = i18n.t('notifications.confirmTitle', { ns: 'common' })
+): Promise<boolean> {
   return new Promise((resolve) => {
     AppStore.messageBox.value = {
       visible: true,
@@ -143,7 +156,7 @@ export function confirm(message: string, title = 'Confirm'): Promise<boolean> {
 export function prompt(
   message: string,
   defaultValue = '',
-  title = 'Prompt'
+  title = i18n.t('notifications.promptTitle', { ns: 'common' })
 ): Promise<string | null> {
   return new Promise((resolve) => {
     AppStore.messageBox.value = {

@@ -2,6 +2,7 @@ import type { SytoApp } from '../../../syto-app';
 import { AppStore } from '../../stores/AppStore';
 import { ExportService } from '../../services/ExportService';
 import * as StepHandlers from './step-handlers';
+import i18n from '../../../i18n';
 
 /**
  * Keyboard Shortcuts Handler
@@ -47,9 +48,12 @@ async function handleSave(app: SytoApp, event: KeyboardEvent) {
       // Simple alert callback required by ExportService
       await app.alert(msg);
     });
-    app.showSuccess(`Workflow downloaded successfully`);
+    app.showSuccess(i18n.t('notifications.workflowDownloaded', { ns: 'common' }));
   } catch (error: any) {
-    app.showError('Download Failed', error.message || 'Failed to download workflow');
+    app.showError(
+      i18n.t('system.downloadFailed', { ns: 'errors' }),
+      error.message || i18n.t('system.downloadGenericFailed', { ns: 'errors' })
+    );
   }
 }
 

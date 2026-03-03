@@ -9,7 +9,14 @@
       "findPattern": "Please enter a find pattern",
       "format": "Please specify a date format",
       "delimiter": "Please enter a delimiter",
-      "url": "Please enter a valid URL"
+      "url": "Please enter a valid URL",
+      "sourceName": "Please enter a source name",
+      "columnNameAndExpression": "Please provide both column name and expression",
+      "columnNameAndPattern": "Please provide column name and pattern",
+      "condition": "Please add at least one valid condition",
+      "elseValue": "Please enter an else value",
+      "keyPair": "Please specify at least one complete key pair",
+      "regexPattern": "Please enter a regex pattern"
     },
     "selection": {
       "column": "Please select a column",
@@ -19,6 +26,9 @@
       "operation": "Please select at least one operation",
       "leftTable": "Please select a left table",
       "rightTable": "Please select a model or source to append",
+      "mergeColumns": "Please select at least one column to merge",
+      "unrollColumn": "Please select a column to unroll",
+      "joinRightTable": "Please select a model or source to join with",
       "unpivotColumns": "Please select at least one column to unpivot",
       "datePartOrUnit": "Please select at least one date part or unit to extract/truncate",
       "pivotColumnHeader": "Please select a column for pivot headers",
@@ -33,11 +43,14 @@
       "number": "Please enter a valid number",
       "positiveNumber": "Please enter a valid number greater than 0",
       "expression": "Please fix the expression errors before applying",
-      "pattern": "Please fix pattern errors before applying"
+      "pattern": "Please fix pattern errors before applying",
+      "sampleSize": "Please enter a valid sample size greater than 0",
+      "spreadLimit": "Limit must be greater than 0",
+      "rowCount": "Please enter a valid number of rows"
     },
     "duplicate": {
       "columnExists": "Column \"{{name}}\" already exists",
-      "modelExists": "A model with this name already exists for this source"
+      "modelExists": "A model with this name already exists for this source."
     },
     "notFound": {
       "columnsNotFound": "Columns not found: {{columns}}"
@@ -51,7 +64,8 @@
     "csvError": "Error reading CSV: {{message}}",
     "fetchError": "Failed to fetch data: {{status}}",
     "emptyResponse": "The URL returned an empty response",
-    "jsonInvalidStructure": "JSON must contain a \"transforms\" array"
+    "jsonInvalidStructure": "JSON must contain a \"transforms\" array",
+    "fetchGenericError": "An error occurred while fetching data"
   },
   "export": {
     "noData": "No data to export",
@@ -67,7 +81,8 @@
     "pivotFailed": "Error applying pivot: {{message}}",
     "joinFailed": "Error preparing join: {{message}}",
     "appendFailed": "Error preparing append: {{message}}",
-    "jsonApplyFailed": "Failed to apply JSON changes"
+    "jsonApplyFailed": "Failed to apply JSON changes",
+    "applyFailed": "Error applying {{label}}: {{message}}"
   },
   "system": {
     "modelNotFound": "No active model",
@@ -77,6 +92,18 @@
     "stepRemoveError": "Error recomputing after removal",
     "undoFailed": "Undo failed",
     "redoFailed": "Redo failed",
-    "downloadFailed": "Download Failed"
+    "downloadFailed": "Download Failed",
+    "downloadGenericFailed": "Failed to download workflow",
+    "noActiveModel": "No active model selected",
+    "cannotDeleteLastModel": "Cannot delete the last model for this source.",
+    "cannotDeleteReferenced": "Cannot delete: model is referenced by other models.",
+    "cannotDeleteSourceReferenced": "Cannot delete: source models are referenced by other models.",
+    "deleteSourceFailed": "Failed to delete source: {{message}}",
+    "clearDataFailed": "Failed to clear data: {{message}}",
+    "circularDependency": "Circular dependency detected",
+    "sourceNotFoundForNewModel": "Could not find source for new model",
+    "extractModelFailed": "Failed to create extracted model: {{message}}",
+    "cannotRemoveImport": "Cannot remove import step",
+    "importStepRequired": "The import step is required."
   }
 }

@@ -5,6 +5,7 @@ import { PersistenceService } from './PersistenceService';
 import { DependencyService } from './DependencyService';
 import { StepService } from './StepService';
 import { showSuccess } from '../handlers/core/notification-handlers';
+import i18n from '../../i18n';
 
 /**
  * ModelService
@@ -121,7 +122,7 @@ export class ModelService {
     switchToModelFn: (model: Model) => void
   ) {
     const defaultName = `model_${AppStore.models.value.filter((m) => m.sourceId === source.id).length + 1}`;
-    const modelName = await prompt('Enter name for new model:', defaultName);
+    const modelName = await prompt(i18n.t('prompts.newModel', { ns: 'common' }), defaultName);
 
     if (!modelName || modelName.trim() === '') return;
 
@@ -131,7 +132,7 @@ export class ModelService {
     );
 
     if (existingModel) {
-      await alert('A model with this name already exists for this source.');
+      await alert(i18n.t('validation.duplicate.modelExists', { ns: 'errors' }));
       return;
     }
 
@@ -177,7 +178,7 @@ export class ModelService {
     switchToModelFn(newModel);
 
     await PersistenceService.autoSave();
-    showSuccess(`Model "${name}" created`);
+    showSuccess(i18n.t('notifications.model.created', { ns: 'common', name }));
   }
 
   /**
@@ -190,11 +191,14 @@ export class ModelService {
   ) {
     const activeModel = AppStore.activeModel.value;
     if (!activeModel) {
-      await alert('No active model selected');
+      await alert(i18n.t('system.noActiveModel', { ns: 'errors' }));
       return;
     }
 
-    const newName = await prompt('Enter name for copied model:', `${activeModel.name}_copy`);
+    const newName = await prompt(
+      i18n.t('prompts.copyModel', { ns: 'common' }),
+      `${activeModel.name}_copy`
+    );
     if (!newName || newName.trim() === '') return;
     const name = newName.trim();
 
@@ -203,7 +207,7 @@ export class ModelService {
     );
 
     if (existingModel) {
-      await alert('A model with this name already exists for this source.');
+      await alert(i18n.t('validation.duplicate.modelExists', { ns: 'errors' }));
       return;
     }
 
@@ -220,7 +224,7 @@ export class ModelService {
     AppStore.models.value = [...AppStore.models.value, copiedModel];
     switchToModelFn(copiedModel);
     await PersistenceService.autoSave();
-    showSuccess(`Model copied as "${name}"`);
+    showSuccess(i18n.t('notifications.model.copied', { ns: 'common', name }));
   }
 
   /**
@@ -232,11 +236,11 @@ export class ModelService {
   ) {
     const activeModel = AppStore.activeModel.value;
     if (!activeModel) {
-      await alert('No active model selected');
+      await alert(i18n.t('system.noActiveModel', { ns: 'errors' }));
       return;
     }
 
-    const newName = await prompt('Enter new name for model:', activeModel.name);
+    const newName = await prompt(i18n.t('prompts.renameModel', { ns: 'common' }), activeModel.name);
     if (!newName || newName.trim() === '') return;
     const name = newName.trim();
     if (name === activeModel.name) return;
@@ -246,14 +250,14 @@ export class ModelService {
     );
 
     if (existingModel) {
-      await alert('A model with this name already exists for this source.');
+      await alert(i18n.t('validation.duplicate.modelExists', { ns: 'errors' }));
       return;
     }
 
     activeModel.name = name;
     AppStore.models.value = [...AppStore.models.value]; // Trigger reactivity
     await PersistenceService.autoSave();
-    showSuccess(`Model renamed to "${name}"`);
+    showSuccess(i18n.t('notifications.model.renamed', { ns: 'common', name }));
   }
 
   /**
@@ -266,13 +270,13 @@ export class ModelService {
   ) {
     const activeModel = AppStore.activeModel.value;
     if (!activeModel) {
-      await alert('No active model selected');
+      await alert(i18n.t('system.noActiveModel', { ns: 'errors' }));
       return;
     }
 
     const sourceModels = AppStore.models.value.filter((m) => m.sourceId === activeModel.sourceId);
     if (sourceModels.length === 1) {
-      await alert('Cannot delete the last model for this source.');
+      await alert(i18n.t('system.cannotDeleteLastModel', { ns: 'errors' }));
       return;
     }
 
@@ -284,11 +288,14 @@ export class ModelService {
     );
 
     if (!dependencyCheck.canDelete) {
-      await alert(dependencyCheck.message || 'Cannot delete: model is referenced by other models.');
+      await alert(
+        dependencyCheck.message || i18n.t('system.cannotDeleteReferenced', { ns: 'errors' })
+      );
       return;
     }
 
-    if (!(await confirm(`Delete model "${activeModel.name}"?\n\nThis cannot be undone.`))) return;
+    if (!(await confirm(i18n.t('confirms.deleteModel', { ns: 'common', name: activeModel.name }))))
+      return;
 
     const deletedModelName = activeModel.name;
     const deletedModelId = activeModel.id;
@@ -306,7 +313,7 @@ export class ModelService {
     }
 
     await PersistenceService.autoSave();
-    showSuccess(`Model "${deletedModelName}" deleted`);
+    showSuccess(i18n.t('notifications.model.deleted', { ns: 'common', name: deletedModelName }));
   }
 
   /**
@@ -316,7 +323,7 @@ export class ModelService {
     source: Source,
     prompt: (msg: string, def?: string) => Promise<string | null>
   ) {
-    const newName = await prompt('Enter new name for source:', source.name);
+    const newName = await prompt(i18n.t('prompts.renameSource', { ns: 'common' }), source.name);
     if (!newName || newName.trim() === '') return;
     const name = newName.trim();
     if (name === source.name) return;
@@ -324,7 +331,7 @@ export class ModelService {
     source.name = name;
     AppStore.sources.value = [...AppStore.sources.value]; // Trigger reactivity
     await PersistenceService.autoSave();
-    showSuccess(`Source renamed to "${name}"`);
+    showSuccess(i18n.t('notifications.source.renamed', { ns: 'common', name }));
   }
 
   /**
@@ -344,7 +351,7 @@ export class ModelService {
 
     if (!dependencyCheck.canDelete) {
       await alert(
-        dependencyCheck.message || 'Cannot delete: source models are referenced by other models.'
+        dependencyCheck.message || i18n.t('system.cannotDeleteSourceReferenced', { ns: 'errors' })
       );
       return;
     }
@@ -352,8 +359,12 @@ export class ModelService {
     const modelsCount = AppStore.models.value.filter((m) => m.sourceId === source.id).length;
     const message =
       modelsCount > 0
-        ? `Delete source "${source.name}" and its ${modelsCount} model${modelsCount > 1 ? 's' : ''}? This cannot be undone.`
-        : `Delete source "${source.name}"? This cannot be undone.`;
+        ? i18n.t('confirms.deleteSourceWithModels', {
+            ns: 'common',
+            name: source.name,
+            count: modelsCount,
+          })
+        : i18n.t('confirms.deleteSource', { ns: 'common', name: source.name });
 
     if (!(await confirm(message))) return;
 
@@ -374,10 +385,12 @@ export class ModelService {
       }
 
       await PersistenceService.autoSave();
-      showSuccess(`Source "${deletedSourceName}" deleted`);
+      showSuccess(
+        i18n.t('notifications.source.deleted', { ns: 'common', name: deletedSourceName })
+      );
     } catch (error: any) {
       console.error('Error deleting source:', error);
-      await alert('Failed to delete source: ' + error.message);
+      await alert(i18n.t('system.deleteSourceFailed', { ns: 'errors', message: error.message }));
     }
   }
 

@@ -71,12 +71,12 @@ export async function applyConditionalTransform(callbacks: any) {
   // Validate conditions
   const validConditions = conditions.value.filter((c) => c.when.trim() && c.then.trim());
   if (validConditions.length === 0) {
-    await callbacks.onError?.('Please add at least one valid condition');
+    await callbacks.onError?.(i18n.t('validation.required.condition', { ns: 'errors' }));
     return;
   }
 
   if (!elseValue.value || elseValue.value.trim() === '') {
-    await callbacks.onError?.('Please enter an else value');
+    await callbacks.onError?.(i18n.t('validation.required.elseValue', { ns: 'errors' }));
     return;
   }
 

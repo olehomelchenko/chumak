@@ -8,6 +8,7 @@ import type { PivotAggregation } from '../../components/PivotDialog';
 import * as HelperHandlers from './helper-handlers';
 import { showError, showWarning, showSuccess, confirm } from './notification-handlers';
 import { getDialogConfig } from '../../dialog-registry';
+import i18n from '../../../i18n';
 
 /**
  * Callbacks for step operations.
@@ -108,10 +109,14 @@ export function viewStep(stepIndex: number): void {
     callbacks?.updatePagination();
   } catch (error: any) {
     console.error('Error computing step:', error);
-    showError('Error viewing step', `Step ${stepIndex + 1}: ${error.message}`, {
-      stepIndex: error.stepIndex ?? stepIndex,
-      stepDescription: error.stepDescription,
-    });
+    showError(
+      i18n.t('system.stepViewError', { ns: 'errors' }),
+      `Step ${stepIndex + 1}: ${error.message}`,
+      {
+        stepIndex: error.stepIndex ?? stepIndex,
+        stepDescription: error.stepDescription,
+      }
+    );
   }
 }
 
@@ -416,7 +421,10 @@ export async function removeStep(stepIndex: number): Promise<void> {
 
   if (!activeModel) return;
   if (activeModel.steps[stepIndex].import) {
-    showWarning('Cannot remove import step', 'The import step is required.');
+    showWarning(
+      i18n.t('system.cannotRemoveImport', { ns: 'errors' }),
+      i18n.t('system.importStepRequired', { ns: 'errors' })
+    );
     return;
   }
 
@@ -424,7 +432,9 @@ export async function removeStep(stepIndex: number): Promise<void> {
   const isLastStep = stepIndex === activeModel.steps.length - 1;
 
   if (isLastStep) {
-    const confirmed = await confirm(`Remove step "${describeTransform(step)}"?`);
+    const confirmed = await confirm(
+      i18n.t('confirms.removeStep', { ns: 'common', name: describeTransform(step) })
+    );
     if (!confirmed) return;
     await executeStepRemoval(stepIndex, 'single');
   } else {
@@ -486,7 +496,7 @@ export async function executeStepRemoval(stepIndex: number, mode: 'single' | 'al
       viewFinalResult();
     },
     onError(error: Error) {
-      showError('Error recomputing after removal', error.message);
+      showError(i18n.t('system.stepRemoveError', { ns: 'errors' }), error.message);
     },
   });
 }
@@ -514,7 +524,7 @@ export async function updateStep(stepIndex: number, newTransform: TransformStep)
       AppStore.currentData.value = activeModel.data;
       AppStore.columns.value = activeModel.schema.map((c: ColumnSchema) => c.name);
       AppStore.editingStepIndex.value = null;
-      showError('Error updating step', error.message);
+      showError(i18n.t('system.stepUpdateError', { ns: 'errors' }), error.message);
     },
   });
 }
@@ -534,12 +544,12 @@ export async function undo(): Promise<void> {
       viewFinalResult();
     },
     onError(error: Error) {
-      showError('Undo failed', error.message);
+      showError(i18n.t('system.undoFailed', { ns: 'errors' }), error.message);
     },
   });
 
   if (description) {
-    showSuccess(`Undone: ${description}`);
+    showSuccess(i18n.t('notifications.undone', { ns: 'common', description }));
   }
 }
 
@@ -558,11 +568,11 @@ export async function redo(): Promise<void> {
       viewFinalResult();
     },
     onError(error: Error) {
-      showError('Redo failed', error.message);
+      showError(i18n.t('system.redoFailed', { ns: 'errors' }), error.message);
     },
   });
 
   if (description) {
-    showSuccess(`Redone: ${description}`);
+    showSuccess(i18n.t('notifications.redone', { ns: 'common', description }));
   }
 }

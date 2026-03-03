@@ -51,7 +51,7 @@ export class ExportService {
       document.body.removeChild(link);
 
       console.log(`⚡ Export CSV — ${(performance.now() - start).toFixed(1)}ms — ${filename}`);
-      showSuccess(`Exported "${filename}"`);
+      showSuccess(i18n.t('notifications.exported', { ns: 'common', filename }));
       return csv;
     } catch (error: any) {
       console.error('CSV export error:', error);
@@ -104,7 +104,7 @@ export class ExportService {
       document.body.removeChild(link);
 
       console.log('Exported workflow JSON:', filename);
-      showSuccess(`Exported workflow "${filename}"`);
+      showSuccess(i18n.t('notifications.exportedWorkflow', { ns: 'common', filename }));
     } catch (error: any) {
       console.error('Workflow export error:', error);
       await alert(i18n.t('export.workflowFailed', { ns: 'errors', message: error.message }));
@@ -139,7 +139,7 @@ export class ExportService {
       document.body.removeChild(link);
 
       console.log(`⚡ Export JSON — ${(performance.now() - start).toFixed(1)}ms — ${filename}`);
-      showSuccess(`Exported "${filename}"`);
+      showSuccess(i18n.t('notifications.exported', { ns: 'common', filename }));
     } catch (error: any) {
       console.error('JSON export error:', error);
       await alert(i18n.t('export.jsonFailed', { ns: 'errors', message: error.message }));
@@ -162,7 +162,7 @@ export class ExportService {
     try {
       const csv = Papa.unparse(pageData);
       await navigator.clipboard.writeText(csv);
-      showSuccess('Copied to clipboard (CSV)');
+      showSuccess(i18n.t('notifications.copiedCsv', { ns: 'common' }));
     } catch (error: any) {
       console.error('Copy to clipboard error:', error);
       await alert(i18n.t('export.clipboardFailed', { ns: 'errors', message: error.message }));
@@ -185,7 +185,7 @@ export class ExportService {
     try {
       const json = JSON.stringify(pageData, null, 2);
       await navigator.clipboard.writeText(json);
-      showSuccess('Copied to clipboard (JSON)');
+      showSuccess(i18n.t('notifications.copiedJson', { ns: 'common' }));
     } catch (error: any) {
       console.error('Copy to clipboard error:', error);
       await alert(i18n.t('export.clipboardFailed', { ns: 'errors', message: error.message }));

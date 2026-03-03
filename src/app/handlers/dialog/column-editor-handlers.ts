@@ -2,6 +2,7 @@ import { DialogStore } from '../../stores/DialogStore';
 import { AppStore } from '../../stores/AppStore';
 import { StepService } from '../../services/StepService';
 import { matchColumnPattern } from '../../../core/transforms';
+import i18n from '../../../i18n';
 
 export function toggleColumnEditorColumn(index: number) {
   const columns = DialogStore.columnEditorState.columns.value;
@@ -300,7 +301,7 @@ export async function applyColumnEditorTransform(callbacks: any) {
 
     if (patternOperationMode.value === 'select') {
       if (!patternText.value || patternText.value.trim() === '') {
-        await callbacks.onError?.('Please enter a pattern');
+        await callbacks.onError?.(i18n.t('validation.required.pattern', { ns: 'errors' }));
         return;
       }
 
@@ -331,7 +332,7 @@ export async function applyColumnEditorTransform(callbacks: any) {
       return;
     } else if (patternOperationMode.value === 'remove') {
       if (!patternText.value || patternText.value.trim() === '') {
-        await callbacks.onError?.('Please enter a pattern');
+        await callbacks.onError?.(i18n.t('validation.required.pattern', { ns: 'errors' }));
         return;
       }
 
@@ -362,7 +363,7 @@ export async function applyColumnEditorTransform(callbacks: any) {
       return;
     } else if (patternOperationMode.value === 'rename') {
       if (!patternFind.value || patternFind.value.trim() === '') {
-        await callbacks.onError?.('Please enter a find pattern');
+        await callbacks.onError?.(i18n.t('validation.required.findPattern', { ns: 'errors' }));
         return;
       }
 

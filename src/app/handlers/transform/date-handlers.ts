@@ -314,7 +314,7 @@ export async function applyDateTransform(callbacks: any, app?: any) {
   const colVal = column.value;
 
   if (!colVal) {
-    await callbacks.onError?.('Please select a source column');
+    await callbacks.onError?.(i18n.t('validation.selection.sourceColumn', { ns: 'errors' }));
     return;
   }
 
@@ -322,7 +322,7 @@ export async function applyDateTransform(callbacks: any, app?: any) {
   const truncateUnitsList = truncateUnits.value;
 
   if (extractPartsList.length === 0 && truncateUnitsList.length === 0) {
-    await callbacks.onError?.('Please select at least one date part or unit to extract/truncate');
+    await callbacks.onError?.(i18n.t('validation.selection.datePartOrUnit', { ns: 'errors' }));
     return;
   }
 
@@ -351,7 +351,13 @@ export async function applyDateTransform(callbacks: any, app?: any) {
   if (existingCols.length > 0 && app) {
     const message =
       existingCols.length === 1
-        ? `${i18n.t('validation.duplicate.columnExists', { ns: 'errors', name: existingCols[0] })}. It will be overwritten. Continue?`
+        ? i18n.t('confirms.overwriteColumn', {
+            ns: 'common',
+            message: i18n.t('validation.duplicate.columnExists', {
+              ns: 'errors',
+              name: existingCols[0],
+            }),
+          })
         : `Columns ${existingCols.map((c) => `"${c}"`).join(', ')} already exist. They will be overwritten. Continue?`;
     const confirmed = await app.confirm(message);
     if (!confirmed) return;

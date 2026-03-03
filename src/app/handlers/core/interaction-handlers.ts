@@ -402,7 +402,7 @@ export async function quickRename(
   const col = AppStore.selectedColumn.value;
   if (!col) return;
 
-  const newName = await prompt(`Rename column "${col}" to:`, col);
+  const newName = await prompt(i18n.t('prompts.renameColumn', { ns: 'common', name: col }), col);
   if (!newName || newName.trim() === '') return;
 
   const trimmedName = newName.trim();
@@ -431,7 +431,7 @@ export async function quickRemove(callbacks: any) {
   const col = selectedColumn;
   const confirmed = await NotificationHandlers.confirm.call(
     null as any,
-    `Are you sure you want to remove column "${col}"?`
+    i18n.t('confirms.removeColumn', { ns: 'common', name: col })
   );
   if (confirmed) {
     await StepService.runTransform('Remove Column', { remove: [col] }, callbacks);
@@ -444,7 +444,7 @@ export async function quickRemoveMultiple(callbacks: any) {
   if (cols.length === 0) return;
   const confirmed = await NotificationHandlers.confirm.call(
     null as any,
-    `Remove ${cols.length} columns: ${cols.join(', ')}?`
+    i18n.t('confirms.removeColumns', { ns: 'common', count: cols.length, names: cols.join(', ') })
   );
   if (confirmed) {
     await StepService.runTransform('Remove Columns', { remove: [...cols] }, callbacks);
@@ -508,7 +508,7 @@ export async function removeSelectedRows(callbacks: any) {
   if (indices.length === 0) return;
   const confirmed = await NotificationHandlers.confirm.call(
     null as any,
-    `Remove ${indices.length} selected row${indices.length !== 1 ? 's' : ''}?`
+    i18n.t('confirms.removeRows', { ns: 'common', count: indices.length })
   );
   if (!confirmed) return;
   await StepService.runTransform(
@@ -542,7 +542,7 @@ export async function extractSelectedRows(switchToModel: (model: any) => void): 
 
   const defaultName = `${activeModel.name}_extract`;
   const modelName = await NotificationHandlers.prompt(
-    'Enter name for extracted model:',
+    i18n.t('prompts.extractModel', { ns: 'common' }),
     defaultName
   );
   if (!modelName || modelName.trim() === '') return;
@@ -577,7 +577,9 @@ export async function extractSelectedRows(switchToModel: (model: any) => void): 
     newModel.data = result.data;
     newModel.schema = result.schema as any;
   } catch (error: any) {
-    await NotificationHandlers.alert(`Failed to create extracted model: ${error.message}`);
+    await NotificationHandlers.alert(
+      i18n.t('system.extractModelFailed', { ns: 'errors', message: error.message })
+    );
     return;
   }
 
@@ -587,6 +589,6 @@ export async function extractSelectedRows(switchToModel: (model: any) => void): 
 
   await PersistenceService.autoSave();
   NotificationHandlers.showSuccess(
-    `Model "${name}" created with ${indices.length} row${indices.length !== 1 ? 's' : ''}`
+    i18n.t('notifications.model.extractCreated', { ns: 'common', name, count: indices.length })
   );
 }

@@ -17,7 +17,7 @@ export async function applySpreadTransform(callbacks: any) {
   }
 
   if (limit !== undefined && limit <= 0) {
-    await callbacks.onError?.('Limit must be greater than 0');
+    await callbacks.onError?.(i18n.t('validation.invalid.spreadLimit', { ns: 'errors' }));
     return;
   }
 

@@ -132,7 +132,7 @@ export async function applyMergeTransform(callbacks: any) {
   const allColumns = AppStore.columns.value;
 
   if (!columns.value || columns.value.length === 0) {
-    await callbacks.onError?.('Please select at least one column to merge');
+    await callbacks.onError?.(i18n.t('validation.selection.mergeColumns', { ns: 'errors' }));
     return;
   }
 
@@ -143,7 +143,13 @@ export async function applyMergeTransform(callbacks: any) {
 
   if (allColumns.includes(columnName.value)) {
     const confirmed = await confirm(
-      `${i18n.t('validation.duplicate.columnExists', { ns: 'errors', name: columnName.value })}. It will be overwritten. Continue?`
+      i18n.t('confirms.overwriteColumn', {
+        ns: 'common',
+        message: i18n.t('validation.duplicate.columnExists', {
+          ns: 'errors',
+          name: columnName.value,
+        }),
+      })
     );
     if (!confirmed) return;
   }
@@ -177,7 +183,9 @@ export async function applyMergeTransform(callbacks: any) {
     }
   } catch (error: any) {
     console.error('Merge transform error:', error);
-    await callbacks.onError?.('Error applying merge: ' + error.message);
+    await callbacks.onError?.(
+      i18n.t('transform.mergeFailed', { ns: 'errors', message: error.message })
+    );
   } finally {
     if (callbacks.onTransformEnd) callbacks.onTransformEnd();
   }

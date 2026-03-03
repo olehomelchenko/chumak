@@ -120,7 +120,8 @@ export async function previewAppend() {
   // Cycle check
   const cycleResult = checkCircularDependency(targetId);
   if (cycleResult.isCyclic) {
-    state.previewError.value = cycleResult.message || 'Circular dependency detected';
+    state.previewError.value =
+      cycleResult.message || i18n.t('system.circularDependency', { ns: 'errors' });
     return;
   }
 
@@ -196,7 +197,9 @@ export async function applyAppendTransform(callbacks: any) {
   // Cycle check
   const cycleResult = checkCircularDependency(targetId);
   if (cycleResult.isCyclic) {
-    await callbacks.onError?.(cycleResult.message || 'Circular dependency detected');
+    await callbacks.onError?.(
+      cycleResult.message || i18n.t('system.circularDependency', { ns: 'errors' })
+    );
     return;
   }
 
@@ -220,6 +223,8 @@ export async function applyAppendTransform(callbacks: any) {
     await StepService.runTransform(removeDuplicates ? 'Union' : 'Concat', transform, callbacks);
   } catch (error: any) {
     console.error('Append transform setup error:', error);
-    await callbacks.onError?.('Error preparing append: ' + error.message);
+    await callbacks.onError?.(
+      i18n.t('transform.appendFailed', { ns: 'errors', message: error.message })
+    );
   }
 }

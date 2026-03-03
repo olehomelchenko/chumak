@@ -1,5 +1,6 @@
 import { DialogStore } from '../../stores/DialogStore';
 import { StepService } from '../../services/StepService';
+import i18n from '../../../i18n';
 
 /**
  * Handlers for Sample transform dialog
@@ -10,7 +11,7 @@ export async function applySampleTransform(callbacks: any) {
   const seed = DialogStore.sampleState.seed.value;
 
   if (count <= 0) {
-    await callbacks.onError?.('Please enter a valid sample size greater than 0');
+    await callbacks.onError?.(i18n.t('validation.invalid.sampleSize', { ns: 'errors' }));
     return;
   }
 

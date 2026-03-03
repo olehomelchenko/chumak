@@ -110,7 +110,7 @@ describe('extractSelectedRows', () => {
     await extractSelectedRows(switchToModel);
 
     expect(NotificationHandlers.alert).toHaveBeenCalledWith(
-      'A model with this name already exists for this source'
+      'A model with this name already exists for this source.'
     );
     expect(switchToModel).not.toHaveBeenCalled();
   });

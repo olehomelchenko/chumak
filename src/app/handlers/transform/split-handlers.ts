@@ -222,7 +222,9 @@ export async function applySplitTransform(callbacks: any) {
     }
   } catch (error: any) {
     console.error('Split transform error:', error);
-    await callbacks.onError?.('Error applying split: ' + error.message);
+    await callbacks.onError?.(
+      i18n.t('transform.splitFailed', { ns: 'errors', message: error.message })
+    );
   } finally {
     if (callbacks.onTransformEnd) callbacks.onTransformEnd();
   }

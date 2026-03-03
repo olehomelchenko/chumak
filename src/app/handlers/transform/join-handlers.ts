@@ -324,17 +324,17 @@ export async function previewJoin() {
   const sources = AppStore.sources.value;
 
   if (!leftModelId) {
-    state.previewError.value = 'Please select a left table';
+    state.previewError.value = i18n.t('validation.selection.leftTable', { ns: 'errors' });
     return;
   }
   if (!rightModel) {
-    state.previewError.value = 'Please select a model or source to join with';
+    state.previewError.value = i18n.t('validation.selection.joinRightTable', { ns: 'errors' });
     return;
   }
   if (joinType !== 'cross') {
     const hasCompleteKeyPair = keyPairs.some((pair) => pair[0] && pair[1]);
     if (!hasCompleteKeyPair) {
-      state.previewError.value = 'Please specify at least one complete key pair';
+      state.previewError.value = i18n.t('validation.required.keyPair', { ns: 'errors' });
       return;
     }
   }
@@ -347,7 +347,8 @@ export async function previewJoin() {
     rightModel
   );
   if (cycleResult.isCyclic) {
-    state.previewError.value = cycleResult.message || 'Circular dependency detected';
+    state.previewError.value =
+      cycleResult.message || i18n.t('system.circularDependency', { ns: 'errors' });
     return;
   }
 
@@ -457,17 +458,17 @@ export async function applyJoinTransform(callbacks: any) {
   const sources = AppStore.sources.value;
 
   if (!leftModelId) {
-    await callbacks.onError?.('Please select a left table');
+    await callbacks.onError?.(i18n.t('validation.selection.leftTable', { ns: 'errors' }));
     return;
   }
   if (!rightModel) {
-    await callbacks.onError?.('Please select a model or source to join with');
+    await callbacks.onError?.(i18n.t('validation.selection.joinRightTable', { ns: 'errors' }));
     return;
   }
   if (joinType !== 'cross') {
     const completePairs = keyPairs.filter((pair) => pair[0] && pair[1]);
     if (completePairs.length === 0) {
-      await callbacks.onError?.('Please specify at least one complete key pair');
+      await callbacks.onError?.(i18n.t('validation.required.keyPair', { ns: 'errors' }));
       return;
     }
   }
@@ -480,7 +481,9 @@ export async function applyJoinTransform(callbacks: any) {
     rightModel
   );
   if (cycleResult.isCyclic) {
-    await callbacks.onError?.(cycleResult.message || 'Circular dependency detected');
+    await callbacks.onError?.(
+      cycleResult.message || i18n.t('system.circularDependency', { ns: 'errors' })
+    );
     return;
   }
 
@@ -555,12 +558,12 @@ export async function applyJoinTransform(callbacks: any) {
         : sources.find((s) => s.id === leftModelId);
 
       if (!leftSource) {
-        await callbacks.onError?.('Could not find source for new model');
+        await callbacks.onError?.(i18n.t('system.sourceNotFoundForNewModel', { ns: 'errors' }));
         return;
       }
 
       const defaultName = `join_${AppStore.models.value.filter((m) => m.sourceId === leftSource.id).length + 1}`;
-      const modelName = await prompt('Enter name for new model:', defaultName);
+      const modelName = await prompt(i18n.t('prompts.newModel', { ns: 'common' }), defaultName);
       if (!modelName || modelName.trim() === '') return;
 
       const name = modelName.trim();
@@ -640,6 +643,8 @@ export async function applyJoinTransform(callbacks: any) {
     }
   } catch (error: any) {
     console.error('Join transform setup error:', error);
-    await callbacks.onError?.('Error preparing join: ' + error.message);
+    await callbacks.onError?.(
+      i18n.t('transform.joinFailed', { ns: 'errors', message: error.message })
+    );
   }
 }

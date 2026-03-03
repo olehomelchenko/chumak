@@ -63,11 +63,11 @@ export async function applyRegexpMatchTransform(callbacks: any) {
   const pat = pattern.value;
 
   if (!colName || !pat) {
-    await callbacks.onError?.('Please provide column name and pattern');
+    await callbacks.onError?.(i18n.t('validation.required.columnNameAndPattern', { ns: 'errors' }));
     return;
   }
   if (error.value) {
-    await callbacks.onError?.('Please fix pattern errors before applying');
+    await callbacks.onError?.(i18n.t('validation.invalid.pattern', { ns: 'errors' }));
     return;
   }
   if (!srcCol) {
@@ -76,7 +76,10 @@ export async function applyRegexpMatchTransform(callbacks: any) {
   }
   if (columns.includes(colName)) {
     const confirmed = await confirm(
-      `${i18n.t('validation.duplicate.columnExists', { ns: 'errors', name: colName })}. It will be overwritten. Continue?`
+      i18n.t('confirms.overwriteColumn', {
+        ns: 'common',
+        message: i18n.t('validation.duplicate.columnExists', { ns: 'errors', name: colName }),
+      })
     );
     if (!confirmed) return;
   }
@@ -158,11 +161,11 @@ export async function applyRegexpExtractTransform(callbacks: any) {
   const grp = group.value;
 
   if (!colName || !pat) {
-    await callbacks.onError?.('Please provide column name and pattern');
+    await callbacks.onError?.(i18n.t('validation.required.columnNameAndPattern', { ns: 'errors' }));
     return;
   }
   if (error.value) {
-    await callbacks.onError?.('Please fix pattern errors before applying');
+    await callbacks.onError?.(i18n.t('validation.invalid.pattern', { ns: 'errors' }));
     return;
   }
   if (!srcCol) {
@@ -171,7 +174,10 @@ export async function applyRegexpExtractTransform(callbacks: any) {
   }
   if (columns.includes(colName)) {
     const confirmed = await confirm(
-      `${i18n.t('validation.duplicate.columnExists', { ns: 'errors', name: colName })}. It will be overwritten. Continue?`
+      i18n.t('confirms.overwriteColumn', {
+        ns: 'common',
+        message: i18n.t('validation.duplicate.columnExists', { ns: 'errors', name: colName }),
+      })
     );
     if (!confirmed) return;
   }

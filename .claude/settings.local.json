@@ -16,7 +16,8 @@
       "Bash(npm run:*)",
       "Bash(tree:*)",
       "Bash(grep:*)",
-      "Bash(npx prettier:*)"
+      "Bash(npx prettier:*)",
+      "Bash(npx tsx:*)"
     ]
   }
 }

@@ -211,7 +211,7 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     name: 'join',
     title: 'Join Data',
     type: 'slide-panel',
-    buttonText: 'Apply Join',
+    buttonText: 'buttons.applyJoin',
     applyHandler: (cb) => JoinHandlers.applyJoinTransform(cb),
   },
 
@@ -219,7 +219,7 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     name: 'append',
     title: 'Append Data',
     type: 'slide-panel',
-    buttonText: 'Apply Append',
+    buttonText: 'buttons.applyAppend',
     applyHandler: (cb) => AppendHandlers.applyAppendTransform(cb),
   },
 
@@ -278,21 +278,21 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     name: 'import-csv',
     title: 'Import CSV', // Note: title changes dynamically for JSON
     type: 'slide-panel',
-    buttonText: 'Import',
+    buttonText: 'buttons.import',
   },
 
   'import-url': {
     name: 'import-url',
     title: 'Import from URL',
     type: 'slide-panel',
-    buttonText: 'Fetch Data',
+    buttonText: 'buttons.fetchData',
   },
 
   generate: {
     name: 'generate',
     title: 'Generate Data',
     type: 'slide-panel',
-    buttonText: 'Generate',
+    buttonText: 'buttons.generate',
   },
 
   // === Utility Dialogs (Centered Modals) ===
@@ -308,7 +308,7 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     name: 'download',
     title: 'Download Data',
     type: 'centered-modal',
-    buttonText: 'Download',
+    buttonText: 'buttons.download',
   },
 
   'type-conversion': {
@@ -399,10 +399,14 @@ export function getDialogTitle(dialogName: DialogName): string {
 }
 
 export function getDialogButtonText(dialogName: DialogName): string {
-  if (!dialogName) return 'Apply';
+  if (!dialogName) return i18n.t('common:buttons.apply');
 
   const config = getDialogConfig(dialogName);
-  return config?.buttonText || 'Apply';
+  if (!config?.buttonText) return i18n.t('common:buttons.apply');
+
+  // buttonText stores a translation key like 'buttons.applyJoin'
+  // Prefix with 'common:' to specify the namespace
+  return i18n.t(`common:${config.buttonText}` as any);
 }
 
 export function isUrlNavigableDialog(dialogName: DialogName): boolean {
