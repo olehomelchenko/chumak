@@ -5,6 +5,7 @@ import { interpretAST } from '../../../core/ast-interpreter';
 import * as HelperHandlers from '../core/helper-handlers';
 import { StepService } from '../../services/StepService';
 import { createDebouncedPreview, clearPreview, PreviewResult } from '../preview-engine';
+import i18n from '../../../i18n';
 
 export function getDateColumns(): string[] {
   const schema = HelperHandlers.getActiveSchema.call({
@@ -350,7 +351,7 @@ export async function applyDateTransform(callbacks: any, app?: any) {
   if (existingCols.length > 0 && app) {
     const message =
       existingCols.length === 1
-        ? `Column "${existingCols[0]}" already exists. It will be overwritten. Continue?`
+        ? `${i18n.t('validation.duplicate.columnExists', { ns: 'errors', name: existingCols[0] })}. It will be overwritten. Continue?`
         : `Columns ${existingCols.map((c) => `"${c}"`).join(', ')} already exist. They will be overwritten. Continue?`;
     const confirmed = await app.confirm(message);
     if (!confirmed) return;

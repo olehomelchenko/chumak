@@ -1,3 +1,4 @@
+import { useTranslation } from 'preact-i18next';
 import * as WindowHandlers from '../handlers/transform/window-handlers';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
@@ -22,23 +23,68 @@ const OFFSET_FUNCTIONS = ['lag', 'lead', 'ntile', 'nth_value'];
 /** Window functions that can have a default value */
 const DEFAULT_VALUE_FUNCTIONS = ['lag', 'lead'];
 
-const WINDOW_FUNCTIONS = [
-  { value: 'row_number', label: 'Row Number', description: 'Sequential row numbers' },
-  { value: 'rank', label: 'Rank', description: 'Rank with gaps for ties' },
-  { value: 'dense_rank', label: 'Dense Rank', description: 'Rank without gaps' },
-  { value: 'lag', label: 'Lag', description: 'Previous row value' },
-  { value: 'lead', label: 'Lead', description: 'Next row value' },
-  { value: 'first_value', label: 'First Value', description: 'First value in partition' },
-  { value: 'last_value', label: 'Last Value', description: 'Last value in partition' },
-  { value: 'percent_rank', label: 'Percent Rank', description: 'Percentage rank (0-1)' },
-  { value: 'ntile', label: 'N-Tile', description: 'Distribute into N buckets' },
-  { value: 'fill_down', label: 'Fill Down', description: 'Fill nulls with preceding value' },
-  { value: 'fill_up', label: 'Fill Up', description: 'Fill nulls with following value' },
-];
-
 export function WindowDialog() {
+  const { t } = useTranslation('dialogs');
   const { orderBy, partitionBy, windowFunctions, isPreviewing } = DialogStore.windowState;
   const columns = AppStore.columns.value;
+
+  const windowFunctionsList = [
+    {
+      value: 'row_number',
+      label: t('window.functions.row_number'),
+      description: t('window.functionDescriptions.row_number'),
+    },
+    {
+      value: 'rank',
+      label: t('window.functions.rank'),
+      description: t('window.functionDescriptions.rank'),
+    },
+    {
+      value: 'dense_rank',
+      label: t('window.functions.dense_rank'),
+      description: t('window.functionDescriptions.dense_rank'),
+    },
+    {
+      value: 'lag',
+      label: t('window.functions.lag'),
+      description: t('window.functionDescriptions.lag'),
+    },
+    {
+      value: 'lead',
+      label: t('window.functions.lead'),
+      description: t('window.functionDescriptions.lead'),
+    },
+    {
+      value: 'first_value',
+      label: t('window.functions.first_value'),
+      description: t('window.functionDescriptions.first_value'),
+    },
+    {
+      value: 'last_value',
+      label: t('window.functions.last_value'),
+      description: t('window.functionDescriptions.last_value'),
+    },
+    {
+      value: 'percent_rank',
+      label: t('window.functions.percent_rank'),
+      description: t('window.functionDescriptions.percent_rank'),
+    },
+    {
+      value: 'ntile',
+      label: t('window.functions.ntile'),
+      description: t('window.functionDescriptions.ntile'),
+    },
+    {
+      value: 'fill_down',
+      label: t('window.functions.fill_down'),
+      description: t('window.functionDescriptions.fill_down'),
+    },
+    {
+      value: 'fill_up',
+      label: t('window.functions.fill_up'),
+      description: t('window.functionDescriptions.fill_up'),
+    },
+  ];
 
   const updateOrderBy = (index: number, field: keyof OrderByItem, value: string) => {
     const newOrderBy = [...orderBy.value];
@@ -86,10 +132,8 @@ export function WindowDialog() {
     <div>
       {/* Order By Section */}
       <div class={styles.group}>
-        <label class={styles.label}>Order By</label>
-        <p class={styles.helpText}>
-          Required for meaningful window results. Determines row order for lag/lead/rank.
-        </p>
+        <label class={styles.label}>{t('window.orderByLabel')}</label>
+        <p class={styles.helpText}>{t('window.orderByHelp')}</p>
 
         <div style={{ marginBottom: '0.5rem' }}>
           {orderBy.value.map((item, index) => (
@@ -102,7 +146,7 @@ export function WindowDialog() {
                   updateOrderBy(index, 'field', (e.target as HTMLSelectElement).value)
                 }
               >
-                <option value="">Select column...</option>
+                <option value="">{t('window.selectColumn')}</option>
                 {columns.map((col) => (
                   <option key={col} value={col}>
                     {col}
@@ -118,14 +162,14 @@ export function WindowDialog() {
                   updateOrderBy(index, 'order', (e.target as HTMLSelectElement).value)
                 }
               >
-                <option value="asc">Ascending</option>
-                <option value="desc">Descending</option>
+                <option value="asc">{t('window.ascending')}</option>
+                <option value="desc">{t('window.descending')}</option>
               </select>
 
               <button
                 class="button button--secondary button--small"
                 onClick={() => removeOrderBy(index)}
-                title="Remove"
+                title={t('window.remove')}
               >
                 ×
               </button>
@@ -134,7 +178,7 @@ export function WindowDialog() {
         </div>
 
         <button class="button button--secondary button--small" onClick={addOrderBy}>
-          + Add Order Column
+          {t('window.addOrderColumn')}
         </button>
       </div>
 
@@ -147,18 +191,18 @@ export function WindowDialog() {
           mode="multi"
           display="chip"
           allowSelectAll={false}
-          label="Partition By (Optional)"
-          helpText="Window functions will restart for each group. Leave empty for no partitioning."
+          label={t('window.partitionByLabel')}
+          helpText={t('window.partitionByHelp')}
         />
       </div>
 
       {/* Window Functions Section */}
       <div class={styles.group}>
-        <label class={styles.label}>Window Functions</label>
+        <label class={styles.label}>{t('window.windowFunctionsLabel')}</label>
 
         <div style={{ marginBottom: '0.5rem' }}>
           {windowFunctions.value.map((wf, index) => {
-            const funcInfo = WINDOW_FUNCTIONS.find((f) => f.value === wf.func);
+            const funcInfo = windowFunctionsList.find((f) => f.value === wf.func);
             const needsColumn = COLUMN_REQUIRED_FUNCTIONS.includes(wf.func);
             const needsOffset = OFFSET_FUNCTIONS.includes(wf.func);
             const needsDefault = DEFAULT_VALUE_FUNCTIONS.includes(wf.func);
@@ -176,7 +220,7 @@ export function WindowDialog() {
                     }
                     title={funcInfo?.description}
                   >
-                    {WINDOW_FUNCTIONS.map((f) => (
+                    {windowFunctionsList.map((f) => (
                       <option key={f.value} value={f.value} title={f.description}>
                         {f.label}
                       </option>
@@ -197,7 +241,7 @@ export function WindowDialog() {
                         )
                       }
                     >
-                      <option value="">Select column...</option>
+                      <option value="">{t('window.selectColumn')}</option>
                       {columns.map((col) => (
                         <option key={col} value={col}>
                           {col}
@@ -221,8 +265,16 @@ export function WindowDialog() {
                           parseInt((e.target as HTMLInputElement).value) || 1
                         )
                       }
-                      title={wf.func === 'ntile' ? 'Number of buckets' : 'Offset (rows)'}
-                      placeholder={wf.func === 'ntile' ? 'N' : 'Offset'}
+                      title={
+                        wf.func === 'ntile'
+                          ? t('window.offsetTitle.ntile')
+                          : t('window.offsetTitle.other')
+                      }
+                      placeholder={
+                        wf.func === 'ntile'
+                          ? t('window.offsetPlaceholder.ntile')
+                          : t('window.offsetPlaceholder.other')
+                      }
                     />
                   )}
 
@@ -237,13 +289,13 @@ export function WindowDialog() {
                     onInput={(e) =>
                       updateWindowFunction(index, 'output', (e.target as HTMLInputElement).value)
                     }
-                    placeholder="Output column name"
+                    placeholder={t('window.outputPlaceholder')}
                   />
 
                   <button
                     class="button button--secondary button--small"
                     onClick={() => removeWindowFunction(index)}
-                    title="Remove"
+                    title={t('window.remove')}
                   >
                     ×
                   </button>
@@ -252,7 +304,7 @@ export function WindowDialog() {
                 {/* Default value row (conditional) */}
                 {needsDefault && (
                   <div class={styles.windowRowExtra}>
-                    <label class={styles.smallLabel}>Default value (if no prior/next row):</label>
+                    <label class={styles.smallLabel}>{t('window.defaultValueLabel')}</label>
                     <input
                       type="text"
                       class={styles.input}
@@ -265,7 +317,7 @@ export function WindowDialog() {
                           (e.target as HTMLInputElement).value
                         )
                       }
-                      placeholder="(null)"
+                      placeholder={t('window.defaultValuePlaceholder')}
                     />
                   </div>
                 )}
@@ -275,42 +327,39 @@ export function WindowDialog() {
         </div>
 
         <button class="button button--secondary button--small" onClick={addWindowFunction}>
-          + Add Window Function
+          {t('window.addWindowFunction')}
         </button>
       </div>
 
       {/* Inline Help */}
       <div class={styles.expressionHelp}>
         <div class={styles.expressionHelpTitle}>
-          <span>What are window functions?</span>
+          <span>{t('window.help.title')}</span>
         </div>
         <div style={{ fontSize: '0.75rem', color: 'var(--color-dark-gray)', lineHeight: 1.8 }}>
-          <p style={{ margin: '0 0 0.5rem' }}>
-            Window functions add computed columns based on the position or neighbors of each row,
-            without reducing the number of rows (unlike Aggregate).
-          </p>
+          <p style={{ margin: '0 0 0.5rem' }}>{t('window.help.description')}</p>
           <div class={styles.exampleGrid}>
             <div>
               <code class={styles.exampleCode}>row_number</code>
             </div>
-            <div class={styles.exampleDescription}>1, 2, 3, ...</div>
+            <div class={styles.exampleDescription}>{t('window.help.row_number')}</div>
             <div>
               <code class={styles.exampleCode}>rank</code>
             </div>
-            <div class={styles.exampleDescription}>1, 2, 2, 4 (gaps for ties)</div>
+            <div class={styles.exampleDescription}>{t('window.help.rank')}</div>
             <div>
               <code class={styles.exampleCode}>lag / lead</code>
             </div>
-            <div class={styles.exampleDescription}>Previous / next row value</div>
+            <div class={styles.exampleDescription}>{t('window.help.lagLead')}</div>
             <div>
               <code class={styles.exampleCode}>fill_down</code>
             </div>
-            <div class={styles.exampleDescription}>Fill nulls with value above</div>
+            <div class={styles.exampleDescription}>{t('window.help.fill_down')}</div>
           </div>
-          <p style={{ margin: '0.5rem 0 0', fontStyle: 'italic' }}>
-            Use <strong>Order By</strong> to control row sequence. Use <strong>Partition By</strong>{' '}
-            to restart numbering per group.
-          </p>
+          <p
+            style={{ margin: '0.5rem 0 0', fontStyle: 'italic' }}
+            dangerouslySetInnerHTML={{ __html: t('window.help.orderByNote') }}
+          />
         </div>
       </div>
 
@@ -321,7 +370,7 @@ export function WindowDialog() {
           onClick={WindowHandlers.updateWindowPreview}
           disabled={isPreviewing.value}
         >
-          {isPreviewing.value ? 'Previewing...' : 'Preview Result'}
+          {isPreviewing.value ? t('window.previewing') : t('window.previewButton')}
         </button>
       </div>
     </div>

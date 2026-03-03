@@ -5,6 +5,7 @@ import { AppStore } from '../../stores/AppStore';
 import { StepService } from '../../services/StepService';
 import * as NotificationHandlers from '../core/notification-handlers';
 import { createDebouncedPreview, clearPreview, PreviewResult } from '../preview-engine';
+import i18n from '../../../i18n';
 
 export function toggleColumnForFold(index: number) {
   const state = DialogStore.foldState;
@@ -100,7 +101,7 @@ export async function applyFoldTransform(callbacks: any) {
   if (colsToFold.length === 0) {
     await NotificationHandlers.alert.call(
       null as any,
-      'Please select at least one column to unpivot'
+      i18n.t('validation.selection.unpivotColumns', { ns: 'errors' })
     );
     return;
   }

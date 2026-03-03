@@ -3,6 +3,7 @@
  */
 
 import { useSignalEffect } from '@preact/signals';
+import { useTranslation } from 'preact-i18next';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 import { ColumnSelector } from './column-selector/ColumnSelector';
@@ -10,6 +11,7 @@ import * as MergeHandlers from '../handlers/transform/merge-handlers';
 import styles from './TransformDialog.module.css';
 
 export function MergeDialog() {
+  const { t } = useTranslation('dialogs');
   const { columns, separator, columnName, removeOriginal, error } = DialogStore.mergeState;
   const allColumns = AppStore.columns.value;
 
@@ -49,13 +51,13 @@ export function MergeDialog() {
           }}
           mode="multi"
           display="chip"
-          label="Columns to merge:"
+          label={t('merge.columnsLabel')}
         />
       </div>
 
       {/* Separator */}
       <div class={styles.group}>
-        <label class={styles.label}>Separator:</label>
+        <label class={styles.label}>{t('merge.separatorLabel')}</label>
         <div style={{ display: 'flex', gap: '4px', marginBottom: '8px', flexWrap: 'wrap' }}>
           {['', ' ', ',', '-', '_', '/', '|'].map((sep) => (
             <button
@@ -64,9 +66,17 @@ export function MergeDialog() {
               class="button button--secondary"
               style={{ padding: '4px 8px', fontSize: '12px' }}
               onClick={() => setPresetSeparator(sep)}
-              title={sep === '' ? 'No separator' : `Separator: "${sep}"`}
+              title={
+                sep === ''
+                  ? t('merge.separatorPresets.noSeparator')
+                  : t('merge.separatorPresets.separator', { sep })
+              }
             >
-              {sep === '' ? '(none)' : sep === ' ' ? '(space)' : sep}
+              {sep === ''
+                ? t('merge.separatorPresets.none')
+                : sep === ' '
+                  ? t('merge.separatorPresets.space')
+                  : sep}
             </button>
           ))}
         </div>
@@ -75,19 +85,19 @@ export function MergeDialog() {
           class={styles.input}
           value={separator.value}
           onInput={(e) => (separator.value = (e.target as HTMLInputElement).value)}
-          placeholder="Enter separator (e.g., ' ', ', ', '-')"
+          placeholder={t('merge.separatorPlaceholder')}
         />
       </div>
 
       {/* Output Column Name */}
       <div class={styles.group}>
-        <label class={styles.label}>Output column name:</label>
+        <label class={styles.label}>{t('merge.outputNameLabel')}</label>
         <input
           type="text"
           class={styles.input}
           value={columnName.value}
           onInput={(e) => (columnName.value = (e.target as HTMLInputElement).value)}
-          placeholder="e.g., full_name"
+          placeholder={t('merge.outputNamePlaceholder')}
         />
       </div>
 
@@ -99,7 +109,7 @@ export function MergeDialog() {
             checked={removeOriginal.value}
             onChange={(e) => (removeOriginal.value = (e.target as HTMLInputElement).checked)}
           />
-          <span>Remove original columns after merging</span>
+          <span>{t('merge.removeOriginal')}</span>
         </label>
       </div>
 

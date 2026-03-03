@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'preact/hooks';
+import { useTranslation } from 'preact-i18next';
 import { AppStore } from '../stores/AppStore';
 import { PersistenceService } from '../services/PersistenceService';
 import { TypeIndicator } from './TypeIndicator';
@@ -10,6 +11,7 @@ export interface ModelInfoViewProps {
 }
 
 export function ModelInfoView({ onRenameModel, onDeleteModel }: ModelInfoViewProps) {
+  const { t } = useTranslation('ui');
   const activeModel = AppStore.activeModel;
   const sources = AppStore.sources;
 
@@ -42,21 +44,23 @@ export function ModelInfoView({ onRenameModel, onDeleteModel }: ModelInfoViewPro
     setIsEditingComment(false);
   };
 
+  const stepCount = (model.steps?.length || 1) - 1;
+
   return (
     <div class={styles.datasetInfo}>
       <div class={styles.header}>
         <div>
           <h1 class={styles.title}>{model.name}</h1>
-          <p class={styles.subtitle}>Model</p>
+          <p class={styles.subtitle}>{t('modelInfo.subtitle')}</p>
         </div>
         <div class={styles.actions}>
           <button class="button button--secondary" onClick={onRenameModel}>
             <span class="iconify" data-icon="carbon:edit" style={{ fontSize: '24px' }}></span>
-            Rename
+            {t('modelInfo.rename')}
           </button>
           <button class="button button--danger" onClick={onDeleteModel}>
             <span class="iconify" data-icon="carbon:trash-can" style={{ fontSize: '24px' }}></span>
-            Delete
+            {t('modelInfo.delete')}
           </button>
         </div>
       </div>
@@ -64,37 +68,36 @@ export function ModelInfoView({ onRenameModel, onDeleteModel }: ModelInfoViewPro
       <div class={styles.content}>
         {/* Metadata Card */}
         <div class={styles.infoCard}>
-          <h3 class={styles.infoCard__title}>Model Information</h3>
+          <h3 class={styles.infoCard__title}>{t('modelInfo.heading')}</h3>
           <dl class={styles.infoList}>
             <div class={styles.infoList__item}>
-              <dt class={styles.infoList__label}>Model Name</dt>
+              <dt class={styles.infoList__label}>{t('modelInfo.labels.modelName')}</dt>
               <dd class={styles.infoList__value}>{model.name}</dd>
             </div>
             <div class={styles.infoList__item}>
-              <dt class={styles.infoList__label}>Source</dt>
-              <dd class={styles.infoList__value}>{source?.name || 'Unknown'}</dd>
+              <dt class={styles.infoList__label}>{t('modelInfo.labels.source')}</dt>
+              <dd class={styles.infoList__value}>{source?.name || t('modelInfo.unknown')}</dd>
             </div>
             <div class={styles.infoList__item}>
-              <dt class={styles.infoList__label}>Rows</dt>
+              <dt class={styles.infoList__label}>{t('modelInfo.labels.rows')}</dt>
               <dd class={styles.infoList__value}>{model.data?.length?.toLocaleString() || 0}</dd>
             </div>
             <div class={styles.infoList__item}>
-              <dt class={styles.infoList__label}>Columns</dt>
+              <dt class={styles.infoList__label}>{t('modelInfo.labels.columns')}</dt>
               <dd class={styles.infoList__value}>{model.schema?.length || 0}</dd>
             </div>
             <div class={styles.infoList__item}>
-              <dt class={styles.infoList__label}>Steps</dt>
+              <dt class={styles.infoList__label}>{t('modelInfo.labels.steps')}</dt>
               <dd class={styles.infoList__value}>
-                {(model.steps?.length || 1) - 1} transformation step
-                {(model.steps?.length || 1) - 1 !== 1 ? 's' : ''}
+                {t('modelInfo.transformationSteps', { count: stepCount })}
               </dd>
             </div>
             {model.isStale && (
               <div class={styles.infoList__item}>
                 <dt class={styles.infoList__label}>Status</dt>
                 <dd class={styles.infoList__value}>
-                  <span class={styles.staleBadge} title="This model is outdated">
-                    ⚠️ Stale
+                  <span class={styles.staleBadge} title={t('modelInfo.staleTitle')}>
+                    {t('modelInfo.staleStatus')}
                   </span>
                 </dd>
               </div>
@@ -104,13 +107,13 @@ export function ModelInfoView({ onRenameModel, onDeleteModel }: ModelInfoViewPro
 
         {/* Comment Card */}
         <div class={styles.infoCard}>
-          <h3 class={styles.infoCard__title}>Comment</h3>
+          <h3 class={styles.infoCard__title}>{t('modelInfo.commentHeading')}</h3>
           {isEditingComment ? (
             <div>
               <textarea
                 value={comment}
                 onInput={(e) => setComment((e.target as HTMLTextAreaElement).value)}
-                placeholder="Add a comment about this model..."
+                placeholder={t('modelInfo.commentPlaceholder')}
                 style={{
                   width: '100%',
                   minHeight: '100px',
@@ -126,10 +129,10 @@ export function ModelInfoView({ onRenameModel, onDeleteModel }: ModelInfoViewPro
                 style={{ display: 'flex', gap: 'var(--space-sm)', marginTop: 'var(--space-sm)' }}
               >
                 <button class="button button--primary" onClick={handleCommentSave}>
-                  Save
+                  {t('modelInfo.save')}
                 </button>
                 <button class="button button--secondary" onClick={handleCommentCancel}>
-                  Cancel
+                  {t('modelInfo.cancel')}
                 </button>
               </div>
             </div>
@@ -143,7 +146,7 @@ export function ModelInfoView({ onRenameModel, onDeleteModel }: ModelInfoViewPro
                 </p>
               ) : (
                 <p style={{ color: 'var(--color-dark-gray)', fontStyle: 'italic', margin: 0 }}>
-                  No comment added yet.
+                  {t('modelInfo.noComment')}
                 </p>
               )}
               <button
@@ -152,7 +155,7 @@ export function ModelInfoView({ onRenameModel, onDeleteModel }: ModelInfoViewPro
                 style={{ marginTop: 'var(--space-sm)' }}
               >
                 <span class="iconify" data-icon="carbon:edit" style={{ fontSize: '16px' }}></span>
-                {comment ? 'Edit Comment' : 'Add Comment'}
+                {comment ? t('modelInfo.editComment') : t('modelInfo.addComment')}
               </button>
             </div>
           )}
@@ -161,19 +164,16 @@ export function ModelInfoView({ onRenameModel, onDeleteModel }: ModelInfoViewPro
         {/* Column Schema Card */}
         <div class={`${styles.infoCard} ${styles.full}`}>
           <h3 class={styles.infoCard__title}>
-            Column Schema
-            <span
-              class={styles.infoCard__subtitle}
-              title="Logical types for data wrangling (after inference and transforms)"
-            >
-              Data Types
+            {t('modelInfo.schemaHeading')}
+            <span class={styles.infoCard__subtitle} title={t('modelInfo.schemaTitle')}>
+              {t('modelInfo.schemaSubtitle')}
             </span>
           </h3>
           <table class={styles.schemaTable}>
             <thead>
               <tr>
-                <th class={styles.schemaTable__header}>Column</th>
-                <th class={styles.schemaTable__header}>Position</th>
+                <th class={styles.schemaTable__header}>{t('modelInfo.tableHeaders.column')}</th>
+                <th class={styles.schemaTable__header}>{t('modelInfo.tableHeaders.position')}</th>
               </tr>
             </thead>
             <tbody>

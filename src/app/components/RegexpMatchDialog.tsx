@@ -1,3 +1,4 @@
+import { useTranslation } from 'preact-i18next';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 import { ColumnSelector } from './column-selector';
@@ -8,6 +9,7 @@ import {
 import styles from './TransformDialog.module.css';
 
 export function RegexpMatchDialog() {
+  const { t } = useTranslation('dialogs');
   const { sourceColumn, pattern, columnName, error } = DialogStore.regexpMatchState;
   const columns = AppStore.columns.value;
 
@@ -19,7 +21,7 @@ export function RegexpMatchDialog() {
   return (
     <div>
       <p class={styles.helpText} style={{ marginBottom: '1rem' }}>
-        Creates a boolean column indicating whether the pattern matches.
+        {t('regexpMatch.description')}
       </p>
 
       <div class={styles.group}>
@@ -32,12 +34,12 @@ export function RegexpMatchDialog() {
           }}
           mode="single"
           display="chip"
-          label="Source column:"
+          label={t('regexpMatch.sourceColumnLabel')}
         />
       </div>
 
       <div class={styles.group}>
-        <label class={styles.label}>Pattern (regex):</label>
+        <label class={styles.label}>{t('regexpMatch.patternLabel')}</label>
         <input
           type="text"
           class={styles.input}
@@ -46,12 +48,12 @@ export function RegexpMatchDialog() {
             pattern.value = (e.target as HTMLInputElement).value;
             handleInput();
           }}
-          placeholder="e.g., ^[A-Z]{2}\d+"
+          placeholder={t('regexpMatch.patternPlaceholder')}
         />
       </div>
 
       <div class={styles.group}>
-        <label class={styles.label}>New column name:</label>
+        <label class={styles.label}>{t('regexpMatch.columnNameLabel')}</label>
         <input
           type="text"
           class={styles.input}
@@ -60,7 +62,7 @@ export function RegexpMatchDialog() {
             columnName.value = (e.target as HTMLInputElement).value;
             debouncedUpdateRegexpMatchPreview();
           }}
-          placeholder="e.g., is_valid_code"
+          placeholder={t('regexpMatch.columnNamePlaceholder')}
         />
       </div>
 
@@ -74,33 +76,30 @@ export function RegexpMatchDialog() {
       {/* Help section */}
       <div class={styles.expressionHelp} style={{ borderStyle: 'solid' }}>
         <div class={styles.helpHeader}>
-          <span>Pattern Examples</span>
+          <span>{t('regexpMatch.help.title')}</span>
           <button
             type="button"
             class="button button--text button--small"
             onClick={() => (AppStore.activeDialog.value = 'expressions')}
           >
-            Full Reference
+            {t('common.buttons.fullReference')}
           </button>
         </div>
         <div class={styles.codeList}>
           <div>
-            <code class={styles.mono}>^[A-Z]{`{2}`}</code>
-            {' — starts with 2 uppercase letters'}
+            <code class={styles.mono}>^[A-Z]{`{2}`}</code> {t('regexpMatch.help.upperLetters')}
           </div>
           <div>
             <code class={styles.mono}>
               \d{`{3}`}-\d{`{4}`}
-            </code>
-            {' — phone format 123-4567'}
+            </code>{' '}
+            {t('regexpMatch.help.phoneFormat')}
           </div>
           <div>
-            <code class={styles.mono}>(?i)error</code>
-            {' — case-insensitive "error"'}
+            <code class={styles.mono}>(?i)error</code> {t('regexpMatch.help.caseInsensitive')}
           </div>
           <div>
-            <code class={styles.mono}>@.+\.com$</code>
-            {' — ends with @...com'}
+            <code class={styles.mono}>@.+\.com$</code> {t('regexpMatch.help.emailDomain')}
           </div>
         </div>
       </div>

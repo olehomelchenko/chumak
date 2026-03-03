@@ -1,3 +1,4 @@
+import { useTranslation } from 'preact-i18next';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 import styles from './TransformDialog.module.css';
@@ -12,6 +13,7 @@ import type { JoinType } from '../../types/modes';
 export type { JoinType, JoinTarget } from '../../types/modes';
 
 export function JoinDialog() {
+  const { t } = useTranslation('dialogs');
   const {
     leftModel,
     rightModel,
@@ -118,7 +120,7 @@ export function JoinDialog() {
       <div class={joinStyles.sourceSelectorGrid}>
         {/* Left Side */}
         <div class={joinStyles.sourceSelector}>
-          <label class={styles.label}>Left Table</label>
+          <label class={styles.label}>{t('join.leftTable')}</label>
           <div class={joinStyles.currentSelection}>
             {effectiveLeftId && (
               <div class={joinStyles.currentSelectionItem}>
@@ -150,7 +152,7 @@ export function JoinDialog() {
 
         {/* Right Side */}
         <div class={joinStyles.sourceSelector}>
-          <label class={styles.label}>Right Table</label>
+          <label class={styles.label}>{t('join.rightTable')}</label>
           <JoinTreeSelector
             selectedId={rightModel.value}
             onSelect={handleRightModelChange}
@@ -180,7 +182,7 @@ export function JoinDialog() {
       <div class={joinStyles.columnSelectionGrid}>
         {/* Left Columns */}
         <JoinColumnSelector
-          label="Left Columns to Include"
+          label={t('join.leftColumnsLabel')}
           columns={leftColumns.value}
           selectedColumns={selectedLeftColumns.value}
           onToggle={toggleLeftColumn}
@@ -191,7 +193,7 @@ export function JoinDialog() {
         {/* Right Columns */}
         {joinType.value !== 'semi' && joinType.value !== 'anti' && (
           <JoinColumnSelector
-            label="Right Columns to Include"
+            label={t('join.rightColumnsLabel')}
             columns={rightColumns.value}
             selectedColumns={selectedRightColumns.value}
             onToggle={toggleRightColumn}
@@ -203,7 +205,7 @@ export function JoinDialog() {
 
       {/* Column Suffixes */}
       <div class={styles.group}>
-        <label class={styles.label}>Column Name Suffixes (for conflicts)</label>
+        <label class={styles.label}>{t('join.suffixesLabel')}</label>
         <div style={{ display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
           <input
             type="text"
@@ -211,7 +213,7 @@ export function JoinDialog() {
             style={{ flex: 1 }}
             value={suffixes.value[0]}
             onInput={(e) => handleSuffixChange(0, e.currentTarget.value)}
-            placeholder="_x"
+            placeholder={t('join.suffixPlaceholder.left')}
           />
           <span>/</span>
           <input
@@ -220,10 +222,10 @@ export function JoinDialog() {
             style={{ flex: 1 }}
             value={suffixes.value[1]}
             onInput={(e) => handleSuffixChange(1, e.currentTarget.value)}
-            placeholder="_y"
+            placeholder={t('join.suffixPlaceholder.right')}
           />
         </div>
-        <div class={styles.helpText}>Applied to left/right columns when names conflict</div>
+        <div class={styles.helpText}>{t('join.suffixesHelp')}</div>
       </div>
 
       {/* Save as New Model */}
@@ -236,46 +238,40 @@ export function JoinDialog() {
               DialogStore.joinState.saveAsNewModel.value = e.currentTarget.checked;
             }}
           />
-          <span>Save result as a new model</span>
+          <span>{t('join.saveAsNew')}</span>
         </label>
       </div>
 
       {/* Inline Help */}
       <div class={styles.expressionHelp}>
         <div class={styles.expressionHelpTitle}>
-          <span>Join Types</span>
+          <span>{t('join.types.title')}</span>
         </div>
         <div class={styles.exampleGrid} style={{ fontFamily: 'var(--font-family)' }}>
           <div>
-            <strong>Left</strong>
+            <strong>{t('join.types.left')}</strong>
           </div>
-          <div class={styles.exampleDescription}>
-            Keep all left rows, match right where possible
-          </div>
+          <div class={styles.exampleDescription}>{t('join.types.leftDesc')}</div>
           <div>
-            <strong>Right</strong>
+            <strong>{t('join.types.right')}</strong>
           </div>
-          <div class={styles.exampleDescription}>
-            Keep all right rows, match left where possible
-          </div>
+          <div class={styles.exampleDescription}>{t('join.types.rightDesc')}</div>
           <div>
-            <strong>Inner</strong>
+            <strong>{t('join.types.inner')}</strong>
           </div>
-          <div class={styles.exampleDescription}>Only rows that match in both tables</div>
+          <div class={styles.exampleDescription}>{t('join.types.innerDesc')}</div>
           <div>
-            <strong>Full</strong>
+            <strong>{t('join.types.full')}</strong>
           </div>
-          <div class={styles.exampleDescription}>Keep all rows from both tables</div>
+          <div class={styles.exampleDescription}>{t('join.types.fullDesc')}</div>
           <div>
-            <strong>Semi</strong>
+            <strong>{t('join.types.semi')}</strong>
           </div>
-          <div class={styles.exampleDescription}>
-            Left rows that have a match (no right columns)
-          </div>
+          <div class={styles.exampleDescription}>{t('join.types.semiDesc')}</div>
           <div>
-            <strong>Anti</strong>
+            <strong>{t('join.types.anti')}</strong>
           </div>
-          <div class={styles.exampleDescription}>Left rows with no match in right</div>
+          <div class={styles.exampleDescription}>{t('join.types.antiDesc')}</div>
         </div>
       </div>
 
@@ -286,7 +282,7 @@ export function JoinDialog() {
           onClick={handlePreview}
           disabled={isPreviewing.value || !rightModel.value}
         >
-          {isPreviewing.value ? 'Previewing...' : 'Preview Join'}
+          {isPreviewing.value ? t('join.previewing') : t('join.preview')}
         </button>
       </div>
 

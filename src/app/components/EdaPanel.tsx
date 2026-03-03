@@ -1,4 +1,5 @@
 import { useEffect, useRef } from 'preact/hooks';
+import { useTranslation } from 'preact-i18next';
 import { AppStore } from '../stores/AppStore';
 import { DialogStore } from '../stores/DialogStore';
 import { ChartsEngine } from '../../core/charts';
@@ -11,6 +12,7 @@ import * as HelperHandlers from '../handlers/core/helper-handlers';
 import styles from './EdaPanel.module.css';
 
 export function EdaPanel() {
+  const { t } = useTranslation('ui');
   const boxPlotRef = useRef<HTMLDivElement>(null);
   const histogramRef = useRef<HTMLDivElement>(null);
   const temporalChartRef = useRef<HTMLDivElement>(null);
@@ -202,13 +204,13 @@ export function EdaPanel() {
                 class={`${styles.edaTreatmentToggle__btn} ${dateTreatment === 'temporal' ? styles['edaTreatmentToggle__btn--active'] : ''}`}
                 onClick={() => setDateTreatment('temporal')}
               >
-                Temporal
+                {t('eda.dateTreatment.temporal')}
               </button>
               <button
                 class={`${styles.edaTreatmentToggle__btn} ${dateTreatment === 'categorical' ? styles['edaTreatmentToggle__btn--active'] : ''}`}
                 onClick={() => setDateTreatment('categorical')}
               >
-                Categorical
+                {t('eda.dateTreatment.categorical')}
               </button>
             </div>
           )}
@@ -236,7 +238,7 @@ export function EdaPanel() {
 
         {isDate && dateTreatment === 'temporal' && (
           <div class={`${styles.edaSection} ${styles['edaSection--wide']}`}>
-            <div class={styles.edaSection__title}>Timeline Distribution</div>
+            <div class={styles.edaSection__title}>{t('eda.temporal.title')}</div>
             <div ref={temporalChartRef} style={{ width: '100%', minHeight: '100px' }}></div>
           </div>
         )}

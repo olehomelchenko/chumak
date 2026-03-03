@@ -5,6 +5,7 @@ import { AppStore } from '../../stores/AppStore';
 import { StepService } from '../../services/StepService';
 import { DependencyService } from '../../services/DependencyService';
 import { prompt } from '../core/notification-handlers';
+import i18n from '../../../i18n';
 
 export function initializeJoinDialog() {
   const models = AppStore.models.value;
@@ -568,7 +569,7 @@ export async function applyJoinTransform(callbacks: any) {
       );
 
       if (existingModel) {
-        await callbacks.onError?.('A model with this name already exists for this source.');
+        await callbacks.onError?.(i18n.t('validation.duplicate.modelExists', { ns: 'errors' }));
         return;
       }
 

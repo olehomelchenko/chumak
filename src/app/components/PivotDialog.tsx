@@ -1,4 +1,5 @@
 import { useComputed } from '@preact/signals';
+import { useTranslation } from 'preact-i18next';
 import * as PivotHandlers from '../handlers/transform/pivot-handlers';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
@@ -10,6 +11,7 @@ import type { PivotAggregation } from '../../types/modes';
 export type { PivotAggregation } from '../../types/modes';
 
 export function PivotDialog() {
+  const { t } = useTranslation('dialogs');
   const {
     rowColumns,
     columnColumn,
@@ -27,14 +29,15 @@ export function PivotDialog() {
 
     const grouping =
       rowColumns.value.length > 0
-        ? `Grouped by ${rowColumns.value.join(', ')},`
-        : 'No row grouping (single row result),';
+        ? t('pivot.groupedBy', { columns: rowColumns.value.join(', ') })
+        : t('pivot.noRowGrouping');
 
     return (
       <div>
-        <strong>Result:</strong> {grouping} with <strong>{uniqueValueCount.value}</strong> new
-        columns from <em>{columnColumn.value}</em>, showing <em>{aggregation.value}</em> of{' '}
-        <em>{valueColumn.value}</em>
+        <strong>{t('pivot.resultPrefix')}</strong> {grouping} {t('pivot.resultNewColumns')}{' '}
+        <strong>{uniqueValueCount.value}</strong> {t('pivot.resultFrom')}{' '}
+        <em>{columnColumn.value}</em>, {t('pivot.resultShowing')} <em>{aggregation.value}</em>{' '}
+        {t('pivot.resultOf')} <em>{valueColumn.value}</em>
       </div>
     );
   });
@@ -44,28 +47,23 @@ export function PivotDialog() {
       {/* Inline Help */}
       <div class={styles.expressionHelp} style={{ marginBottom: '1rem' }}>
         <div class={styles.expressionHelpTitle}>
-          <span>How Pivot works</span>
+          <span>{t('pivot.help.title')}</span>
         </div>
         <div style={{ fontSize: '0.75rem', color: 'var(--color-dark-gray)', lineHeight: 1.8 }}>
-          <p style={{ margin: 0 }}>
-            Pivot transforms long data into wide format. Unique values from the{' '}
-            <strong>Columns</strong> field become new column headers, and cells are filled with the
-            aggregated <strong>Values</strong>.
-          </p>
+          <p style={{ margin: 0 }}>{t('pivot.help.description')}</p>
           <div
             class={styles.exampleGrid}
             style={{ marginTop: '0.5rem', fontFamily: 'var(--font-family)' }}
           >
             <div>
-              <strong>Before:</strong> Name, Subject, Score
+              <strong>{t('pivot.help.exampleBefore')}</strong> {t('pivot.help.exampleBeforeValue')}
             </div>
             <div>
-              <strong>After:</strong> Name, Math, Science, ...
+              <strong>{t('pivot.help.exampleAfter')}</strong> {t('pivot.help.exampleAfterValue')}
             </div>
           </div>
           <p style={{ margin: '0.25rem 0 0', fontStyle: 'italic', fontSize: '0.7rem' }}>
-            Use <strong>Rows</strong> for grouping, <strong>Columns</strong> for new headers,
-            <strong> Values</strong> for cell data. Use Unpivot (Fold) to reverse.
+            {t('pivot.help.usage')}
           </p>
         </div>
       </div>
@@ -83,8 +81,8 @@ export function PivotDialog() {
             allowSelectAll={true}
             disabledColumns={[columnColumn.value, valueColumn.value].filter(Boolean)}
             maxHeight={200}
-            label="Rows"
-            helpText="Group by these columns"
+            label={t('pivot.rowsLabel')}
+            helpText={t('pivot.rowsHelp')}
           />
         </div>
 
@@ -92,7 +90,7 @@ export function PivotDialog() {
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
           {/* Column Column */}
           <div class={styles.group}>
-            <label class={styles.label}>Columns</label>
+            <label class={styles.label}>{t('pivot.columnsLabel')}</label>
             <select
               class={styles.input}
               value={columnColumn.value}
@@ -102,7 +100,7 @@ export function PivotDialog() {
               }}
               style={{ marginBottom: '0.5rem' }}
             >
-              <option value="">Select column...</option>
+              <option value="">{t('pivot.selectColumn')}</option>
               {columns.map((col) => (
                 <option
                   key={col}
@@ -123,20 +121,20 @@ export function PivotDialog() {
                   border: '1px solid var(--border-color)',
                 }}
               >
-                <strong>{uniqueValueCount.value}</strong> unique values
+                {t('pivot.uniqueValues', { count: uniqueValueCount.value })}
                 {uniqueValueCount.value > 50 && (
-                  <span style={{ color: 'var(--color-red)' }}> (many columns!)</span>
+                  <span style={{ color: 'var(--color-red)' }}> {t('pivot.manyColumns')}</span>
                 )}
               </div>
             )}
             <p class={styles.helpText} style={{ fontSize: '0.7rem', marginTop: '0.25rem' }}>
-              Values become column headers
+              {t('pivot.columnsHelp')}
             </p>
           </div>
 
           {/* Value Column */}
           <div class={styles.group}>
-            <label class={styles.label}>Values</label>
+            <label class={styles.label}>{t('pivot.valuesLabel')}</label>
             <select
               class={styles.input}
               value={valueColumn.value}
@@ -146,7 +144,7 @@ export function PivotDialog() {
               }}
               style={{ marginBottom: '0.5rem' }}
             >
-              <option value="">Select column...</option>
+              <option value="">{t('pivot.selectColumn')}</option>
               {columns.map((col) => (
                 <option
                   key={col}
@@ -167,15 +165,15 @@ export function PivotDialog() {
               }}
               disabled={!valueColumn.value}
             >
-              <option value="sum">Sum</option>
-              <option value="mean">Average</option>
-              <option value="count">Count</option>
-              <option value="min">Min</option>
-              <option value="max">Max</option>
-              <option value="any">First value</option>
+              <option value="sum">{t('pivot.aggregations.sum')}</option>
+              <option value="mean">{t('pivot.aggregations.mean')}</option>
+              <option value="count">{t('pivot.aggregations.count')}</option>
+              <option value="min">{t('pivot.aggregations.min')}</option>
+              <option value="max">{t('pivot.aggregations.max')}</option>
+              <option value="any">{t('pivot.aggregations.any')}</option>
             </select>
             <p class={styles.helpText} style={{ fontSize: '0.7rem', marginTop: '0.25rem' }}>
-              Aggregate function for cells
+              {t('pivot.valuesHelp')}
             </p>
           </div>
         </div>
@@ -187,7 +185,7 @@ export function PivotDialog() {
       {/* Advanced Options */}
       <details style={{ marginBottom: '1rem' }}>
         <summary style={{ cursor: 'pointer', fontWeight: 500, marginBottom: '0.5rem' }}>
-          Advanced Options
+          {t('pivot.advanced.title')}
         </summary>
         <div
           style={{
@@ -204,11 +202,11 @@ export function PivotDialog() {
                 options.value = { ...options.value, sort: (e.target as HTMLInputElement).checked };
               }}
             />
-            <span>Sort column names alphabetically</span>
+            <span>{t('pivot.advanced.sortColumns')}</span>
           </label>
           <div class={styles.group} style={{ marginTop: '0.5rem' }}>
             <label class={styles.label} style={{ fontSize: '0.85rem' }}>
-              Limit new columns
+              {t('pivot.advanced.limitLabel')}
             </label>
             <input
               type="number"
@@ -219,12 +217,12 @@ export function PivotDialog() {
                 const newLimit = val ? parseInt(val) : null;
                 options.value = { ...options.value, limit: newLimit };
               }}
-              placeholder="No limit"
+              placeholder={t('pivot.advanced.limitPlaceholder')}
               min="1"
               style={{ width: '120px' }}
             />
             <p class={styles.helpText} style={{ fontSize: '0.75rem' }}>
-              Leave empty for unlimited
+              {t('pivot.advanced.limitHelp')}
             </p>
           </div>
         </div>
@@ -237,7 +235,7 @@ export function PivotDialog() {
           onClick={PivotHandlers.previewPivot}
           disabled={isPreviewing.value || !columnColumn.value || !valueColumn.value}
         >
-          {isPreviewing.value ? 'Previewing...' : 'Preview Result'}
+          {isPreviewing.value ? t('pivot.previewing') : t('pivot.previewButton')}
         </button>
       </div>
     </div>

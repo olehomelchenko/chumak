@@ -3,12 +3,14 @@
  */
 
 import { useSignalEffect } from '@preact/signals';
+import { useTranslation } from 'preact-i18next';
 import styles from './TransformDialog.module.css';
 import { ColumnSelector } from './column-selector';
 import { DialogStore } from '../stores/DialogStore';
 import * as TextHandlers from '../handlers/transform/text-handlers';
 
 export function TextDialog() {
+  const { t } = useTranslation('dialogs');
   const state = DialogStore.textState;
   const { column, operations, removeOrigin, error } = state;
 
@@ -25,6 +27,12 @@ export function TextDialog() {
     }
   });
 
+  const caseOperations = [
+    { value: 'uppercase', label: t('text.operations.uppercase') },
+    { value: 'lowercase', label: t('text.operations.lowercase') },
+    { value: 'titlecase', label: t('text.operations.titlecase') },
+  ];
+
   return (
     <div>
       {/* Source Column */}
@@ -36,12 +44,8 @@ export function TextDialog() {
           mode="single"
           display="chip"
           gridColumns={2}
-          label="Source column:"
-          helpText={
-            textColumns.length === 0
-              ? 'No string columns found. Use the column type menu to set a column as string.'
-              : undefined
-          }
+          label={t('text.sourceColumnLabel')}
+          helpText={textColumns.length === 0 ? t('text.noColumnsHelp') : undefined}
         />
       </div>
 
@@ -49,16 +53,16 @@ export function TextDialog() {
         <>
           {/* Case Transformation */}
           <div class={styles.group}>
-            <label class={styles.label}>Case transformation:</label>
+            <label class={styles.label}>{t('text.caseTransformLabel')}</label>
             <table class={styles.dateOptionsTable}>
               <thead>
                 <tr>
-                  <th style={{ width: '60%' }}>Operation</th>
-                  <th style={{ width: '40%' }}>Preview</th>
+                  <th style={{ width: '60%' }}>{t('text.operation')}</th>
+                  <th style={{ width: '40%' }}>{t('text.preview')}</th>
                 </tr>
               </thead>
               <tbody>
-                {TextHandlers.getCaseOperations().map((op) => {
+                {caseOperations.map((op) => {
                   const isSelected = operations.value.includes(op.value);
                   return (
                     <tr
@@ -123,7 +127,7 @@ export function TextDialog() {
                         onChange={() => TextHandlers.setCaseOperation(null)}
                         style={{ margin: 0 }}
                       />
-                      <span>None</span>
+                      <span>{t('text.operations.none')}</span>
                     </label>
                   </td>
                   <td>
@@ -153,21 +157,19 @@ export function TextDialog() {
                   TextHandlers.setTrimOperation((e.target as HTMLInputElement).checked)
                 }
               />
-              <span>Trim whitespace (remove leading and trailing spaces)</span>
+              <span>{t('text.trimWhitespace')}</span>
             </label>
           </div>
 
           {/* Help Section */}
           <div class={styles.expressionHelp} style={{ marginTop: '1rem' }}>
             <div class={styles.expressionHelpTitle} style={{ display: 'block' }}>
-              About Operations
+              {t('text.help.title')}
             </div>
-            <div style={{ fontSize: '0.75rem', color: 'var(--color-text)', lineHeight: 1.5 }}>
-              Select a case transformation (optional) and/or enable trim whitespace.
-              <br />
-              <strong>Order:</strong> If both are selected, trim is applied first, then case
-              transformation.
-            </div>
+            <div
+              style={{ fontSize: '0.75rem', color: 'var(--color-text)', lineHeight: 1.5 }}
+              dangerouslySetInnerHTML={{ __html: t('text.help.description') }}
+            />
           </div>
 
           {/* Remove Origin Column Option */}
@@ -179,7 +181,7 @@ export function TextDialog() {
                   checked={removeOrigin.value}
                   onChange={(e) => (removeOrigin.value = (e.target as HTMLInputElement).checked)}
                 />
-                <span>Remove origin column after transformation</span>
+                <span>{t('text.removeOrigin')}</span>
               </label>
             </div>
           )}

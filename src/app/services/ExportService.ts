@@ -1,6 +1,7 @@
 import { AppStore } from '../stores/AppStore';
 import Papa from 'papaparse';
 import { showSuccess } from '../handlers/core/notification-handlers';
+import i18n from '../../i18n';
 
 /**
  * ExportService
@@ -16,7 +17,7 @@ export class ExportService {
   static async exportCSV(alert: (msg: string) => Promise<any>): Promise<string | undefined> {
     const data = AppStore.currentData.value;
     if (!data || data.length === 0) {
-      await alert('No data to export');
+      await alert(i18n.t('export.noData', { ns: 'errors' }));
       return undefined;
     }
 
@@ -54,7 +55,7 @@ export class ExportService {
       return csv;
     } catch (error: any) {
       console.error('CSV export error:', error);
-      await alert('Failed to export CSV: ' + error.message);
+      await alert(i18n.t('export.csvFailed', { ns: 'errors', message: error.message }));
       return undefined;
     }
   }
@@ -65,7 +66,7 @@ export class ExportService {
   static async exportWorkflowJSON(alert: (msg: string) => Promise<any>) {
     const activeModel = AppStore.activeModel.value;
     if (!activeModel) {
-      await alert('No workflow to export');
+      await alert(i18n.t('export.noWorkflow', { ns: 'errors' }));
       return;
     }
 
@@ -106,7 +107,7 @@ export class ExportService {
       showSuccess(`Exported workflow "${filename}"`);
     } catch (error: any) {
       console.error('Workflow export error:', error);
-      await alert('Failed to export workflow: ' + error.message);
+      await alert(i18n.t('export.workflowFailed', { ns: 'errors', message: error.message }));
     }
   }
 
@@ -116,7 +117,7 @@ export class ExportService {
   static async exportDataJSON(alert: (msg: string) => Promise<any>) {
     const data = AppStore.currentData.value;
     if (!data || data.length === 0) {
-      await alert('No data to export');
+      await alert(i18n.t('export.noData', { ns: 'errors' }));
       return;
     }
 
@@ -141,7 +142,7 @@ export class ExportService {
       showSuccess(`Exported "${filename}"`);
     } catch (error: any) {
       console.error('JSON export error:', error);
-      await alert('Failed to export JSON: ' + error.message);
+      await alert(i18n.t('export.jsonFailed', { ns: 'errors', message: error.message }));
     }
   }
 
@@ -154,7 +155,7 @@ export class ExportService {
   ) {
     const pageData = getPaginatedData();
     if (!pageData || pageData.length === 0) {
-      await alert('No data to copy on this page');
+      await alert(i18n.t('export.noData', { ns: 'errors' }));
       return;
     }
 
@@ -164,7 +165,7 @@ export class ExportService {
       showSuccess('Copied to clipboard (CSV)');
     } catch (error: any) {
       console.error('Copy to clipboard error:', error);
-      await alert('Failed to copy to clipboard: ' + error.message);
+      await alert(i18n.t('export.clipboardFailed', { ns: 'errors', message: error.message }));
     }
   }
 
@@ -177,7 +178,7 @@ export class ExportService {
   ) {
     const pageData = getPaginatedData();
     if (!pageData || pageData.length === 0) {
-      await alert('No data to copy on this page');
+      await alert(i18n.t('export.noData', { ns: 'errors' }));
       return;
     }
 
@@ -187,7 +188,7 @@ export class ExportService {
       showSuccess('Copied to clipboard (JSON)');
     } catch (error: any) {
       console.error('Copy to clipboard error:', error);
-      await alert('Failed to copy to clipboard: ' + error.message);
+      await alert(i18n.t('export.clipboardFailed', { ns: 'errors', message: error.message }));
     }
   }
 }

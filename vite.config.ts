@@ -129,6 +129,7 @@ export default defineConfig(({ mode }) => {
       globals: true,
       environment: 'happy-dom',
       include: ['src/**/*.test.{js,ts,tsx}'],
+      setupFiles: ['./src/test-setup.ts'],
     },
     build: {
       target: 'esnext',

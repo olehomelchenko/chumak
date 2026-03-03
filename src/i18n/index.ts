@@ -13,10 +13,16 @@ import { loadUXSettings } from '../core/ux-settings';
 import enCommon from './locales/en/common.json';
 import enSettings from './locales/en/settings.json';
 import enDialogs from './locales/en/dialogs.json';
+import enTransforms from './locales/en/transforms.json';
+import enErrors from './locales/en/errors.json';
+import enUi from './locales/en/ui.json';
 
 import ukCommon from './locales/uk/common.json';
 import ukSettings from './locales/uk/settings.json';
 import ukDialogs from './locales/uk/dialogs.json';
+import ukTransforms from './locales/uk/transforms.json';
+import ukErrors from './locales/uk/errors.json';
+import ukUi from './locales/uk/ui.json';
 
 /**
  * Ukrainian Plural Rules (handled automatically by i18next)
@@ -50,6 +56,9 @@ declare module 'i18next' {
       common: typeof enCommon;
       settings: typeof enSettings;
       dialogs: typeof enDialogs;
+      transforms: typeof enTransforms;
+      errors: typeof enErrors;
+      ui: typeof enUi;
     };
   }
 }
@@ -86,17 +95,23 @@ i18n.use(initReactI18next).init({
       common: enCommon,
       settings: enSettings,
       dialogs: enDialogs,
+      transforms: enTransforms,
+      errors: enErrors,
+      ui: enUi,
     },
     uk: {
       common: ukCommon,
       settings: ukSettings,
       dialogs: ukDialogs,
+      transforms: ukTransforms,
+      errors: ukErrors,
+      ui: ukUi,
     },
   },
   lng: uxSettings.language, // Initialize with user's saved preference
   fallbackLng: 'en',
   defaultNS: 'common',
-  ns: ['common', 'settings', 'dialogs'],
+  ns: ['common', 'settings', 'dialogs', 'transforms', 'errors', 'ui'],
   interpolation: {
     escapeValue: false, // Preact already escapes HTML
   },

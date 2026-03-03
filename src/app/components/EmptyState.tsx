@@ -1,4 +1,5 @@
 // Note: 'h' import not needed - Vite's JSX transform handles it
+import { useTranslation } from 'preact-i18next';
 import { AppStore } from '../stores/AppStore';
 
 export interface EmptyStateProps {
@@ -16,6 +17,7 @@ export function EmptyState({
   onFileDrop,
   onLoadExample,
 }: EmptyStateProps) {
+  const { t } = useTranslation('ui');
   const isDragging = AppStore.isDragging;
 
   const handleDragOver = (e: DragEvent) => {
@@ -43,26 +45,24 @@ export function EmptyState({
     >
       <div class="empty-state__content">
         <span class="iconify empty-state__icon" data-icon="carbon:cloud-upload"></span>
-        <h2 class="empty-state__title">Get Started with Syto</h2>
-        <p class="empty-state__text">
-          Drag and drop a CSV file here, or use one of the options below
-        </p>
+        <h2 class="empty-state__title">{t('emptyState.title')}</h2>
+        <p class="empty-state__text">{t('emptyState.subtitle')}</p>
         <div class="empty-state__actions">
           <button class="button button--primary" onClick={onUploadClick}>
             <span class="iconify" data-icon="carbon:upload"></span>
-            Upload CSV
+            {t('emptyState.uploadButton')}
           </button>
           <button class="button button--primary" onClick={onPasteClick}>
             <span class="iconify" data-icon="carbon:paste"></span>
-            Paste Data
+            {t('emptyState.pasteButton')}
           </button>
           <button class="button button--primary" onClick={onUrlClick}>
             <span class="iconify" data-icon="carbon:link"></span>
-            Import from URL
+            {t('emptyState.urlButton')}
           </button>
           <button class="button button--secondary" onClick={onLoadExample}>
             <span class="iconify" data-icon="carbon:data-table"></span>
-            Load Example
+            {t('emptyState.exampleButton')}
           </button>
         </div>
       </div>

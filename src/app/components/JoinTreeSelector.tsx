@@ -1,3 +1,4 @@
+import { useTranslation } from 'preact-i18next';
 import { AppStore } from '../stores/AppStore';
 import type { Source, Model } from '../types';
 import styles from './JoinTreeSelector.module.css';
@@ -15,6 +16,7 @@ export function JoinTreeSelector({
   excludeId,
   onPreview,
 }: JoinTreeSelectorProps) {
+  const { t } = useTranslation('dialogs');
   const sources = AppStore.sources.value;
   const models = AppStore.models.value;
 
@@ -52,7 +54,7 @@ export function JoinTreeSelector({
               <button
                 class={styles.previewButton}
                 onClick={(e) => handlePreviewClick(e, source.id)}
-                title="Preview table"
+                title={t('joinTreeSelector.previewTable')}
               >
                 <span class="iconify" data-icon="carbon:view" style={{ fontSize: '14px' }}></span>
               </button>
@@ -75,7 +77,7 @@ export function JoinTreeSelector({
                   <button
                     class={styles.previewButton}
                     onClick={(e) => handlePreviewClick(e, model.id)}
-                    title="Preview table"
+                    title={t('joinTreeSelector.previewTable')}
                   >
                     <span
                       class="iconify"
@@ -90,9 +92,7 @@ export function JoinTreeSelector({
       ))}
 
       {/* Show message when no sources */}
-      {sources.length === 0 && (
-        <div class={styles.empty}>No data sources available. Import a CSV file to get started.</div>
-      )}
+      {sources.length === 0 && <div class={styles.empty}>{t('joinTreeSelector.noSources')}</div>}
     </div>
   );
 }

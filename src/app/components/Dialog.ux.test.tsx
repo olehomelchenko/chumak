@@ -12,10 +12,11 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, fireEvent, waitFor } from '@testing-library/preact';
+import { fireEvent, waitFor } from '@testing-library/preact';
 import { App } from './App';
 import { AppStore } from '../stores/AppStore';
 import { DialogStore } from '../stores/DialogStore';
+import { renderWithI18n } from '../test-utils';
 
 describe('Generic Dialog Behavior', () => {
   const testData = [
@@ -58,7 +59,7 @@ describe('Generic Dialog Behavior', () => {
     });
 
     it('should render Cancel and Apply buttons', async () => {
-      render(<App />);
+      renderWithI18n(<App />);
 
       await waitFor(() => {
         // Find buttons by looking for the dialog footer
@@ -70,7 +71,7 @@ describe('Generic Dialog Behavior', () => {
     });
 
     it('should close dialog when Cancel button is clicked', async () => {
-      render(<App />);
+      renderWithI18n(<App />);
 
       const footer = await waitFor(() => {
         const f = document.querySelector('[class*="slidePanelFooter"]');
@@ -88,7 +89,7 @@ describe('Generic Dialog Behavior', () => {
     });
 
     it('should close dialog when header close button (×) is clicked', async () => {
-      render(<App />);
+      renderWithI18n(<App />);
 
       const closeButtons = await waitFor(() => {
         const buttons = document.querySelectorAll('button');
@@ -108,7 +109,7 @@ describe('Generic Dialog Behavior', () => {
     });
 
     it('should close dialog when backdrop is clicked', async () => {
-      render(<App />);
+      renderWithI18n(<App />);
 
       const backdrop = await waitFor(() => {
         const b = document.querySelector('[class*="backdrop"]');
@@ -124,7 +125,7 @@ describe('Generic Dialog Behavior', () => {
     });
 
     it('should have enabled Apply button when valid filter expression is set', async () => {
-      render(<App />);
+      renderWithI18n(<App />);
 
       // Set up valid filter expression
       DialogStore.filterState.expression.value = 'sales > 1000';
@@ -143,7 +144,7 @@ describe('Generic Dialog Behavior', () => {
     });
 
     it('should disable Apply button when dialog has errors', async () => {
-      render(<App />);
+      renderWithI18n(<App />);
 
       // Set up invalid filter expression
       DialogStore.filterState.expression.value = 'invalid expression';
@@ -158,7 +159,7 @@ describe('Generic Dialog Behavior', () => {
     });
 
     it('should have correct button structure in dialog footer', async () => {
-      render(<App />);
+      renderWithI18n(<App />);
 
       // Set up valid filter expression
       DialogStore.filterState.expression.value = 'sales > 1000';
@@ -187,7 +188,7 @@ describe('Generic Dialog Behavior', () => {
     });
 
     it('should close dialog when Cancel button is clicked', async () => {
-      render(<App />);
+      renderWithI18n(<App />);
 
       const footer = await waitFor(() => {
         const f = document.querySelector('[class*="slidePanelFooter"]');
@@ -205,7 +206,7 @@ describe('Generic Dialog Behavior', () => {
     });
 
     it('should have enabled Apply button when valid sort selection is set', async () => {
-      render(<App />);
+      renderWithI18n(<App />);
 
       // Set up valid sort selection
       DialogStore.sortState.fields.value = [{ field: 'age', order: 'asc' }];
@@ -223,7 +224,7 @@ describe('Generic Dialog Behavior', () => {
     });
 
     it('should allow changing sort order when field is selected', async () => {
-      render(<App />);
+      renderWithI18n(<App />);
 
       // Sort dialog auto-selects first field, so field is already selected
       // Verify we can change the order
@@ -246,7 +247,7 @@ describe('Generic Dialog Behavior', () => {
     });
 
     it('should close dialog when Cancel button is clicked', async () => {
-      render(<App />);
+      renderWithI18n(<App />);
 
       const footer = await waitFor(() => {
         const f = document.querySelector('[class*="slidePanelFooter"]');
@@ -265,7 +266,7 @@ describe('Generic Dialog Behavior', () => {
     });
 
     it('should have enabled Apply button when valid derive inputs are set', async () => {
-      render(<App />);
+      renderWithI18n(<App />);
 
       // Set up valid derive inputs
       DialogStore.deriveState.columnName.value = 'total';
@@ -285,7 +286,7 @@ describe('Generic Dialog Behavior', () => {
     });
 
     it('should disable Apply button when there are expression errors', async () => {
-      render(<App />);
+      renderWithI18n(<App />);
 
       // Set up invalid derive inputs
       DialogStore.deriveState.columnName.value = 'total';
@@ -301,7 +302,7 @@ describe('Generic Dialog Behavior', () => {
     });
 
     it('should disable Apply button when column name is missing', async () => {
-      render(<App />);
+      renderWithI18n(<App />);
 
       // Missing column name
       DialogStore.deriveState.columnName.value = '';
@@ -323,7 +324,7 @@ describe('Generic Dialog Behavior', () => {
     it.each(dialogs)('should have Cancel and Apply buttons for %s dialog', async (dialogName) => {
       // Open dialog directly via store
       AppStore.activeDialog.value = dialogName;
-      render(<App />);
+      renderWithI18n(<App />);
 
       await waitFor(() => {
         const footer = document.querySelector('[class*="slidePanelFooter"]');
@@ -336,7 +337,7 @@ describe('Generic Dialog Behavior', () => {
     it.each(dialogs)('should close when Cancel is clicked for %s dialog', async (dialogName) => {
       // Open dialog directly via store
       AppStore.activeDialog.value = dialogName;
-      render(<App />);
+      renderWithI18n(<App />);
 
       const footer = await waitFor(() => {
         const f = document.querySelector('[class*="slidePanelFooter"]');

@@ -5,6 +5,7 @@ import { AppStore } from '../../stores/AppStore';
 import { StepService } from '../../services/StepService';
 import { DependencyService } from '../../services/DependencyService';
 import { getColumnsForTarget, getTableDataForTarget } from './join-handlers';
+import i18n from '../../../i18n';
 
 export function initializeAppendDialog() {
   const models = AppStore.models.value;
@@ -108,11 +109,11 @@ export async function previewAppend() {
   const sources = AppStore.sources.value;
 
   if (!leftId) {
-    state.previewError.value = 'Please select a left table';
+    state.previewError.value = i18n.t('validation.selection.leftTable', { ns: 'errors' });
     return;
   }
   if (!targetId) {
-    state.previewError.value = 'Please select a model or source to append';
+    state.previewError.value = i18n.t('validation.selection.rightTable', { ns: 'errors' });
     return;
   }
 
@@ -184,11 +185,11 @@ export async function applyAppendTransform(callbacks: any) {
   const selectedRightColumns = state.selectedRightColumns.value;
 
   if (!leftId) {
-    await callbacks.onError?.('Please select a left table');
+    await callbacks.onError?.(i18n.t('validation.selection.leftTable', { ns: 'errors' }));
     return;
   }
   if (!targetId) {
-    await callbacks.onError?.('Please select a model or source to append');
+    await callbacks.onError?.(i18n.t('validation.selection.rightTable', { ns: 'errors' }));
     return;
   }
 

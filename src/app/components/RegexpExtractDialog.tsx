@@ -1,3 +1,4 @@
+import { useTranslation } from 'preact-i18next';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 import { ColumnSelector } from './column-selector';
@@ -8,6 +9,7 @@ import {
 import styles from './TransformDialog.module.css';
 
 export function RegexpExtractDialog() {
+  const { t } = useTranslation('dialogs');
   const { sourceColumn, pattern, columnName, group, error } = DialogStore.regexpExtractState;
   const columns = AppStore.columns.value;
 
@@ -19,7 +21,7 @@ export function RegexpExtractDialog() {
   return (
     <div>
       <p class={styles.helpText} style={{ marginBottom: '1rem' }}>
-        Extracts text matching a pattern into a new column.
+        {t('regexpExtract.description')}
       </p>
 
       <div class={styles.group}>
@@ -32,12 +34,12 @@ export function RegexpExtractDialog() {
           }}
           mode="single"
           display="chip"
-          label="Source column:"
+          label={t('regexpExtract.sourceColumnLabel')}
         />
       </div>
 
       <div class={styles.group}>
-        <label class={styles.label}>Pattern (regex):</label>
+        <label class={styles.label}>{t('regexpExtract.patternLabel')}</label>
         <input
           type="text"
           class={styles.input}
@@ -46,12 +48,12 @@ export function RegexpExtractDialog() {
             pattern.value = (e.target as HTMLInputElement).value;
             handleInput();
           }}
-          placeholder="e.g., @(.+)$ to extract domain"
+          placeholder={t('regexpExtract.patternPlaceholder')}
         />
       </div>
 
       <div class={styles.group}>
-        <label class={styles.label}>Capture group (0 = entire match):</label>
+        <label class={styles.label}>{t('regexpExtract.groupLabel')}</label>
         <input
           type="number"
           class={styles.input}
@@ -67,7 +69,7 @@ export function RegexpExtractDialog() {
       </div>
 
       <div class={styles.group}>
-        <label class={styles.label}>New column name:</label>
+        <label class={styles.label}>{t('regexpExtract.columnNameLabel')}</label>
         <input
           type="text"
           class={styles.input}
@@ -76,7 +78,7 @@ export function RegexpExtractDialog() {
             columnName.value = (e.target as HTMLInputElement).value;
             debouncedUpdateRegexpExtractPreview();
           }}
-          placeholder="e.g., domain"
+          placeholder={t('regexpExtract.columnNamePlaceholder')}
         />
       </div>
 
@@ -90,33 +92,31 @@ export function RegexpExtractDialog() {
       {/* Help section */}
       <div class={styles.expressionHelp} style={{ borderStyle: 'solid' }}>
         <div class={styles.helpHeader}>
-          <span>Pattern Examples</span>
+          <span>{t('regexpExtract.help.title')}</span>
           <button
             type="button"
             class="button button--text button--small"
             onClick={() => (AppStore.activeDialog.value = 'expressions')}
           >
-            Full Reference
+            {t('common.buttons.fullReference')}
           </button>
         </div>
         <div class={styles.codeList}>
           <div>
             <code class={styles.mono}>
               (\d{`{4}`})-(\d{`{2}`})-(\d{`{2}`})
-            </code>
-            {' — date parts (1=year, 2=month, 3=day)'}
+            </code>{' '}
+            {t('regexpExtract.help.dateParts')}
           </div>
           <div>
-            <code class={styles.mono}>@(.+)$</code>
-            {' — domain from email (group 1)'}
+            <code class={styles.mono}>@(.+)$</code> {t('regexpExtract.help.emailDomain')}
           </div>
           <div>
-            <code class={styles.mono}>(?i)(error|warning)</code>
-            {' — extract level (case-insensitive)'}
+            <code class={styles.mono}>(?i)(error|warning)</code>{' '}
+            {t('regexpExtract.help.extractLevel')}
           </div>
           <div>
-            <code class={styles.mono}>^([A-Z]{`{2}`})</code>
-            {' — first 2 uppercase letters'}
+            <code class={styles.mono}>^([A-Z]{`{2}`})</code> {t('regexpExtract.help.firstLetters')}
           </div>
         </div>
       </div>

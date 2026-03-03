@@ -1,18 +1,14 @@
+import i18n from '../../../i18n';
+
 export function describeSliceRows(transform: any): string | null {
   if (!transform.sliceRows) return null;
   const { count, mode } = transform.sliceRows;
-  const modeLabels: Record<string, string> = {
-    first: 'Keep first',
-    last: 'Keep last',
-    removeFirst: 'Remove first',
-    removeLast: 'Remove last',
-  };
-  return `${modeLabels[mode] || mode} ${count} row${count !== 1 ? 's' : ''}`;
+  return i18n.t(`transforms:rowOps.sliceRows.${mode}` as any, { count });
 }
 
 export function describeAddIndex(transform: any): string | null {
   if (!transform.addIndex) return null;
-  return `Add Index: ${transform.addIndex.columnName}`;
+  return i18n.t('transforms:rowOps.addIndex', { columnName: transform.addIndex.columnName });
 }
 
 export function describeDedupe(transform: any): string | null {
@@ -21,32 +17,33 @@ export function describeDedupe(transform: any): string | null {
   const mode = transform.dedupe.mode || 'remove';
   const colInfo =
     !cols || cols.length === 0
-      ? 'all columns'
+      ? i18n.t('transforms:rowOps.dedupe.allColumns')
       : cols.length === 1
         ? `"${cols[0]}"`
-        : `${cols.length} columns`;
-  if (mode === 'keep') {
-    return `Keep only duplicates: by ${colInfo}`;
-  }
-  return `Remove duplicates: by ${colInfo}`;
+        : i18n.t('transforms:basic.select', { count: cols.length });
+
+  return i18n.t(`transforms:rowOps.dedupe.${mode}` as any, { columns: colInfo });
 }
 
 export function describeSample(transform: any): string | null {
   if (!transform.sample) return null;
   const { count, seed } = transform.sample;
-  return seed !== undefined ? `Sample: ${count} rows (seed: ${seed})` : `Sample: ${count} rows`;
+  if (seed !== undefined) {
+    return i18n.t('transforms:rowOps.sampleWithSeed', { count, seed });
+  }
+  return i18n.t('transforms:rowOps.sample', { count });
 }
 
 export function describeRemoveRows(transform: any): string | null {
   if (!transform.removeRows) return null;
   const count = transform.removeRows.indices.length;
-  return `Remove ${count} row${count !== 1 ? 's' : ''}`;
+  return i18n.t('transforms:rowOps.removeRows', { count });
 }
 
 export function describeKeepRows(transform: any): string | null {
   if (!transform.keepRows) return null;
   const count = transform.keepRows.indices.length;
-  return `Keep ${count} row${count !== 1 ? 's' : ''}`;
+  return i18n.t('transforms:rowOps.keepRows', { count });
 }
 
 export const rowOpsDescribers = {

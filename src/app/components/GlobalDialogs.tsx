@@ -1,8 +1,10 @@
 import { useEffect, useRef } from 'preact/hooks';
 import { AppStore } from '../stores/AppStore';
 import styles from './Dialog.module.css';
+import { useTranslation } from 'preact-i18next';
 
 export function GlobalDialogs() {
+  const { t } = useTranslation('common');
   const messageBox = AppStore.messageBox.value;
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -90,11 +92,11 @@ export function GlobalDialogs() {
         <div class={styles.footer}>
           {['confirm', 'prompt'].includes(messageBox.type) && (
             <button class="button button--secondary" onClick={() => close(false)}>
-              Cancel
+              {t('buttons.cancel')}
             </button>
           )}
           <button class="button button--primary" onClick={() => close(true)}>
-            {messageBox.type === 'confirm' ? 'Yes' : 'OK'}
+            {messageBox.type === 'confirm' ? t('buttons.yes') : t('buttons.ok')}
           </button>
         </div>
       </div>

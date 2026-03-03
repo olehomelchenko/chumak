@@ -1,0 +1,114 @@
+{
+  "unknown": "Unknown transform",
+  "basic": {
+    "select": "Select: {{count}} column",
+    "select_other": "Select: {{count}} columns",
+    "remove": "Remove: {{count}} column",
+    "remove_other": "Remove: {{count}} columns",
+    "rename": "Rename: {{count}} column",
+    "rename_other": "Rename: {{count}} columns",
+    "sort": "Sort: {{fields}}",
+    "renamePattern": "Rename pattern: {{mode}} \"{{find}}\" -> \"{{replace}}\""
+  },
+  "pattern": {
+    "select": "Select pattern: {{matchType}} \"{{pattern}}\"",
+    "remove": "Remove pattern: {{matchType}} \"{{pattern}}\""
+  },
+  "filter": {
+    "filter": "Filter: {{expr}}",
+    "conditional": "Conditional: {{column}} ({{count}} condition)",
+    "conditional_other": "Conditional: {{column}} ({{count}} conditions)",
+    "replace": "Replace: {{column}} = {{find}}"
+  },
+  "derive": {
+    "derive": "Derive: {{columns}}"
+  },
+  "rowOps": {
+    "sliceRows": {
+      "first": "Keep first {{count}} row",
+      "first_other": "Keep first {{count}} rows",
+      "last": "Keep last {{count}} row",
+      "last_other": "Keep last {{count}} rows",
+      "removeFirst": "Remove first {{count}} row",
+      "removeFirst_other": "Remove first {{count}} rows",
+      "removeLast": "Remove last {{count}} row",
+      "removeLast_other": "Remove last {{count}} rows"
+    },
+    "addIndex": "Add Index: {{columnName}}",
+    "dedupe": {
+      "remove": "Remove duplicates: by {{columns}}",
+      "keep": "Keep only duplicates: by {{columns}}",
+      "allColumns": "all columns"
+    },
+    "sample": "Sample: {{count}} rows",
+    "sampleWithSeed": "Sample: {{count}} rows (seed: {{seed}})",
+    "removeRows": "Remove {{count}} row",
+    "removeRows_other": "Remove {{count}} rows",
+    "keepRows": "Keep {{count}} row",
+    "keepRows_other": "Keep {{count}} rows"
+  },
+  "types": {
+    "detectTypes": "Detect types: {{count}} column",
+    "detectTypes_other": "Detect types: {{count}} columns"
+  },
+  "impute": {
+    "impute": "Impute: {{column}} ({{strategy}})",
+    "strategies": {
+      "constant": "Constant",
+      "mean": "Mean",
+      "median": "Median",
+      "min": "Min",
+      "max": "Max",
+      "forwardFill": "Forward Fill",
+      "backwardFill": "Backward Fill",
+      "linearInterpolation": "Linear Interpolation"
+    }
+  },
+  "reshape": {
+    "fold": "Unpivot: {{count}} column",
+    "fold_other": "Unpivot: {{count}} columns",
+    "foldWithAs": "Unpivot: {{count}} column -> {{as}}",
+    "foldWithAs_other": "Unpivot: {{count}} columns -> {{as}}",
+    "pivot": "Pivot: {{aggregation}}({{values}}) by {{keys}}",
+    "split": "Split: {{column}}",
+    "spread": "Spread: {{column}}",
+    "spreadWithLimit": "Spread: {{column}} (max {{limit}} cols)",
+    "unroll": "Unroll: {{column}}",
+    "unrollWithIndices": "Unroll: {{column}} (with indices)"
+  },
+  "join": {
+    "join": "Join ({{how}}): {{name}}",
+    "semijoin": "Semijoin: {{name}}",
+    "antijoin": "Antijoin: {{name}}",
+    "lookup": "Lookup: {{count}} column from {{name}}",
+    "lookup_other": "Lookup: {{count}} columns from {{name}}",
+    "model": "model",
+    "source": "source"
+  },
+  "combine": {
+    "concat": "Concat: {{name}}",
+    "union": "Union: {{name}}"
+  },
+  "aggregate": {
+    "groupBy": "Group by ({{groupLabel}}), {{count}} summary",
+    "groupBy_other": "Group by ({{groupLabel}}), {{count}} summaries",
+    "allRows": "all rows",
+    "groupByColumns": "{{count}} column",
+    "groupByColumns_other": "{{count}} columns"
+  },
+  "window": {
+    "window": "Window ({{count}} column, by {{orderField}}{{partitionText}})",
+    "window_other": "Window ({{count}} columns, by {{orderField}}{{partitionText}})",
+    "defaultOrder": "default order",
+    "partitioned": ", partitioned by {{count}} column",
+    "partitioned_other": ", partitioned by {{count}} columns"
+  },
+  "import": {
+    "import": "Import: {{source}}{{headerDesc}}",
+    "headerModes": {
+      "first-row": " (headers from first row)",
+      "auto-generate": " (auto-generated headers)",
+      "manual": " (custom headers)"
+    }
+  }
+}

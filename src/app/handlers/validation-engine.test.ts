@@ -67,7 +67,7 @@ describe('validation-engine', () => {
       const result = validateExpression('', columns, { allowEmpty: false });
 
       expect(result.valid).toBe(false);
-      expect(result.error).toBe('Expression is required');
+      expect(result.error).toBe('Please fix the expression errors before applying');
     });
 
     it('writes error to provided signal', () => {
@@ -129,7 +129,7 @@ describe('validation-engine', () => {
       const result = validateRegexPattern('[invalid');
 
       expect(result.valid).toBe(false);
-      expect(result.error).toContain('Invalid pattern');
+      expect(result.error).toContain('Please fix pattern errors before applying');
       expect(result.regex).toBeNull();
     });
 
@@ -137,7 +137,7 @@ describe('validation-engine', () => {
       const result = validateRegexPattern('*');
 
       expect(result.valid).toBe(false);
-      expect(result.error).toContain('Invalid pattern');
+      expect(result.error).toContain('Please fix pattern errors before applying');
     });
 
     it('treats empty pattern as valid by default', () => {
@@ -151,7 +151,7 @@ describe('validation-engine', () => {
       const result = validateRegexPattern('', { allowEmpty: false });
 
       expect(result.valid).toBe(false);
-      expect(result.error).toBe('Pattern is required');
+      expect(result.error).toBe('Please enter a pattern');
     });
 
     it('applies regex flags', () => {
@@ -166,7 +166,7 @@ describe('validation-engine', () => {
 
       validateRegexPattern('[bad', { errorSignal });
 
-      expect(errorSignal.value).toContain('Invalid pattern');
+      expect(errorSignal.value).toContain('Please fix pattern errors before applying:');
     });
 
     it('clears error signal on valid pattern', () => {
@@ -177,10 +177,10 @@ describe('validation-engine', () => {
       expect(errorSignal.value).toBeNull();
     });
 
-    it('uses custom error prefix', () => {
-      const result = validateRegexPattern('[bad', { errorPrefix: 'Invalid regex' });
+    it('returns error for invalid pattern', () => {
+      const result = validateRegexPattern('[bad');
 
-      expect(result.error).toContain('Invalid regex:');
+      expect(result.error).toContain('Please fix pattern errors before applying:');
     });
 
     it('returns compiled regex for further use', () => {

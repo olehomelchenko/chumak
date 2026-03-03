@@ -6,6 +6,7 @@ import { Source } from '../../types';
 import { SchemaEngine, ColumnSchema } from '../../../core/schema-engine';
 import { ReplaceSourceService } from '../../services/ReplaceSourceService';
 import { alert, confirm } from '../core/notification-handlers';
+import i18n from '../../../i18n';
 
 /**
  * Callbacks for import operations
@@ -190,7 +191,7 @@ export async function handleFileDrop(event: DragEvent): Promise<void> {
   const file = files[0];
   const fileName = file.name.toLowerCase();
   if (!fileName.endsWith('.csv') && !fileName.endsWith('.json')) {
-    await alert('Please drop a CSV or JSON file');
+    await alert(i18n.t('import.dropFile', { ns: 'errors' }));
     return;
   }
 
@@ -244,18 +245,14 @@ export async function promptPaste(): Promise<void> {
         });
         showImportDialog(file);
       } else {
-        await alert(
-          'Clipboard is empty or does not contain text. Try copying some CSV or JSON data first.'
-        );
+        await alert(i18n.t('import.clipboardEmpty', { ns: 'errors' }));
       }
     } else {
-      await alert(
-        'Your browser does not support direct clipboard access. Please use Ctrl+V to paste data.'
-      );
+      await alert(i18n.t('import.clipboardNotSupported', { ns: 'errors' }));
     }
   } catch (err) {
     console.warn('Clipboard access denied:', err);
-    await alert('Please press Ctrl+V to paste your data directly.');
+    await alert(i18n.t('import.pastePrompt', { ns: 'errors' }));
   }
 }
 
@@ -410,7 +407,7 @@ export function handleCsvPreview(file: File): void {
     },
     error: async (error) => {
       console.error('CSV preview error:', error);
-      await alert('Error reading CSV: ' + error.message);
+      await alert(i18n.t('import.csvError', { ns: 'errors', message: error.message }));
     },
   });
 }
@@ -428,7 +425,7 @@ export async function fetchAndImportFromUrl(): Promise<void> {
   const currentUrl = url.value;
 
   if (!currentUrl || currentUrl.trim() === '') {
-    DialogStore.importUrlState.error.value = 'Please enter a valid URL';
+    DialogStore.importUrlState.error.value = i18n.t('validation.required.url', { ns: 'errors' });
     return;
   }
 
@@ -438,12 +435,17 @@ export async function fetchAndImportFromUrl(): Promise<void> {
   try {
     const response = await fetch(currentUrl);
     if (!response.ok) {
-      throw new Error(`Failed to fetch data: ${response.status} ${response.statusText}`);
+      throw new Error(
+        i18n.t('import.fetchError', {
+          ns: 'errors',
+          status: `${response.status} ${response.statusText}`,
+        })
+      );
     }
 
     const text = await response.text();
     if (!text || text.trim() === '') {
-      throw new Error('The URL returned an empty response');
+      throw new Error(i18n.t('import.emptyResponse', { ns: 'errors' }));
     }
 
     let fileName = 'Imported Data.csv';
@@ -576,7 +578,7 @@ export async function confirmImport(): Promise<void> {
     complete: async (results) => {
       const rawData = results.data as unknown[][];
       if (!rawData || rawData.length === 0) {
-        await alert('Error: CSV file is empty');
+        await alert(i18n.t('import.csvError', { ns: 'errors', message: 'CSV file is empty' }));
         return;
       }
 
@@ -653,7 +655,7 @@ export async function confirmImport(): Promise<void> {
     },
     error: async (error) => {
       console.error('CSV parsing error:', error);
-      await alert('Error parsing CSV: ' + error.message);
+      await alert(i18n.t('import.csvError', { ns: 'errors', message: error.message }));
     },
   });
 }
@@ -683,7 +685,7 @@ export function updateImportPreview(): void {
     },
     error: async (error) => {
       console.error('CSV preview error:', error);
-      await alert('Error parsing CSV with selected delimiter: ' + error.message);
+      await alert(i18n.t('import.csvError', { ns: 'errors', message: error.message }));
     },
   });
 }

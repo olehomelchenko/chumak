@@ -3,6 +3,7 @@
  */
 
 import { useSignal, useSignalEffect } from '@preact/signals';
+import { useTranslation } from 'preact-i18next';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 import * as FilterHandlers from '../handlers/transform/filter-handlers';
@@ -21,6 +22,7 @@ import styles from './TransformDialog.module.css';
 export type { FilterPreviewMode } from '../../types/modes';
 
 export function FilterDialog() {
+  const { t } = useTranslation('dialogs');
   const { expression, error, previewMode } = DialogStore.filterState;
   const tokens = useSignal<ExpressionTokens>(EMPTY_TOKENS);
 
@@ -39,30 +41,30 @@ export function FilterDialog() {
 
   return (
     <div>
-      <label class={styles.label}>Keep rows where:</label>
+      <label class={styles.label}>{t('filter.label')}</label>
       <ExpressionEditor
         value={expression.value}
         onChange={(v) => (expression.value = v)}
-        placeholder="e.g., sales > 1000"
+        placeholder={t('filter.placeholder')}
         columns={AppStore.columns.value}
       />
 
       {/* Preview mode toggle */}
       <div class={styles.previewToggle}>
-        <span class={styles.previewLabel}>Preview:</span>
+        <span class={styles.previewLabel}>{t('common.labels.preview')}</span>
         <button
           type="button"
           class={`button button--small ${previewMode.value === 'all' ? 'button--primary' : 'button--text'}`}
           onClick={() => (previewMode.value = 'all')}
         >
-          Show All
+          {t('filter.previewModes.all')}
         </button>
         <button
           type="button"
           class={`button button--small ${previewMode.value === 'matching' ? 'button--primary' : 'button--text'}`}
           onClick={() => (previewMode.value = 'matching')}
         >
-          Matching Only
+          {t('filter.previewModes.matching')}
         </button>
       </div>
 
@@ -79,14 +81,14 @@ export function FilterDialog() {
       {/* Syntax quick reference */}
       <div class={styles.expressionHelp}>
         <div class={styles.expressionHelpTitle}>
-          <span>Syntax</span>
+          <span>{t('common.reference.syntax')}</span>
           <button
             type="button"
             class="button button--text button--small"
             onClick={() => openRef()}
             style={{ fontWeight: 500, textDecoration: 'underline' }}
           >
-            Full Reference
+            {t('common.buttons.fullReference')}
           </button>
         </div>
 
@@ -102,36 +104,36 @@ export function FilterDialog() {
         >
           <div>
             <code class={styles.exampleCode}>sales {'>'} 1000 && region == "North"</code>
-            <span class={styles.exampleDescription}>— AND</span>
+            <span class={styles.exampleDescription}>{t('filter.examples.and')}</span>
           </div>
           <div>
             <code class={styles.exampleCode}>status == "a" || status == "b"</code>
-            <span class={styles.exampleDescription}>— OR</span>
+            <span class={styles.exampleDescription}>{t('filter.examples.or')}</span>
           </div>
           <div>
             <code class={styles.exampleCode}>[Total Sales] {'>'} 100</code>
-            <span class={styles.exampleDescription}>— columns with spaces</span>
+            <span class={styles.exampleDescription}>{t('filter.examples.spacedColumns')}</span>
           </div>
         </div>
 
         <div class={styles.refLinks}>
           <button type="button" class={styles.refLink} onClick={() => openRef('date')}>
-            Date
+            {t('common.reference.date')}
           </button>
           <button type="button" class={styles.refLink} onClick={() => openRef('math')}>
-            Math
+            {t('common.reference.math')}
           </button>
           <button type="button" class={styles.refLink} onClick={() => openRef('text')}>
-            Text
+            {t('common.reference.text')}
           </button>
           <button type="button" class={styles.refLink} onClick={() => openRef('regex')}>
-            Regex
+            {t('common.reference.regex')}
           </button>
           <button type="button" class={styles.refLink} onClick={() => openRef('json')}>
-            JSON
+            {t('common.reference.json')}
           </button>
           <button type="button" class={styles.refLink} onClick={() => openRef('conversion')}>
-            Conversion
+            {t('common.reference.conversion')}
           </button>
         </div>
       </div>

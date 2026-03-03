@@ -1,7 +1,9 @@
+import { useTranslation } from 'preact-i18next';
 import { AppStore } from '../stores/AppStore';
 import styles from './Dialog.module.css';
 
 export function StepRemovalDialog() {
+  const { t } = useTranslation('ui');
   const modal = AppStore.stepRemovalModal.value;
 
   if (!modal.visible) return null;
@@ -31,16 +33,14 @@ export function StepRemovalDialog() {
         <div class={styles.header}>
           <h3 class={styles.title}>
             <span class="iconify" data-icon="carbon:warning"></span>
-            <span>Remove Step</span>
+            <span>{t('stepRemoval.title')}</span>
           </h3>
           <button class={styles.close} onClick={() => close(false)}>
             ×
           </button>
         </div>
         <div class={styles.content}>
-          <div class={styles.message}>
-            Remove step "<span>{modal.stepName}</span>"?
-          </div>
+          <div class={styles.message}>{t('stepRemoval.message', { stepName: modal.stepName })}</div>
           <div class={styles.options}>
             <label class={`${styles.option} ${modal.removeMode === 'all' ? styles.active : ''}`}>
               <input
@@ -51,10 +51,10 @@ export function StepRemovalDialog() {
                 onChange={() => setRemoveMode('all')}
               />
               <div class={styles.optionContent}>
-                <strong>Remove this step and all following steps</strong>
+                <strong>{t('stepRemoval.modes.all')}</strong>
                 {modal.affectedSteps.length > 0 && (
                   <div class={styles.preview}>
-                    <span class={styles.previewLabel}>Will also remove:</span>
+                    <span class={styles.previewLabel}>{t('stepRemoval.willRemove')}</span>
                     <ul class={styles.previewList}>
                       {modal.affectedSteps.map((stepName, i) => (
                         <li key={i}>{stepName}</li>
@@ -73,14 +73,14 @@ export function StepRemovalDialog() {
                 onChange={() => setRemoveMode('single')}
               />
               <div class={styles.optionContent}>
-                <strong>Remove only this step</strong>
+                <strong>{t('stepRemoval.modes.single')}</strong>
                 <div class={styles.warning}>
                   <span
                     class="iconify"
                     data-icon="carbon:warning"
                     style={{ color: 'var(--color-yellow)' }}
                   ></span>
-                  Following steps may fail if they depend on this step's output
+                  {t('stepRemoval.warning')}
                 </div>
               </div>
             </label>
@@ -88,10 +88,10 @@ export function StepRemovalDialog() {
         </div>
         <div class={styles.footer}>
           <button class="button button--secondary" onClick={() => close(false)}>
-            Cancel
+            {t('buttons.cancel', { ns: 'common' })}
           </button>
           <button class="button button--danger" onClick={() => close(true)}>
-            Remove
+            {t('buttons.remove', { ns: 'common' })}
           </button>
         </div>
       </div>

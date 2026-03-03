@@ -4,14 +4,19 @@
     "cancel": "Cancel",
     "close": "Close",
     "ok": "OK",
+    "yes": "Yes",
     "delete": "Delete",
+    "remove": "Remove",
     "rename": "Rename",
     "copy": "Copy",
     "export": "Export",
     "import": "Import",
     "about": "About",
     "help": "Help",
-    "settings": "Settings"
+    "settings": "Settings",
+    "continue": "Continue",
+    "undo": "Undo",
+    "redo": "Redo"
   },
   "labels": {
     "name": "Name",
@@ -19,12 +24,67 @@
     "column": "Column",
     "columns": "Columns",
     "rows": "Rows",
-    "value": "Value"
+    "value": "Value",
+    "steps": "Steps",
+    "json": "JSON",
+    "graph": "Graph"
   },
   "tooltips": {
     "about": "About Syto",
     "help": "Help & Reference",
     "graph": "View dependency graph between sources and models",
-    "settings": "Application Settings"
+    "settings": "Application Settings",
+    "upload": "Upload CSV file",
+    "paste": "Paste data from clipboard",
+    "url": "Import from URL",
+    "generate": "Generate synthetic data",
+    "editStep": "Edit this step",
+    "removeStep": "Remove this step",
+    "editJson": "Edit raw JSON (opens editor modal)",
+    "staleModel": "This model is outdated and will be recomputed when viewed"
+  },
+  "header": {
+    "tabs": {
+      "rows": "Rows",
+      "columns": "Columns",
+      "table": "Table"
+    }
+  },
+  "sidebar": {
+    "title": "Sources & Models",
+    "actions": {
+      "upload": "Upload",
+      "paste": "Paste",
+      "url": "URL",
+      "generate": "Generate"
+    },
+    "empty": "No data sources imported yet. Click \"Import CSV\" to get started.",
+    "steps": {
+      "step_one": "1 step",
+      "step_other": "{{count}} steps",
+      "viewingStep": "Viewing step {{current}} of {{total}}",
+      "viewFinalResult": "View final result",
+      "noStepsYet": "No transformation steps yet.",
+      "noStepsHelp": "No transformation steps yet. Use the toolbar above to transform your data.",
+      "editJson": "Edit JSON"
+    },
+    "emptyData": "Import a CSV file to begin transforming data."
+  },
+  "statusBar": {
+    "processing": "Processing..."
+  },
+  "dependencyDialog": {
+    "title": "Dependency Impact",
+    "message_one": "This change will affect <strong>{{count}}</strong> dependent model:",
+    "message_other": "This change will affect <strong>{{count}}</strong> dependent models:",
+    "question": "What would you like to do?",
+    "markStale": {
+      "title": "Mark as stale (recommended)",
+      "description": "Dependent models will update when you view them"
+    },
+    "recalculate": {
+      "title": "Recalculate now",
+      "description": "All dependent models will be recomputed immediately"
+    }
   }
 }

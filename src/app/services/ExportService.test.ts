@@ -142,7 +142,7 @@ describe('ExportService', () => {
 
       await ExportService.copyCSVToClipboard(getPaginatedData, alert);
 
-      expect(alert).toHaveBeenCalledWith('No data to copy on this page');
+      expect(alert).toHaveBeenCalledWith('No data to export');
     });
 
     it('writes CSV to clipboard', async () => {
@@ -184,7 +184,7 @@ describe('ExportService', () => {
 
       await ExportService.copyJSONToClipboard(getPaginatedData, alert);
 
-      expect(alert).toHaveBeenCalledWith('No data to copy on this page');
+      expect(alert).toHaveBeenCalledWith('No data to export');
     });
 
     it('writes JSON to clipboard', async () => {

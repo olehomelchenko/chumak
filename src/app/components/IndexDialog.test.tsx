@@ -3,7 +3,8 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/preact';
+import { screen, fireEvent } from '@testing-library/preact';
+import { renderWithI18n } from '../test-utils';
 import { IndexDialog } from './IndexDialog';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
@@ -19,14 +20,14 @@ describe('IndexDialog', () => {
   });
 
   it('renders with default values', () => {
-    render(<IndexDialog />);
+    renderWithI18n(<IndexDialog />);
 
     expect(screen.getByPlaceholderText('row_index')).toBeDefined();
     expect(screen.getByPlaceholderText('1')).toBeDefined();
   });
 
   it('updates column name when typed', () => {
-    render(<IndexDialog />);
+    renderWithI18n(<IndexDialog />);
 
     const input = screen.getByPlaceholderText('row_index') as HTMLInputElement;
     fireEvent.input(input, { target: { value: 'my_index' } });
@@ -35,7 +36,7 @@ describe('IndexDialog', () => {
   });
 
   it('updates start value when changed', () => {
-    render(<IndexDialog />);
+    renderWithI18n(<IndexDialog />);
 
     const input = screen.getByPlaceholderText('1') as HTMLInputElement;
     fireEvent.input(input, { target: { value: '10' } });
@@ -48,7 +49,7 @@ describe('IndexDialog', () => {
     AppStore.currentData.value = Array(50)
       .fill(null)
       .map((_, i) => ({ id: i }));
-    render(<IndexDialog />);
+    renderWithI18n(<IndexDialog />);
 
     // Preview should show "0 to 49" for 50 rows starting at 0
     expect(screen.getByText('49')).toBeDefined();
@@ -59,7 +60,7 @@ describe('IndexDialog', () => {
     AppStore.currentData.value = Array(10)
       .fill(null)
       .map((_, i) => ({ id: i }));
-    render(<IndexDialog />);
+    renderWithI18n(<IndexDialog />);
 
     expect(screen.getByText('my_col')).toBeDefined();
   });

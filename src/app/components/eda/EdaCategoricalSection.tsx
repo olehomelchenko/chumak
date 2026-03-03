@@ -1,4 +1,5 @@
 import { RefObject } from 'preact';
+import { useTranslation } from 'preact-i18next';
 import styles from '../EdaPanel.module.css';
 
 interface EdaCategoricalSectionProps {
@@ -15,9 +16,11 @@ interface EdaCategoricalSectionProps {
 }
 
 export function EdaCategoricalSection({ edaStats, categoricalBarRef }: EdaCategoricalSectionProps) {
+  const { t } = useTranslation('ui');
+
   return (
     <div class={`${styles.edaSection} ${styles['edaSection--wide']}`}>
-      <div class={styles.edaSection__title}>Frequency Distribution</div>
+      <div class={styles.edaSection__title}>{t('eda.categorical.title')}</div>
       <div class={styles.categoricalLayout}>
         <div ref={categoricalBarRef} style={{ flex: 1, minWidth: 0, minHeight: '80px' }}></div>
 
@@ -28,7 +31,7 @@ export function EdaCategoricalSection({ edaStats, categoricalBarRef }: EdaCatego
               key={item.value}
             >
               <div class={styles.edaFreqItem__label} title={item.value}>
-                {item.value || '(empty)'}
+                {item.value || t('eda.categorical.emptyValue')}
               </div>
               <div class={styles.edaFreqItem__barContainer}>
                 <div

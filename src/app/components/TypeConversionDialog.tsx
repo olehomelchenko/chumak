@@ -1,4 +1,5 @@
 import { useEffect } from 'preact/hooks';
+import { useTranslation } from 'preact-i18next';
 import { DialogStore } from '../stores/DialogStore';
 import { previewTypeConversion } from '../handlers/core/interaction-handlers';
 import {
@@ -16,6 +17,7 @@ interface TypeConversionDialogProps {
 }
 
 export function TypeConversionDialog({ onCancel, onApply }: TypeConversionDialogProps) {
+  const { t } = useTranslation('dialogs');
   const column = DialogStore.typeConversionState.column.value;
   const targetType = DialogStore.typeConversionState.targetType.value;
   const previewTitle = DialogStore.previewState.title.value;
@@ -40,7 +42,7 @@ export function TypeConversionDialog({ onCancel, onApply }: TypeConversionDialog
         style={{ width: '800px', maxWidth: '90vw' }}
       >
         <div class={styles.centeredModalHeader}>
-          <h3>{previewTitle || 'Type Conversion Preview'}</h3>
+          <h3>{previewTitle || t('typeConversion.title')}</h3>
           <button onClick={onCancel} class={styles.closeButton}>
             ×
           </button>
@@ -106,16 +108,16 @@ export function TypeConversionDialog({ onCancel, onApply }: TypeConversionDialog
             </div>
           ) : (
             <div style={{ padding: '24px', textAlign: 'center', color: 'var(--color-dark-gray)' }}>
-              No preview available
+              {t('typeConversion.noPreview')}
             </div>
           )}
         </div>
         <div class={styles.centeredModalFooter}>
           <button class="button button--secondary" onClick={onCancel}>
-            Cancel
+            {t('common.buttons.cancel')}
           </button>
           <button class="button button--primary" onClick={onApply} disabled={!hasPreview}>
-            Apply
+            {t('common.buttons.apply')}
           </button>
         </div>
       </div>

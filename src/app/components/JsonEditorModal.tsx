@@ -1,4 +1,5 @@
 import { useEffect, useCallback, useMemo } from 'preact/hooks';
+import { useTranslation } from 'preact-i18next';
 import { EditorView } from '@codemirror/view';
 import { AppStore } from '../stores/AppStore';
 import { CodeMirrorEditor } from './CodeMirrorEditor';
@@ -12,6 +13,7 @@ export interface JsonEditorModalProps {
 }
 
 export function JsonEditorModal({ onCancel, onApply }: JsonEditorModalProps) {
+  const { t } = useTranslation('ui');
   const jsonEditMode = AppStore.jsonEditMode.value;
   const jsonEditContent = AppStore.jsonEditContent.value;
   const jsonEditError = AppStore.jsonEditError.value;
@@ -73,17 +75,15 @@ export function JsonEditorModal({ onCancel, onApply }: JsonEditorModalProps) {
         onClick={handleDialogClick}
       >
         <div class={appStyles.centeredModalHeader}>
-          <h3>Edit Transform Pipeline (JSON)</h3>
-          <button onClick={onCancel} aria-label="Close">
+          <h3>{t('jsonEditor.title')}</h3>
+          <button onClick={onCancel} aria-label={t('jsonEditor.close')}>
             &times;
           </button>
         </div>
 
         <div class={styles.warningBanner}>
           <span>&#9888;</span>
-          <span>
-            Direct JSON editing bypasses validation. Invalid changes may break your pipeline.
-          </span>
+          <span>{t('jsonEditor.warning')}</span>
         </div>
 
         <div class={styles.editorContainer}>
@@ -100,10 +100,10 @@ export function JsonEditorModal({ onCancel, onApply }: JsonEditorModalProps) {
 
         <div class={appStyles.centeredModalFooter}>
           <button class="button button--secondary" onClick={onCancel}>
-            Cancel
+            {t('buttons.cancel', { ns: 'common' })}
           </button>
           <button class="button button--danger" onClick={onApply} disabled={!!jsonEditError}>
-            Apply Changes
+            {t('jsonEditor.applyChanges')}
           </button>
         </div>
       </div>

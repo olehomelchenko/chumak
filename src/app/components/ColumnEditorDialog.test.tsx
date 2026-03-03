@@ -1,5 +1,6 @@
-import { render, screen, fireEvent } from '@testing-library/preact';
+import { screen, fireEvent } from '@testing-library/preact';
 import { describe, it, expect, beforeEach } from 'vitest';
+import { renderWithI18n } from '../test-utils';
 import { ColumnEditorDialog } from './ColumnEditorDialog';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
@@ -23,7 +24,7 @@ describe('ColumnEditorDialog', () => {
   });
 
   it('renders list mode correctly', () => {
-    render(<ColumnEditorDialog />);
+    renderWithI18n(<ColumnEditorDialog />);
 
     expect(screen.getByText('List Mode')).toBeDefined();
     expect(screen.getByText('col1')).toBeDefined();
@@ -33,14 +34,14 @@ describe('ColumnEditorDialog', () => {
 
   it('renders text mode correctly', () => {
     DialogStore.columnEditorState.mode.value = 'text';
-    render(<ColumnEditorDialog />);
+    renderWithI18n(<ColumnEditorDialog />);
 
     expect(screen.getByText('Text Mode Operation:')).toBeDefined();
     expect(screen.getByRole('textbox')).toBeDefined();
   });
 
   it('handles item selection toggling', () => {
-    render(<ColumnEditorDialog />);
+    renderWithI18n(<ColumnEditorDialog />);
 
     const buttons = screen.getAllByText('✓');
     fireEvent.click(buttons[0]); // Toggle first item
@@ -49,7 +50,7 @@ describe('ColumnEditorDialog', () => {
   });
 
   it('handles item renaming', () => {
-    render(<ColumnEditorDialog />);
+    renderWithI18n(<ColumnEditorDialog />);
 
     const inputs = screen.getAllByDisplayValue(/col/);
     // index 0 is already 'col1'
@@ -67,7 +68,7 @@ describe('ColumnEditorDialog', () => {
     // Reorder by switching the order in columns
     AppStore.columns.value = ['col1', 'col2'];
 
-    render(<ColumnEditorDialog />);
+    renderWithI18n(<ColumnEditorDialog />);
 
     await screen.findByText('Changes Preview:');
     expect(screen.getAllByText(/col1/).length).toBeGreaterThan(0);
@@ -75,7 +76,7 @@ describe('ColumnEditorDialog', () => {
   });
 
   it('switches to text mode', () => {
-    render(<ColumnEditorDialog />);
+    renderWithI18n(<ColumnEditorDialog />);
 
     fireEvent.click(screen.getByText('Text Mode'));
     expect(DialogStore.columnEditorState.mode.value).toBe('text');

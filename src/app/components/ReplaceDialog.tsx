@@ -1,9 +1,11 @@
+import { useTranslation } from 'preact-i18next';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 import { ColumnSelector } from './column-selector';
 import styles from './TransformDialog.module.css';
 
 export function ReplaceDialog() {
+  const { t } = useTranslation('dialogs');
   const { column, findValue, replaceValue, isRegex } = DialogStore.replaceState;
   const columns = AppStore.columns.value;
   return (
@@ -15,18 +17,22 @@ export function ReplaceDialog() {
           onSelectionChange={(col) => (column.value = col as string)}
           mode="single"
           display="chip"
-          label="Column:"
+          label={t('replace.columnLabel')}
         />
       </div>
 
       <div class={styles.group}>
-        <label class={styles.label}>Find {isRegex.value ? 'pattern' : 'value'}:</label>
+        <label class={styles.label}>
+          {isRegex.value ? t('replace.findPattern') : t('replace.findValue')}
+        </label>
         <input
           type="text"
           class={styles.input}
           value={findValue.value}
           onInput={(e) => (findValue.value = (e.target as HTMLInputElement).value)}
-          placeholder={isRegex.value ? 'Regular expression pattern' : 'Value to replace'}
+          placeholder={
+            isRegex.value ? t('replace.patternPlaceholder') : t('replace.valuePlaceholder')
+          }
         />
         <div style={{ marginTop: '8px' }}>
           <label class={styles.checkboxLabel}>
@@ -35,21 +41,16 @@ export function ReplaceDialog() {
               checked={isRegex.value}
               onChange={(e) => (isRegex.value = (e.target as HTMLInputElement).checked)}
             />
-            <span style={{ fontSize: '13px' }}>
-              Use regex pattern (e.g., <code>\d+</code> for numbers, <code>(?i)hello</code> for
-              case-insensitive)
-            </span>
+            <span style={{ fontSize: '13px' }}>{t('replace.useRegex')}</span>
           </label>
         </div>
         <p class={styles.helpText}>
-          {isRegex.value
-            ? 'Regular expression pattern to match (automatically applies globally)'
-            : 'The exact value to find and replace'}
+          {isRegex.value ? t('replace.regexHelp') : t('replace.valueHelp')}
         </p>
       </div>
 
       <div class={styles.group}>
-        <label class={styles.label}>Replace with:</label>
+        <label class={styles.label}>{t('replace.replaceWith')}</label>
         <input
           type="text"
           class={styles.input}
@@ -57,23 +58,16 @@ export function ReplaceDialog() {
           onInput={(e) => (replaceValue.value = (e.target as HTMLInputElement).value)}
           placeholder={
             isRegex.value
-              ? 'Replacement (supports $1, $2 for groups)'
-              : 'New value (leave empty for null)'
+              ? t('replace.replacementPlaceholderRegex')
+              : t('replace.replacementPlaceholder')
           }
         />
         <p class={styles.helpText}>
-          {isRegex.value
-            ? 'Replacement string (use $1, $2, etc. for capture groups)'
-            : 'New value to use (leave empty to replace with null)'}
+          {isRegex.value ? t('replace.replacementHelpRegex') : t('replace.replacementHelp')}
         </p>
       </div>
 
-      {isRegex.value && (
-        <p class={styles.helpText}>
-          Tip: If you're cleaning numeric data (e.g., removing $ or ,), follow this with a Type
-          Conversion step to convert the column to a number.
-        </p>
-      )}
+      {isRegex.value && <p class={styles.helpText}>{t('replace.numericTip')}</p>}
     </div>
   );
 }

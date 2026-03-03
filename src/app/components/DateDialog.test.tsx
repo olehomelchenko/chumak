@@ -3,7 +3,8 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/preact';
+import { screen, fireEvent } from '@testing-library/preact';
+import { renderWithI18n } from '../test-utils';
 import { DateDialog } from './DateDialog';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
@@ -29,7 +30,7 @@ describe('DateDialog', () => {
   });
 
   it('renders with column selection if columns exist', () => {
-    render(<DateDialog />);
+    renderWithI18n(<DateDialog />);
 
     expect(screen.getByText('Order Date')).toBeDefined();
     expect(screen.getByText('Ship Date')).toBeDefined();
@@ -37,7 +38,7 @@ describe('DateDialog', () => {
 
   it('shows operation options when column selected', () => {
     DialogStore.dateState.column.value = 'Order Date';
-    render(<DateDialog />);
+    renderWithI18n(<DateDialog />);
 
     expect(screen.getByText('Operation:')).toBeDefined();
     expect(screen.getByText('Extract Part')).toBeDefined();
@@ -45,7 +46,7 @@ describe('DateDialog', () => {
 
   it('toggles operation mode', () => {
     DialogStore.dateState.column.value = 'Order Date';
-    render(<DateDialog />);
+    renderWithI18n(<DateDialog />);
 
     const truncateButton = screen.getByText('Truncate');
     fireEvent.click(truncateButton);
@@ -55,7 +56,7 @@ describe('DateDialog', () => {
   it('handles multi-selection with Meta key', () => {
     DialogStore.dateState.column.value = 'Order Date';
     DialogStore.dateState.extractParts.value = ['year'];
-    render(<DateDialog />);
+    renderWithI18n(<DateDialog />);
 
     // Initial state: year selected
     expect(DialogStore.dateState.extractParts.value).toEqual(['year']);
@@ -77,10 +78,10 @@ describe('DateDialog', () => {
   it('handles single selection without Meta key', () => {
     DialogStore.dateState.column.value = 'Order Date';
     DialogStore.dateState.extractParts.value = ['year', 'month'];
-    render(<DateDialog />);
+    renderWithI18n(<DateDialog />);
 
     // Find the Day row and get the button (the checkbox button is a sibling of the span containing "Day")
-    const dayRow = screen.getByText('Day').closest('tr');
+    const dayRow = screen.getByText('Day of Month').closest('tr');
     const dayButton = dayRow?.querySelector('button');
     expect(dayButton).toBeDefined();
 
@@ -96,7 +97,7 @@ describe('DateDialog', () => {
   it('displays correct preview for single extract', () => {
     DialogStore.dateState.column.value = 'Order Date';
     DialogStore.dateState.extractParts.value = ['year'];
-    render(<DateDialog />);
+    renderWithI18n(<DateDialog />);
 
     // The preview should show the output column name in the table
     // Output column name format: ${column}_${part} = 'Order Date_year'

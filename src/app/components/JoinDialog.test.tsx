@@ -1,4 +1,5 @@
-import { render, screen, fireEvent } from '@testing-library/preact';
+import { screen, fireEvent } from '@testing-library/preact';
+import { renderWithI18n } from '../test-utils';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { JoinDialog, JoinTarget } from './JoinDialog';
 import { DialogStore } from '../stores/DialogStore';
@@ -37,7 +38,7 @@ describe('JoinDialog', () => {
   });
 
   it('renders correctly with initial state', () => {
-    render(<JoinDialog />);
+    renderWithI18n(<JoinDialog />);
 
     expect(screen.getByText('Left Table')).toBeDefined();
     expect(screen.getByText('Right Table')).toBeDefined();
@@ -67,7 +68,7 @@ describe('JoinDialog', () => {
       { id: 'm1', name: 'Sales', sourceId: 's1', steps: [], schema: [], data: [], __v: 1 },
     ];
 
-    render(<JoinDialog />);
+    renderWithI18n(<JoinDialog />);
 
     // The tree selector will be rendered, but we can't easily test clicking on it
     // without more complex setup. For now, we'll test that the component renders.
@@ -75,7 +76,7 @@ describe('JoinDialog', () => {
   });
 
   it('updates join type', () => {
-    render(<JoinDialog />);
+    renderWithI18n(<JoinDialog />);
 
     fireEvent.click(screen.getByLabelText('Inner'));
     expect(DialogStore.joinState.joinType.value).toBe('inner');
@@ -84,13 +85,13 @@ describe('JoinDialog', () => {
   it('hides match keys for cross join', () => {
     DialogStore.joinState.joinType.value = 'cross';
 
-    render(<JoinDialog />);
+    renderWithI18n(<JoinDialog />);
 
     expect(screen.queryByText('Join Keys')).toBeNull();
   });
 
   it('adds and removes key pairs', () => {
-    render(<JoinDialog />);
+    renderWithI18n(<JoinDialog />);
 
     // Initial state: 1 pair
     const addBtn = screen.getByText('+ Add Key Pair');
@@ -106,7 +107,7 @@ describe('JoinDialog', () => {
     DialogStore.joinState.leftColumns.value = leftColumns;
     DialogStore.joinState.rightColumns.value = rightColumns;
 
-    render(<JoinDialog />);
+    renderWithI18n(<JoinDialog />);
 
     const selects = screen.getAllByRole('combobox');
     // Key pair selects are the first two comboboxes (left and right column selects)
@@ -123,7 +124,7 @@ describe('JoinDialog', () => {
   it('shows preview button when target is selected', () => {
     DialogStore.joinState.rightModel.value = 'm1';
 
-    render(<JoinDialog />);
+    renderWithI18n(<JoinDialog />);
 
     expect(screen.getByText('Preview Join')).toBeDefined();
   });

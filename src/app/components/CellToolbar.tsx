@@ -1,3 +1,4 @@
+import { useTranslation } from 'preact-i18next';
 import { AppStore } from '../stores/AppStore';
 import styles from './FloatingToolbar.module.css';
 
@@ -7,6 +8,7 @@ interface CellToolbarProps {
 }
 
 export function CellToolbar({ onFilter, onReplace }: CellToolbarProps) {
+  const { t } = useTranslation('ui');
   const selectedCell = AppStore.selectedCell.value;
   const pos = AppStore.cellToolbarPos.value;
 
@@ -35,28 +37,28 @@ export function CellToolbar({ onFilter, onReplace }: CellToolbarProps) {
           <button
             class={styles.floatingToolbar__button}
             onClick={() => onFilter('gt')}
-            title="Keep values greater than (>)"
+            title={t('toolbars.cell.filterGt')}
           >
             <span class={styles.floatingToolbar__textOp}>&gt;</span>
           </button>
           <button
             class={styles.floatingToolbar__button}
             onClick={() => onFilter('gte')}
-            title="Keep values greater than or equal (≥)"
+            title={t('toolbars.cell.filterGte')}
           >
             <span class={styles.floatingToolbar__textOp}>&ge;</span>
           </button>
           <button
             class={styles.floatingToolbar__button}
             onClick={() => onFilter('lt')}
-            title="Keep values less than (<)"
+            title={t('toolbars.cell.filterLt')}
           >
             <span class={styles.floatingToolbar__textOp}>&lt;</span>
           </button>
           <button
             class={styles.floatingToolbar__button}
             onClick={() => onFilter('lte')}
-            title="Keep values less than or equal (≤)"
+            title={t('toolbars.cell.filterLte')}
           >
             <span class={styles.floatingToolbar__textOp}>&le;</span>
           </button>
@@ -66,6 +68,8 @@ export function CellToolbar({ onFilter, onReplace }: CellToolbarProps) {
   }
 
   // Regular cell toolbar (non-EDA)
+  const isDateType = type.includes('date');
+
   return (
     <div
       class={styles.floatingToolbar}
@@ -81,7 +85,7 @@ export function CellToolbar({ onFilter, onReplace }: CellToolbarProps) {
       <button
         class={styles.floatingToolbar__button}
         onClick={() => onFilter('exact')}
-        title={isComparable ? 'Keep only this value (=)' : 'Keep only this value'}
+        title={isComparable ? t('toolbars.cell.filterExact') : t('toolbars.cell.filterExactSimple')}
       >
         <span class="iconify" data-icon="carbon:filter" style="width: 24px; height: 24px;"></span>
         {isComparable && <span class={styles.floatingToolbar__operatorLabel}>=</span>}
@@ -90,7 +94,7 @@ export function CellToolbar({ onFilter, onReplace }: CellToolbarProps) {
       <button
         class={`${styles.floatingToolbar__button} ${styles.danger}`}
         onClick={() => onFilter('not')}
-        title={isComparable ? 'Exclude this value (≠)' : 'Exclude this value'}
+        title={isComparable ? t('toolbars.cell.filterNot') : t('toolbars.cell.filterNotSimple')}
       >
         <span
           class="iconify"
@@ -101,7 +105,11 @@ export function CellToolbar({ onFilter, onReplace }: CellToolbarProps) {
 
       <div class={styles.floatingToolbar__divider}></div>
 
-      <button class={styles.floatingToolbar__button} onClick={onReplace} title="Replace this value">
+      <button
+        class={styles.floatingToolbar__button}
+        onClick={onReplace}
+        title={t('toolbars.cell.replace')}
+      >
         <span class="iconify" data-icon="codicon:replace" style="width: 24px; height: 24px;"></span>
       </button>
 
@@ -111,40 +119,28 @@ export function CellToolbar({ onFilter, onReplace }: CellToolbarProps) {
           <button
             class={styles.floatingToolbar__button}
             onClick={() => onFilter('gt')}
-            title={
-              type.includes('date') ? 'Keep values after this date' : 'Keep values greater than (>)'
-            }
+            title={isDateType ? t('toolbars.cell.filterGtDate') : t('toolbars.cell.filterGt')}
           >
             <span class={styles.floatingToolbar__textOp}>&gt;</span>
           </button>
           <button
             class={styles.floatingToolbar__button}
             onClick={() => onFilter('gte')}
-            title={
-              type.includes('date')
-                ? 'Keep values on or after this date'
-                : 'Keep values greater than or equal (≥)'
-            }
+            title={isDateType ? t('toolbars.cell.filterGteDate') : t('toolbars.cell.filterGte')}
           >
             <span class={styles.floatingToolbar__textOp}>&ge;</span>
           </button>
           <button
             class={styles.floatingToolbar__button}
             onClick={() => onFilter('lt')}
-            title={
-              type.includes('date') ? 'Keep values before this date' : 'Keep values less than (<)'
-            }
+            title={isDateType ? t('toolbars.cell.filterLtDate') : t('toolbars.cell.filterLt')}
           >
             <span class={styles.floatingToolbar__textOp}>&lt;</span>
           </button>
           <button
             class={styles.floatingToolbar__button}
             onClick={() => onFilter('lte')}
-            title={
-              type.includes('date')
-                ? 'Keep values on or before this date'
-                : 'Keep values less than or equal (≤)'
-            }
+            title={isDateType ? t('toolbars.cell.filterLteDate') : t('toolbars.cell.filterLte')}
           >
             <span class={styles.floatingToolbar__textOp}>&le;</span>
           </button>

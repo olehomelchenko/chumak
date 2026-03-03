@@ -1,34 +1,36 @@
+import { useTranslation } from 'preact-i18next';
 import { DialogStore } from '../stores/DialogStore';
 import styles from './TransformDialog.module.css';
 
 export function RenamePatternDialog() {
+  const { t } = useTranslation('dialogs');
   const { find, replace: replaceValue, regex, error } = DialogStore.renamePatternState;
 
   return (
     <div>
       <p class={styles.helpText} style={{ marginBottom: '1rem' }}>
-        Rename multiple columns by pattern. Useful for bulk renaming operations.
+        {t('pattern.rename.help')}
       </p>
 
       <div class={styles.group}>
-        <label class={styles.label}>Find pattern:</label>
+        <label class={styles.label}>{t('pattern.rename.findLabel')}</label>
         <input
           type="text"
           class={styles.input}
           value={find.value}
           onInput={(e) => (find.value = (e.target as HTMLInputElement).value)}
-          placeholder="e.g., _old$"
+          placeholder={t('pattern.rename.findPlaceholder')}
         />
       </div>
 
       <div class={styles.group}>
-        <label class={styles.label}>Replace with:</label>
+        <label class={styles.label}>{t('pattern.rename.replaceLabel')}</label>
         <input
           type="text"
           class={styles.input}
           value={replaceValue.value}
           onInput={(e) => (replaceValue.value = (e.target as HTMLInputElement).value)}
-          placeholder="e.g., _new"
+          placeholder={t('pattern.rename.replacePlaceholder')}
         />
       </div>
 
@@ -39,12 +41,10 @@ export function RenamePatternDialog() {
             checked={regex.value}
             onChange={(e) => (regex.value = (e.target as HTMLInputElement).checked)}
           />
-          <span>Use regex pattern</span>
+          <span>{t('pattern.rename.useRegex')}</span>
         </label>
         <p class={styles.helpText}>
-          {regex.value
-            ? 'Pattern is a regular expression (e.g., ^prefix_ or _suffix$)'
-            : 'Pattern is plain text (exact match)'}
+          {regex.value ? t('pattern.rename.regexHelpOn') : t('pattern.rename.regexHelpOff')}
         </p>
       </div>
 

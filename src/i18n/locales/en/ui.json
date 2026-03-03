@@ -1,0 +1,517 @@
+{
+  "ribbon": {
+    "groups": {
+      "filterSort": "Filter & Sort",
+      "manage": "Manage",
+      "newColumns": "New Columns",
+      "transformValues": "Transform Values",
+      "types": "Types",
+      "summarize": "Summarize",
+      "reshape": "Reshape",
+      "combine": "Combine"
+    },
+    "buttons": {
+      "filter": {
+        "label": "Filter",
+        "title": "Filter rows"
+      },
+      "sort": {
+        "label": "Sort",
+        "title": "Sort rows"
+      },
+      "duplicates": {
+        "label": "Duplicates",
+        "title": "Handle duplicate rows"
+      },
+      "sliceRows": {
+        "label": "Slice Rows",
+        "title": "Keep or remove top/bottom N rows"
+      },
+      "sample": {
+        "label": "Sample",
+        "title": "Randomly sample rows (with optional seed)"
+      },
+      "editColumns": {
+        "label": "Edit Columns",
+        "title": "Select, rename, remove, reorder columns, and apply pattern operations"
+      },
+      "split": {
+        "label": "Split",
+        "title": "Split column by delimiter"
+      },
+      "merge": {
+        "label": "Merge",
+        "title": "Merge/concatenate multiple columns into one"
+      },
+      "more": "More",
+      "derive": {
+        "label": "Derive",
+        "title": "Create new column from expression"
+      },
+      "conditional": {
+        "label": "Conditional",
+        "title": "Create column based on multiple conditions"
+      },
+      "match": {
+        "label": "Match",
+        "title": "Create boolean column from regex match"
+      },
+      "extract": {
+        "label": "Extract",
+        "title": "Extract text using regex pattern"
+      },
+      "index": {
+        "label": "Index",
+        "title": "Add index/row number column"
+      },
+      "text": "Text",
+      "date": "Date",
+      "number": "Number",
+      "convert": "Convert",
+      "replace": {
+        "label": "Replace",
+        "title": "Replace values in a column"
+      },
+      "impute": {
+        "label": "Impute",
+        "title": "Fill missing values (null, undefined, NaN)"
+      },
+      "autoDetect": {
+        "label": "Auto-Detect",
+        "title": "Re-run type detection for all columns"
+      },
+      "groupBy": {
+        "label": "Group By",
+        "title": "Group rows and calculate aggregates"
+      },
+      "window": {
+        "label": "Window",
+        "title": "Window functions (lag, lead, rank, row_number)"
+      },
+      "pivot": {
+        "label": "Pivot",
+        "title": "Pivot - create columns from values (long to wide)"
+      },
+      "unpivot": {
+        "label": "Unpivot",
+        "title": "Unpivot - convert columns to key-value pairs"
+      },
+      "join": {
+        "label": "Join",
+        "title": "Join with another model or dataset"
+      },
+      "append": {
+        "label": "Append",
+        "title": "Stack rows from another model/source (Concat or Union)"
+      }
+    },
+    "popovers": {
+      "text": {
+        "sections": {
+          "case": "Case",
+          "clean": "Clean",
+          "info": "Info"
+        },
+        "shortcuts": {
+          "upper": {
+            "label": "UPPER",
+            "title": "Convert to uppercase"
+          },
+          "lower": {
+            "label": "lower",
+            "title": "Convert to lowercase"
+          },
+          "title": {
+            "label": "Title",
+            "title": "Capitalize first letter of each word"
+          },
+          "trim": {
+            "label": "Trim",
+            "title": "Remove leading/trailing whitespace"
+          },
+          "len": {
+            "label": "Len",
+            "title": "Get string length (creates new column)"
+          }
+        },
+        "links": {
+          "split": "Split...",
+          "replace": "Replace...",
+          "extractRegex": "Extract (regex)...",
+          "textOperations": "Text Operations..."
+        },
+        "noColumn": "Select a column first",
+        "requiresText": "Requires a text column"
+      },
+      "date": {
+        "sections": {
+          "extractPart": "Extract Part",
+          "truncateTo": "Truncate To"
+        },
+        "shortcuts": {
+          "year": {
+            "label": "Year",
+            "title": "Extract year"
+          },
+          "month": {
+            "label": "Month",
+            "title": "Extract month (1-12)"
+          },
+          "day": {
+            "label": "Day",
+            "title": "Extract day of month"
+          },
+          "quarter": {
+            "label": "Quarter",
+            "title": "Extract quarter (1-4)"
+          },
+          "weekday": {
+            "label": "Weekday",
+            "title": "Extract day of week (0=Mon, 6=Sun)"
+          },
+          "week": {
+            "label": "Week",
+            "title": "Extract ISO week number"
+          },
+          "truncYear": {
+            "label": "→Year",
+            "title": "Truncate to start of year"
+          },
+          "truncMonth": {
+            "label": "→Month",
+            "title": "Truncate to start of month"
+          },
+          "truncWeek": {
+            "label": "→Week",
+            "title": "Truncate to start of week"
+          },
+          "truncDay": {
+            "label": "→Day",
+            "title": "Truncate to start of day"
+          }
+        },
+        "links": {
+          "dateOperations": "Date Operations...",
+          "parseDate": "Parse Date..."
+        },
+        "noColumn": "Select a column first",
+        "requiresDate": "Requires a date column"
+      },
+      "number": {
+        "sections": {
+          "rounding": "Rounding",
+          "other": "Other"
+        },
+        "shortcuts": {
+          "round": {
+            "label": "Round",
+            "title": "Round to nearest integer"
+          },
+          "floor": {
+            "label": "Floor",
+            "title": "Round down"
+          },
+          "ceil": {
+            "label": "Ceil",
+            "title": "Round up"
+          },
+          "trunc": {
+            "label": "Trunc",
+            "title": "Remove decimal portion"
+          },
+          "abs": {
+            "label": "Abs",
+            "title": "Absolute value"
+          },
+          "sign": {
+            "label": "Sign",
+            "title": "Sign (-1, 0, or 1) — creates new column"
+          }
+        },
+        "links": {
+          "deriveExpression": "Derive Expression..."
+        },
+        "noColumn": "Select a column first",
+        "requiresNumeric": "Requires a numeric column"
+      },
+      "convert": {
+        "section": "Convert To",
+        "shortcuts": {
+          "toText": {
+            "label": "→ Text",
+            "title": "Convert to text",
+            "alreadyText": "Column is already text"
+          },
+          "toNumber": {
+            "label": "→ Number",
+            "title": "Convert to number (float)",
+            "alreadyNumber": "Column is already a number"
+          },
+          "toInteger": {
+            "label": "→ Integer",
+            "title": "Convert to integer",
+            "alreadyInteger": "Column is already integer"
+          },
+          "toDate": {
+            "label": "→ Date",
+            "title": "Convert to date",
+            "alreadyDate": "Column is already a date"
+          }
+        },
+        "noColumn": "Select a column first"
+      },
+      "more": {
+        "spread": "Spread (arrays → columns)",
+        "unroll": "Unroll (arrays → rows)"
+      }
+    }
+  },
+  "pagination": {
+    "modelInfo": {
+      "button": "Model Info",
+      "title": "Model Info"
+    },
+    "rename": {
+      "button": "Rename",
+      "title": "Rename model"
+    },
+    "copy": {
+      "button": "Copy",
+      "title": "Copy model"
+    },
+    "new": {
+      "button": "New",
+      "title": "New model from same source"
+    },
+    "delete": {
+      "button": "Delete",
+      "title": "Delete model"
+    },
+    "download": {
+      "title": "Download options (CSV, JSON, Workflow)"
+    },
+    "copyCSV": {
+      "title": "Copy current page to clipboard (CSV)"
+    },
+    "copyJSON": {
+      "title": "Copy current page to clipboard (JSON)"
+    },
+    "firstPage": "First page",
+    "prevPage": "Previous page",
+    "nextPage": "Next page",
+    "lastPage": "Last page",
+    "pageIndicator": "Page <strong>{{currentPage}}</strong> of <strong>{{totalPages}}</strong>",
+    "rowsLabel": "Rows:"
+  },
+  "modelInfo": {
+    "subtitle": "Model",
+    "rename": "Rename",
+    "delete": "Delete",
+    "heading": "Model Information",
+    "labels": {
+      "modelName": "Model Name",
+      "source": "Source",
+      "rows": "Rows",
+      "columns": "Columns",
+      "steps": "Steps"
+    },
+    "unknown": "Unknown",
+    "staleStatus": "⚠️ Stale",
+    "staleTitle": "This model is outdated",
+    "transformationSteps": "{{count}} transformation step",
+    "transformationSteps_other": "{{count}} transformation steps",
+    "commentHeading": "Comment",
+    "commentPlaceholder": "Add a comment about this model...",
+    "save": "Save",
+    "cancel": "Cancel",
+    "noComment": "No comment added yet.",
+    "editComment": "Edit Comment",
+    "addComment": "Add Comment",
+    "schemaHeading": "Column Schema",
+    "schemaSubtitle": "Data Types",
+    "schemaTitle": "Logical types for data wrangling (after inference and transforms)",
+    "tableHeaders": {
+      "column": "Column",
+      "position": "Position"
+    }
+  },
+  "toolbars": {
+    "column": {
+      "multiLabel": "{{count}} columns",
+      "multiRemoveTitle": "Remove {{count}} columns",
+      "ariaLabel": "Column actions",
+      "ariaLabelMulti": "Multi-column actions",
+      "sortAsc": "Sort Ascending",
+      "sortDesc": "Sort Descending",
+      "filter": "Filter by this column",
+      "rename": "Rename this column",
+      "split": "Split this column",
+      "date": "Date transformation",
+      "dedupe": "Dedupe by this column",
+      "impute": "Impute missing values",
+      "remove": "Remove this column"
+    },
+    "row": {
+      "ariaLabel": "Row actions",
+      "label": "{{count}} row",
+      "label_other": "{{count}} rows",
+      "keepTitle": "Keep only {{count}} selected row",
+      "keepTitle_other": "Keep only {{count}} selected rows",
+      "removeTitle": "Remove {{count}} selected row",
+      "removeTitle_other": "Remove {{count}} selected rows",
+      "extractTitle": "Extract {{count}} row to new model",
+      "extractTitle_other": "Extract {{count}} rows to new model"
+    },
+    "cell": {
+      "filterExact": "Keep only this value (=)",
+      "filterExactSimple": "Keep only this value",
+      "filterNot": "Exclude this value (≠)",
+      "filterNotSimple": "Exclude this value",
+      "replace": "Replace this value",
+      "filterGt": "Keep values greater than (>)",
+      "filterGte": "Keep values greater than or equal (≥)",
+      "filterLt": "Keep values less than (<)",
+      "filterLte": "Keep values less than or equal (≤)",
+      "filterGtDate": "Keep values after this date",
+      "filterGteDate": "Keep values on or after this date",
+      "filterLtDate": "Keep values before this date",
+      "filterLteDate": "Keep values on or before this date"
+    }
+  },
+  "emptyState": {
+    "title": "Get Started with Syto",
+    "subtitle": "Drag and drop a CSV file here, or use one of the options below",
+    "uploadButton": "Upload CSV",
+    "pasteButton": "Paste Data",
+    "urlButton": "Import from URL",
+    "exampleButton": "Load Example"
+  },
+  "toast": {
+    "dismiss": "Dismiss"
+  },
+  "eda": {
+    "dateTreatment": {
+      "temporal": "Temporal",
+      "categorical": "Categorical"
+    },
+    "overview": {
+      "title": "Overview",
+      "totalRows": "Total Rows",
+      "missing": "Missing",
+      "missingTooltip": "{{percent}}% missing",
+      "uniqueValues": "Unique Values",
+      "errors": "Errors",
+      "errorsTooltip": "{{percent}}% errors"
+    },
+    "numeric": {
+      "title": "Distribution & Outliers",
+      "charts": {
+        "boxplot": "Box Plot",
+        "histogram": "Histogram"
+      },
+      "keepSelection": "Keep Only Selection",
+      "stats": {
+        "min": "Min",
+        "meanMinus3Sigma": "Mean - 3σ",
+        "meanMinus3SigmaLabel": "μ-3σ",
+        "p25": "P25",
+        "p25Label": "25%",
+        "median": "Median",
+        "p75": "P75",
+        "p75Label": "75%",
+        "meanPlus3Sigma": "Mean + 3σ",
+        "meanPlus3SigmaLabel": "μ+3σ",
+        "max": "Max",
+        "mean": "Mean"
+      }
+    },
+    "temporal": {
+      "title": "Timeline Distribution"
+    },
+    "categorical": {
+      "title": "Frequency Distribution",
+      "emptyValue": "(empty)"
+    }
+  },
+  "typeMenu": {
+    "title": "Change Type",
+    "types": {
+      "string": "String",
+      "integer": "Integer",
+      "float": "Float",
+      "boolean": "Boolean",
+      "date": "Date",
+      "datetime": "DateTime",
+      "json": "JSON",
+      "auto": "Auto-Detect"
+    }
+  },
+  "stepRemoval": {
+    "title": "Remove Step",
+    "message": "Remove step \"{{stepName}}\"?",
+    "modes": {
+      "all": "Remove this step and all following steps",
+      "single": "Remove only this step"
+    },
+    "willRemove": "Will also remove:",
+    "warning": "Following steps may fail if they depend on this step's output"
+  },
+  "datasetInfo": {
+    "subtitle": "Dataset Source",
+    "actions": {
+      "replace": "Replace Data",
+      "restore": "Restore Backup",
+      "rename": "Rename",
+      "delete": "Delete"
+    },
+    "title": "Dataset Information",
+    "labels": {
+      "sourceName": "Source Name",
+      "originalFile": "Original File",
+      "imported": "Imported",
+      "rows": "Rows",
+      "columns": "Columns",
+      "modified": "Last Modified",
+      "comment": "Comment",
+      "fileSize": "File Size"
+    },
+    "commentPlaceholder": "Add a description or notes about this dataset...",
+    "commentEdit": "Edit",
+    "commentSave": "Save",
+    "commentCancel": "Cancel",
+    "noComment": "No comment added yet.",
+    "commentAdd": "Add Comment",
+    "commentEditButton": "Edit Comment",
+    "models": {
+      "title": "Models",
+      "subtitle": "Models created from this source",
+      "create": "New Model",
+      "viewSteps": "View {{count}} steps",
+      "viewSteps_one": "{{count}} step",
+      "viewSteps_other": "{{count}} steps",
+      "rows_one": "{{count}} row",
+      "rows_other": "{{count}} rows",
+      "switch": "Switch to this model",
+      "staleTooltip": "This model is outdated"
+    },
+    "schema": {
+      "title": "Column Schema",
+      "subtitle": "Import Types",
+      "subtitleTooltip": "Types as imported by the parser (before inference)",
+      "name": "Name",
+      "type": "Type",
+      "missing": "Missing",
+      "column": "Column",
+      "position": "Position"
+    }
+  },
+  "dataTable": {
+    "typeMenuTooltip": "Click to change type"
+  },
+  "jsonEditor": {
+    "title": "Edit Transform Pipeline (JSON)",
+    "close": "Close",
+    "warning": "Direct JSON editing bypasses validation. Invalid changes may break your pipeline.",
+    "applyChanges": "Apply Changes"
+  }
+}

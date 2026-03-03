@@ -1,4 +1,5 @@
 import { useSignalEffect } from '@preact/signals';
+import { useTranslation } from 'preact-i18next';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 import { updateImputePreview } from '../handlers/transform/simple-handlers';
@@ -10,6 +11,7 @@ import styles from './TransformDialog.module.css';
  * UI for filling missing values (null, NaN) using various strategies.
  */
 export function ImputeDialog() {
+  const { t } = useTranslation('dialogs');
   const state = DialogStore.imputeState;
   const columns = AppStore.columns.value;
   const model = AppStore.activeModel.value;
@@ -31,45 +33,50 @@ export function ImputeDialog() {
     // Row 1
     {
       id: 'constant',
-      label: 'Constant',
+      label: t('impute.strategies.constant'),
       icon: 'material-symbols:format-quote-rounded',
       numericOnly: false,
     },
-    { id: 'mean', label: 'Mean', icon: 'material-symbols:average-rounded', numericOnly: true },
+    {
+      id: 'mean',
+      label: t('impute.strategies.mean'),
+      icon: 'material-symbols:average-rounded',
+      numericOnly: true,
+    },
     {
       id: 'min',
-      label: 'Min',
+      label: t('impute.strategies.min'),
       icon: 'material-symbols:vertical-align-bottom-rounded',
       numericOnly: true,
     },
     {
       id: 'forwardFill',
-      label: 'Forward Fill',
+      label: t('impute.strategies.forwardFill'),
       icon: 'material-symbols:arrow-downward-rounded',
       numericOnly: false,
     },
     // Row 2
     {
       id: 'linearInterpolation',
-      label: 'Linear',
+      label: t('impute.strategies.linear'),
       icon: 'material-symbols:show-chart-rounded',
       numericOnly: true,
     },
     {
       id: 'median',
-      label: 'Median',
+      label: t('impute.strategies.median'),
       icon: 'material-symbols:equalizer-rounded',
       numericOnly: true,
     },
     {
       id: 'max',
-      label: 'Max',
+      label: t('impute.strategies.max'),
       icon: 'material-symbols:vertical-align-top-rounded',
       numericOnly: true,
     },
     {
       id: 'backwardFill',
-      label: 'Backward Fill',
+      label: t('impute.strategies.backwardFill'),
       icon: 'material-symbols:arrow-upward-rounded',
       numericOnly: false,
     },
@@ -90,7 +97,7 @@ export function ImputeDialog() {
   return (
     <div className={styles.dialogContent}>
       <div className={styles.group}>
-        <label className={styles.label}>Column to Impute</label>
+        <label className={styles.label}>{t('impute.columnLabel')}</label>
         <select className={styles.input} value={state.column.value} onChange={handleColumnChange}>
           {columns.map((col) => (
             <option key={col} value={col}>
@@ -106,7 +113,7 @@ export function ImputeDialog() {
             marginTop: '4px',
           }}
         >
-          <p className={styles.helpText}>Select the column containing missing values.</p>
+          <p className={styles.helpText}>{t('impute.columnHelp')}</p>
           <span
             style={{
               fontSize: '10px',
@@ -116,13 +123,13 @@ export function ImputeDialog() {
               borderRadius: '3px',
             }}
           >
-            Type: {selectedColSchema?.type || 'unknown'}
+            {t('impute.typeLabel', { type: selectedColSchema?.type || 'unknown' })}
           </span>
         </div>
       </div>
 
       <div className={styles.group}>
-        <label className={styles.label}>Imputation Strategy</label>
+        <label className={styles.label}>{t('impute.strategyLabel')}</label>
         <div className={styles.chipGrid4}>
           {strategies.map((s) => {
             const disabled = s.numericOnly && !isNumeric;
@@ -131,7 +138,7 @@ export function ImputeDialog() {
                 key={s.id}
                 className={`${styles.chip} ${state.strategy.value === s.id ? styles.active : ''} ${disabled ? styles.unselected : ''}`}
                 onClick={() => !disabled && handleStrategyChange(s.id)}
-                title={disabled ? 'This strategy requires a numeric column' : ''}
+                title={disabled ? t('impute.numericOnlyHint') : ''}
                 style={{
                   opacity: disabled ? 0.5 : 1,
                   cursor: disabled ? 'not-allowed' : 'pointer',
@@ -149,8 +156,7 @@ export function ImputeDialog() {
         state.strategy.value === 'backwardFill' ||
         state.strategy.value === 'linearInterpolation') && (
         <p className={styles.helpText} style={{ marginTop: 0 }}>
-          Tip: This strategy is order-dependent. Consider adding a Sort step before this one to
-          ensure rows are in the expected order.
+          {t('impute.orderDependentHint')}
         </p>
       )}
 
@@ -161,39 +167,38 @@ export function ImputeDialog() {
             checked={state.includeEmptyString.value}
             onChange={(e) => (state.includeEmptyString.value = e.currentTarget.checked)}
           />
-          <span>Include empty strings ("") as missing</span>
+          <span>{t('impute.includeEmptyString')}</span>
         </label>
         <p className={styles.helpText} style={{ marginLeft: '24px' }}>
-          By default, only <code>null</code>, <code>undefined</code>, and <code>NaN</code> are
-          considered missing.
+          {t('impute.includeEmptyStringHelp')}
         </p>
       </div>
 
       {state.strategy.value === 'constant' && (
         <div className={styles.group}>
-          <label className={styles.label}>Replacement Value</label>
+          <label className={styles.label}>{t('impute.replacementValue')}</label>
           <input
             type="text"
             className={styles.input}
             value={state.value.value}
             onInput={handleValueChange}
-            placeholder="Enter value (e.g. 0, N/A, Unknown)"
+            placeholder={t('impute.replacementPlaceholder')}
             autoFocus
           />
-          <p className={styles.helpText}>Missing values will be replaced by this value.</p>
+          <p className={styles.helpText}>{t('impute.replacementHelp')}</p>
         </div>
       )}
 
       {state.previewRows.value && (
         <div className={styles.group}>
-          <label className={styles.label}>Strategy Preview (Example Data)</label>
+          <label className={styles.label}>{t('impute.previewTitle')}</label>
           <div className={styles.previewScroll}>
             <table className={styles.previewTable}>
               <thead>
                 <tr>
                   <th style={{ width: '40px' }}>#</th>
-                  <th>Original</th>
-                  <th>Imputed</th>
+                  <th>{t('impute.preview.original')}</th>
+                  <th>{t('impute.preview.imputed')}</th>
                 </tr>
               </thead>
               <tbody>

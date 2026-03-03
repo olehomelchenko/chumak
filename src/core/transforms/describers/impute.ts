@@ -1,17 +1,10 @@
+import i18n from '../../../i18n';
+
 export function describeImpute(transform: any): string | null {
   if (!transform.impute) return null;
   const { column, strategy } = transform.impute;
-  const strategyLabels: Record<string, string> = {
-    constant: 'Constant',
-    mean: 'Mean',
-    median: 'Median',
-    min: 'Min',
-    max: 'Max',
-    forwardFill: 'Forward Fill',
-    backwardFill: 'Backward Fill',
-    linearInterpolation: 'Linear Interpolation',
-  };
-  return `Impute: ${column} (${strategyLabels[strategy] || strategy})`;
+  const strategyLabel = i18n.t(`transforms:impute.strategies.${strategy}`, strategy);
+  return i18n.t('transforms:impute.impute', { column, strategy: strategyLabel });
 }
 
 export const imputeDescribers = {

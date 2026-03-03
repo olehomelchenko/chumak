@@ -65,9 +65,7 @@ describe('pattern-handlers', () => {
 
       await applySelectPatternTransform(callbacks);
 
-      expect(validateRegexPattern).toHaveBeenCalledWith('[invalid', {
-        errorPrefix: 'Invalid regex pattern',
-      });
+      expect(validateRegexPattern).toHaveBeenCalledWith('[invalid');
       expect(DialogStore.selectPatternState.error.value).toBe(
         'Invalid regex pattern: Unterminated character class'
       );

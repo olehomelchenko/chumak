@@ -1,4 +1,5 @@
 import { computed } from '@preact/signals';
+import { useTranslation } from 'preact-i18next';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 import styles from './TransformDialog.module.css';
@@ -7,6 +8,7 @@ import styles from './TransformDialog.module.css';
 export type { SliceMode } from '../../types/modes';
 
 export function SliceRowsDialog() {
+  const { t } = useTranslation('dialogs');
   const { count, mode } = DialogStore.sliceRowsState;
   const rowCount = AppStore.currentData.value?.length || 0;
   // Computed values for the preview text
@@ -17,35 +19,19 @@ export function SliceRowsDialog() {
     switch (mode.value) {
       case 'first': {
         const end = Math.min(n, total);
-        return (
-          <>
-            Will keep rows 1 to <strong>{end}</strong>
-          </>
-        );
+        return <>{t('sliceRows.preview.keepFirst', { start: 1, end })}</>;
       }
       case 'last': {
         const start = Math.max(1, total - n + 1);
-        return (
-          <>
-            Will keep rows <strong>{start}</strong> to <strong>{total}</strong>
-          </>
-        );
+        return <>{t('sliceRows.preview.keepLast', { start, end: total })}</>;
       }
       case 'removeFirst': {
         const end = Math.min(n, total);
-        return (
-          <>
-            Will remove rows 1 to <strong>{end}</strong>
-          </>
-        );
+        return <>{t('sliceRows.preview.removeFirst', { start: 1, end })}</>;
       }
       case 'removeLast': {
         const start = Math.max(1, total - n + 1);
-        return (
-          <>
-            Will remove rows <strong>{start}</strong> to <strong>{total}</strong>
-          </>
-        );
+        return <>{t('sliceRows.preview.removeLast', { start, end: total })}</>;
       }
       default:
         return null;
@@ -55,7 +41,7 @@ export function SliceRowsDialog() {
   return (
     <div>
       <div class={styles.group}>
-        <label class={styles.label}>Number of rows:</label>
+        <label class={styles.label}>{t('sliceRows.rowCount')}</label>
         <input
           type="number"
           class={styles.input}
@@ -67,7 +53,7 @@ export function SliceRowsDialog() {
       </div>
 
       <div class={styles.group}>
-        <label class={styles.label}>Mode:</label>
+        <label class={styles.label}>{t('sliceRows.mode.label')}</label>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
           <label class={styles.radioLabel}>
             <input
@@ -75,7 +61,7 @@ export function SliceRowsDialog() {
               checked={mode.value === 'first'}
               onChange={() => (mode.value = 'first')}
             />
-            <span>Keep first N rows</span>
+            <span>{t('sliceRows.mode.keepFirst')}</span>
           </label>
           <label class={styles.radioLabel}>
             <input
@@ -83,7 +69,7 @@ export function SliceRowsDialog() {
               checked={mode.value === 'last'}
               onChange={() => (mode.value = 'last')}
             />
-            <span>Keep last N rows</span>
+            <span>{t('sliceRows.mode.keepLast')}</span>
           </label>
           <label class={styles.radioLabel}>
             <input
@@ -91,7 +77,7 @@ export function SliceRowsDialog() {
               checked={mode.value === 'removeFirst'}
               onChange={() => (mode.value = 'removeFirst')}
             />
-            <span>Remove first N rows</span>
+            <span>{t('sliceRows.mode.removeFirst')}</span>
           </label>
           <label class={styles.radioLabel}>
             <input
@@ -99,7 +85,7 @@ export function SliceRowsDialog() {
               checked={mode.value === 'removeLast'}
               onChange={() => (mode.value = 'removeLast')}
             />
-            <span>Remove last N rows</span>
+            <span>{t('sliceRows.mode.removeLast')}</span>
           </label>
         </div>
       </div>
@@ -108,7 +94,7 @@ export function SliceRowsDialog() {
         <span style={{ fontSize: '0.875rem', color: 'var(--color-dark-gray)' }}>
           {previewText.value}
           <span style={{ marginLeft: '0.5rem', color: 'var(--color-medium-gray)' }}>
-            (of {rowCount.toLocaleString()} total rows)
+            {t('sliceRows.totalRows', { count: rowCount })}
           </span>
         </span>
       </div>

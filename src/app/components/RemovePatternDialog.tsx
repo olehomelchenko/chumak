@@ -1,43 +1,45 @@
+import { useTranslation } from 'preact-i18next';
 import { DialogStore } from '../stores/DialogStore';
 import styles from './TransformDialog.module.css';
 
 export function RemovePatternDialog() {
+  const { t } = useTranslation('dialogs');
   const { pattern, matchType, error } = DialogStore.removePatternState;
 
   return (
     <div>
       <p class={styles.helpText} style={{ marginBottom: '1rem' }}>
-        Remove columns matching a pattern. Useful for removing multiple columns with similar names.
+        {t('pattern.remove.help')}
       </p>
 
       <div class={styles.group}>
-        <label class={styles.label}>Pattern:</label>
+        <label class={styles.label}>{t('common.labels.pattern')}</label>
         <input
           type="text"
           class={styles.input}
           value={pattern.value}
           onInput={(e) => (pattern.value = (e.target as HTMLInputElement).value)}
-          placeholder="e.g., _backup$"
+          placeholder={t('pattern.remove.placeholder')}
         />
       </div>
 
       <div class={styles.group}>
-        <label class={styles.label}>Match type:</label>
+        <label class={styles.label}>{t('common.labels.matchType')}</label>
         <select
           class={styles.input}
           value={matchType.value}
           onChange={(e) => (matchType.value = (e.target as HTMLSelectElement).value as any)}
         >
-          <option value="prefix">Prefix (starts with)</option>
-          <option value="suffix">Suffix (ends with)</option>
-          <option value="contains">Contains</option>
-          <option value="regex">Regex</option>
+          <option value="prefix">{t('common.matchTypes.prefix')}</option>
+          <option value="suffix">{t('common.matchTypes.suffix')}</option>
+          <option value="contains">{t('common.matchTypes.contains')}</option>
+          <option value="regex">{t('common.matchTypes.regex')}</option>
         </select>
         <p class={styles.helpText}>
-          {matchType.value === 'prefix' && 'Columns that start with the pattern'}
-          {matchType.value === 'suffix' && 'Columns that end with the pattern'}
-          {matchType.value === 'contains' && 'Columns that contain the pattern'}
-          {matchType.value === 'regex' && 'Columns matching the regex pattern'}
+          {matchType.value === 'prefix' && t('common.matchTypeHelp.prefix')}
+          {matchType.value === 'suffix' && t('common.matchTypeHelp.suffix')}
+          {matchType.value === 'contains' && t('common.matchTypeHelp.contains')}
+          {matchType.value === 'regex' && t('common.matchTypeHelp.regex')}
         </p>
       </div>
 

@@ -1,3 +1,4 @@
+import { useTranslation } from 'preact-i18next';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 import styles from './TransformDialog.module.css';
@@ -7,6 +8,7 @@ import styles from './TransformDialog.module.css';
  * Allows users to take a random sample of rows with optional seed
  */
 export function SampleDialog() {
+  const { t } = useTranslation('dialogs');
   const { count, seed } = DialogStore.sampleState;
   const currentData = AppStore.currentData.value;
   const totalRows = currentData ? currentData.length : 0;
@@ -15,7 +17,7 @@ export function SampleDialog() {
     <div class={styles.formSection}>
       <div class={styles.group}>
         <label class={styles.label} htmlFor="sample-count">
-          Sample Size
+          {t('sample.sampleSize')}
         </label>
         <input
           id="sample-count"
@@ -29,12 +31,12 @@ export function SampleDialog() {
           min="1"
           max={totalRows}
         />
-        <div class={styles.helpText}>Total available rows: {totalRows.toLocaleString()}</div>
+        <div class={styles.helpText}>{t('sample.totalAvailable', { count: totalRows })}</div>
       </div>
 
       <div class={styles.group}>
         <label class={styles.label} htmlFor="sample-seed">
-          Random Seed (Optional)
+          {t('sample.seed.label')}
         </label>
         <input
           id="sample-seed"
@@ -45,19 +47,15 @@ export function SampleDialog() {
             const val = parseInt(e.currentTarget.value, 10);
             seed.value = isNaN(val) ? undefined : val;
           }}
-          placeholder="Enter a number for reproducible sampling"
+          placeholder={t('sample.seed.placeholder')}
         />
-        <div class={styles.helpText}>
-          Use a seed to get the same "random" sample every time you run this step.
-        </div>
+        <div class={styles.helpText}>{t('sample.seed.helpText')}</div>
       </div>
 
       <div class={styles.expressionHelp}>
-        <div class={styles.expressionHelpTitle}>How it works</div>
+        <div class={styles.expressionHelpTitle}>{t('sample.howItWorks.title')}</div>
         <div class={styles.helpText} style={{ color: 'var(--color-midnight-blue)' }}>
-          Sampling extracts a subset of rows randomly. To ensure your results are
-          <strong> fully reproducible</strong>, a random seed will be auto-generated if you leave
-          the field blank.
+          {t('sample.howItWorks.description')}
         </div>
       </div>
     </div>

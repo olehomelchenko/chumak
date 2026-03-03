@@ -1,4 +1,5 @@
 import { Fragment } from 'preact';
+import { useTranslation } from 'preact-i18next';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 import { useComputed } from '@preact/signals';
@@ -20,6 +21,7 @@ export interface ColumnEditorChanges {
 }
 
 export function ColumnEditorDialog() {
+  const { t } = useTranslation('dialogs');
   const {
     mode,
     columns,
@@ -88,21 +90,21 @@ export function ColumnEditorDialog() {
             class={`${styles.toggleButton} ${mode.value === 'list' ? styles.active : ''}`}
             onClick={() => (mode.value = 'list')}
           >
-            List Mode
+            {t('columnEditor.modes.list')}
           </button>
           <button
             type="button"
             class={`${styles.toggleButton} ${mode.value === 'text' ? styles.active : ''}`}
             onClick={() => Handlers.switchColumnEditorToText()}
           >
-            Text Mode
+            {t('columnEditor.modes.text')}
           </button>
           <button
             type="button"
             class={`${styles.toggleButton} ${mode.value === 'pattern' ? styles.active : ''}`}
             onClick={() => (mode.value = 'pattern')}
           >
-            Pattern Mode
+            {t('columnEditor.modes.pattern')}
           </button>
         </div>
       </div>
@@ -118,7 +120,7 @@ export function ColumnEditorDialog() {
               borderBottom: '1px solid var(--border-color)',
             }}
           >
-            <label class={styles.label}>Pattern Matching (optional):</label>
+            <label class={styles.label}>{t('columnEditor.listMode.patternMatchingLabel')}</label>
             <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.5rem' }}>
               <select
                 class={styles.input}
@@ -126,8 +128,8 @@ export function ColumnEditorDialog() {
                 onChange={(e) => (patternMode.value = e.currentTarget.value as any)}
                 style={{ width: '120px' }}
               >
-                <option value="include">Select</option>
-                <option value="exclude">Deselect</option>
+                <option value="include">{t('columnEditor.listMode.select')}</option>
+                <option value="exclude">{t('columnEditor.listMode.deselect')}</option>
               </select>
               <select
                 class={styles.input}
@@ -135,16 +137,16 @@ export function ColumnEditorDialog() {
                 onChange={(e) => (patternMatchType.value = e.currentTarget.value as any)}
                 style={{ width: '140px' }}
               >
-                <option value="prefix">Starts with</option>
-                <option value="suffix">Ends with</option>
-                <option value="exact">Exact match</option>
+                <option value="prefix">{t('columnEditor.listMode.matchTypes.startsWith')}</option>
+                <option value="suffix">{t('columnEditor.listMode.matchTypes.endsWith')}</option>
+                <option value="exact">{t('columnEditor.listMode.matchTypes.exactMatch')}</option>
               </select>
               <input
                 type="text"
                 class={styles.input}
                 value={patternText.value}
                 onInput={(e) => (patternText.value = e.currentTarget.value)}
-                placeholder="e.g., sales_ or _2023"
+                placeholder={t('columnEditor.listMode.patternPlaceholder')}
                 style={{ flex: 1 }}
               />
               <button
@@ -153,7 +155,7 @@ export function ColumnEditorDialog() {
                 onClick={() => Handlers.applyColumnEditorPattern()}
                 disabled={!patternText.value.trim()}
               >
-                Apply
+                {t('columnEditor.listMode.apply')}
               </button>
             </div>
             <div class={styles.actions} style={{ marginTop: '0.5rem' }}>
@@ -161,13 +163,13 @@ export function ColumnEditorDialog() {
                 className="button button--text button--small"
                 onClick={() => Handlers.selectAllColumnEditor()}
               >
-                Select All
+                {t('columnEditor.listMode.selectAll')}
               </button>
               <button
                 className="button button--text button--small"
                 onClick={() => Handlers.selectNoneColumnEditor()}
               >
-                Select None
+                {t('columnEditor.listMode.selectNone')}
               </button>
             </div>
           </div>
@@ -194,12 +196,12 @@ export function ColumnEditorDialog() {
         <div>
           {/* Sub-mode Selection */}
           <div class={styles.group}>
-            <label class={styles.label}>Text Mode Operation:</label>
+            <label class={styles.label}>{t('columnEditor.textMode.operationLabel')}</label>
             <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
               {[
-                { val: 'rename', label: 'Rename' },
-                { val: 'reorder', label: 'Reorder' },
-                { val: 'select', label: 'Select' },
+                { val: 'rename', label: t('columnEditor.textMode.operations.rename') },
+                { val: 'reorder', label: t('columnEditor.textMode.operations.reorder') },
+                { val: 'select', label: t('columnEditor.textMode.operations.select') },
               ].map((opt) => (
                 <label key={opt.val} class={styles.checkboxLabel}>
                   <input
@@ -222,18 +224,16 @@ export function ColumnEditorDialog() {
           <p class={styles.helpText}>
             {textSubMode.value === 'rename' && (
               <span>
-                Enter new names for each column (one per line, same order). Must have exactly{' '}
-                <strong>{AppStore.columns.value.length}</strong> lines.
+                {t('columnEditor.textMode.help.rename', { count: AppStore.columns.value.length })}
               </span>
             )}
             {textSubMode.value === 'reorder' && (
               <span>
-                Rearrange column names to change order. Must include all{' '}
-                <strong>{AppStore.columns.value.length}</strong> columns.
+                {t('columnEditor.textMode.help.reorder', { count: AppStore.columns.value.length })}
               </span>
             )}
             {textSubMode.value === 'select' && (
-              <span>Keep only the listed columns. Delete lines to remove columns.</span>
+              <span>{t('columnEditor.textMode.help.select')}</span>
             )}
           </p>
 
@@ -246,7 +246,7 @@ export function ColumnEditorDialog() {
             }}
             rows={12}
             style={{ fontFamily: 'monospace', fontSize: '0.875rem' }}
-            placeholder="Enter column names, one per line..."
+            placeholder={t('columnEditor.textMode.placeholder')}
           ></textarea>
 
           {textError.value && <div class={styles.error}>{textError.value}</div>}
@@ -257,12 +257,12 @@ export function ColumnEditorDialog() {
         <div>
           {/* Pattern Operation Type Selector */}
           <div class={styles.group}>
-            <label class={styles.label}>Pattern Operation:</label>
+            <label class={styles.label}>{t('columnEditor.patternMode.operationLabel')}</label>
             <div style={{ display: 'flex', gap: '1rem', marginTop: '0.5rem' }}>
               {[
-                { val: 'select', label: 'Select by Pattern' },
-                { val: 'remove', label: 'Remove by Pattern' },
-                { val: 'rename', label: 'Rename by Pattern' },
+                { val: 'select', label: t('columnEditor.patternMode.operations.select') },
+                { val: 'remove', label: t('columnEditor.patternMode.operations.remove') },
+                { val: 'rename', label: t('columnEditor.patternMode.operations.rename') },
               ].map((opt) => (
                 <label key={opt.val} class={styles.checkboxLabel}>
                   <input
@@ -285,7 +285,7 @@ export function ColumnEditorDialog() {
           {(patternOperationMode.value === 'select' || patternOperationMode.value === 'remove') && (
             <Fragment>
               <div class={styles.group}>
-                <label class={styles.label}>Pattern:</label>
+                <label class={styles.label}>{t('columnEditor.patternMode.patternLabel')}</label>
                 <input
                   type="text"
                   class={styles.input}
@@ -294,12 +294,12 @@ export function ColumnEditorDialog() {
                     patternText.value = (e.target as HTMLInputElement).value;
                     patternError.value = null;
                   }}
-                  placeholder="e.g., sales_ or _2023"
+                  placeholder={t('columnEditor.patternMode.patternPlaceholder')}
                 />
               </div>
 
               <div class={styles.group}>
-                <label class={styles.label}>Match type:</label>
+                <label class={styles.label}>{t('columnEditor.patternMode.matchTypeLabel')}</label>
                 <select
                   class={styles.input}
                   value={patternMatchType.value}
@@ -308,16 +308,22 @@ export function ColumnEditorDialog() {
                     patternError.value = null;
                   }}
                 >
-                  <option value="prefix">Prefix (starts with)</option>
-                  <option value="suffix">Suffix (ends with)</option>
-                  <option value="contains">Contains</option>
-                  <option value="regex">Regex</option>
+                  <option value="prefix">{t('columnEditor.patternMode.matchTypes.prefix')}</option>
+                  <option value="suffix">{t('columnEditor.patternMode.matchTypes.suffix')}</option>
+                  <option value="contains">
+                    {t('columnEditor.patternMode.matchTypes.contains')}
+                  </option>
+                  <option value="regex">{t('columnEditor.patternMode.matchTypes.regex')}</option>
                 </select>
                 <p class={styles.helpText}>
-                  {patternMatchType.value === 'prefix' && 'Columns that start with the pattern'}
-                  {patternMatchType.value === 'suffix' && 'Columns that end with the pattern'}
-                  {patternMatchType.value === 'contains' && 'Columns that contain the pattern'}
-                  {patternMatchType.value === 'regex' && 'Columns matching the regex pattern'}
+                  {patternMatchType.value === 'prefix' &&
+                    t('columnEditor.patternMode.matchTypeHelp.prefix')}
+                  {patternMatchType.value === 'suffix' &&
+                    t('columnEditor.patternMode.matchTypeHelp.suffix')}
+                  {patternMatchType.value === 'contains' &&
+                    t('columnEditor.patternMode.matchTypeHelp.contains')}
+                  {patternMatchType.value === 'regex' &&
+                    t('columnEditor.patternMode.matchTypeHelp.regex')}
                 </p>
               </div>
 
@@ -329,7 +335,7 @@ export function ColumnEditorDialog() {
           {patternOperationMode.value === 'rename' && (
             <Fragment>
               <div class={styles.group}>
-                <label class={styles.label}>Find pattern:</label>
+                <label class={styles.label}>{t('columnEditor.patternMode.findLabel')}</label>
                 <input
                   type="text"
                   class={styles.input}
@@ -338,12 +344,12 @@ export function ColumnEditorDialog() {
                     patternFind.value = (e.target as HTMLInputElement).value;
                     patternError.value = null;
                   }}
-                  placeholder="e.g., _old$"
+                  placeholder={t('columnEditor.patternMode.findPlaceholder')}
                 />
               </div>
 
               <div class={styles.group}>
-                <label class={styles.label}>Replace with:</label>
+                <label class={styles.label}>{t('columnEditor.patternMode.replaceLabel')}</label>
                 <input
                   type="text"
                   class={styles.input}
@@ -352,7 +358,7 @@ export function ColumnEditorDialog() {
                     patternReplace.value = (e.target as HTMLInputElement).value;
                     patternError.value = null;
                   }}
-                  placeholder="e.g., _new"
+                  placeholder={t('columnEditor.patternMode.replacePlaceholder')}
                 />
               </div>
 
@@ -366,12 +372,12 @@ export function ColumnEditorDialog() {
                       patternError.value = null;
                     }}
                   />
-                  <span>Use regex pattern</span>
+                  <span>{t('columnEditor.patternMode.useRegex')}</span>
                 </label>
                 <p class={styles.helpText}>
                   {patternRegex.value
-                    ? 'Pattern is a regular expression (e.g., ^prefix_ or _suffix$)'
-                    : 'Pattern is plain text (exact match)'}
+                    ? t('columnEditor.patternMode.regexHelp.on')
+                    : t('columnEditor.patternMode.regexHelp.off')}
                 </p>
               </div>
 
@@ -383,10 +389,11 @@ export function ColumnEditorDialog() {
           {patternOperationMode.value === 'select' && patternText.value.trim() && (
             <div class={styles.expressionHelp} style={{ marginTop: '1rem' }}>
               <div class={styles.expressionHelpTitle} style={{ display: 'block' }}>
-                Preview: Columns that will be selected
+                {t('columnEditor.patternMode.preview.select')}
               </div>
               <div style={{ fontSize: '0.8125rem', marginTop: '0.5rem' }}>
-                {Handlers.getPatternMatchedColumns('select').join(', ') || 'No columns match'}
+                {Handlers.getPatternMatchedColumns('select').join(', ') ||
+                  t('columnEditor.patternMode.preview.noMatch')}
               </div>
             </div>
           )}
@@ -394,10 +401,11 @@ export function ColumnEditorDialog() {
           {patternOperationMode.value === 'remove' && patternText.value.trim() && (
             <div class={styles.expressionHelp} style={{ marginTop: '1rem' }}>
               <div class={styles.expressionHelpTitle} style={{ display: 'block' }}>
-                Preview: Columns that will be removed
+                {t('columnEditor.patternMode.preview.remove')}
               </div>
               <div style={{ fontSize: '0.8125rem', marginTop: '0.5rem' }}>
-                {Handlers.getPatternMatchedColumns('remove').join(', ') || 'No columns match'}
+                {Handlers.getPatternMatchedColumns('remove').join(', ') ||
+                  t('columnEditor.patternMode.preview.noMatch')}
               </div>
             </div>
           )}
@@ -405,12 +413,12 @@ export function ColumnEditorDialog() {
           {patternOperationMode.value === 'rename' && patternFind.value.trim() && (
             <div class={styles.expressionHelp} style={{ marginTop: '1rem' }}>
               <div class={styles.expressionHelpTitle} style={{ display: 'block' }}>
-                Preview: Columns that will be renamed
+                {t('columnEditor.patternMode.preview.rename')}
               </div>
               <div style={{ fontSize: '0.8125rem', marginTop: '0.5rem' }}>
                 {Handlers.getPatternRenamePreview()
                   .map((p) => `${p.from} -> ${p.to}`)
-                  .join(', ') || 'No columns match'}
+                  .join(', ') || t('columnEditor.patternMode.preview.noMatch')}
               </div>
             </div>
           )}
@@ -421,13 +429,15 @@ export function ColumnEditorDialog() {
       {changes.value.hasChanges && (
         <div class={styles.expressionHelp}>
           <div class={styles.expressionHelpTitle} style={{ display: 'block' }}>
-            Changes Preview:
+            {t('columnEditor.changesPreview.title')}
           </div>
 
           {/* Removed */}
           {changes.value.removed.length > 0 && (
             <div style={{ marginBottom: '0.5rem' }}>
-              <span style={{ color: 'var(--color-red)' }}>Remove: </span>
+              <span style={{ color: 'var(--color-red)' }}>
+                {t('columnEditor.changesPreview.remove')}
+              </span>
               <span style={{ fontSize: '0.8125rem' }}>{changes.value.removed.join(', ')}</span>
             </div>
           )}
@@ -435,7 +445,9 @@ export function ColumnEditorDialog() {
           {/* Renamed */}
           {changes.value.renamed.length > 0 && (
             <div style={{ marginBottom: '0.5rem' }}>
-              <span style={{ color: 'var(--color-primary)' }}>Rename: </span>
+              <span style={{ color: 'var(--color-primary)' }}>
+                {t('columnEditor.changesPreview.rename')}
+              </span>
               {changes.value.renamed.map((r) => (
                 <span
                   key={r.from}
@@ -448,7 +460,9 @@ export function ColumnEditorDialog() {
           {/* Reordered */}
           {changes.value.reordered && (
             <div>
-              <span style={{ color: 'var(--color-accent)' }}>Column order changed</span>
+              <span style={{ color: 'var(--color-accent)' }}>
+                {t('columnEditor.changesPreview.reordered')}
+              </span>
             </div>
           )}
         </div>

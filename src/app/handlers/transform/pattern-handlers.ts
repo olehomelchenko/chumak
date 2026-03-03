@@ -1,20 +1,19 @@
 import { DialogStore } from '../../stores/DialogStore';
 import { StepService } from '../../services/StepService';
 import { validateRegexPattern } from '../validation-engine';
+import i18n from '../../../i18n';
 
 export async function applySelectPatternTransform(callbacks: any) {
   const { pattern, matchType, include } = DialogStore.selectPatternState;
 
   if (!pattern.value || pattern.value.trim() === '') {
-    await callbacks.onError?.('Please enter a pattern');
+    await callbacks.onError?.(i18n.t('validation.required.pattern', { ns: 'errors' }));
     return;
   }
 
   // Validate regex if matchType is regex
   if (matchType.value === 'regex') {
-    const validation = validateRegexPattern(pattern.value, {
-      errorPrefix: 'Invalid regex pattern',
-    });
+    const validation = validateRegexPattern(pattern.value);
     if (!validation.valid) {
       DialogStore.selectPatternState.error.value = validation.error;
       return;
@@ -37,15 +36,13 @@ export async function applyRemovePatternTransform(callbacks: any) {
   const { pattern, matchType } = DialogStore.removePatternState;
 
   if (!pattern.value || pattern.value.trim() === '') {
-    await callbacks.onError?.('Please enter a pattern');
+    await callbacks.onError?.(i18n.t('validation.required.pattern', { ns: 'errors' }));
     return;
   }
 
   // Validate regex if matchType is regex
   if (matchType.value === 'regex') {
-    const validation = validateRegexPattern(pattern.value, {
-      errorPrefix: 'Invalid regex pattern',
-    });
+    const validation = validateRegexPattern(pattern.value);
     if (!validation.valid) {
       DialogStore.removePatternState.error.value = validation.error;
       return;
@@ -67,7 +64,7 @@ export async function applyConditionalTransform(callbacks: any) {
   const { column, conditions, else: elseValue } = DialogStore.conditionalState;
 
   if (!column.value || column.value.trim() === '') {
-    await callbacks.onError?.('Please enter a column name');
+    await callbacks.onError?.(i18n.t('validation.required.columnName', { ns: 'errors' }));
     return;
   }
 
@@ -102,13 +99,13 @@ export async function applyRenamePatternTransform(callbacks: any) {
   const { find, replace: replaceValue, regex } = DialogStore.renamePatternState;
 
   if (!find.value || find.value.trim() === '') {
-    await callbacks.onError?.('Please enter a find pattern');
+    await callbacks.onError?.(i18n.t('validation.required.findPattern', { ns: 'errors' }));
     return;
   }
 
   // Validate regex if enabled
   if (regex.value) {
-    const validation = validateRegexPattern(find.value, { errorPrefix: 'Invalid regex pattern' });
+    const validation = validateRegexPattern(find.value);
     if (!validation.valid) {
       DialogStore.renamePatternState.error.value = validation.error;
       return;

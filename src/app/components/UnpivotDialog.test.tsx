@@ -3,7 +3,8 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/preact';
+import { screen, fireEvent } from '@testing-library/preact';
+import { renderWithI18n } from '../test-utils';
 import { UnpivotDialog } from './UnpivotDialog';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
@@ -21,7 +22,7 @@ describe('UnpivotDialog', () => {
   });
 
   it('renders with default values', () => {
-    render(<UnpivotDialog />);
+    renderWithI18n(<UnpivotDialog />);
 
     expect(screen.getByDisplayValue('Year')).toBeDefined();
     expect(screen.getByDisplayValue('Sales')).toBeDefined();
@@ -33,7 +34,7 @@ describe('UnpivotDialog', () => {
   it('updates names when input changes', () => {
     DialogStore.foldState.keyName.value = '';
     DialogStore.foldState.valueName.value = '';
-    render(<UnpivotDialog />);
+    renderWithI18n(<UnpivotDialog />);
 
     const keyInput = screen.getByPlaceholderText('e.g. Year') as HTMLInputElement;
     fireEvent.input(keyInput, { target: { value: 'Month' } });
@@ -41,7 +42,7 @@ describe('UnpivotDialog', () => {
   });
 
   it('toggles mode', () => {
-    render(<UnpivotDialog />);
+    renderWithI18n(<UnpivotDialog />);
 
     fireEvent.click(screen.getByText('Columns to Fold'));
     expect(DialogStore.foldState.mode.value).toBe('fold');
@@ -50,7 +51,7 @@ describe('UnpivotDialog', () => {
 
   it('toggles column selection', () => {
     DialogStore.foldState.selectedColumns.value = [false, false, false, false, false];
-    render(<UnpivotDialog />);
+    renderWithI18n(<UnpivotDialog />);
 
     fireEvent.click(screen.getByText('Q1').closest('button')!);
     expect(DialogStore.foldState.selectedColumns.value[1]).toBe(true);
@@ -61,16 +62,18 @@ describe('UnpivotDialog', () => {
 
   it('handles Select All', () => {
     DialogStore.foldState.selectedColumns.value = [false, false, false, false, false];
-    render(<UnpivotDialog />);
+    renderWithI18n(<UnpivotDialog />);
 
+    // ColumnSelector renders "Select All" as hardcoded text (not yet internationalized)
     fireEvent.click(screen.getByText('Select All'));
     expect(DialogStore.foldState.selectedColumns.value.every((v) => v)).toBe(true);
   });
 
   it('handles Select None', () => {
     DialogStore.foldState.selectedColumns.value = [true, true, true, true, true];
-    render(<UnpivotDialog />);
+    renderWithI18n(<UnpivotDialog />);
 
+    // ColumnSelector renders "Select None" as hardcoded text (not yet internationalized)
     fireEvent.click(screen.getByText('Select None'));
     expect(DialogStore.foldState.selectedColumns.value.every((v) => !v)).toBe(true);
   });

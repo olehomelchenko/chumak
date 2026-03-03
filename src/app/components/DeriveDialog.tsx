@@ -1,4 +1,5 @@
 import { useSignal, useSignalEffect } from '@preact/signals';
+import { useTranslation } from 'preact-i18next';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 import * as DeriveHandlers from '../handlers/transform/derive-handlers';
@@ -14,6 +15,7 @@ import { ExpressionDocs } from './ExpressionDocs';
 import styles from './TransformDialog.module.css';
 
 export function DeriveDialog() {
+  const { t } = useTranslation('dialogs');
   const { columnName, expression, error } = DialogStore.deriveState;
   const tokens = useSignal<ExpressionTokens>(EMPTY_TOKENS);
 
@@ -32,22 +34,22 @@ export function DeriveDialog() {
   return (
     <div>
       <div class={styles.group}>
-        <label class={styles.label}>New column name:</label>
+        <label class={styles.label}>{t('derive.columnName')}</label>
         <input
           type="text"
           class={styles.input}
           value={columnName.value}
           onInput={(e) => (columnName.value = (e.target as HTMLInputElement).value)}
-          placeholder="e.g., profit_margin"
+          placeholder={t('derive.columnNamePlaceholder')}
         />
       </div>
 
       <div class={styles.group}>
-        <label class={styles.label}>Expression:</label>
+        <label class={styles.label}>{t('derive.expression')}</label>
         <ExpressionEditor
           value={expression.value}
           onChange={(v) => (expression.value = v)}
-          placeholder="e.g., (profit / sales) * 100"
+          placeholder={t('derive.expressionPlaceholder')}
           columns={AppStore.columns.value}
         />
       </div>
@@ -65,14 +67,14 @@ export function DeriveDialog() {
       {/* Syntax quick reference */}
       <div class={styles.expressionHelp}>
         <div class={styles.expressionHelpTitle}>
-          <span>Syntax</span>
+          <span>{t('common.reference.syntax')}</span>
           <button
             type="button"
             class="button button--text button--small"
             onClick={() => openRef()}
             style={{ fontWeight: 500, textDecoration: 'underline' }}
           >
-            Full Reference
+            {t('common.buttons.fullReference')}
           </button>
         </div>
 
@@ -89,36 +91,36 @@ export function DeriveDialog() {
         >
           <div>
             <code class={styles.exampleCode}>if(profit {'>'} 0, "Gain", "Loss")</code>
-            <span class={styles.exampleDescription}>— conditional</span>
+            <span class={styles.exampleDescription}>{t('derive.examples.conditional')}</span>
           </div>
           <div>
             <code class={styles.exampleCode}>coalesce(discount, 0)</code>
-            <span class={styles.exampleDescription}>— first non-null</span>
+            <span class={styles.exampleDescription}>{t('derive.examples.firstNonNull')}</span>
           </div>
           <div>
             <code class={styles.exampleCode}>[Total Sales] + [Tax]</code>
-            <span class={styles.exampleDescription}>— columns with spaces</span>
+            <span class={styles.exampleDescription}>{t('derive.examples.spacedColumns')}</span>
           </div>
         </div>
 
         <div class={styles.refLinks}>
           <button type="button" class={styles.refLink} onClick={() => openRef('date')}>
-            Date
+            {t('common.reference.date')}
           </button>
           <button type="button" class={styles.refLink} onClick={() => openRef('math')}>
-            Math
+            {t('common.reference.math')}
           </button>
           <button type="button" class={styles.refLink} onClick={() => openRef('text')}>
-            Text
+            {t('common.reference.text')}
           </button>
           <button type="button" class={styles.refLink} onClick={() => openRef('regex')}>
-            Regex
+            {t('common.reference.regex')}
           </button>
           <button type="button" class={styles.refLink} onClick={() => openRef('json')}>
-            JSON
+            {t('common.reference.json')}
           </button>
           <button type="button" class={styles.refLink} onClick={() => openRef('conversion')}>
-            Conversion
+            {t('common.reference.conversion')}
           </button>
         </div>
       </div>

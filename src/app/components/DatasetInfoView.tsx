@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'preact/hooks';
+import { useTranslation } from 'preact-i18next';
 import { AppStore } from '../stores/AppStore';
 import { getDependencyTooltip } from '../handlers/core/helper-handlers';
 import type { Source, Model } from '../types';
@@ -23,6 +24,7 @@ export function DatasetInfoView({
   onReplaceSource,
   onRestoreBackup,
 }: DatasetInfoViewProps) {
+  const { t } = useTranslation('ui');
   const activeSource = AppStore.activeSource;
   const models = AppStore.models;
 
@@ -60,26 +62,26 @@ export function DatasetInfoView({
       <div class={styles.header}>
         <div>
           <h1 class={styles.title}>{source.name}</h1>
-          <p class={styles.subtitle}>Dataset Source</p>
+          <p class={styles.subtitle}>{t('datasetInfo.subtitle')}</p>
         </div>
         <div class={styles.actions}>
           <button class="button button--secondary" onClick={() => onReplaceSource(source)}>
             <span class="iconify" data-icon="carbon:cyclostat" style={{ fontSize: '24px' }}></span>
-            Replace Data
+            {t('datasetInfo.actions.replace')}
           </button>
           {source.backup && (
             <button class="button button--secondary" onClick={() => onRestoreBackup(source)}>
               <span class="iconify" data-icon="carbon:undo" style={{ fontSize: '24px' }}></span>
-              Restore Backup
+              {t('datasetInfo.actions.restore')}
             </button>
           )}
           <button class="button button--secondary" onClick={() => onRenameSource(source)}>
             <span class="iconify" data-icon="carbon:edit" style={{ fontSize: '24px' }}></span>
-            Rename
+            {t('datasetInfo.actions.rename')}
           </button>
           <button class="button button--danger" onClick={() => onDeleteSource(source)}>
             <span class="iconify" data-icon="carbon:trash-can" style={{ fontSize: '24px' }}></span>
-            Delete
+            {t('datasetInfo.actions.delete')}
           </button>
         </div>
       </div>
@@ -87,34 +89,36 @@ export function DatasetInfoView({
       <div class={styles.content}>
         {/* Metadata Card */}
         <div class={styles.infoCard}>
-          <h3 class={styles.infoCard__title}>Dataset Information</h3>
+          <h3 class={styles.infoCard__title}>{t('datasetInfo.title')}</h3>
           <dl class={styles.infoList}>
             <div class={styles.infoList__item}>
-              <dt class={styles.infoList__label}>Source Name</dt>
+              <dt class={styles.infoList__label}>{t('datasetInfo.labels.sourceName')}</dt>
               <dd class={styles.infoList__value}>{source.name}</dd>
             </div>
             <div class={styles.infoList__item}>
-              <dt class={styles.infoList__label}>Original File</dt>
+              <dt class={styles.infoList__label}>{t('datasetInfo.labels.originalFile')}</dt>
               <dd class={styles.infoList__value}>{source.fileName}</dd>
             </div>
             <div class={styles.infoList__item}>
-              <dt class={styles.infoList__label}>Rows</dt>
+              <dt class={styles.infoList__label}>{t('datasetInfo.labels.rows')}</dt>
               <dd class={styles.infoList__value}>{source.rowCount?.toLocaleString()}</dd>
             </div>
             <div class={styles.infoList__item}>
-              <dt class={styles.infoList__label}>Columns</dt>
+              <dt class={styles.infoList__label}>{t('datasetInfo.labels.columns')}</dt>
               <dd class={styles.infoList__value}>{source.columns?.length}</dd>
             </div>
             <div class={styles.infoList__item}>
-              <dt class={styles.infoList__label}>File Size</dt>
+              <dt class={styles.infoList__label}>{t('datasetInfo.labels.fileSize')}</dt>
               <dd
                 class={styles.infoList__value}
               >{`${((source.rawSize || 0) / 1024).toFixed(1)} KB`}</dd>
             </div>
             <div class={styles.infoList__item}>
-              <dt class={styles.infoList__label}>Imported</dt>
+              <dt class={styles.infoList__label}>{t('datasetInfo.labels.imported')}</dt>
               <dd class={styles.infoList__value}>
-                {source.createdAt ? new Date(source.createdAt).toLocaleString() : 'Unknown'}
+                {source.createdAt
+                  ? new Date(source.createdAt).toLocaleString()
+                  : t('modelInfo.unknown')}
               </dd>
             </div>
           </dl>
@@ -122,13 +126,13 @@ export function DatasetInfoView({
 
         {/* Comment Card */}
         <div class={styles.infoCard}>
-          <h3 class={styles.infoCard__title}>Comment</h3>
+          <h3 class={styles.infoCard__title}>{t('datasetInfo.labels.comment')}</h3>
           {isEditingComment ? (
             <div>
               <textarea
                 value={comment}
                 onInput={(e) => setComment((e.target as HTMLTextAreaElement).value)}
-                placeholder="Add a comment about this dataset..."
+                placeholder={t('datasetInfo.commentPlaceholder')}
                 style={{
                   width: '100%',
                   minHeight: '100px',
@@ -144,10 +148,10 @@ export function DatasetInfoView({
                 style={{ display: 'flex', gap: 'var(--space-sm)', marginTop: 'var(--space-sm)' }}
               >
                 <button class="button button--primary" onClick={handleCommentSave}>
-                  Save
+                  {t('datasetInfo.commentSave')}
                 </button>
                 <button class="button button--secondary" onClick={handleCommentCancel}>
-                  Cancel
+                  {t('datasetInfo.commentCancel')}
                 </button>
               </div>
             </div>
@@ -161,7 +165,7 @@ export function DatasetInfoView({
                 </p>
               ) : (
                 <p style={{ color: 'var(--color-dark-gray)', fontStyle: 'italic', margin: 0 }}>
-                  No comment added yet.
+                  {t('datasetInfo.noComment')}
                 </p>
               )}
               <button
@@ -170,7 +174,7 @@ export function DatasetInfoView({
                 style={{ marginTop: 'var(--space-sm)' }}
               >
                 <span class="iconify" data-icon="carbon:edit" style={{ fontSize: '16px' }}></span>
-                {comment ? 'Edit Comment' : 'Add Comment'}
+                {comment ? t('datasetInfo.commentEditButton') : t('datasetInfo.commentAdd')}
               </button>
             </div>
           )}
@@ -179,31 +183,38 @@ export function DatasetInfoView({
         {/* Models List Card */}
         <div class={styles.infoCard}>
           <h3 class={styles.infoCard__title}>
-            Models
+            {t('datasetInfo.models.title')}
             <span class={styles.badge}>{sourceModels.length}</span>
           </h3>
           <div class={styles.modelsList}>
-            {sourceModels.map((model) => (
-              <div key={model.id} class={styles.modelCard} onClick={() => onSwitchToModel(model)}>
-                <div class={styles.modelCard__icon}>📊</div>
-                <div class={styles.modelCard__content}>
-                  <div class={styles.modelCard__name} title={getDependencyTooltip(model)}>
-                    {model.name}
-                    {model.isStale && (
-                      <span class={styles.staleBadge} title="This model is outdated">
-                        ⚠️
-                      </span>
-                    )}
+            {sourceModels.map((model) => {
+              const stepCount = (model.steps?.length || 1) - 1;
+              const rowCount = model.data?.length || 0;
+              return (
+                <div key={model.id} class={styles.modelCard} onClick={() => onSwitchToModel(model)}>
+                  <div class={styles.modelCard__icon}>📊</div>
+                  <div class={styles.modelCard__content}>
+                    <div class={styles.modelCard__name} title={getDependencyTooltip(model)}>
+                      {model.name}
+                      {model.isStale && (
+                        <span
+                          class={styles.staleBadge}
+                          title={t('datasetInfo.models.staleTooltip')}
+                        >
+                          ⚠️
+                        </span>
+                      )}
+                    </div>
+                    <div class={styles.modelCard__meta}>
+                      <span>{t('datasetInfo.models.viewSteps', { count: stepCount })}</span>
+                      <span>•</span>
+                      <span>{t('datasetInfo.models.rows', { count: rowCount })}</span>
+                    </div>
                   </div>
-                  <div class={styles.modelCard__meta}>
-                    <span>{`${(model.steps?.length || 1) - 1} step${(model.steps?.length || 1) - 1 !== 1 ? 's' : ''}`}</span>
-                    <span>•</span>
-                    <span>{`${model.data?.length?.toLocaleString() || 0} rows`}</span>
-                  </div>
+                  <div class={styles.modelCardArrow}>→</div>
                 </div>
-                <div class={styles.modelCardArrow}>→</div>
-              </div>
-            ))}
+              );
+            })}
 
             {/* New Model button */}
             <button
@@ -211,7 +222,7 @@ export function DatasetInfoView({
               onClick={() => onCreateNewModel(source)}
               style={{ width: '100%', marginTop: '0.5rem' }}
             >
-              ➕ New Model
+              ➕ {t('datasetInfo.models.create')}
             </button>
           </div>
         </div>
@@ -219,19 +230,16 @@ export function DatasetInfoView({
         {/* Column Schema Card */}
         <div class={`${styles.infoCard} ${styles.full}`}>
           <h3 class={styles.infoCard__title}>
-            Column Schema
-            <span
-              class={styles.infoCard__subtitle}
-              title="Types as imported by the parser (before inference)"
-            >
-              Import Types
+            {t('datasetInfo.schema.title')}
+            <span class={styles.infoCard__subtitle} title={t('datasetInfo.schema.subtitleTooltip')}>
+              {t('datasetInfo.schema.subtitle')}
             </span>
           </h3>
           <table class={styles.schemaTable}>
             <thead>
               <tr>
-                <th class={styles.schemaTable__header}>Column</th>
-                <th class={styles.schemaTable__header}>Position</th>
+                <th class={styles.schemaTable__header}>{t('datasetInfo.schema.column')}</th>
+                <th class={styles.schemaTable__header}>{t('datasetInfo.schema.position')}</th>
               </tr>
             </thead>
             <tbody>

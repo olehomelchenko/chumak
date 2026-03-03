@@ -1,3 +1,4 @@
+import { useTranslation } from 'preact-i18next';
 import { DialogStore } from '../../stores/DialogStore';
 import styles from '../TransformDialog.module.css';
 import joinStyles from '../JoinDialog.module.css';
@@ -46,6 +47,7 @@ export function JoinKeyPairEditor({
   onUpdate,
   onRemove,
 }: JoinKeyPairEditorProps) {
+  const { t } = useTranslation('dialogs');
   const hasLeftError = !pair[0];
   const hasRightError = !pair[1];
   const hasError = hasLeftError || hasRightError;
@@ -69,7 +71,7 @@ export function JoinKeyPairEditor({
           value={pair[0] || ''}
           onChange={(e) => onUpdate(index, 0, e.currentTarget.value || null)}
         >
-          <option value="">Select left column...</option>
+          <option value="">{t('joinKeyPairEditor.selectLeft')}</option>
           {leftColumns.map((col) => (
             <option key={col} value={col}>
               {col}
@@ -83,7 +85,7 @@ export function JoinKeyPairEditor({
           value={pair[1] || ''}
           onChange={(e) => onUpdate(index, 1, e.currentTarget.value || null)}
         >
-          <option value="">Select right column...</option>
+          <option value="">{t('joinKeyPairEditor.selectRight')}</option>
           {rightColumns.map((col) => (
             <option key={col} value={col}>
               {col}
@@ -94,7 +96,7 @@ export function JoinKeyPairEditor({
           class="button button--secondary button--small"
           onClick={() => onRemove(index)}
           disabled={!canRemove}
-          title="Remove key pair"
+          title={t('joinKeyPairEditor.removeKeyPair')}
         >
           ×
         </button>
@@ -103,9 +105,9 @@ export function JoinKeyPairEditor({
       {/* Validation Errors */}
       {hasError && (
         <div class={joinStyles.validationError}>
-          {hasLeftError && <span>Left column is required</span>}
+          {hasLeftError && <span>{t('joinKeyPairEditor.leftRequired')}</span>}
           {hasLeftError && hasRightError && <span> • </span>}
-          {hasRightError && <span>Right column is required</span>}
+          {hasRightError && <span>{t('joinKeyPairEditor.rightRequired')}</span>}
         </div>
       )}
 
@@ -113,68 +115,80 @@ export function JoinKeyPairEditor({
       {!hasError && analysis && pair[0] && pair[1] && (
         <div class={joinStyles.analysisBox}>
           <div class={joinStyles.analysisRow}>
-            <span class={joinStyles.analysisLabel}>Left:</span>
-            <span>{analysis.leftUnique} unique values</span>
+            <span class={joinStyles.analysisLabel}>{t('joinKeyPairEditor.leftLabel')}</span>
+            <span>
+              {analysis.leftUnique} {t('joinKeyPairEditor.uniqueValues')}
+            </span>
             {analysis.leftHasDuplicates && (
-              <span class={joinStyles.warningBadge} title="This column contains duplicate values">
-                ⚠️ Duplicates
+              <span
+                class={joinStyles.warningBadge}
+                title={t('joinKeyPairEditor.duplicatesTooltip')}
+              >
+                ⚠️ {t('joinKeyPairEditor.duplicates')}
               </span>
             )}
           </div>
           <div class={joinStyles.analysisRow}>
-            <span class={joinStyles.analysisLabel}>Right:</span>
-            <span>{analysis.rightUnique} unique values</span>
+            <span class={joinStyles.analysisLabel}>{t('joinKeyPairEditor.rightLabel')}</span>
+            <span>
+              {analysis.rightUnique} {t('joinKeyPairEditor.uniqueValues')}
+            </span>
             {analysis.rightHasDuplicates && (
-              <span class={joinStyles.warningBadge} title="This column contains duplicate values">
-                ⚠️ Duplicates
+              <span
+                class={joinStyles.warningBadge}
+                title={t('joinKeyPairEditor.duplicatesTooltip')}
+              >
+                ⚠️ {t('joinKeyPairEditor.duplicates')}
               </span>
             )}
           </div>
           <div class={joinStyles.analysisDivider}></div>
           <div class={joinStyles.analysisRow}>
-            <span class={joinStyles.analysisLabel}>Matches:</span>
+            <span class={joinStyles.analysisLabel}>{t('joinKeyPairEditor.matchesLabel')}</span>
             <span class={joinStyles.matchCount}>{analysis.matches}</span>
-            <span class={joinStyles.analysisLabel}>values</span>
+            <span class={joinStyles.analysisLabel}>{t('joinKeyPairEditor.matchesValues')}</span>
           </div>
           <div class={joinStyles.analysisRow}>
-            <span class={joinStyles.analysisLabel}>Left match:</span>
+            <span class={joinStyles.analysisLabel}>{t('joinKeyPairEditor.leftMatchLabel')}</span>
             <span class={joinStyles.matchPercent}>{analysis.leftMatchPercent}%</span>
-            <span class={joinStyles.analysisLabel}>of left rows will match</span>
+            <span class={joinStyles.analysisLabel}>{t('joinKeyPairEditor.leftMatchDesc')}</span>
           </div>
           <div class={joinStyles.analysisRow}>
-            <span class={joinStyles.analysisLabel}>Right match:</span>
+            <span class={joinStyles.analysisLabel}>{t('joinKeyPairEditor.rightMatchLabel')}</span>
             <span class={joinStyles.matchPercent}>{analysis.rightMatchPercent}%</span>
-            <span class={joinStyles.analysisLabel}>of right rows will match</span>
+            <span class={joinStyles.analysisLabel}>{t('joinKeyPairEditor.rightMatchDesc')}</span>
           </div>
           <div class={joinStyles.analysisDivider}></div>
           <div class={joinStyles.analysisRow}>
-            <span class={joinStyles.analysisLabel}>Left only:</span>
+            <span class={joinStyles.analysisLabel}>{t('joinKeyPairEditor.leftOnlyLabel')}</span>
             <button
               class={joinStyles.clickableCount}
               onClick={() =>
                 handleShowMismatch(analysis.leftOnlyValues, analysis.leftCol || '', 'left')
               }
               disabled={analysis.leftOnly === 0}
-              title="Click to view values"
+              title={t('joinKeyPairEditor.clickToView')}
             >
               {analysis.leftOnly}
             </button>
-            <span class={joinStyles.analysisLabel}>({analysis.leftOnlyPercent}% of left rows)</span>
+            <span class={joinStyles.analysisLabel}>
+              {t('joinKeyPairEditor.leftOnlyPercent', { percent: analysis.leftOnlyPercent })}
+            </span>
           </div>
           <div class={joinStyles.analysisRow}>
-            <span class={joinStyles.analysisLabel}>Right only:</span>
+            <span class={joinStyles.analysisLabel}>{t('joinKeyPairEditor.rightOnlyLabel')}</span>
             <button
               class={joinStyles.clickableCount}
               onClick={() =>
                 handleShowMismatch(analysis.rightOnlyValues, analysis.rightCol || '', 'right')
               }
               disabled={analysis.rightOnly === 0}
-              title="Click to view values"
+              title={t('joinKeyPairEditor.clickToView')}
             >
               {analysis.rightOnly}
             </button>
             <span class={joinStyles.analysisLabel}>
-              ({analysis.rightOnlyPercent}% of right rows)
+              {t('joinKeyPairEditor.rightOnlyPercent', { percent: analysis.rightOnlyPercent })}
             </span>
           </div>
         </div>
@@ -198,9 +212,10 @@ export function JoinKeysEditor({
   keyPairAnalysis,
   onUpdate,
 }: JoinKeysEditorProps) {
+  const { t } = useTranslation('dialogs');
   return (
     <div class={styles.group}>
-      <label class={styles.label}>Join Keys</label>
+      <label class={styles.label}>{t('joinKeyPairEditor.joinKeysLabel')}</label>
       {keyPairs.map((pair, index) => (
         <JoinKeyPairEditor
           key={index}
@@ -215,9 +230,9 @@ export function JoinKeysEditor({
         />
       ))}
       <button class="button button--secondary button--small" onClick={JoinHandlers.addJoinKeyPair}>
-        + Add Key Pair
+        {t('joinKeyPairEditor.addKeyPair')}
       </button>
-      <div class={styles.helpText}>Match rows where these columns have equal values</div>
+      <div class={styles.helpText}>{t('joinKeyPairEditor.helpText')}</div>
     </div>
   );
 }

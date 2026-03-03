@@ -1,3 +1,4 @@
+import { useTranslation } from 'preact-i18next';
 import { AppStore } from '../stores/AppStore';
 import type { DataRow } from '../types';
 import { debugLogCurrentPage } from '../utils/debug-helpers';
@@ -30,6 +31,7 @@ export function DataTable({
   onScroll,
   onErrorCellClick,
 }: DataTableProps) {
+  const { t } = useTranslation('ui');
   const columns = AppStore.columns;
   const selectedColumn = AppStore.selectedColumn;
   const activeModel = AppStore.activeModel;
@@ -237,7 +239,7 @@ export function DataTable({
                     e.stopPropagation();
                     onOpenTypeMenu(column, e as unknown as MouseEvent);
                   }}
-                  title="Click to change type"
+                  title={t('dataTable.typeMenuTooltip')}
                 >
                   <span class="iconify" data-icon={getTypeIcon(column)}></span>
                 </span>

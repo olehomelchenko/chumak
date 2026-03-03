@@ -2,6 +2,7 @@ import { Signal } from '@preact/signals';
 import { parseExpression, ASTNode } from '../../core/expression-parser';
 import { validateAST } from '../../core/ast-validator';
 import { formatError, FormattableError } from '../../core/error-formatter';
+import i18n from '../../i18n';
 
 /**
  * Result of expression validation with parsed AST for further use.
@@ -100,7 +101,7 @@ export function validateExpression(
     if (errorSignal) errorSignal.value = null;
     return {
       valid: allowEmpty,
-      error: allowEmpty ? null : 'Expression is required',
+      error: allowEmpty ? null : i18n.t('validation.invalid.expression', { ns: 'errors' }),
       ast: null,
     };
   }
@@ -159,14 +160,14 @@ export function validateRegexPattern(
   pattern: string,
   options: RegexValidationOptions = {}
 ): RegexValidationResult {
-  const { allowEmpty = true, flags = '', errorSignal, errorPrefix = 'Invalid pattern' } = options;
+  const { allowEmpty = true, flags = '', errorSignal } = options;
 
   // Handle empty pattern
   if (!pattern) {
     if (errorSignal) errorSignal.value = null;
     return {
       valid: allowEmpty,
-      error: allowEmpty ? null : 'Pattern is required',
+      error: allowEmpty ? null : i18n.t('validation.required.pattern', { ns: 'errors' }),
       regex: null,
     };
   }
@@ -177,7 +178,7 @@ export function validateRegexPattern(
     return { valid: true, error: null, regex };
   } catch (e: unknown) {
     const message = e instanceof Error ? e.message : String(e);
-    const errorMessage = `${errorPrefix}: ${message}`;
+    const errorMessage = `${i18n.t('validation.invalid.pattern', { ns: 'errors' })}: ${message}`;
     if (errorSignal) errorSignal.value = errorMessage;
     return { valid: false, error: errorMessage, regex: null };
   }

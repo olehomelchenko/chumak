@@ -3,17 +3,35 @@
  */
 
 import { useSignalEffect } from '@preact/signals';
+import { useTranslation } from 'preact-i18next';
 import styles from './TransformDialog.module.css';
 import { ColumnSelector } from './column-selector';
 import { DialogStore } from '../stores/DialogStore';
 import * as ParseDateHandlers from '../handlers/transform/parse-date-handlers';
 
 export function ParseDateDialog() {
+  const { t } = useTranslation('dialogs');
   const state = DialogStore.parseDateState;
   const { column, format, error } = state;
 
   const stringColumns = ParseDateHandlers.getStringColumns();
-  const commonFormats = ParseDateHandlers.getCommonFormats();
+  const commonFormatsRaw = ParseDateHandlers.getCommonFormats();
+
+  // Map format values to translation keys
+  const formatKeyMap: Record<string, string> = {
+    'YYYY-MM-DD': 'iso',
+    'MM/DD/YYYY': 'us',
+    'DD/MM/YYYY': 'eu',
+    'MM/DD/YYYY HH:mm': 'usTime',
+    'DD/MM/YYYY HH:mm': 'euTime',
+    timestamp: 'unix',
+  };
+
+  // For formats not in the map, just show the format string as the label
+  const commonFormats = commonFormatsRaw.map((fmt) => ({
+    ...fmt,
+    label: formatKeyMap[fmt.value] ? t(`parseDate.formats.${formatKeyMap[fmt.value]}`) : fmt.value,
+  }));
 
   // Update preview when column or format changes
   useSignalEffect(() => {
@@ -39,8 +57,8 @@ export function ParseDateDialog() {
           mode="single"
           display="chip"
           gridColumns={2}
-          label="Source column:"
-          helpText={stringColumns.length === 0 ? 'No string columns found.' : undefined}
+          label={t('parseDate.sourceColumnLabel')}
+          helpText={stringColumns.length === 0 ? t('parseDate.noColumnsHelp') : undefined}
         />
       </div>
 
@@ -51,7 +69,7 @@ export function ParseDateDialog() {
             <div class={styles.group}>
               <div class={styles.expressionHelp} style={{ marginTop: 0 }}>
                 <div class={styles.expressionHelpTitle} style={{ display: 'block' }}>
-                  Sample value
+                  {t('parseDate.sampleValueLabel')}
                 </div>
                 <div
                   style={{
@@ -68,7 +86,7 @@ export function ParseDateDialog() {
 
           {/* Format presets */}
           <div class={styles.group}>
-            <label class={styles.label}>Format:</label>
+            <label class={styles.label}>{t('parseDate.formatLabel')}</label>
             <div
               style={{
                 display: 'grid',
@@ -95,11 +113,11 @@ export function ParseDateDialog() {
             <input
               type="text"
               class={styles.input}
-              placeholder="Or type a custom format..."
+              placeholder={t('parseDate.formatPlaceholder')}
               value={format.value}
               onInput={(e) => (format.value = (e.target as HTMLInputElement).value)}
             />
-            <div class={styles.helpText}>Tokens: YYYY, YY, MM, M, DD, D, HH, H, mm, m, ss, s</div>
+            <div class={styles.helpText}>{t('parseDate.formatHelp')}</div>
           </div>
         </>
       )}

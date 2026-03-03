@@ -1,0 +1,68 @@
+/**
+ * Vitest Test Setup
+ *
+ * This file runs before all tests to set up the test environment.
+ */
+
+import { vi } from 'vitest';
+import fs from 'fs';
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+// Load actual English translations for testing
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const translationsDir = path.join(__dirname, 'i18n/locales/en');
+const translations: Record<string, any> = {};
+
+try {
+  const files = fs.readdirSync(translationsDir);
+  for (const file of files) {
+    if (file.endsWith('.json')) {
+      const namespace = file.replace('.json', '');
+      const content = fs.readFileSync(path.join(translationsDir, file), 'utf-8');
+      translations[namespace] = JSON.parse(content);
+    }
+  }
+  console.log(`✓ Loaded ${Object.keys(translations).length} translation namespaces`);
+} catch (error) {
+  console.error('❌ Failed to load translations:', error);
+  console.error('   Directory:', translationsDir);
+}
+
+// Helper to get nested value from object using dot notation
+function getNestedValue(obj: any, path: string): any {
+  return path.split('.').reduce((current, key) => current?.[key], obj);
+}
+
+// Helper to interpolate values into translation string
+function interpolate(str: string, values?: Record<string, any>): string {
+  if (!values) return str;
+  return str.replace(/\{\{(\w+)\}\}/g, (match, key) => {
+    return values[key] !== undefined ? String(values[key]) : match;
+  });
+}
+
+// Mock preact-i18next globally for all tests
+// Uses actual English translations with interpolation support
+vi.mock('preact-i18next', () => ({
+  useTranslation: (namespace: string = 'common') => ({
+    t: (key: string, options?: Record<string, any>) => {
+      const translation = getNestedValue(translations[namespace], key);
+      if (translation === undefined) {
+        console.warn(`Missing translation: ${namespace}.${key}`);
+        return key; // Fallback to key if translation not found
+      }
+      return interpolate(translation, options);
+    },
+    i18n: {
+      language: 'en',
+      changeLanguage: vi.fn(),
+    },
+  }),
+  I18nextProvider: ({ children }: { children: any }) => children,
+  initReactI18next: {
+    type: '3rdParty',
+    init: vi.fn(),
+  },
+}));

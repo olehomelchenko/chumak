@@ -1,7 +1,9 @@
 import { AppStore } from '../stores/AppStore';
 import styles from './App.module.css';
+import { useTranslation } from 'preact-i18next';
 
 export function DependencyImpactDialog() {
+  const { t } = useTranslation('common');
   const modal = AppStore.dependencyImpactModal.value;
 
   if (!modal.visible) return null;
@@ -30,17 +32,26 @@ export function DependencyImpactDialog() {
         onClick={(e) => e.stopPropagation()}
       >
         <div class={styles.centeredModalHeader}>
-          <h2>⚠️ Dependency Impact</h2>
-          <button onClick={handleCancel} aria-label="Close">
+          <h2>⚠️ {t('dependencyDialog.title')}</h2>
+          <button onClick={handleCancel} aria-label={t('buttons.close')}>
             ×
           </button>
         </div>
 
         <div class={styles.centeredModalContent} style={{ padding: '20px' }}>
-          <p style={{ marginBottom: '16px' }}>
-            This change will affect <strong>{count}</strong> dependent model{count !== 1 ? 's' : ''}
-            :
-          </p>
+          <p
+            style={{ marginBottom: '16px' }}
+            dangerouslySetInnerHTML={{
+              __html: t(
+                count === 1
+                  ? 'dependencyDialog.message_one'
+                  : count >= 2 && count <= 4
+                    ? 'dependencyDialog.message_few'
+                    : 'dependencyDialog.message_many',
+                { count }
+              ),
+            }}
+          ></p>
 
           <div style={{ marginBottom: '20px', maxHeight: '200px', overflowY: 'auto' }}>
             {modal.dependentModels.map((dep) => (
@@ -70,7 +81,9 @@ export function DependencyImpactDialog() {
             ))}
           </div>
 
-          <p style={{ marginBottom: '12px', fontWeight: '500' }}>What would you like to do?</p>
+          <p style={{ marginBottom: '12px', fontWeight: '500' }}>
+            {t('dependencyDialog.question')}
+          </p>
 
           <label
             style={{
@@ -96,10 +109,10 @@ export function DependencyImpactDialog() {
             />
             <div style={{ flex: 1 }}>
               <div style={{ fontWeight: '500', marginBottom: '4px' }}>
-                Mark as stale (recommended)
+                {t('dependencyDialog.markStale.title')}
               </div>
               <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>
-                Dependent models will update when you view them
+                {t('dependencyDialog.markStale.description')}
               </div>
             </div>
           </label>
@@ -126,9 +139,11 @@ export function DependencyImpactDialog() {
               style={{ marginTop: '3px' }}
             />
             <div style={{ flex: 1 }}>
-              <div style={{ fontWeight: '500', marginBottom: '4px' }}>Recalculate now</div>
+              <div style={{ fontWeight: '500', marginBottom: '4px' }}>
+                {t('dependencyDialog.recalculate.title')}
+              </div>
               <div style={{ fontSize: '13px', color: 'var(--color-text-secondary)' }}>
-                All dependent models will be recomputed immediately
+                {t('dependencyDialog.recalculate.description')}
               </div>
             </div>
           </label>
@@ -136,10 +151,10 @@ export function DependencyImpactDialog() {
 
         <div class={styles.centeredModalFooter}>
           <button onClick={handleCancel} style={{ marginRight: '8px' }}>
-            Cancel
+            {t('buttons.cancel')}
           </button>
           <button onClick={handleContinue} class="button-primary">
-            Continue
+            {t('buttons.continue')}
           </button>
         </div>
       </div>

@@ -1,3 +1,4 @@
+import { useTranslation } from 'preact-i18next';
 import * as AggregateHandlers from '../handlers/transform/aggregate-handlers';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
@@ -11,6 +12,7 @@ export interface Aggregation {
 }
 
 export function AggregateDialog() {
+  const { t } = useTranslation('dialogs');
   const { groupBy, aggregations, isPreviewing } = DialogStore.aggregateState;
   const columns = AppStore.columns.value;
 
@@ -22,16 +24,16 @@ export function AggregateDialog() {
   };
 
   const aggFunctions = [
-    { value: 'count', label: 'Count' },
-    { value: 'sum', label: 'Sum' },
-    { value: 'mean', label: 'Mean' },
-    { value: 'median', label: 'Median' },
-    { value: 'min', label: 'Min' },
-    { value: 'max', label: 'Max' },
-    { value: 'distinct', label: 'Distinct' },
-    { value: 'stdev', label: 'StDev' },
-    { value: 'first', label: 'First' },
-    { value: 'last', label: 'Last' },
+    { value: 'count', label: t('aggregate.functions.count') },
+    { value: 'sum', label: t('aggregate.functions.sum') },
+    { value: 'mean', label: t('aggregate.functions.mean') },
+    { value: 'median', label: t('aggregate.functions.median') },
+    { value: 'min', label: t('aggregate.functions.min') },
+    { value: 'max', label: t('aggregate.functions.max') },
+    { value: 'distinct', label: t('aggregate.functions.distinct') },
+    { value: 'stdev', label: t('aggregate.functions.stdev') },
+    { value: 'first', label: t('aggregate.functions.first') },
+    { value: 'last', label: t('aggregate.functions.last') },
   ];
 
   return (
@@ -45,14 +47,14 @@ export function AggregateDialog() {
           mode="multi"
           display="chip"
           allowSelectAll={true}
-          label="Group By (Columns)"
-          helpText="Selected columns will define the grouping keys."
+          label={t('aggregate.groupByLabel')}
+          helpText={t('aggregate.groupByHelp')}
         />
       </div>
 
       {/* Aggregations Section */}
       <div class={styles.group}>
-        <label class={styles.label}>Summarize / Rollup</label>
+        <label class={styles.label}>{t('aggregate.summarizeLabel')}</label>
 
         <div style={{ marginBottom: '0.5rem' }}>
           {aggregations.value.map((agg, index) => (
@@ -67,7 +69,9 @@ export function AggregateDialog() {
                 }
                 disabled={agg.func === 'count'}
               >
-                <option value="">{agg.func === 'count' ? '(All rows)' : 'Select column...'}</option>
+                <option value="">
+                  {agg.func === 'count' ? t('aggregate.allRows') : t('aggregate.selectColumn')}
+                </option>
                 {columns.map((col) => (
                   <option key={col} value={col}>
                     {col}
@@ -102,13 +106,13 @@ export function AggregateDialog() {
                 onInput={(e) =>
                   updateAggregation(index, 'output', (e.target as HTMLInputElement).value)
                 }
-                placeholder="Output name (auto-generated)"
+                placeholder={t('aggregate.outputPlaceholder')}
               />
 
               <button
                 class="button button--secondary button--small"
                 onClick={() => AggregateHandlers.removeAggregation(index)}
-                title="Remove"
+                title={t('aggregate.remove')}
               >
                 ×
               </button>
@@ -120,49 +124,46 @@ export function AggregateDialog() {
           class="button button--secondary button--small"
           onClick={AggregateHandlers.addAggregation}
         >
-          + Add Aggregation
+          {t('aggregate.addAggregation')}
         </button>
       </div>
 
       {/* Inline Help */}
       <div class={styles.expressionHelp}>
         <div class={styles.expressionHelpTitle}>
-          <span>How it works</span>
+          <span>{t('aggregate.help.title')}</span>
         </div>
         <div style={{ fontSize: '0.75rem', color: 'var(--color-dark-gray)', lineHeight: 1.8 }}>
-          <p style={{ margin: '0 0 0.5rem' }}>
-            <strong>Group By</strong> columns define the groups — rows with the same values are
-            combined. <strong>Aggregations</strong> compute a summary value for each group.
-          </p>
+          <p style={{ margin: '0 0 0.5rem' }}>{t('aggregate.help.description')}</p>
           <div class={styles.exampleGrid}>
             <div>
               <code class={styles.exampleCode}>count</code>
             </div>
-            <div class={styles.exampleDescription}>Number of rows</div>
+            <div class={styles.exampleDescription}>{t('aggregate.help.countDesc')}</div>
             <div>
               <code class={styles.exampleCode}>sum</code>
             </div>
-            <div class={styles.exampleDescription}>Total of numeric values</div>
+            <div class={styles.exampleDescription}>{t('aggregate.help.sumDesc')}</div>
             <div>
               <code class={styles.exampleCode}>mean</code>
             </div>
-            <div class={styles.exampleDescription}>Average value</div>
+            <div class={styles.exampleDescription}>{t('aggregate.help.meanDesc')}</div>
             <div>
               <code class={styles.exampleCode}>median</code>
             </div>
-            <div class={styles.exampleDescription}>Middle value</div>
+            <div class={styles.exampleDescription}>{t('aggregate.help.medianDesc')}</div>
             <div>
               <code class={styles.exampleCode}>min / max</code>
             </div>
-            <div class={styles.exampleDescription}>Smallest / largest value</div>
+            <div class={styles.exampleDescription}>{t('aggregate.help.minMaxDesc')}</div>
             <div>
               <code class={styles.exampleCode}>distinct</code>
             </div>
-            <div class={styles.exampleDescription}>Count of unique values</div>
+            <div class={styles.exampleDescription}>{t('aggregate.help.distinctDesc')}</div>
             <div>
               <code class={styles.exampleCode}>stdev</code>
             </div>
-            <div class={styles.exampleDescription}>Standard deviation</div>
+            <div class={styles.exampleDescription}>{t('aggregate.help.stdevDesc')}</div>
           </div>
         </div>
       </div>
@@ -174,7 +175,7 @@ export function AggregateDialog() {
           onClick={AggregateHandlers.updateAggregatePreview}
           disabled={isPreviewing.value}
         >
-          {isPreviewing.value ? 'Previewing...' : 'Preview Result'}
+          {isPreviewing.value ? t('aggregate.previewing') : t('aggregate.previewButton')}
         </button>
       </div>
     </div>

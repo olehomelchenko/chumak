@@ -34,6 +34,15 @@ const DEFAULT_SETTINGS: UXSettings = {
  */
 export function loadUXSettings(): UXSettings {
   try {
+    // Check if localStorage is available and has getItem method (not available/functional in some test environments)
+    if (
+      typeof localStorage === 'undefined' ||
+      !localStorage ||
+      typeof localStorage.getItem !== 'function'
+    ) {
+      return { ...DEFAULT_SETTINGS };
+    }
+
     const stored = localStorage.getItem(UX_SETTINGS_KEY);
     if (stored) {
       const parsed = JSON.parse(stored);
@@ -63,6 +72,15 @@ export function loadUXSettings(): UXSettings {
  */
 export function saveUXSettings(settings: UXSettings): void {
   try {
+    // Check if localStorage is available and has setItem method (not available/functional in some test environments)
+    if (
+      typeof localStorage === 'undefined' ||
+      !localStorage ||
+      typeof localStorage.setItem !== 'function'
+    ) {
+      return;
+    }
+
     localStorage.setItem(UX_SETTINGS_KEY, JSON.stringify(settings));
   } catch (error) {
     console.error('Failed to save UX settings:', error);

@@ -1,3 +1,4 @@
+import { useTranslation } from 'preact-i18next';
 import type { ColumnType } from '../../core/schema-engine';
 import styles from './TypeIndicator.module.css';
 
@@ -12,24 +13,26 @@ export interface TypeIndicatorProps {
  * Follows the same visual pattern as TypeMenu for consistency.
  */
 export function TypeIndicator({ type, showLabel = true, size = 'medium' }: TypeIndicatorProps) {
+  const { t } = useTranslation('ui');
+
   const getTypeDisplay = (type: ColumnType) => {
     switch (type) {
       case 'string':
-        return { symbol: 'Aa', label: 'String', icon: null };
+        return { symbol: 'Aa', label: t('typeMenu.types.string'), icon: null };
       case 'integer':
-        return { symbol: '#', label: 'Integer', icon: null };
+        return { symbol: '#', label: t('typeMenu.types.integer'), icon: null };
       case 'float':
-        return { symbol: '0.0', label: 'Float', icon: null };
+        return { symbol: '0.0', label: t('typeMenu.types.float'), icon: null };
       case 'boolean':
-        return { symbol: '✓', label: 'Boolean', icon: null };
+        return { symbol: '✓', label: t('typeMenu.types.boolean'), icon: null };
       case 'date':
-        return { symbol: null, label: 'Date', icon: 'carbon:calendar' };
+        return { symbol: null, label: t('typeMenu.types.date'), icon: 'carbon:calendar' };
       case 'datetime':
-        return { symbol: null, label: 'DateTime', icon: 'ix:calendar' };
+        return { symbol: null, label: t('typeMenu.types.datetime'), icon: 'ix:calendar' };
       case 'json':
-        return { symbol: '{}', label: 'JSON', icon: null };
+        return { symbol: '{}', label: t('typeMenu.types.json'), icon: null };
       default:
-        return { symbol: 'Aa', label: 'String', icon: null };
+        return { symbol: 'Aa', label: t('typeMenu.types.string'), icon: null };
     }
   };
 

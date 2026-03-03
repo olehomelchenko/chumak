@@ -10,6 +10,7 @@ import * as DedupeHandlers from '../transform/dedupe-handlers';
 import { StepService } from '../../services/StepService';
 import { PersistenceService } from '../../services/PersistenceService';
 import { convertType } from '../../../core/type-converter';
+import i18n from '../../../i18n';
 
 export function handleBodyClick(event: any) {
   const hasSelection =
@@ -410,7 +411,7 @@ export async function quickRename(
   // Check for duplicate column names
   const columns = AppStore.columns.value;
   if (columns.includes(trimmedName)) {
-    await alert(`Column "${trimmedName}" already exists`);
+    await alert(i18n.t('validation.duplicate.columnExists', { ns: 'errors', name: trimmedName }));
     return;
   }
 
@@ -551,7 +552,7 @@ export async function extractSelectedRows(switchToModel: (model: any) => void): 
     (m) => m.sourceId === source.id && m.name.toLowerCase() === name.toLowerCase()
   );
   if (existing) {
-    await NotificationHandlers.alert('A model with this name already exists for this source.');
+    await NotificationHandlers.alert(i18n.t('validation.duplicate.modelExists', { ns: 'errors' }));
     return;
   }
 

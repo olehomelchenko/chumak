@@ -6,6 +6,8 @@ import { describeTransform } from '../../core/transforms';
 import { getDependencyTooltip } from '../handlers/core/helper-handlers';
 import type { Source, Model } from '../types';
 import styles from './Sidebar.module.css';
+import { useTranslation } from 'preact-i18next';
+import i18n from '../../i18n';
 
 export interface SidebarProps {
   // Import actions
@@ -39,7 +41,10 @@ function getModelMeta(model: Model): string {
       ? Object.keys(model.data[0]).length
       : 0;
   const stepsCount = Math.max(0, (model.steps ? model.steps.length : 0) - 1);
-  const stepsText = stepsCount === 1 ? '1 step' : `${stepsCount} steps`;
+  const stepsText =
+    stepsCount === 1
+      ? i18n.t('common:sidebar.steps.step_one')
+      : i18n.t('common:sidebar.steps.step_other', { count: stepsCount });
   return `${rowCount.toLocaleString()} x ${colCount} • ${stepsText}`;
 }
 
@@ -59,6 +64,7 @@ export function Sidebar({
   onGetStepsJson,
   onEnterJsonEditMode,
 }: SidebarProps) {
+  const { t } = useTranslation('common');
   const sources = AppStore.sources;
   const models = AppStore.models;
   const activeSource = AppStore.activeSource;
@@ -95,31 +101,27 @@ export function Sidebar({
     <aside class={styles.leftPanel}>
       {/* Sources & Models */}
       <section class={styles.panelSection}>
-        <h2 class={styles.header}>Sources & Models</h2>
+        <h2 class={styles.header}>{t('sidebar.title')}</h2>
         <div class={styles.importActions}>
-          <button class={styles.importAction} onClick={onUploadClick} title="Upload CSV file">
+          <button class={styles.importAction} onClick={onUploadClick} title={t('tooltips.upload')}>
             <span class="iconify" data-icon="carbon:upload"></span>
-            <span>Upload</span>
+            <span>{t('sidebar.actions.upload')}</span>
           </button>
-          <button
-            class={styles.importAction}
-            onClick={onPasteClick}
-            title="Paste data from clipboard"
-          >
+          <button class={styles.importAction} onClick={onPasteClick} title={t('tooltips.paste')}>
             <span class="iconify" data-icon="carbon:paste"></span>
-            <span>Paste</span>
+            <span>{t('sidebar.actions.paste')}</span>
           </button>
-          <button class={styles.importAction} onClick={onUrlClick} title="Import from URL">
+          <button class={styles.importAction} onClick={onUrlClick} title={t('tooltips.url')}>
             <span class="iconify" data-icon="carbon:link"></span>
-            <span>URL</span>
+            <span>{t('sidebar.actions.url')}</span>
           </button>
           <button
             class={styles.importAction}
             onClick={onGenerateClick}
-            title="Generate synthetic data"
+            title={t('tooltips.generate')}
           >
             <span class="iconify" data-icon="carbon:data-2"></span>
-            <span>Generate</span>
+            <span>{t('sidebar.actions.generate')}</span>
           </button>
         </div>
         <div class={styles.treeView}>
@@ -149,10 +151,7 @@ export function Sidebar({
                       {model.name}
                     </span>
                     {model.isStale && (
-                      <span
-                        class={styles.staleBadge}
-                        title="This model is outdated and will be recomputed when viewed"
-                      >
+                      <span class={styles.staleBadge} title={t('tooltips.staleModel')}>
                         ⚠️
                       </span>
                     )}
@@ -163,11 +162,7 @@ export function Sidebar({
           ))}
 
           {/* Show message when no sources */}
-          {sources.value.length === 0 && (
-            <div class={styles.empty}>
-              No data sources imported yet. Click "Import CSV" to get started.
-            </div>
-          )}
+          {sources.value.length === 0 && <div class={styles.empty}>{t('sidebar.empty')}</div>}
         </div>
       </section>
 
@@ -178,20 +173,20 @@ export function Sidebar({
             class={`${styles.tab} ${activeTab === 'steps' ? styles.active : ''}`}
             onClick={() => setActiveTab('steps')}
           >
-            Steps
+            {t('labels.steps')}
           </button>
           <button
             class={`${styles.tab} ${activeTab === 'json' ? styles.active : ''}`}
             onClick={() => setActiveTab('json')}
           >
-            JSON
+            {t('labels.json')}
           </button>
           <div class={styles.undoRedo}>
             <button
               class={styles.undoRedoButton}
               onClick={onUndo}
               disabled={!canUndo.value}
-              title={`Undo (${mod}+Z)`}
+              title={`${t('buttons.undo')} (${mod}+Z)`}
             >
               <span
                 class="iconify"
@@ -203,7 +198,7 @@ export function Sidebar({
               class={styles.undoRedoButton}
               onClick={onRedo}
               disabled={!canRedo.value}
-              title={`Redo (${mod}+Shift+Z)`}
+              title={`${t('buttons.redo')} (${mod}+Shift+Z)`}
             >
               <span
                 class="iconify"
@@ -217,9 +212,7 @@ export function Sidebar({
         {/* Steps List */}
         {activeTab === 'steps' && (
           <div class={styles.stepsList}>
-            {!hasData.value && (
-              <div class={styles.empty}>Import a CSV file to begin transforming data.</div>
-            )}
+            {!hasData.value && <div class={styles.empty}>{t('sidebar.emptyData')}</div>}
 
             {/* Show steps if any exist */}
             {hasData.value && hasSteps.value && (
@@ -241,7 +234,7 @@ export function Sidebar({
                             e.stopPropagation();
                             onEditStep(index);
                           }}
-                          title="Edit this step"
+                          title={t('tooltips.editStep')}
                         >
                           ✎
                         </button>
@@ -253,7 +246,7 @@ export function Sidebar({
                           e.stopPropagation();
                           onRemoveStep(index);
                         }}
-                        title="Remove this step"
+                        title={t('tooltips.removeStep')}
                       >
                         ×
                       </button>
@@ -264,9 +257,14 @@ export function Sidebar({
                 {/* Info text when viewing intermediate step */}
                 {viewingIntermediate.value && (
                   <div class={styles.viewingIntermediate}>
-                    <span>{`Viewing step ${(activeStepIndex.value || 0) + 1} of ${activeModel.value?.steps?.length}`}</span>
+                    <span>
+                      {t('sidebar.steps.viewingStep', {
+                        current: (activeStepIndex.value || 0) + 1,
+                        total: activeModel.value?.steps?.length,
+                      })}
+                    </span>
                     <button onClick={onViewFinalResult} class={styles.return}>
-                      View final result
+                      {t('sidebar.steps.viewFinalResult')}
                     </button>
                   </div>
                 )}
@@ -275,9 +273,7 @@ export function Sidebar({
 
             {/* Show "no steps" message if data loaded but no steps */}
             {hasData.value && !hasSteps.value && (
-              <div class={styles.empty}>
-                No transformation steps yet. Use the toolbar above to transform your data.
-              </div>
+              <div class={styles.empty}>{t('sidebar.steps.noStepsHelp')}</div>
             )}
           </div>
         )}
@@ -285,13 +281,11 @@ export function Sidebar({
         {/* JSON View */}
         {activeTab === 'json' && (
           <div class={styles.jsonView}>
-            {!hasData.value && (
-              <div class={styles.empty}>Import a CSV file to begin transforming data.</div>
-            )}
+            {!hasData.value && <div class={styles.empty}>{t('sidebar.emptyData')}</div>}
 
             {/* Show "no steps" message */}
             {hasData.value && !hasSteps.value && (
-              <div class={styles.empty}>No transformation steps yet.</div>
+              <div class={styles.empty}>{t('sidebar.steps.noStepsYet')}</div>
             )}
 
             {/* JSON View */}
@@ -300,14 +294,14 @@ export function Sidebar({
                 <button
                   class={styles.jsonEditToggle}
                   onClick={onEnterJsonEditMode}
-                  title="Edit raw JSON (opens editor modal)"
+                  title={t('tooltips.editJson')}
                 >
                   <span
                     class="iconify"
                     data-icon="carbon:edit"
                     style={{ width: '14px', height: '14px' }}
                   ></span>
-                  Edit JSON
+                  {t('sidebar.steps.editJson')}
                 </button>
                 <pre class={styles.jsonContent}>{onGetStepsJson()}</pre>
               </div>

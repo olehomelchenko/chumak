@@ -1,4 +1,5 @@
 import { useRef, useEffect } from 'preact/hooks';
+import { useTranslation } from 'preact-i18next';
 import { AppStore } from '../stores/AppStore';
 import styles from './TypeMenu.module.css';
 
@@ -9,6 +10,7 @@ export interface TypeMenuProps {
 }
 
 export function TypeMenu({ onClose, onOpenTypeConversionDialog }: TypeMenuProps) {
+  const { t } = useTranslation('ui');
   const isOpen = AppStore.typeMenuOpen;
   const position = AppStore.typeMenuPos;
   const column = AppStore.typeMenuCol;
@@ -81,38 +83,42 @@ export function TypeMenu({ onClose, onOpenTypeConversionDialog }: TypeMenuProps)
           left: `${position.value.x}px`,
         }}
       >
-        <div class={styles.header}>Change Type</div>
+        <div class={styles.header}>{t('typeMenu.title')}</div>
         <button class={styles.item} role="menuitem" onClick={handleTypeClick('string')}>
-          <span class={`${styles.indicator} ${styles.string}`}>Aa</span> String
+          <span class={`${styles.indicator} ${styles.string}`}>Aa</span>{' '}
+          {t('typeMenu.types.string')}
         </button>
         <button class={styles.item} role="menuitem" onClick={handleTypeClick('integer')}>
-          <span class={`${styles.indicator} ${styles.integer}`}>#</span> Integer
+          <span class={`${styles.indicator} ${styles.integer}`}>#</span>{' '}
+          {t('typeMenu.types.integer')}
         </button>
         <button class={styles.item} role="menuitem" onClick={handleTypeClick('float')}>
-          <span class={`${styles.indicator} ${styles.float}`}>0.0</span> Float
+          <span class={`${styles.indicator} ${styles.float}`}>0.0</span> {t('typeMenu.types.float')}
         </button>
         <button class={styles.item} role="menuitem" onClick={handleTypeClick('boolean')}>
-          <span class={`${styles.indicator} ${styles.boolean}`}>✓</span> Boolean
+          <span class={`${styles.indicator} ${styles.boolean}`}>✓</span>{' '}
+          {t('typeMenu.types.boolean')}
         </button>
         <button class={styles.item} role="menuitem" onClick={handleTypeClick('date')}>
           <span class={`${styles.indicator} ${styles.date}`}>
             <span class="iconify" data-icon="carbon:calendar"></span>
           </span>
-          Date
+          {t('typeMenu.types.date')}
         </button>
         <button class={styles.item} role="menuitem" onClick={handleTypeClick('datetime')}>
           <span class={`${styles.indicator} ${styles.datetime}`}>
             <span class="iconify" data-icon="ix:calendar"></span>
           </span>
-          DateTime
+          {t('typeMenu.types.datetime')}
         </button>
         <button class={styles.item} role="menuitem" onClick={handleTypeClick('json')}>
-          <span class={`${styles.indicator} ${styles.json}`}>{'{}'}</span> JSON
+          <span class={`${styles.indicator} ${styles.json}`}>{'{}'}</span>{' '}
+          {t('typeMenu.types.json')}
         </button>
         <div class={styles.divider}></div>
         <button class={styles.item} role="menuitem" onClick={handleTypeClick('auto')}>
           <span class="iconify" data-icon="carbon:flash"></span>
-          Auto-Detect
+          {t('typeMenu.types.auto')}
         </button>
       </div>
     </>

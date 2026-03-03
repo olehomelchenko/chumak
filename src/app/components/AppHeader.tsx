@@ -44,21 +44,21 @@ export function AppHeader({ onOpenDialog }: AppHeaderProps) {
             disabled={!hasData.value}
             onClick={() => setTab('rows')}
           >
-            Rows
+            {t('header.tabs.rows')}
           </button>
           <button
             class={getTabClass('columns')}
             disabled={!hasData.value}
             onClick={() => setTab('columns')}
           >
-            Columns
+            {t('header.tabs.columns')}
           </button>
           <button
             class={getTabClass('table')}
             disabled={!hasData.value}
             onClick={() => setTab('table')}
           >
-            Table
+            {t('header.tabs.table')}
           </button>
         </div>
 
@@ -86,7 +86,7 @@ export function AppHeader({ onOpenDialog }: AppHeaderProps) {
             title={t('tooltips.graph')}
           >
             <span class="iconify" data-icon="carbon:network-3"></span>
-            <span>Graph</span>
+            <span>{t('labels.graph')}</span>
           </button>
           <button
             class="button button--secondary button--small"

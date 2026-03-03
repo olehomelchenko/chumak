@@ -3,6 +3,7 @@
  */
 
 import { useComputed, useSignalEffect } from '@preact/signals';
+import { useTranslation } from 'preact-i18next';
 import styles from './TransformDialog.module.css';
 import { ColumnSelector } from './column-selector';
 import { DialogStore } from '../stores/DialogStore';
@@ -12,6 +13,7 @@ import * as DateHandlers from '../handlers/transform/date-handlers';
 export type { DateOperation } from '../../types/modes';
 
 export function DateDialog() {
+  const { t } = useTranslation('dialogs');
   const state = DialogStore.dateState;
   const { column, operation, extractParts, truncateUnits, truncateIntervals, removeOrigin, error } =
     state;
@@ -46,12 +48,8 @@ export function DateDialog() {
           mode="single"
           display="chip"
           gridColumns={2}
-          label="Source column:"
-          helpText={
-            dateColumns.length === 0
-              ? 'No date/datetime columns found. Use the column type menu to set a column as date.'
-              : undefined
-          }
+          label={t('date.sourceColumnLabel')}
+          helpText={dateColumns.length === 0 ? t('date.noColumnsHelp') : undefined}
         />
       </div>
 
@@ -59,7 +57,7 @@ export function DateDialog() {
         <>
           {/* Operation Toggle */}
           <div class={styles.group}>
-            <label class={styles.label}>Operation:</label>
+            <label class={styles.label}>{t('date.operationLabel')}</label>
             <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '0.75rem' }}>
               <button
                 type="button"
@@ -72,7 +70,7 @@ export function DateDialog() {
                   data-icon="carbon:chart-custom"
                   style={{ fontSize: '1rem' }}
                 />
-                Extract Part
+                {t('date.operations.extract')}
               </button>
               <button
                 type="button"
@@ -81,7 +79,7 @@ export function DateDialog() {
                 onClick={() => (operation.value = 'truncate')}
               >
                 <span class="iconify" data-icon="carbon:cut-out" style={{ fontSize: '1rem' }} />
-                Truncate
+                {t('date.operations.truncate')}
               </button>
             </div>
           </div>
@@ -89,33 +87,22 @@ export function DateDialog() {
           {/* Help Section */}
           <div class={styles.expressionHelp} style={{ marginBottom: '1rem' }}>
             <div class={styles.expressionHelpTitle} style={{ display: 'block' }}>
-              {operation.value === 'extract' ? 'Extract' : 'Truncate'}
-              {' — What it does'}
+              {t(`date.help.${operation.value}.title`)}
             </div>
-            {operation.value === 'extract' && (
-              <div style={{ fontSize: '0.75rem', color: 'var(--color-text)', lineHeight: 1.5 }}>
-                Extracts a numeric part from a date/datetime value. Useful for grouping or analyzing
-                data by time periods (e.g., sales by month, events by weekday).
-              </div>
-            )}
-            {operation.value === 'truncate' && (
-              <div style={{ fontSize: '0.75rem', color: 'var(--color-text)', lineHeight: 1.5 }}>
-                Rounds down a date/datetime to the start of the specified period. For hours,
-                minutes, and seconds you can set a custom interval (e.g., every 5 minutes, every 4
-                hours).
-              </div>
-            )}
+            <div style={{ fontSize: '0.75rem', color: 'var(--color-text)', lineHeight: 1.5 }}>
+              {t(`date.help.${operation.value}.description`)}
+            </div>
           </div>
 
           {/* Extract Options - shown when extract mode */}
           {operation.value === 'extract' && (
             <div class={styles.group}>
-              <label class={styles.label}>Extract:</label>
+              <label class={styles.label}>{t('date.extractLabel')}</label>
               <table class={styles.dateOptionsTable}>
                 <thead>
                   <tr>
-                    <th style={{ width: '60%' }}>Part</th>
-                    <th style={{ width: '40%' }}>Preview</th>
+                    <th style={{ width: '60%' }}>{t('date.part')}</th>
+                    <th style={{ width: '40%' }}>{t('date.preview')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -147,7 +134,7 @@ export function DateDialog() {
                                 opacity: !isSelected ? 0.6 : 1,
                               }}
                             >
-                              {part.label}
+                              {t(`date.extractParts.${part.value}`)}
                             </span>
                           </div>
                         </td>
@@ -176,13 +163,13 @@ export function DateDialog() {
           {/* Truncate Options - shown when truncate mode */}
           {operation.value === 'truncate' && (
             <div class={styles.group}>
-              <label class={styles.label}>Truncate to:</label>
+              <label class={styles.label}>{t('date.truncateLabel')}</label>
               <table class={styles.dateOptionsTable}>
                 <thead>
                   <tr>
-                    <th style={{ width: '35%' }}>Unit</th>
-                    <th style={{ width: '30%' }}>Interval</th>
-                    <th style={{ width: '35%' }}>Preview</th>
+                    <th style={{ width: '35%' }}>{t('date.unit')}</th>
+                    <th style={{ width: '30%' }}>{t('date.interval')}</th>
+                    <th style={{ width: '35%' }}>{t('date.preview')}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -215,7 +202,7 @@ export function DateDialog() {
                                 opacity: !isSelected ? 0.6 : 1,
                               }}
                             >
-                              {unit.label}
+                              {t(`date.truncateUnits.${unit.value}`)}
                             </span>
                           </div>
                         </td>
@@ -232,7 +219,7 @@ export function DateDialog() {
                               <span
                                 style={{ fontSize: '0.75rem', color: 'var(--color-dark-gray)' }}
                               >
-                                every
+                                {t('date.intervalEvery')}
                               </span>
                               <input
                                 type="number"
@@ -289,7 +276,7 @@ export function DateDialog() {
                   checked={removeOrigin.value}
                   onChange={(e) => (removeOrigin.value = (e.target as HTMLInputElement).checked)}
                 />
-                <span>Remove origin column after transformation</span>
+                <span>{t('date.removeOrigin')}</span>
               </label>
             </div>
           )}

@@ -1,3 +1,4 @@
+import { useTranslation } from 'preact-i18next';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 import styles from './TransformDialog.module.css';
@@ -8,6 +9,7 @@ import { TablePreviewModal } from './TablePreviewModal';
 import * as AppendHandlers from '../handlers/transform/append-handlers';
 
 export function AppendDialog() {
+  const { t } = useTranslation('dialogs');
   const {
     leftModel,
     targetModel,
@@ -88,22 +90,22 @@ export function AppendDialog() {
       <div class={joinStyles.sourceSelectorGrid}>
         {/* Left Side */}
         <div class={joinStyles.sourceSelector}>
-          <label class={styles.label}>Left Table (Base)</label>
+          <label class={styles.label}>{t('append.leftTableLabel')}</label>
           <div class={joinStyles.currentSelection}>
             {effectiveLeftId && (
               <div class={joinStyles.currentSelectionItem}>
                 {activeModel && effectiveLeftId === activeModel.id ? (
                   <>
-                    <span class={joinStyles.icon}>📊</span>
+                    <span class={joinStyles.icon}>{t('append.icon.model')}</span>
                     <span class={joinStyles.name}>{activeModel.name}</span>
                   </>
                 ) : activeSource && effectiveLeftId === activeSource.id ? (
                   <>
-                    <span class={joinStyles.icon}>📄</span>
+                    <span class={joinStyles.icon}>{t('append.icon.source')}</span>
                     <span class={joinStyles.name}>{activeSource.name}</span>
                   </>
                 ) : (
-                  <span class={joinStyles.name}>Selected</span>
+                  <span class={joinStyles.name}>{t('append.selected')}</span>
                 )}
               </div>
             )}
@@ -120,7 +122,7 @@ export function AppendDialog() {
 
         {/* Right Side */}
         <div class={joinStyles.sourceSelector}>
-          <label class={styles.label}>Right Table (Append)</label>
+          <label class={styles.label}>{t('append.rightTableLabel')}</label>
           <JoinTreeSelector
             selectedId={targetModel.value}
             onSelect={handleRightModelChange}
@@ -140,12 +142,12 @@ export function AppendDialog() {
             checked={removeDuplicates.value}
             onChange={handleToggleDuplicates}
           />
-          Remove duplicate rows (Union)
+          {t('append.removeDuplicates')}
         </label>
         <div class={styles.helpText}>
           {removeDuplicates.value
-            ? 'Stacks rows and removes complete duplicates across all columns.'
-            : 'Stacks rows below current rows and keeps all original rows.'}
+            ? t('append.removeDuplicatesHelp.on')
+            : t('append.removeDuplicatesHelp.off')}
         </div>
       </div>
 
@@ -153,21 +155,21 @@ export function AppendDialog() {
       <div class={joinStyles.columnSelectionGrid}>
         {/* Left Columns */}
         <div class={styles.group}>
-          <label class={styles.label}>Left Columns to Include</label>
+          <label class={styles.label}>{t('append.leftColumnsLabel')}</label>
           <div class={styles.actions} style={{ marginBottom: '0.5rem', marginTop: 0 }}>
             <button
               type="button"
               class="button button--text button--small"
               onClick={selectAllLeftColumns}
             >
-              Select All
+              {t('append.selectAll')}
             </button>
             <button
               type="button"
               class="button button--text button--small"
               onClick={selectNoneLeftColumns}
             >
-              Select None
+              {t('append.selectNone')}
             </button>
           </div>
           <div class={styles.columnEditorList}>
@@ -208,21 +210,21 @@ export function AppendDialog() {
 
         {/* Right Columns */}
         <div class={styles.group}>
-          <label class={styles.label}>Right Columns to Include</label>
+          <label class={styles.label}>{t('append.rightColumnsLabel')}</label>
           <div class={styles.actions} style={{ marginBottom: '0.5rem', marginTop: 0 }}>
             <button
               type="button"
               class="button button--text button--small"
               onClick={selectAllRightColumns}
             >
-              Select All
+              {t('append.selectAll')}
             </button>
             <button
               type="button"
               class="button button--text button--small"
               onClick={selectNoneRightColumns}
             >
-              Select None
+              {t('append.selectNone')}
             </button>
           </div>
           <div class={styles.columnEditorList}>
@@ -269,7 +271,7 @@ export function AppendDialog() {
           onClick={handlePreview}
           disabled={isPreviewing.value || !targetModel.value}
         >
-          {isPreviewing.value ? 'Previewing...' : 'Preview Append'}
+          {isPreviewing.value ? t('append.previewing') : t('append.previewButton')}
         </button>
       </div>
 
@@ -280,11 +282,12 @@ export function AppendDialog() {
       {previewData.value && (
         <div class={styles.group}>
           <div class={styles.previewContainer}>
-            <strong>Preview Result:</strong>
+            <strong>{t('append.previewTitle')}</strong>
             <div>
-              {`${previewData.value.totalRows || 0} rows, ${
-                previewData.value.columns?.length || 0
-              } columns`}
+              {t('append.previewCount', {
+                rowCount: previewData.value.totalRows || 0,
+                columnCount: previewData.value.columns?.length || 0,
+              })}
             </div>
           </div>
 

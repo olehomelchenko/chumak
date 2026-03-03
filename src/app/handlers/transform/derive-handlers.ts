@@ -7,6 +7,7 @@ import { StepService } from '../../services/StepService';
 import { createDebouncedPreview, clearPreview, PreviewResult } from '../preview-engine';
 import { validateExpression } from '../validation-engine';
 import { confirm } from '../core/notification-handlers';
+import i18n from '../../../i18n';
 
 export function validateDeriveExpression() {
   validateExpression(DialogStore.deriveState.expression.value, AppStore.columns.value, {
@@ -81,7 +82,7 @@ export async function applyDeriveTransform(callbacks: any) {
   }
   if (columns.includes(columnName)) {
     const confirmed = await confirm(
-      `Column "${columnName}" already exists. It will be overwritten. Continue?`
+      `${i18n.t('validation.duplicate.columnExists', { ns: 'errors', name: columnName })}. It will be overwritten. Continue?`
     );
     if (!confirmed) return;
   }

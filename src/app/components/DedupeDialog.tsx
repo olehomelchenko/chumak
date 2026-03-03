@@ -1,3 +1,4 @@
+import { useTranslation } from 'preact-i18next';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 import { ColumnSelector } from './column-selector';
@@ -5,6 +6,7 @@ import { toggleDedupeAllColumns, updateDedupePreview } from '../handlers/transfo
 import styles from './TransformDialog.module.css';
 
 export function DedupeDialog() {
+  const { t } = useTranslation('dialogs');
   const { mode, useAllColumns, selectedColumns, duplicateCount } = DialogStore.dedupeState;
   const columns = AppStore.columns.value;
 
@@ -31,7 +33,7 @@ export function DedupeDialog() {
       {/* Mode Toggle */}
       <div class={styles.group} style={{ marginBottom: '1rem' }}>
         <label class={styles.label} style={{ marginBottom: '0.5rem' }}>
-          Action
+          {t('dedupe.action.label')}
         </label>
         <div style={{ display: 'flex', gap: '0.5rem' }}>
           <button
@@ -41,7 +43,7 @@ export function DedupeDialog() {
             }`}
             onClick={() => handleModeChange('remove')}
           >
-            Remove Duplicates
+            {t('dedupe.action.remove')}
           </button>
           <button
             type="button"
@@ -50,7 +52,7 @@ export function DedupeDialog() {
             }`}
             onClick={() => handleModeChange('keep')}
           >
-            Keep Only Duplicates
+            {t('dedupe.action.keep')}
           </button>
         </div>
       </div>
@@ -58,7 +60,7 @@ export function DedupeDialog() {
       {/* Column Scope Toggle */}
       <div class={styles.group}>
         <label class={styles.label} style={{ marginBottom: '0.5rem' }}>
-          Compare By
+          {t('dedupe.compareBy.label')}
         </label>
         <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1rem' }}>
           <button
@@ -68,7 +70,7 @@ export function DedupeDialog() {
             }`}
             onClick={() => toggleDedupeAllColumns(true)}
           >
-            All Columns
+            {t('dedupe.compareBy.allColumns')}
           </button>
           <button
             type="button"
@@ -77,7 +79,7 @@ export function DedupeDialog() {
             }`}
             onClick={() => toggleDedupeAllColumns(false)}
           >
-            Specific Columns
+            {t('dedupe.compareBy.specificColumns')}
           </button>
         </div>
       </div>
@@ -85,7 +87,7 @@ export function DedupeDialog() {
       {!useAllColumns.value && (
         <div class={styles.group}>
           <p class={styles.helpText} style={{ marginBottom: '0.75rem' }}>
-            Select columns to use as composite key:
+            {t('dedupe.selectKeyHelp')}
           </p>
 
           <ColumnSelector
@@ -106,7 +108,7 @@ export function DedupeDialog() {
             data-icon="carbon:information"
             style={{ verticalAlign: 'middle' }}
           ></span>{' '}
-          Rows are considered duplicates if <strong>all columns</strong> have identical values.
+          {t('dedupe.allColumnsInfo')}
         </div>
       )}
 
@@ -129,11 +131,11 @@ export function DedupeDialog() {
         <div class={styles.warningText} style={{ color: 'var(--color-text)' }}>
           {duplicateCount.value > 0 ? (
             <span>
-              <strong>{duplicateCount.value.toLocaleString()}</strong> duplicate row
-              {duplicateCount.value !== 1 ? 's' : ''} found
+              <strong>{duplicateCount.value.toLocaleString()}</strong>{' '}
+              {t('dedupe.preview.found', { count: duplicateCount.value })}
             </span>
           ) : (
-            <span>No duplicates found</span>
+            <span>{t('dedupe.preview.none')}</span>
           )}
         </div>
       </div>
@@ -146,7 +148,7 @@ export function DedupeDialog() {
           display: mode.value === 'remove' ? 'block' : 'none',
         }}
       >
-        Removes duplicate rows, keeping only the first occurrence of each.
+        {t('dedupe.help.remove')}
       </p>
       <p
         class={styles.helpText}
@@ -156,7 +158,7 @@ export function DedupeDialog() {
           display: mode.value === 'keep' ? 'block' : 'none',
         }}
       >
-        Keeps only rows that have duplicates (all occurrences of duplicated values).
+        {t('dedupe.help.keep')}
       </p>
     </div>
   );

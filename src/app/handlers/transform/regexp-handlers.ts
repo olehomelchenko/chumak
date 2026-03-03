@@ -5,6 +5,7 @@ import { StepService } from '../../services/StepService';
 import { createDebouncedPreview, clearPreview, PreviewResult } from '../preview-engine';
 import { validateRegexPattern } from '../validation-engine';
 import { confirm } from '../core/notification-handlers';
+import i18n from '../../../i18n';
 
 export function validateRegexpMatchExpression() {
   validateRegexPattern(DialogStore.regexpMatchState.pattern.value, {
@@ -70,12 +71,12 @@ export async function applyRegexpMatchTransform(callbacks: any) {
     return;
   }
   if (!srcCol) {
-    await callbacks.onError?.('Please select a source column');
+    await callbacks.onError?.(i18n.t('validation.selection.sourceColumn', { ns: 'errors' }));
     return;
   }
   if (columns.includes(colName)) {
     const confirmed = await confirm(
-      `Column "${colName}" already exists. It will be overwritten. Continue?`
+      `${i18n.t('validation.duplicate.columnExists', { ns: 'errors', name: colName })}. It will be overwritten. Continue?`
     );
     if (!confirmed) return;
   }
@@ -165,12 +166,12 @@ export async function applyRegexpExtractTransform(callbacks: any) {
     return;
   }
   if (!srcCol) {
-    await callbacks.onError?.('Please select a source column');
+    await callbacks.onError?.(i18n.t('validation.selection.sourceColumn', { ns: 'errors' }));
     return;
   }
   if (columns.includes(colName)) {
     const confirmed = await confirm(
-      `Column "${colName}" already exists. It will be overwritten. Continue?`
+      `${i18n.t('validation.duplicate.columnExists', { ns: 'errors', name: colName })}. It will be overwritten. Continue?`
     );
     if (!confirmed) return;
   }

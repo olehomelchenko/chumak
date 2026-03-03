@@ -7,6 +7,7 @@ import { AppStore } from '../../stores/AppStore';
 import { StepService } from '../../services/StepService';
 import { createDebouncedPreview, clearPreview, PreviewResult } from '../preview-engine';
 import { confirm } from '../core/notification-handlers';
+import i18n from '../../../i18n';
 
 // Preview engine instance for merge operations
 const mergePreview = createDebouncedPreview({
@@ -23,7 +24,7 @@ const mergePreview = createDebouncedPreview({
     }
 
     if (!columnName.value) {
-      state.error.value = 'Please enter an output column name';
+      state.error.value = i18n.t('validation.required.outputColumnName', { ns: 'errors' });
       return null;
     }
 
@@ -136,13 +137,13 @@ export async function applyMergeTransform(callbacks: any) {
   }
 
   if (!columnName.value) {
-    await callbacks.onError?.('Please enter an output column name');
+    await callbacks.onError?.(i18n.t('validation.required.outputColumnName', { ns: 'errors' }));
     return;
   }
 
   if (allColumns.includes(columnName.value)) {
     const confirmed = await confirm(
-      `Column "${columnName.value}" already exists. It will be overwritten. Continue?`
+      `${i18n.t('validation.duplicate.columnExists', { ns: 'errors', name: columnName.value })}. It will be overwritten. Continue?`
     );
     if (!confirmed) return;
   }

@@ -1,5 +1,6 @@
 import { useComputed } from '@preact/signals';
 import { useRef } from 'preact/hooks';
+import { useTranslation } from 'preact-i18next';
 import { AppStore } from '../stores/AppStore';
 import { AppController } from '../orchestration/AppController';
 import { getColumnType } from '../handlers/core/helper-handlers';
@@ -121,10 +122,12 @@ function isNumericColumn(type: string | null): boolean {
   return type === 'integer' || type === 'float';
 }
 
-function getNoColumnTitle(requiredType: string): string {
+function getNoColumnTitle(t: any, requiredType: string): string {
   const col = AppStore.selectedColumn.value;
-  if (!col) return 'Select a column first';
-  return `Requires a ${requiredType} column`;
+  if (!col) return t(`ribbon.popovers.${requiredType}.noColumn`);
+  return t(
+    `ribbon.popovers.${requiredType}.requires${requiredType.charAt(0).toUpperCase() + requiredType.slice(1)}`
+  );
 }
 
 // ============================================================
@@ -134,13 +137,15 @@ function getNoColumnTitle(requiredType: string): string {
 function TextPopoverContent({
   onOpenDialog,
   onClose,
+  t,
 }: {
   onOpenDialog: (d: DialogName) => void;
   onClose: () => void;
+  t: any;
 }) {
   const type = getSelectedColumnType();
   const disabled = !isTextColumn(type);
-  const noColTitle = getNoColumnTitle('text');
+  const noColTitle = getNoColumnTitle(t, 'text');
 
   const applyAndClose = (action: () => Promise<void>) => {
     onClose();
@@ -149,38 +154,38 @@ function TextPopoverContent({
 
   return (
     <>
-      <PopoverSection label="Case">
+      <PopoverSection label={t('ribbon.popovers.text.sections.case')}>
         <ShortcutChip
-          label="UPPER"
-          title={disabled ? noColTitle : 'Convert to uppercase'}
+          label={t('ribbon.popovers.text.shortcuts.upper.label')}
+          title={disabled ? noColTitle : t('ribbon.popovers.text.shortcuts.upper.title')}
           disabled={disabled}
           onClick={() => applyAndClose(() => AppController.quickUpper())}
         />
         <ShortcutChip
-          label="lower"
-          title={disabled ? noColTitle : 'Convert to lowercase'}
+          label={t('ribbon.popovers.text.shortcuts.lower.label')}
+          title={disabled ? noColTitle : t('ribbon.popovers.text.shortcuts.lower.title')}
           disabled={disabled}
           onClick={() => applyAndClose(() => AppController.quickLower())}
         />
         <ShortcutChip
-          label="Title"
-          title={disabled ? noColTitle : 'Capitalize first letter of each word'}
+          label={t('ribbon.popovers.text.shortcuts.title.label')}
+          title={disabled ? noColTitle : t('ribbon.popovers.text.shortcuts.title.title')}
           disabled={disabled}
           onClick={() => applyAndClose(() => AppController.quickTitlecase())}
         />
       </PopoverSection>
-      <PopoverSection label="Clean">
+      <PopoverSection label={t('ribbon.popovers.text.sections.clean')}>
         <ShortcutChip
-          label="Trim"
-          title={disabled ? noColTitle : 'Remove leading/trailing whitespace'}
+          label={t('ribbon.popovers.text.shortcuts.trim.label')}
+          title={disabled ? noColTitle : t('ribbon.popovers.text.shortcuts.trim.title')}
           disabled={disabled}
           onClick={() => applyAndClose(() => AppController.quickTrim())}
         />
       </PopoverSection>
-      <PopoverSection label="Info">
+      <PopoverSection label={t('ribbon.popovers.text.sections.info')}>
         <ShortcutChip
-          label="Len"
-          title={disabled ? noColTitle : 'Get string length (creates new column)'}
+          label={t('ribbon.popovers.text.shortcuts.len.label')}
+          title={disabled ? noColTitle : t('ribbon.popovers.text.shortcuts.len.title')}
           disabled={disabled}
           onClick={() => applyAndClose(() => AppController.quickLen())}
         />
@@ -189,7 +194,7 @@ function TextPopoverContent({
       <div class={popoverStyles.dialogLinks}>
         <PopoverDialogLink
           icon="carbon:split-screen"
-          label="Split..."
+          label={t('ribbon.popovers.text.links.split')}
           onClick={() => {
             onClose();
             onOpenDialog('split');
@@ -197,7 +202,7 @@ function TextPopoverContent({
         />
         <PopoverDialogLink
           icon="codicon:replace"
-          label="Replace..."
+          label={t('ribbon.popovers.text.links.replace')}
           onClick={() => {
             onClose();
             onOpenDialog('replace');
@@ -205,7 +210,7 @@ function TextPopoverContent({
         />
         <PopoverDialogLink
           icon="carbon:string-text"
-          label="Extract (regex)..."
+          label={t('ribbon.popovers.text.links.extractRegex')}
           onClick={() => {
             onClose();
             onOpenDialog('regexpExtract');
@@ -213,7 +218,7 @@ function TextPopoverContent({
         />
         <PopoverDialogLink
           icon="carbon:string-text"
-          label="Text Operations..."
+          label={t('ribbon.popovers.text.links.textOperations')}
           onClick={() => {
             onClose();
             onOpenDialog('text');
@@ -227,13 +232,15 @@ function TextPopoverContent({
 function DatePopoverContent({
   onOpenDialog,
   onClose,
+  t,
 }: {
   onOpenDialog: (d: DialogName) => void;
   onClose: () => void;
+  t: any;
 }) {
   const type = getSelectedColumnType();
   const disabled = !isDateColumn(type);
-  const noColTitle = getNoColumnTitle('date');
+  const noColTitle = getNoColumnTitle(t, 'date');
 
   const applyAndClose = (action: () => Promise<void>) => {
     onClose();
@@ -242,66 +249,66 @@ function DatePopoverContent({
 
   return (
     <>
-      <PopoverSection label="Extract Part">
+      <PopoverSection label={t('ribbon.popovers.date.sections.extractPart')}>
         <ShortcutChip
-          label="Year"
-          title={disabled ? noColTitle : 'Extract year'}
+          label={t('ribbon.popovers.date.shortcuts.year.label')}
+          title={disabled ? noColTitle : t('ribbon.popovers.date.shortcuts.year.title')}
           disabled={disabled}
           onClick={() => applyAndClose(() => AppController.quickExtractYear())}
         />
         <ShortcutChip
-          label="Month"
-          title={disabled ? noColTitle : 'Extract month (1-12)'}
+          label={t('ribbon.popovers.date.shortcuts.month.label')}
+          title={disabled ? noColTitle : t('ribbon.popovers.date.shortcuts.month.title')}
           disabled={disabled}
           onClick={() => applyAndClose(() => AppController.quickExtractMonth())}
         />
         <ShortcutChip
-          label="Day"
-          title={disabled ? noColTitle : 'Extract day of month'}
+          label={t('ribbon.popovers.date.shortcuts.day.label')}
+          title={disabled ? noColTitle : t('ribbon.popovers.date.shortcuts.day.title')}
           disabled={disabled}
           onClick={() => applyAndClose(() => AppController.quickExtractDay())}
         />
         <ShortcutChip
-          label="Quarter"
-          title={disabled ? noColTitle : 'Extract quarter (1-4)'}
+          label={t('ribbon.popovers.date.shortcuts.quarter.label')}
+          title={disabled ? noColTitle : t('ribbon.popovers.date.shortcuts.quarter.title')}
           disabled={disabled}
           onClick={() => applyAndClose(() => AppController.quickExtractQuarter())}
         />
         <ShortcutChip
-          label="Weekday"
-          title={disabled ? noColTitle : 'Extract day of week (0=Mon, 6=Sun)'}
+          label={t('ribbon.popovers.date.shortcuts.weekday.label')}
+          title={disabled ? noColTitle : t('ribbon.popovers.date.shortcuts.weekday.title')}
           disabled={disabled}
           onClick={() => applyAndClose(() => AppController.quickExtractWeekday())}
         />
         <ShortcutChip
-          label="Week"
-          title={disabled ? noColTitle : 'Extract ISO week number'}
+          label={t('ribbon.popovers.date.shortcuts.week.label')}
+          title={disabled ? noColTitle : t('ribbon.popovers.date.shortcuts.week.title')}
           disabled={disabled}
           onClick={() => applyAndClose(() => AppController.quickExtractWeek())}
         />
       </PopoverSection>
-      <PopoverSection label="Truncate To">
+      <PopoverSection label={t('ribbon.popovers.date.sections.truncateTo')}>
         <ShortcutChip
-          label="→Year"
-          title={disabled ? noColTitle : 'Truncate to start of year'}
+          label={t('ribbon.popovers.date.shortcuts.truncYear.label')}
+          title={disabled ? noColTitle : t('ribbon.popovers.date.shortcuts.truncYear.title')}
           disabled={disabled}
           onClick={() => applyAndClose(() => AppController.quickTruncYear())}
         />
         <ShortcutChip
-          label="→Month"
-          title={disabled ? noColTitle : 'Truncate to start of month'}
+          label={t('ribbon.popovers.date.shortcuts.truncMonth.label')}
+          title={disabled ? noColTitle : t('ribbon.popovers.date.shortcuts.truncMonth.title')}
           disabled={disabled}
           onClick={() => applyAndClose(() => AppController.quickTruncMonth())}
         />
         <ShortcutChip
-          label="→Week"
-          title={disabled ? noColTitle : 'Truncate to start of week'}
+          label={t('ribbon.popovers.date.shortcuts.truncWeek.label')}
+          title={disabled ? noColTitle : t('ribbon.popovers.date.shortcuts.truncWeek.title')}
           disabled={disabled}
           onClick={() => applyAndClose(() => AppController.quickTruncWeek())}
         />
         <ShortcutChip
-          label="→Day"
-          title={disabled ? noColTitle : 'Truncate to start of day'}
+          label={t('ribbon.popovers.date.shortcuts.truncDay.label')}
+          title={disabled ? noColTitle : t('ribbon.popovers.date.shortcuts.truncDay.title')}
           disabled={disabled}
           onClick={() => applyAndClose(() => AppController.quickTruncDay())}
         />
@@ -310,7 +317,7 @@ function DatePopoverContent({
       <div class={popoverStyles.dialogLinks}>
         <PopoverDialogLink
           icon="carbon:calendar"
-          label="Date Operations..."
+          label={t('ribbon.popovers.date.links.dateOperations')}
           onClick={() => {
             onClose();
             onOpenDialog('date');
@@ -318,7 +325,7 @@ function DatePopoverContent({
         />
         <PopoverDialogLink
           icon="carbon:calendar-add"
-          label="Parse Date..."
+          label={t('ribbon.popovers.date.links.parseDate')}
           onClick={() => {
             onClose();
             onOpenDialog('parseDate');
@@ -332,13 +339,15 @@ function DatePopoverContent({
 function NumberPopoverContent({
   onOpenDialog,
   onClose,
+  t,
 }: {
   onOpenDialog: (d: DialogName) => void;
   onClose: () => void;
+  t: any;
 }) {
   const type = getSelectedColumnType();
   const disabled = !isNumericColumn(type);
-  const noColTitle = getNoColumnTitle('numeric');
+  const noColTitle = getNoColumnTitle(t, 'number');
 
   const applyAndClose = (action: () => Promise<void>) => {
     onClose();
@@ -347,42 +356,42 @@ function NumberPopoverContent({
 
   return (
     <>
-      <PopoverSection label="Rounding">
+      <PopoverSection label={t('ribbon.popovers.number.sections.rounding')}>
         <ShortcutChip
-          label="Round"
-          title={disabled ? noColTitle : 'Round to nearest integer'}
+          label={t('ribbon.popovers.number.shortcuts.round.label')}
+          title={disabled ? noColTitle : t('ribbon.popovers.number.shortcuts.round.title')}
           disabled={disabled}
           onClick={() => applyAndClose(() => AppController.quickRound())}
         />
         <ShortcutChip
-          label="Floor"
-          title={disabled ? noColTitle : 'Round down'}
+          label={t('ribbon.popovers.number.shortcuts.floor.label')}
+          title={disabled ? noColTitle : t('ribbon.popovers.number.shortcuts.floor.title')}
           disabled={disabled}
           onClick={() => applyAndClose(() => AppController.quickFloor())}
         />
         <ShortcutChip
-          label="Ceil"
-          title={disabled ? noColTitle : 'Round up'}
+          label={t('ribbon.popovers.number.shortcuts.ceil.label')}
+          title={disabled ? noColTitle : t('ribbon.popovers.number.shortcuts.ceil.title')}
           disabled={disabled}
           onClick={() => applyAndClose(() => AppController.quickCeil())}
         />
         <ShortcutChip
-          label="Trunc"
-          title={disabled ? noColTitle : 'Remove decimal portion'}
+          label={t('ribbon.popovers.number.shortcuts.trunc.label')}
+          title={disabled ? noColTitle : t('ribbon.popovers.number.shortcuts.trunc.title')}
           disabled={disabled}
           onClick={() => applyAndClose(() => AppController.quickTruncNum())}
         />
       </PopoverSection>
-      <PopoverSection label="Other">
+      <PopoverSection label={t('ribbon.popovers.number.sections.other')}>
         <ShortcutChip
-          label="Abs"
-          title={disabled ? noColTitle : 'Absolute value'}
+          label={t('ribbon.popovers.number.shortcuts.abs.label')}
+          title={disabled ? noColTitle : t('ribbon.popovers.number.shortcuts.abs.title')}
           disabled={disabled}
           onClick={() => applyAndClose(() => AppController.quickAbs())}
         />
         <ShortcutChip
-          label="Sign"
-          title={disabled ? noColTitle : 'Sign (-1, 0, or 1) — creates new column'}
+          label={t('ribbon.popovers.number.shortcuts.sign.label')}
+          title={disabled ? noColTitle : t('ribbon.popovers.number.shortcuts.sign.title')}
           disabled={disabled}
           onClick={() => applyAndClose(() => AppController.quickSign())}
         />
@@ -391,7 +400,7 @@ function NumberPopoverContent({
       <div class={popoverStyles.dialogLinks}>
         <PopoverDialogLink
           icon="carbon:add-alt"
-          label="Derive Expression..."
+          label={t('ribbon.popovers.number.links.deriveExpression')}
           onClick={() => {
             onClose();
             onOpenDialog('derive');
@@ -402,10 +411,10 @@ function NumberPopoverContent({
   );
 }
 
-function ConvertPopoverContent({ onClose }: { onClose: () => void }) {
+function ConvertPopoverContent({ onClose, t }: { onClose: () => void; t: any }) {
   const type = getSelectedColumnType();
   const noCol = !AppStore.selectedColumn.value;
-  const noColTitle = noCol ? 'Select a column first' : '';
+  const noColTitle = noCol ? t('ribbon.popovers.convert.noColumn') : '';
 
   const applyAndClose = (action: () => Promise<void>) => {
     onClose();
@@ -413,47 +422,51 @@ function ConvertPopoverContent({ onClose }: { onClose: () => void }) {
   };
 
   return (
-    <PopoverSection label="Convert To">
+    <PopoverSection label={t('ribbon.popovers.convert.section')}>
       <ShortcutChip
-        label="→ Text"
+        label={t('ribbon.popovers.convert.shortcuts.toText.label')}
         title={
-          noCol ? noColTitle : type === 'string' ? 'Column is already text' : 'Convert to text'
+          noCol
+            ? noColTitle
+            : type === 'string'
+              ? t('ribbon.popovers.convert.shortcuts.toText.alreadyText')
+              : t('ribbon.popovers.convert.shortcuts.toText.title')
         }
         disabled={noCol || type === 'string'}
         onClick={() => applyAndClose(() => AppController.quickConvertToString())}
       />
       <ShortcutChip
-        label="→ Number"
+        label={t('ribbon.popovers.convert.shortcuts.toNumber.label')}
         title={
           noCol
             ? noColTitle
             : type === 'float'
-              ? 'Column is already a number'
-              : 'Convert to number (float)'
+              ? t('ribbon.popovers.convert.shortcuts.toNumber.alreadyNumber')
+              : t('ribbon.popovers.convert.shortcuts.toNumber.title')
         }
         disabled={noCol || type === 'float'}
         onClick={() => applyAndClose(() => AppController.quickConvertToNumber())}
       />
       <ShortcutChip
-        label="→ Integer"
+        label={t('ribbon.popovers.convert.shortcuts.toInteger.label')}
         title={
           noCol
             ? noColTitle
             : type === 'integer'
-              ? 'Column is already integer'
-              : 'Convert to integer'
+              ? t('ribbon.popovers.convert.shortcuts.toInteger.alreadyInteger')
+              : t('ribbon.popovers.convert.shortcuts.toInteger.title')
         }
         disabled={noCol || type === 'integer'}
         onClick={() => applyAndClose(() => AppController.quickConvertToInteger())}
       />
       <ShortcutChip
-        label="→ Date"
+        label={t('ribbon.popovers.convert.shortcuts.toDate.label')}
         title={
           noCol
             ? noColTitle
             : type === 'date' || type === 'datetime'
-              ? 'Column is already a date'
-              : 'Convert to date'
+              ? t('ribbon.popovers.convert.shortcuts.toDate.alreadyDate')
+              : t('ribbon.popovers.convert.shortcuts.toDate.title')
         }
         disabled={noCol || type === 'date' || type === 'datetime'}
         onClick={() => applyAndClose(() => AppController.quickConvertToDate())}
@@ -469,15 +482,17 @@ function ConvertPopoverContent({ onClose }: { onClose: () => void }) {
 function MorePopoverContent({
   onOpenDialog,
   onClose,
+  t,
 }: {
   onOpenDialog: (d: DialogName) => void;
   onClose: () => void;
+  t: any;
 }) {
   return (
     <>
       <PopoverDialogLink
         icon="carbon:column"
-        label="Spread (arrays → columns)"
+        label={t('ribbon.popovers.more.spread')}
         onClick={() => {
           onClose();
           onOpenDialog('spread');
@@ -485,7 +500,7 @@ function MorePopoverContent({
       />
       <PopoverDialogLink
         icon="carbon:row"
-        label="Unroll (arrays → rows)"
+        label={t('ribbon.popovers.more.unroll')}
         onClick={() => {
           onClose();
           onOpenDialog('unroll');
@@ -500,6 +515,7 @@ function MorePopoverContent({
 // ============================================================
 
 function ActivePopover({ onOpenDialog }: { onOpenDialog: (d: DialogName) => void }) {
+  const { t } = useTranslation('ui');
   const category = AppStore.ribbonPopover.value;
   const rect = AppStore.ribbonPopoverRect.value;
   if (!category || !rect) return null;
@@ -508,13 +524,19 @@ function ActivePopover({ onOpenDialog }: { onOpenDialog: (d: DialogName) => void
 
   return (
     <RibbonPopover anchorRect={rect} onClose={onClose}>
-      {category === 'text' && <TextPopoverContent onOpenDialog={onOpenDialog} onClose={onClose} />}
-      {category === 'date' && <DatePopoverContent onOpenDialog={onOpenDialog} onClose={onClose} />}
-      {category === 'number' && (
-        <NumberPopoverContent onOpenDialog={onOpenDialog} onClose={onClose} />
+      {category === 'text' && (
+        <TextPopoverContent onOpenDialog={onOpenDialog} onClose={onClose} t={t} />
       )}
-      {category === 'convert' && <ConvertPopoverContent onClose={onClose} />}
-      {category === 'more' && <MorePopoverContent onOpenDialog={onOpenDialog} onClose={onClose} />}
+      {category === 'date' && (
+        <DatePopoverContent onOpenDialog={onOpenDialog} onClose={onClose} t={t} />
+      )}
+      {category === 'number' && (
+        <NumberPopoverContent onOpenDialog={onOpenDialog} onClose={onClose} t={t} />
+      )}
+      {category === 'convert' && <ConvertPopoverContent onClose={onClose} t={t} />}
+      {category === 'more' && (
+        <MorePopoverContent onOpenDialog={onOpenDialog} onClose={onClose} t={t} />
+      )}
     </RibbonPopover>
   );
 }
@@ -529,6 +551,7 @@ export interface RibbonToolbarProps {
 }
 
 export function RibbonToolbar({ onOpenDialog, onAutoDetectSchema }: RibbonToolbarProps) {
+  const { t } = useTranslation('ui');
   const ribbonTab = AppStore.ribbonTab;
   const hasData = useComputed(() => !!AppStore.currentData.value);
 
@@ -538,35 +561,35 @@ export function RibbonToolbar({ onOpenDialog, onAutoDetectSchema }: RibbonToolba
         {/* Rows Tab */}
         {ribbonTab.value === 'rows' && (
           <div class={styles.panel}>
-            <RibbonGroup label="Filter & Sort">
+            <RibbonGroup label={t('ribbon.groups.filterSort')}>
               <RibbonButton
                 icon="carbon:filter"
-                label="Filter"
-                title="Filter rows"
+                label={t('ribbon.buttons.filter.label')}
+                title={t('ribbon.buttons.filter.title')}
                 onClick={() => onOpenDialog('filter')}
               />
               <RibbonButton
                 icon="carbon:arrows-vertical"
-                label="Sort"
-                title="Sort rows"
+                label={t('ribbon.buttons.sort.label')}
+                title={t('ribbon.buttons.sort.title')}
                 onClick={() => onOpenDialog('sort')}
               />
               <RibbonButton
                 icon="carbon:checkbox-checked"
-                label="Duplicates"
-                title="Handle duplicate rows"
+                label={t('ribbon.buttons.duplicates.label')}
+                title={t('ribbon.buttons.duplicates.title')}
                 onClick={() => onOpenDialog('dedupe')}
               />
               <RibbonButton
                 icon="carbon:result"
-                label="Slice Rows"
-                title="Keep or remove top/bottom N rows"
+                label={t('ribbon.buttons.sliceRows.label')}
+                title={t('ribbon.buttons.sliceRows.title')}
                 onClick={() => onOpenDialog('sliceRows')}
               />
               <RibbonButton
                 icon="carbon:chart-venn-diagram"
-                label="Sample"
-                title="Randomly sample rows (with optional seed)"
+                label={t('ribbon.buttons.sample.label')}
+                title={t('ribbon.buttons.sample.title')}
                 onClick={() => onOpenDialog('sample')}
               />
             </RibbonGroup>
@@ -577,28 +600,28 @@ export function RibbonToolbar({ onOpenDialog, onAutoDetectSchema }: RibbonToolba
         {ribbonTab.value === 'columns' && (
           <div class={styles.panel}>
             {/* Manage Group */}
-            <RibbonGroup label="Manage">
+            <RibbonGroup label={t('ribbon.groups.manage')}>
               <RibbonButton
                 icon="carbon:table-split"
-                label="Edit Columns"
-                title="Select, rename, remove, reorder columns, and apply pattern operations"
+                label={t('ribbon.buttons.editColumns.label')}
+                title={t('ribbon.buttons.editColumns.title')}
                 onClick={() => onOpenDialog('column-editor')}
               />
               <RibbonButton
                 icon="carbon:split-screen"
-                label="Split"
-                title="Split column by delimiter"
+                label={t('ribbon.buttons.split.label')}
+                title={t('ribbon.buttons.split.title')}
                 onClick={() => onOpenDialog('split')}
               />
               <RibbonButton
                 icon="carbon:join-left"
-                label="Merge"
-                title="Merge/concatenate multiple columns into one"
+                label={t('ribbon.buttons.merge.label')}
+                title={t('ribbon.buttons.merge.title')}
                 onClick={() => onOpenDialog('merge')}
               />
               <RibbonDropdownButton
                 icon="carbon:overflow-menu-horizontal"
-                label="More"
+                label={t('ribbon.buttons.more')}
                 category="more"
               />
             </RibbonGroup>
@@ -606,35 +629,35 @@ export function RibbonToolbar({ onOpenDialog, onAutoDetectSchema }: RibbonToolba
             <RibbonDivider />
 
             {/* New Columns Group */}
-            <RibbonGroup label="New Columns">
+            <RibbonGroup label={t('ribbon.groups.newColumns')}>
               <RibbonButton
                 icon="carbon:add-alt"
-                label="Derive"
-                title="Create new column from expression"
+                label={t('ribbon.buttons.derive.label')}
+                title={t('ribbon.buttons.derive.title')}
                 onClick={() => onOpenDialog('derive')}
               />
               <RibbonButton
                 icon="carbon:flow"
-                label="Conditional"
-                title="Create column based on multiple conditions"
+                label={t('ribbon.buttons.conditional.label')}
+                title={t('ribbon.buttons.conditional.title')}
                 onClick={() => onOpenDialog('conditional')}
               />
               <RibbonButton
                 icon="carbon:text-link-analysis"
-                label="Match"
-                title="Create boolean column from regex match"
+                label={t('ribbon.buttons.match.label')}
+                title={t('ribbon.buttons.match.title')}
                 onClick={() => onOpenDialog('regexpMatch')}
               />
               <RibbonButton
                 icon="carbon:string-text"
-                label="Extract"
-                title="Extract text using regex pattern"
+                label={t('ribbon.buttons.extract.label')}
+                title={t('ribbon.buttons.extract.title')}
                 onClick={() => onOpenDialog('regexpExtract')}
               />
               <RibbonButton
                 icon="carbon:row-insert"
-                label="Index"
-                title="Add index/row number column"
+                label={t('ribbon.buttons.index.label')}
+                title={t('ribbon.buttons.index.title')}
                 onClick={() => onOpenDialog('index')}
               />
             </RibbonGroup>
@@ -642,25 +665,37 @@ export function RibbonToolbar({ onOpenDialog, onAutoDetectSchema }: RibbonToolba
             <RibbonDivider />
 
             {/* Transform Values Group */}
-            <RibbonGroup label="Transform Values">
-              <RibbonDropdownButton icon="carbon:string-text" label="Text" category="text" />
-              <RibbonDropdownButton icon="carbon:calendar" label="Date" category="date" />
+            <RibbonGroup label={t('ribbon.groups.transformValues')}>
+              <RibbonDropdownButton
+                icon="carbon:string-text"
+                label={t('ribbon.buttons.text')}
+                category="text"
+              />
+              <RibbonDropdownButton
+                icon="carbon:calendar"
+                label={t('ribbon.buttons.date')}
+                category="date"
+              />
               <RibbonDropdownButton
                 icon="carbon:character-whole-number"
-                label="Number"
+                label={t('ribbon.buttons.number')}
                 category="number"
               />
-              <RibbonDropdownButton icon="carbon:data-format" label="Convert" category="convert" />
+              <RibbonDropdownButton
+                icon="carbon:data-format"
+                label={t('ribbon.buttons.convert')}
+                category="convert"
+              />
               <RibbonButton
                 icon="codicon:replace"
-                label="Replace"
-                title="Replace values in a column"
+                label={t('ribbon.buttons.replace.label')}
+                title={t('ribbon.buttons.replace.title')}
                 onClick={() => onOpenDialog('replace')}
               />
               <RibbonButton
                 icon="material-symbols-light:edit-arrow-down-outline-rounded"
-                label="Impute"
-                title="Fill missing values (null, undefined, NaN)"
+                label={t('ribbon.buttons.impute.label')}
+                title={t('ribbon.buttons.impute.title')}
                 onClick={() => onOpenDialog('impute')}
               />
             </RibbonGroup>
@@ -668,11 +703,11 @@ export function RibbonToolbar({ onOpenDialog, onAutoDetectSchema }: RibbonToolba
             <RibbonDivider />
 
             {/* Types Group */}
-            <RibbonGroup label="Types">
+            <RibbonGroup label={t('ribbon.groups.types')}>
               <RibbonButton
                 icon="carbon:renew"
-                label="Auto-Detect"
-                title="Re-run type detection for all columns"
+                label={t('ribbon.buttons.autoDetect.label')}
+                title={t('ribbon.buttons.autoDetect.title')}
                 onClick={onAutoDetectSchema}
               />
             </RibbonGroup>
@@ -683,17 +718,17 @@ export function RibbonToolbar({ onOpenDialog, onAutoDetectSchema }: RibbonToolba
         {ribbonTab.value === 'table' && (
           <div class={styles.panel}>
             {/* Summarize Group */}
-            <RibbonGroup label="Summarize">
+            <RibbonGroup label={t('ribbon.groups.summarize')}>
               <RibbonButton
                 icon="carbon:layers"
-                label="Group By"
-                title="Group rows and calculate aggregates"
+                label={t('ribbon.buttons.groupBy.label')}
+                title={t('ribbon.buttons.groupBy.title')}
                 onClick={() => onOpenDialog('aggregate')}
               />
               <RibbonButton
                 icon="carbon:chart-stepper"
-                label="Window"
-                title="Window functions (lag, lead, rank, row_number)"
+                label={t('ribbon.buttons.window.label')}
+                title={t('ribbon.buttons.window.title')}
                 onClick={() => onOpenDialog('window')}
               />
             </RibbonGroup>
@@ -701,17 +736,17 @@ export function RibbonToolbar({ onOpenDialog, onAutoDetectSchema }: RibbonToolba
             <RibbonDivider />
 
             {/* Reshape Group */}
-            <RibbonGroup label="Reshape">
+            <RibbonGroup label={t('ribbon.groups.reshape')}>
               <RibbonButton
                 icon="material-symbols-light:pivot-table-chart-rounded"
-                label="Pivot"
-                title="Pivot - create columns from values (long to wide)"
+                label={t('ribbon.buttons.pivot.label')}
+                title={t('ribbon.buttons.pivot.title')}
                 onClick={() => onOpenDialog('pivot')}
               />
               <RibbonButton
                 icon="material-symbols-light:table-convert-outline-rounded"
-                label="Unpivot"
-                title="Unpivot - convert columns to key-value pairs"
+                label={t('ribbon.buttons.unpivot.label')}
+                title={t('ribbon.buttons.unpivot.title')}
                 onClick={() => onOpenDialog('fold')}
               />
             </RibbonGroup>
@@ -719,17 +754,17 @@ export function RibbonToolbar({ onOpenDialog, onAutoDetectSchema }: RibbonToolba
             <RibbonDivider />
 
             {/* Combine Group */}
-            <RibbonGroup label="Combine">
+            <RibbonGroup label={t('ribbon.groups.combine')}>
               <RibbonButton
                 icon="carbon:branch"
-                label="Join"
-                title="Join with another model or dataset"
+                label={t('ribbon.buttons.join.label')}
+                title={t('ribbon.buttons.join.title')}
                 onClick={() => onOpenDialog('join')}
               />
               <RibbonButton
                 icon="carbon:join-full"
-                label="Append"
-                title="Stack rows from another model/source (Concat or Union)"
+                label={t('ribbon.buttons.append.label')}
+                title={t('ribbon.buttons.append.title')}
                 onClick={() => onOpenDialog('append')}
               />
             </RibbonGroup>

@@ -1,9 +1,11 @@
+import { useTranslation } from 'preact-i18next';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 import type { SortField } from '../stores/dialogs/transform/sort-state';
 import styles from './TransformDialog.module.css';
 
 export function SortDialog() {
+  const { t } = useTranslation('dialogs');
   const { fields } = DialogStore.sortState;
   const columns = AppStore.columns.value;
 
@@ -34,7 +36,7 @@ export function SortDialog() {
             value={sortField.field}
             onChange={(e) => updateField(index, { field: (e.target as HTMLSelectElement).value })}
           >
-            <option value="">Select column…</option>
+            <option value="">{t('common.placeholders.selectColumn')}</option>
             {columns.map((col) => (
               <option key={col} value={col}>
                 {col}
@@ -48,10 +50,16 @@ export function SortDialog() {
             onClick={() =>
               updateField(index, { order: sortField.order === 'asc' ? 'desc' : 'asc' })
             }
-            title={sortField.order === 'asc' ? 'Ascending' : 'Descending'}
+            title={
+              sortField.order === 'asc'
+                ? t('common.sortOrder.ascending')
+                : t('common.sortOrder.descending')
+            }
             style={{ minWidth: '32px', padding: '4px 8px', fontSize: '13px' }}
           >
-            {sortField.order === 'asc' ? '\u2191 Asc' : '\u2193 Desc'}
+            {sortField.order === 'asc'
+              ? `\u2191 ${t('common.sortOrder.asc')}`
+              : `\u2193 ${t('common.sortOrder.desc')}`}
           </button>
 
           {fields.value.length > 1 && (
@@ -59,7 +67,7 @@ export function SortDialog() {
               type="button"
               class="button button--small button--ghost"
               onClick={() => removeLevel(index)}
-              title="Remove sort level"
+              title={t('common.buttons.removeSortLevel')}
               style={{
                 minWidth: '24px',
                 padding: '4px 6px',
@@ -81,16 +89,12 @@ export function SortDialog() {
             onClick={addLevel}
             style={{ fontSize: '12px' }}
           >
-            + Add sort level
+            + {t('common.buttons.addSortLevel')}
           </button>
         </div>
       )}
 
-      {fields.value.length > 1 && (
-        <p class={styles.helpText}>
-          Rows are sorted by the first column, then ties are broken by subsequent columns.
-        </p>
-      )}
+      {fields.value.length > 1 && <p class={styles.helpText}>{t('sort.helpText')}</p>}
     </div>
   );
 }

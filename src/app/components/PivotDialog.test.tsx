@@ -3,7 +3,8 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/preact';
+import { screen, fireEvent } from '@testing-library/preact';
+import { renderWithI18n } from '../test-utils';
 import { PivotDialog } from './PivotDialog';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
@@ -25,7 +26,7 @@ describe('PivotDialog', () => {
   });
 
   it('renders with default values', () => {
-    render(<PivotDialog />);
+    renderWithI18n(<PivotDialog />);
 
     expect(screen.getByText('How Pivot works')).toBeDefined();
     expect(screen.getAllByText('Rows')[0]).toBeDefined();
@@ -34,7 +35,7 @@ describe('PivotDialog', () => {
   });
 
   it('toggles row column selection', () => {
-    render(<PivotDialog />);
+    renderWithI18n(<PivotDialog />);
 
     // Region appears in chip and select options. Find the one in the button (chip)
     const regionTexts = screen.getAllByText('Region');
@@ -49,7 +50,7 @@ describe('PivotDialog', () => {
   });
 
   it('updates column options', () => {
-    render(<PivotDialog />);
+    renderWithI18n(<PivotDialog />);
 
     // Select Columns field (first select is for Columns)
     const selects = screen.getAllByRole('combobox');
@@ -68,7 +69,7 @@ describe('PivotDialog', () => {
     DialogStore.pivotState.columnColumn.value = 'Region';
     DialogStore.pivotState.valueColumn.value = 'Sales';
     DialogStore.pivotState.uniqueValueCount.value = 5;
-    render(<PivotDialog />);
+    renderWithI18n(<PivotDialog />);
 
     expect(screen.getByText('Result:')).toBeDefined();
 
@@ -83,7 +84,7 @@ describe('PivotDialog', () => {
     DialogStore.pivotState.columnColumn.value = 'Region';
     DialogStore.pivotState.valueColumn.value = 'Sales';
 
-    render(<PivotDialog />);
+    renderWithI18n(<PivotDialog />);
 
     fireEvent.click(screen.getByText('Preview Result'));
     expect(PivotHandlers.previewPivot).toHaveBeenCalled();

@@ -1,5 +1,6 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, fireEvent } from '@testing-library/preact';
+import { fireEvent } from '@testing-library/preact';
+import { renderWithI18n } from '../test-utils';
 import { MergeDialog } from './MergeDialog';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
@@ -16,12 +17,12 @@ describe('MergeDialog', () => {
   });
 
   it('renders column selector', () => {
-    const { getByText } = render(<MergeDialog />);
+    const { getByText } = renderWithI18n(<MergeDialog />);
     expect(getByText('Columns to merge:')).toBeTruthy();
   });
 
   it('renders separator presets', () => {
-    const { getByText } = render(<MergeDialog />);
+    const { getByText } = renderWithI18n(<MergeDialog />);
     expect(getByText('(none)')).toBeTruthy();
     expect(getByText('(space)')).toBeTruthy();
     expect(getByText(',')).toBeTruthy();
@@ -32,14 +33,14 @@ describe('MergeDialog', () => {
   });
 
   it('updates separator when preset button clicked', () => {
-    const { getByText } = render(<MergeDialog />);
+    const { getByText } = renderWithI18n(<MergeDialog />);
     const commaButton = getByText(',');
     fireEvent.click(commaButton);
     expect(DialogStore.mergeState.separator.value).toBe(',');
   });
 
   it('allows custom separator input', () => {
-    const { container } = render(<MergeDialog />);
+    const { container } = renderWithI18n(<MergeDialog />);
     const input = container.querySelector('input[type="text"]') as HTMLInputElement;
     fireEvent.input(input, { target: { value: ' - ' } });
     expect(DialogStore.mergeState.separator.value).toBe(' - ');
@@ -47,7 +48,7 @@ describe('MergeDialog', () => {
 
   it('auto-generates column name from selected columns', async () => {
     vi.useFakeTimers();
-    render(<MergeDialog />);
+    renderWithI18n(<MergeDialog />);
 
     // Simulate column selection
     DialogStore.mergeState.columns.value = ['first_name', 'last_name'];
@@ -61,7 +62,7 @@ describe('MergeDialog', () => {
 
   it('does not overwrite manually entered column name', async () => {
     vi.useFakeTimers();
-    render(<MergeDialog />);
+    renderWithI18n(<MergeDialog />);
 
     // Manually set column name first
     DialogStore.mergeState.columnName.value = 'full_name';
@@ -78,7 +79,7 @@ describe('MergeDialog', () => {
   });
 
   it('allows editing output column name', () => {
-    const { container } = render(<MergeDialog />);
+    const { container } = renderWithI18n(<MergeDialog />);
     const inputs = container.querySelectorAll('input[type="text"]');
     const columnNameInput = inputs[1] as HTMLInputElement; // Second text input
 
@@ -87,7 +88,7 @@ describe('MergeDialog', () => {
   });
 
   it('toggles removeOriginal checkbox', () => {
-    const { container } = render(<MergeDialog />);
+    const { container } = renderWithI18n(<MergeDialog />);
     const checkbox = container.querySelector('input[type="checkbox"]') as HTMLInputElement;
 
     expect(DialogStore.mergeState.removeOriginal.value).toBe(false);
@@ -101,13 +102,13 @@ describe('MergeDialog', () => {
 
   it('displays error message when present', () => {
     DialogStore.mergeState.error.value = 'Test error message';
-    const { getByText } = render(<MergeDialog />);
+    const { getByText } = renderWithI18n(<MergeDialog />);
     expect(getByText('Test error message')).toBeTruthy();
   });
 
   it('does not display error when none present', () => {
     DialogStore.mergeState.error.value = null;
-    const { container } = render(<MergeDialog />);
+    const { container } = renderWithI18n(<MergeDialog />);
     const errorElements = container.querySelectorAll('.error');
     expect(errorElements.length).toBe(0);
   });

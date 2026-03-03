@@ -1,7 +1,8 @@
-import { render, screen, fireEvent } from '@testing-library/preact';
+import { screen, fireEvent } from '@testing-library/preact';
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import { SettingsDialog } from './SettingsDialog';
 import { DialogStore } from '../stores/DialogStore';
+import { renderWithI18n } from '../test-utils';
 
 describe('SettingsDialog', () => {
   beforeEach(() => {
@@ -12,7 +13,7 @@ describe('SettingsDialog', () => {
   });
 
   it('renders correctly', () => {
-    render(<SettingsDialog />);
+    renderWithI18n(<SettingsDialog />);
 
     expect(screen.getByText('Color Scheme')).toBeDefined();
     expect(screen.getByText('Syto')).toBeDefined();
@@ -22,7 +23,7 @@ describe('SettingsDialog', () => {
 
   it('handles theme change', () => {
     const onThemeChange = vi.fn();
-    render(<SettingsDialog onThemeChange={onThemeChange} />);
+    renderWithI18n(<SettingsDialog onThemeChange={onThemeChange} />);
 
     fireEvent.click(screen.getByText('Blues (KSE)'));
     expect(DialogStore.settingsState.theme.value).toBe('blues');
@@ -31,7 +32,7 @@ describe('SettingsDialog', () => {
 
   it('handles row limit change', () => {
     const onRowLimitChange = vi.fn();
-    render(<SettingsDialog onRowLimitChange={onRowLimitChange} />);
+    renderWithI18n(<SettingsDialog onRowLimitChange={onRowLimitChange} />);
 
     const input = screen.getByDisplayValue('100');
     fireEvent.input(input, { target: { value: '200' } });
@@ -41,18 +42,19 @@ describe('SettingsDialog', () => {
 
   it('shows active theme correctly checkmark/dot', () => {
     DialogStore.settingsState.theme.value = 'blues'; // Set initial to blues
-    render(<SettingsDialog />);
+    renderWithI18n(<SettingsDialog />);
     // Checking styles is hard, but we can verify structure if needed.
     // For now, functional tests are enough.
   });
 
   it('handles analytics opt-out change', () => {
     const onAnalyticsOptOutChange = vi.fn();
-    render(<SettingsDialog onAnalyticsOptOutChange={onAnalyticsOptOutChange} />);
+    renderWithI18n(<SettingsDialog onAnalyticsOptOutChange={onAnalyticsOptOutChange} />);
 
-    const checkbox = screen.getByLabelText(/opt out of analytics/i);
+    // Find checkbox by type since the label structure is complex
+    const checkbox = screen.getByRole('checkbox') as HTMLInputElement;
     expect(checkbox).toBeDefined();
-    expect((checkbox as HTMLInputElement).checked).toBe(false);
+    expect(checkbox.checked).toBe(false);
 
     fireEvent.change(checkbox, { target: { checked: true } });
     expect(DialogStore.settingsState.analyticsOptOut.value).toBe(true);

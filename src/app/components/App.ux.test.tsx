@@ -6,13 +6,14 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, fireEvent, waitFor } from '@testing-library/preact';
+import { fireEvent, waitFor } from '@testing-library/preact';
 import { App } from './App';
 import { AppStore } from '../stores/AppStore';
 import { DialogStore } from '../stores/DialogStore';
 import { previewTypeConversion } from '../handlers/core/interaction-handlers';
 import { setEdaCallbacks } from '../handlers/core/eda-handlers';
 import { AppController } from '../orchestration/AppController';
+import { renderWithI18n } from '../test-utils';
 
 describe('App UX Interactions', () => {
   const testData = [
@@ -56,7 +57,7 @@ describe('App UX Interactions', () => {
 
   describe('Column Header Interactions', () => {
     it('should show EDA panel when column header is clicked', async () => {
-      render(<App />);
+      renderWithI18n(<App />);
 
       // Find and click a column header - use data-col attribute instead
       await waitFor(() => {
@@ -82,7 +83,7 @@ describe('App UX Interactions', () => {
     });
 
     it('should show column toolbar when column header is clicked', async () => {
-      render(<App />);
+      renderWithI18n(<App />);
 
       await waitFor(() => {
         const headers = document.querySelectorAll('th[data-col]');
@@ -106,7 +107,7 @@ describe('App UX Interactions', () => {
     });
 
     it('should calculate EDA stats when column is selected', async () => {
-      render(<App />);
+      renderWithI18n(<App />);
 
       await waitFor(() => {
         const headers = document.querySelectorAll('th[data-col]');
@@ -130,7 +131,7 @@ describe('App UX Interactions', () => {
     });
 
     it('should toggle column selection when clicking same header twice', async () => {
-      render(<App />);
+      renderWithI18n(<App />);
 
       await waitFor(() => {
         const headers = document.querySelectorAll('th[data-col]');
@@ -161,7 +162,7 @@ describe('App UX Interactions', () => {
         rowIdx: 0,
       };
 
-      render(<App />);
+      renderWithI18n(<App />);
 
       await waitFor(() => {
         const headers = document.querySelectorAll('th[data-col]');
@@ -181,7 +182,7 @@ describe('App UX Interactions', () => {
 
   describe('Cell Interactions', () => {
     it('should show cell toolbar when cell is clicked', async () => {
-      render(<App />);
+      renderWithI18n(<App />);
 
       // Find a cell and click it - use data-col attribute
       await waitFor(() => {
@@ -213,7 +214,7 @@ describe('App UX Interactions', () => {
       AppStore.selectedColumn.value = 'name';
       AppStore.edaStats.value = { type: 'string' } as any;
 
-      render(<App />);
+      renderWithI18n(<App />);
 
       await waitFor(() => {
         const cells = document.querySelectorAll('td[data-col]');
@@ -231,7 +232,7 @@ describe('App UX Interactions', () => {
     });
 
     it('should set correct cell type based on column schema', async () => {
-      render(<App />);
+      renderWithI18n(<App />);
 
       await waitFor(() => {
         const cells = document.querySelectorAll('td[data-col]');
@@ -252,7 +253,7 @@ describe('App UX Interactions', () => {
     });
 
     it('should position cell toolbar correctly for numeric cells', async () => {
-      render(<App />);
+      renderWithI18n(<App />);
 
       await waitFor(() => {
         const cells = document.querySelectorAll('td[data-col]');
@@ -282,7 +283,7 @@ describe('App UX Interactions', () => {
     it('should open filter dialog when column toolbar filter button is clicked', async () => {
       AppStore.selectedColumn.value = 'name';
 
-      render(<App />);
+      renderWithI18n(<App />);
 
       await waitFor(() => {
         const toolbar = document.querySelector('[class*="floatingToolbar"]');
@@ -304,7 +305,7 @@ describe('App UX Interactions', () => {
     it('should open impute dialog when column toolbar impute button is clicked', async () => {
       AppStore.selectedColumn.value = 'sales';
 
-      render(<App />);
+      renderWithI18n(<App />);
 
       await waitFor(() => {
         const toolbar = document.querySelector('[class*="floatingToolbar"]');
@@ -329,7 +330,7 @@ describe('App UX Interactions', () => {
     it('should open sort dialog when column toolbar sort button is clicked', async () => {
       AppStore.selectedColumn.value = 'sales';
 
-      render(<App />);
+      renderWithI18n(<App />);
 
       await waitFor(() => {
         const toolbar = document.querySelector('[class*="floatingToolbar"]');
@@ -356,7 +357,7 @@ describe('App UX Interactions', () => {
         rowIdx: 0,
       };
 
-      render(<App />);
+      renderWithI18n(<App />);
 
       await waitFor(() => {
         const toolbar = document.querySelector('[class*="floatingToolbar"]');
@@ -412,7 +413,7 @@ describe('App UX Interactions', () => {
         },
       };
 
-      render(<App />);
+      renderWithI18n(<App />);
 
       await waitFor(() => {
         const edaPanel = document.querySelector('[class*="edaPanel"]');
@@ -459,7 +460,7 @@ describe('App UX Interactions', () => {
 
   describe('EDA Panel Integration', () => {
     it('should render charts for numeric columns', async () => {
-      render(<App />);
+      renderWithI18n(<App />);
 
       await waitFor(() => {
         const headers = document.querySelectorAll('th[data-col]');
@@ -485,7 +486,7 @@ describe('App UX Interactions', () => {
     });
 
     it('should show categorical chart for string columns', async () => {
-      render(<App />);
+      renderWithI18n(<App />);
 
       await waitFor(() => {
         const headers = document.querySelectorAll('th[data-col]');
@@ -513,7 +514,7 @@ describe('App UX Interactions', () => {
     it('should render import-csv dialog as slide panel', async () => {
       AppStore.activeDialog.value = 'import-csv';
 
-      render(<App />);
+      renderWithI18n(<App />);
 
       await waitFor(() => {
         // Slide panel should be rendered (not centered modal)
@@ -533,7 +534,7 @@ describe('App UX Interactions', () => {
         ['c', 'd'],
       ];
 
-      render(<App />);
+      renderWithI18n(<App />);
 
       await waitFor(() => {
         // Preview panel should be visible
@@ -548,7 +549,7 @@ describe('App UX Interactions', () => {
     it('should render import-url dialog as slide panel', async () => {
       AppStore.activeDialog.value = 'import-url';
 
-      render(<App />);
+      renderWithI18n(<App />);
 
       await waitFor(() => {
         // Slide panel should be rendered
@@ -559,7 +560,7 @@ describe('App UX Interactions', () => {
 
     it('should open sample dialog when ribbon sample button is clicked', async () => {
       AppStore.ribbonTab.value = 'rows';
-      render(<App />);
+      renderWithI18n(<App />);
 
       // Find sample button by its icon
       const sampleButton = document
@@ -599,7 +600,7 @@ describe('App UX Interactions', () => {
         steps: [],
       };
 
-      render(<App />);
+      renderWithI18n(<App />);
 
       await waitFor(() => {
         const cells = document.querySelectorAll('td[data-col="value"]');
@@ -639,7 +640,7 @@ describe('App UX Interactions', () => {
         steps: [],
       };
 
-      render(<App />);
+      renderWithI18n(<App />);
 
       await waitFor(() => {
         const cells = document.querySelectorAll('td[data-col="flag"]');
@@ -685,7 +686,7 @@ describe('App UX Interactions', () => {
         ],
       };
 
-      render(<App />);
+      renderWithI18n(<App />);
 
       await waitFor(() => {
         const edaPanel = document.querySelector('[class*="edaPanel"]');
@@ -728,7 +729,7 @@ describe('App UX Interactions', () => {
         ],
       };
 
-      render(<App />);
+      renderWithI18n(<App />);
 
       await waitFor(() => {
         const edaPanel = document.querySelector('[class*="edaPanel"]');

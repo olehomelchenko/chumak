@@ -39,5 +39,783 @@
     "expressions": "Reference",
     "reference": "Reference",
     "dependencyGraph": "Dependency Graph"
+  },
+  "common": {
+    "labels": {
+      "pattern": "Pattern:",
+      "matchType": "Match type:",
+      "column": "Column:",
+      "expression": "Expression:",
+      "preview": "Preview:"
+    },
+    "buttons": {
+      "cancel": "Cancel",
+      "apply": "Apply",
+      "fullReference": "Full Reference",
+      "addSortLevel": "Add sort level",
+      "removeSortLevel": "Remove sort level"
+    },
+    "placeholders": {
+      "selectColumn": "Select column…"
+    },
+    "matchTypes": {
+      "prefix": "Prefix (starts with)",
+      "suffix": "Suffix (ends with)",
+      "contains": "Contains",
+      "regex": "Regex"
+    },
+    "matchTypeHelp": {
+      "prefix": "Columns that start with the pattern",
+      "suffix": "Columns that end with the pattern",
+      "contains": "Columns that contain the pattern",
+      "regex": "Columns matching the regex pattern"
+    },
+    "sortOrder": {
+      "asc": "Asc",
+      "desc": "Desc",
+      "ascending": "Ascending",
+      "descending": "Descending"
+    },
+    "reference": {
+      "syntax": "Syntax",
+      "date": "Date",
+      "math": "Math",
+      "text": "Text",
+      "regex": "Regex",
+      "json": "JSON",
+      "conversion": "Conversion"
+    }
+  },
+  "filter": {
+    "label": "Keep rows where:",
+    "placeholder": "e.g., sales > 1000",
+    "previewModes": {
+      "all": "Show All",
+      "matching": "Matching Only"
+    },
+    "examples": {
+      "and": "— AND",
+      "or": "— OR",
+      "spacedColumns": "— columns with spaces"
+    }
+  },
+  "derive": {
+    "columnName": "New column name:",
+    "columnNamePlaceholder": "e.g., profit_margin",
+    "expression": "Expression:",
+    "expressionPlaceholder": "e.g., (profit / sales) * 100",
+    "examples": {
+      "conditional": "— conditional",
+      "firstNonNull": "— first non-null",
+      "spacedColumns": "— columns with spaces"
+    }
+  },
+  "sort": {
+    "helpText": "Rows are sorted by the first column, then ties are broken by subsequent columns."
+  },
+  "pattern": {
+    "select": {
+      "help": "Select columns matching a pattern. Useful for selecting multiple columns with similar names.",
+      "placeholder": "e.g., sales_"
+    },
+    "remove": {
+      "help": "Remove columns matching a pattern. Useful for removing multiple columns with similar names.",
+      "placeholder": "e.g., temp_"
+    },
+    "rename": {
+      "help": "Rename multiple columns by pattern. Useful for bulk renaming operations.",
+      "findLabel": "Find pattern:",
+      "findPlaceholder": "e.g., _old$",
+      "replaceLabel": "Replace with:",
+      "replacePlaceholder": "e.g., _new",
+      "useRegex": "Use regex pattern",
+      "regexHelpOn": "Pattern is a regular expression (e.g., ^prefix_ or _suffix$)",
+      "regexHelpOff": "Pattern is plain text (exact match)"
+    }
+  },
+  "typeConversion": {
+    "title": "Type Conversion Preview",
+    "noPreview": "No preview available"
+  },
+  "sliceRows": {
+    "rowCount": "Number of rows:",
+    "mode": {
+      "label": "Mode:",
+      "keepFirst": "Keep first N rows",
+      "keepLast": "Keep last N rows",
+      "removeFirst": "Remove first N rows",
+      "removeLast": "Remove last N rows"
+    },
+    "preview": {
+      "keepFirst": "Will keep rows {{start}} to {{end}}",
+      "keepLast": "Will keep rows {{start}} to {{end}}",
+      "removeFirst": "Will remove rows {{start}} to {{end}}",
+      "removeLast": "Will remove rows {{start}} to {{end}}"
+    },
+    "totalRows": "(of {{count}} total rows)"
+  },
+  "sample": {
+    "sampleSize": "Sample Size",
+    "totalAvailable": "Total available rows: {{count}}",
+    "seed": {
+      "label": "Random Seed (Optional)",
+      "placeholder": "Enter a number for reproducible sampling",
+      "helpText": "Use a seed to get the same 'random' sample every time you run this step."
+    },
+    "howItWorks": {
+      "title": "How it works",
+      "description": "Sampling extracts a subset of rows randomly. To ensure your results are fully reproducible, a random seed will be auto-generated if you leave the field blank."
+    }
+  },
+  "impute": {
+    "columnLabel": "Column to Impute",
+    "columnHelp": "Select the column containing missing values.",
+    "typeLabel": "Type: {{type}}",
+    "strategyLabel": "Imputation Strategy",
+    "strategies": {
+      "constant": "Constant",
+      "mean": "Mean",
+      "min": "Min",
+      "forwardFill": "Forward Fill",
+      "linear": "Linear",
+      "median": "Median",
+      "max": "Max",
+      "backwardFill": "Backward Fill"
+    },
+    "numericOnlyHint": "This strategy requires a numeric column",
+    "orderDependentHint": "Tip: This strategy is order-dependent. Consider adding a Sort step before this one to ensure rows are in the expected order.",
+    "includeEmptyString": "Include empty strings ('') as missing",
+    "includeEmptyStringHelp": "By default, only null, undefined, and NaN are considered missing.",
+    "replacementValue": "Replacement Value",
+    "replacementPlaceholder": "Enter value (e.g. 0, N/A, Unknown)",
+    "replacementHelp": "Missing values will be replaced by this value.",
+    "previewTitle": "Strategy Preview (Example Data)",
+    "preview": {
+      "original": "Original",
+      "imputed": "Imputed"
+    }
+  },
+  "replace": {
+    "columnLabel": "Column:",
+    "findPattern": "Find pattern:",
+    "findValue": "Find value:",
+    "patternPlaceholder": "Regular expression pattern",
+    "valuePlaceholder": "Value to replace",
+    "useRegex": "Use regex pattern (e.g., \\d+ for numbers, (?i)hello for case-insensitive)",
+    "regexHelp": "Regular expression pattern to match (automatically applies globally)",
+    "valueHelp": "The exact value to find and replace",
+    "replaceWith": "Replace with:",
+    "replacementPlaceholderRegex": "Replacement (supports $1, $2 for groups)",
+    "replacementPlaceholder": "New value (leave empty for null)",
+    "replacementHelpRegex": "Replacement string (use $1, $2, etc. for capture groups)",
+    "replacementHelp": "New value to use (leave empty to replace with null)",
+    "numericTip": "Tip: If you're cleaning numeric data (e.g., removing $ or ,), follow this with a Type Conversion step to convert the column to a number."
+  },
+  "dedupe": {
+    "action": {
+      "label": "Action",
+      "remove": "Remove Duplicates",
+      "keep": "Keep Only Duplicates"
+    },
+    "compareBy": {
+      "label": "Compare By",
+      "allColumns": "All Columns",
+      "specificColumns": "Specific Columns"
+    },
+    "selectKeyHelp": "Select columns to use as composite key:",
+    "allColumnsInfo": "Rows are considered duplicates if all columns have identical values.",
+    "preview": {
+      "found": "{{count}} duplicate row found",
+      "found_other": "{{count}} duplicate rows found",
+      "none": "No duplicates found"
+    },
+    "help": {
+      "remove": "Removes duplicate rows, keeping only the first occurrence of each.",
+      "keep": "Keeps only rows that have duplicates (all occurrences of duplicated values)."
+    }
+  },
+  "merge": {
+    "columnsLabel": "Columns to merge:",
+    "separatorLabel": "Separator:",
+    "separatorPresets": {
+      "none": "(none)",
+      "space": "(space)",
+      "noSeparator": "No separator",
+      "separator": "Separator: \"{{sep}}\""
+    },
+    "separatorPlaceholder": "Enter separator (e.g., ' ', ', ', '-')",
+    "outputNameLabel": "Output column name:",
+    "outputNamePlaceholder": "e.g., full_name",
+    "removeOriginal": "Remove original columns after merging"
+  },
+  "split": {
+    "columnLabel": "Column to split:",
+    "delimiterLabel": "Delimiter:",
+    "autoDetected": "Auto-detected: {{delimiter}}",
+    "delimiterPlaceholder": "Enter delimiter",
+    "useRegex": "Use as regex pattern (e.g., \\s+ for whitespace, [-_] for dash or underscore)",
+    "modeLabel": "Split mode:",
+    "modes": {
+      "spread": "Spread All - create column for each segment",
+      "left": "Keep Left - keep only first segment",
+      "right": "Keep Right - keep only last segment",
+      "firstN": "Keep First N - limit number of columns",
+      "lastN": "Keep Last N - keep last N segments"
+    },
+    "maxColumnsLabel": "Max columns:",
+    "maxColumnsPlaceholder": "e.g., 3",
+    "keepOriginal": "Keep original column",
+    "presetTitles": {
+      "whitespace": "Whitespace",
+      "tab": "Tab"
+    }
+  },
+  "columnEditor": {
+    "modes": {
+      "list": "List Mode",
+      "text": "Text Mode",
+      "pattern": "Pattern Mode"
+    },
+    "listMode": {
+      "patternMatchingLabel": "Pattern Matching (optional):",
+      "select": "Select",
+      "deselect": "Deselect",
+      "matchTypes": {
+        "startsWith": "Starts with",
+        "endsWith": "Ends with",
+        "exactMatch": "Exact match"
+      },
+      "patternPlaceholder": "e.g., sales_ or _2023",
+      "apply": "Apply",
+      "selectAll": "Select All",
+      "selectNone": "Select None"
+    },
+    "textMode": {
+      "operationLabel": "Text Mode Operation:",
+      "operations": {
+        "rename": "Rename",
+        "reorder": "Reorder",
+        "select": "Select"
+      },
+      "help": {
+        "rename": "Enter new names for each column (one per line, same order). Must have exactly {{count}} lines.",
+        "reorder": "Rearrange column names to change order. Must include all {{count}} columns.",
+        "select": "Keep only the listed columns. Delete lines to remove columns."
+      },
+      "placeholder": "Enter column names, one per line..."
+    },
+    "patternMode": {
+      "operationLabel": "Pattern Operation:",
+      "operations": {
+        "select": "Select by Pattern",
+        "remove": "Remove by Pattern",
+        "rename": "Rename by Pattern"
+      },
+      "patternLabel": "Pattern:",
+      "patternPlaceholder": "e.g., sales_ or _2023",
+      "matchTypeLabel": "Match type:",
+      "matchTypes": {
+        "prefix": "Prefix (starts with)",
+        "suffix": "Suffix (ends with)",
+        "contains": "Contains",
+        "regex": "Regex"
+      },
+      "matchTypeHelp": {
+        "prefix": "Columns that start with the pattern",
+        "suffix": "Columns that end with the pattern",
+        "contains": "Columns that contain the pattern",
+        "regex": "Columns matching the regex pattern"
+      },
+      "findLabel": "Find pattern:",
+      "findPlaceholder": "e.g., _old$",
+      "replaceLabel": "Replace with:",
+      "replacePlaceholder": "e.g., _new",
+      "useRegex": "Use regex pattern",
+      "regexHelp": {
+        "on": "Pattern is a regular expression (e.g., ^prefix_ or _suffix$)",
+        "off": "Pattern is plain text (exact match)"
+      },
+      "preview": {
+        "select": "Preview: Columns that will be selected",
+        "remove": "Preview: Columns that will be removed",
+        "rename": "Preview: Columns that will be renamed",
+        "noMatch": "No columns match"
+      }
+    },
+    "changesPreview": {
+      "title": "Changes Preview:",
+      "remove": "Remove: ",
+      "rename": "Rename: ",
+      "reordered": "Column order changed"
+    }
+  },
+  "join": {
+    "leftTable": "Left Table",
+    "rightTable": "Right Table",
+    "leftColumnsLabel": "Left Columns to Include",
+    "rightColumnsLabel": "Right Columns to Include",
+    "suffixesLabel": "Column Name Suffixes (for conflicts)",
+    "suffixesHelp": "Applied to left/right columns when names conflict",
+    "suffixPlaceholder": {
+      "left": "_x",
+      "right": "_y"
+    },
+    "saveAsNew": "Save result as a new model",
+    "preview": "Preview Join",
+    "previewing": "Previewing...",
+    "types": {
+      "title": "Join Types",
+      "left": "Left",
+      "leftDesc": "Keep all left rows, match right where possible",
+      "right": "Right",
+      "rightDesc": "Keep all right rows, match left where possible",
+      "inner": "Inner",
+      "innerDesc": "Only rows that match in both tables",
+      "full": "Full",
+      "fullDesc": "Keep all rows from both tables",
+      "semi": "Semi",
+      "semiDesc": "Left rows that have a match (no right columns)",
+      "anti": "Anti",
+      "antiDesc": "Left rows with no match in right"
+    }
+  },
+  "aggregate": {
+    "groupByLabel": "Group By (Columns)",
+    "groupByHelp": "Selected columns will define the grouping keys.",
+    "summarizeLabel": "Summarize / Rollup",
+    "selectColumn": "Select column...",
+    "allRows": "(All rows)",
+    "outputPlaceholder": "Output name (auto-generated)",
+    "addAggregation": "+ Add Aggregation",
+    "remove": "Remove",
+    "previewButton": "Preview Result",
+    "previewing": "Previewing...",
+    "functions": {
+      "count": "Count",
+      "sum": "Sum",
+      "mean": "Mean",
+      "median": "Median",
+      "min": "Min",
+      "max": "Max",
+      "distinct": "Distinct",
+      "stdev": "StDev",
+      "first": "First",
+      "last": "Last"
+    },
+    "help": {
+      "title": "How it works",
+      "description": "Group By columns define the groups — rows with the same values are combined. Aggregations compute a summary value for each group.",
+      "countDesc": "Number of rows",
+      "sumDesc": "Total of numeric values",
+      "meanDesc": "Average value",
+      "medianDesc": "Middle value",
+      "minMaxDesc": "Smallest / largest value",
+      "distinctDesc": "Count of unique values",
+      "stdevDesc": "Standard deviation"
+    }
+  },
+  "pivot": {
+    "rowsLabel": "Rows",
+    "rowsHelp": "Group by these columns",
+    "columnsLabel": "Columns",
+    "columnsHelp": "Values become column headers",
+    "valuesLabel": "Values",
+    "valuesHelp": "Aggregate function for cells",
+    "selectColumn": "Select column...",
+    "uniqueValues": "{{count}} unique values",
+    "manyColumns": "(many columns!)",
+    "noRowGrouping": "No row grouping (single row result),",
+    "groupedBy": "Grouped by {{columns}},",
+    "resultPrefix": "Result:",
+    "resultNewColumns": "with",
+    "resultFrom": "new columns from",
+    "resultShowing": "showing",
+    "resultOf": "of",
+    "previewButton": "Preview Result",
+    "previewing": "Previewing...",
+    "aggregations": {
+      "sum": "Sum",
+      "mean": "Average",
+      "count": "Count",
+      "min": "Min",
+      "max": "Max",
+      "any": "First value"
+    },
+    "help": {
+      "title": "How Pivot works",
+      "description": "Pivot transforms long data into wide format. Unique values from the Columns field become new column headers, and cells are filled with the aggregated Values.",
+      "exampleBefore": "Before:",
+      "exampleBeforeValue": "Name, Subject, Score",
+      "exampleAfter": "After:",
+      "exampleAfterValue": "Name, Math, Science, ...",
+      "usage": "Use Rows for grouping, Columns for new headers, Values for cell data. Use Unpivot (Fold) to reverse."
+    },
+    "advanced": {
+      "title": "Advanced Options",
+      "sortColumns": "Sort column names alphabetically",
+      "limitLabel": "Limit new columns",
+      "limitPlaceholder": "No limit",
+      "limitHelp": "Leave empty for unlimited"
+    }
+  },
+  "unpivot": {
+    "description": "Select columns to collapse into key-value pairs (wide to long format):",
+    "keyNameLabel": "Key Column Name",
+    "keyNamePlaceholder": "e.g. Year",
+    "keyNameHelp": "Contains original headers",
+    "valueNameLabel": "Value Column Name",
+    "valueNamePlaceholder": "e.g. Sales",
+    "valueNameHelp": "Contains values",
+    "modeLabel": "Selection Mode:",
+    "modes": {
+      "keep": "Columns to Keep (as index)",
+      "fold": "Columns to Fold"
+    },
+    "modeHelp": {
+      "keep": "Select columns to keep as identifiers; all other columns will be folded.",
+      "fold": "Select columns to fold into key-value pairs."
+    },
+    "selectKeep": "Select Columns to Keep:",
+    "selectFold": "Select Columns to Fold:"
+  },
+  "window": {
+    "orderByLabel": "Order By",
+    "orderByHelp": "Required for meaningful window results. Determines row order for lag/lead/rank.",
+    "selectColumn": "Select column...",
+    "ascending": "Ascending",
+    "descending": "Descending",
+    "remove": "Remove",
+    "addOrderColumn": "+ Add Order Column",
+    "partitionByLabel": "Partition By (Optional)",
+    "partitionByHelp": "Window functions will restart for each group. Leave empty for no partitioning.",
+    "windowFunctionsLabel": "Window Functions",
+    "outputPlaceholder": "Output column name",
+    "addWindowFunction": "+ Add Window Function",
+    "offsetPlaceholder": {
+      "ntile": "N",
+      "other": "Offset"
+    },
+    "offsetTitle": {
+      "ntile": "Number of buckets",
+      "other": "Offset (rows)"
+    },
+    "defaultValueLabel": "Default value (if no prior/next row):",
+    "defaultValuePlaceholder": "(null)",
+    "functions": {
+      "row_number": "Row Number",
+      "rank": "Rank",
+      "dense_rank": "Dense Rank",
+      "lag": "Lag",
+      "lead": "Lead",
+      "first_value": "First Value",
+      "last_value": "Last Value",
+      "percent_rank": "Percent Rank",
+      "ntile": "N-Tile",
+      "fill_down": "Fill Down",
+      "fill_up": "Fill Up"
+    },
+    "functionDescriptions": {
+      "row_number": "Sequential row numbers",
+      "rank": "Rank with gaps for ties",
+      "dense_rank": "Rank without gaps",
+      "lag": "Previous row value",
+      "lead": "Next row value",
+      "first_value": "First value in partition",
+      "last_value": "Last value in partition",
+      "percent_rank": "Percentage rank (0-1)",
+      "ntile": "Distribute into N buckets",
+      "fill_down": "Fill nulls with preceding value",
+      "fill_up": "Fill nulls with following value"
+    },
+    "help": {
+      "title": "What are window functions?",
+      "description": "Window functions add computed columns based on the position or neighbors of each row, without reducing the number of rows (unlike Aggregate).",
+      "row_number": "1, 2, 3, ...",
+      "rank": "1, 2, 2, 4 (gaps for ties)",
+      "lagLead": "Previous / next row value",
+      "fill_down": "Fill nulls with value above",
+      "orderByNote": "Use <strong>Order By</strong> to control row sequence. Use <strong>Partition By</strong> to restart numbering per group."
+    },
+    "previewButton": "Preview Result",
+    "previewing": "Previewing..."
+  },
+  "text": {
+    "sourceColumnLabel": "Source column:",
+    "noColumnsHelp": "No string columns found. Use the column type menu to set a column as string.",
+    "caseTransformLabel": "Case transformation:",
+    "operation": "Operation",
+    "preview": "Preview",
+    "operations": {
+      "uppercase": "Uppercase",
+      "lowercase": "Lowercase",
+      "titlecase": "Titlecase",
+      "none": "None"
+    },
+    "trimWhitespace": "Trim whitespace (remove leading and trailing spaces)",
+    "help": {
+      "title": "About Operations",
+      "description": "Select a case transformation (optional) and/or enable trim whitespace.<br /><strong>Order:</strong> If both are selected, trim is applied first, then case transformation."
+    },
+    "removeOrigin": "Remove origin column after transformation"
+  },
+  "date": {
+    "sourceColumnLabel": "Source column:",
+    "noColumnsHelp": "No date/datetime columns found. Use the column type menu to set a column as date.",
+    "operationLabel": "Operation:",
+    "operations": {
+      "extract": "Extract Part",
+      "truncate": "Truncate"
+    },
+    "help": {
+      "extract": {
+        "title": "Extract — What it does",
+        "description": "Extracts a numeric part from a date/datetime value. Useful for grouping or analyzing data by time periods (e.g., sales by month, events by weekday)."
+      },
+      "truncate": {
+        "title": "Truncate — What it does",
+        "description": "Rounds down a date/datetime to the start of the specified period. For hours, minutes, and seconds you can set a custom interval (e.g., every 5 minutes, every 4 hours)."
+      }
+    },
+    "extractLabel": "Extract:",
+    "truncateLabel": "Truncate to:",
+    "part": "Part",
+    "unit": "Unit",
+    "interval": "Interval",
+    "preview": "Preview",
+    "intervalEvery": "every",
+    "extractParts": {
+      "year": "Year",
+      "quarter": "Quarter",
+      "month": "Month",
+      "weekday": "Weekday",
+      "day": "Day of Month",
+      "dayOfYear": "Day of Year",
+      "week": "Week of Year",
+      "hour": "Hour",
+      "minute": "Minute",
+      "second": "Second"
+    },
+    "truncateUnits": {
+      "year": "Year",
+      "quarter": "Quarter",
+      "month": "Month",
+      "week": "Week",
+      "day": "Day",
+      "hour": "Hour",
+      "minute": "Minute",
+      "second": "Second"
+    },
+    "removeOrigin": "Remove origin column after transformation"
+  },
+  "parseDate": {
+    "sourceColumnLabel": "Source column:",
+    "noColumnsHelp": "No string columns found.",
+    "sampleValueLabel": "Sample value",
+    "formatLabel": "Format:",
+    "formatPlaceholder": "Or type a custom format...",
+    "formatHelp": "Tokens: YYYY, YY, MM, M, DD, D, HH, H, mm, m, ss, s",
+    "formats": {
+      "iso": "ISO 8601",
+      "us": "US (M/D/YYYY)",
+      "eu": "EU (D/M/YYYY)",
+      "usTime": "US + Time",
+      "euTime": "EU + Time",
+      "unix": "Unix Timestamp"
+    },
+    "examples": {
+      "iso": "2024-03-15",
+      "us": "3/15/2024",
+      "eu": "15/3/2024",
+      "usTime": "3/15/2024 14:30",
+      "euTime": "15/3/2024 14:30",
+      "unix": "1710518400"
+    }
+  },
+  "regexpMatch": {
+    "description": "Creates a boolean column indicating whether the pattern matches.",
+    "sourceColumnLabel": "Source column:",
+    "patternLabel": "Pattern (regex):",
+    "patternPlaceholder": "e.g., ^[A-Z]{2}\\d+",
+    "columnNameLabel": "New column name:",
+    "columnNamePlaceholder": "e.g., is_valid_code",
+    "help": {
+      "title": "Pattern Examples",
+      "upperLetters": "— starts with 2 uppercase letters",
+      "phoneFormat": "— phone format 123-4567",
+      "caseInsensitive": "— case-insensitive \"error\"",
+      "emailDomain": "— ends with @...com"
+    }
+  },
+  "regexpExtract": {
+    "description": "Extracts text matching a pattern into a new column.",
+    "sourceColumnLabel": "Source column:",
+    "patternLabel": "Pattern (regex):",
+    "patternPlaceholder": "e.g., @(.+)$ to extract domain",
+    "groupLabel": "Capture group (0 = entire match):",
+    "columnNameLabel": "New column name:",
+    "columnNamePlaceholder": "e.g., domain",
+    "help": {
+      "title": "Pattern Examples",
+      "dateParts": "— date parts (1=year, 2=month, 3=day)",
+      "emailDomain": "— domain from email (group 1)",
+      "extractLevel": "— extract level (case-insensitive)",
+      "firstLetters": "— first 2 uppercase letters"
+    }
+  },
+  "conditional": {
+    "description": "Create a column based on multiple conditions. Conditions are evaluated in order, and the first matching condition's value is used.",
+    "outputNameLabel": "Output column name:",
+    "outputNamePlaceholder": "e.g., tier",
+    "conditionsLabel": "Conditions:",
+    "conditionTitle": "Condition {{index}}",
+    "remove": "Remove",
+    "whenLabel": "When (expression):",
+    "whenPlaceholder": "e.g., sales > 10000",
+    "thenLabel": "Then (expression):",
+    "thenPlaceholder": "e.g., 'platinum'",
+    "addCondition": "Add Condition",
+    "elseLabel": "Else (default value):",
+    "elsePlaceholder": "e.g., 'bronze'",
+    "elseHelp": "Value used when no conditions match"
+  },
+  "spread": {
+    "columnLabel": "Column to spread:",
+    "columnHelp": "Select a column containing array values to spread into separate columns. Works with both native arrays and JSON string arrays (e.g., [\"a\",\"b\",\"c\"]).",
+    "limitLabel": "Maximum Columns (Optional)",
+    "limitPlaceholder": "No limit (spread all array elements)",
+    "limitHelp": "Limit the number of columns created. Leave empty to spread all array elements.",
+    "keepOriginal": "Keep original column",
+    "help": {
+      "title": "How it works",
+      "description": "Spread converts array values into separate columns. For example, <code>tags: ['a','b','c']</code> becomes three columns: <code>tags_1: 'a'</code>, <code>tags_2: 'b'</code>, <code>tags_3: 'c'</code>. The original column is removed."
+    }
+  },
+  "unroll": {
+    "columnLabel": "Column to unroll:",
+    "columnHelp": "Select a column containing array values to unroll into separate rows. Works with both native arrays and JSON string arrays (e.g., [\"a\",\"b\",\"c\"]).",
+    "addIndex": "Add index column",
+    "indexColumnHelp": "Index column will be named <code>{{column}}__unroll_index</code>",
+    "keepOriginal": "Keep original column",
+    "help": {
+      "title": "How it works",
+      "description": "Unroll expands array values into separate rows. For example, a row with <code>id: 1, items: ['a','b','c']</code> becomes three rows, each with <code>id: 1</code> and one item from the array. All other columns are duplicated across the new rows."
+    }
+  },
+  "append": {
+    "leftTableLabel": "Left Table (Base)",
+    "rightTableLabel": "Right Table (Append)",
+    "icon": {
+      "model": "📊",
+      "source": "📄"
+    },
+    "selected": "Selected",
+    "removeDuplicates": "Remove duplicate rows (Union)",
+    "removeDuplicatesHelp": {
+      "on": "Stacks rows and removes complete duplicates across all columns.",
+      "off": "Stacks rows below current rows and keeps all original rows."
+    },
+    "leftColumnsLabel": "Left Columns to Include",
+    "rightColumnsLabel": "Right Columns to Include",
+    "selectAll": "Select All",
+    "selectNone": "Select None",
+    "previewButton": "Preview Append",
+    "previewing": "Previewing...",
+    "previewTitle": "Preview Result:",
+    "previewCount": "{{rowCount}} rows, {{columnCount}} columns"
+  },
+  "generate": {
+    "sourceNameLabel": "Source Name",
+    "sourceNamePlaceholder": "generated_data",
+    "columnNameLabel": "Column Name",
+    "columnNamePlaceholder": "id",
+    "rowCountLabel": "Number of Rows",
+    "autoCalculate": "Auto-calculate",
+    "rowCountPlaceholder": "100",
+    "rowCountHelp": {
+      "auto": "Calculated {{count}} rows",
+      "autoNeed": "Add a sequence with a \"Stop\" value to calculate rows",
+      "manual": "Maximum: 100,000 rows"
+    }
+  },
+  "index": {
+    "columnNameLabel": "Column name:",
+    "columnNamePlaceholder": "row_index",
+    "startFromLabel": "Start from:",
+    "startFromPlaceholder": "1",
+    "preview": "Will add column \"<strong>{{columnName}}</strong>\" with values <strong>{{startFrom}}</strong> to <strong>{{endValue}}</strong>"
+  },
+  "joinTreeSelector": {
+    "previewTable": "Preview table",
+    "noSources": "No data sources available. Import a CSV file to get started."
+  },
+  "joinKeyPairEditor": {
+    "selectLeft": "Select left column...",
+    "selectRight": "Select right column...",
+    "removeKeyPair": "Remove key pair",
+    "leftRequired": "Left column is required",
+    "rightRequired": "Right column is required",
+    "leftLabel": "Left:",
+    "rightLabel": "Right:",
+    "uniqueValues": "unique values",
+    "duplicates": "Duplicates",
+    "duplicatesTooltip": "This column contains duplicate values",
+    "matchesLabel": "Matches:",
+    "matchesValues": "values",
+    "leftMatchLabel": "Left match:",
+    "leftMatchDesc": "of left rows will match",
+    "rightMatchLabel": "Right match:",
+    "rightMatchDesc": "of right rows will match",
+    "leftOnlyLabel": "Left only:",
+    "rightOnlyLabel": "Right only:",
+    "clickToView": "Click to view values",
+    "leftOnlyPercent": "({{percent}}% of left rows)",
+    "rightOnlyPercent": "({{percent}}% of right rows)",
+    "joinKeysLabel": "Join Keys",
+    "addKeyPair": "+ Add Key Pair",
+    "helpText": "Match rows where these columns have equal values"
+  },
+  "generatorConfig": {
+    "numberSequence": {
+      "start": "Start *",
+      "stop": "Stop *",
+      "stopPlaceholder": "e.g. 10.5",
+      "step": "Step (opt)",
+      "decimals": "Decimals"
+    },
+    "dateSequence": {
+      "startDate": "Start Date *",
+      "startPlaceholder": "YYYY-MM-DD HH:mm:ss",
+      "stopDate": "Stop Date *",
+      "stopPlaceholder": "YYYY-MM-DD HH:mm:ss",
+      "step": "Step (opt)",
+      "unit": "Unit",
+      "units": {
+        "seconds": "Seconds",
+        "minutes": "Minutes",
+        "hours": "Hours",
+        "days": "Days",
+        "weeks": "Weeks",
+        "months": "Months",
+        "years": "Years"
+      }
+    },
+    "randomNumber": {
+      "min": "Min",
+      "max": "Max",
+      "decimals": "Decimals"
+    },
+    "randomDate": {
+      "from": "From",
+      "fromPlaceholder": "YYYY-MM-DD",
+      "to": "To",
+      "toPlaceholder": "YYYY-MM-DD"
+    },
+    "randomBoolean": {
+      "trueProbability": "True Probability (0-1)"
+    },
+    "randomCategory": {
+      "values": "Values (comma-separated)",
+      "placeholder": "A, B, C"
+    }
   }
 }

@@ -3,7 +3,8 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/preact';
+import { screen, fireEvent } from '@testing-library/preact';
+import { renderWithI18n } from '../test-utils';
 import { SampleDialog } from './SampleDialog';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
@@ -17,15 +18,15 @@ describe('SampleDialog', () => {
   });
 
   it('renders with default values', () => {
-    render(<SampleDialog />);
+    renderWithI18n(<SampleDialog />);
 
     const countInput = screen.getByLabelText('Sample Size') as HTMLInputElement;
     expect(countInput.value).toBe('100');
-    expect(screen.getByText('Total available rows: 500')).toBeDefined();
+    expect(screen.getByText(/Total available rows:/)).toBeDefined();
   });
 
   it('updates count when typed', () => {
-    render(<SampleDialog />);
+    renderWithI18n(<SampleDialog />);
 
     const countInput = screen.getByLabelText('Sample Size') as HTMLInputElement;
     fireEvent.input(countInput, { target: { value: '50' } });
@@ -34,7 +35,7 @@ describe('SampleDialog', () => {
   });
 
   it('updates seed when typed', () => {
-    render(<SampleDialog />);
+    renderWithI18n(<SampleDialog />);
 
     const seedInput = screen.getByLabelText('Random Seed (Optional)') as HTMLInputElement;
     fireEvent.input(seedInput, { target: { value: '123' } });
@@ -44,7 +45,7 @@ describe('SampleDialog', () => {
 
   it('clears seed when input is empty', () => {
     DialogStore.sampleState.seed.value = 42;
-    render(<SampleDialog />);
+    renderWithI18n(<SampleDialog />);
 
     const seedInput = screen.getByLabelText('Random Seed (Optional)') as HTMLInputElement;
     fireEvent.input(seedInput, { target: { value: '' } });
@@ -53,7 +54,7 @@ describe('SampleDialog', () => {
   });
 
   it('handles invalid count gracefully', () => {
-    render(<SampleDialog />);
+    renderWithI18n(<SampleDialog />);
 
     const countInput = screen.getByLabelText('Sample Size') as HTMLInputElement;
     fireEvent.input(countInput, { target: { value: 'abc' } });

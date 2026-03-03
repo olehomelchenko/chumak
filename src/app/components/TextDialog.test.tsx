@@ -3,7 +3,8 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/preact';
+import { screen, fireEvent } from '@testing-library/preact';
+import { renderWithI18n } from '../test-utils';
 import { TextDialog } from './TextDialog';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
@@ -29,7 +30,7 @@ describe('TextDialog', () => {
   });
 
   it('renders with column selection if columns exist', () => {
-    render(<TextDialog />);
+    renderWithI18n(<TextDialog />);
 
     expect(screen.getByText('Name')).toBeDefined();
     expect(screen.getByText('Description')).toBeDefined();
@@ -37,17 +38,17 @@ describe('TextDialog', () => {
 
   it('shows operation options when column selected', () => {
     DialogStore.textState.column.value = 'Name';
-    render(<TextDialog />);
+    renderWithI18n(<TextDialog />);
 
     expect(screen.getByText('Case transformation:')).toBeDefined();
     expect(screen.getByText('Uppercase')).toBeDefined();
     expect(screen.getByText('Lowercase')).toBeDefined();
-    expect(screen.getByText('Title Case')).toBeDefined();
+    expect(screen.getByText('Titlecase')).toBeDefined();
   });
 
   it('toggles case operation selection', () => {
     DialogStore.textState.column.value = 'Name';
-    render(<TextDialog />);
+    renderWithI18n(<TextDialog />);
 
     const uppercaseRadio = screen.getByLabelText('Uppercase');
     fireEvent.click(uppercaseRadio);
@@ -61,7 +62,7 @@ describe('TextDialog', () => {
 
   it('toggles trim operation', () => {
     DialogStore.textState.column.value = 'Name';
-    render(<TextDialog />);
+    renderWithI18n(<TextDialog />);
 
     const trimCheckbox = screen.getByLabelText(/Trim whitespace/);
     fireEvent.click(trimCheckbox);
@@ -74,7 +75,7 @@ describe('TextDialog', () => {
   it('shows remove origin option when operations are selected', () => {
     DialogStore.textState.column.value = 'Name';
     DialogStore.textState.operations.value = ['uppercase'];
-    render(<TextDialog />);
+    renderWithI18n(<TextDialog />);
 
     expect(screen.getByLabelText(/Remove origin column/)).toBeDefined();
   });
@@ -82,14 +83,14 @@ describe('TextDialog', () => {
   it('hides remove origin option when no operations selected', () => {
     DialogStore.textState.column.value = 'Name';
     DialogStore.textState.operations.value = [];
-    render(<TextDialog />);
+    renderWithI18n(<TextDialog />);
 
     expect(screen.queryByLabelText(/Remove origin column/)).toBeNull();
   });
 
   it('displays help text when no string columns available', () => {
     vi.spyOn(TextHandlers, 'getTextColumns').mockReturnValue([]);
-    render(<TextDialog />);
+    renderWithI18n(<TextDialog />);
 
     expect(screen.getByText(/No string columns found/)).toBeDefined();
   });

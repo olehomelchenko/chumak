@@ -1,4 +1,5 @@
 import { useRef, useEffect } from 'preact/hooks';
+import { useTranslation } from 'preact-i18next';
 import { AppStore } from '../stores/AppStore';
 import styles from './FloatingToolbar.module.css';
 
@@ -27,6 +28,7 @@ export function ColumnToolbar({
   onRemoveMultiple,
   getColumnType,
 }: ColumnToolbarProps) {
+  const { t } = useTranslation('ui');
   const selectedColumn = AppStore.selectedColumn.value;
   const selectedColumns = AppStore.selectedColumns.value;
   const pos = AppStore.columnToolbarPos.value;
@@ -93,7 +95,7 @@ export function ColumnToolbar({
       <div
         ref={toolbarRef}
         role="toolbar"
-        aria-label="Multi-column actions"
+        aria-label={t('toolbars.column.ariaLabelMulti')}
         class={styles.floatingToolbar}
         style={
           {
@@ -105,12 +107,14 @@ export function ColumnToolbar({
         onClick={(e) => e.stopPropagation()}
         onKeyDown={handleKeyDown}
       >
-        <span class={styles.floatingToolbar__label}>{selectedColumns.length} columns</span>
+        <span class={styles.floatingToolbar__label}>
+          {t('toolbars.column.multiLabel', { count: selectedColumns.length })}
+        </span>
         <div class={styles.floatingToolbar__divider}></div>
         <button
           class={`${styles.floatingToolbar__button} ${styles.danger}`}
           onClick={onRemoveMultiple}
-          title={`Remove ${selectedColumns.length} columns`}
+          title={t('toolbars.column.multiRemoveTitle', { count: selectedColumns.length })}
         >
           <span
             class="iconify"
@@ -130,7 +134,7 @@ export function ColumnToolbar({
     <div
       ref={toolbarRef}
       role="toolbar"
-      aria-label="Column actions"
+      aria-label={t('toolbars.column.ariaLabel')}
       class={styles.floatingToolbar}
       style={
         {
@@ -145,14 +149,14 @@ export function ColumnToolbar({
       <button
         class={styles.floatingToolbar__button}
         onClick={() => onSort('asc')}
-        title="Sort Ascending"
+        title={t('toolbars.column.sortAsc')}
       >
         <span class="iconify" data-icon="carbon:arrow-up" style="width: 24px; height: 24px;"></span>
       </button>
       <button
         class={styles.floatingToolbar__button}
         onClick={() => onSort('desc')}
-        title="Sort Descending"
+        title={t('toolbars.column.sortDesc')}
       >
         <span
           class="iconify"
@@ -164,14 +168,22 @@ export function ColumnToolbar({
       <button
         class={styles.floatingToolbar__button}
         onClick={onFilter}
-        title="Filter by this column"
+        title={t('toolbars.column.filter')}
       >
         <span class="iconify" data-icon="carbon:filter" style="width: 24px; height: 24px;"></span>
       </button>
-      <button class={styles.floatingToolbar__button} onClick={onRename} title="Rename this column">
+      <button
+        class={styles.floatingToolbar__button}
+        onClick={onRename}
+        title={t('toolbars.column.rename')}
+      >
         <span class="iconify" data-icon="carbon:edit" style="width: 24px; height: 24px;"></span>
       </button>
-      <button class={styles.floatingToolbar__button} onClick={onSplit} title="Split this column">
+      <button
+        class={styles.floatingToolbar__button}
+        onClick={onSplit}
+        title={t('toolbars.column.split')}
+      >
         <span
           class="iconify"
           data-icon="carbon:split-screen"
@@ -179,7 +191,11 @@ export function ColumnToolbar({
         ></span>
       </button>
       {isDate && (
-        <button class={styles.floatingToolbar__button} onClick={onDate} title="Date transformation">
+        <button
+          class={styles.floatingToolbar__button}
+          onClick={onDate}
+          title={t('toolbars.column.date')}
+        >
           <span
             class="iconify"
             data-icon="carbon:calendar"
@@ -190,7 +206,7 @@ export function ColumnToolbar({
       <button
         class={styles.floatingToolbar__button}
         onClick={onDedupe}
-        title="Dedupe by this column"
+        title={t('toolbars.column.dedupe')}
       >
         <span
           class="iconify"
@@ -201,7 +217,7 @@ export function ColumnToolbar({
       <button
         class={styles.floatingToolbar__button}
         onClick={onImpute}
-        title="Impute missing values"
+        title={t('toolbars.column.impute')}
       >
         <span
           class="iconify"
@@ -212,7 +228,7 @@ export function ColumnToolbar({
       <button
         class={`${styles.floatingToolbar__button} ${styles.danger}`}
         onClick={onRemove}
-        title="Remove this column"
+        title={t('toolbars.column.remove')}
       >
         <span
           class="iconify"

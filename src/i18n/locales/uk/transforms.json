@@ -1,0 +1,136 @@
+{
+  "unknown": "Невідома трансформація",
+  "basic": {
+    "select_one": "Вибрати: {{count}} стовпець",
+    "select_few": "Вибрати: {{count}} стовпці",
+    "select_many": "Вибрати: {{count}} стовпців",
+    "remove_one": "Видалити: {{count}} стовпець",
+    "remove_few": "Видалити: {{count}} стовпці",
+    "remove_many": "Видалити: {{count}} стовпців",
+    "rename_one": "Перейменувати: {{count}} стовпець",
+    "rename_few": "Перейменувати: {{count}} стовпці",
+    "rename_many": "Перейменувати: {{count}} стовпців",
+    "sort": "Сортувати: {{fields}}",
+    "renamePattern": "Перейменувати за шаблоном: {{mode}} \"{{find}}\" -> \"{{replace}}\""
+  },
+  "pattern": {
+    "select": "Вибрати за шаблоном: {{matchType}} \"{{pattern}}\"",
+    "remove": "Видалити за шаблоном: {{matchType}} \"{{pattern}}\""
+  },
+  "filter": {
+    "filter": "Фільтр: {{expr}}",
+    "conditional_one": "Умовний: {{column}} ({{count}} умова)",
+    "conditional_few": "Умовний: {{column}} ({{count}} умови)",
+    "conditional_many": "Умовний: {{column}} ({{count}} умов)",
+    "replace": "Замінити: {{column}} = {{find}}"
+  },
+  "derive": {
+    "derive": "Створити: {{columns}}"
+  },
+  "rowOps": {
+    "sliceRows": {
+      "first_one": "Залишити перший {{count}} рядок",
+      "first_few": "Залишити перші {{count}} рядки",
+      "first_many": "Залишити перших {{count}} рядків",
+      "last_one": "Залишити останній {{count}} рядок",
+      "last_few": "Залишити останні {{count}} рядки",
+      "last_many": "Залишити останніх {{count}} рядків",
+      "removeFirst_one": "Видалити перший {{count}} рядок",
+      "removeFirst_few": "Видалити перші {{count}} рядки",
+      "removeFirst_many": "Видалити перших {{count}} рядків",
+      "removeLast_one": "Видалити останній {{count}} рядок",
+      "removeLast_few": "Видалити останні {{count}} рядки",
+      "removeLast_many": "Видалити останніх {{count}} рядків"
+    },
+    "addIndex": "Додати індекс: {{columnName}}",
+    "dedupe": {
+      "remove": "Видалити дублікати: за {{columns}}",
+      "keep": "Залишити тільки дублікати: за {{columns}}",
+      "allColumns": "всі стовпці"
+    },
+    "sample_one": "Вибірка: {{count}} рядок",
+    "sample_few": "Вибірка: {{count}} рядки",
+    "sample_many": "Вибірка: {{count}} рядків",
+    "sampleWithSeed_one": "Вибірка: {{count}} рядок (seed: {{seed}})",
+    "sampleWithSeed_few": "Вибірка: {{count}} рядки (seed: {{seed}})",
+    "sampleWithSeed_many": "Вибірка: {{count}} рядків (seed: {{seed}})",
+    "removeRows_one": "Видалити {{count}} рядок",
+    "removeRows_few": "Видалити {{count}} рядки",
+    "removeRows_many": "Видалити {{count}} рядків",
+    "keepRows_one": "Залишити {{count}} рядок",
+    "keepRows_few": "Залишити {{count}} рядки",
+    "keepRows_many": "Залишити {{count}} рядків"
+  },
+  "types": {
+    "detectTypes_one": "Визначити типи: {{count}} стовпець",
+    "detectTypes_few": "Визначити типи: {{count}} стовпці",
+    "detectTypes_many": "Визначити типи: {{count}} стовпців"
+  },
+  "impute": {
+    "impute": "Заповнити пропуски: {{column}} ({{strategy}})",
+    "strategies": {
+      "constant": "Константа",
+      "mean": "Середнє",
+      "median": "Медіана",
+      "min": "Мінімум",
+      "max": "Максимум",
+      "forwardFill": "Вперед",
+      "backwardFill": "Назад",
+      "linearInterpolation": "Лінійна інтерполяція"
+    }
+  },
+  "reshape": {
+    "fold_one": "Розвернути: {{count}} стовпець",
+    "fold_few": "Розвернути: {{count}} стовпці",
+    "fold_many": "Розвернути: {{count}} стовпців",
+    "foldWithAs_one": "Розвернути: {{count}} стовпець -> {{as}}",
+    "foldWithAs_few": "Розвернути: {{count}} стовпці -> {{as}}",
+    "foldWithAs_many": "Розвернути: {{count}} стовпців -> {{as}}",
+    "pivot": "Зведена таблиця: {{aggregation}}({{values}}) за {{keys}}",
+    "split": "Розділити: {{column}}",
+    "spread": "Розгорнути: {{column}}",
+    "spreadWithLimit": "Розгорнути: {{column}} (макс {{limit}} стовп.)",
+    "unroll": "Розгорнути масив: {{column}}",
+    "unrollWithIndices": "Розгорнути масив: {{column}} (з індексами)"
+  },
+  "join": {
+    "join": "З'єднати ({{how}}): {{name}}",
+    "semijoin": "Напів-з'єднання: {{name}}",
+    "antijoin": "Анти-з'єднання: {{name}}",
+    "lookup_one": "Підстановка: {{count}} стовпець з {{name}}",
+    "lookup_few": "Підстановка: {{count}} стовпці з {{name}}",
+    "lookup_many": "Підстановка: {{count}} стовпців з {{name}}",
+    "model": "модель",
+    "source": "джерело"
+  },
+  "combine": {
+    "concat": "Об'єднати: {{name}}",
+    "union": "Об'єднати (унікальні): {{name}}"
+  },
+  "aggregate": {
+    "groupBy_one": "Групувати ({{groupLabel}}), {{count}} підсумок",
+    "groupBy_few": "Групувати ({{groupLabel}}), {{count}} підсумки",
+    "groupBy_many": "Групувати ({{groupLabel}}), {{count}} підсумків",
+    "allRows": "всі рядки",
+    "groupByColumns_one": "{{count}} стовпець",
+    "groupByColumns_few": "{{count}} стовпці",
+    "groupByColumns_many": "{{count}} стовпців"
+  },
+  "window": {
+    "window_one": "Вікно ({{count}} стовпець, за {{orderField}}{{partitionText}})",
+    "window_few": "Вікно ({{count}} стовпці, за {{orderField}}{{partitionText}})",
+    "window_many": "Вікно ({{count}} стовпців, за {{orderField}}{{partitionText}})",
+    "defaultOrder": "стандартне сортування",
+    "partitioned_one": ", розділено за {{count}} стовпцем",
+    "partitioned_few": ", розділено за {{count}} стовпцями",
+    "partitioned_many": ", розділено за {{count}} стовпцями"
+  },
+  "import": {
+    "import": "Імпорт: {{source}}{{headerDesc}}",
+    "headerModes": {
+      "first-row": " (заголовки з першого рядка)",
+      "auto-generate": " (автозгенеровані заголовки)",
+      "manual": " (власні заголовки)"
+    }
+  }
+}

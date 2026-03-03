@@ -1,4 +1,5 @@
 import { useRef } from 'preact/hooks';
+import { useTranslation } from 'preact-i18next';
 import { AppStore } from '../stores/AppStore';
 import styles from './FloatingToolbar.module.css';
 
@@ -9,6 +10,7 @@ interface RowToolbarProps {
 }
 
 export function RowToolbar({ onRemoveRows, onKeepRows, onExtractToModel }: RowToolbarProps) {
+  const { t } = useTranslation('ui');
   const selectedRows = AppStore.selectedRows.value;
   const pos = AppStore.rowToolbarPos.value;
   const toolbarRef = useRef<HTMLDivElement>(null);
@@ -51,7 +53,7 @@ export function RowToolbar({ onRemoveRows, onKeepRows, onExtractToModel }: RowTo
     <div
       ref={toolbarRef}
       role="toolbar"
-      aria-label="Row actions"
+      aria-label={t('toolbars.row.ariaLabel')}
       class={styles.floatingToolbar}
       style={
         {
@@ -64,20 +66,20 @@ export function RowToolbar({ onRemoveRows, onKeepRows, onExtractToModel }: RowTo
       onKeyDown={handleKeyDown}
     >
       <span class={styles.floatingToolbar__label}>
-        {selectedRows.length} row{selectedRows.length !== 1 ? 's' : ''}
+        {t('toolbars.row.label', { count: selectedRows.length })}
       </span>
       <div class={styles.floatingToolbar__divider}></div>
       <button
         class={styles.floatingToolbar__button}
         onClick={onKeepRows}
-        title={`Keep only ${selectedRows.length} selected row${selectedRows.length !== 1 ? 's' : ''}`}
+        title={t('toolbars.row.keepTitle', { count: selectedRows.length })}
       >
         <span class="iconify" data-icon="carbon:filter" style="width: 24px; height: 24px;"></span>
       </button>
       <button
         class={`${styles.floatingToolbar__button} ${styles.danger}`}
         onClick={onRemoveRows}
-        title={`Remove ${selectedRows.length} selected row${selectedRows.length !== 1 ? 's' : ''}`}
+        title={t('toolbars.row.removeTitle', { count: selectedRows.length })}
       >
         <span
           class="iconify"
@@ -91,7 +93,7 @@ export function RowToolbar({ onRemoveRows, onKeepRows, onExtractToModel }: RowTo
           <button
             class={styles.floatingToolbar__button}
             onClick={onExtractToModel}
-            title={`Extract ${selectedRows.length} row${selectedRows.length !== 1 ? 's' : ''} to new model`}
+            title={t('toolbars.row.extractTitle', { count: selectedRows.length })}
           >
             <span
               class="iconify"

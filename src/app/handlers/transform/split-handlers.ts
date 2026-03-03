@@ -6,6 +6,7 @@ import { AppStore } from '../../stores/AppStore';
 import { StepService } from '../../services/StepService';
 import { createDebouncedPreview, clearPreview, PreviewResult } from '../preview-engine';
 import { validateRegexPattern } from '../validation-engine';
+import i18n from '../../../i18n';
 
 export function detectDelimiter(column: string) {
   const data = AppStore.currentData.value;
@@ -173,11 +174,11 @@ export async function applySplitTransform(callbacks: any) {
   const models = AppStore.models.value;
 
   if (!column.value) {
-    await callbacks.onError?.('Please select a column');
+    await callbacks.onError?.(i18n.t('validation.selection.column', { ns: 'errors' }));
     return;
   }
   if (!delimiter.value) {
-    await callbacks.onError?.('Please enter a delimiter');
+    await callbacks.onError?.(i18n.t('validation.required.delimiter', { ns: 'errors' }));
     return;
   }
 

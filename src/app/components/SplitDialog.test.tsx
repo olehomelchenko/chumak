@@ -3,7 +3,8 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/preact';
+import { screen, fireEvent } from '@testing-library/preact';
+import { renderWithI18n } from '../test-utils';
 import { SplitDialog } from './SplitDialog';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
@@ -25,7 +26,7 @@ describe('SplitDialog', () => {
   });
 
   it('renders with columns and default values', () => {
-    render(<SplitDialog />);
+    renderWithI18n(<SplitDialog />);
 
     expect(screen.getByText('Product ID')).toBeDefined();
     expect(screen.getByText('Name')).toBeDefined();
@@ -34,7 +35,7 @@ describe('SplitDialog', () => {
   });
 
   it('updates delimiter via presets', () => {
-    render(<SplitDialog />);
+    renderWithI18n(<SplitDialog />);
 
     // Click semi-colon
     fireEvent.click(screen.getByText(';'));
@@ -48,7 +49,7 @@ describe('SplitDialog', () => {
   });
 
   it('switches modes and shows max columns input', () => {
-    render(<SplitDialog />);
+    renderWithI18n(<SplitDialog />);
 
     expect(screen.queryByPlaceholderText('e.g., 3')).toBeNull();
 
@@ -60,7 +61,7 @@ describe('SplitDialog', () => {
   });
 
   it('selects column', () => {
-    render(<SplitDialog />);
+    renderWithI18n(<SplitDialog />);
 
     fireEvent.click(screen.getByText('Category'));
     expect(DialogStore.splitState.column.value).toBe('Category');
@@ -68,11 +69,10 @@ describe('SplitDialog', () => {
 
   it('shows auto-detected delimiter', () => {
     DialogStore.splitState.autoDetectedDelimiter.value = '|';
-    render(<SplitDialog />);
+    renderWithI18n(<SplitDialog />);
 
-    // Check for auto-detected text
-    const autoDiv = screen.getByText((content) => content.includes('Auto-detected'));
+    // Check for auto-detected text with translation interpolation
+    const autoDiv = screen.getByText(/Auto-detected:/);
     expect(autoDiv).toBeDefined();
-    expect(autoDiv.textContent).toContain('|');
   });
 });

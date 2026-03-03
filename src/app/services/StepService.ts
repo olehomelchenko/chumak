@@ -8,6 +8,7 @@ import { Model, Source } from '../types';
 import { ColumnSchema, TransformStep } from '../../core/schema-engine';
 import { AppStore, HistoryStack } from '../stores/AppStore';
 import { showSuccess } from '../handlers/core/notification-handlers';
+import i18n from '../../i18n';
 
 const MAX_HISTORY_SIZE = 50;
 
@@ -69,7 +70,7 @@ export class StepService {
     const columns = AppStore.columns.value;
 
     if (!model || !currentData) {
-      await callbacks.onError?.('No active model or data');
+      await callbacks.onError?.(i18n.t('system.modelNotFound', { ns: 'errors' }));
       return false;
     }
 

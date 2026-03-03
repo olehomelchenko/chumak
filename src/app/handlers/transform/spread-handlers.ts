@@ -1,5 +1,6 @@
 import { DialogStore } from '../../stores/DialogStore';
 import { StepService } from '../../services/StepService';
+import i18n from '../../../i18n';
 
 /**
  * Handlers for Spread transform dialog
@@ -11,7 +12,7 @@ export async function applySpreadTransform(callbacks: any) {
   const keepOriginal = DialogStore.spreadState.keepOriginal.value;
 
   if (!column || column.trim() === '') {
-    await callbacks.onError?.('Please select a column to spread');
+    await callbacks.onError?.(i18n.t('validation.selection.column', { ns: 'errors' }));
     return;
   }
 

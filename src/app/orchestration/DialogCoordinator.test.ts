@@ -283,7 +283,12 @@ describe('DialogCoordinator', () => {
       };
 
       const state = getDialogState('settings');
-      expect(state).toEqual({ theme: 'blues', rowLimit: 50, analyticsOptOut: true });
+      expect(state).toEqual({
+        theme: 'blues',
+        rowLimit: 50,
+        analyticsOptOut: true,
+        language: 'en',
+      });
     });
 
     it('returns append state', () => {

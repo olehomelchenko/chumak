@@ -3,6 +3,7 @@
  */
 
 import { useSignalEffect } from '@preact/signals';
+import { useTranslation } from 'preact-i18next';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 import { ColumnSelector } from './column-selector';
@@ -13,6 +14,7 @@ import styles from './TransformDialog.module.css';
 export type { SplitMode } from '../../types/modes';
 
 export function SplitDialog() {
+  const { t } = useTranslation('dialogs');
   const {
     column,
     delimiter,
@@ -61,13 +63,13 @@ export function SplitDialog() {
           onSelectionChange={(col) => SplitHandlers.selectSplitColumn(col as string)}
           mode="single"
           display="chip"
-          label="Column to split:"
+          label={t('split.columnLabel')}
         />
       </div>
 
       {/* Delimiter */}
       <div class={styles.group}>
-        <label class={styles.label}>Delimiter:</label>
+        <label class={styles.label}>{t('split.delimiterLabel')}</label>
         {autoDetectedDelimiter.value && (
           <div
             style={{
@@ -76,7 +78,7 @@ export function SplitDialog() {
               marginBottom: '4px',
             }}
           >
-            ✓ Auto-detected: <span>{autoDetectedDelimiter.value}</span>
+            ✓ {t('split.autoDetected', { delimiter: autoDetectedDelimiter.value })}
           </div>
         )}
         <div style={{ display: 'flex', gap: '4px', marginBottom: '8px', flexWrap: 'wrap' }}>
@@ -105,7 +107,7 @@ export function SplitDialog() {
             class="button button--secondary"
             style={{ padding: '4px 12px', fontSize: '12px' }}
             onClick={() => setPreset('\\s+', true)}
-            title="Whitespace"
+            title={t('split.presetTitles.whitespace')}
           >
             <span class="iconify" data-icon="material-symbols-light:space-bar-rounded" />
           </button>
@@ -114,7 +116,7 @@ export function SplitDialog() {
             class="button button--secondary"
             style={{ padding: '4px 12px', fontSize: '12px' }}
             onClick={() => setPreset('\\t', true)}
-            title="Tab"
+            title={t('split.presetTitles.tab')}
           >
             <span class="iconify" data-icon="material-symbols-light:keyboard-tab-rounded" />
           </button>
@@ -124,7 +126,7 @@ export function SplitDialog() {
           class={styles.input}
           value={delimiter.value}
           onInput={(e) => (delimiter.value = (e.target as HTMLInputElement).value)}
-          placeholder="Enter delimiter"
+          placeholder={t('split.delimiterPlaceholder')}
         />
         <div style={{ marginTop: '8px' }}>
           <label class={styles.checkboxLabel}>
@@ -133,17 +135,14 @@ export function SplitDialog() {
               checked={isRegex.value}
               onChange={(e) => (isRegex.value = (e.target as HTMLInputElement).checked)}
             />
-            <span style={{ fontSize: '13px' }}>
-              Use as regex pattern (e.g., <code>\s+</code> for whitespace, <code>[-_]</code> for
-              dash or underscore)
-            </span>
+            <span style={{ fontSize: '13px' }}>{t('split.useRegex')}</span>
           </label>
         </div>
       </div>
 
       {/* Mode */}
       <div class={styles.group}>
-        <label class={styles.label}>Split mode:</label>
+        <label class={styles.label}>{t('split.modeLabel')}</label>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
           <label class={styles.checkboxLabel}>
             <input
@@ -153,7 +152,7 @@ export function SplitDialog() {
               checked={mode.value === 'spread'}
               onChange={() => (mode.value = 'spread')}
             />
-            <span>Spread All - create column for each segment</span>
+            <span>{t('split.modes.spread')}</span>
           </label>
           <label class={styles.checkboxLabel}>
             <input
@@ -163,7 +162,7 @@ export function SplitDialog() {
               checked={mode.value === 'left'}
               onChange={() => (mode.value = 'left')}
             />
-            <span>Keep Left - keep only first segment</span>
+            <span>{t('split.modes.left')}</span>
           </label>
           <label class={styles.checkboxLabel}>
             <input
@@ -173,7 +172,7 @@ export function SplitDialog() {
               checked={mode.value === 'right'}
               onChange={() => (mode.value = 'right')}
             />
-            <span>Keep Right - keep only last segment</span>
+            <span>{t('split.modes.right')}</span>
           </label>
           <label class={styles.checkboxLabel}>
             <input
@@ -183,7 +182,7 @@ export function SplitDialog() {
               checked={mode.value === 'firstN'}
               onChange={() => (mode.value = 'firstN')}
             />
-            <span>Keep First N - limit number of columns</span>
+            <span>{t('split.modes.firstN')}</span>
           </label>
           <label class={styles.checkboxLabel}>
             <input
@@ -193,7 +192,7 @@ export function SplitDialog() {
               checked={mode.value === 'lastN'}
               onChange={() => (mode.value = 'lastN')}
             />
-            <span>Keep Last N - keep last N segments</span>
+            <span>{t('split.modes.lastN')}</span>
           </label>
         </div>
       </div>
@@ -201,7 +200,7 @@ export function SplitDialog() {
       {/* Max Columns (Conditional) */}
       {(mode.value === 'firstN' || mode.value === 'lastN') && (
         <div class={styles.group}>
-          <label class={styles.label}>Max columns:</label>
+          <label class={styles.label}>{t('split.maxColumnsLabel')}</label>
           <input
             type="number"
             class={styles.input}
@@ -212,7 +211,7 @@ export function SplitDialog() {
             }}
             min="1"
             max="50"
-            placeholder="e.g., 3"
+            placeholder={t('split.maxColumnsPlaceholder')}
           />
         </div>
       )}
@@ -225,7 +224,7 @@ export function SplitDialog() {
             checked={keepOriginal.value}
             onChange={(e) => (keepOriginal.value = (e.target as HTMLInputElement).checked)}
           />
-          <span>Keep original column</span>
+          <span>{t('split.keepOriginal')}</span>
         </label>
       </div>
 

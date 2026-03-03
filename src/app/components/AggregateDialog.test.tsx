@@ -1,4 +1,5 @@
-import { render, screen, fireEvent } from '@testing-library/preact';
+import { screen, fireEvent } from '@testing-library/preact';
+import { renderWithI18n } from '../test-utils';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { AggregateDialog } from './AggregateDialog';
 import { DialogStore } from '../stores/DialogStore';
@@ -19,7 +20,7 @@ describe('AggregateDialog', () => {
   it('renders correctly with initial state', () => {
     DialogStore.aggregateState.aggregations.value = [{ col: '', func: 'count', output: 'count' }];
 
-    render(<AggregateDialog />);
+    renderWithI18n(<AggregateDialog />);
 
     expect(screen.getByText('Group By (Columns)')).toBeDefined();
     expect(columns.length).toBe(3);
@@ -30,7 +31,7 @@ describe('AggregateDialog', () => {
   });
 
   it('toggles group by columns', () => {
-    render(<AggregateDialog />);
+    renderWithI18n(<AggregateDialog />);
 
     const deptButton = screen.getByText('dept').closest('button');
     expect(deptButton).toBeDefined();
@@ -42,8 +43,9 @@ describe('AggregateDialog', () => {
   });
 
   it('handles select all and select none', () => {
-    render(<AggregateDialog />);
+    renderWithI18n(<AggregateDialog />);
 
+    // ColumnSelector renders "Select All" / "Select None" as hardcoded text (not yet internationalized)
     fireEvent.click(screen.getByText('Select All'));
     expect(DialogStore.aggregateState.groupBy.value.length).toBe(3);
 
@@ -59,7 +61,7 @@ describe('AggregateDialog', () => {
       DialogStore.aggregateState.aggregations.value = [];
     });
 
-    render(<AggregateDialog />);
+    renderWithI18n(<AggregateDialog />);
 
     fireEvent.click(screen.getByText('+ Add Aggregation'));
     expect(DialogStore.aggregateState.aggregations.value.length).toBe(1);
@@ -80,7 +82,7 @@ describe('AggregateDialog', () => {
     });
 
     DialogStore.aggregateState.aggregations.value = [{ col: '', func: 'sum', output: '' }];
-    render(<AggregateDialog />);
+    renderWithI18n(<AggregateDialog />);
 
     const selects = screen.getAllByRole('combobox');
     fireEvent.change(selects[0], { target: { value: 'salary' } });

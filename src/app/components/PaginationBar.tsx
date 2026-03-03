@@ -1,3 +1,4 @@
+import { useTranslation } from 'preact-i18next';
 import { AppStore } from '../stores/AppStore';
 import { DialogName } from '../types';
 import styles from './PaginationBar.module.css';
@@ -35,6 +36,7 @@ export function PaginationBar({
   onPageSizeChange,
   getPaginationInfo,
 }: PaginationBarProps) {
+  const { t } = useTranslation('ui');
   const currentPage = AppStore.currentPage;
   const totalPages = AppStore.totalPages;
   const pageSize = AppStore.pageSize;
@@ -43,37 +45,45 @@ export function PaginationBar({
     <div class={styles.pagination}>
       {/* Model Actions (Left) */}
       <div class={styles.modelActions}>
-        <button class="button button--ghost button--small" onClick={onModelInfo} title="Model Info">
+        <button
+          class="button button--ghost button--small"
+          onClick={onModelInfo}
+          title={t('pagination.modelInfo.title')}
+        >
           <span class="iconify" data-icon="carbon:information"></span>
-          <span>Model Info</span>
+          <span>{t('pagination.modelInfo.button')}</span>
         </button>
         <button
           class="button button--ghost button--small"
           onClick={onRenameModel}
-          title="Rename model"
+          title={t('pagination.rename.title')}
         >
           <span class="iconify" data-icon="carbon:edit"></span>
-          <span>Rename</span>
+          <span>{t('pagination.rename.button')}</span>
         </button>
-        <button class="button button--ghost button--small" onClick={onCopyModel} title="Copy model">
+        <button
+          class="button button--ghost button--small"
+          onClick={onCopyModel}
+          title={t('pagination.copy.title')}
+        >
           <span class="iconify" data-icon="carbon:copy"></span>
-          <span>Copy</span>
+          <span>{t('pagination.copy.button')}</span>
         </button>
         <button
           class="button button--ghost button--small"
           onClick={onCreateNewModelFromActive}
-          title="New model from same source"
+          title={t('pagination.new.title')}
         >
           <span class="iconify" data-icon="carbon:add-filled"></span>
-          <span>New</span>
+          <span>{t('pagination.new.button')}</span>
         </button>
         <button
           class="button button--ghost button--small button--danger-text"
           onClick={onDeleteModel}
-          title="Delete model"
+          title={t('pagination.delete.title')}
         >
           <span class="iconify" data-icon="carbon:trash-can"></span>
-          <span>Delete</span>
+          <span>{t('pagination.delete.button')}</span>
         </button>
 
         <div class={styles.divider}></div>
@@ -81,16 +91,12 @@ export function PaginationBar({
         <button
           class="button button--ghost button--small"
           onClick={() => onOpenDialog('download')}
-          title="Download options (CSV, JSON, Workflow)"
+          title={t('pagination.download.title')}
         >
           <span class="iconify" data-icon="carbon:download"></span>
         </button>
 
-        <button
-          class={styles.copyButton}
-          onClick={onCopyCSV}
-          title="Copy current page to clipboard (CSV)"
-        >
+        <button class={styles.copyButton} onClick={onCopyCSV} title={t('pagination.copyCSV.title')}>
           <span
             class={`iconify ${styles.baseIcon}`}
             data-icon="material-symbols-light:csv-outline-rounded"
@@ -101,7 +107,7 @@ export function PaginationBar({
         <button
           class={styles.copyButton}
           onClick={onCopyJSON}
-          title="Copy current page to clipboard (JSON)"
+          title={t('pagination.copyJSON.title')}
         >
           <span
             class={`iconify ${styles.baseIcon}`}
@@ -122,7 +128,7 @@ export function PaginationBar({
             class="button button--secondary button--small"
             onClick={onFirstPage}
             disabled={currentPage.value === 1}
-            title="First page"
+            title={t('pagination.firstPage')}
           >
             «
           </button>
@@ -130,18 +136,24 @@ export function PaginationBar({
             class="button button--secondary button--small"
             onClick={onPrevPage}
             disabled={currentPage.value === 1}
-            title="Previous page"
+            title={t('pagination.prevPage')}
           >
             ‹
           </button>
-          <div class={styles.pageIndicator}>
-            Page <span>{currentPage.value}</span> of <span>{totalPages.value}</span>
-          </div>
+          <div
+            class={styles.pageIndicator}
+            dangerouslySetInnerHTML={{
+              __html: t('pagination.pageIndicator', {
+                currentPage: currentPage.value,
+                totalPages: totalPages.value,
+              }),
+            }}
+          />
           <button
             class="button button--secondary button--small"
             onClick={onNextPage}
             disabled={currentPage.value >= totalPages.value}
-            title="Next page"
+            title={t('pagination.nextPage')}
           >
             ›
           </button>
@@ -149,7 +161,7 @@ export function PaginationBar({
             class="button button--secondary button--small"
             onClick={onLastPage}
             disabled={currentPage.value >= totalPages.value}
-            title="Last page"
+            title={t('pagination.lastPage')}
           >
             »
           </button>
@@ -157,7 +169,7 @@ export function PaginationBar({
 
         <div class={styles.divider}></div>
 
-        <span class={styles.rowsLabel}>Rows:</span>
+        <span class={styles.rowsLabel}>{t('pagination.rowsLabel')}</span>
         <select
           class={styles.pageSizeSelect}
           value={pageSize.value}

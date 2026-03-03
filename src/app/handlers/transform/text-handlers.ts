@@ -5,6 +5,7 @@ import { interpretAST } from '../../../core/ast-interpreter';
 import * as HelperHandlers from '../core/helper-handlers';
 import { StepService } from '../../services/StepService';
 import { createDebouncedPreview, clearPreview, PreviewResult } from '../preview-engine';
+import i18n from '../../../i18n';
 
 export function getTextColumns(): string[] {
   const schema = HelperHandlers.getActiveSchema.call({
@@ -249,7 +250,7 @@ export async function applyTextTransform(callbacks: any, app?: any) {
   // Check for existing column
   const appCols = AppStore.columns.value;
   if (appCols.includes(outputName) && outputName !== colVal && app) {
-    const message = `Column "${outputName}" already exists. It will be overwritten. Continue?`;
+    const message = `${i18n.t('validation.duplicate.columnExists', { ns: 'errors', name: outputName })}. It will be overwritten. Continue?`;
     const confirmed = await app.confirm(message);
     if (!confirmed) return;
   }

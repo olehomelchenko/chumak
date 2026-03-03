@@ -1,0 +1,82 @@
+{
+  "validation": {
+    "required": {
+      "field": "Please enter {{field}}",
+      "columnName": "Please enter a column name",
+      "outputColumnName": "Please enter an output column name",
+      "expression": "Please enter a filter expression",
+      "pattern": "Please enter a pattern",
+      "findPattern": "Please enter a find pattern",
+      "format": "Please specify a date format",
+      "delimiter": "Please enter a delimiter",
+      "url": "Please enter a valid URL"
+    },
+    "selection": {
+      "column": "Please select a column",
+      "sourceColumn": "Please select a source column",
+      "atLeastOneColumn": "Please select at least one column",
+      "sortColumn": "Please select at least one column to sort by",
+      "operation": "Please select at least one operation",
+      "leftTable": "Please select a left table",
+      "rightTable": "Please select a model or source to append",
+      "unpivotColumns": "Please select at least one column to unpivot",
+      "datePartOrUnit": "Please select at least one date part or unit to extract/truncate",
+      "pivotColumnHeader": "Please select a column for pivot headers",
+      "pivotValueColumn": "Please select a value column",
+      "orderByColumn": "At least one order by column is required for window functions",
+      "windowFunction": "At least one window function is required",
+      "aggregation": "At least one aggregation is required",
+      "columnForFunction": "Source column is required for {{func}}",
+      "columnForAggregation": "Column required for {{func}}"
+    },
+    "invalid": {
+      "number": "Please enter a valid number",
+      "positiveNumber": "Please enter a valid number greater than 0",
+      "expression": "Please fix the expression errors before applying",
+      "pattern": "Please fix pattern errors before applying"
+    },
+    "duplicate": {
+      "columnExists": "Column \"{{name}}\" already exists",
+      "modelExists": "A model with this name already exists for this source"
+    },
+    "notFound": {
+      "columnsNotFound": "Columns not found: {{columns}}"
+    }
+  },
+  "import": {
+    "dropFile": "Please drop a CSV or JSON file",
+    "clipboardEmpty": "Clipboard is empty or does not contain text. Try copying some CSV or JSON data first.",
+    "clipboardNotSupported": "Your browser does not support direct clipboard access. Please use Ctrl+V to paste data.",
+    "pastePrompt": "Please press Ctrl+V to paste your data directly.",
+    "csvError": "Error reading CSV: {{message}}",
+    "fetchError": "Failed to fetch data: {{status}}",
+    "emptyResponse": "The URL returned an empty response",
+    "jsonInvalidStructure": "JSON must contain a \"transforms\" array"
+  },
+  "export": {
+    "noData": "No data to export",
+    "noWorkflow": "No workflow to export",
+    "csvFailed": "Failed to export CSV: {{message}}",
+    "workflowFailed": "Failed to export workflow: {{message}}",
+    "jsonFailed": "Failed to export JSON: {{message}}",
+    "clipboardFailed": "Failed to copy to clipboard: {{message}}"
+  },
+  "transform": {
+    "mergeFailed": "Error applying merge: {{message}}",
+    "splitFailed": "Error applying split: {{message}}",
+    "pivotFailed": "Error applying pivot: {{message}}",
+    "joinFailed": "Error preparing join: {{message}}",
+    "appendFailed": "Error preparing append: {{message}}",
+    "jsonApplyFailed": "Failed to apply JSON changes"
+  },
+  "system": {
+    "modelNotFound": "No active model",
+    "sourceNotFound": "Source not found for model",
+    "stepViewError": "Error viewing step",
+    "stepUpdateError": "Error updating step",
+    "stepRemoveError": "Error recomputing after removal",
+    "undoFailed": "Undo failed",
+    "redoFailed": "Redo failed",
+    "downloadFailed": "Download Failed"
+  }
+}

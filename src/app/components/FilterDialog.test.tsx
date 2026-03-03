@@ -3,7 +3,8 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { render, screen, fireEvent, waitFor } from '@testing-library/preact';
+import { screen, fireEvent, waitFor } from '@testing-library/preact';
+import { renderWithI18n } from '../test-utils';
 
 // Mock ExpressionEditor as a plain input
 vi.mock('./ExpressionEditor', () => ({
@@ -31,14 +32,14 @@ describe('FilterDialog', () => {
   });
 
   it('renders with default values', () => {
-    render(<FilterDialog />);
+    renderWithI18n(<FilterDialog />);
 
     expect(screen.getByPlaceholderText('e.g., sales > 1000')).toBeDefined();
     expect(screen.getByText('Show All').className).toContain('button--primary');
   });
 
   it('updates expression when typed', () => {
-    render(<FilterDialog />);
+    renderWithI18n(<FilterDialog />);
 
     const input = screen.getByPlaceholderText('e.g., sales > 1000') as HTMLInputElement;
     fireEvent.input(input, { target: { value: 'sales > 1000' } });
@@ -47,7 +48,7 @@ describe('FilterDialog', () => {
   });
 
   it('toggles preview mode', () => {
-    render(<FilterDialog />);
+    renderWithI18n(<FilterDialog />);
 
     const matchingButton = screen.getByText('Matching Only');
     fireEvent.click(matchingButton);
@@ -56,7 +57,7 @@ describe('FilterDialog', () => {
   });
 
   it('shows error message when present', async () => {
-    render(<FilterDialog />);
+    renderWithI18n(<FilterDialog />);
 
     // Set error after rendering (validation runs on mount and may clear it)
     DialogStore.filterState.error.value = 'Syntax error';
@@ -68,7 +69,7 @@ describe('FilterDialog', () => {
   });
 
   it('opens reference dialog when reference button is clicked', () => {
-    render(<FilterDialog />);
+    renderWithI18n(<FilterDialog />);
 
     const refButton = screen.getByText('Full Reference');
     fireEvent.click(refButton);

@@ -6,6 +6,7 @@ import { StepService } from '../../services/StepService';
 import * as HelperHandlers from '../core/helper-handlers';
 import { createDebouncedPreview, clearPreview, PreviewResult } from '../preview-engine';
 import type { WindowFunction } from '../../stores/dialogs/aggregate/window-state';
+import i18n from '../../../i18n';
 
 /** Window functions that require a source column */
 const COLUMN_REQUIRED_FUNCTIONS = [
@@ -36,7 +37,10 @@ function buildWindowExpression(wf: WindowFunction): string {
 
     case 'lag':
     case 'lead': {
-      if (!wf.sourceCol) throw new Error(`Source column required for ${wf.func}`);
+      if (!wf.sourceCol)
+        throw new Error(
+          i18n.t('validation.selection.columnForFunction', { ns: 'errors', func: wf.func })
+        );
       const defaultArg = wf.defaultValue ? `, ${wf.defaultValue}` : '';
       return `op.${wf.func}('${wf.sourceCol}', ${wf.offset || 1}${defaultArg})`;
     }
@@ -45,11 +49,17 @@ function buildWindowExpression(wf: WindowFunction): string {
     case 'last_value':
     case 'fill_down':
     case 'fill_up':
-      if (!wf.sourceCol) throw new Error(`Source column required for ${wf.func}`);
+      if (!wf.sourceCol)
+        throw new Error(
+          i18n.t('validation.selection.columnForFunction', { ns: 'errors', func: wf.func })
+        );
       return `op.${wf.func}('${wf.sourceCol}')`;
 
     case 'nth_value':
-      if (!wf.sourceCol) throw new Error(`Source column required for ${wf.func}`);
+      if (!wf.sourceCol)
+        throw new Error(
+          i18n.t('validation.selection.columnForFunction', { ns: 'errors', func: wf.func })
+        );
       return `op.nth_value('${wf.sourceCol}', ${wf.offset || 1})`;
 
     default:
@@ -64,11 +74,11 @@ export function constructWindowStep() {
   const { orderBy, partitionBy, windowFunctions } = DialogStore.windowState;
 
   if (orderBy.value.length === 0) {
-    throw new Error('At least one order by column is required for window functions.');
+    throw new Error(i18n.t('validation.selection.orderByColumn', { ns: 'errors' }));
   }
 
   if (windowFunctions.value.length === 0) {
-    throw new Error('At least one window function is required.');
+    throw new Error(i18n.t('validation.selection.windowFunction', { ns: 'errors' }));
   }
 
   // Validate all window functions have output names
@@ -77,7 +87,9 @@ export function constructWindowStep() {
       throw new Error('All window functions must have an output column name.');
     }
     if (COLUMN_REQUIRED_FUNCTIONS.includes(wf.func) && !wf.sourceCol) {
-      throw new Error(`Source column is required for ${wf.func}.`);
+      throw new Error(
+        i18n.t('validation.selection.columnForFunction', { ns: 'errors', func: wf.func })
+      );
     }
   }
 

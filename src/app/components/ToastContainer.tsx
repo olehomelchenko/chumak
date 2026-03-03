@@ -1,7 +1,9 @@
+import { useTranslation } from 'preact-i18next';
 import { AppStore } from '../stores/AppStore';
 import styles from './ToastContainer.module.css';
 
 export function ToastContainer() {
+  const { t } = useTranslation('ui');
   const notifications = AppStore.notifications.value;
 
   const dismiss = (id: number) => {
@@ -51,7 +53,7 @@ export function ToastContainer() {
           <button
             class={styles.toast__close}
             onClick={() => dismiss(notification.id)}
-            title="Dismiss"
+            title={t('toast.dismiss')}
           >
             ×
           </button>

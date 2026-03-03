@@ -1,18 +1,16 @@
+import i18n from '../../../i18n';
+
 export function describeImport(transform: any): string | null {
   if (!transform.import) return null;
   const config = transform.import;
-  let desc = `Import: ${config.source}`;
 
-  // Add header mode description
-  if (config.headerMode === 'first-row') {
-    desc += ' (headers from first row)';
-  } else if (config.headerMode === 'auto-generate') {
-    desc += ' (auto-generated headers)';
-  } else if (config.headerMode === 'manual') {
-    desc += ' (custom headers)';
+  // Get header mode description
+  let headerDesc = '';
+  if (config.headerMode && ['first-row', 'auto-generate', 'manual'].includes(config.headerMode)) {
+    headerDesc = i18n.t(`transforms:import.headerModes.${config.headerMode}` as any);
   }
 
-  return desc;
+  return i18n.t('transforms:import.import', { source: config.source, headerDesc });
 }
 
 export const importDescribers = {

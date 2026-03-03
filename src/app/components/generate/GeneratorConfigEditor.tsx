@@ -1,3 +1,4 @@
+import { useTranslation } from 'preact-i18next';
 import { GeneratorType } from '../../services/GeneratorService';
 import styles from '../TransformDialog.module.css';
 
@@ -41,10 +42,12 @@ interface ConfigProps {
 }
 
 function NumberSequenceConfig({ config, onUpdate }: ConfigProps) {
+  const { t } = useTranslation('dialogs');
+
   return (
     <div class={styles.configGrid}>
       <div class={styles.flex15}>
-        <label class={styles.label}>Start *</label>
+        <label class={styles.label}>{t('generatorConfig.numberSequence.start')}</label>
         <input
           type="text"
           inputmode="decimal"
@@ -60,7 +63,7 @@ function NumberSequenceConfig({ config, onUpdate }: ConfigProps) {
         />
       </div>
       <div class={styles.flex15}>
-        <label class={styles.label}>Stop *</label>
+        <label class={styles.label}>{t('generatorConfig.numberSequence.stop')}</label>
         <input
           type="text"
           inputmode="decimal"
@@ -72,11 +75,11 @@ function NumberSequenceConfig({ config, onUpdate }: ConfigProps) {
               onUpdate({ stop: val === '' ? undefined : val });
             }
           }}
-          placeholder="e.g. 10.5"
+          placeholder={t('generatorConfig.numberSequence.stopPlaceholder')}
         />
       </div>
       <div class={styles.flex15}>
-        <label class={styles.label}>Step (opt)</label>
+        <label class={styles.label}>{t('generatorConfig.numberSequence.step')}</label>
         <input
           type="text"
           inputmode="decimal"
@@ -92,7 +95,7 @@ function NumberSequenceConfig({ config, onUpdate }: ConfigProps) {
         />
       </div>
       <div class={styles.flex1}>
-        <label class={styles.label}>Decimals</label>
+        <label class={styles.label}>{t('generatorConfig.numberSequence.decimals')}</label>
         <input
           type="number"
           class={styles.input}
@@ -110,21 +113,23 @@ function NumberSequenceConfig({ config, onUpdate }: ConfigProps) {
 }
 
 function DateSequenceConfig({ config, onUpdate }: ConfigProps) {
+  const { t } = useTranslation('dialogs');
+
   return (
     <>
       <div class={styles.configGrid}>
         <div class={styles.flex1}>
-          <label class={styles.label}>Start Date *</label>
+          <label class={styles.label}>{t('generatorConfig.dateSequence.startDate')}</label>
           <input
             type="text"
             class={styles.input}
             value={config.start}
             onInput={(e) => onUpdate({ start: (e.target as HTMLInputElement).value })}
-            placeholder="YYYY-MM-DD HH:mm:ss"
+            placeholder={t('generatorConfig.dateSequence.startPlaceholder')}
           />
         </div>
         <div class={styles.flex1}>
-          <label class={styles.label}>Stop Date *</label>
+          <label class={styles.label}>{t('generatorConfig.dateSequence.stopDate')}</label>
           <input
             type="text"
             class={styles.input}
@@ -133,11 +138,11 @@ function DateSequenceConfig({ config, onUpdate }: ConfigProps) {
               const val = (e.target as HTMLInputElement).value;
               onUpdate({ stop: val === '' ? undefined : val });
             }}
-            placeholder="YYYY-MM-DD HH:mm:ss"
+            placeholder={t('generatorConfig.dateSequence.stopPlaceholder')}
           />
         </div>
         <div class={styles.flex1}>
-          <label class={styles.label}>Step (opt)</label>
+          <label class={styles.label}>{t('generatorConfig.dateSequence.step')}</label>
           <input
             type="number"
             class={styles.input}
@@ -151,7 +156,7 @@ function DateSequenceConfig({ config, onUpdate }: ConfigProps) {
         </div>
       </div>
       <div class={styles.group} style={{ marginTop: '0.75rem' }}>
-        <label class={styles.label}>Unit</label>
+        <label class={styles.label}>{t('generatorConfig.dateSequence.unit')}</label>
         <div class={styles.unitSelect}>
           {['seconds', 'minutes', 'hours', 'days', 'weeks', 'months', 'years'].map((unit) => (
             <label key={unit} class={styles.radioLabel} style={{ padding: '0.25rem 0.75rem' }}>
@@ -163,7 +168,7 @@ function DateSequenceConfig({ config, onUpdate }: ConfigProps) {
                 onChange={() => onUpdate({ unit })}
                 style={{ display: 'none' }}
               />
-              <span style={{ textTransform: 'capitalize' }}>{unit}</span>
+              <span>{t(`generatorConfig.dateSequence.units.${unit}`)}</span>
             </label>
           ))}
         </div>
@@ -173,10 +178,12 @@ function DateSequenceConfig({ config, onUpdate }: ConfigProps) {
 }
 
 function RandomNumberConfig({ config, onUpdate }: ConfigProps) {
+  const { t } = useTranslation('dialogs');
+
   return (
     <div class={styles.configGrid}>
       <div class={styles.flex1}>
-        <label class={styles.label}>Min</label>
+        <label class={styles.label}>{t('generatorConfig.randomNumber.min')}</label>
         <input
           type="text"
           inputmode="decimal"
@@ -191,7 +198,7 @@ function RandomNumberConfig({ config, onUpdate }: ConfigProps) {
         />
       </div>
       <div class={styles.flex1}>
-        <label class={styles.label}>Max</label>
+        <label class={styles.label}>{t('generatorConfig.randomNumber.max')}</label>
         <input
           type="text"
           inputmode="decimal"
@@ -206,7 +213,7 @@ function RandomNumberConfig({ config, onUpdate }: ConfigProps) {
         />
       </div>
       <div class={styles.flex1}>
-        <label class={styles.label}>Decimals</label>
+        <label class={styles.label}>{t('generatorConfig.randomNumber.decimals')}</label>
         <input
           type="number"
           class={styles.input}
@@ -224,26 +231,28 @@ function RandomNumberConfig({ config, onUpdate }: ConfigProps) {
 }
 
 function RandomDateConfig({ config, onUpdate }: ConfigProps) {
+  const { t } = useTranslation('dialogs');
+
   return (
     <div class={styles.configGrid}>
       <div class={styles.flex1}>
-        <label class={styles.label}>From</label>
+        <label class={styles.label}>{t('generatorConfig.randomDate.from')}</label>
         <input
           type="text"
           class={styles.input}
           value={config.from}
           onInput={(e) => onUpdate({ from: (e.target as HTMLInputElement).value })}
-          placeholder="YYYY-MM-DD"
+          placeholder={t('generatorConfig.randomDate.fromPlaceholder')}
         />
       </div>
       <div class={styles.flex1}>
-        <label class={styles.label}>To</label>
+        <label class={styles.label}>{t('generatorConfig.randomDate.to')}</label>
         <input
           type="text"
           class={styles.input}
           value={config.to}
           onInput={(e) => onUpdate({ to: (e.target as HTMLInputElement).value })}
-          placeholder="YYYY-MM-DD"
+          placeholder={t('generatorConfig.randomDate.toPlaceholder')}
         />
       </div>
     </div>
@@ -251,9 +260,11 @@ function RandomDateConfig({ config, onUpdate }: ConfigProps) {
 }
 
 function RandomBooleanConfig({ config, onUpdate }: ConfigProps) {
+  const { t } = useTranslation('dialogs');
+
   return (
     <div class={styles.group}>
-      <label class={styles.label}>True Probability (0-1)</label>
+      <label class={styles.label}>{t('generatorConfig.randomBoolean.trueProbability')}</label>
       <input
         type="text"
         inputmode="decimal"
@@ -273,9 +284,11 @@ function RandomBooleanConfig({ config, onUpdate }: ConfigProps) {
 }
 
 function RandomCategoryConfig({ config, onUpdate }: ConfigProps) {
+  const { t } = useTranslation('dialogs');
+
   return (
     <div class={styles.group}>
-      <label class={styles.label}>Values (comma-separated)</label>
+      <label class={styles.label}>{t('generatorConfig.randomCategory.values')}</label>
       <input
         type="text"
         class={styles.input}
@@ -287,7 +300,7 @@ function RandomCategoryConfig({ config, onUpdate }: ConfigProps) {
             .filter((v) => v !== '');
           onUpdate({ values });
         }}
-        placeholder="A, B, C"
+        placeholder={t('generatorConfig.randomCategory.placeholder')}
       />
     </div>
   );

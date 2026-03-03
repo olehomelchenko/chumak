@@ -5,10 +5,11 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { render, screen, fireEvent } from '@testing-library/preact';
+import { screen, fireEvent } from '@testing-library/preact';
 import { SortDialog } from './SortDialog';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
+import { renderWithI18n } from '../test-utils';
 
 describe('SortDialog', () => {
   const testColumns = ['name', 'age', 'city'];
@@ -19,7 +20,7 @@ describe('SortDialog', () => {
   });
 
   it('renders column options in the select dropdown', () => {
-    render(<SortDialog />);
+    renderWithI18n(<SortDialog />);
 
     testColumns.forEach((col) => {
       expect(screen.getByText(col)).toBeDefined();
@@ -27,7 +28,7 @@ describe('SortDialog', () => {
   });
 
   it('selects a column via the dropdown', () => {
-    render(<SortDialog />);
+    renderWithI18n(<SortDialog />);
 
     const select = screen.getByDisplayValue('Select column…') as HTMLSelectElement;
     fireEvent.change(select, { target: { value: 'age' } });
@@ -37,7 +38,7 @@ describe('SortDialog', () => {
 
   it('toggles between ascending and descending order', () => {
     DialogStore.sortState.fields.value = [{ field: 'name', order: 'asc' }];
-    render(<SortDialog />);
+    renderWithI18n(<SortDialog />);
 
     const toggleButton = screen.getByTitle('Ascending');
     fireEvent.click(toggleButton);
@@ -47,23 +48,31 @@ describe('SortDialog', () => {
 
   it('shows ascending as default', () => {
     DialogStore.sortState.fields.value = [{ field: 'name', order: 'asc' }];
-    render(<SortDialog />);
+    renderWithI18n(<SortDialog />);
 
     const toggleButton = screen.getByTitle('Ascending');
     expect(toggleButton.textContent).toContain('Asc');
   });
 
   it('shows add sort level button', () => {
-    render(<SortDialog />);
+    renderWithI18n(<SortDialog />);
 
-    expect(screen.getByText('+ Add sort level')).toBeDefined();
+    expect(
+      screen.getByText((_content, element) => {
+        return element?.tagName === 'BUTTON' && element?.textContent === '+ Add sort level';
+      })
+    ).toBeDefined();
   });
 
   it('adds a second sort level', () => {
     DialogStore.sortState.fields.value = [{ field: 'name', order: 'asc' }];
-    render(<SortDialog />);
+    renderWithI18n(<SortDialog />);
 
-    fireEvent.click(screen.getByText('+ Add sort level'));
+    fireEvent.click(
+      screen.getByText((_content, element) => {
+        return element?.tagName === 'BUTTON' && element?.textContent === '+ Add sort level';
+      })
+    );
 
     expect(DialogStore.sortState.fields.value).toHaveLength(2);
     expect(DialogStore.sortState.fields.value[1]).toEqual({ field: '', order: 'asc' });
@@ -74,7 +83,7 @@ describe('SortDialog', () => {
       { field: 'name', order: 'asc' },
       { field: 'age', order: 'desc' },
     ];
-    render(<SortDialog />);
+    renderWithI18n(<SortDialog />);
 
     const removeButtons = screen.getAllByTitle('Remove sort level');
     expect(removeButtons).toHaveLength(2);
@@ -85,8 +94,12 @@ describe('SortDialog', () => {
       { field: 'name', order: 'asc' },
       { field: 'age', order: 'desc' },
     ];
-    render(<SortDialog />);
+    renderWithI18n(<SortDialog />);
 
-    expect(screen.getByText(/ties are broken by subsequent/)).toBeDefined();
+    expect(
+      screen.getByText(
+        'Rows are sorted by the first column, then ties are broken by subsequent columns.'
+      )
+    ).toBeDefined();
   });
 });

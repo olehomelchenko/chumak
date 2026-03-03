@@ -1,5 +1,6 @@
-import { render, screen, fireEvent, waitFor } from '@testing-library/preact';
+import { screen, fireEvent, waitFor } from '@testing-library/preact';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { renderWithI18n } from '../test-utils';
 
 // Mock ExpressionEditor as a plain input
 vi.mock('./ExpressionEditor', () => ({
@@ -29,7 +30,7 @@ describe('DeriveDialog', () => {
     DialogStore.deriveState.columnName.value = 'initial_name';
     DialogStore.deriveState.expression.value = 'initial + expression';
 
-    render(<DeriveDialog />);
+    renderWithI18n(<DeriveDialog />);
 
     const nameInput = screen.getByPlaceholderText('e.g., profit_margin') as HTMLInputElement;
     const expressionInput = screen.getByPlaceholderText(
@@ -41,7 +42,7 @@ describe('DeriveDialog', () => {
   });
 
   it('updates signals on input', () => {
-    render(<DeriveDialog />);
+    renderWithI18n(<DeriveDialog />);
 
     const nameInput = screen.getByPlaceholderText('e.g., profit_margin');
     const expressionInput = screen.getByPlaceholderText('e.g., (profit / sales) * 100');
@@ -54,7 +55,7 @@ describe('DeriveDialog', () => {
   });
 
   it('displays error message when present', async () => {
-    render(<DeriveDialog />);
+    renderWithI18n(<DeriveDialog />);
 
     // Set error after rendering (validation runs on mount and may clear it)
     DialogStore.deriveState.error.value = 'Syntax Error';
@@ -66,7 +67,7 @@ describe('DeriveDialog', () => {
   });
 
   it('opens reference dialog when reference button is clicked', () => {
-    render(<DeriveDialog />);
+    renderWithI18n(<DeriveDialog />);
 
     fireEvent.click(screen.getByText('Full Reference'));
     expect(AppStore.activeDialog.value).toBe('reference');
