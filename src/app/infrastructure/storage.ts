@@ -3,6 +3,7 @@
  */
 
 import { SchemaEngine } from '../../core/schema-engine';
+import { validateSteps } from '../linters/transform-linter';
 
 const DB_NAME = 'syto-db';
 const DB_VERSION = 1;
@@ -233,8 +234,13 @@ export async function clearAllData(): Promise<void> {
 /**
  * Load initial data on app startup
  * Normalizes schemas to handle unknown types gracefully (future-proofing)
+ * Validates model steps and returns warnings for invalid pipelines
  */
-export async function loadInitialData(): Promise<{ sources: any[]; models: any[] }> {
+export async function loadInitialData(): Promise<{
+  sources: any[];
+  models: any[];
+  validationWarnings: string[];
+}> {
   try {
     const [sources, models] = await Promise.all([loadSources(), loadModels()]);
 
@@ -253,6 +259,21 @@ export async function loadInitialData(): Promise<{ sources: any[]; models: any[]
       return model;
     });
 
+    // Validate model steps
+    const validationWarnings: string[] = [];
+    for (const model of normalizedModels) {
+      if (model.steps && Array.isArray(model.steps) && model.steps.length > 0) {
+        const stepWarnings = validateSteps(model.steps);
+        if (stepWarnings.length > 0) {
+          validationWarnings.push(...stepWarnings.map((w) => `${model.name || model.id}: ${w}`));
+        }
+      }
+    }
+
+    if (validationWarnings.length > 0) {
+      console.warn('Workflow validation warnings:', validationWarnings);
+    }
+
     console.log(
       'Loaded from IndexedDB:',
       normalizedSources.length,
@@ -260,9 +281,9 @@ export async function loadInitialData(): Promise<{ sources: any[]; models: any[]
       normalizedModels.length,
       'models'
     );
-    return { sources: normalizedSources, models: normalizedModels };
+    return { sources: normalizedSources, models: normalizedModels, validationWarnings };
   } catch (error) {
     console.error('Failed to load initial data:', error);
-    return { sources: [], models: [] };
+    return { sources: [], models: [], validationWarnings: [] };
   }
 }

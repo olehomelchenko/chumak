@@ -67,18 +67,6 @@ One-click "Duplicate" action (in ribbon or column toolbar) that creates a copy o
 
 _Note: Text operations (upper/lower/trim) and Replace are already accessible via the ribbon's Text and Replace buttons. No additional toolbar entries needed for those._
 
-### Validate Workflows on Load
-
-**Status**: Planned
-**Effort**: Small
-**Origin**: [Weaverbird comparison](future/WEAVERBIRD-COMPARISON.md) -- WB's AJV runtime validation pattern
-
-Run the existing `transform-linter.ts` validation against workflows loaded from IndexedDB and URL hash, not just the JSON editor. Currently, stored/shared workflows are trusted as-is -- if a workflow is corrupted or contains forward-incompatible steps, it silently produces wrong results or crashes.
-
-**Why this matters**: As the format evolves and users share workflows via URL, the chance of loading an invalid pipeline grows. The linter already validates JSON structure, unknown transform keys, and expression syntax -- it just needs to be called on the load path too.
-
-**Implementation**: Call the existing linter in `PersistenceService` (IndexedDB load) and `UrlPersistence` (hash decode). On validation failure, show a warning toast with details rather than silently proceeding. No new validation logic needed -- reuse `transform-linter.ts`.
-
 ---
 
 ## UI/UX Enhancements
@@ -117,14 +105,26 @@ See [custom-icons-setup.md](custom-icons-setup.md) for detailed setup guide and 
 
 ---
 
-### ImportCsvDialog Hardcoded Strings
+### ImportCsvDialog Remaining Hardcoded Strings
 
 **Status**: Bug
 **Effort**: Small
 
-`ImportCsvDialog.tsx` contains ~20 hardcoded English strings (labels, help text, placeholders) that were missed during the i18n hardcoded string elimination pass. Examples: "Source Name:", "Delimiter:", "Data Path (dot notation):", "Column Headers:", "Flatten nested objects", "Serialize nested structures to JSON strings", "Duplicate Column Names Detected", etc.
+The JSON examples block in `ImportCsvDialog.tsx` (lines 183–186) still contains hardcoded English text: "if your JSON is...", "if your JSON is an array and you want the first element's data". The `"Examples:"` label was extracted to i18n but the example descriptions were not, due to inline `<code>` elements making extraction non-trivial. Consider restructuring as a list of i18n'd items or using `dangerouslySetInnerHTML` with a single translation key.
 
-These need to be extracted to translation keys in the appropriate namespace and added to both `en/` and `uk/` locale files.
+### ImportCsvDialog XSS via dangerouslySetInnerHTML
+
+**Status**: Bug
+**Effort**: Small
+
+`ImportCsvDialog.tsx` uses `dangerouslySetInnerHTML` to render the `importCsv.replacingSource` translation, which embeds user-provided `sourceName` inside `<em>` tags. A source name containing HTML (e.g. `<img onerror=alert(1)>`) would be rendered as markup. Risk is limited to self-XSS (browser-only app, no backend), but should be replaced with JSX interpolation: separate the text and `<em>` into distinct elements.
+
+### Deduplicate Transform Linter Validation Logic
+
+**Status**: Tech Debt
+**Effort**: Small
+
+`transform-linter.ts` contains three functions with near-identical expression validation logic (filter/derive/conditional checks): `lintTransformJson` (returns `Diagnostic[]` with source positions), `getTransformJsonError` (returns first error string), and `validateSteps` (returns all warnings as `string[]`). The core validation could be extracted into a shared iterator yielding `{stepIndex, field, error}` tuples, with each function mapping to its own output format.
 
 ---
 
@@ -276,10 +276,9 @@ These have been considered and explicitly excluded:
 3. Summary Statistics transform (small effort, high impact for data exploration)
 4. Top N per Group transform (small-medium effort, very common analytical need)
 5. Duplicate Column quick action (small effort, common preparatory step)
-6. Validate workflows on load (small effort, robustness improvement)
-7. Flatten JSON transform
-8. Fill Date Gaps transform (medium effort, important for time series)
-9. Web Workers investigation for heavy transforms
+6. Flatten JSON transform
+7. Fill Date Gaps transform (medium effort, important for time series)
+8. Web Workers investigation for heavy transforms
 
 ---
 
@@ -321,6 +320,8 @@ Completed features are documented here for posterity:
 - **Multi-select enhancements** — March 2026. Extract selected rows to new model (creates model with same pipeline + keepRows step). Shift+Arrow column range selection in DataTable headers.
 - **i18n hardcoded string elimination** — March 2026. Replaced ~120+ remaining hardcoded English strings across ~30 handler/service files with `i18n.t()` calls. Added `npm run i18n:check` CI script (`scripts/check-i18n-keys.ts`) that validates translation key parity between `en/` and `uk/` locales with plural-aware comparison (handles English `_other` vs Ukrainian `_one`/`_few`/`_many` differences).
 - **Consolidate syto-app.ts into AppOrchestrator** — March 2026. Eliminated the `SytoApp` class and `syto-app.ts`. `AppOrchestrator.initApp()` is now the single initialization entry point (called from `main.tsx`). Callback wiring, keyboard/paste/click event handling (via `EventRouter`), and URL sync (via `UrlStateSync`) all consolidated. Removed duplicated utility functions from AppOrchestrator (already in AppController). Refactored `KeyboardHandlers` to use AppController directly instead of SytoApp proxy methods.
+- **ImportCsvDialog i18n** — March 2026. Extracted ~25 hardcoded English strings from `ImportCsvDialog.tsx` to the `dialogs` namespace (`importCsv.*` section) with Ukrainian translations. Covers replace mode banner, source name, JSON path/options, CSV delimiter/headers, manual column names, and duplicate warnings.
+- **Validate workflows on load** — March 2026. Added `validateSteps()` to `transform-linter.ts` for validating step objects loaded from IndexedDB. Checks for unknown transform keys, invalid expressions (filter, derive, conditional). `loadInitialData()` now validates all model steps on startup and shows a persistent warning toast for any issues found.
 
 ---
 

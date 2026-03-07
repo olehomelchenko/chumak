@@ -98,6 +98,7 @@
     "jsonApplied": "Конфігурацію JSON застосовано успішно",
     "workflowDownloaded": "Робочий процес успішно завантажено",
     "dataCleared": "Усі дані очищено.",
+    "workflowValidationTitle": "Валідація робочого процесу",
     "model": {
       "created": "Модель \"{{name}}\" створено",
       "copied": "Модель скопійовано як \"{{name}}\"",

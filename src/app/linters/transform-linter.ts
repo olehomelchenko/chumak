@@ -230,6 +230,81 @@ export function lintTransformJson(content: string): Diagnostic[] {
 }
 
 /**
+ * Validate an array of step objects loaded from storage.
+ * Returns a list of warning strings (empty if all valid).
+ * Used to validate workflows loaded from IndexedDB.
+ */
+export function validateSteps(steps: any[]): string[] {
+  const warnings: string[] = [];
+
+  for (let i = 0; i < steps.length; i++) {
+    const step = steps[i];
+
+    if (!step || typeof step !== 'object' || Array.isArray(step)) {
+      warnings.push(`Step ${i + 1}: not a valid object`);
+      continue;
+    }
+
+    const keys = Object.keys(step).filter((k) => k !== '__v');
+
+    // Check for unknown transform keys
+    for (const key of keys) {
+      if (!KNOWN_TRANSFORM_KEYS.includes(key)) {
+        warnings.push(`Step ${i + 1}: unknown transform "${key}"`);
+      }
+    }
+
+    // Validate expressions
+    if (step.filter && typeof step.filter === 'string') {
+      const error = validateExpression(step.filter);
+      if (error) {
+        warnings.push(`Step ${i + 1} filter: ${error}`);
+      }
+    }
+
+    if (step.derive && typeof step.derive === 'object') {
+      for (const [colName, expr] of Object.entries(step.derive)) {
+        if (typeof expr === 'string') {
+          const error = validateExpression(expr);
+          if (error) {
+            warnings.push(`Step ${i + 1} derive "${colName}": ${error}`);
+          }
+        }
+      }
+    }
+
+    if (step.conditional) {
+      const { conditions, else: elseExpr } = step.conditional;
+      if (Array.isArray(conditions)) {
+        for (let j = 0; j < conditions.length; j++) {
+          const cond = conditions[j];
+          if (cond.when && typeof cond.when === 'string') {
+            const error = validateExpression(cond.when);
+            if (error) {
+              warnings.push(`Step ${i + 1} condition ${j + 1} "when": ${error}`);
+            }
+          }
+          if (cond.then && typeof cond.then === 'string') {
+            const error = validateExpression(cond.then);
+            if (error) {
+              warnings.push(`Step ${i + 1} condition ${j + 1} "then": ${error}`);
+            }
+          }
+        }
+      }
+      if (elseExpr && typeof elseExpr === 'string') {
+        const error = validateExpression(elseExpr);
+        if (error) {
+          warnings.push(`Step ${i + 1} "else": ${error}`);
+        }
+      }
+    }
+  }
+
+  return warnings;
+}
+
+/**
  * Get the error message suitable for the Apply button state.
  * Returns null if valid, error string if invalid.
  */

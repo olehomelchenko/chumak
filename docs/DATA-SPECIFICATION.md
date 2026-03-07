@@ -765,6 +765,12 @@ Examples:
 - `/#/src_abc123/mdl_xyz789` — View specific model
 - `/#/reference/filter` — View reference page
 
+**Scope**: URL hash stores **navigation state only** — active source/model selection and dialog pages. Workflow definitions (transform steps) are **not** persisted via URL; they exist only in IndexedDB. On app load, `loadInitialData()` reads workflows from IndexedDB, then `UrlStateSync` restores which source/model/dialog to display.
+
+### 5.4 Validation on Load
+
+`loadInitialData()` validates all model steps after loading from IndexedDB using `validateSteps()` from `transform-linter.ts`. Checks include unknown transform keys and expression syntax (filter, derive, conditional). Validation warnings are returned to the caller and displayed as a persistent toast — invalid steps are **not** removed or modified, preserving the stored state.
+
 ---
 
 ## 7. Workflow Export Format

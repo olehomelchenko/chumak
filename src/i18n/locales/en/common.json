@@ -97,6 +97,7 @@
     "jsonApplied": "JSON configuration applied successfully",
     "workflowDownloaded": "Workflow downloaded successfully",
     "dataCleared": "All data has been cleared.",
+    "workflowValidationTitle": "Workflow Validation",
     "model": {
       "created": "Model \"{{name}}\" created",
       "copied": "Model copied as \"{{name}}\"",

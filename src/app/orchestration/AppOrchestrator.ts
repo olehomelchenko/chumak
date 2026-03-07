@@ -34,6 +34,8 @@ import * as SimpleHandlers from '../handlers/transform/simple-handlers';
 
 // AppController for constructing callback objects
 import { AppController } from './AppController';
+import { showWarning } from '../handlers/core/notification-handlers';
+import i18n from '../../i18n';
 
 let initialized = false;
 
@@ -60,9 +62,21 @@ export async function initApp(): Promise<void> {
 
   // Note: i18n language is already initialized from localStorage in src/i18n/index.ts
 
-  const { sources, models } = await loadInitialData();
+  const { sources, models, validationWarnings } = await loadInitialData();
   AppStore.sources.value = sources;
   AppStore.models.value = models;
+
+  // Show warning toast if any stored workflows have validation issues
+  if (validationWarnings.length > 0) {
+    // Delay to ensure ToastContainer is mounted
+    setTimeout(() => {
+      showWarning(
+        i18n.t('notifications.workflowValidationTitle', { ns: 'common' }),
+        validationWarnings.join('\n'),
+        { duration: 0 }
+      );
+    }, 500);
+  }
 
   // Phase 3: Initialize subsystems
   initEventRouter();

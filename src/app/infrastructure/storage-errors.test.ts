@@ -216,7 +216,7 @@ describe('Storage - IndexedDB Integration', () => {
 
       const result = await loadInitialData();
 
-      expect(result).toEqual({ sources: [], models: [] });
+      expect(result).toEqual({ sources: [], models: [], validationWarnings: [] });
       expect(consoleSpy).toHaveBeenCalledWith('Failed to load initial data:', expect.any(Error));
     });
 
