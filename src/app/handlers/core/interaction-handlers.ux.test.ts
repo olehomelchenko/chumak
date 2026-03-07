@@ -11,16 +11,16 @@ import { AppStore } from '../../stores/AppStore';
 import { DialogStore } from '../../stores/DialogStore';
 import * as InteractionHandlers from './interaction-handlers';
 import * as EDAHandlers from './eda-handlers';
-import { SytoApp } from '../../../syto-app';
 import { createTestModel, createTestSchema } from '../test-utils';
 
 describe('Interaction Handlers UX', () => {
-  let app: SytoApp;
   const testData = [
     { name: 'Alice', age: 30, sales: 1000 },
     { name: 'Bob', age: 25, sales: 1500 },
     { name: 'Carol', age: 35, sales: 800 },
   ];
+
+  let mockOpenDialog: ReturnType<typeof vi.fn>;
 
   beforeEach(() => {
     // Reset all stores
@@ -30,15 +30,8 @@ describe('Interaction Handlers UX', () => {
     vi.spyOn(console, 'error').mockImplementation(() => {});
     vi.spyOn(console, 'warn').mockImplementation(() => {});
 
-    // Create app instance
-    app = new SytoApp();
-
-    // Mock dialog methods
-    app.alert = vi.fn().mockResolvedValue(undefined);
-    app.confirm = vi.fn().mockResolvedValue(true);
-    app.prompt = vi.fn().mockResolvedValue('test');
-    app.closeDialog = vi.fn();
-    app.openDialog = vi.fn();
+    // Create mock dialog function
+    mockOpenDialog = vi.fn();
 
     // Set up test data
     AppStore.columns.value = ['name', 'age', 'sales'];
@@ -72,14 +65,14 @@ describe('Interaction Handlers UX', () => {
 
   describe('Column Selection', () => {
     it('should set selectedColumn when selectColumn is called', () => {
-      EDAHandlers.selectColumn.call(app, 'name');
+      EDAHandlers.selectColumn('name');
 
       expect(AppStore.selectedColumn.value).toBe('name');
       expect(AppStore.selectedCell.value).toBeNull();
     });
 
     it('should calculate EDA stats when column is selected', () => {
-      EDAHandlers.selectColumn.call(app, 'age');
+      EDAHandlers.selectColumn('age');
 
       expect(AppStore.selectedColumn.value).toBe('age');
       expect(AppStore.edaStats.value).toBeDefined();
@@ -88,10 +81,10 @@ describe('Interaction Handlers UX', () => {
     });
 
     it('should toggle column selection when same column is clicked twice', () => {
-      EDAHandlers.selectColumn.call(app, 'name');
+      EDAHandlers.selectColumn('name');
       expect(AppStore.selectedColumn.value).toBe('name');
 
-      EDAHandlers.selectColumn.call(app, 'name');
+      EDAHandlers.selectColumn('name');
       expect(AppStore.selectedColumn.value).toBeNull();
     });
 
@@ -103,7 +96,7 @@ describe('Interaction Handlers UX', () => {
         rowIdx: 0,
       };
 
-      EDAHandlers.selectColumn.call(app, 'age');
+      EDAHandlers.selectColumn('age');
 
       expect(AppStore.selectedColumn.value).toBe('age');
       expect(AppStore.selectedCell.value).toBeNull();
@@ -111,7 +104,7 @@ describe('Interaction Handlers UX', () => {
 
     it('should update toolbar position when column is selected', () => {
       vi.useFakeTimers();
-      EDAHandlers.selectColumn.call(app, 'name');
+      EDAHandlers.selectColumn('name');
 
       // Advance past requestAnimationFrame (one frame = 16ms)
       vi.advanceTimersByTime(16);
@@ -171,9 +164,9 @@ describe('Interaction Handlers UX', () => {
     it('should open filter dialog when quickFilter is called', () => {
       AppStore.selectedColumn.value = 'name';
 
-      InteractionHandlers.quickFilter(app.openDialog);
+      InteractionHandlers.quickFilter(mockOpenDialog);
 
-      expect(app.openDialog).toHaveBeenCalledWith('filter');
+      expect(mockOpenDialog).toHaveBeenCalledWith('filter');
       expect(AppStore.selectedColumn.value).toBe('name'); // Should remain selected
     });
 
@@ -203,9 +196,9 @@ describe('Interaction Handlers UX', () => {
         rowIdx: 0,
       };
 
-      InteractionHandlers.quickReplace(app.openDialog);
+      InteractionHandlers.quickReplace(mockOpenDialog);
 
-      expect(app.openDialog).toHaveBeenCalledWith('replace');
+      expect(mockOpenDialog).toHaveBeenCalledWith('replace');
       expect(DialogStore.replaceState.column.value).toBe('name');
       expect(DialogStore.replaceState.findValue.value).toBe('Alice');
     });
@@ -236,7 +229,7 @@ describe('Interaction Handlers UX', () => {
 
   describe('EDA Integration', () => {
     it('should calculate stats for numeric columns', () => {
-      EDAHandlers.selectColumn.call(app, 'sales');
+      EDAHandlers.selectColumn('sales');
 
       const stats = AppStore.edaStats.value;
       expect(stats).toBeDefined();
@@ -244,7 +237,7 @@ describe('Interaction Handlers UX', () => {
     });
 
     it('should calculate stats for string columns', () => {
-      EDAHandlers.selectColumn.call(app, 'name');
+      EDAHandlers.selectColumn('name');
 
       const stats = AppStore.edaStats.value;
       expect(stats).toBeDefined();
@@ -252,11 +245,11 @@ describe('Interaction Handlers UX', () => {
     });
 
     it('should clear stats when column is deselected', () => {
-      EDAHandlers.selectColumn.call(app, 'age');
+      EDAHandlers.selectColumn('age');
       expect(AppStore.edaStats.value).toBeDefined();
       expect(AppStore.selectedColumn.value).toBe('age');
 
-      EDAHandlers.selectColumn.call(app, 'age'); // Deselect
+      EDAHandlers.selectColumn('age'); // Deselect
       expect(AppStore.selectedColumn.value).toBeNull();
       // Note: edaStats might still be set until next selection, which is fine
       // The important thing is that selectedColumn is cleared

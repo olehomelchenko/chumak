@@ -155,32 +155,6 @@ Consolidate `docs/archive/` ADR files into a single `DECISIONS.md` quick-referen
 
 ## Infrastructure
 
-### Consolidate syto-app.ts into AppOrchestrator
-
-**Status**: Planned
-**Effort**: Medium
-
-`syto-app.ts` duplicates most of the initialization logic that `AppOrchestrator.initApp()` was designed to own: UX settings loading, IndexedDB data loading, URL state restoration, step index init, schema/columns init, pagination, and URL sync. `AppOrchestrator.initApp()` is never called — `SytoApp.init()` is the real entry point (via `main.tsx`).
-
-This duplication caused a bug where changes to the orchestrator had no effect because `syto-app.ts` was the actual code path. The two should be consolidated so initialization logic lives in one place.
-
-**What `syto-app.ts` uniquely owns** (cannot move to orchestrator):
-
-- Handler callback wiring (`setDialogHandlerCallbacks`, `setStepCallbacks`, etc.) — 6 `set*Callbacks` calls
-- Global keyboard event listeners (Escape, Enter-to-submit, `KeyboardHandlers`)
-- Global paste and click event listeners
-- Legacy compatibility methods for `KeyboardHandlers` (`alert`, `showSuccess`, `showError`, `removeStep`, `viewStep`)
-
-**What should be consolidated** (currently duplicated):
-
-- UX settings loading → `AppOrchestrator`
-- IndexedDB data loading → `AppOrchestrator`
-- URL state restoration → `AppOrchestrator` / `UrlStateSync`
-- Step index initialization → `AppOrchestrator`
-- Schema/columns initialization → `AppOrchestrator`
-- Pagination initialization → `AppOrchestrator`
-- URL sync after render → `UrlStateSync`
-
 ---
 
 ### Template Landing Page for i18n
@@ -346,6 +320,7 @@ Completed features are documented here for posterity:
 - **Command Undo/Redo** — March 2026. Session-based undo/redo for pipeline operations (add, remove, edit step). Per-model history stacks (up to 50 entries). Keyboard shortcuts `Ctrl/Cmd+Z` and `Ctrl/Cmd+Shift+Z`. Undo/redo buttons in Sidebar step list. Silently marks dependents stale on undo/redo.
 - **Multi-select enhancements** — March 2026. Extract selected rows to new model (creates model with same pipeline + keepRows step). Shift+Arrow column range selection in DataTable headers.
 - **i18n hardcoded string elimination** — March 2026. Replaced ~120+ remaining hardcoded English strings across ~30 handler/service files with `i18n.t()` calls. Added `npm run i18n:check` CI script (`scripts/check-i18n-keys.ts`) that validates translation key parity between `en/` and `uk/` locales with plural-aware comparison (handles English `_other` vs Ukrainian `_one`/`_few`/`_many` differences).
+- **Consolidate syto-app.ts into AppOrchestrator** — March 2026. Eliminated the `SytoApp` class and `syto-app.ts`. `AppOrchestrator.initApp()` is now the single initialization entry point (called from `main.tsx`). Callback wiring, keyboard/paste/click event handling (via `EventRouter`), and URL sync (via `UrlStateSync`) all consolidated. Removed duplicated utility functions from AppOrchestrator (already in AppController). Refactored `KeyboardHandlers` to use AppController directly instead of SytoApp proxy methods.
 
 ---
 

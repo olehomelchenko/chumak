@@ -21,31 +21,10 @@ export function setGenerateCallbacks(cb: GenerateCallbacks): void {
 }
 
 /**
- * Legacy SytoApp interface for backward compatibility
- */
-interface LegacyApp {
-  updatePagination: () => void;
-  closeDialog: (force?: boolean) => void;
-}
-
-/**
- * Get callbacks from legacy app or stored callbacks
- */
-function getCallbacks(legacyApp?: LegacyApp): GenerateCallbacks | null {
-  if (legacyApp) {
-    return {
-      updatePagination: () => legacyApp.updatePagination(),
-      closeDialog: (force) => legacyApp.closeDialog(force),
-    };
-  }
-  return callbacks;
-}
-
-/**
  * Generate synthetic data based on the configuration in the generate dialog
  */
-export async function generateData(this: LegacyApp | void): Promise<void> {
-  const cb = getCallbacks(this as LegacyApp | undefined);
+export async function generateData(): Promise<void> {
+  const cb = callbacks;
   const { sourceName, rowCount, columnName, type, config, error } = DialogStore.generateState;
 
   // Validate source name

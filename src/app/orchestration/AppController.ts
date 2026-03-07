@@ -3,7 +3,7 @@
  *
  * This module exports all actions that UI components need.
  * It imports handlers directly and composes them, eliminating
- * the need for SytoApp proxy methods.
+ * the need for proxy methods.
  *
  * Usage in components:
  *   import { AppController } from '../orchestration/AppController';

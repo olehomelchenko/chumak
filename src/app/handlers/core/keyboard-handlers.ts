@@ -1,6 +1,6 @@
-import type { SytoApp } from '../../../syto-app';
 import { AppStore } from '../../stores/AppStore';
 import { ExportService } from '../../services/ExportService';
+import { AppController } from '../../orchestration/AppController';
 import * as StepHandlers from './step-handlers';
 import i18n from '../../../i18n';
 
@@ -35,7 +35,7 @@ function isDialogOpen(): boolean {
 /**
  * Handle Ctrl/Cmd + S: Save/Download workflow
  */
-async function handleSave(app: SytoApp, event: KeyboardEvent) {
+async function handleSave(event: KeyboardEvent) {
   event.preventDefault();
 
   const model = AppStore.activeModel.value;
@@ -45,12 +45,11 @@ async function handleSave(app: SytoApp, event: KeyboardEvent) {
 
   try {
     await ExportService.exportWorkflowJSON(async (msg: string) => {
-      // Simple alert callback required by ExportService
-      await app.alert(msg);
+      await AppController.alert(msg);
     });
-    app.showSuccess(i18n.t('notifications.workflowDownloaded', { ns: 'common' }));
+    AppController.showSuccess(i18n.t('notifications.workflowDownloaded', { ns: 'common' }));
   } catch (error: any) {
-    app.showError(
+    AppController.showError(
       i18n.t('system.downloadFailed', { ns: 'errors' }),
       error.message || i18n.t('system.downloadGenericFailed', { ns: 'errors' })
     );
@@ -60,7 +59,7 @@ async function handleSave(app: SytoApp, event: KeyboardEvent) {
 /**
  * Handle Delete: Remove selected step
  */
-async function handleDelete(app: SytoApp) {
+async function handleDelete() {
   const model = AppStore.activeModel.value;
   if (!model || !model.steps || model.steps.length === 0) {
     return;
@@ -71,7 +70,7 @@ async function handleDelete(app: SytoApp) {
   const lastStepIndex = model.steps.length - 1;
 
   try {
-    await app.removeStep(lastStepIndex);
+    await AppController.removeStep(lastStepIndex);
   } catch (error: any) {
     console.error('Error removing step:', error);
   }
@@ -80,7 +79,7 @@ async function handleDelete(app: SytoApp) {
 /**
  * Handle Arrow Up: Navigate to previous step
  */
-function handleNavigateUp(app: SytoApp, event: KeyboardEvent) {
+function handleNavigateUp(event: KeyboardEvent) {
   event.preventDefault();
 
   const model = AppStore.activeModel.value;
@@ -90,14 +89,14 @@ function handleNavigateUp(app: SytoApp, event: KeyboardEvent) {
 
   const currentIndex = AppStore.activeStepIndex.value ?? model.steps.length;
   if (currentIndex > 0) {
-    app.viewStep(currentIndex - 1);
+    AppController.viewStep(currentIndex - 1);
   }
 }
 
 /**
  * Handle Arrow Down: Navigate to next step
  */
-function handleNavigateDown(app: SytoApp, event: KeyboardEvent) {
+function handleNavigateDown(event: KeyboardEvent) {
   event.preventDefault();
 
   const model = AppStore.activeModel.value;
@@ -107,22 +106,22 @@ function handleNavigateDown(app: SytoApp, event: KeyboardEvent) {
 
   const currentIndex = AppStore.activeStepIndex.value ?? -1;
   if (currentIndex < model.steps.length - 1) {
-    app.viewStep(currentIndex + 1);
+    AppController.viewStep(currentIndex + 1);
   }
 }
 
 /**
  * Main keyboard event handler
- * Attached to window keydown event in SytoApp
+ * Called by EventRouter for non-Escape, non-Enter keyboard shortcuts
  */
-export function handleKeyDown(app: SytoApp, event: KeyboardEvent) {
+export function handleKeyDown(event: KeyboardEvent) {
   // Don't handle shortcuts if user is typing
   if (isTypingInField(event)) {
     return;
   }
 
   // Don't handle most shortcuts if dialog is open
-  // (Escape is handled separately in SytoApp)
+  // (Escape is handled separately in EventRouter)
   if (isDialogOpen()) {
     return;
   }
@@ -133,7 +132,7 @@ export function handleKeyDown(app: SytoApp, event: KeyboardEvent) {
 
   // Ctrl/Cmd + S: Save workflow
   if (modKey && event.key.toLowerCase() === 's') {
-    handleSave(app, event);
+    handleSave(event);
     return;
   }
 
@@ -155,28 +154,20 @@ export function handleKeyDown(app: SytoApp, event: KeyboardEvent) {
   if (event.key === 'Delete' || event.key === 'Backspace') {
     // Only trigger on Delete key, not Backspace (which users might use while typing)
     if (event.key === 'Delete') {
-      handleDelete(app);
+      handleDelete();
     }
     return;
   }
 
   // Arrow Up: Navigate to previous step
   if (event.key === 'ArrowUp' && !modKey && !event.shiftKey) {
-    handleNavigateUp(app, event);
+    handleNavigateUp(event);
     return;
   }
 
   // Arrow Down: Navigate to next step
   if (event.key === 'ArrowDown' && !modKey && !event.shiftKey) {
-    handleNavigateDown(app, event);
+    handleNavigateDown(event);
     return;
   }
-}
-
-/**
- * Setup keyboard shortcuts
- * Call this from SytoApp.init()
- */
-export function setupKeyboardShortcuts(app: SytoApp) {
-  window.addEventListener('keydown', (event) => handleKeyDown(app, event));
 }

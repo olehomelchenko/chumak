@@ -19,7 +19,7 @@ export type ViewMode = 'empty' | 'dataset-info' | 'model' | 'model-info';
  * AppStore
  *
  * Centralized signal-based store for global application state.
- * This is the "Source of Truth" that replaces individual properties in SytoApp.
+ * This is the "Source of Truth" for all application state.
  */
 export class AppStore {
   // Data State

@@ -281,7 +281,7 @@ interface YourHandlerCallbacks {
 
 let callbacks: YourHandlerCallbacks | null = null;
 
-// Called by App.tsx during initialization
+// Called by AppOrchestrator.wireHandlerCallbacks() during initialization
 export function setYourHandlerCallbacks(cb: YourHandlerCallbacks) {
   callbacks = cb;
 }
@@ -905,7 +905,7 @@ For transform dialogs, register the `applyHandler` directly in the dialog regist
 | `src/app/handlers/transform/*-handlers.ts` | `applyYourTransform(callbacks)` function          |
 | `src/app/dialog-registry.ts`               | Add `applyHandler` to the dialog's registry entry |
 
-The `applyActiveTransform()` function in `step-handlers.ts` automatically looks up the handler from the registry — no switch case, AppController method, syto-app wiring, or test-utils mock needed.
+The `applyActiveTransform()` function in `step-handlers.ts` automatically looks up the handler from the registry — no switch case, AppController method, or test-utils mock needed.
 
 **Example:**
 
@@ -931,13 +931,13 @@ If the handler needs user confirmation, import `confirm` or `prompt` directly fr
 
 Import dialogs (e.g., `import-url`, `import-text`) don't use `applyHandler` in the registry because they don't execute transforms — they transition to `import-csv` or perform custom logic. These use the **StepCallbacks** pattern instead:
 
-| File                                     | What to Add                                    |
-| ---------------------------------------- | ---------------------------------------------- |
-| `src/app/handlers/import/*-handlers.ts`  | Handler function (e.g., `confirmTextEntry()`)  |
-| `src/app/handlers/core/step-handlers.ts` | Add to `StepCallbacks` interface + switch case |
-| `src/app/handlers/test-utils.ts`         | Add mock to `createMockStepCallbacks()`        |
-| `src/syto-app.ts`                        | Wire callback to `AppController`               |
-| `src/app/orchestration/AppController.ts` | Add delegating method                          |
+| File                                       | What to Add                                    |
+| ------------------------------------------ | ---------------------------------------------- |
+| `src/app/handlers/import/*-handlers.ts`    | Handler function (e.g., `confirmTextEntry()`)  |
+| `src/app/handlers/core/step-handlers.ts`   | Add to `StepCallbacks` interface + switch case |
+| `src/app/handlers/test-utils.ts`           | Add mock to `createMockStepCallbacks()`        |
+| `src/app/orchestration/AppOrchestrator.ts` | Wire callback in `wireHandlerCallbacks()`      |
+| `src/app/orchestration/AppController.ts`   | Add delegating method                          |
 
 The switch case in `applyActiveTransform()` dispatches to the callback:
 

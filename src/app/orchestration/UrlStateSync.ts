@@ -8,7 +8,6 @@
 import { AppStore } from '../stores/AppStore';
 import { getUrlState, setUrlState, clearUrlHash, URLState } from '../infrastructure/url-state';
 import { isUrlNavigableDialog } from '../dialog-registry';
-import { ModelService } from '../services/ModelService';
 
 export type UrlSyncCallbacks = {
   openDialog: (name: string, section?: string) => void;
@@ -180,61 +179,6 @@ export function restoreDialogsFromUrl(
   // Clear any stale model/source hash so it doesn't persist
   if (urlState.sourceId || urlState.modelId) {
     clearUrlHash();
-  }
-
-  return false;
-}
-
-/**
- * Restore state from URL on startup
- * Returns true if state was restored, false otherwise
- */
-export function restoreFromUrl(
-  sources: any[],
-  models: any[],
-  callbacks: UrlSyncCallbacks
-): boolean {
-  const urlState = getUrlState();
-
-  // Handle page routes
-  if (urlState.page) {
-    callbacks.openDialog(urlState.page, urlState.section);
-    setUrlState({ page: urlState.page, section: urlState.section });
-    return true;
-  }
-
-  // Handle model routes
-  if (urlState.modelId) {
-    const model = models.find((m) => m.id === urlState.modelId);
-    if (model) {
-      if (urlState.section === 'info') {
-        ModelService.showModelInfo(model, callbacks.clearColumnSelection);
-        setUrlState({ sourceId: model.sourceId, modelId: model.id, section: 'info' });
-      } else {
-        AppStore.activeModel.value = model;
-        AppStore.currentData.value = model.data;
-        AppStore.viewMode.value = 'model';
-        setUrlState({ sourceId: model.sourceId, modelId: model.id });
-      }
-      return true;
-    }
-  }
-
-  // Handle source routes
-  if (urlState.sourceId) {
-    const source = sources.find((s) => s.id === urlState.sourceId);
-    if (source) {
-      if (urlState.section === 'info') {
-        ModelService.showDatasetInfo(source, callbacks.clearColumnSelection);
-        setUrlState({ sourceId: source.id, section: 'info' });
-      } else {
-        AppStore.activeSource.value = source;
-        AppStore.currentData.value = source.data;
-        AppStore.viewMode.value = 'dataset-info';
-        setUrlState({ sourceId: source.id });
-      }
-      return true;
-    }
   }
 
   return false;

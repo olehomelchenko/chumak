@@ -1,41 +1,46 @@
 /**
- * AppOrchestrator - Main application initialization and coordination
+ * AppOrchestrator - Application initialization
  *
- * This module handles:
- * - Application initialization
- * - Theme management
- * - Transformation state (loading indicator)
- * - Pagination management
- * - Settings management
+ * Single entry point for bootstrapping the app:
+ * - Wires handler callbacks
+ * - Loads persisted state (UX settings, IndexedDB data)
+ * - Initializes subsystems (EventRouter, UrlStateSync, DialogCoordinator)
+ * - Restores URL state
+ * - Sets up initial schema, columns, and pagination
  */
 
 import { AppStore } from '../stores/AppStore';
 import { SchemaEngine } from '../../core/schema-engine';
-import { loadUXSettings, updateUXSetting } from '../infrastructure/ux-settings';
+import { loadUXSettings } from '../infrastructure/ux-settings';
 import { loadInitialData } from '../infrastructure/storage';
-import { initEventRouter, destroyEventRouter, EventRouterCallbacks } from './EventRouter';
+import { initEventRouter, destroyEventRouter } from './EventRouter';
 import {
   initUrlStateSync,
   destroyUrlStateSync,
   restoreDialogsFromUrl,
   syncCurrentStateToUrl,
-  UrlSyncCallbacks,
 } from './UrlStateSync';
-import { setDialogCallbacks, DialogCallbacks } from './DialogCoordinator';
-import * as PaginationHandlers from '../handlers/core/pagination-handlers';
+import { setDialogCallbacks } from './DialogCoordinator';
 
-export type OrchestratorCallbacks = EventRouterCallbacks &
-  UrlSyncCallbacks &
-  DialogCallbacks & {
-    updatePagination: () => void;
-  };
+// Handler callback setup functions
+import { setDialogHandlerCallbacks } from '../handlers/dialog/dialog-handlers';
+import { setStepCallbacks } from '../handlers/core/step-handlers';
+import { setEdaCallbacks } from '../handlers/core/eda-handlers';
+import { setTransformCallbacks } from '../handlers/core/helper-handlers';
+import { setJsonEditCallbacks } from '../handlers/import/json-handlers';
+import { setImportCallbacks } from '../handlers/import/import-handlers';
+import { setGenerateCallbacks } from '../handlers/import/generate-handlers';
+import * as SimpleHandlers from '../handlers/transform/simple-handlers';
+
+// AppController for constructing callback objects
+import { AppController } from './AppController';
 
 let initialized = false;
 
 /**
  * Initialize the application
  */
-export async function initApp(callbacks: OrchestratorCallbacks): Promise<void> {
+export async function initApp(): Promise<void> {
   if (initialized) {
     console.warn('App already initialized');
     return;
@@ -43,28 +48,57 @@ export async function initApp(callbacks: OrchestratorCallbacks): Promise<void> {
 
   console.log('Initializing Syto App...');
 
-  // Load UX settings
+  // Phase 1: Wire handler callbacks
+  wireHandlerCallbacks();
+
+  // Phase 2: Load persisted state
   const uxSettings = loadUXSettings();
   AppStore.uxSettings.value = uxSettings;
   AppStore.pageSize.value = uxSettings.pagination.pageSize;
   AppStore.theme.value = uxSettings.theme;
-  applyTheme();
+  AppController.applyTheme();
 
-  // Load data from IndexedDB
+  // Note: i18n language is already initialized from localStorage in src/i18n/index.ts
+
   const { sources, models } = await loadInitialData();
   AppStore.sources.value = sources;
   AppStore.models.value = models;
 
-  // Initialize subsystems
-  initEventRouter(callbacks);
-  initUrlStateSync(callbacks);
-  setDialogCallbacks(callbacks);
+  // Phase 3: Initialize subsystems
+  initEventRouter();
 
-  // Restore dialog pages from URL (reference, settings, expressions)
-  // but always start on main menu — don't auto-navigate to models/sources
-  restoreDialogsFromUrl(sources, models, callbacks);
+  initUrlStateSync({
+    openDialog: (name, section) => AppController.openDialog(name, section),
+    switchToModel: (model) => AppController.switchToModel(model),
+    switchToSource: (source) => AppController.switchToSource(source),
+    showModelInfo: () => AppController.showModelInfo(),
+    showDatasetInfo: (source) => AppController.showDatasetInfo(source),
+    clearColumnSelection: () => AppController.clearColumnSelection(),
+  });
 
-  // Set active step index
+  setDialogCallbacks({
+    confirm: (msg) => AppController.confirm(msg),
+    clearColumnSelection: () => AppController.clearColumnSelection(),
+    initializeJoinDialog: () => AppController.initializeJoinDialog(),
+    initializeAppendDialog: () => AppController.initializeAppendDialog(),
+    initializePivotDialog: () => AppController.initializePivotDialog(),
+    detectDelimiter: (col) => AppController.detectDelimiter(col),
+    debouncedUpdateSplitPreview: () => AppController.debouncedUpdateSplitPreview(),
+    updateDedupePreview: () => AppController.updateDedupePreview(),
+    updateImputePreview: () => SimpleHandlers.updateImputePreview(),
+  });
+
+  // Phase 4: Restore URL state
+  restoreDialogsFromUrl(sources, models, {
+    openDialog: (name, section) => AppController.openDialog(name, section),
+    switchToModel: (model) => AppController.switchToModel(model),
+    switchToSource: (source) => AppController.switchToSource(source),
+    showModelInfo: () => AppController.showModelInfo(),
+    showDatasetInfo: (source) => AppController.showDatasetInfo(source),
+    clearColumnSelection: () => AppController.clearColumnSelection(),
+  });
+
+  // Phase 5: Initialize data state
   const activeModel = AppStore.activeModel.value;
   if (activeModel) {
     AppStore.activeStepIndex.value =
@@ -72,16 +106,92 @@ export async function initApp(callbacks: OrchestratorCallbacks): Promise<void> {
     AppStore.viewingIntermediate.value = false;
   }
 
-  // Initialize columns and schema
   initializeColumnsAndSchema();
 
-  // Update pagination
-  callbacks.updatePagination();
+  AppController.updatePagination();
 
   // Sync URL state after initial render
   setTimeout(() => syncCurrentStateToUrl(), 0);
 
   initialized = true;
+}
+
+/**
+ * Wire all handler callback registrations.
+ * Connects handler modules to AppController methods.
+ */
+function wireHandlerCallbacks(): void {
+  setDialogHandlerCallbacks({
+    confirm: (msg) => AppController.confirm(msg),
+    clearColumnSelection: () => AppController.clearColumnSelection(),
+    openDialog: (dialog, section) => AppController.openDialog(dialog, section),
+    switchToModel: (model) => AppController.switchToModel(model),
+    switchToSource: (source) => AppController.switchToSource(source),
+    showModelInfo: () => AppController.showModelInfo(),
+    showDatasetInfo: (source) => AppController.showDatasetInfo(source),
+    initializeJoinDialog: () => AppController.initializeJoinDialog(),
+    initializeAppendDialog: () => AppController.initializeAppendDialog(),
+    initializePivotDialog: () => AppController.initializePivotDialog(),
+    detectDelimiter: (col) => AppController.detectDelimiter(col),
+    debouncedUpdateSplitPreview: () => AppController.debouncedUpdateSplitPreview(),
+    updateDedupePreview: () => AppController.updateDedupePreview(),
+    updateImputePreview: () => SimpleHandlers.updateImputePreview(),
+  });
+
+  setStepCallbacks({
+    updatePagination: () => AppController.updatePagination(),
+    openDialog: (name, section) => AppController.openDialog(name, section),
+    closeDialog: (force) => AppController.closeDialog(force),
+    onJoinTargetChange: () => AppController.onJoinTargetChange(),
+    onAppendTargetChange: () => AppController.onAppendTargetChange(),
+    onPivotConfigChange: () => AppController.onPivotConfigChange(),
+    updateSplitPreview: () => AppController.updateSplitPreview(),
+    updateDedupePreview: () => AppController.updateDedupePreview(),
+    confirmImport: () => AppController.confirmImport(),
+    confirmTextEntry: () => AppController.confirmTextEntry(),
+    fetchAndImportFromUrl: () => AppController.fetchAndImportFromUrl(),
+    generateData: () => AppController.generateData(),
+  });
+
+  setEdaCallbacks({
+    updateToolbarPosition: () => AppController.updateToolbarPosition(),
+    clearColumnSelection: () => AppController.clearColumnSelection(),
+  });
+
+  setTransformCallbacks({
+    startTransformation: (label) => AppController.startTransformation(label),
+    endTransformation: () => AppController.endTransformation(),
+    alert: (msg) => AppController.alert(msg),
+    closeDialog: (clearPreview) => AppController.closeDialog(clearPreview),
+    updatePagination: () => AppController.updatePagination(),
+  });
+
+  setJsonEditCallbacks({
+    computeModelUpToStep: (model, stepIndex) =>
+      AppController.computeModelUpToStep(model, stepIndex),
+    updatePagination: () => AppController.updatePagination(),
+  });
+
+  setImportCallbacks({
+    openDialog: (name, section) => AppController.openDialog(name, section),
+    closeDialog: (force) => AppController.closeDialog(force),
+    createSource: (file, name, columns, data, headerMode, delimiter, customHeaders, format) =>
+      AppController.createSource(
+        file,
+        name,
+        columns,
+        data,
+        headerMode,
+        delimiter,
+        customHeaders,
+        format
+      ),
+  });
+
+  setGenerateCallbacks({
+    updatePagination: () => AppController.updatePagination(),
+    closeDialog: (force) => AppController.closeDialog(force),
+  });
 }
 
 /**
@@ -94,7 +204,6 @@ function initializeColumnsAndSchema(): void {
 
   if (currentData && currentData.length > 0) {
     if (activeModel && (!activeModel.schema || activeModel.schema.length === 0)) {
-      // Fallback: infer logical types for model
       activeModel.schema = SchemaEngine.createLogicalSchema(activeModel.data);
     }
 
@@ -116,87 +225,3 @@ export function destroyApp(): void {
   destroyUrlStateSync();
   initialized = false;
 }
-
-/**
- * Apply the current theme to the document
- */
-export function applyTheme(): void {
-  document.documentElement.setAttribute('data-theme', AppStore.theme.value);
-}
-
-/**
- * Switch to a different theme
- */
-export function switchTheme(theme: 'blues' | 'syto'): void {
-  AppStore.theme.value = theme;
-  applyTheme();
-  updateUXSetting('theme', '', theme);
-}
-
-/**
- * Start a transformation (show loading indicator)
- */
-export async function startTransformation(message: string): Promise<void> {
-  AppStore.isTransforming.value = true;
-  AppStore.transformMessage.value = message;
-  // Allow UI to update before continuing
-  await new Promise((resolve) => requestAnimationFrame(() => resolve(undefined)));
-  await new Promise((resolve) => setTimeout(resolve, 50));
-}
-
-/**
- * End a transformation (hide loading indicator)
- */
-export function endTransformation(): void {
-  AppStore.isTransforming.value = false;
-  AppStore.transformMessage.value = '';
-}
-
-/**
- * Update the preview row limit setting
- */
-export function updatePreviewRowLimit(value: string): void {
-  const limit = Math.max(10, Math.min(10000, parseInt(value, 10) || 100));
-  const uxSettings = { ...AppStore.uxSettings.value };
-  uxSettings.preview = { rowLimit: limit };
-  AppStore.uxSettings.value = uxSettings;
-  updateUXSetting('preview', 'rowLimit', limit);
-}
-
-/**
- * Get the current preview row limit
- */
-export function getPreviewRowLimit(): number {
-  return AppStore.uxSettings.value.preview?.rowLimit || 100;
-}
-
-/**
- * Update analytics opt-out setting
- */
-export function updateAnalyticsOptOut(optOut: boolean): void {
-  const uxSettings = { ...AppStore.uxSettings.value };
-  uxSettings.analyticsOptOut = optOut;
-  AppStore.uxSettings.value = uxSettings;
-  updateUXSetting('analyticsOptOut', '', optOut);
-
-  if (optOut) {
-    // Remove GoatCounter script and disable tracking
-    const existingScript = document.querySelector('script[data-goatcounter]');
-    if (existingScript) {
-      existingScript.remove();
-    }
-    if (typeof (window as any).goatcounter !== 'undefined') {
-      (window as any).goatcounter = { count: () => {} };
-    }
-  }
-}
-
-// Re-export pagination handlers for convenience
-export const updatePagination = PaginationHandlers.updatePagination;
-export const getPaginatedData = PaginationHandlers.getPaginatedData;
-export const getPaginationInfo = PaginationHandlers.getPaginationInfo;
-export const previousPage = PaginationHandlers.previousPage;
-export const nextPage = PaginationHandlers.nextPage;
-export const goToFirstPage = PaginationHandlers.goToFirstPage;
-export const goToLastPage = PaginationHandlers.goToLastPage;
-export const updatePageSize = PaginationHandlers.updatePageSize;

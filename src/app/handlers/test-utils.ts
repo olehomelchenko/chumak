@@ -10,7 +10,6 @@ import { AppStore } from '../stores/AppStore';
 import { DialogStore } from '../stores/DialogStore';
 import type { DataRow, Source, Model } from '../types';
 import type { ColumnSchema, ColumnType } from '../../core/schema-engine';
-import type { SytoApp } from '../../syto-app';
 import type { StepCallbacks } from './core/step-handlers';
 import type { ExecutionCallbacks } from '../services/StepService';
 
@@ -134,11 +133,11 @@ export function suppressConsole() {
 }
 
 /**
- * Create a mock SytoApp instance with common methods mocked.
- * Use for handlers that require `this: SytoApp` binding.
+ * Create a mock app object with common methods mocked.
+ * Use for tests that need dialog/notification mocks.
  */
-export function createMockApp(overrides: Partial<SytoApp> = {}): SytoApp {
-  const mockApp = {
+export function createMockApp(overrides: Record<string, any> = {}): Record<string, any> {
+  return {
     // Dialog methods
     alert: vi.fn().mockResolvedValue(undefined),
     confirm: vi.fn().mockResolvedValue(true),
@@ -174,9 +173,7 @@ export function createMockApp(overrides: Partial<SytoApp> = {}): SytoApp {
 
     // Override with provided values
     ...overrides,
-  } as unknown as SytoApp;
-
-  return mockApp;
+  };
 }
 
 /**

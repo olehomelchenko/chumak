@@ -45,7 +45,7 @@ export function showSuccess(message: string, options: { duration?: number } = {}
 
 /**
  * Add a notification to the store
- * @internal Exported for backward compatibility with SytoApp
+ * @internal Exported for use by notification helpers
  */
 export function _addNotification(
   type: string,

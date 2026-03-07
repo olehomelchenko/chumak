@@ -98,8 +98,8 @@ docs/               # Documentation
 
 ### Key Entry Points
 
-- `src/main.tsx` — Application bootstrap (renders `App`, creates `SytoApp` instance)
-- `src/syto-app.ts` — App initialization: callback wiring, data loading, URL restore, keyboard listeners
+- `src/main.tsx` — Application bootstrap (renders `App`, calls `initApp()`)
+- `src/app/orchestration/AppOrchestrator.ts` — App initialization: callback wiring, data loading, URL restore
 - `src/core/transforms.ts` — Transform implementations
 - `src/core/schema-engine.ts` — Type inference and propagation
 

@@ -6,25 +6,7 @@
  */
 
 // Main app orchestration
-export {
-  initApp,
-  destroyApp,
-  applyTheme,
-  switchTheme,
-  startTransformation,
-  endTransformation,
-  updatePreviewRowLimit,
-  getPreviewRowLimit,
-  updateAnalyticsOptOut,
-  updatePagination,
-  getPaginatedData,
-  getPaginationInfo,
-  previousPage,
-  nextPage,
-  goToFirstPage,
-  goToLastPage,
-  updatePageSize,
-} from './AppOrchestrator';
+export { initApp, destroyApp } from './AppOrchestrator';
 
 // Event routing
 export {
@@ -33,7 +15,6 @@ export {
   isInInteractiveContext,
   hasModifier,
 } from './EventRouter';
-export type { EventRouterCallbacks } from './EventRouter';
 
 // URL state sync
 export {
@@ -46,7 +27,6 @@ export {
   syncDialogToUrl,
   clearDialogFromUrl,
   getCurrentUrlState,
-  restoreFromUrl,
   syncCurrentStateToUrl,
 } from './UrlStateSync';
 export type { UrlSyncCallbacks } from './UrlStateSync';

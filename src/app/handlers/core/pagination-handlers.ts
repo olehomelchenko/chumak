@@ -2,7 +2,7 @@
  * Pagination handlers - Data table pagination management
  *
  * These functions manage pagination state for the data table.
- * They now work directly with stores instead of requiring SytoApp context.
+ * They work directly with stores.
  */
 
 import { AppStore } from '../../stores/AppStore';
