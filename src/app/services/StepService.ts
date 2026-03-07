@@ -5,7 +5,7 @@ import { metricsCollector, getDataShape } from '../infrastructure/metrics';
 import { PersistenceService } from './PersistenceService';
 import { DependencyService } from './DependencyService';
 import { Model, Source } from '../types';
-import { ColumnSchema, TransformStep } from '../../core/schema-engine';
+import { ColumnSchema, ColumnType, SchemaEngine, TransformStep } from '../../core/schema-engine';
 import { AppStore, HistoryStack } from '../stores/AppStore';
 import { showSuccess } from '../handlers/core/notification-handlers';
 import i18n from '../../i18n';
@@ -54,6 +54,31 @@ export interface ExecutionCallbacks {
  * This is the "Execution Engine" - framework-agnostic transform orchestration.
  */
 export class StepService {
+  /**
+   * Creates the initial [import, types] steps for a new model from a source.
+   * Single source of truth — eliminates duplicated step construction.
+   */
+  static createInitialSteps(source: Source): [TransformStep, TransformStep] {
+    const importStep: TransformStep = {
+      import: {
+        source: source.name,
+        fileName: source.fileName || '',
+        delimiter: source.delimiter,
+        headerMode: source.headerMode,
+        ...(source.customHeaders ? { customHeaders: source.customHeaders } : {}),
+      },
+    };
+
+    const typesMap: Record<string, ColumnType> = {};
+    for (const col of source.columns) {
+      const sample = source.data.slice(0, 20).map((row: any) => row[col.name]);
+      typesMap[col.name] = SchemaEngine.inferType(sample);
+    }
+    const typesStep: TransformStep = { types: typesMap };
+
+    return [importStep, typesStep];
+  }
+
   /**
    * Executes a transform and applies the result to the active model.
    * This is the main entry point for running transforms.

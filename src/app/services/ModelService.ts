@@ -146,26 +146,9 @@ export class ModelService {
       __v: 1,
     };
 
-    // Add initial steps
-    const importStep = {
-      import: {
-        source: source.name,
-        fileName: source.fileName,
-        delimiter: source.delimiter,
-        headerMode: source.headerMode,
-      },
-    } as any;
-    if (source.customHeaders) importStep.import.customHeaders = source.customHeaders;
-    newModel.steps.push(importStep);
-
-    // Initial Types Step - infer logical types from the data
-    // This is where type inference happens (dataset has physical types, model has logical types)
-    const typesStep = { types: {} as any };
-    source.columns.forEach((col) => {
-      const sample = newModel.data.slice(0, 20).map((row: any) => row[col.name]);
-      typesStep.types[col.name] = SchemaEngine.inferType(sample);
-    });
-    newModel.steps.push(typesStep);
+    // Initial steps: import (metadata) + types (logical type inference)
+    const [importStep, typesStep] = StepService.createInitialSteps(source);
+    newModel.steps.push(importStep, typesStep);
 
     // Compute final data and schema after initial steps
     const context = { sources: AppStore.sources.value, models: AppStore.models.value };

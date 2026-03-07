@@ -580,31 +580,18 @@ export async function applyJoinTransform(callbacks: any) {
       const { SchemaEngine } = await import('../../../core/schema-engine');
       const schema = SchemaEngine.createLogicalSchema(resultData);
 
+      const { StepService } = await import('../../services/StepService');
+      const [importStep, typesStep] = StepService.createInitialSteps(leftSource);
+
       const newModel: any = {
         id: `mdl_${Date.now()}`,
         name: name,
         sourceId: leftSource.id,
-        steps: [
-          {
-            import: {
-              source: leftSource.name,
-              fileName: leftSource.fileName,
-              delimiter: leftSource.delimiter,
-              headerMode: leftSource.headerMode,
-            },
-          },
-          { types: {} },
-          transform, // Add the join step
-        ],
+        steps: [importStep, typesStep, transform],
         schema: schema,
         data: JSON.parse(JSON.stringify(resultData)),
         __v: 1,
       };
-
-      // Add types step
-      schema.forEach((col) => {
-        newModel.steps[1].types[col.name] = col.type;
-      });
 
       AppStore.models.value = [...AppStore.models.value, newModel];
       const { ModelService } = await import('../../services/ModelService');
