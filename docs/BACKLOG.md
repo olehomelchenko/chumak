@@ -17,6 +17,56 @@ The main block contains details about not implemented yet features or fixes; the
 
 A new `flatten` transform that expands JSON object keys into separate columns (analogous to `spread` for arrays). Discovers keys from sample data, creates derived columns with configurable prefix. Initially available via JSON editor only.
 
+### Summary Statistics Transform
+
+**Status**: Planned
+**Effort**: Small
+**Origin**: [Weaverbird comparison](future/WEAVERBIRD-COMPARISON.md) -- WB's `statistics` step
+
+A `describe` or `statistics` transform that auto-generates descriptive statistics for numeric columns: count, mean, median, stdev, min, max. Output is a transposed summary table (rows = stats, columns = source columns).
+
+**Why this matters**: "What does this data look like?" is the first question analysts ask. Currently requires manually building an aggregate with 6+ rollup specs. A one-click describe is table stakes for data exploration and is the single most common first step in tools like Pandas (`df.describe()`), R (`summary()`), and Excel's Data Analysis ToolPak.
+
+**Implementation**: Iterate numeric columns, compute stats via Arquero `op` functions, assemble summary table. No new infrastructure needed -- this is a specialized aggregate under the hood.
+
+### Top N per Group
+
+**Status**: Planned
+**Effort**: Small-Medium
+**Origin**: [Weaverbird comparison](future/WEAVERBIRD-COMPARISON.md) -- WB's `top` step
+
+A transform that returns the top (or bottom) N rows within each group, ordered by a value column. Example: "top 5 products by sales in each category."
+
+**Why this matters**: One of the most common analytical questions. Currently requires two steps: a `window` transform to compute `rank()` partitioned by group, then a `filter` to keep only rank <= N. Combining these into one operation is a significant UX improvement for a very frequent task.
+
+**Implementation**: Arquero `groupby()` → `derive(rank)` → filter → ungroup → drop rank column. All primitives already exist.
+
+### Fill Date Gaps
+
+**Status**: Planned
+**Effort**: Medium
+**Origin**: [Weaverbird comparison](future/WEAVERBIRD-COMPARISON.md) -- WB's `addmissingdates` step
+
+An `addMissingDates` transform that fills gaps in time series data. Given a date column and a granularity (day/week/month), generates missing rows with null values for metric columns.
+
+**Why this matters**: Time series with gaps produce misleading charts (lines jump over missing periods) and break calculations like moving averages. Every analyst working with dates encounters this. There is no reasonable workaround in Syto today -- it would require manually generating a date range externally and joining it in.
+
+**Implementation**: Detect date range bounds from data, generate complete sequence at specified granularity, left-join original data onto the generated sequence. If grouping columns are specified (e.g., per-region time series), cross-join groups × dates first.
+
+### Duplicate Column Quick Action
+
+**Status**: Planned
+**Effort**: Small
+**Origin**: [Weaverbird comparison](future/WEAVERBIRD-COMPARISON.md) -- WB's `duplicate` step
+
+One-click "Duplicate" action (in ribbon or column toolbar) that creates a copy of the selected column. Generates a `derive` step: `{ "column_copy": "[column]" }`.
+
+**Why this matters**: Users commonly need a copy of a column before transforming it (e.g., keep original dates while extracting year). Currently requires opening the Derive dialog and manually typing the expression. A one-click action removes friction from a very common preparatory step.
+
+**Implementation**: No dialog needed -- directly generate and apply a `derive` step with the column name + `_copy` suffix. Auto-generate name. Could live in the ribbon's Columns → Manage group or as a column toolbar button.
+
+_Note: Text operations (upper/lower/trim) and Replace are already accessible via the ribbon's Text and Replace buttons. No additional toolbar entries needed for those._
+
 ---
 
 ## UI/UX Enhancements
@@ -186,8 +236,12 @@ These have been considered and explicitly excluded:
 ### Remaining Priorities
 
 1. SEO landing pages (infrastructure done, content needed)
-2. Flatten JSON transform
-3. Web Workers investigation for heavy transforms
+2. Summary Statistics transform (small effort, high impact for data exploration)
+3. Top N per Group transform (small-medium effort, very common analytical need)
+4. Duplicate Column quick action (small effort, common preparatory step)
+5. Flatten JSON transform
+6. Fill Date Gaps transform (medium effort, important for time series)
+7. Web Workers investigation for heavy transforms
 
 ---
 

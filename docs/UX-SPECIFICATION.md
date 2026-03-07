@@ -59,13 +59,41 @@ body {
 
 ### 3.1 Workflow Ribbon
 
-The ribbon is divided into functional stages of data wrangling:
+The ribbon provides all transform operations organized across three tabs. Each tab contains grouped buttons and dropdown popovers. Many popovers include **quick actions** (one-click chips that generate `derive` steps without opening a dialog) alongside links to full dialogs.
 
-- **Prepare**: Data cleaning, column management, and sorting.
-- **Calculate**: New column derivations, aggregations, and value replacements.
-- **Combine**: Multi-model operations and joins.
+_Note: All Data I/O actions are in the Sidebar, not the ribbon._
 
-_Note: All Data I/O actions are relocated to the Sidebar for better context._
+#### Rows Tab
+
+| Group             | Actions                                                                    |
+| ----------------- | -------------------------------------------------------------------------- |
+| **Filter & Sort** | Filter, Sort, Duplicates, Keep/Remove Rows (slice), Sample, Promote Header |
+
+#### Columns Tab
+
+| Group                | Actions                                                                            |
+| -------------------- | ---------------------------------------------------------------------------------- |
+| **Manage**           | Edit Columns (reorder/rename/select/remove), Split, Merge, More → (Spread, Unroll) |
+| **New Columns**      | Derive, Conditional, Regexp Match, Regexp Extract, Add Index                       |
+| **Transform Values** | Text ▾, Date ▾, Number ▾, Convert ▾, Replace, Impute                               |
+| **Types**            | Auto Detect Schema                                                                 |
+
+The **Transform Values** group uses dropdown popovers with type-aware quick actions:
+
+- **Text ▾** (requires string column selected): Quick actions for Upper, Lower, Title Case, Trim, Length. Links to Split, Replace, Regexp Extract, and Text Operations dialogs.
+- **Date ▾** (requires date/datetime column selected): Quick actions for extracting Year, Month, Day, Quarter, Weekday, Week. Quick actions for truncating to Year, Month, Week, Day. Links to Date Operations and Parse Date dialogs.
+- **Number ▾** (requires numeric column selected): Quick actions for Round, Floor, Ceil, Truncate, Absolute Value, Sign. Link to Derive dialog.
+- **Convert ▾** (requires column selected): Quick type conversions: To Text, To Number, To Integer, To Date.
+
+Quick actions apply immediately to the selected column (generating a `derive` or `types` step) without opening a dialog. Buttons are disabled with explanatory tooltips when no column of the required type is selected.
+
+#### Table Tab
+
+| Group         | Actions                                |
+| ------------- | -------------------------------------- |
+| **Summarize** | Group By (aggregate), Window Functions |
+| **Reshape**   | Pivot, Unpivot (Fold)                  |
+| **Combine**   | Join, Append (concat/union)            |
 
 ### 3.2 Sources & Models Sidebar
 
@@ -105,7 +133,7 @@ Comments are persisted to IndexedDB and automatically saved when edited.
 ### 3.4 Interactive Table Context
 
 - **Column Headers**: Keyboard-navigable using roving tabindex — ArrowLeft/Right moves focus between headers (with wrapping), Home/End jump to first/last. Enter or Space selects the column and opens the Column Toolbar. Shift+ArrowLeft/Right extends column range selection (clamped at boundaries, no wrapping).
-- **Column Toolbar**: Clicking or keyboard-selecting a header reveals a floating toolbar (`role="toolbar"`) with actions for sorting, filtering, renaming, splitting, deduplication, imputation, and removal. When opened via keyboard, the first button auto-focuses. ArrowLeft/Right navigates between buttons (with wrapping), Home/End jump to first/last. Escape returns focus to the column header.
+- **Column Toolbar**: Clicking or keyboard-selecting a header reveals a floating toolbar (`role="toolbar"`) with context-sensitive actions. Standard actions: Sort Asc, Sort Desc, Filter, Rename, Split, Dedupe, Impute, Remove. Type-conditional: Date Operations button appears only for date/datetime columns. When opened via keyboard, the first button auto-focuses. ArrowLeft/Right navigates between buttons (with wrapping), Home/End jump to first/last. Escape returns focus to the column header.
 - **Multi-Column Selection**: Cmd/Ctrl+Click toggles individual columns in a multi-selection; Shift+Click selects a range from the last anchor column. Multi-column toolbar shows count and bulk remove action.
 - **Row Gutter**: A sticky left column displays 1-based row numbers. Clicking a gutter cell selects the row; Cmd/Ctrl+Click toggles rows; Shift+Click selects a contiguous range. Keyboard-navigable using roving tabindex — ArrowUp/Down moves focus between rows (with wrapping), Shift+ArrowUp/Down extends range selection (clamped at page boundaries).
 - **Row Toolbar**: Floating toolbar (`role="toolbar"`) appears when rows are selected, offering Keep (filter to selected), Remove (delete selected), and Extract to Model (creates a new model with selected rows and current pipeline). Supports ArrowLeft/Right keyboard navigation.
