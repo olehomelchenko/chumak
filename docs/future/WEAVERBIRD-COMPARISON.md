@@ -507,6 +507,75 @@ This enables:
 
 ---
 
+## Frontend Framework Comparison
+
+### Weaverbird: Vue 2.7 + Class Components
+
+**Framework**: Vue 2.7.14 with `vue-class-component` and `vue-property-decorator`. Every component uses TypeScript class syntax with decorators (`@Component`, `@Prop`, `@Watch`). Zero Composition API or `<script setup>` usage. No Vue 3 migration in progress.
+
+**Component architecture**: 100 `.vue` files totaling ~29,000 lines. Organized in a three-tier class hierarchy:
+
+1. **BaseStepForm\<T\>** (abstract, 273 lines) -- validation via AJV JSON Schema, submission/cancellation, error handling
+2. **89 concrete step forms** inheriting from BaseStepForm -- one per pipeline step type (median ~80 lines each, largest 363 lines)
+3. **33 reusable widgets** -- input controls (InputText, Multiselect, List, Checkbox, DatePicker, etc.)
+
+**State management**: No Vuex store. Pure props-based architecture with event bubbling (`$emit('formSaved', ...)`). State lives in the top-level parent component and threads through the tree via prop drilling.
+
+**Validation**: AJV (JSON Schema) at the form level. Each step form loads a JSON Schema that validates the step configuration at runtime. This provides runtime safety beyond TypeScript's compile-time checks.
+
+**CSS**: SCSS with `<style lang="scss" scoped>` blocks. Some components also have unscoped global styles for deeply nested selectors. No CSS Modules.
+
+**Build**: Vite with `@vitejs/plugin-vue2`. Outputs UMD + ES Module dual package. Vue is externalized as a peer dependency.
+
+**Key technical debt**: The class-based component pattern is abandoned by Vue's ecosystem. `vue-class-component` and `vue-property-decorator` have no Vue 3 equivalents. Migrating 100 class-based components would require converting every one to either Options API or `<script setup>` + Composition API. The deep inheritance hierarchy (BaseStepForm → concrete forms) would need to become composable functions.
+
+### Syto: Preact 10 + Signals
+
+**Framework**: Preact 10.28 with `@preact/signals` 2.5. Functional components with hooks and signals. No class components.
+
+**Component architecture**: 79 `.tsx` files totaling ~13,000 lines (source only, excluding tests). Flat structure with no inheritance hierarchy:
+
+- **Dialog components** (one per transform) -- functional, typically 100-400 lines
+- **Core UI components** -- DataTable, Sidebar, RibbonToolbar, AppHeader
+- **Shared components** -- ExpressionEditor (CodeMirror), ColumnSelector, previews
+
+**State management**: `@preact/signals` for reactive state. Centralized in `AppStore` (global signals) and `DialogStore` (per-dialog signals). No prop drilling for global state -- signals are imported directly. Business logic lives in handler modules and service classes, not in components.
+
+**Validation**: TypeScript types at compile time + AST validator for expressions at runtime + schema engine for type propagation. No JSON Schema / AJV at the form level.
+
+**CSS**: CSS Modules (`.module.css` files, 22 total). Scoped by default, class names auto-mangled at build time. No global style leakage concerns.
+
+**Build**: Vite with `@preact/preset-vite`. Single-target browser build. Preact is bundled (3KB gzipped).
+
+### Side-by-Side
+
+| Aspect                | Weaverbird                                    | Syto                               |
+| --------------------- | --------------------------------------------- | ---------------------------------- |
+| **Framework**         | Vue 2.7                                       | Preact 10                          |
+| **Component style**   | Class-based (decorators)                      | Functional (hooks + signals)       |
+| **Component count**   | 100 `.vue` files                              | 79 `.tsx` files                    |
+| **Component source**  | ~29,000 lines                                 | ~13,000 lines                      |
+| **Largest component** | 363 lines (StatisticsStepForm)                | 785 lines (RibbonToolbar)          |
+| **State management**  | Props + events (no store)                     | Signals (centralized stores)       |
+| **Inheritance**       | Deep (BaseStepForm\<T\> → 89 subclasses)      | None (flat, functional)            |
+| **Form validation**   | AJV JSON Schema (runtime)                     | TypeScript types (compile-time)    |
+| **CSS approach**      | SCSS scoped styles                            | CSS Modules                        |
+| **Framework size**    | Vue 2 externalized (~33KB gzipped)            | Preact bundled (~3KB gzipped)      |
+| **Ecosystem health**  | Vue 2 EOL, class components abandoned         | Preact stable, minimal API surface |
+| **Migration path**    | Blocked (100 class components, no Vue 3 plan) | N/A (current, no migration needed) |
+
+### Key Takeaways
+
+**Weaverbird's class inheritance is both its strength and its trap.** The `BaseStepForm<T>` pattern gives excellent code reuse -- 89 step forms share validation, error handling, and submission logic with minimal boilerplate. But class-based Vue components are a dead end: `vue-class-component` is unmaintained, Vue 3 dropped class component support, and converting 100 components to Composition API would be a massive rewrite. This is a cautionary tale about coupling to framework-specific abstractions.
+
+**Syto's flat functional approach trades inheritance for composition.** Instead of a base class, shared behavior lives in hooks (`useFocusTrap`), services (`StepService`, `ValidationEngine`), and the dialog registry pattern. This is more verbose for individual components but eliminates the framework migration risk entirely. Preact's React-compatible API means the component code would work in React with near-zero changes.
+
+**The signals vs props difference has real UX consequences.** Weaverbird's prop drilling means the parent must re-render the entire form tree on any state change. Syto's signals provide fine-grained reactivity -- only the component reading a specific signal re-renders when it changes. This contributes to Syto's instant-feel UI responsiveness.
+
+**Component code volume is revealing.** Syto does more with less code: 79 components in 13K lines vs Weaverbird's 100 components in 29K lines. Part of this is the expression engine absorbing what would otherwise be dedicated form components. Part is the functional style eliminating decorator boilerplate. Part is CSS Modules vs inline SCSS blocks.
+
+---
+
 ## Lessons for Syto's CLI
 
 ### What Weaverbird Validates
@@ -534,6 +603,8 @@ This enables:
 2. **Step labels/describers as a formal pattern.** Weaverbird has a `StepLabeller` that generates descriptions like `'Duplicate "foo" in "bar"'`. Syto has `describeTransform()` but could formalize this further.
 
 3. **Backend capability declarations.** The pattern of declaring which steps each backend supports (rather than failing at runtime) is worth adopting if/when Syto supports multiple backends.
+
+4. **Runtime validation of loaded workflows.** Weaverbird validates every step config at runtime via AJV JSON Schema before execution. Syto's `transform-linter.ts` already validates in the JSON editor path (structure, unknown keys, expression syntax), but workflows loaded from IndexedDB or URL hash are trusted as-is. Adding a lightweight validation pass on load would catch corrupted or forward-incompatible workflow files before they silently produce wrong results or crash. This is a small effort with meaningful robustness gains.
 
 ---
 

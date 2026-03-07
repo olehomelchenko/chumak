@@ -32,7 +32,7 @@
 
 - **[docs/arquero/](docs/arquero/)**: Arquero library documentation (verbs, expressions, operators)
 - **[docs/archive/](docs/archive/)**: Architecture Decision Records (ADRs) - key architectural choices and rationale
-- **[docs/future/](docs/future/)**: Future roadmap documents (native app spec, custom icons)
+- **[docs/future/](docs/future/)**: Future roadmap documents (native app spec, custom icons, example workflows)
 
 ---
 

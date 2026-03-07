@@ -67,6 +67,18 @@ One-click "Duplicate" action (in ribbon or column toolbar) that creates a copy o
 
 _Note: Text operations (upper/lower/trim) and Replace are already accessible via the ribbon's Text and Replace buttons. No additional toolbar entries needed for those._
 
+### Validate Workflows on Load
+
+**Status**: Planned
+**Effort**: Small
+**Origin**: [Weaverbird comparison](future/WEAVERBIRD-COMPARISON.md) -- WB's AJV runtime validation pattern
+
+Run the existing `transform-linter.ts` validation against workflows loaded from IndexedDB and URL hash, not just the JSON editor. Currently, stored/shared workflows are trusted as-is -- if a workflow is corrupted or contains forward-incompatible steps, it silently produces wrong results or crashes.
+
+**Why this matters**: As the format evolves and users share workflows via URL, the chance of loading an invalid pipeline grows. The linter already validates JSON structure, unknown transform keys, and expression syntax -- it just needs to be called on the load path too.
+
+**Implementation**: Call the existing linter in `PersistenceService` (IndexedDB load) and `UrlPersistence` (hash decode). On validation failure, show a warning toast with details rather than silently proceeding. No new validation logic needed -- reuse `transform-linter.ts`.
+
 ---
 
 ## UI/UX Enhancements
@@ -235,13 +247,15 @@ These have been considered and explicitly excluded:
 
 ### Remaining Priorities
 
-1. SEO landing pages (infrastructure done, content needed)
-2. Summary Statistics transform (small effort, high impact for data exploration)
-3. Top N per Group transform (small-medium effort, very common analytical need)
-4. Duplicate Column quick action (small effort, common preparatory step)
-5. Flatten JSON transform
-6. Fill Date Gaps transform (medium effort, important for time series)
-7. Web Workers investigation for heavy transforms
+1. Example workflows for onboarding & website video ([EXAMPLE-WORKFLOWS.md](future/EXAMPLE-WORKFLOWS.md))
+2. SEO landing pages (infrastructure done, content needed)
+3. Summary Statistics transform (small effort, high impact for data exploration)
+4. Top N per Group transform (small-medium effort, very common analytical need)
+5. Duplicate Column quick action (small effort, common preparatory step)
+6. Validate workflows on load (small effort, robustness improvement)
+7. Flatten JSON transform
+8. Fill Date Gaps transform (medium effort, important for time series)
+9. Web Workers investigation for heavy transforms
 
 ---
 
