@@ -253,6 +253,7 @@ export const AppController = {
   handleCsvPreview: ImportHandlers.handleCsvPreview,
   showImportUrlDialog: ImportHandlers.showImportUrlDialog,
   fetchAndImportFromUrl: ImportHandlers.fetchAndImportFromUrl,
+  backToUrlImport: ImportHandlers.backToUrlImport,
   confirmImport: ImportHandlers.confirmImport,
   showReplaceSourceDialog: ImportHandlers.showReplaceSourceDialog,
   updateImportPreview: ImportHandlers.updateImportPreview,
@@ -281,33 +282,6 @@ export const AppController = {
 
   handlePasteClick(): void {
     ImportHandlers.promptPaste();
-  },
-
-  async loadExampleData(): Promise<void> {
-    const columns = ['Name', 'Region', 'Product', 'Sales', 'Date'];
-    const data = [
-      { Name: 'Alice', Region: 'North', Product: 'Widget', Sales: 1200, Date: '2024-01-15' },
-      { Name: 'Bob', Region: 'South', Product: 'Gadget', Sales: 850, Date: '2024-01-20' },
-      { Name: 'Carol', Region: 'North', Product: 'Gadget', Sales: 1500, Date: '2024-02-10' },
-      { Name: 'Dave', Region: 'East', Product: 'Widget', Sales: 900, Date: '2024-02-14' },
-      { Name: 'Eve', Region: 'South', Product: 'Widget', Sales: 1100, Date: '2024-03-01' },
-      { Name: 'Frank', Region: 'East', Product: 'Gadget', Sales: 750, Date: '2024-03-15' },
-      { Name: 'Grace', Region: 'North', Product: 'Doohickey', Sales: 2000, Date: '2024-04-01' },
-      { Name: 'Hank', Region: 'South', Product: 'Doohickey', Sales: 600, Date: '2024-04-10' },
-      { Name: 'Ivy', Region: 'East', Product: 'Widget', Sales: 1350, Date: '2024-05-05' },
-      { Name: 'Jack', Region: 'North', Product: 'Gadget', Sales: 950, Date: '2024-05-20' },
-    ];
-    const file = new File([''], 'Example Sales Data.csv', { type: 'text/csv' });
-    await this.createSource(
-      file,
-      'Example Sales Data',
-      columns,
-      data,
-      'first-row',
-      ',',
-      columns,
-      'example'
-    );
   },
 
   createSource(

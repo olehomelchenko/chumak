@@ -388,7 +388,7 @@
     "uploadButton": "Upload CSV",
     "pasteButton": "Paste Data",
     "urlButton": "Import from URL",
-    "exampleButton": "Load Example"
+    "videoPlaceholder": "Video coming soon"
   },
   "toast": {
     "dismiss": "Dismiss"

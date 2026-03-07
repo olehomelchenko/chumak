@@ -113,7 +113,6 @@ export function App() {
     onPasteClick: () => AppController.handlePasteClick(),
     onUrlClick: () => AppController.openDialog('import-url'),
     onFileDrop: (e: DragEvent) => AppController.handleFileDrop(e),
-    onLoadExample: () => AppController.loadExampleData(),
     // DatasetInfo
     onRenameSource: (s: any) => AppController.renameSource(s),
     onDeleteSource: (s: any) => AppController.deleteSource(s),
@@ -255,6 +254,7 @@ export function App() {
                         AppController.updateImportPreview();
                       }
                     }}
+                    onBackToUrl={() => AppController.backToUrlImport()}
                   />
                 )}
                 {activeDialog === 'import-url' && (

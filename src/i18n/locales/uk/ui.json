@@ -397,7 +397,7 @@
     "uploadButton": "Завантажити CSV",
     "pasteButton": "Вставити Дані",
     "urlButton": "Імпорт з URL",
-    "exampleButton": "Завантажити Приклад"
+    "videoPlaceholder": "Відео незабаром"
   },
   "toast": {
     "dismiss": "Закрити"

@@ -19,6 +19,7 @@
     "redo": "Redo",
     "applyJoin": "Apply Join",
     "applyAppend": "Apply Append",
+    "backToDatasets": "Back to datasets",
     "fetchData": "Fetch Data",
     "generate": "Generate",
     "download": "Download"

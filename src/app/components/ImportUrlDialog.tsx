@@ -29,6 +29,7 @@ export function ImportUrlDialog({ onImport }: ImportUrlDialogProps) {
     e.preventDefault();
     DialogStore.importUrlState.url.value = `${CDN_BASE_URL}/${filename}`;
     DialogStore.importUrlState.error.value = null;
+    onImport();
   };
 
   return (

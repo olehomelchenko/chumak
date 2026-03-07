@@ -475,7 +475,11 @@ export async function fetchAndImportFromUrl(): Promise<void> {
 
     const file = new File([text], fileName, { type: fileType });
 
-    callbacks?.closeDialog(true);
+    // Transition from import-url to import-csv without resetAll()
+    // (closeDialog resets all dialog state, which would clear fromUrlImport)
+    AppStore.activeDialog.value = null;
+    AppStore.dialogSnapshot.value = null;
+    DialogStore.importCsvState.fromUrlImport.value = true;
     showImportDialog(file);
   } catch (error: any) {
     console.error('URL import error:', error);
@@ -484,6 +488,15 @@ export async function fetchAndImportFromUrl(): Promise<void> {
   } finally {
     DialogStore.importUrlState.isFetching.value = false;
   }
+}
+
+export function backToUrlImport(): void {
+  const savedUrl = DialogStore.importUrlState.url.value;
+  DialogStore.importCsvState.fromUrlImport.value = false;
+  callbacks?.closeDialog(true);
+  // Restore URL after closeDialog reset, then reopen import-url dialog
+  DialogStore.importUrlState.url.value = savedUrl;
+  callbacks?.openDialog('import-url');
 }
 
 export function showReplaceSourceDialog(source: Source): void {

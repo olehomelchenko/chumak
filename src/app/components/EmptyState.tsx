@@ -7,7 +7,6 @@ export interface EmptyStateProps {
   onPasteClick: () => void;
   onUrlClick: () => void;
   onFileDrop: (e: DragEvent) => void;
-  onLoadExample: () => void;
 }
 
 export function EmptyState({
@@ -15,7 +14,6 @@ export function EmptyState({
   onPasteClick,
   onUrlClick,
   onFileDrop,
-  onLoadExample,
 }: EmptyStateProps) {
   const { t } = useTranslation('ui');
   const isDragging = AppStore.isDragging;
@@ -44,6 +42,10 @@ export function EmptyState({
       onDrop={handleDrop}
     >
       <div class="empty-state__content">
+        <div class="empty-state__video-placeholder">
+          <span class="iconify empty-state__video-icon" data-icon="carbon:play-filled"></span>
+          <span class="empty-state__video-text">{t('emptyState.videoPlaceholder')}</span>
+        </div>
         <span class="iconify empty-state__icon" data-icon="carbon:cloud-upload"></span>
         <h2 class="empty-state__title">{t('emptyState.title')}</h2>
         <p class="empty-state__text">{t('emptyState.subtitle')}</p>
@@ -59,10 +61,6 @@ export function EmptyState({
           <button class="button button--primary" onClick={onUrlClick}>
             <span class="iconify" data-icon="carbon:link"></span>
             {t('emptyState.urlButton')}
-          </button>
-          <button class="button button--secondary" onClick={onLoadExample}>
-            <span class="iconify" data-icon="carbon:data-table"></span>
-            {t('emptyState.exampleButton')}
           </button>
         </div>
       </div>

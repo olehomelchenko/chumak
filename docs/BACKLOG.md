@@ -117,6 +117,17 @@ See [custom-icons-setup.md](custom-icons-setup.md) for detailed setup guide and 
 
 ---
 
+### ImportCsvDialog Hardcoded Strings
+
+**Status**: Bug
+**Effort**: Small
+
+`ImportCsvDialog.tsx` contains ~20 hardcoded English strings (labels, help text, placeholders) that were missed during the i18n hardcoded string elimination pass. Examples: "Source Name:", "Delimiter:", "Data Path (dot notation):", "Column Headers:", "Flatten nested objects", "Serialize nested structures to JSON strings", "Duplicate Column Names Detected", etc.
+
+These need to be extracted to translation keys in the appropriate namespace and added to both `en/` and `uk/` locale files.
+
+---
+
 ### Keyboard Accessibility
 
 **Status**: Implemented (February 2026)

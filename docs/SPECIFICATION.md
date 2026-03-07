@@ -433,6 +433,19 @@ Each transform is one object in an array.
 - **Step Editor**: Pipeline management with edit/delete actions and JSON toggle.
 - **Signal-Based State**: UI logic and state are centralized in standalone **Stores** (`AppStore`, `DialogStore`) and **Services**.
 
+#### Prop Threading
+
+`App.tsx` is the wiring hub. It constructs prop objects (`mainContentProps`, `sidebarProps`, `typeMenuProps`) that map `AppController` methods to callback props, then passes them through container components to leaves:
+
+```
+App.tsx  →  mainContentProps  →  MainContent  →  EmptyState, DataTable, PaginationBar, ...
+         →  sidebarProps      →  Sidebar      →  source/model/step lists
+```
+
+Container components (`MainContent`, `Sidebar`) spread these props to child components. Leaf components (e.g., `EmptyState`) receive typed callback props (`onUploadClick`, `onUrlClick`) with no knowledge of `AppController`. This keeps leaves testable in isolation.
+
+Dialog components are rendered directly in `App.tsx`'s slide panel/modal shells (not passed through containers), with props wired inline.
+
 ### 6.2 Key Patterns
 
 - **Chips-based column selection**: Standardized multi-selection UI.
@@ -447,7 +460,71 @@ Each transform is one object in an array.
 - **Implementation**: `src/core/charts.ts`, `src/core/vega-themes.ts`
 - **Theming**: See [UX-SPECIFICATION.md](UX-SPECIFICATION.md) §1.2 for theme system details
 
-### 6.4 Error Handling & Display
+### 6.4 Dialog System Architecture
+
+Dialogs are the primary UI for user configuration — importing data, configuring transforms, and adjusting settings. The system has three layers: the **registry** (metadata), the **coordinator** (lifecycle), and the **shell** (rendering).
+
+#### Registry (`dialog-registry.ts`)
+
+Every dialog is registered in `DIALOG_REGISTRY` with metadata:
+
+| Field          | Purpose                                                    |
+| -------------- | ---------------------------------------------------------- |
+| `name`         | Unique identifier (matches `DialogName` union in types.ts) |
+| `type`         | `'slide-panel'` or `'centered-modal'`                      |
+| `title`        | Default title (can be overridden dynamically)              |
+| `buttonText`   | i18n key for the Apply button (defaults to "Apply")        |
+| `hasError`     | Function returning `true` when Apply should be disabled    |
+| `getState`     | Serializable snapshot for unsaved-change detection         |
+| `applyHandler` | Transform execution function (for transform dialogs)       |
+| `initState`    | Optional state initialization on dialog open               |
+
+Utility functions (`isSlidePanel()`, `isCenteredModal()`, `getDialogTitle()`, `getDialogButtonText()`) read from this registry — no scattered arrays or switch statements.
+
+#### Coordinator (`orchestration/DialogCoordinator.ts`)
+
+Manages dialog lifecycle:
+
+1. **Open**: `openDialog(name, section?)` → sets `AppStore.activeDialog`, calls `initDialogState()`, takes a state snapshot for change detection, syncs URL
+2. **Close**: `closeDialog(force?)` → checks for unsaved changes (comparing current state to snapshot), clears preview, resets `DialogStore`, clears URL
+3. **Preview**: `hasPreviewData()` checks whether preview data exists. For `import-csv` it reads `importCsvState.previewHeaders/previewDataRows`; for transforms it reads `previewState.rows`. Helper functions (`getPreviewTitle`, `getPreviewStats`, `getPreviewColumns`, `getPreviewRows`, `formatPreviewCell`) abstract over both sources.
+4. **Error**: `activeDialogHasError()` delegates to the registry's `hasError` function
+
+#### Rendering in App.tsx
+
+`App.tsx` renders two dialog shells conditionally based on `activeDialog`:
+
+**Slide Panel** (for transforms and import dialogs):
+
+```
+┌──────────────────────────────────────────────────┐
+│ Main Layout                                      │
+│  ┌─────────┐  ┌────────┐  ┌────────┐  ┌───────┐ │
+│  │ Sidebar │  │  Main  │  │ Slide  │  │Preview│ │
+│  │         │  │Content │  │ Panel  │  │ Panel │ │
+│  │         │  │        │  │(dialog)│  │(table)│ │
+│  └─────────┘  └────────┘  └────────┘  └───────┘ │
+└──────────────────────────────────────────────────┘
+```
+
+- The slide panel contains: header (title + close button), content (dialog component), footer (Cancel + Apply buttons)
+- The preview panel renders alongside when `hasPreviewData()` is true
+- A backdrop overlay covers the main content area
+
+**Centered Modal** (for settings, download, reference):
+
+- Rendered as a centered overlay with backdrop
+- No preview panel
+- Some modals (settings, download, reference) omit the footer buttons
+
+#### Apply Dispatch (`handlers/core/step-handlers.ts`)
+
+`applyActiveTransform()` handles the Apply button click:
+
+1. **Non-transform dialogs** (switch statement): `import-csv` → `confirmImport()`, `import-url` → `fetchAndImportFromUrl()`, `generate` → `generateData()`
+2. **Transform dialogs** (registry lookup): reads `applyHandler` from `DIALOG_REGISTRY[activeDialog]` and calls it with execution callbacks
+
+### 6.5 Error Handling & Display
 
 - **Error Cells**: Type conversion failures produce error objects (Power Query-style) displayed as "Error" with a warning icon in table cells.
 - **Error Visibility**: Clicking an error cell shows the full error message in an alert dialog.

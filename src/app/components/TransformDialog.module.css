@@ -573,6 +573,24 @@
   }
 }
 
+.backLink {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-xs);
+  background: none;
+  border: none;
+  padding: 0;
+  margin-bottom: var(--space-md);
+  font-size: var(--font-size-sm);
+  color: var(--color-cyan);
+  cursor: pointer;
+  font-family: var(--font-family);
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
 .replaceBanner {
   display: flex;
   align-items: center;

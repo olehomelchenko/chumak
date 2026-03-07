@@ -1,4 +1,5 @@
 import { JSX } from 'preact';
+import { useTranslation } from 'preact-i18next';
 import { DialogStore } from '../stores/DialogStore';
 import { SchemaDiffPanel } from './SchemaDiffPanel';
 import styles from './TransformDialog.module.css';
@@ -9,6 +10,7 @@ export interface ImportCsvDialogProps {
   onJsonPathReset?: () => void;
   onJsonPathSegmentSelect?: (key: string) => void;
   onParamChange?: () => void;
+  onBackToUrl?: () => void;
 }
 
 export function ImportCsvDialog({
@@ -16,7 +18,9 @@ export function ImportCsvDialog({
   onJsonPathReset,
   onJsonPathSegmentSelect,
   onParamChange,
+  onBackToUrl,
 }: ImportCsvDialogProps = {}) {
+  const { t } = useTranslation('common');
   const {
     sourceName,
     isJson,
@@ -32,6 +36,7 @@ export function ImportCsvDialog({
     duplicateWarning,
     isReplaceMode,
     schemaDiff,
+    fromUrlImport,
   } = DialogStore.importCsvState;
 
   const handleJsonPathInput = (e: JSX.TargetedEvent<HTMLInputElement>) => {
@@ -78,6 +83,14 @@ export function ImportCsvDialog({
 
   return (
     <div>
+      {/* Back to URL datasets link */}
+      {fromUrlImport.value && onBackToUrl && (
+        <button class={styles.backLink} onClick={onBackToUrl}>
+          <span class="iconify" data-icon="carbon:arrow-left" style={{ fontSize: '14px' }}></span>
+          {t('buttons.backToDatasets')}
+        </button>
+      )}
+
       {/* Replace Mode Banner */}
       {isReplaceMode.value && (
         <div class={styles.replaceBanner}>

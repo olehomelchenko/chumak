@@ -43,6 +43,34 @@
     line-height: var(--line-height-relaxed);
   }
 
+  &__video-placeholder {
+    width: 100%;
+    max-width: 480px;
+    aspect-ratio: 16 / 9;
+    background: var(--color-soft-bg);
+    border: var(--border-width) solid var(--border-color);
+    border-radius: var(--border-radius);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-sm);
+    margin: 0 auto var(--space-lg);
+  }
+
+  &__video-icon {
+    width: 48px;
+    height: 48px;
+    color: var(--color-dark-gray);
+    opacity: 0.4;
+  }
+
+  &__video-text {
+    font-size: var(--font-size-sm);
+    color: var(--color-dark-gray);
+    opacity: 0.6;
+  }
+
   &__actions {
     display: flex;
     flex-wrap: wrap;

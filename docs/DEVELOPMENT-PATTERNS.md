@@ -726,6 +726,105 @@ UI re-renders via signal subscriptions
 6. Reset:   DialogStore.resetAll() clears form state
 ```
 
+### 6.3 Import Pipeline Flow
+
+All import paths (file upload, drag-drop, paste, URL) converge on the same core flow. Understanding this pipeline is essential when modifying import behavior.
+
+#### Entry Points → Shared Pipeline
+
+```
+File upload/drop  ──→  handleFileSelect() / handleFileDrop()  ──┐
+Clipboard paste   ──→  handlePaste() / promptPaste()           ──┤
+                                                                  ├──→  showImportDialog(file)
+URL import        ──→  fetchAndImportFromUrl()                 ──┘
+                       (fetches URL → creates synthetic File)
+```
+
+All entry points create a `File` object and call `showImportDialog(file)` in `import-handlers.ts`.
+
+#### Core Pipeline
+
+```
+showImportDialog(file)
+    │
+    ├── .json file?  →  FileReader  →  handleJsonPreview(file, data)
+    │                                       │
+    │                                       ├── Populates importCsvState signals:
+    │                                       │   previewHeaders, previewDataRows,
+    │                                       │   isJson, jsonData, suggestedJsonKeys, etc.
+    │                                       │
+    │                                       └── callbacks.openDialog('import-csv')
+    │
+    └── .csv file?   →  handleCsvPreview(file)
+                            │
+                            ├── PapaParse preview (first N rows)
+                            │
+                            ├── Populates importCsvState signals:
+                            │   previewHeaders, previewDataRows,
+                            │   rawPreviewData, delimiter, headerMode, etc.
+                            │
+                            └── callbacks.openDialog('import-csv')
+```
+
+#### Preview Mechanism
+
+When the `import-csv` dialog opens, the preview panel in `App.tsx` renders because:
+
+1. `hasPreviewData()` in `DialogCoordinator` checks `importCsvState.previewDataRows.value.length > 0`
+2. Preview columns/rows come from `importCsvState.previewHeaders` and `previewDataRows`
+3. When the user changes delimiter or header mode, `updateImportPreview()` or `updateHeadersForPreview()` re-parses and updates these signals
+
+For transform dialogs, preview data uses `DialogStore.previewState` signals instead (set by `preview-engine.ts`).
+
+#### URL Import Specifics
+
+The URL import adds a fetch step before the shared pipeline:
+
+```
+ImportUrlDialog  →  user enters/selects URL  →  "Fetch Data" button
+    │
+    └── fetchAndImportFromUrl()
+            │
+            ├── fetch(url)  →  detect file type from extension
+            ├── Create synthetic File from response text
+            ├── Close import-url dialog
+            └── showImportDialog(file)  →  (shared pipeline above)
+```
+
+The `import-url` dialog has its own state (`importUrlState`: url, isFetching, error) and provides popular dataset links from a CDN.
+
+#### Confirm and Source Creation
+
+When the user clicks "Apply" in the `import-csv` dialog:
+
+```
+confirmImport()
+    │
+    ├── Validates source name
+    ├── Processes data (flatten JSON, apply delimiter/headers)
+    ├── Replace mode?  →  ReplaceSourceService.replaceSource()
+    └── Normal mode?   →  callbacks.createSource()
+                               │
+                               └── ImportService.createSource()
+                                       │
+                                       ├── Creates Source object (id, name, columns, data)
+                                       ├── Creates Model with initial steps (import + types)
+                                       ├── Updates AppStore (sources, models, navigation)
+                                       └── Auto-saves to IndexedDB
+```
+
+#### Key Files
+
+| File                                        | Purpose                                                   |
+| ------------------------------------------- | --------------------------------------------------------- |
+| `handlers/import/import-handlers.ts`        | All import logic (entry points, preview, confirm)         |
+| `stores/dialogs/import/import-csv-state.ts` | Signal state for the CSV import dialog                    |
+| `stores/dialogs/import/import-url-state.ts` | Signal state for the URL import dialog                    |
+| `components/ImportCsvDialog.tsx`            | Import settings UI (delimiter, headers, JSON path)        |
+| `components/ImportUrlDialog.tsx`            | URL input and dataset link list                           |
+| `services/ImportService.ts`                 | Source and model creation                                 |
+| `orchestration/DialogCoordinator.ts`        | Preview data routing (`hasPreviewData`, `getPreviewRows`) |
+
 ---
 
 ## 7. Expression Engine
