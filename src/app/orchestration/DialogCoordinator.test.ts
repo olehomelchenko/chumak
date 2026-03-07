@@ -20,7 +20,6 @@ vi.mock('../handlers/transform/parse-date-handlers', () => ({
 import {
   getDialogState,
   activeDialogHasError,
-  formatPreviewCell,
   hasUnsavedChanges,
   snapshotDialogState,
   hasPreviewData,
@@ -626,65 +625,6 @@ describe('DialogCoordinator', () => {
       AppStore.activeDialog.value = 'split';
       DialogStore.splitState.error.value = null;
       expect(activeDialogHasError()).toBe(false);
-    });
-  });
-
-  // ──────────────────────────────────────────────
-  // formatPreviewCell
-  // ──────────────────────────────────────────────
-  describe('formatPreviewCell', () => {
-    it('returns dash for null', () => {
-      expect(formatPreviewCell({ col: null }, 'col')).toBe('—');
-    });
-
-    it('returns dash for undefined', () => {
-      expect(formatPreviewCell({ col: undefined }, 'col')).toBe('—');
-    });
-
-    it('returns dash for empty string', () => {
-      expect(formatPreviewCell({ col: '' }, 'col')).toBe('—');
-    });
-
-    it('returns checkmark for true', () => {
-      expect(formatPreviewCell({ col: true }, 'col')).toBe('✓');
-    });
-
-    it('returns cross for false', () => {
-      expect(formatPreviewCell({ col: false }, 'col')).toBe('✗');
-    });
-
-    it('returns "Error" for error objects', () => {
-      expect(formatPreviewCell({ col: { type: 'error', message: 'bad' } }, 'col')).toBe('Error');
-    });
-
-    it('formats valid Date as YYYY-MM-DD', () => {
-      const date = new Date(2024, 0, 15); // Jan 15 2024
-      expect(formatPreviewCell({ col: date }, 'col')).toBe('2024-01-15');
-    });
-
-    it('formats Date with zero-padded month and day', () => {
-      const date = new Date(2024, 2, 5); // Mar 5 2024
-      expect(formatPreviewCell({ col: date }, 'col')).toBe('2024-03-05');
-    });
-
-    it('returns "Invalid Date" for invalid Date objects', () => {
-      expect(formatPreviewCell({ col: new Date('invalid') }, 'col')).toBe('Invalid Date');
-    });
-
-    it('JSON-stringifies plain objects', () => {
-      expect(formatPreviewCell({ col: { a: 1 } }, 'col')).toBe('{"a":1}');
-    });
-
-    it('converts numbers to string', () => {
-      expect(formatPreviewCell({ col: 42 }, 'col')).toBe('42');
-    });
-
-    it('passes strings through', () => {
-      expect(formatPreviewCell({ col: 'hello' }, 'col')).toBe('hello');
-    });
-
-    it('returns dash for missing key', () => {
-      expect(formatPreviewCell({}, 'col')).toBe('—');
     });
   });
 

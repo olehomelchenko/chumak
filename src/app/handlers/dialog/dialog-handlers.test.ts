@@ -180,63 +180,6 @@ describe('Dialog Handlers', () => {
     });
   });
 
-  describe('formatPreviewCell', () => {
-    it('should return "—" for null values', () => {
-      const row = { col1: null };
-      expect(DialogHandlers.formatPreviewCell(row, 'col1')).toBe('—');
-    });
-
-    it('should return "—" for empty strings', () => {
-      const row = { col1: '' };
-      expect(DialogHandlers.formatPreviewCell(row, 'col1')).toBe('—');
-    });
-
-    it('should return "✓" for true booleans', () => {
-      const row = { col1: true };
-      expect(DialogHandlers.formatPreviewCell(row, 'col1')).toBe('✓');
-    });
-
-    it('should return "✗" for false booleans', () => {
-      const row = { col1: false };
-      expect(DialogHandlers.formatPreviewCell(row, 'col1')).toBe('✗');
-    });
-
-    it('should stringify object values', () => {
-      const row = { col1: { nested: 'value' } };
-      expect(DialogHandlers.formatPreviewCell(row, 'col1')).toBe('{"nested":"value"}');
-    });
-
-    it('should convert numbers to strings', () => {
-      const row = { col1: 42 };
-      expect(DialogHandlers.formatPreviewCell(row, 'col1')).toBe('42');
-    });
-
-    it('should return strings as-is', () => {
-      const row = { col1: 'test value' };
-      expect(DialogHandlers.formatPreviewCell(row, 'col1')).toBe('test value');
-    });
-
-    it('should format Date objects using local time (avoiding timezone shift)', () => {
-      // Create a date at local midnight on January 15, 2024
-      const date = new Date(2024, 0, 15); // January 15, 2024, 00:00:00 local time
-      const row = { col1: date };
-      // Should format as YYYY-MM-DD using local time, not UTC
-      expect(DialogHandlers.formatPreviewCell(row, 'col1')).toBe('2024-01-15');
-    });
-
-    it('should format Date objects correctly regardless of column name', () => {
-      // Test that dates are formatted consistently whether column is "date", "Year (after)", etc.
-      const date = new Date(1970, 0, 1); // January 1, 1970 local midnight
-      const row = { 'Year (after)': date };
-      expect(DialogHandlers.formatPreviewCell(row, 'Year (after)')).toBe('1970-01-01');
-    });
-
-    it('should return "Invalid Date" for invalid Date objects', () => {
-      const row = { col1: new Date('invalid') };
-      expect(DialogHandlers.formatPreviewCell(row, 'col1')).toBe('Invalid Date');
-    });
-  });
-
   describe('initDialogState - replace dialog', () => {
     beforeEach(() => {
       AppStore.columns.value = ['col1', 'col2', 'col3'];

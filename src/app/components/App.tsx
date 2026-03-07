@@ -59,7 +59,6 @@ import {
   getPreviewColumns,
   getPreviewRows,
   isNewPreviewColumn,
-  formatPreviewCell,
   activeDialogHasError,
 } from '../orchestration/DialogCoordinator';
 import { getDialogTitle, getDialogButtonText } from '../handlers/dialog/dialog-handlers';
@@ -331,10 +330,10 @@ export function App() {
                             return (
                               <td
                                 key={col}
-                                class={`${tableStyles.cell} ${row._removed || isRemovedColumn ? tableStyles.removed : ''} ${isNewPreviewColumn(col) ? styles.previewNewCol : ''} ${isError ? tableStyles.error : ''}`}
+                                class={`${tableStyles.cell} ${row._removed || isRemovedColumn ? tableStyles.removed : ''} ${isNewPreviewColumn(col) ? styles.previewNewCol : ''} ${isError ? tableStyles.error : ''} ${cellValue === null || cellValue === undefined || cellValue === '' ? tableStyles.empty : ''}`}
                                 title={isError ? cellValue.message : undefined}
                               >
-                                {formatPreviewCell(row, col)}
+                                {formatCellValue(cellValue)}
                               </td>
                             );
                           })}

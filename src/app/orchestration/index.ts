@@ -68,6 +68,5 @@ export {
   getPreviewColumns,
   getPreviewRows,
   isNewPreviewColumn,
-  formatPreviewCell,
 } from './DialogCoordinator';
 export type { DialogCallbacks } from './DialogCoordinator';

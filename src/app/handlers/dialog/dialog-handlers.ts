@@ -26,7 +26,6 @@ export {
   getPreviewColumns,
   getPreviewRows,
   isNewPreviewColumn,
-  formatPreviewCell,
   clearPreview as clearPreviewDirect,
 } from '../../orchestration/DialogCoordinator';
 

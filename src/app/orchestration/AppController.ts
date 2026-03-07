@@ -99,7 +99,6 @@ export const AppController = {
   getPreviewStats: DialogHandlers.getPreviewStats,
   getPreviewColumns: DialogHandlers.getPreviewColumns,
   getPreviewRows: DialogHandlers.getPreviewRows,
-  formatPreviewCell: DialogHandlers.formatPreviewCell,
   clearPreview: DialogHandlers.clearPreview,
   isNewPreviewColumn: DialogHandlers.isNewPreviewColumn,
   activeDialogError: DialogHandlers.activeDialogError,

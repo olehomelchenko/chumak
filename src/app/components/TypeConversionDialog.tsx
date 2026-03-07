@@ -5,9 +5,9 @@ import { previewTypeConversion } from '../handlers/core/interaction-handlers';
 import {
   getPreviewColumns,
   getPreviewRows,
-  formatPreviewCell,
   isNewPreviewColumn,
 } from '../orchestration/DialogCoordinator';
+import { formatCellValue } from '../handlers/core/helper-handlers';
 import styles from './App.module.css';
 import tableStyles from './DataTable.module.css';
 
@@ -93,10 +93,10 @@ export function TypeConversionDialog({ onCancel, onApply }: TypeConversionDialog
                           return (
                             <td
                               key={col}
-                              class={`${tableStyles.cell} ${isNewPreviewColumn(col) ? styles.previewNewCol : ''} ${isError ? tableStyles.error : ''}`}
+                              class={`${tableStyles.cell} ${isNewPreviewColumn(col) ? styles.previewNewCol : ''} ${isError ? tableStyles.error : ''} ${cellValue === null || cellValue === undefined || cellValue === '' ? tableStyles.empty : ''}`}
                               title={isError ? cellValue.message : undefined}
                             >
-                              {formatPreviewCell(row, col)}
+                              {formatCellValue(cellValue)}
                             </td>
                           );
                         })}

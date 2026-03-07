@@ -452,26 +452,3 @@ export function getPreviewRows(): any[] {
 export function isNewPreviewColumn(col: string): boolean {
   return DialogStore.previewState.newColumns.value.includes(col);
 }
-
-/**
- * Format a cell value for preview display
- */
-export function formatPreviewCell(row: any, col: string): string {
-  const val = row[col];
-  if (val == null || val === '') return '—';
-  if (typeof val === 'boolean') return val ? '✓' : '✗';
-
-  // Handle conversion errors
-  if (typeof val === 'object' && val !== null && 'type' in val && val.type === 'error') {
-    return 'Error';
-  }
-
-  if (val instanceof Date) {
-    if (isNaN(val.getTime())) return 'Invalid Date';
-    const pad = (n: number) => String(n).padStart(2, '0');
-    return `${val.getFullYear()}-${pad(val.getMonth() + 1)}-${pad(val.getDate())}`;
-  }
-
-  if (typeof val === 'object') return JSON.stringify(val);
-  return String(val);
-}
