@@ -1,8 +1,12 @@
 # Syto Native (macOS) - Functional Specification
 
-> **Purpose**: Complete functional specification for reimplementing Syto as a native macOS application with DuckDB + Parquet backend.
-
-> **Monetization context**: The full Electron migration described here is a large initiative. The current monetization strategy ([MONETIZATION-STRATEGY.md](MONETIZATION-STRATEGY.md)) favors a lighter path first: integrating DuckDB-WASM into the browser app to get the key performance benefits (larger datasets, Parquet support, faster queries) without Electron overhead. This spec remains the reference if a standalone desktop product is later justified by demand. See "Step 2.5: DuckDB-WASM Performance Tier" in the monetization doc.
+> **Status: Reference document, not active roadmap.**
+>
+> This is a detailed specification for a full Electron/DuckDB desktop app. As of March 2026, the project is pursuing lighter paths first: a **CLI** (Node.js/Arquero, same engine as the browser) and potentially **DuckDB-WASM** in the browser. Both achieve the key goals — headless execution and larger dataset support — without the Electron migration overhead.
+>
+> This spec remains valuable as a **reference for DuckDB integration** if/when a DuckDB backend is built. The transform-to-SQL translation tables (§9), DuckDB type mappings (§2), and expression-to-SQL rules (§14.4) are reusable regardless of whether execution happens in WASM, a CLI, or an Electron app. The Electron-specific infrastructure (IPC, native dialogs, window management) may never be needed.
+>
+> See [CLI-CONSIDERATIONS.md](CLI-CONSIDERATIONS.md) for the current CLI direction, [WEAVERBIRD-COMPARISON.md](WEAVERBIRD-COMPARISON.md) for research on multi-backend architectures, and [SOUL.md](../../SOUL.md) for the updated project vision framing the workflow spec as the portable, engine-agnostic artifact.
 
 ---
 

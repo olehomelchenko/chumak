@@ -8,6 +8,21 @@ Power Query in Excel hits a sweet spot: visual pipeline building, no code requir
 
 Syto fills this gap: **a browser-based data wrangling tool that's as capable as Power Query but runs anywhere, stores nothing on servers, and doesn't require installation.**
 
+## The Core Idea
+
+Syto's central artifact is the **workflow specification** — a declarative JSON document that describes a data transformation pipeline. Everything else is an interface to it.
+
+The visual builder produces this spec. The CLI executes it. An LLM agent can generate it. A human can inspect it in the browser and understand exactly what happened. This transparency — the fact that the spec is data, not code — is what makes Syto different from writing a Python script or an SQL query.
+
+Python scripts and SQL queries are opaque to non-programmers. A Syto workflow is an inspectable, visual, replayable artifact that anyone can open and understand. The spec bridges the gap between visual interaction and headless execution:
+
+- **Build visually** in the browser (for humans who don't code)
+- **Run headlessly** via CLI (for automation, CI, cron jobs)
+- **Generate programmatically** (for LLM agents that produce inspectable artifacts instead of opaque scripts)
+- **Inspect and modify** by reopening in the browser (always)
+
+The workflow JSON is portable, diffable, and versionable. It is not tied to any single execution engine — the same spec can be executed by different backends (Arquero in the browser today, potentially DuckDB for large datasets in the future).
+
 ## Core Values
 
 ### 1. Security by Architecture
@@ -22,28 +37,17 @@ Everything runs in the browser. Data never leaves the machine. No accounts, no u
 
 The trade-off is clear: we give up server-side processing power in exchange for privacy guarantees that don't require trust.
 
-### 3. Visual Pipeline, JSON Underneath
-
-Transformations are built through a GUI — click buttons, fill forms, see results. But underneath, everything is a declarative JSON specification. Users can view and edit this JSON directly (the "Danger Zone"), but they don't have to.
-
-This means workflows are:
-
-- **Reproducible**: Save the JSON, replay it on new data
-- **Shareable**: Send someone your workflow spec, they can apply it
-- **Inspectable**: Advanced users can see exactly what's happening
-- **Debuggable**: When something goes wrong, the spec shows what was attempted
-
-### 4. Beginner-Friendly, Not Beginner-Limited
+### 3. Beginner-Friendly, Not Beginner-Limited
 
 The UI prioritizes accessibility — toolbar buttons instead of syntax, visual column selection instead of typing names, immediate preview of changes. But it doesn't cap out early.
 
 Users who need more can write expressions (`revenue - cost > 1000`), use regex extraction, build multi-model joins. The tool grows with the user rather than forcing them to graduate to something else.
 
-### 5. Do One Thing Well
+### 4. Do One Thing Well
 
 Syto handles tabular data transformation: import, clean, reshape, export. It's not trying to become a spreadsheet, a statistical package, a visualization tool, or a database. The EDA features (histograms, boxplots, statistics) exist to help users understand their data before transforming it — not to replace dedicated analysis tools.
 
-### 6. Non-Destructive by Design
+### 5. Non-Destructive by Design
 
 Every transformation is a step in a pipeline, not a destructive change to the underlying data. The original raw data (the "Source") is always preserved exactly as it was imported.
 
@@ -54,7 +58,7 @@ This provides:
 - **Technical Rollback**: You can always revert to any previous state by simply moving back in the pipeline or deleting steps.
 - **Reproducibility**: The pipeline is a recipe that can be applied to new versions of the same raw data.
 
-### 7. Respect for User Agency (The "Adult in the Room")
+### 6. Respect for User Agency (The "Adult in the Room")
 
 Syto assumes the user is an intelligent human being capable of making their own decisions. We do not believe in paternalistic software that hides power or prevents potentially breaking actions if the user chooses to take them.
 
@@ -68,17 +72,33 @@ While we prioritize safety and non-destructiveness by default, we enter into a s
 ## What We're Not
 
 - **Not a spreadsheet replacement**: No cell-by-cell editing, no formulas that reference A1:B5
-- **Not a coding environment**: No scripting, no custom functions (yet), no plugin system
-- **Not a big data tool**: Browser-based means memory limits; we optimize for datasets that fit in RAM
-- **Not a BI/visualization platform**: Charts are for exploration during wrangling, not final output
+- **Not a coding environment**: No scripting, no plugin system. The built-in expression functions are a deliberate ceiling, not a starting point for extensibility. The spec is data, not code — that's the point.
+- **Not a big data tool**: The browser engine optimizes for datasets that fit in RAM. A DuckDB-backed engine may lift this ceiling in the future, but Syto is not trying to replace production data pipelines.
+- **Not a BI/visualization platform**: Charts are for exploration during wrangling, not final output. Dashboards and reporting are a separate concern.
+
+## Open-Core Model
+
+The core transformation engine, the workflow specification format, and the browser-based visual builder are open-source. This is the growth engine — what people discover, try, and recommend.
+
+Paid features layer on top without compromising the core:
+
+- **Performance**: DuckDB-backed execution for larger datasets
+- **Advanced transforms**: Specialized operations beyond the core set
+- **Cloud storage**: Shared workflow gallery for teams
+
+The free tier must remain genuinely useful on its own. It is not a demo of the paid product — it is the product. Paid features serve power users who have already found value.
 
 ## The Name
 
-"Syto" refers to Ukrainian word for "Sieve" - to reflect the tool's purpose of "sieving" data, while maintaining the connection to Ukrainian heritage.
+"Syto" refers to Ukrainian word for "Sieve" (Сито) — reflecting the tool's purpose of "sieving" data, while maintaining the connection to Ukrainian heritage.
 
-**Historical Note**: The project was originally named "Chumak" (Чумак), which also refers to these Ukrainian salt traders. The name was changed to "Syto" (Сито, meaning "sieve")
+**Historical Note**: The project was originally named "Chumak" (Чумак), referring to Ukrainian salt traders. The name was changed to "Syto" to better reflect what the tool does.
 
 ## Technical Philosophy
+
+### The Spec is the Product
+
+The workflow JSON specification is more important than any single execution engine. Engines can be swapped or added (Arquero today, DuckDB tomorrow). The spec must remain stable, portable, and human-readable. Design decisions should prioritize the spec's longevity over implementation convenience.
 
 ### Leverage Existing Libraries
 
@@ -94,17 +114,14 @@ High test coverage on the transformation engine, expression parser, and schema s
 
 Simple operations (filter, sort, remove columns) should be one or two clicks. Complex operations (regex extraction, multi-table joins) can require more setup. The UI doesn't force beginners through advanced configuration, and it doesn't prevent power users from accessing full functionality.
 
-## Current State
-
-The core is solid: 20+ transformation types, expression parsing with security validation, type inference and propagation, EDA with charts, and a multi-model dependency graph for combining datasets. The project is usable for real data cleaning tasks.
-
-What's still evolving:
-
-- Performance limits with larger datasets
-- More complex window functions and advanced statistical operations
-
 ## Where It's Going
 
-The immediate focus is filling gaps in the existing architecture — functions in expressions, more operators, better error messages. The transformation JSON format should become stable enough to be a portable specification that could be executed by different backends (browser/Arquero today, potentially DuckDB/CLI in the future).
+The workflow specification is becoming a portable standard with multiple execution paths:
 
-The goal isn't to build the most powerful data tool. It's to build the most accessible one that's still genuinely useful for real work.
+- **Browser engine** (Arquero): The free, zero-install experience. Instant feedback, works offline, handles datasets that fit in browser memory.
+- **CLI** (Node.js/Arquero): Run workflows headlessly for automation. Same engine, different entry point. Enables the "build visually, run in CI" loop and LLM agent workflows.
+- **DuckDB engine** (WASM or native): Lifts the dataset size ceiling. Same workflow spec, different executor optimized for performance.
+
+The core engine (`src/core/`) is architecturally portable — no browser APIs, no UI framework dependencies. This is by design, not accident. Adding a new execution backend means implementing the same transform interface against a different engine, not rewriting the product.
+
+The goal isn't to build the most powerful data tool. It's to build the most accessible one that's still genuinely useful for real work — and to make the workflows it produces portable enough to run anywhere.

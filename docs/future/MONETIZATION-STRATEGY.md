@@ -2,6 +2,13 @@
 
 > Brainstormed February 2026. This is a living document — revisit as the product evolves.
 
+> **March 2026 update**: [SOUL.md](../../SOUL.md) was revised to establish the workflow JSON spec as the central artifact, introduce the open-core model explicitly, and add the CLI as a first-class execution path. Key changes affecting this doc:
+>
+> - **CLI** is now part of the product strategy (free tier, distribution channel, gateway to Pro) but is not yet reflected in the rollout sequence below.
+> - **Dashboards** are scoped as "a separate concern" in SOUL.md — their status as a Forever Pass feature needs revisiting.
+> - **DuckDB** is framed as "another executor for the same spec" rather than a separate product tier. The multi-backend architecture (Arquero browser, Arquero CLI, DuckDB-WASM, DuckDB native) is the strategic direction.
+> - See [CLI-CONSIDERATIONS.md](CLI-CONSIDERATIONS.md) and [WEAVERBIRD-COMPARISON.md](WEAVERBIRD-COMPARISON.md) for the research behind these changes.
+
 ---
 
 ## Guiding Principles
