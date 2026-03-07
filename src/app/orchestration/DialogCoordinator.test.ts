@@ -272,22 +272,9 @@ describe('DialogCoordinator', () => {
       expect(state).toEqual({ column: 'salary', strategy: 'mean', value: '' });
     });
 
-    it('returns settings state from AppStore', () => {
-      AppStore.theme.value = 'blues';
-      AppStore.uxSettings.value = {
-        pagination: { pageSize: 500 },
-        preview: { rowLimit: 50 },
-        theme: 'blues',
-        analyticsOptOut: true,
-      };
-
+    it('returns null for settings (changes applied immediately)', () => {
       const state = getDialogState('settings');
-      expect(state).toEqual({
-        theme: 'blues',
-        rowLimit: 50,
-        analyticsOptOut: true,
-        language: 'en',
-      });
+      expect(state).toBeNull();
     });
 
     it('returns append state', () => {

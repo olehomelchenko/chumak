@@ -468,16 +468,16 @@ Dialogs are the primary UI for user configuration — importing data, configurin
 
 Every dialog is registered in `DIALOG_REGISTRY` with metadata:
 
-| Field          | Purpose                                                    |
-| -------------- | ---------------------------------------------------------- |
-| `name`         | Unique identifier (matches `DialogName` union in types.ts) |
-| `type`         | `'slide-panel'` or `'centered-modal'`                      |
-| `title`        | Default title (can be overridden dynamically)              |
-| `buttonText`   | i18n key for the Apply button (defaults to "Apply")        |
-| `hasError`     | Function returning `true` when Apply should be disabled    |
-| `getState`     | Serializable snapshot for unsaved-change detection         |
-| `applyHandler` | Transform execution function (for transform dialogs)       |
-| `initState`    | Optional state initialization on dialog open               |
+| Field          | Purpose                                                                                             |
+| -------------- | --------------------------------------------------------------------------------------------------- |
+| `name`         | Unique identifier (matches `DialogName` union in types.ts)                                          |
+| `type`         | `'slide-panel'` or `'centered-modal'`                                                               |
+| `title`        | Default title (can be overridden dynamically)                                                       |
+| `buttonText`   | i18n key for the Apply button (defaults to "Apply")                                                 |
+| `hasError`     | Function returning `true` when Apply should be disabled                                             |
+| `getState`     | Serializable snapshot for unsaved-change detection (omit for immediate-apply dialogs like settings) |
+| `applyHandler` | Transform execution function (for transform dialogs)                                                |
+| `initState`    | Optional state initialization on dialog open                                                        |
 
 Utility functions (`isSlidePanel()`, `isCenteredModal()`, `getDialogTitle()`, `getDialogButtonText()`) read from this registry — no scattered arrays or switch statements.
 
@@ -486,7 +486,7 @@ Utility functions (`isSlidePanel()`, `isCenteredModal()`, `getDialogTitle()`, `g
 Manages dialog lifecycle:
 
 1. **Open**: `openDialog(name, section?)` → sets `AppStore.activeDialog`, calls `initDialogState()`, takes a state snapshot for change detection, syncs URL
-2. **Close**: `closeDialog(force?)` → checks for unsaved changes (comparing current state to snapshot), clears preview, resets `DialogStore`, clears URL
+2. **Close**: `closeDialog(force?)` → checks for unsaved changes (comparing current state to snapshot), clears preview, resets `DialogStore`, clears URL. Dialogs that apply changes immediately (e.g., settings) omit `getState` so the unsaved-changes check is skipped.
 3. **Preview**: `hasPreviewData()` checks whether preview data exists. For `import-csv` it reads `importCsvState.previewHeaders/previewDataRows`; for transforms it reads `previewState.rows`. Helper functions (`getPreviewTitle`, `getPreviewStats`, `getPreviewColumns`, `getPreviewRows`) abstract over both sources. Cell formatting uses the shared `formatCellValue()` from `helper-handlers.ts`.
 4. **Error**: `activeDialogHasError()` delegates to the registry's `hasError` function
 

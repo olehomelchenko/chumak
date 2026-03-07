@@ -951,6 +951,13 @@ case 'import-text': callbacks?.confirmTextEntry(); return;
 - **Registry `applyHandler`**: Dialog produces a `TransformStep` (filter, derive, sort, etc.)
 - **StepCallbacks switch case**: Dialog has custom apply logic (import transitions, multi-step flows)
 
+#### Immediate-Apply vs Deferred-Apply Dialogs
+
+Dialogs fall into two categories for change detection:
+
+- **Deferred-apply** (most transform dialogs): User configures options, then clicks "Apply". Include `getState` in the registry so that closing without applying triggers the "unsaved changes" confirmation.
+- **Immediate-apply** (e.g., settings): Changes take effect instantly via callbacks (persisted to localStorage, UI updated). **Omit `getState`** from the registry — there are no "unsaved changes" to discard, so the confirmation dialog should never appear.
+
 ### 7.2 Adding a New Function
 
 > **Full details**: See [FUNCTION-DOCS-SYSTEM.md](FUNCTION-DOCS-SYSTEM.md) for the complete documentation pipeline.

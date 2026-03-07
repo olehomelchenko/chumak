@@ -15,7 +15,6 @@ import type { ComponentType } from 'preact';
 import type { DialogName } from './types';
 import type { ExecutionCallbacks } from './services/StepService';
 import { DialogStore } from './stores/DialogStore';
-import { AppStore } from './stores/AppStore';
 import { GeneratorService } from './services/GeneratorService';
 import i18n from '../i18n';
 
@@ -497,12 +496,7 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     title: 'Settings',
     type: 'centered-modal',
     isUrlNavigable: true,
-    getState: () => ({
-      theme: AppStore.theme.value,
-      rowLimit: AppStore.uxSettings.value.preview?.rowLimit || 100,
-      analyticsOptOut: AppStore.uxSettings.value.analyticsOptOut ?? false,
-      language: AppStore.uxSettings.value.language || 'en',
-    }),
+    // No getState — settings are applied immediately, no "unsaved changes" confirmation needed
   },
 
   download: {
