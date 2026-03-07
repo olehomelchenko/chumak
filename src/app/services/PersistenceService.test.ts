@@ -2,13 +2,13 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { AppStore } from '../stores/AppStore';
 import { createTestSource, createTestModel } from '../handlers/test-utils';
 
-vi.mock('../../core/storage', () => ({
+vi.mock('../infrastructure/storage', () => ({
   autoSave: vi.fn().mockResolvedValue(undefined),
   clearAllData: vi.fn().mockResolvedValue(undefined),
 }));
 
 import { PersistenceService } from './PersistenceService';
-import { autoSave, clearAllData as storageClearAllData } from '../../core/storage';
+import { autoSave, clearAllData as storageClearAllData } from '../infrastructure/storage';
 
 describe('PersistenceService', () => {
   beforeEach(() => {

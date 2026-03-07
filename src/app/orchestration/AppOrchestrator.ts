@@ -11,9 +11,9 @@
 
 import { AppStore } from '../stores/AppStore';
 import { SchemaEngine } from '../../core/schema-engine';
-import { loadUXSettings, updateUXSetting } from '../../core/ux-settings';
-import { loadInitialData } from '../../core/storage';
-import { setUrlState } from '../../core/url-state';
+import { loadUXSettings, updateUXSetting } from '../infrastructure/ux-settings';
+import { loadInitialData } from '../infrastructure/storage';
+import { setUrlState } from '../infrastructure/url-state';
 import { initEventRouter, destroyEventRouter, EventRouterCallbacks } from './EventRouter';
 import {
   initUrlStateSync,

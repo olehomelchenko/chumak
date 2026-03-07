@@ -10,8 +10,8 @@
  *   <button onClick={() => AppController.openDialog('filter')}>Filter</button>
  */
 
-import { setUrlState } from '../../core/url-state';
-import { updateUXSetting } from '../../core/ux-settings';
+import { setUrlState } from '../infrastructure/url-state';
+import { updateUXSetting } from '../infrastructure/ux-settings';
 import { AppStore } from '../stores/AppStore';
 import { DialogStore } from '../stores/DialogStore';
 import { ModelService } from '../services/ModelService';

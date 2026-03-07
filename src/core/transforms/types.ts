@@ -1,5 +1,4 @@
 import { TransformStep } from '../schema-engine';
-import type { Source, Model } from '../../app/types';
 
 /**
  * Options for pattern-based column matching
@@ -11,11 +10,20 @@ export interface MatchOptions {
 }
 
 /**
+ * Minimal interface for entities that hold tabular data (sources, models).
+ * Keeps core decoupled from app-layer type definitions.
+ */
+export interface DataEntity {
+  id: string;
+  data: any[];
+}
+
+/**
  * Context for multi-table operations (joins, concat, union)
  */
 export interface TransformContext {
-  sources: Source[];
-  models: Model[];
+  sources: DataEntity[];
+  models: DataEntity[];
 }
 
 /**

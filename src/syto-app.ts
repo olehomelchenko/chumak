@@ -9,9 +9,9 @@
  *   await app.init();
  */
 
-import { loadUXSettings } from './core/ux-settings';
-import { loadInitialData } from './core/storage';
-import { getUrlState, setUrlState } from './core/url-state';
+import { loadUXSettings } from './app/infrastructure/ux-settings';
+import { loadInitialData } from './app/infrastructure/storage';
+import { getUrlState, setUrlState } from './app/infrastructure/url-state';
 import { SchemaEngine } from './core/schema-engine';
 import { AppStore } from './app/stores/AppStore';
 import { ModelService } from './app/services/ModelService';

@@ -1,4 +1,4 @@
-import { autoSave, clearAllData as storageClearAllData } from '../../core/storage';
+import { autoSave, clearAllData as storageClearAllData } from '../infrastructure/storage';
 import { AppStore } from '../stores/AppStore';
 import i18n from '../../i18n';
 

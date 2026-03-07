@@ -7,7 +7,7 @@
 
 import i18n from 'i18next';
 import { initReactI18next } from 'preact-i18next';
-import { loadUXSettings } from '../core/ux-settings';
+import { loadUXSettings } from '../app/infrastructure/ux-settings';
 
 // Import translation namespaces
 import enCommon from './locales/en/common.json';

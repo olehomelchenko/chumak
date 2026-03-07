@@ -6,7 +6,7 @@
  */
 
 import { AppStore } from '../stores/AppStore';
-import { getUrlState, setUrlState, clearUrlHash, URLState } from '../../core/url-state';
+import { getUrlState, setUrlState, clearUrlHash, URLState } from '../infrastructure/url-state';
 import { isUrlNavigableDialog } from '../dialog-registry';
 import { ModelService } from '../services/ModelService';
 

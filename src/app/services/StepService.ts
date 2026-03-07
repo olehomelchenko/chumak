@@ -1,7 +1,7 @@
 import * as aq from 'arquero';
 import { applyTransform, describeTransform } from '../../core/transforms';
 import { TransformResult } from '../../core/transform-result';
-import { metricsCollector, getDataShape } from '../../core/metrics';
+import { metricsCollector, getDataShape } from '../infrastructure/metrics';
 import { PersistenceService } from './PersistenceService';
 import { DependencyService } from './DependencyService';
 import { Model, Source } from '../types';

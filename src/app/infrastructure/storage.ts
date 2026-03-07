@@ -2,7 +2,7 @@
  * Syto Storage Layer - IndexedDB Persistence
  */
 
-import { SchemaEngine } from './schema-engine';
+import { SchemaEngine } from '../../core/schema-engine';
 
 const DB_NAME = 'syto-db';
 const DB_VERSION = 1;

@@ -1,7 +1,7 @@
 import { signal, computed } from '@preact/signals';
 import { Source, Model, DataRow, DialogName, Notification } from '../types';
 import { ColumnSchema, TransformStep } from '../../core/schema-engine';
-import { UXSettings } from '../../core/ux-settings';
+import { UXSettings } from '../infrastructure/ux-settings';
 
 export interface HistoryEntry {
   steps: TransformStep[];

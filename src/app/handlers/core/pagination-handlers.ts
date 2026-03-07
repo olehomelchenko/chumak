@@ -6,7 +6,7 @@
  */
 
 import { AppStore } from '../../stores/AppStore';
-import { updateUXSetting } from '../../../core/ux-settings';
+import { updateUXSetting } from '../../infrastructure/ux-settings';
 import * as InteractionHandlers from './interaction-handlers';
 
 /**

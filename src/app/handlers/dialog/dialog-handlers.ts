@@ -16,7 +16,7 @@ import {
 } from '../../dialog-registry';
 import * as DialogCoordinator from '../../orchestration/DialogCoordinator';
 import { syncDialogToUrl, clearDialogFromUrl } from '../../orchestration/UrlStateSync';
-import { getUrlState } from '../../../core/url-state';
+import { getUrlState } from '../../infrastructure/url-state';
 
 // Re-export pure functions from DialogCoordinator
 export {
