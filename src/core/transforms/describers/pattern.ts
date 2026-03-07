@@ -1,4 +1,4 @@
-import i18n from '../../../i18n';
+import i18n from '../../../i18n/core';
 
 export function describeSelectPattern(transform: any): string | null {
   if (!transform.selectPattern) return null;

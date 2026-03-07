@@ -1,4 +1,4 @@
-import i18n from '../../../i18n';
+import i18n from '../../../i18n/core';
 
 export function describeSliceRows(transform: any): string | null {
   if (!transform.sliceRows) return null;

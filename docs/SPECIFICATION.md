@@ -103,7 +103,12 @@ A three-stage pipeline for safe execution of user-defined formulas:
 
 #### Internationalization Engine
 
-The i18n system provides multi-language support using i18next with Preact bindings. Key characteristics:
+The i18n system provides multi-language support using i18next, split into two layers:
+
+- **`src/i18n/core.ts`** — Portable i18n registry (i18next only, no browser APIs). Loads all translation resources and initializes with English defaults. Used by `src/core/` for transform descriptions and error messages.
+- **`src/i18n/index.ts`** — App-layer i18n. Builds on `core.ts` by adding Preact bindings (`initReactI18next`) and browser-specific language detection from localStorage.
+
+Key characteristics:
 
 - **Languages**: English (en, default) and Ukrainian (uk) with automatic plural handling
 - **Namespaces**: `common` (buttons, labels), `settings` (settings dialog), `dialogs` (dialog titles)
@@ -111,8 +116,9 @@ The i18n system provides multi-language support using i18next with Preact bindin
 - **Type Safety**: TypeScript type augmentation provides autocomplete for translation keys
 - **Initialization**: Language is loaded from localStorage before i18n initialization to prevent race conditions
 - **Reactivity**: `I18nextProvider` ensures components re-render when language changes
+- **Portability**: Core code imports from `i18n/core` (no Preact); app code imports from `i18n` (with Preact)
 
-**Implementation**: `src/i18n/index.ts` (configuration), `src/i18n/locales/*/` (translation files)
+**Implementation**: `src/i18n/core.ts` (portable), `src/i18n/index.ts` (app bindings), `src/i18n/locales/*/` (translation files)
 
 **Ukrainian Plural Rules**: Ukrainian has 3 plural forms handled automatically by i18next:
 
@@ -187,11 +193,15 @@ The SPA at `/app/` uses hash-based routing for navigation state (source, model, 
 
 ```
 src/
-├── core/                    # Data engine (modular structure)
+├── core/                    # Portable data engine (no browser APIs, no Preact)
 │   ├── transforms/          # Transform implementations
 │   │   ├── handlers/        # Transform logic by category
 │   │   └── describers/      # Human-readable descriptions
 │   └── functions/           # Expression function implementations
+├── i18n/                    # Internationalization
+│   ├── core.ts              # Portable i18n registry (i18next only)
+│   ├── index.ts             # App i18n (adds Preact bindings + language detection)
+│   └── locales/             # Translation files (en, uk)
 ├── app/
 │   ├── components/          # Preact UI components with co-located CSS Modules
 │   │   ├── join/            # Join dialog sub-components
@@ -207,6 +217,11 @@ src/
 │   │   ├── dialog/          # Dialog-specific handlers
 │   │   └── core/            # Core interaction handlers
 │   ├── orchestration/       # App lifecycle and coordination modules
+│   ├── infrastructure/      # Browser-specific adapters
+│   │   ├── storage.ts       # IndexedDB persistence
+│   │   ├── url-state.ts     # URL hash state management
+│   │   ├── ux-settings.ts   # localStorage user preferences
+│   │   └── metrics/         # Performance metrics (IndexedDB)
 │   └── types.ts             # Application-wide TypeScript definitions
 ├── content/                 # Markdown content (about, docs, functions)
 │   ├── functions/           # Auto-generated function reference docs
@@ -218,6 +233,8 @@ docs/                        # Project documentation (internal)
 ```
 
 #### Core Engine (`src/core/`)
+
+The core engine is fully portable — no browser APIs, no Preact dependency. It can be used standalone in Node.js (e.g., for a CLI tool). It imports only from `src/i18n/core.ts` (portable i18n registry) and third-party libraries (Arquero, jsep).
 
 | File/Directory         | Purpose                                                          |
 | ---------------------- | ---------------------------------------------------------------- |
@@ -231,9 +248,6 @@ docs/                        # Project documentation (internal)
 | `eda-engine.ts`        | Statistical profiling and column analysis                        |
 | `charts.ts`            | Vega-Lite specification generator                                |
 | `vega-themes.ts`       | Theme configurations for visualizations                          |
-| `storage.ts`           | IndexedDB persistence layer                                      |
-| `url-state.ts`         | URL hash state management                                        |
-| `ux-settings.ts`       | User preferences (theme, performance)                            |
 
 **Transforms Module** (`transforms/`):
 
@@ -289,7 +303,16 @@ functions/
 - `ImportService.ts` — CSV/URL/clipboard import logic
 - `ReplaceSourceService.ts` — Data replacement and backup restoration
 - `ExportService.ts` — CSV/JSON/workflow export
-- `PersistenceService.ts` — IndexedDB coordination
+- `PersistenceService.ts` — Persistence coordination (wraps infrastructure/storage)
+
+**Infrastructure** (`infrastructure/`):
+
+Browser-specific adapters, isolated from core logic:
+
+- `storage.ts` — IndexedDB persistence layer (sources, models)
+- `url-state.ts` — URL hash state management (`window.location`)
+- `ux-settings.ts` — User preferences via localStorage (theme, pagination, language)
+- `metrics/` — Performance metrics collection and storage (IndexedDB + localStorage)
 
 **Orchestration** (`orchestration/`):
 

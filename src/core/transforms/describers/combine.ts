@@ -1,4 +1,4 @@
-import i18n from '../../../i18n';
+import i18n from '../../../i18n/core';
 
 export function describeConcat(transform: any, rightName: string | null): string | null {
   if (!transform.concat) return null;

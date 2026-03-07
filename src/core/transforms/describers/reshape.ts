@@ -1,4 +1,4 @@
-import i18n from '../../../i18n';
+import i18n from '../../../i18n/core';
 
 export function describeFold(transform: any): string | null {
   if (!transform.fold) return null;

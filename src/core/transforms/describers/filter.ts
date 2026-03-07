@@ -1,4 +1,4 @@
-import i18n from '../../../i18n';
+import i18n from '../../../i18n/core';
 
 export function describeFilter(transform: any): string | null {
   if (!transform.filter) return null;

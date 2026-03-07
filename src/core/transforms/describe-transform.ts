@@ -1,5 +1,5 @@
 import { TRANSFORM_DESCRIBERS } from './describers';
-import i18n from '../../i18n';
+import i18n from '../../i18n/core';
 
 /**
  * Generate human-readable description for steps list

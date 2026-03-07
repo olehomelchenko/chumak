@@ -78,12 +78,18 @@ See `src/core/ast-validator.ts` for the whitelist implementation.
 
 ```
 src/
-├── core/           # Data engine (transforms, expressions, schema)
+├── core/           # Portable data engine (transforms, expressions, schema)
+│                   # No browser APIs, no Preact — usable in Node.js
+├── i18n/
+│   ├── core.ts     # Portable i18n registry (i18next only)
+│   ├── index.ts    # App i18n (adds Preact bindings + language detection)
+│   └── locales/    # Translation files (en, uk)
 ├── app/
 │   ├── components/ # Preact UI components with CSS Modules
 │   ├── stores/     # Signal-based state (AppStore, DialogStore)
 │   ├── services/   # Business logic (import, export, persistence)
 │   ├── handlers/   # Event handlers and UI logic
+│   ├── infrastructure/ # Browser-specific adapters (IndexedDB, localStorage, URL)
 │   └── types.ts    # TypeScript definitions
 ├── content/        # Markdown content (about, help)
 styles/             # Global CSS (variables, base, layout)
