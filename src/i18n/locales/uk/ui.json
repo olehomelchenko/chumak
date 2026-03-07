@@ -272,15 +272,15 @@
   },
   "pagination": {
     "modelInfo": {
-      "button": "Інфо Моделі",
+      "button": "Інфо",
       "title": "Інформація про модель"
     },
     "rename": {
-      "button": "Перейменувати",
+      "button": "Назва",
       "title": "Перейменувати модель"
     },
     "copy": {
-      "button": "Копіювати",
+      "button": "Копія",
       "title": "Копіювати модель"
     },
     "new": {
@@ -304,7 +304,7 @@
     "prevPage": "Попередня сторінка",
     "nextPage": "Наступна сторінка",
     "lastPage": "Остання сторінка",
-    "pageIndicator": "Сторінка <strong>{{currentPage}}</strong> з <strong>{{totalPages}}</strong>",
+    "pageIndicator": "ст. <strong>{{currentPage}}</strong> з <strong>{{totalPages}}</strong>",
     "rowsLabel": "Рядків:"
   },
   "modelInfo": {
@@ -395,8 +395,8 @@
   "emptyState": {
     "title": "Почніть з Syto",
     "subtitle": "Перетягніть CSV файл сюди або скористайтеся однією з опцій нижче",
-    "uploadButton": "Завантажити CSV",
-    "urlButton": "Імпорт з URL",
+    "uploadButton": "Файл",
+    "urlButton": "URL",
     "enterButton": "Ввести Дані",
     "videoPlaceholder": "Відео незабаром"
   },
