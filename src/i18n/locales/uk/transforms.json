@@ -59,7 +59,8 @@
     "removeRows_many": "Видалити {{count}} рядків",
     "keepRows_one": "Залишити {{count}} рядок",
     "keepRows_few": "Залишити {{count}} рядки",
-    "keepRows_many": "Залишити {{count}} рядків"
+    "keepRows_many": "Залишити {{count}} рядків",
+    "promoteHeader": "Заголовки з рядка {{row}}"
   },
   "types": {
     "detectTypes_one": "Визначити типи: {{count}} стовпець",

@@ -18,6 +18,7 @@ import {
   deriveState,
   imputeState,
   conditionalState,
+  promoteHeaderState,
   // Column states
   spreadState,
   unrollState,
@@ -76,6 +77,7 @@ export class DialogStore {
   static deriveState = deriveState;
   static imputeState = imputeState;
   static conditionalState = conditionalState;
+  static promoteHeaderState = promoteHeaderState;
 
   // Column states
   static spreadState = spreadState;

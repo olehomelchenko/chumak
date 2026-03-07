@@ -12,7 +12,6 @@ import { DIALOG_REGISTRY } from '../dialog-registry';
 import { syncDialogToUrl, clearDialogFromUrl } from './UrlStateSync';
 import * as DateHandlers from '../handlers/transform/date-handlers';
 import * as ParseDateHandlers from '../handlers/transform/parse-date-handlers';
-import { GeneratorService } from '../services/GeneratorService';
 
 export type DialogCallbacks = {
   initializeJoinDialog?: () => void;
@@ -36,157 +35,11 @@ export function setDialogCallbacks(cb: DialogCallbacks): void {
 }
 
 /**
- * Get serializable state for a dialog (used for change detection)
+ * Get serializable state for a dialog (used for change detection).
+ * Delegates to the dialog registry's getState function.
  */
 export function getDialogState(dialog: string): any {
-  switch (dialog) {
-    case 'filter':
-      return {
-        expression: DialogStore.filterState.expression.value,
-        previewMode: DialogStore.filterState.previewMode.value,
-      };
-    case 'derive':
-      return {
-        columnName: DialogStore.deriveState.columnName.value,
-        expression: DialogStore.deriveState.expression.value,
-      };
-    case 'sliceRows':
-      return {
-        count: DialogStore.sliceRowsState.count.value,
-        mode: DialogStore.sliceRowsState.mode.value,
-      };
-    case 'index':
-      return {
-        columnName: DialogStore.indexState.columnName.value,
-        startFrom: DialogStore.indexState.startFrom.value,
-      };
-    case 'aggregate':
-      return {
-        groupBy: DialogStore.aggregateState.groupBy.value,
-        aggregations: DialogStore.aggregateState.aggregations.value,
-      };
-    case 'join':
-      return {
-        rightModel: DialogStore.joinState.rightModel.value,
-        joinType: DialogStore.joinState.joinType.value,
-        keyPairs: DialogStore.joinState.keyPairs.value,
-        suffixes: DialogStore.joinState.suffixes.value,
-      };
-    case 'fold':
-      return {
-        keyName: DialogStore.foldState.keyName.value,
-        valueName: DialogStore.foldState.valueName.value,
-        selectedColumns: DialogStore.foldState.selectedColumns.value,
-        mode: DialogStore.foldState.mode.value,
-      };
-    case 'pivot':
-      return {
-        rowColumns: DialogStore.pivotState.rowColumns.value,
-        columnColumn: DialogStore.pivotState.columnColumn.value,
-        valueColumn: DialogStore.pivotState.valueColumn.value,
-        aggregation: DialogStore.pivotState.aggregation.value,
-        options: DialogStore.pivotState.options.value,
-      };
-    case 'sort':
-      return {
-        fields: DialogStore.sortState.fields.value,
-      };
-    case 'sample':
-      return {
-        count: DialogStore.sampleState.count.value,
-        seed: DialogStore.sampleState.seed.value,
-      };
-    case 'spread':
-      return {
-        column: DialogStore.spreadState.column.value,
-        limit: DialogStore.spreadState.limit.value,
-        keepOriginal: DialogStore.spreadState.keepOriginal.value,
-      };
-    case 'unroll':
-      return {
-        column: DialogStore.unrollState.column.value,
-        indices: DialogStore.unrollState.indices.value,
-        keepOriginal: DialogStore.unrollState.keepOriginal.value,
-      };
-    case 'replace':
-      return {
-        column: DialogStore.replaceState.column.value,
-        findValue: DialogStore.replaceState.findValue.value,
-        replaceValue: DialogStore.replaceState.replaceValue.value,
-      };
-    case 'split':
-      return {
-        column: DialogStore.splitState.column.value,
-        delimiter: DialogStore.splitState.delimiter.value,
-        isRegex: DialogStore.splitState.isRegex.value,
-        mode: DialogStore.splitState.mode.value,
-        maxColumns: DialogStore.splitState.maxColumns.value,
-      };
-    case 'merge':
-      return {
-        columns: DialogStore.mergeState.columns.value,
-        separator: DialogStore.mergeState.separator.value,
-        columnName: DialogStore.mergeState.columnName.value,
-        removeOriginal: DialogStore.mergeState.removeOriginal.value,
-      };
-    case 'regexpMatch':
-      return {
-        sourceColumn: DialogStore.regexpMatchState.sourceColumn.value,
-        pattern: DialogStore.regexpMatchState.pattern.value,
-        columnName: DialogStore.regexpMatchState.columnName.value,
-      };
-    case 'regexpExtract':
-      return {
-        sourceColumn: DialogStore.regexpExtractState.sourceColumn.value,
-        pattern: DialogStore.regexpExtractState.pattern.value,
-        columnName: DialogStore.regexpExtractState.columnName.value,
-        group: DialogStore.regexpExtractState.group.value,
-      };
-    case 'import-csv':
-      return {
-        sourceName: DialogStore.importCsvState.sourceName.value,
-        headerMode: DialogStore.importCsvState.headerMode.value,
-        delimiter: DialogStore.importCsvState.delimiter.value,
-      };
-    case 'import-url':
-      return { url: DialogStore.importUrlState.url.value };
-    case 'generate':
-      return {
-        sourceName: DialogStore.generateState.sourceName.value,
-        rowCount: DialogStore.generateState.rowCount.value,
-        columnName: DialogStore.generateState.columnName.value,
-        type: DialogStore.generateState.type.value,
-        config: DialogStore.generateState.config.value,
-      };
-    case 'dedupe':
-      return {
-        selectedColumns: DialogStore.dedupeState.selectedColumns.value,
-        useAllColumns: DialogStore.dedupeState.useAllColumns.value,
-        mode: DialogStore.dedupeState.mode.value,
-      };
-    case 'column-editor':
-      return DialogStore.columnEditorState.columns.value;
-    case 'impute':
-      return {
-        column: DialogStore.imputeState.column.value,
-        strategy: DialogStore.imputeState.strategy.value,
-        value: DialogStore.imputeState.value.value,
-      };
-    case 'settings':
-      return {
-        theme: AppStore.theme.value,
-        rowLimit: AppStore.uxSettings.value.preview?.rowLimit || 100,
-        analyticsOptOut: AppStore.uxSettings.value.analyticsOptOut ?? false,
-        language: AppStore.uxSettings.value.language || 'en',
-      };
-    case 'append':
-      return {
-        targetModel: DialogStore.appendState.targetModel.value,
-        removeDuplicates: DialogStore.appendState.removeDuplicates.value,
-      };
-    default:
-      return null;
-  }
+  return DIALOG_REGISTRY[dialog]?.getState?.() ?? null;
 }
 
 /**
@@ -508,115 +361,13 @@ export function clearPreview(): void {
 }
 
 /**
- * Check if current dialog has an error that should disable the apply button
+ * Check if current dialog has an error that should disable the apply button.
+ * Delegates to the dialog registry's hasError function.
  */
 export function activeDialogHasError(): boolean {
   const dialog = AppStore.activeDialog.value;
-
-  switch (dialog) {
-    case 'filter':
-      return !!DialogStore.filterState.error.value;
-
-    case 'derive': {
-      const deriveState = DialogStore.deriveState;
-      return (
-        !!deriveState.error.value ||
-        !deriveState.columnName.value?.trim() ||
-        !deriveState.expression.value?.trim()
-      );
-    }
-
-    case 'sliceRows':
-      return !DialogStore.sliceRowsState.count.value || DialogStore.sliceRowsState.count.value <= 0;
-
-    case 'index':
-      return (
-        !DialogStore.indexState.columnName.value ||
-        DialogStore.indexState.columnName.value.trim() === ''
-      );
-
-    case 'sample':
-      return !DialogStore.sampleState.count.value || DialogStore.sampleState.count.value <= 0;
-
-    case 'spread':
-      return (
-        !DialogStore.spreadState.column.value || DialogStore.spreadState.column.value.trim() === ''
-      );
-
-    case 'unroll':
-      return (
-        !DialogStore.unrollState.column.value || DialogStore.unrollState.column.value.trim() === ''
-      );
-
-    case 'regexpMatch':
-      return !!DialogStore.regexpMatchState.error.value;
-
-    case 'regexpExtract':
-      return !!DialogStore.regexpExtractState.error.value;
-
-    case 'split':
-      return !!DialogStore.splitState.error.value;
-
-    case 'merge':
-      return (
-        !!DialogStore.mergeState.error.value ||
-        DialogStore.mergeState.columns.value.length === 0 ||
-        !DialogStore.mergeState.columnName.value?.trim()
-      );
-
-    case 'join': {
-      const joinState = DialogStore.joinState;
-      const hasRight = !!joinState.rightModel.value;
-      const hasKeys =
-        joinState.joinType.value === 'cross' || joinState.keyPairs.value.some((p) => p[0] && p[1]);
-      const hasLookupValues =
-        joinState.joinType.value !== 'lookup' || joinState.selectedRightColumns.value.length > 0;
-      return !hasRight || !hasKeys || !hasLookupValues;
-    }
-
-    case 'append':
-      return !DialogStore.appendState.targetModel.value;
-
-    case 'pivot':
-      return (
-        !DialogStore.pivotState.columnColumn.value || !DialogStore.pivotState.valueColumn.value
-      );
-
-    case 'dedupe':
-      return (
-        !DialogStore.dedupeState.useAllColumns.value &&
-        !DialogStore.dedupeState.selectedColumns.value.some((v) => v)
-      );
-
-    case 'import-url':
-      return !DialogStore.importUrlState.url.value || DialogStore.importUrlState.isFetching.value;
-
-    case 'generate': {
-      const g = DialogStore.generateState;
-      const generator = {
-        name: g.columnName.value,
-        type: g.type.value as any,
-        config: g.config.value,
-      };
-      return (
-        !g.sourceName.value?.trim() ||
-        !g.columnName.value?.trim() ||
-        g.rowCount.value <= 0 ||
-        !!GeneratorService.validateGenerator(generator, g.isRowAuto.value)
-      );
-    }
-
-    case 'impute': {
-      const imputeState = DialogStore.imputeState;
-      return (
-        !imputeState.column.value ||
-        (imputeState.strategy.value === 'constant' && !imputeState.value.value?.trim())
-      );
-    }
-
-    default:
-      return false;
-  }
+  if (!dialog) return false;
+  return DIALOG_REGISTRY[dialog]?.hasError?.() ?? false;
 }
 
 /**

@@ -38,7 +38,8 @@
     "typeConversion": "Type Conversion",
     "expressions": "Reference",
     "reference": "Reference",
-    "dependencyGraph": "Dependency Graph"
+    "dependencyGraph": "Dependency Graph",
+    "promoteHeader": "Promote Row to Header"
   },
   "common": {
     "labels": {
@@ -816,6 +817,14 @@
     "randomCategory": {
       "values": "Values (comma-separated)",
       "placeholder": "A, B, C"
+    }
+  },
+  "promoteHeader": {
+    "skipRowsLabel": "Rows to skip before header:",
+    "skipRowsHelp": "0 = first data row becomes header. Set to N to skip N rows and use row N+1 as headers.",
+    "preview": {
+      "willUse": "Row {{row}} will become the new column headers",
+      "notEnoughRows": "Not enough rows in the data"
     }
   }
 }

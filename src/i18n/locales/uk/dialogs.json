@@ -38,7 +38,8 @@
     "typeConversion": "Конвертація типів",
     "expressions": "Довідник",
     "reference": "Довідник",
-    "dependencyGraph": "Граф залежностей"
+    "dependencyGraph": "Граф залежностей",
+    "promoteHeader": "Підвищити рядок до заголовка"
   },
   "common": {
     "labels": {
@@ -817,6 +818,14 @@
     "randomCategory": {
       "values": "Значення (через кому)",
       "placeholder": "А, Б, В"
+    }
+  },
+  "promoteHeader": {
+    "skipRowsLabel": "Рядків пропустити перед заголовком:",
+    "skipRowsHelp": "0 = перший рядок даних стане заголовком. Встановіть N, щоб пропустити N рядків і використати рядок N+1 як заголовки.",
+    "preview": {
+      "willUse": "Рядок {{row}} стане новими заголовками стовпців",
+      "notEnoughRows": "Недостатньо рядків у даних"
     }
   }
 }

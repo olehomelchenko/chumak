@@ -31,6 +31,10 @@
         "label": "Sample",
         "title": "Randomly sample rows (with optional seed)"
       },
+      "promoteHeader": {
+        "label": "Headers",
+        "title": "Use a data row as column headers"
+      },
       "editColumns": {
         "label": "Edit Columns",
         "title": "Select, rename, remove, reorder columns, and apply pattern operations"

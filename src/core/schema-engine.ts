@@ -80,6 +80,7 @@ export interface TransformStep {
     isRegex?: boolean;
   };
   sliceRows?: { count: number; mode: 'first' | 'last' | 'removeFirst' | 'removeLast' };
+  promoteHeader?: { skipRows: number };
   addIndex?: { columnName: string; startFrom?: number };
   impute?: {
     column: string;
@@ -973,6 +974,44 @@ export const SchemaEngine = {
       return nextSchema;
     }
 
+    // PROMOTE HEADER: Uses a data row as new column names
+    if (transform.promoteHeader) {
+      if (sampleData && sampleData.length > transform.promoteHeader.skipRows) {
+        const headerRow = sampleData[transform.promoteHeader.skipRows];
+        const oldColumns = currentSchema.map((c) => c.name);
+        const remainingData = sampleData.slice(transform.promoteHeader.skipRows + 1);
+
+        // Build new column names from header row values
+        const seen: Record<string, number> = {};
+        const newSchema: ColumnSchema[] = oldColumns.map((oldCol, i) => {
+          let newName = headerRow[oldCol];
+          if (newName == null || String(newName).trim() === '') {
+            newName = `Column ${i + 1}`;
+          } else {
+            newName = String(newName).trim();
+          }
+          // Deduplicate
+          if (seen[newName] !== undefined) {
+            seen[newName]++;
+            newName = `${newName}_${seen[newName]}`;
+          } else {
+            seen[newName] = 1;
+          }
+          // Infer type from remaining data
+          const sample = remainingData.slice(0, 20).map((row) => row[oldCol]);
+          return {
+            name: newName,
+            type: this.inferType(sample),
+            format: {},
+            originalPosition: i,
+          };
+        });
+        return newSchema;
+      }
+      // Fallback: can't determine new names without data, return current schema
+      return currentSchema.map((c) => ({ ...c }));
+    }
+
     // Future-proofing: Check for unknown transform keys
     // Note: 'import', 'replace', 'sliceRows', 'addIndex', 'dedupe' don't change schema,
     // so they may not have explicit handlers above
@@ -1010,6 +1049,7 @@ export const SchemaEngine = {
       'window',
       'removeRows',
       'keepRows',
+      'promoteHeader',
     ];
     const transformKeys = Object.keys(transform).filter((k) => k !== '__v'); // Ignore version field
     const unknownKey = transformKeys.find((k) => !knownKeys.includes(k));

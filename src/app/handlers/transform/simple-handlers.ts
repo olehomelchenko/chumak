@@ -92,6 +92,15 @@ export async function applyImputeTransform(callbacks: any) {
   await StepService.runTransform('Impute', transform, callbacks);
 }
 
+export async function applyPromoteHeaderTransform(callbacks: any) {
+  const { skipRows } = DialogStore.promoteHeaderState;
+  await StepService.runTransform(
+    'Promote Header',
+    { promoteHeader: { skipRows: skipRows.value } },
+    callbacks
+  );
+}
+
 export function updateImputePreview() {
   const { strategy, value, includeEmptyString, previewRows } = DialogStore.imputeState;
 

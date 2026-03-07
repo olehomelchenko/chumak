@@ -115,6 +115,49 @@ export function handleKeepRows(table: any, transform: FullTransformStep): any {
   return (aq as any).from(rows.filter((_: any, i: number) => indexSet.has(i)));
 }
 
+export function handlePromoteHeader(table: any, transform: FullTransformStep): any {
+  const { skipRows } = transform.promoteHeader!;
+  const rows = table.objects();
+  const oldColumns = table.columnNames();
+
+  if (rows.length <= skipRows) {
+    throw new Error('Not enough rows to promote header');
+  }
+
+  const headerRow = rows[skipRows];
+
+  // Build new column names from header row values
+  const seen: Record<string, number> = {};
+  const newNames: string[] = oldColumns.map((oldCol: string, i: number) => {
+    let newName = headerRow[oldCol];
+    if (newName == null || String(newName).trim() === '') {
+      newName = `Column ${i + 1}`;
+    } else {
+      newName = String(newName).trim();
+    }
+    // Deduplicate
+    if (seen[newName] !== undefined) {
+      seen[newName]++;
+      newName = `${newName}_${seen[newName]}`;
+    } else {
+      seen[newName] = 1;
+    }
+    return newName;
+  });
+
+  // Rebuild remaining rows with new column names
+  const dataRows = rows.slice(skipRows + 1);
+  const newRows = dataRows.map((row: any) => {
+    const obj: any = {};
+    oldColumns.forEach((oldCol: string, i: number) => {
+      obj[newNames[i]] = row[oldCol];
+    });
+    return obj;
+  });
+
+  return (aq as any).from(newRows);
+}
+
 export const rowOpsHandlers = {
   sliceRows: handleSliceRows,
   addIndex: handleAddIndex,
@@ -122,4 +165,5 @@ export const rowOpsHandlers = {
   sample: handleSample,
   removeRows: handleRemoveRows,
   keepRows: handleKeepRows,
+  promoteHeader: handlePromoteHeader,
 };

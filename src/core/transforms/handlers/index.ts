@@ -53,6 +53,7 @@ export const TRANSFORM_HANDLERS: Record<string, TransformHandler> = {
   sample: rowOpsHandlers.sample,
   removeRows: rowOpsHandlers.removeRows,
   keepRows: rowOpsHandlers.keepRows,
+  promoteHeader: rowOpsHandlers.promoteHeader,
 
   // Type conversion handlers
   types: typeHandlers.types,

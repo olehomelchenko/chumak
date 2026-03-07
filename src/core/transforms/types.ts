@@ -69,6 +69,7 @@ export interface FullTransformStep extends TransformStep {
     partitionBy?: string[];
     derive: Record<string, string>;
   };
+  promoteHeader?: { skipRows: number };
 }
 
 /**
@@ -108,4 +109,5 @@ export const KNOWN_TRANSFORM_KEYS: readonly string[] = [
   'window',
   'removeRows',
   'keepRows',
+  'promoteHeader',
 ] as const;

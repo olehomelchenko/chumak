@@ -45,7 +45,8 @@
     "removeRows": "Remove {{count}} row",
     "removeRows_other": "Remove {{count}} rows",
     "keepRows": "Keep {{count}} row",
-    "keepRows_other": "Keep {{count}} rows"
+    "keepRows_other": "Keep {{count}} rows",
+    "promoteHeader": "Headers from row {{row}}"
   },
   "types": {
     "detectTypes": "Detect types: {{count}} column",

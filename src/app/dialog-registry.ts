@@ -15,6 +15,8 @@ import type { ComponentType } from 'preact';
 import type { DialogName } from './types';
 import type { ExecutionCallbacks } from './services/StepService';
 import { DialogStore } from './stores/DialogStore';
+import { AppStore } from './stores/AppStore';
+import { GeneratorService } from './services/GeneratorService';
 import i18n from '../i18n';
 
 // Transform handlers
@@ -54,6 +56,8 @@ export interface DialogConfig {
   component?: ComponentType<any>; // Optional: can be lazy-loaded
   buttonText?: string; // Custom button text (defaults to "Apply")
   initState?: (section?: string) => void; // Optional initialization logic
+  getState?: () => Record<string, any> | null; // Serializable state for change detection
+  hasError?: () => boolean; // Whether Apply button should be disabled
   isUrlNavigable?: boolean; // Whether dialog should update URL hash
   applyHandler?: ApplyHandler; // Handler called when Apply is clicked
 }
@@ -72,6 +76,11 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     title: 'Filter Rows',
     type: 'slide-panel',
     applyHandler: (cb) => FilterHandlers.applyFilterTransform(cb),
+    getState: () => ({
+      expression: DialogStore.filterState.expression.value,
+      previewMode: DialogStore.filterState.previewMode.value,
+    }),
+    hasError: () => !!DialogStore.filterState.error.value,
   },
 
   derive: {
@@ -79,6 +88,14 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     title: 'Derive Column',
     type: 'slide-panel',
     applyHandler: (cb) => DeriveHandlers.applyDeriveTransform(cb),
+    getState: () => ({
+      columnName: DialogStore.deriveState.columnName.value,
+      expression: DialogStore.deriveState.expression.value,
+    }),
+    hasError: () => {
+      const s = DialogStore.deriveState;
+      return !!s.error.value || !s.columnName.value?.trim() || !s.expression.value?.trim();
+    },
   },
 
   sort: {
@@ -86,6 +103,7 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     title: 'Sort Rows',
     type: 'slide-panel',
     applyHandler: (cb) => SimpleHandlers.applySortTransform(cb),
+    getState: () => ({ fields: DialogStore.sortState.fields.value }),
   },
 
   sliceRows: {
@@ -93,6 +111,12 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     title: 'Keep / Remove Rows',
     type: 'slide-panel',
     applyHandler: (cb) => SimpleHandlers.applySliceRowsTransform(cb),
+    getState: () => ({
+      count: DialogStore.sliceRowsState.count.value,
+      mode: DialogStore.sliceRowsState.mode.value,
+    }),
+    hasError: () =>
+      !DialogStore.sliceRowsState.count.value || DialogStore.sliceRowsState.count.value <= 0,
   },
 
   index: {
@@ -100,6 +124,13 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     title: 'Add Index Column',
     type: 'slide-panel',
     applyHandler: (cb) => SimpleHandlers.applyIndexTransform(cb),
+    getState: () => ({
+      columnName: DialogStore.indexState.columnName.value,
+      startFrom: DialogStore.indexState.startFrom.value,
+    }),
+    hasError: () =>
+      !DialogStore.indexState.columnName.value ||
+      DialogStore.indexState.columnName.value.trim() === '',
   },
 
   sample: {
@@ -107,6 +138,12 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     title: 'Sample Rows',
     type: 'slide-panel',
     applyHandler: (cb) => SampleHandlers.applySampleTransform(cb),
+    getState: () => ({
+      count: DialogStore.sampleState.count.value,
+      seed: DialogStore.sampleState.seed.value,
+    }),
+    hasError: () =>
+      !DialogStore.sampleState.count.value || DialogStore.sampleState.count.value <= 0,
   },
 
   spread: {
@@ -114,6 +151,13 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     title: 'Spread Array Column',
     type: 'slide-panel',
     applyHandler: (cb) => SpreadHandlers.applySpreadTransform(cb),
+    getState: () => ({
+      column: DialogStore.spreadState.column.value,
+      limit: DialogStore.spreadState.limit.value,
+      keepOriginal: DialogStore.spreadState.keepOriginal.value,
+    }),
+    hasError: () =>
+      !DialogStore.spreadState.column.value || DialogStore.spreadState.column.value.trim() === '',
   },
 
   unroll: {
@@ -121,6 +165,13 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     title: 'Unroll Array Column',
     type: 'slide-panel',
     applyHandler: (cb) => UnrollHandlers.applyUnrollTransform(cb),
+    getState: () => ({
+      column: DialogStore.unrollState.column.value,
+      indices: DialogStore.unrollState.indices.value,
+      keepOriginal: DialogStore.unrollState.keepOriginal.value,
+    }),
+    hasError: () =>
+      !DialogStore.unrollState.column.value || DialogStore.unrollState.column.value.trim() === '',
   },
 
   split: {
@@ -128,6 +179,14 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     title: 'Split Column',
     type: 'slide-panel',
     applyHandler: (cb) => SplitHandlers.applySplitTransform(cb),
+    getState: () => ({
+      column: DialogStore.splitState.column.value,
+      delimiter: DialogStore.splitState.delimiter.value,
+      isRegex: DialogStore.splitState.isRegex.value,
+      mode: DialogStore.splitState.mode.value,
+      maxColumns: DialogStore.splitState.maxColumns.value,
+    }),
+    hasError: () => !!DialogStore.splitState.error.value,
   },
 
   merge: {
@@ -135,6 +194,16 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     title: 'Merge Columns',
     type: 'slide-panel',
     applyHandler: (cb) => MergeHandlers.applyMergeTransform(cb),
+    getState: () => ({
+      columns: DialogStore.mergeState.columns.value,
+      separator: DialogStore.mergeState.separator.value,
+      columnName: DialogStore.mergeState.columnName.value,
+      removeOriginal: DialogStore.mergeState.removeOriginal.value,
+    }),
+    hasError: () =>
+      !!DialogStore.mergeState.error.value ||
+      DialogStore.mergeState.columns.value.length === 0 ||
+      !DialogStore.mergeState.columnName.value?.trim(),
   },
 
   regexpMatch: {
@@ -142,6 +211,12 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     title: 'Regexp Match',
     type: 'slide-panel',
     applyHandler: (cb) => RegexpHandlers.applyRegexpMatchTransform(cb),
+    getState: () => ({
+      sourceColumn: DialogStore.regexpMatchState.sourceColumn.value,
+      pattern: DialogStore.regexpMatchState.pattern.value,
+      columnName: DialogStore.regexpMatchState.columnName.value,
+    }),
+    hasError: () => !!DialogStore.regexpMatchState.error.value,
   },
 
   regexpExtract: {
@@ -149,6 +224,13 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     title: 'Regexp Extract',
     type: 'slide-panel',
     applyHandler: (cb) => RegexpHandlers.applyRegexpExtractTransform(cb),
+    getState: () => ({
+      sourceColumn: DialogStore.regexpExtractState.sourceColumn.value,
+      pattern: DialogStore.regexpExtractState.pattern.value,
+      columnName: DialogStore.regexpExtractState.columnName.value,
+      group: DialogStore.regexpExtractState.group.value,
+    }),
+    hasError: () => !!DialogStore.regexpExtractState.error.value,
   },
 
   date: {
@@ -177,6 +259,14 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     title: 'Duplicates',
     type: 'slide-panel',
     applyHandler: (cb) => DedupeHandlers.applyDedupeTransform(cb),
+    getState: () => ({
+      selectedColumns: DialogStore.dedupeState.selectedColumns.value,
+      useAllColumns: DialogStore.dedupeState.useAllColumns.value,
+      mode: DialogStore.dedupeState.mode.value,
+    }),
+    hasError: () =>
+      !DialogStore.dedupeState.useAllColumns.value &&
+      !DialogStore.dedupeState.selectedColumns.value.some((v) => v),
   },
 
   fold: {
@@ -184,6 +274,12 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     title: 'Unpivot Data (Fold)',
     type: 'slide-panel',
     applyHandler: (cb) => FoldHandlers.applyFoldTransform(cb),
+    getState: () => ({
+      keyName: DialogStore.foldState.keyName.value,
+      valueName: DialogStore.foldState.valueName.value,
+      selectedColumns: DialogStore.foldState.selectedColumns.value,
+      mode: DialogStore.foldState.mode.value,
+    }),
   },
 
   pivot: {
@@ -191,6 +287,15 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     title: 'Pivot Data (Wide)',
     type: 'slide-panel',
     applyHandler: (cb) => PivotHandlers.applyPivotTransform(cb),
+    getState: () => ({
+      rowColumns: DialogStore.pivotState.rowColumns.value,
+      columnColumn: DialogStore.pivotState.columnColumn.value,
+      valueColumn: DialogStore.pivotState.valueColumn.value,
+      aggregation: DialogStore.pivotState.aggregation.value,
+      options: DialogStore.pivotState.options.value,
+    }),
+    hasError: () =>
+      !DialogStore.pivotState.columnColumn.value || !DialogStore.pivotState.valueColumn.value,
   },
 
   aggregate: {
@@ -198,6 +303,10 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     title: 'Group By',
     type: 'slide-panel',
     applyHandler: (cb) => AggregateHandlers.applyAggregateTransform(cb),
+    getState: () => ({
+      groupBy: DialogStore.aggregateState.groupBy.value,
+      aggregations: DialogStore.aggregateState.aggregations.value,
+    }),
   },
 
   window: {
@@ -213,6 +322,20 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     type: 'slide-panel',
     buttonText: 'buttons.applyJoin',
     applyHandler: (cb) => JoinHandlers.applyJoinTransform(cb),
+    getState: () => ({
+      rightModel: DialogStore.joinState.rightModel.value,
+      joinType: DialogStore.joinState.joinType.value,
+      keyPairs: DialogStore.joinState.keyPairs.value,
+      suffixes: DialogStore.joinState.suffixes.value,
+    }),
+    hasError: () => {
+      const s = DialogStore.joinState;
+      const hasRight = !!s.rightModel.value;
+      const hasKeys = s.joinType.value === 'cross' || s.keyPairs.value.some((p) => p[0] && p[1]);
+      const hasLookupValues =
+        s.joinType.value !== 'lookup' || s.selectedRightColumns.value.length > 0;
+      return !hasRight || !hasKeys || !hasLookupValues;
+    },
   },
 
   append: {
@@ -221,6 +344,11 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     type: 'slide-panel',
     buttonText: 'buttons.applyAppend',
     applyHandler: (cb) => AppendHandlers.applyAppendTransform(cb),
+    getState: () => ({
+      targetModel: DialogStore.appendState.targetModel.value,
+      removeDuplicates: DialogStore.appendState.removeDuplicates.value,
+    }),
+    hasError: () => !DialogStore.appendState.targetModel.value,
   },
 
   replace: {
@@ -228,6 +356,11 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     title: 'Replace Values',
     type: 'slide-panel',
     applyHandler: (cb) => SimpleHandlers.applyReplaceTransform(cb),
+    getState: () => ({
+      column: DialogStore.replaceState.column.value,
+      findValue: DialogStore.replaceState.findValue.value,
+      replaceValue: DialogStore.replaceState.replaceValue.value,
+    }),
   },
 
   'column-editor': {
@@ -235,6 +368,7 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     title: 'Edit Columns',
     type: 'slide-panel',
     applyHandler: (cb) => ColumnEditorHandlers.applyColumnEditorTransform(cb),
+    getState: () => DialogStore.columnEditorState.columns.value as any,
   },
 
   impute: {
@@ -242,6 +376,15 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     title: 'Impute Missing Values',
     type: 'slide-panel',
     applyHandler: (cb) => SimpleHandlers.applyImputeTransform(cb),
+    getState: () => ({
+      column: DialogStore.imputeState.column.value,
+      strategy: DialogStore.imputeState.strategy.value,
+      value: DialogStore.imputeState.value.value,
+    }),
+    hasError: () => {
+      const s = DialogStore.imputeState;
+      return !s.column.value || (s.strategy.value === 'constant' && !s.value.value?.trim());
+    },
   },
 
   selectPattern: {
@@ -272,6 +415,20 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     applyHandler: (cb) => PatternHandlers.applyRenamePatternTransform(cb),
   },
 
+  promoteHeader: {
+    name: 'promoteHeader',
+    title: 'Promote Row to Header',
+    type: 'slide-panel',
+    applyHandler: (cb) => SimpleHandlers.applyPromoteHeaderTransform(cb),
+    initState: () => {
+      DialogStore.promoteHeaderState.skipRows.value = 0;
+    },
+    getState: () => ({
+      skipRows: DialogStore.promoteHeaderState.skipRows.value,
+    }),
+    hasError: () => DialogStore.promoteHeaderState.skipRows.value < 0,
+  },
+
   // === Import Dialogs ===
 
   'import-csv': {
@@ -279,6 +436,11 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     title: 'Import CSV', // Note: title changes dynamically for JSON
     type: 'slide-panel',
     buttonText: 'buttons.import',
+    getState: () => ({
+      sourceName: DialogStore.importCsvState.sourceName.value,
+      headerMode: DialogStore.importCsvState.headerMode.value,
+      delimiter: DialogStore.importCsvState.delimiter.value,
+    }),
   },
 
   'import-url': {
@@ -286,6 +448,9 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     title: 'Import from URL',
     type: 'slide-panel',
     buttonText: 'buttons.fetchData',
+    getState: () => ({ url: DialogStore.importUrlState.url.value }),
+    hasError: () =>
+      !DialogStore.importUrlState.url.value || DialogStore.importUrlState.isFetching.value,
   },
 
   generate: {
@@ -293,6 +458,27 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     title: 'Generate Data',
     type: 'slide-panel',
     buttonText: 'buttons.generate',
+    getState: () => ({
+      sourceName: DialogStore.generateState.sourceName.value,
+      rowCount: DialogStore.generateState.rowCount.value,
+      columnName: DialogStore.generateState.columnName.value,
+      type: DialogStore.generateState.type.value,
+      config: DialogStore.generateState.config.value,
+    }),
+    hasError: () => {
+      const g = DialogStore.generateState;
+      const generator = {
+        name: g.columnName.value,
+        type: g.type.value as any,
+        config: g.config.value,
+      };
+      return (
+        !g.sourceName.value?.trim() ||
+        !g.columnName.value?.trim() ||
+        g.rowCount.value <= 0 ||
+        !!GeneratorService.validateGenerator(generator, g.isRowAuto.value)
+      );
+    },
   },
 
   // === Utility Dialogs (Centered Modals) ===
@@ -302,6 +488,12 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     title: 'Settings',
     type: 'centered-modal',
     isUrlNavigable: true,
+    getState: () => ({
+      theme: AppStore.theme.value,
+      rowLimit: AppStore.uxSettings.value.preview?.rowLimit || 100,
+      analyticsOptOut: AppStore.uxSettings.value.analyticsOptOut ?? false,
+      language: AppStore.uxSettings.value.language || 'en',
+    }),
   },
 
   download: {

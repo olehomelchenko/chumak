@@ -13,3 +13,4 @@ export { filterState, resetFilterState } from './filter-state';
 export { deriveState, resetDeriveState } from './derive-state';
 export { imputeState, resetImputeState } from './impute-state';
 export { conditionalState, resetConditionalState } from './conditional-state';
+export { promoteHeaderState, resetPromoteHeaderState } from './promote-header-state';

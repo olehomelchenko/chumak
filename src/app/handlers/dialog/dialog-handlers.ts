@@ -62,45 +62,10 @@ export function setDialogHandlerCallbacks(callbacks: DialogHandlerCallbacks): vo
 
 /**
  * Get serializable state for a dialog (used for change detection).
- * Uses DialogStore directly for all dialogs.
+ * Delegates to the dialog registry via DialogCoordinator.
  */
 export function getDialogState(dialog: string): any {
-  // Use DialogStore.createSignalProxy for dialogs that need it
-  switch (dialog) {
-    case 'sliceRows':
-      return DialogStore.createSignalProxy(DialogStore.sliceRowsState);
-    case 'index':
-      return DialogStore.createSignalProxy(DialogStore.indexState);
-    case 'aggregate':
-      return DialogStore.createSignalProxy(DialogStore.aggregateState);
-    case 'fold':
-      return DialogStore.createSignalProxy(DialogStore.foldState);
-    case 'pivot':
-      return DialogStore.createSignalProxy(DialogStore.pivotState);
-    case 'replace':
-      return DialogStore.createSignalProxy(DialogStore.replaceState);
-    case 'split':
-      return DialogStore.createSignalProxy(DialogStore.splitState);
-    case 'regexpMatch':
-      return DialogStore.createSignalProxy(DialogStore.regexpMatchState);
-    case 'regexpExtract':
-      return DialogStore.createSignalProxy(DialogStore.regexpExtractState);
-    case 'import-csv':
-      return DialogStore.createSignalProxy(DialogStore.importCsvState);
-    case 'import-url':
-      return { url: DialogStore.importUrlState.url.value };
-    case 'dedupe':
-      return DialogStore.createSignalProxy(DialogStore.dedupeState);
-    case 'settings':
-      return {
-        theme: AppStore.theme.value,
-        rowLimit: AppStore.uxSettings.value?.preview?.rowLimit || 100,
-        analyticsOptOut: AppStore.uxSettings.value?.analyticsOptOut ?? false,
-      };
-    default:
-      // For dialogs that don't use proxy state, delegate to DialogCoordinator
-      return DialogCoordinator.getDialogState(dialog);
-  }
+  return DialogCoordinator.getDialogState(dialog);
 }
 
 /**

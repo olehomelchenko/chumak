@@ -46,6 +46,12 @@ export function describeKeepRows(transform: any): string | null {
   return i18n.t('transforms:rowOps.keepRows', { count });
 }
 
+export function describePromoteHeader(transform: any): string | null {
+  if (!transform.promoteHeader) return null;
+  const { skipRows } = transform.promoteHeader;
+  return i18n.t('transforms:rowOps.promoteHeader' as any, { row: skipRows + 1 });
+}
+
 export const rowOpsDescribers = {
   sliceRows: describeSliceRows,
   addIndex: describeAddIndex,
@@ -53,4 +59,5 @@ export const rowOpsDescribers = {
   sample: describeSample,
   removeRows: describeRemoveRows,
   keepRows: describeKeepRows,
+  promoteHeader: describePromoteHeader,
 };

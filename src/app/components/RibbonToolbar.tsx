@@ -592,6 +592,12 @@ export function RibbonToolbar({ onOpenDialog, onAutoDetectSchema }: RibbonToolba
                 title={t('ribbon.buttons.sample.title')}
                 onClick={() => onOpenDialog('sample')}
               />
+              <RibbonButton
+                icon="carbon:table-of-contents"
+                label={t('ribbon.buttons.promoteHeader.label')}
+                title={t('ribbon.buttons.promoteHeader.title')}
+                onClick={() => onOpenDialog('promoteHeader')}
+              />
             </RibbonGroup>
           </div>
         )}

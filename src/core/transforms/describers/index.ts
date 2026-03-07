@@ -50,6 +50,7 @@ export const TRANSFORM_DESCRIBERS: Record<string, TransformDescriber> = {
   sample: rowOpsDescribers.sample,
   removeRows: rowOpsDescribers.removeRows,
   keepRows: rowOpsDescribers.keepRows,
+  promoteHeader: rowOpsDescribers.promoteHeader,
 
   // Type conversion describers
   types: typeDescribers.types,
