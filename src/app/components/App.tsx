@@ -49,6 +49,10 @@ import {
   DependencyGraphDialog,
   FunctionReferenceDialog,
   DependencyImpactDialog,
+  PromoteHeaderDialog,
+  SelectPatternDialog,
+  RemovePatternDialog,
+  RenamePatternDialog,
 } from './index';
 import { JsonEditorModal } from './JsonEditorModal';
 // Import pure helper functions (no 'this' context needed)
@@ -266,6 +270,10 @@ export function App() {
                 {activeDialog === 'generate' && <GenerateDialog />}
                 {activeDialog === 'impute' && <ImputeDialog />}
                 {activeDialog === 'conditional' && <ConditionalDialog />}
+                {activeDialog === 'promoteHeader' && <PromoteHeaderDialog />}
+                {activeDialog === 'selectPattern' && <SelectPatternDialog />}
+                {activeDialog === 'removePattern' && <RemovePatternDialog />}
+                {activeDialog === 'renamePattern' && <RenamePatternDialog />}
               </div>
 
               <div class={styles.slidePanelFooter}>
@@ -469,6 +477,7 @@ export function App() {
         onRemoveRows={() => AppController.removeSelectedRows()}
         onKeepRows={() => AppController.keepSelectedRows()}
         onExtractToModel={() => AppController.extractSelectedRows()}
+        onPromoteToHeader={() => AppController.promoteSelectedRowToHeader()}
       />
       <TypeMenu {...typeMenuProps} />
       <GlobalUI />

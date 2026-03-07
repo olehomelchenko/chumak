@@ -373,7 +373,8 @@
       "removeTitle_many": "Видалити {{count}} вибраних рядків",
       "extractTitle_one": "Витягти {{count}} рядок в нову модель",
       "extractTitle_few": "Витягти {{count}} рядки в нову модель",
-      "extractTitle_many": "Витягти {{count}} рядків в нову модель"
+      "extractTitle_many": "Витягти {{count}} рядків в нову модель",
+      "promoteTitle": "Використати цей рядок як заголовки стовпців"
     },
     "cell": {
       "filterExact": "Зберегти лише це значення (=)",

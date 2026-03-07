@@ -526,6 +526,23 @@ export async function keepSelectedRows(callbacks: any) {
   clearColumnSelection();
 }
 
+export async function promoteSelectedRowToHeader(callbacks: any) {
+  const indices = AppStore.selectedRows.value;
+  if (indices.length !== 1) return;
+  const rowIndex = indices[0];
+  const confirmed = await NotificationHandlers.confirm.call(
+    null as any,
+    i18n.t('confirms.promoteRow', { ns: 'common', row: rowIndex + 1 })
+  );
+  if (!confirmed) return;
+  await StepService.runTransform(
+    'Promote Header',
+    { promoteHeader: { skipRows: rowIndex } },
+    callbacks
+  );
+  clearColumnSelection();
+}
+
 /**
  * Extracts selected rows into a new model.
  * Creates a new model on the same source with the current pipeline + a keepRows step.

@@ -305,6 +305,71 @@ describe('Transform Engine - Basic Operations', () => {
     });
   });
 
+  describe('applyTransform() - PROMOTE HEADER', () => {
+    it('should promote first row to header (skipRows=0)', () => {
+      const table = (aq as any).from([
+        { col1: 'Name', col2: 'Age', col3: 'City' },
+        { col1: 'Alice', col2: '30', col3: 'London' },
+        { col1: 'Bob', col2: '25', col3: 'Paris' },
+      ]);
+      const cols = ['col1', 'col2', 'col3'];
+      const result = applyTransform(table, { promoteHeader: { skipRows: 0 } }, cols);
+
+      expect(result.columnNames()).toEqual(['Name', 'Age', 'City']);
+      expect(result.numRows()).toBe(2);
+      expect(result.objects()[0]).toEqual({ Name: 'Alice', Age: '30', City: 'London' });
+    });
+
+    it('should skip rows before promoting (skipRows=1)', () => {
+      const table = (aq as any).from([
+        { col1: 'garbage', col2: 'junk', col3: 'skip' },
+        { col1: 'Name', col2: 'Age', col3: 'City' },
+        { col1: 'Alice', col2: '30', col3: 'London' },
+      ]);
+      const cols = ['col1', 'col2', 'col3'];
+      const result = applyTransform(table, { promoteHeader: { skipRows: 1 } }, cols);
+
+      expect(result.columnNames()).toEqual(['Name', 'Age', 'City']);
+      expect(result.numRows()).toBe(1);
+      expect(result.objects()[0]).toEqual({ Name: 'Alice', Age: '30', City: 'London' });
+    });
+
+    it('should handle empty/null values in header row', () => {
+      const table = (aq as any).from([
+        { col1: 'Name', col2: '', col3: null },
+        { col1: 'Alice', col2: '30', col3: 'London' },
+      ]);
+      const cols = ['col1', 'col2', 'col3'];
+      const result = applyTransform(table, { promoteHeader: { skipRows: 0 } }, cols);
+
+      expect(result.columnNames()[0]).toBe('Name');
+      expect(result.columnNames()[1]).toBe('Column 2');
+      expect(result.columnNames()[2]).toBe('Column 3');
+    });
+
+    it('should deduplicate header names', () => {
+      const table = (aq as any).from([
+        { col1: 'X', col2: 'X', col3: 'X' },
+        { col1: 'a', col2: 'b', col3: 'c' },
+      ]);
+      const cols = ['col1', 'col2', 'col3'];
+      const result = applyTransform(table, { promoteHeader: { skipRows: 0 } }, cols);
+
+      const names = result.columnNames();
+      expect(names[0]).toBe('X');
+      expect(names[1]).toBe('X_2');
+      expect(names[2]).toBe('X_3');
+    });
+
+    it('should throw when not enough rows', () => {
+      const table = (aq as any).from([{ col1: 'only' }]);
+      const cols = ['col1'];
+      expect(() => applyTransform(table, { promoteHeader: { skipRows: 5 } }, cols)).toThrow(
+        'Not enough rows'
+      );
+    });
+  });
+
   describe('applyTransform() - ADD INDEX', () => {
     it('should add index column starting from 1', () => {
       const table = createTestTable();
@@ -448,6 +513,11 @@ describe('Transform Engine - Basic Operations', () => {
     it('should describe keepRows transform', () => {
       expect(describeTransform({ keepRows: { indices: [0, 1] } })).toBe('Keep 2 rows');
       expect(describeTransform({ keepRows: { indices: [3] } })).toBe('Keep 1 row');
+    });
+
+    it('should describe promoteHeader transform', () => {
+      expect(describeTransform({ promoteHeader: { skipRows: 0 } })).toBe('Headers from row 1');
+      expect(describeTransform({ promoteHeader: { skipRows: 4 } })).toBe('Headers from row 5');
     });
   });
 

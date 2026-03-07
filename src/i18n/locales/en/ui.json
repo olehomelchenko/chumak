@@ -364,7 +364,8 @@
       "removeTitle": "Remove {{count}} selected row",
       "removeTitle_other": "Remove {{count}} selected rows",
       "extractTitle": "Extract {{count}} row to new model",
-      "extractTitle_other": "Extract {{count}} rows to new model"
+      "extractTitle_other": "Extract {{count}} rows to new model",
+      "promoteTitle": "Use this row as column headers"
     },
     "cell": {
       "filterExact": "Keep only this value (=)",

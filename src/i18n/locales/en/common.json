@@ -128,6 +128,7 @@
     "removeColumns": "Remove {{count}} columns: {{names}}?",
     "removeRows_one": "Remove {{count}} selected row?",
     "removeRows_other": "Remove {{count}} selected rows?",
+    "promoteRow": "Use row {{row}} as column headers? All rows above will be removed.",
     "removeStep": "Remove step \"{{name}}\"?",
     "replaceNulls": "Replace null/empty values?",
     "overwriteColumn": "{{message}}. It will be overwritten. Continue?",

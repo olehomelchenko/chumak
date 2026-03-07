@@ -399,6 +399,15 @@ export const AppController = {
     });
   },
 
+  async promoteSelectedRowToHeader() {
+    await InteractionHandlers.promoteSelectedRowToHeader({
+      onTransformStart: startTransformation,
+      onTransformEnd: endTransformation,
+      onError: NotificationHandlers.alert,
+      updatePagination: () => PaginationHandlers.updatePagination(),
+    });
+  },
+
   async extractSelectedRows() {
     await InteractionHandlers.extractSelectedRows((model) => AppController.switchToModel(model));
   },

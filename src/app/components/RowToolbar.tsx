@@ -7,9 +7,15 @@ interface RowToolbarProps {
   onRemoveRows: () => void;
   onKeepRows: () => void;
   onExtractToModel?: () => void;
+  onPromoteToHeader?: () => void;
 }
 
-export function RowToolbar({ onRemoveRows, onKeepRows, onExtractToModel }: RowToolbarProps) {
+export function RowToolbar({
+  onRemoveRows,
+  onKeepRows,
+  onExtractToModel,
+  onPromoteToHeader,
+}: RowToolbarProps) {
   const { t } = useTranslation('ui');
   const selectedRows = AppStore.selectedRows.value;
   const pos = AppStore.rowToolbarPos.value;
@@ -98,6 +104,22 @@ export function RowToolbar({ onRemoveRows, onKeepRows, onExtractToModel }: RowTo
             <span
               class="iconify"
               data-icon="carbon:data-table"
+              style="width: 24px; height: 24px;"
+            ></span>
+          </button>
+        </>
+      )}
+      {onPromoteToHeader && selectedRows.length === 1 && (
+        <>
+          <div class={styles.floatingToolbar__divider}></div>
+          <button
+            class={styles.floatingToolbar__button}
+            onClick={onPromoteToHeader}
+            title={t('toolbars.row.promoteTitle')}
+          >
+            <span
+              class="iconify"
+              data-icon="carbon:table-of-contents"
               style="width: 24px; height: 24px;"
             ></span>
           </button>

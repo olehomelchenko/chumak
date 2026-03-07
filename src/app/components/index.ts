@@ -66,6 +66,10 @@ export { ImportUrlDialog } from './ImportUrlDialog';
 export { ImportTextDialog } from './ImportTextDialog';
 export { DownloadDialog } from './DownloadDialog';
 export { ConditionalDialog } from './ConditionalDialog';
+export { PromoteHeaderDialog } from './PromoteHeaderDialog';
+export { SelectPatternDialog } from './SelectPatternDialog';
+export { RemovePatternDialog } from './RemovePatternDialog';
+export { RenamePatternDialog } from './RenamePatternDialog';
 
 // Layout components
 export { RibbonToolbar } from './RibbonToolbar';

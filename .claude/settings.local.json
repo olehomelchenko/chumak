@@ -17,7 +17,9 @@
       "Bash(tree:*)",
       "Bash(grep:*)",
       "Bash(npx prettier:*)",
-      "Bash(npx tsx:*)"
+      "Bash(npx tsx:*)",
+      "WebFetch(domain:icon-sets.iconify.design)",
+      "WebFetch(domain:api.iconify.design)"
     ]
   }
 }
