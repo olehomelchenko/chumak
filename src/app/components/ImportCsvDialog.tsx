@@ -22,7 +22,7 @@ export function ImportCsvDialog({
   onBackToUrl,
   onBackToText,
 }: ImportCsvDialogProps = {}) {
-  const { t } = useTranslation('common');
+  const { t } = useTranslation(['dialogs', 'common']);
   const {
     sourceName,
     isJson,
@@ -89,13 +89,13 @@ export function ImportCsvDialog({
       {fromUrlImport.value && onBackToUrl && (
         <button class={styles.backLink} onClick={onBackToUrl}>
           <span class="iconify" data-icon="carbon:arrow-left" style={{ fontSize: '14px' }}></span>
-          {t('buttons.backToDatasets')}
+          {t('buttons.backToDatasets', { ns: 'common' })}
         </button>
       )}
       {fromTextEntry.value && onBackToText && (
         <button class={styles.backLink} onClick={onBackToText}>
           <span class="iconify" data-icon="carbon:arrow-left" style={{ fontSize: '14px' }}></span>
-          {t('buttons.backToTextEntry')}
+          {t('buttons.backToTextEntry', { ns: 'common' })}
         </button>
       )}
 
@@ -108,10 +108,12 @@ export function ImportCsvDialog({
             style={{ fontSize: '24px' }}
           ></span>
           <div class={styles.replaceInfo}>
-            <strong>Replace Mode</strong>
-            <p>
-              You are replacing data in source: <em>{sourceName.value}</em>
-            </p>
+            <strong>{t('importCsv.replaceMode')}</strong>
+            <p
+              dangerouslySetInnerHTML={{
+                __html: t('importCsv.replacingSource', { name: sourceName.value }),
+              }}
+            />
           </div>
         </div>
       )}
@@ -121,28 +123,28 @@ export function ImportCsvDialog({
 
       {/* Source Name */}
       <div class={styles.group}>
-        <label class={styles.label}>Source Name:</label>
+        <label class={styles.label}>{t('importCsv.sourceNameLabel')}</label>
         <input
           type="text"
           class={styles.input}
           value={sourceName.value}
           onInput={(e) => (sourceName.value = e.currentTarget.value)}
-          placeholder="e.g., sales_data"
+          placeholder={t('importCsv.sourceNamePlaceholder')}
         />
-        <p class={styles.helpText}>This name will appear in the Sources panel</p>
+        <p class={styles.helpText}>{t('importCsv.sourceNameHelp')}</p>
       </div>
 
       {/* JSON Section */}
       {isJson.value && (
         <>
           <div class={styles.group}>
-            <label class={styles.label}>Data Path (dot notation):</label>
+            <label class={styles.label}>{t('importCsv.dataPathLabel')}</label>
             <input
               type="text"
               class={styles.input}
               value={jsonPath.value || ''}
               onInput={handleJsonPathInput}
-              placeholder="e.g., results or data.items"
+              placeholder={t('importCsv.dataPathPlaceholder')}
             />
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '8px' }}>
               <button
@@ -151,7 +153,7 @@ export function ImportCsvDialog({
                 onClick={handleJsonPathReset}
                 disabled={!jsonPath.value}
               >
-                Reset
+                {t('importCsv.reset')}
               </button>
               {suggestedJsonKeys.value.map((key) => (
                 <button
@@ -165,8 +167,7 @@ export function ImportCsvDialog({
               ))}
             </div>
             <p class={styles.helpText} style={{ marginTop: '8px' }}>
-              Click keys above to navigate or type a path. If the array is nested, specify the path
-              to it.
+              {t('importCsv.dataPathHelp')}
             </p>
             <div
               class={styles.helpText}
@@ -178,7 +179,7 @@ export function ImportCsvDialog({
                 fontSize: '11px',
               }}
             >
-              <strong>Examples:</strong>
+              <strong>{t('importCsv.examples')}</strong>
               <br />• <code>results</code> (if your JSON is <code>{`{ "results": [...] }`}</code>)
               <br />• <code>data.items</code> (if your JSON is{' '}
               <code>{`{ "data": { "items": [...] } }`}</code>)<br />• <code>0.data</code> (if your
@@ -188,7 +189,7 @@ export function ImportCsvDialog({
 
           {jsonRawValuePreview.value && (
             <div class={styles.group}>
-              <label class={styles.label}>Value at path (preview):</label>
+              <label class={styles.label}>{t('importCsv.valueAtPath')}</label>
               <div class={styles.jsonView}>
                 <pre class={styles.jsonViewContent}>{jsonRawValuePreview.value}</pre>
               </div>
@@ -198,7 +199,7 @@ export function ImportCsvDialog({
           {jsonRawValuePreview.value && (
             <div class={styles.group}>
               <label class={styles.label} style={{ marginBottom: '8px' }}>
-                JSON Options:
+                {t('importCsv.jsonOptions')}
               </label>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 <label class={styles.checkboxLabel}>
@@ -212,7 +213,7 @@ export function ImportCsvDialog({
                       }
                     }}
                   />
-                  <span>Flatten nested objects (e.g., user.name -&gt; user_name)</span>
+                  <span>{t('importCsv.flattenNested')}</span>
                 </label>
                 <label class={styles.checkboxLabel}>
                   <input
@@ -225,11 +226,11 @@ export function ImportCsvDialog({
                       }
                     }}
                   />
-                  <span>Serialize nested structures to JSON strings</span>
+                  <span>{t('importCsv.serializeNested')}</span>
                 </label>
               </div>
               <p class={styles.helpText} style={{ marginTop: '4px' }}>
-                By default, nested objects are serialized to avoid "[object Object]".
+                {t('importCsv.serializeHelp')}
               </p>
             </div>
           )}
@@ -237,7 +238,7 @@ export function ImportCsvDialog({
           {!jsonData.value && (
             <div class={styles.error} style={{ marginBottom: '1rem' }}>
               <span class="iconify" data-icon="carbon:warning"></span>
-              <span>No valid array of objects found at this path.</span>
+              <span>{t('importCsv.noValidArray')}</span>
             </div>
           )}
         </>
@@ -247,12 +248,12 @@ export function ImportCsvDialog({
       {!isJson.value && (
         <>
           <div class={styles.group}>
-            <label class={styles.label}>Delimiter:</label>
+            <label class={styles.label}>{t('importCsv.delimiterLabel')}</label>
             <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
               {[
-                { val: ',', label: 'Comma (,)' },
-                { val: '\t', label: 'Tab' },
-                { val: ';', label: 'Semicolon (;)' },
+                { val: ',', label: t('importCsv.delimiterComma') },
+                { val: '\t', label: t('importCsv.delimiterTab') },
+                { val: ';', label: t('importCsv.delimiterSemicolon') },
               ].map((opt) => (
                 <label key={opt.val} class={styles.checkboxLabel} style={{ margin: 0 }}>
                   <input
@@ -269,11 +270,11 @@ export function ImportCsvDialog({
           </div>
 
           <div class={styles.group}>
-            <label class={styles.label}>Column Headers:</label>
+            <label class={styles.label}>{t('importCsv.columnHeadersLabel')}</label>
             {[
-              { val: 'first-row', label: 'First row contains headers (recommended)' },
-              { val: 'auto-generate', label: 'Auto-generate headers (Column 1, Column 2, ...)' },
-              { val: 'manual', label: 'Specify manually' },
+              { val: 'first-row', label: t('importCsv.headerFirstRow') },
+              { val: 'auto-generate', label: t('importCsv.headerAutoGenerate') },
+              { val: 'manual', label: t('importCsv.headerManual') },
             ].map((opt) => (
               <label key={opt.val} class={styles.checkboxLabel}>
                 <input
@@ -294,7 +295,7 @@ export function ImportCsvDialog({
       {(headerMode.value === 'manual' || isJson.value) && (
         <div class={styles.group} style={{ maxHeight: '150px', overflowY: 'auto' }}>
           <label class={styles.label} style={{ fontSize: '13px', marginBottom: '8px' }}>
-            Specify column names:
+            {t('importCsv.specifyColumnNames')}
           </label>
           <div
             style={{
@@ -310,7 +311,7 @@ export function ImportCsvDialog({
                 class={styles.input}
                 value={name}
                 onInput={(e) => handleHeaderNameChange(index, e.currentTarget.value)}
-                placeholder={`Column ${index + 1}`}
+                placeholder={t('importCsv.columnPlaceholder', { index: index + 1 })}
                 style={{ fontSize: '13px', padding: '6px 8px' }}
               />
             ))}
@@ -321,7 +322,7 @@ export function ImportCsvDialog({
       {/* Auto-generate message */}
       {headerMode.value === 'auto-generate' && !isJson.value && (
         <div style={{ color: 'var(--color-dark-gray)', fontSize: '14px', padding: '8px 0' }}>
-          Columns will be named: Column 1, Column 2, Column 3, ...
+          {t('importCsv.autoGenerateMessage')}
         </div>
       )}
 
@@ -330,13 +331,11 @@ export function ImportCsvDialog({
         <div class={styles.warningBox}>
           <span style={{ fontSize: '20px' }}>⚠️</span>
           <div style={{ flex: 1 }}>
-            <div class={styles.warningTitle}>Duplicate Column Names Detected</div>
+            <div class={styles.warningTitle}>{t('importCsv.duplicateTitle')}</div>
             <div class={styles.warningText} style={{ marginBottom: '0.5rem' }}>
               {duplicateWarning.value}
             </div>
-            <div class={styles.warningText}>
-              Duplicates have been automatically renamed by adding a suffix (e.g., "_2", "_3").
-            </div>
+            <div class={styles.warningText}>{t('importCsv.duplicateHelp')}</div>
           </div>
         </div>
       )}

@@ -46,11 +46,14 @@ function interpolate(str: string, values?: Record<string, any>): string {
 // Mock preact-i18next globally for all tests
 // Uses actual English translations with interpolation support
 vi.mock('preact-i18next', () => ({
-  useTranslation: (namespace: string = 'common') => ({
+  useTranslation: (namespaceArg: string | string[] = 'common') => ({
     t: (key: string, options?: Record<string, any>) => {
-      const translation = getNestedValue(translations[namespace], key);
+      // Determine namespace: explicit ns option > first namespace from array > string arg
+      const defaultNs = Array.isArray(namespaceArg) ? namespaceArg[0] : namespaceArg;
+      const ns = options?.ns ?? defaultNs;
+      const translation = getNestedValue(translations[ns], key);
       if (translation === undefined) {
-        console.warn(`Missing translation: ${namespace}.${key}`);
+        console.warn(`Missing translation: ${ns}.${key}`);
         return key; // Fallback to key if translation not found
       }
       return interpolate(translation, options);

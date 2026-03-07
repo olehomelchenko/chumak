@@ -1088,6 +1088,20 @@ export function MyComponent() {
 }
 ```
 
+**Multiple namespaces**: When a component needs keys from more than one namespace, pass an array. The first namespace is the default; use the `ns` option to reference others:
+
+```typescript
+const { t } = useTranslation(['dialogs', 'common']);
+
+// Default namespace (dialogs):
+t('importCsv.sourceNameLabel');
+
+// Explicit namespace override:
+t('buttons.backToDatasets', { ns: 'common' });
+```
+
+The test mock in `test-setup.ts` supports array namespaces and the `ns` option automatically.
+
 **Step 2**: Add keys to translation files:
 
 ```json
