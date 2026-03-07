@@ -51,6 +51,7 @@ import {
   previewState,
   generateState,
   importCsvState,
+  importTextState,
   // Reset function
   resetAllDialogStates,
 } from './dialogs';
@@ -116,6 +117,7 @@ export class DialogStore {
   static previewState = previewState;
   static generateState = generateState;
   static importCsvState = importCsvState;
+  static importTextState = importTextState;
 
   /**
    * Creates a reactive proxy for a signal-based state object.

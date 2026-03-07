@@ -32,6 +32,7 @@
     "importCsv": "Import CSV",
     "importJson": "Import JSON",
     "importUrl": "Import from URL",
+    "importText": "Enter Data",
     "generate": "Generate Data",
     "settings": "Settings",
     "download": "Download Data",

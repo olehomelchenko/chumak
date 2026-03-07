@@ -26,6 +26,7 @@ export const importCsvState = {
   targetSourceId: signal<string | null>(null),
   schemaDiff: signal<SchemaDiff | null>(null),
   fromUrlImport: signal(false),
+  fromTextEntry: signal(false),
 };
 
 export function resetImportCsvState() {
@@ -51,6 +52,7 @@ export function resetImportCsvState() {
   importCsvState.targetSourceId.value = null;
   importCsvState.schemaDiff.value = null;
   importCsvState.fromUrlImport.value = false;
+  importCsvState.fromTextEntry.value = false;
 }
 
 registerResetFunction(resetImportCsvState);

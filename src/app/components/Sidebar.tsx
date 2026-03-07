@@ -12,8 +12,8 @@ import i18n from '../../i18n';
 export interface SidebarProps {
   // Import actions
   onUploadClick: () => void;
-  onPasteClick: () => void;
   onUrlClick: () => void;
+  onEnterDataClick: () => void;
   onGenerateClick: () => void;
   // Navigation
   onSwitchToSource: (source: Source) => void;
@@ -50,8 +50,8 @@ function getModelMeta(model: Model): string {
 
 export function Sidebar({
   onUploadClick,
-  onPasteClick,
   onUrlClick,
+  onEnterDataClick,
   onGenerateClick,
   onSwitchToSource,
   onSwitchToModel,
@@ -107,13 +107,17 @@ export function Sidebar({
             <span class="iconify" data-icon="carbon:upload"></span>
             <span>{t('sidebar.actions.upload')}</span>
           </button>
-          <button class={styles.importAction} onClick={onPasteClick} title={t('tooltips.paste')}>
-            <span class="iconify" data-icon="carbon:paste"></span>
-            <span>{t('sidebar.actions.paste')}</span>
-          </button>
           <button class={styles.importAction} onClick={onUrlClick} title={t('tooltips.url')}>
             <span class="iconify" data-icon="carbon:link"></span>
             <span>{t('sidebar.actions.url')}</span>
+          </button>
+          <button
+            class={styles.importAction}
+            onClick={onEnterDataClick}
+            title={t('tooltips.enter')}
+          >
+            <span class="iconify" data-icon="carbon:text-long-paragraph"></span>
+            <span>{t('sidebar.actions.enter')}</span>
           </button>
           <button
             class={styles.importAction}

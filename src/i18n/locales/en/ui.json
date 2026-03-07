@@ -386,8 +386,8 @@
     "title": "Get Started with Syto",
     "subtitle": "Drag and drop a CSV file here, or use one of the options below",
     "uploadButton": "Upload CSV",
-    "pasteButton": "Paste Data",
     "urlButton": "Import from URL",
+    "enterButton": "Enter Data",
     "videoPlaceholder": "Video coming soon"
   },
   "toast": {
@@ -463,6 +463,7 @@
   "datasetInfo": {
     "subtitle": "Dataset Source",
     "actions": {
+      "editData": "Edit Data",
       "replace": "Replace Data",
       "restore": "Restore Backup",
       "rename": "Rename",
@@ -517,5 +518,12 @@
     "close": "Close",
     "warning": "Direct JSON editing bypasses validation. Invalid changes may break your pipeline.",
     "applyChanges": "Apply Changes"
+  },
+  "importText": {
+    "label": "Paste or type your data:",
+    "labelEdit": "Edit your data:",
+    "placeholder": "Name, Age, City\nAlice, 30, London\nBob, 25, Paris",
+    "helpText": "Enter CSV, TSV, or JSON data. The data will be parsed in the next step.",
+    "shortcutHint": "Tip: press {{mod}}+V anywhere in the app to quickly create a dataset from your clipboard."
   }
 }

@@ -32,6 +32,7 @@
     "importCsv": "Імпорт CSV",
     "importJson": "Імпорт JSON",
     "importUrl": "Імпорт з URL",
+    "importText": "Ввести дані",
     "generate": "Згенерувати дані",
     "settings": "Налаштування",
     "download": "Завантажити дані",

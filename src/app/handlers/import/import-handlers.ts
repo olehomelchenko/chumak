@@ -499,6 +499,63 @@ export function backToUrlImport(): void {
   callbacks?.openDialog('import-url');
 }
 
+export function confirmTextEntry(): void {
+  const { text, isEditMode, targetSourceId } = DialogStore.importTextState;
+  const rawText = text.value;
+
+  if (!rawText || rawText.trim().length === 0) return;
+
+  const trimmed = rawText.trim();
+  const isLikelyJson =
+    (trimmed.startsWith('[') && trimmed.endsWith(']')) ||
+    (trimmed.startsWith('{') && trimmed.endsWith('}'));
+  const file = new File([rawText], isLikelyJson ? 'Entered Data.json' : 'Entered Data.csv', {
+    type: isLikelyJson ? 'application/json' : 'text/csv',
+  });
+
+  // Transition from import-text to import-csv without full resetAll
+  AppStore.activeDialog.value = null;
+  AppStore.dialogSnapshot.value = null;
+  DialogStore.importCsvState.fromTextEntry.value = true;
+
+  // If editing an existing source, set replace mode
+  if (isEditMode.value && targetSourceId.value) {
+    DialogStore.importCsvState.isReplaceMode.value = true;
+    DialogStore.importCsvState.targetSourceId.value = targetSourceId.value;
+    const source = AppStore.sources.value.find((s) => s.id === targetSourceId.value);
+    if (source) {
+      DialogStore.importCsvState.sourceName.value = source.name;
+    }
+  }
+
+  showImportDialog(file);
+}
+
+export function showEditTextDialog(source: Source): void {
+  if (!source.rawText) return;
+
+  DialogStore.importTextState.text.value = source.rawText;
+  DialogStore.importTextState.isEditMode.value = true;
+  DialogStore.importTextState.targetSourceId.value = source.id;
+
+  callbacks?.openDialog('import-text');
+}
+
+export function backToTextEntry(): void {
+  const savedText = DialogStore.importTextState.text.value;
+  const savedIsEditMode = DialogStore.importTextState.isEditMode.value;
+  const savedTargetSourceId = DialogStore.importTextState.targetSourceId.value;
+
+  DialogStore.importCsvState.fromTextEntry.value = false;
+  callbacks?.closeDialog(true);
+
+  // Restore text state after closeDialog reset, then reopen import-text dialog
+  DialogStore.importTextState.text.value = savedText;
+  DialogStore.importTextState.isEditMode.value = savedIsEditMode;
+  DialogStore.importTextState.targetSourceId.value = savedTargetSourceId;
+  callbacks?.openDialog('import-text');
+}
+
 export function showReplaceSourceDialog(source: Source): void {
   DialogStore.importCsvState.isReplaceMode.value = true;
   DialogStore.importCsvState.targetSourceId.value = source.id;
@@ -506,6 +563,36 @@ export function showReplaceSourceDialog(source: Source): void {
 
   const input = document.getElementById('file-input') as HTMLInputElement;
   input?.click();
+}
+
+/**
+ * After source creation/replacement via text entry, store the raw text on the source
+ * so the user can later re-edit it.
+ */
+function setRawTextIfTextEntry(): void {
+  if (!DialogStore.importCsvState.fromTextEntry.value) return;
+  const rawText = DialogStore.importTextState.text.value;
+  if (!rawText) return;
+
+  // For new sources: the last source added is the one just created
+  const sources = AppStore.sources.value;
+  const source = sources[sources.length - 1];
+  if (source) {
+    source.rawText = rawText;
+    AppStore.sources.value = [...sources];
+  }
+}
+
+function setRawTextOnReplacedSource(sourceId: string): void {
+  if (!DialogStore.importCsvState.fromTextEntry.value) return;
+  const rawText = DialogStore.importTextState.text.value;
+  if (!rawText) return;
+
+  const source = AppStore.sources.value.find((s) => s.id === sourceId);
+  if (source) {
+    source.rawText = rawText;
+    AppStore.sources.value = [...AppStore.sources.value];
+  }
 }
 
 export async function confirmImport(): Promise<void> {
@@ -553,6 +640,7 @@ export async function confirmImport(): Promise<void> {
           delimiter: ',',
         });
 
+        setRawTextOnReplacedSource(sourceId);
         s.isReplaceMode.value = false;
         s.targetSourceId.value = null;
         s.schemaDiff.value = null;
@@ -586,6 +674,7 @@ export async function confirmImport(): Promise<void> {
         columns,
         'json'
       );
+      setRawTextIfTextEntry();
     }
     return;
   }
@@ -645,6 +734,7 @@ export async function confirmImport(): Promise<void> {
             delimiter,
           });
 
+          setRawTextOnReplacedSource(sourceId);
           s.isReplaceMode.value = false;
           s.targetSourceId.value = null;
           s.schemaDiff.value = null;
@@ -679,6 +769,7 @@ export async function confirmImport(): Promise<void> {
         delimiter,
         customHeaders
       );
+      setRawTextIfTextEntry();
     },
     error: async (error) => {
       console.error('CSV parsing error:', error);

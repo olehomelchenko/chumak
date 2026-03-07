@@ -270,6 +270,7 @@ export function createMockStepCallbacks(overrides?: Partial<StepCallbacks>): Ste
     updateSplitPreview: vi.fn(),
     updateDedupePreview: vi.fn(),
     confirmImport: vi.fn(),
+    confirmTextEntry: vi.fn(),
     fetchAndImportFromUrl: vi.fn().mockResolvedValue(undefined),
     generateData: vi.fn().mockResolvedValue(undefined),
     ...overrides,

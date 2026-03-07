@@ -14,6 +14,7 @@ export interface DatasetInfoViewProps {
   onCreateNewModel: (source: Source) => void;
   onReplaceSource: (source: Source) => void;
   onRestoreBackup: (source: Source) => void;
+  onEditData: (source: Source) => void;
 }
 
 export function DatasetInfoView({
@@ -23,6 +24,7 @@ export function DatasetInfoView({
   onCreateNewModel,
   onReplaceSource,
   onRestoreBackup,
+  onEditData,
 }: DatasetInfoViewProps) {
   const { t } = useTranslation('ui');
   const activeSource = AppStore.activeSource;
@@ -65,6 +67,16 @@ export function DatasetInfoView({
           <p class={styles.subtitle}>{t('datasetInfo.subtitle')}</p>
         </div>
         <div class={styles.actions}>
+          {source.rawText && (
+            <button class="button button--secondary" onClick={() => onEditData(source)}>
+              <span
+                class="iconify"
+                data-icon="carbon:text-long-paragraph"
+                style={{ fontSize: '24px' }}
+              ></span>
+              {t('datasetInfo.actions.editData')}
+            </button>
+          )}
           <button class="button button--secondary" onClick={() => onReplaceSource(source)}>
             <span class="iconify" data-icon="carbon:cyclostat" style={{ fontSize: '24px' }}></span>
             {t('datasetInfo.actions.replace')}

@@ -68,6 +68,7 @@ export class SytoApp {
       updateSplitPreview: () => AppController.updateSplitPreview(),
       updateDedupePreview: () => AppController.updateDedupePreview(),
       confirmImport: () => AppController.confirmImport(),
+      confirmTextEntry: () => AppController.confirmTextEntry(),
       fetchAndImportFromUrl: () => AppController.fetchAndImportFromUrl(),
       generateData: () => AppController.generateData(),
     });

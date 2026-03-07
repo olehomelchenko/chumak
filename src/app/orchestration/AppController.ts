@@ -284,6 +284,18 @@ export const AppController = {
     ImportHandlers.promptPaste();
   },
 
+  confirmTextEntry(): void {
+    ImportHandlers.confirmTextEntry();
+  },
+
+  showEditTextDialog(source: Source): void {
+    ImportHandlers.showEditTextDialog(source);
+  },
+
+  backToTextEntry(): void {
+    ImportHandlers.backToTextEntry();
+  },
+
   createSource(
     file: File,
     sourceName: string,

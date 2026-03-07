@@ -25,6 +25,7 @@ export type StepCallbacks = {
   updateDedupePreview?: () => void;
   // Non-transform operations (import, generate)
   confirmImport: () => void;
+  confirmTextEntry: () => void;
   fetchAndImportFromUrl: () => Promise<void>;
   generateData: () => Promise<void>;
 };
@@ -52,6 +53,9 @@ export async function applyActiveTransform(): Promise<void> {
       return;
     case 'import-url':
       await callbacks?.fetchAndImportFromUrl();
+      return;
+    case 'import-text':
+      callbacks?.confirmTextEntry();
       return;
     case 'generate':
       await callbacks?.generateData();

@@ -11,6 +11,7 @@ export interface ImportCsvDialogProps {
   onJsonPathSegmentSelect?: (key: string) => void;
   onParamChange?: () => void;
   onBackToUrl?: () => void;
+  onBackToText?: () => void;
 }
 
 export function ImportCsvDialog({
@@ -19,6 +20,7 @@ export function ImportCsvDialog({
   onJsonPathSegmentSelect,
   onParamChange,
   onBackToUrl,
+  onBackToText,
 }: ImportCsvDialogProps = {}) {
   const { t } = useTranslation('common');
   const {
@@ -37,6 +39,7 @@ export function ImportCsvDialog({
     isReplaceMode,
     schemaDiff,
     fromUrlImport,
+    fromTextEntry,
   } = DialogStore.importCsvState;
 
   const handleJsonPathInput = (e: JSX.TargetedEvent<HTMLInputElement>) => {
@@ -83,11 +86,16 @@ export function ImportCsvDialog({
 
   return (
     <div>
-      {/* Back to URL datasets link */}
       {fromUrlImport.value && onBackToUrl && (
         <button class={styles.backLink} onClick={onBackToUrl}>
           <span class="iconify" data-icon="carbon:arrow-left" style={{ fontSize: '14px' }}></span>
           {t('buttons.backToDatasets')}
+        </button>
+      )}
+      {fromTextEntry.value && onBackToText && (
+        <button class={styles.backLink} onClick={onBackToText}>
+          <span class="iconify" data-icon="carbon:arrow-left" style={{ fontSize: '14px' }}></span>
+          {t('buttons.backToTextEntry')}
         </button>
       )}
 

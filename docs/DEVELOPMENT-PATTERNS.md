@@ -736,8 +736,10 @@ All import paths (file upload, drag-drop, paste, URL) converge on the same core 
 File upload/drop  ──→  handleFileSelect() / handleFileDrop()  ──┐
 Clipboard paste   ──→  handlePaste() / promptPaste()           ──┤
                                                                   ├──→  showImportDialog(file)
-URL import        ──→  fetchAndImportFromUrl()                 ──┘
-                       (fetches URL → creates synthetic File)
+URL import        ──→  fetchAndImportFromUrl()                 ──┤
+                       (fetches URL → creates synthetic File)    │
+Text entry        ──→  confirmTextEntry()                      ──┘
+                       (creates synthetic File from textarea)
 ```
 
 All entry points create a `File` object and call `showImportDialog(file)` in `import-handlers.ts`.
@@ -776,22 +778,35 @@ When the `import-csv` dialog opens, the preview panel in `App.tsx` renders becau
 
 For transform dialogs, preview data uses `DialogStore.previewState` signals instead (set by `preview-engine.ts`).
 
-#### URL Import Specifics
+#### Transition Dialog Pattern
 
-The URL import adds a fetch step before the shared pipeline:
+Some import paths use a **two-step dialog flow**: a simple entry dialog that transitions to `import-csv` for preview/configuration. This avoids duplicating parsing logic.
 
 ```
-ImportUrlDialog  →  user enters/selects URL  →  "Fetch Data" button
+[Entry Dialog]  →  user provides input  →  Apply button
     │
-    └── fetchAndImportFromUrl()
+    └── handler function (e.g., fetchAndImportFromUrl / confirmTextEntry)
             │
-            ├── fetch(url)  →  detect file type from extension
-            ├── Create synthetic File from response text
-            ├── Close import-url dialog
-            └── showImportDialog(file)  →  (shared pipeline above)
+            ├── Convert input to a File object
+            ├── Set flags on importCsvState (fromUrlImport / fromTextEntry)
+            ├── Close entry dialog (without full state reset)
+            └── showImportDialog(file)  →  opens import-csv with preview
 ```
 
-The `import-url` dialog has its own state (`importUrlState`: url, isFetching, error) and provides popular dataset links from a CDN.
+**Key details:**
+
+- Each entry dialog has its own state file (`import-url-state.ts`, `import-text-state.ts`)
+- Flags like `fromUrlImport` / `fromTextEntry` on `importCsvState` enable a "Back to..." link in `ImportCsvDialog`
+- The `backToUrlImport()` / `backToTextEntry()` functions save importCsvState text, close, restore, and reopen the entry dialog
+- For edit flows, the entry dialog can set `isReplaceMode = true` on `importCsvState` to route through `ReplaceSourceService` instead of `createSource`
+
+**To add a new transition dialog**, follow the URL/text pattern:
+
+1. Create state file in `stores/dialogs/import/`
+2. Create dialog component
+3. Add handler that converts input → `File` → `showImportDialog(file)`
+4. Add a `from*` flag to `importCsvState` and a `backTo*()` function
+5. Wire the Apply button via `StepCallbacks` (see §7.1 "Non-Transform Dialogs")
 
 #### Confirm and Source Creation
 
@@ -815,15 +830,17 @@ confirmImport()
 
 #### Key Files
 
-| File                                        | Purpose                                                   |
-| ------------------------------------------- | --------------------------------------------------------- |
-| `handlers/import/import-handlers.ts`        | All import logic (entry points, preview, confirm)         |
-| `stores/dialogs/import/import-csv-state.ts` | Signal state for the CSV import dialog                    |
-| `stores/dialogs/import/import-url-state.ts` | Signal state for the URL import dialog                    |
-| `components/ImportCsvDialog.tsx`            | Import settings UI (delimiter, headers, JSON path)        |
-| `components/ImportUrlDialog.tsx`            | URL input and dataset link list                           |
-| `services/ImportService.ts`                 | Source and model creation                                 |
-| `orchestration/DialogCoordinator.ts`        | Preview data routing (`hasPreviewData`, `getPreviewRows`) |
+| File                                         | Purpose                                                   |
+| -------------------------------------------- | --------------------------------------------------------- |
+| `handlers/import/import-handlers.ts`         | All import logic (entry points, preview, confirm)         |
+| `stores/dialogs/import/import-csv-state.ts`  | Signal state for the CSV import dialog                    |
+| `stores/dialogs/import/import-url-state.ts`  | Signal state for the URL import dialog                    |
+| `stores/dialogs/import/import-text-state.ts` | Signal state for the text entry dialog                    |
+| `components/ImportCsvDialog.tsx`             | Import settings UI (delimiter, headers, JSON path)        |
+| `components/ImportUrlDialog.tsx`             | URL input and dataset link list                           |
+| `components/ImportTextDialog.tsx`            | Textarea for manual data entry                            |
+| `services/ImportService.ts`                  | Source and model creation                                 |
+| `orchestration/DialogCoordinator.ts`         | Preview data routing (`hasPreviewData`, `getPreviewRows`) |
 
 ---
 
@@ -909,6 +926,30 @@ yourDialog: {
 ```
 
 If the handler needs user confirmation, import `confirm` or `prompt` directly from `notification-handlers` instead of passing an `app` parameter.
+
+#### Non-Transform Dialogs (Import/Utility)
+
+Import dialogs (e.g., `import-url`, `import-text`) don't use `applyHandler` in the registry because they don't execute transforms — they transition to `import-csv` or perform custom logic. These use the **StepCallbacks** pattern instead:
+
+| File                                     | What to Add                                    |
+| ---------------------------------------- | ---------------------------------------------- |
+| `src/app/handlers/import/*-handlers.ts`  | Handler function (e.g., `confirmTextEntry()`)  |
+| `src/app/handlers/core/step-handlers.ts` | Add to `StepCallbacks` interface + switch case |
+| `src/app/handlers/test-utils.ts`         | Add mock to `createMockStepCallbacks()`        |
+| `src/syto-app.ts`                        | Wire callback to `AppController`               |
+| `src/app/orchestration/AppController.ts` | Add delegating method                          |
+
+The switch case in `applyActiveTransform()` dispatches to the callback:
+
+```typescript
+// In step-handlers.ts
+case 'import-text': callbacks?.confirmTextEntry(); return;
+```
+
+**When to use which pattern:**
+
+- **Registry `applyHandler`**: Dialog produces a `TransformStep` (filter, derive, sort, etc.)
+- **StepCallbacks switch case**: Dialog has custom apply logic (import transitions, multi-step flows)
 
 ### 7.2 Adding a New Function
 
@@ -1014,11 +1055,17 @@ Syto uses **i18next** with **preact-i18next** for multi-language support. The sy
 - English (`en`) — default
 - Ukrainian (`uk`) — with automatic 3-form plural handling
 
-**Namespaces**:
+**Namespaces** (5 files per language):
 
-- `common` — buttons, labels, tooltips (shared across app)
-- `settings` — settings dialog strings
-- `dialogs` — dialog titles and descriptions
+| Namespace  | Purpose                                                                                                      |
+| ---------- | ------------------------------------------------------------------------------------------------------------ |
+| `common`   | Shared UI chrome: buttons, labels, tooltips, sidebar text, notifications, prompts, confirms                  |
+| `ui`       | Component-specific text: ribbon, pagination, toolbars, empty state, EDA, type menu, dataset/model info views |
+| `dialogs`  | Transform dialog content: titles, field labels, placeholders, validation messages, help text                 |
+| `settings` | Settings dialog strings                                                                                      |
+| `errors`   | Error messages (parsing, validation, runtime)                                                                |
+
+**Rule of thumb**: If the text appears in a dialog's form fields, use `dialogs`. If it's in a toolbar, view, or panel, use `ui`. If it's a button/label reused across multiple places, use `common`.
 
 ### 9.2 Adding Translations to a Component
 

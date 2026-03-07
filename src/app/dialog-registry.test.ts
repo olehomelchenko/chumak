@@ -49,6 +49,7 @@ describe('Dialog Registry', () => {
     it('contains all import dialogs', () => {
       expect(DIALOG_REGISTRY['import-csv']).toBeDefined();
       expect(DIALOG_REGISTRY['import-url']).toBeDefined();
+      expect(DIALOG_REGISTRY['import-text']).toBeDefined();
     });
 
     it('contains all utility dialogs', () => {

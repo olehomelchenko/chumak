@@ -20,6 +20,7 @@
     "applyJoin": "Apply Join",
     "applyAppend": "Apply Append",
     "backToDatasets": "Back to datasets",
+    "backToTextEntry": "Back to text entry",
     "fetchData": "Fetch Data",
     "generate": "Generate",
     "download": "Download"
@@ -41,9 +42,9 @@
     "graph": "View dependency graph between sources and models",
     "settings": "Application Settings",
     "upload": "Upload CSV file",
-    "paste": "Paste data from clipboard",
     "url": "Import from URL",
     "generate": "Generate synthetic data",
+    "enter": "Enter or paste data manually",
     "editStep": "Edit this step",
     "removeStep": "Remove this step",
     "editJson": "Edit raw JSON (opens editor modal)",
@@ -60,8 +61,8 @@
     "title": "Sources & Models",
     "actions": {
       "upload": "Upload",
-      "paste": "Paste",
       "url": "URL",
+      "enter": "Enter",
       "generate": "Generate"
     },
     "empty": "No data sources imported yet. Click \"Import CSV\" to get started.",

@@ -34,6 +34,7 @@ interface Source {
   rowCount?: number; // Number of rows
   createdAt?: string; // ISO timestamp
   comment?: string; // User-provided comment/notes about the dataset
+  rawText?: string; // Original text for sources created via text entry (enables re-editing)
   backup?: Omit<Source, 'backup'>; // Snapshotted previous version of the source
 }
 ```

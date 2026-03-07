@@ -6,6 +6,7 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { AppStore } from '../../stores/AppStore';
 import { DialogStore } from '../../stores/DialogStore';
 import {
   resetStores,
@@ -413,6 +414,131 @@ describe('import-handlers', () => {
       await ImportHandlers.fetchAndImportFromUrl.call(mockApp);
 
       expect(DialogStore.importUrlState.error.value).toBe('Please enter a valid URL');
+    });
+  });
+
+  describe('DialogStore import text state', () => {
+    it('initializes import text state correctly', () => {
+      expect(DialogStore.importTextState.text.value).toBe('');
+      expect(DialogStore.importTextState.isEditMode.value).toBe(false);
+      expect(DialogStore.importTextState.targetSourceId.value).toBeNull();
+    });
+  });
+
+  describe('confirmTextEntry', () => {
+    it('does nothing when text is empty', () => {
+      const openDialogSpy = vi.fn();
+      ImportHandlers.setImportCallbacks({
+        openDialog: openDialogSpy,
+        closeDialog: vi.fn(),
+        createSource: vi.fn(),
+      });
+
+      DialogStore.importTextState.text.value = '';
+      ImportHandlers.confirmTextEntry();
+
+      // Should not transition to import-csv
+      expect(DialogStore.importCsvState.fromTextEntry.value).toBe(false);
+    });
+
+    it('does nothing when text is whitespace only', () => {
+      DialogStore.importTextState.text.value = '   \n  ';
+      ImportHandlers.confirmTextEntry();
+
+      expect(DialogStore.importCsvState.fromTextEntry.value).toBe(false);
+    });
+
+    it('sets fromTextEntry flag on import-csv state', () => {
+      ImportHandlers.setImportCallbacks({
+        openDialog: vi.fn(),
+        closeDialog: vi.fn(),
+        createSource: vi.fn(),
+      });
+
+      DialogStore.importTextState.text.value = 'Name,Age\nAlice,30';
+      ImportHandlers.confirmTextEntry();
+
+      expect(DialogStore.importCsvState.fromTextEntry.value).toBe(true);
+    });
+
+    it('sets replace mode when in edit mode with target source', () => {
+      const source = createTestSource({ id: 'src_edit' });
+      AppStore.sources.value = [source];
+
+      ImportHandlers.setImportCallbacks({
+        openDialog: vi.fn(),
+        closeDialog: vi.fn(),
+        createSource: vi.fn(),
+      });
+
+      DialogStore.importTextState.text.value = 'Name,Age\nAlice,30';
+      DialogStore.importTextState.isEditMode.value = true;
+      DialogStore.importTextState.targetSourceId.value = 'src_edit';
+
+      ImportHandlers.confirmTextEntry();
+
+      expect(DialogStore.importCsvState.isReplaceMode.value).toBe(true);
+      expect(DialogStore.importCsvState.targetSourceId.value).toBe('src_edit');
+      expect(DialogStore.importCsvState.sourceName.value).toBe('Test Source');
+    });
+  });
+
+  describe('showEditTextDialog', () => {
+    it('sets text state from source rawText', () => {
+      const openDialogSpy = vi.fn();
+      ImportHandlers.setImportCallbacks({
+        openDialog: openDialogSpy,
+        closeDialog: vi.fn(),
+        createSource: vi.fn(),
+      });
+
+      const source = createTestSource({ id: 'src_1', rawText: 'Name,Age\nAlice,30' });
+      ImportHandlers.showEditTextDialog(source);
+
+      expect(DialogStore.importTextState.text.value).toBe('Name,Age\nAlice,30');
+      expect(DialogStore.importTextState.isEditMode.value).toBe(true);
+      expect(DialogStore.importTextState.targetSourceId.value).toBe('src_1');
+      expect(openDialogSpy).toHaveBeenCalledWith('import-text');
+    });
+
+    it('does nothing when source has no rawText', () => {
+      const openDialogSpy = vi.fn();
+      ImportHandlers.setImportCallbacks({
+        openDialog: openDialogSpy,
+        closeDialog: vi.fn(),
+        createSource: vi.fn(),
+      });
+
+      const source = createTestSource({ id: 'src_1' });
+      ImportHandlers.showEditTextDialog(source);
+
+      expect(openDialogSpy).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('backToTextEntry', () => {
+    it('preserves text state across dialog transition', () => {
+      const openDialogSpy = vi.fn();
+      const closeDialogSpy = vi.fn();
+      ImportHandlers.setImportCallbacks({
+        openDialog: openDialogSpy,
+        closeDialog: closeDialogSpy,
+        createSource: vi.fn(),
+      });
+
+      DialogStore.importTextState.text.value = 'original text';
+      DialogStore.importTextState.isEditMode.value = true;
+      DialogStore.importTextState.targetSourceId.value = 'src_1';
+      DialogStore.importCsvState.fromTextEntry.value = true;
+
+      ImportHandlers.backToTextEntry();
+
+      expect(DialogStore.importCsvState.fromTextEntry.value).toBe(false);
+      expect(closeDialogSpy).toHaveBeenCalledWith(true);
+      expect(DialogStore.importTextState.text.value).toBe('original text');
+      expect(DialogStore.importTextState.isEditMode.value).toBe(true);
+      expect(DialogStore.importTextState.targetSourceId.value).toBe('src_1');
+      expect(openDialogSpy).toHaveBeenCalledWith('import-text');
     });
   });
 

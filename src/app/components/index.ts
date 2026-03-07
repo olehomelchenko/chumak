@@ -63,6 +63,7 @@ export { RegexpMatchDialog } from './RegexpMatchDialog';
 export { RegexpExtractDialog } from './RegexpExtractDialog';
 export { DedupeDialog } from './DedupeDialog';
 export { ImportUrlDialog } from './ImportUrlDialog';
+export { ImportTextDialog } from './ImportTextDialog';
 export { DownloadDialog } from './DownloadDialog';
 export { ConditionalDialog } from './ConditionalDialog';
 

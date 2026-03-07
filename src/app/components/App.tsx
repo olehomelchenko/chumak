@@ -35,6 +35,7 @@ import {
   WindowDialog,
   ImportCsvDialog,
   ImportUrlDialog,
+  ImportTextDialog,
   GenerateDialog,
   DownloadDialog,
   SettingsDialog,
@@ -91,8 +92,8 @@ export function App() {
   // Props Construction
   const sidebarProps = {
     onUploadClick: () => AppController.handleUploadClick(),
-    onPasteClick: () => AppController.handlePasteClick(),
     onUrlClick: () => AppController.openDialog('import-url'),
+    onEnterDataClick: () => AppController.openDialog('import-text'),
     onGenerateClick: () => AppController.openDialog('generate'),
     onSwitchToSource: (s: any) => AppController.switchToSource(s),
     onSwitchToModel: (m: any) => AppController.switchToModel(m),
@@ -110,8 +111,8 @@ export function App() {
   const mainContentProps = {
     // EmptyState
     onUploadClick: () => AppController.handleUploadClick(),
-    onPasteClick: () => AppController.handlePasteClick(),
     onUrlClick: () => AppController.openDialog('import-url'),
+    onEnterDataClick: () => AppController.openDialog('import-text'),
     onFileDrop: (e: DragEvent) => AppController.handleFileDrop(e),
     // DatasetInfo
     onRenameSource: (s: any) => AppController.renameSource(s),
@@ -120,6 +121,7 @@ export function App() {
     onCreateNewModel: (s: any) => AppController.createNewModel(s),
     onReplaceSource: (s: any) => AppController.showReplaceSourceDialog(s),
     onRestoreBackup: (s: any) => AppController.restoreSourceBackup(s),
+    onEditData: (s: any) => AppController.showEditTextDialog(s),
     // ModelInfo
     onModelInfo: () => AppController.showModelInfo(),
     // Pagination
@@ -255,11 +257,13 @@ export function App() {
                       }
                     }}
                     onBackToUrl={() => AppController.backToUrlImport()}
+                    onBackToText={() => AppController.backToTextEntry()}
                   />
                 )}
                 {activeDialog === 'import-url' && (
                   <ImportUrlDialog onImport={() => AppController.fetchAndImportFromUrl()} />
                 )}
+                {activeDialog === 'import-text' && <ImportTextDialog />}
                 {activeDialog === 'generate' && <GenerateDialog />}
                 {activeDialog === 'impute' && <ImputeDialog />}
                 {activeDialog === 'conditional' && <ConditionalDialog />}

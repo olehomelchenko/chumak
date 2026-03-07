@@ -22,8 +22,8 @@ export function MainContent(props: MainContentProps) {
       {viewMode.value === 'empty' && (
         <EmptyState
           onUploadClick={props.onUploadClick}
-          onPasteClick={props.onPasteClick}
           onUrlClick={props.onUrlClick}
+          onEnterDataClick={props.onEnterDataClick}
           onFileDrop={props.onFileDrop}
         />
       )}
@@ -36,6 +36,7 @@ export function MainContent(props: MainContentProps) {
           onCreateNewModel={props.onCreateNewModel}
           onReplaceSource={props.onReplaceSource}
           onRestoreBackup={props.onRestoreBackup}
+          onEditData={props.onEditData}
         />
       )}
 

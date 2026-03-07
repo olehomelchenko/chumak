@@ -453,6 +453,15 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
       !DialogStore.importUrlState.url.value || DialogStore.importUrlState.isFetching.value,
   },
 
+  'import-text': {
+    name: 'import-text',
+    title: 'Enter Data',
+    type: 'slide-panel',
+    buttonText: 'buttons.import',
+    getState: () => ({ text: DialogStore.importTextState.text.value }),
+    hasError: () => !DialogStore.importTextState.text.value.trim(),
+  },
+
   generate: {
     name: 'generate',
     title: 'Generate Data',
@@ -581,6 +590,7 @@ export function getDialogTitle(dialogName: DialogName): string {
     'remove-pattern': 'removePattern',
     'rename-pattern': 'renamePattern',
     'import-url': 'importUrl',
+    'import-text': 'importText',
     'type-conversion': 'typeConversion',
     'dependency-graph': 'dependencyGraph',
   };

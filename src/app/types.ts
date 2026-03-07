@@ -24,6 +24,7 @@ export type DialogName =
   | 'window'
   | 'import-csv'
   | 'import-url'
+  | 'import-text'
   | 'generate'
   | 'column-editor'
   | 'settings'
@@ -61,6 +62,7 @@ export interface Source {
   rowCount?: number;
   createdAt?: string;
   comment?: string;
+  rawText?: string; // Original text for sources created via text entry (enables editing)
   __v?: number; // Schema version for future migrations (defaults to 1)
   backup?: Omit<Source, 'backup'>;
 }

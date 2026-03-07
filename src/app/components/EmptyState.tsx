@@ -4,15 +4,15 @@ import { AppStore } from '../stores/AppStore';
 
 export interface EmptyStateProps {
   onUploadClick: () => void;
-  onPasteClick: () => void;
   onUrlClick: () => void;
+  onEnterDataClick: () => void;
   onFileDrop: (e: DragEvent) => void;
 }
 
 export function EmptyState({
   onUploadClick,
-  onPasteClick,
   onUrlClick,
+  onEnterDataClick,
   onFileDrop,
 }: EmptyStateProps) {
   const { t } = useTranslation('ui');
@@ -54,13 +54,13 @@ export function EmptyState({
             <span class="iconify" data-icon="carbon:upload"></span>
             {t('emptyState.uploadButton')}
           </button>
-          <button class="button button--primary" onClick={onPasteClick}>
-            <span class="iconify" data-icon="carbon:paste"></span>
-            {t('emptyState.pasteButton')}
-          </button>
           <button class="button button--primary" onClick={onUrlClick}>
             <span class="iconify" data-icon="carbon:link"></span>
             {t('emptyState.urlButton')}
+          </button>
+          <button class="button button--primary" onClick={onEnterDataClick}>
+            <span class="iconify" data-icon="carbon:text-long-paragraph"></span>
+            {t('emptyState.enterButton')}
           </button>
         </div>
       </div>
