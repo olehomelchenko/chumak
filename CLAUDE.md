@@ -122,6 +122,10 @@ npm run format   # Prettier
 
 - **No Staging or Committing**: Never run `git add`, `git commit`, or `git push`. Staging and committing is strictly reserved for the USER.
 - **Verification**: After changes, run `npm run typecheck` or `npm test` to catch errors.
+- **Spec Before Code**: For non-trivial features, draft a brief spec (goals, constraints, edge cases, testing strategy) collaboratively with the user before writing implementation code.
+- **Ask for Context**: Before working on unfamiliar code areas or library-specific logic, ask the user which files, docs, or examples to read — don't assume from file names alone.
+- **Flag Entropy**: If you notice growing complexity, duplication, or structural drift during a task, proactively suggest refactoring — don't wait to be asked.
+- **Explain Stack Choices**: When introducing stack-specific patterns, configs, or dependencies, explain what problem they solve in plain terms — not just what they do.
 
 ### Testing Philosophy
 

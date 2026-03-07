@@ -14,29 +14,29 @@ Determine the review scope using `git diff` (unstaged) and `git diff --staged` (
 
 ## General Instructions
 
-1. **Code Cleanup**: Remove leftover code, unnecessary defensive programming, and simplify over-engineered solutions from iterative development. Examples: dead code from previous iterations, try/catch around internal calls that can't throw, abstraction layers wrapping a single implementation. Proceed with caution; ask for clarification if unsure.
+### Process
 
-2. **No Git Staging/Commit**: **NEVER** stage (`git add`) or commit (`git commit`) changes. This is the USER's responsibility. Your task is to modify the files and verify them.
+1. **Git**: **NEVER** stage (`git add`) or commit (`git commit`) changes — this is the USER's responsibility. If the reviewed changes span multiple independent concerns (e.g. a feature + an unrelated fix, or a refactor + a new capability), suggest splitting them into separate commits and mention the logical boundaries.
 
-3. **Styles and UI**: When implementing or altering CSS or layout, follow or generalize to existing patterns rather than writing them from scratch.
+2. **Verification**: After changes, run `npm run typecheck` and/or `npm run build` to catch errors. If tests fail, fix the issue if straightforward; ask the user if non-trivial or ambiguous.
 
-4. **Verification**: After changes, run `npm run typecheck` and/or `npm run build` to catch errors.
+3. **Judgment**: If unsure or multiple approaches exist, ask the user before proceeding. When guidelines conflict, prefer in this order: SOUL.md philosophy > FUTURE-PROOFING.md compatibility > DEVELOPMENT-PATTERNS.md conventions > local cleanup. These instructions are not strictly prohibitive — if a guideline has valid reason to be bypassed, mention it in the summary.
 
-5. **Test Failures**: If tests fail after changes, fix the issue. If the fix is non-trivial or ambiguous, ask the user before proceeding.
+### Code Quality
 
-6. **Clarification**: If unsure or multiple approaches exist, ask the user before proceeding.
+4. **Code Cleanup**: Remove leftover code, unnecessary defensive programming, and simplify over-engineered solutions from iterative development. Examples: dead code from previous iterations, try/catch around internal calls that can't throw, abstraction layers wrapping a single implementation. Proceed with caution; ask for clarification if unsure.
 
-7. **Priority**: When guidelines conflict, prefer in this order: SOUL.md philosophy > FUTURE-PROOFING.md compatibility > DEVELOPMENT-PATTERNS.md conventions > local cleanup.
+5. **Styles and UI**: When implementing or altering CSS or layout, follow or generalize to existing patterns rather than writing them from scratch.
 
-8. **Amendment**: These instructions are not strictly prohibitive. If you notice that some guidelines have valid reason to be violated or bypassed, mention it in the summary.
+6. **Code Comments**: Comments should not duplicate what the code already expresses. Remove parroting comments (e.g., `// increment counter` above `counter++`). Instead, ensure comments capture non-obvious design decisions, constraints, "why" reasoning, and gotchas that would be hidden from reading the code alone. Flag missing comments where a reader would reasonably ask "why is this done this way?"
 
-9. **Code Comments**: Comments should not duplicate what the code already expresses. Remove parroting comments (e.g., `// increment counter` above `counter++`). Instead, ensure comments capture non-obvious design decisions, constraints, "why" reasoning, and gotchas that would be hidden from reading the code alone. Flag missing comments where a reader would reasonably ask "why is this done this way?"
+7. **Workarounds**: Flag code that works around a problem rather than solving it (e.g., `// HACK`, `// WORKAROUND`, silent catch-and-ignore, feature detection for internal bugs). If a workaround is justified (e.g., upstream bug, browser quirk, time constraint), ensure it has a comment explaining why and a reference to track resolution. If unjustified, replace it with a proper fix.
 
-10. **Workarounds**: Flag code that works around a problem rather than solving it (e.g., `// HACK`, `// WORKAROUND`, silent catch-and-ignore, feature detection for internal bugs). If a workaround is justified (e.g., upstream bug, browser quirk, time constraint), ensure it has a comment explaining why and a reference to track resolution. If unjustified, replace it with a proper fix.
+8. **Internationalization (i18n)**: All user-facing strings must use i18n. Flag any new hardcoded English strings in UI components (use `useTranslation()` hook), handlers, or services (use `i18n.t()` with namespace option). New keys must be added to both `src/i18n/locales/en/` and `src/i18n/locales/uk/` JSON files. Run `npm run i18n:check` to verify key parity across locales. See [DEVELOPMENT-PATTERNS.md §9](docs/DEVELOPMENT-PATTERNS.md) for patterns.
 
-11. **Summary**: After performing the instructions, respond with a summary of changes, focusing on what choices were made due to following these instructions and which choices were made when there was more than one way to solve it.
+### Output
 
-12. **Internationalization (i18n)**: All user-facing strings must use i18n. Flag any new hardcoded English strings in UI components (use `useTranslation()` hook), handlers, or services (use `i18n.t()` with namespace option). New keys must be added to both `src/i18n/locales/en/` and `src/i18n/locales/uk/` JSON files. Run `npm run i18n:check` to verify key parity across locales. See [DEVELOPMENT-PATTERNS.md §9](docs/DEVELOPMENT-PATTERNS.md) for patterns.
+9. **Summary**: After performing the instructions, respond with a summary of changes: choices made due to these instructions, choices where multiple approaches existed, and any non-obvious architectural choices or assumptions the user should know about but might not notice from the diff alone.
 
 ---
 
@@ -75,6 +75,14 @@ If the feature changes user-visible behavior or adds new capabilities:
 - **`src/content/about.md`**: Update feature descriptions or counts if the about page references them
 - **`src/content/functions/*.md`**: Auto-generated via `npm run docs:generate` — do not edit directly
 - **UI copy**: Review labels, tooltips, placeholders, and help text in affected components for accuracy
+
+### Dependencies
+
+If `package.json` changed:
+
+- Flag each new dependency and explain what it does and why it's needed
+- Could it be avoided with a small custom implementation? If so, mention the trade-off
+- Prefer dependencies that solve genuinely hard problems (parsing, rendering, crypto) over those that save boilerplate
 
 ### Alignment Check
 

@@ -142,6 +142,17 @@ Completed improvements:
 
 ---
 
+## Documentation
+
+### Consolidate ADRs into DECISIONS.md
+
+**Status**: Planned
+**Effort**: Small
+
+Consolidate `docs/archive/` ADR files into a single `DECISIONS.md` quick-reference log. Large architectural decisions that warranted their own doc stay as linked references; smaller decisions (dependency choices, pattern selections, format trade-offs) that didn't deserve a standalone file get a one-line entry. Format: **decision → reason → alternatives considered → date**. This gives future sessions (human and AI) a single place to check "why was this done this way?" without hunting through individual ADR files.
+
+---
+
 ## Infrastructure
 
 ### Template Landing Page for i18n
