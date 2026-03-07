@@ -188,7 +188,10 @@ export function App() {
         onChange={(e) => AppController.handleFileSelect(e)}
       />
 
-      <AppHeader onOpenDialog={(d: any) => AppController.openDialog(d)} />
+      <AppHeader
+        onOpenDialog={(d: any) => AppController.openDialog(d)}
+        onLogoClick={() => AppController.goHome()}
+      />
       <RibbonToolbar
         onOpenDialog={(d: any) => AppController.openDialog(d)}
         onAutoDetectSchema={() => AppController.autoDetectSchema()}

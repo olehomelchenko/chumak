@@ -10,7 +10,7 @@
  *   <button onClick={() => AppController.openDialog('filter')}>Filter</button>
  */
 
-import { setUrlState } from '../infrastructure/url-state';
+import { setUrlState, clearUrlHash } from '../infrastructure/url-state';
 import { updateUXSetting } from '../infrastructure/ux-settings';
 import { AppStore } from '../stores/AppStore';
 import { DialogStore } from '../stores/DialogStore';
@@ -82,6 +82,13 @@ export const AppController = {
   // ============================================================
   // Dialog & Navigation
   // ============================================================
+
+  goHome(): void {
+    AppStore.activeModel.value = null;
+    AppStore.currentData.value = null;
+    AppStore.viewMode.value = 'empty';
+    clearUrlHash();
+  },
 
   openDialog: DialogHandlers.openDialog,
   closeDialog: DialogHandlers.closeDialog,

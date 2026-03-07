@@ -11,10 +11,9 @@
 
 import { loadUXSettings } from './app/infrastructure/ux-settings';
 import { loadInitialData } from './app/infrastructure/storage';
-import { getUrlState, setUrlState } from './app/infrastructure/url-state';
+import { getUrlState, setUrlState, clearUrlHash } from './app/infrastructure/url-state';
 import { SchemaEngine } from './core/schema-engine';
 import { AppStore } from './app/stores/AppStore';
-import { ModelService } from './app/services/ModelService';
 import { isSlidePanel } from './app/dialog-registry';
 import { activeDialogHasError } from './app/orchestration/DialogCoordinator';
 
@@ -126,55 +125,19 @@ export class SytoApp {
     AppStore.sources.value = sources;
     AppStore.models.value = models;
 
-    // Restore URL state
+    // Restore dialog pages from URL (reference, settings, expressions)
+    // but always start on main menu — don't auto-navigate to models/sources
     const urlState = getUrlState();
-    let restored = false;
-
-    // Handle page routes (about, reference, expressions, settings)
     if (urlState.page) {
       AppController.openDialog(urlState.page, urlState.section);
       setUrlState({ page: urlState.page, section: urlState.section });
-      restored = true;
-    } else if (urlState.modelId) {
-      const model = models.find((m) => m.id === urlState.modelId);
-      if (model) {
-        if (urlState.section === 'info') {
-          ModelService.showModelInfo(model, () => AppController.clearColumnSelection());
-          setUrlState({ sourceId: model.sourceId, modelId: model.id, section: 'info' });
-        } else {
-          AppStore.activeModel.value = model;
-          AppStore.currentData.value = model.data;
-          AppStore.viewMode.value = 'model';
-          setUrlState({ sourceId: model.sourceId, modelId: model.id });
-        }
-        restored = true;
-      }
-    } else if (urlState.sourceId) {
-      const source = sources.find((s) => s.id === urlState.sourceId);
-      if (source) {
-        if (urlState.section === 'info') {
-          ModelService.showDatasetInfo(source, () => AppController.clearColumnSelection());
-          setUrlState({ sourceId: source.id, section: 'info' });
-        } else {
-          AppStore.activeSource.value = source;
-          AppStore.currentData.value = source.data;
-          AppStore.viewMode.value = 'dataset-info';
-          setUrlState({ sourceId: source.id });
-        }
-        restored = true;
-      }
+    } else if (urlState.sourceId || urlState.modelId) {
+      // Clear stale model/source hash
+      clearUrlHash();
     }
 
     // Listen for hash changes (browser back/forward)
     window.addEventListener('hashchange', () => AppController.handleHashChange());
-
-    // Set default view if nothing restored
-    if (!restored && models.length > 0) {
-      AppStore.activeModel.value = models[0];
-      AppStore.currentData.value = models[0].data;
-      AppStore.viewMode.value = 'model';
-      setUrlState({ sourceId: models[0].sourceId, modelId: models[0].id });
-    }
 
     // Initialize step index
     const activeModel = AppStore.activeModel.value;
@@ -261,6 +224,10 @@ export class SytoApp {
    * Sync URL state with current app state
    */
   syncUrlState() {
+    if (AppStore.viewMode.value === 'empty') {
+      clearUrlHash();
+      return;
+    }
     const activeModel = AppStore.activeModel.value;
     const activeSource = AppStore.activeSource.value;
     setUrlState({

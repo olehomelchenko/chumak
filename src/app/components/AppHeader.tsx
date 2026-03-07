@@ -8,9 +8,10 @@ type RibbonTabName = 'rows' | 'columns' | 'table';
 
 export interface AppHeaderProps {
   onOpenDialog: (dialog: DialogName) => void;
+  onLogoClick: () => void;
 }
 
-export function AppHeader({ onOpenDialog }: AppHeaderProps) {
+export function AppHeader({ onOpenDialog, onLogoClick }: AppHeaderProps) {
   const { t } = useTranslation('common');
   const ribbonTab = AppStore.ribbonTab;
   const hasData = useComputed(() => !!AppStore.currentData.value);
@@ -32,10 +33,10 @@ export function AppHeader({ onOpenDialog }: AppHeaderProps) {
     <header class={styles.header}>
       <div class={styles.content}>
         {/* Logo */}
-        <div class={styles.logo}>
+        <button class={styles.logo} onClick={onLogoClick}>
           <img src={`${import.meta.env.BASE_URL}logo.svg`} alt="Syto" class={styles.logoImage} />
           <span class={styles.logoText}>Syto</span>
-        </div>
+        </button>
 
         {/* Ribbon Tabs */}
         <div class={styles.tabs}>

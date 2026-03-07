@@ -13,12 +13,11 @@ import { AppStore } from '../stores/AppStore';
 import { SchemaEngine } from '../../core/schema-engine';
 import { loadUXSettings, updateUXSetting } from '../infrastructure/ux-settings';
 import { loadInitialData } from '../infrastructure/storage';
-import { setUrlState } from '../infrastructure/url-state';
 import { initEventRouter, destroyEventRouter, EventRouterCallbacks } from './EventRouter';
 import {
   initUrlStateSync,
   destroyUrlStateSync,
-  restoreFromUrl,
+  restoreDialogsFromUrl,
   syncCurrentStateToUrl,
   UrlSyncCallbacks,
 } from './UrlStateSync';
@@ -61,16 +60,9 @@ export async function initApp(callbacks: OrchestratorCallbacks): Promise<void> {
   initUrlStateSync(callbacks);
   setDialogCallbacks(callbacks);
 
-  // Restore state from URL
-  const restored = restoreFromUrl(sources, models, callbacks);
-
-  // If no state restored, show first model
-  if (!restored && models.length > 0) {
-    AppStore.activeModel.value = models[0];
-    AppStore.currentData.value = models[0].data;
-    AppStore.viewMode.value = 'model';
-    setUrlState({ sourceId: models[0].sourceId, modelId: models[0].id });
-  }
+  // Restore dialog pages from URL (reference, settings, expressions)
+  // but always start on main menu — don't auto-navigate to models/sources
+  restoreDialogsFromUrl(sources, models, callbacks);
 
   // Set active step index
   const activeModel = AppStore.activeModel.value;

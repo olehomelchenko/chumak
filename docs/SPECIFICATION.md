@@ -316,8 +316,8 @@ Browser-specific adapters, isolated from core logic:
 
 **Orchestration** (`orchestration/`):
 
-- `AppOrchestrator.ts` — App initialization, theme management, transformation state
-- `AppController.ts` — Central action dispatcher
+- `AppOrchestrator.ts` — Theme management, transformation state, pagination re-exports. **Note**: `initApp()` is dead code — actual app initialization lives in `syto-app.ts` (see backlog for consolidation plan)
+- `AppController.ts` — Central action dispatcher (all UI → logic routing)
 - `EventRouter.ts` — Keyboard shortcuts, paste, and click event routing
 - `UrlStateSync.ts` — URL hash synchronization for navigation state
 - `DialogCoordinator.ts` — Dialog lifecycle, snapshots, and state management
