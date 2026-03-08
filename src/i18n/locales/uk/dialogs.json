@@ -823,7 +823,7 @@
   },
   "importCsv": {
     "replaceMode": "Режим заміни",
-    "replacingSource": "Ви замінюєте дані в джерелі: <em>{{name}}</em>",
+    "replacingSource": "Ви замінюєте дані в джерелі:",
     "sourceNameLabel": "Назва джерела:",
     "sourceNamePlaceholder": "напр., дані_продажів",
     "sourceNameHelp": "Ця назва буде відображатися на панелі Джерела",
@@ -832,6 +832,8 @@
     "reset": "Скинути",
     "dataPathHelp": "Натисніть на ключі вище для навігації або введіть шлях. Якщо масив вкладений, вкажіть шлях до нього.",
     "examples": "Приклади:",
+    "exampleIfJsonIs": "якщо ваш JSON має вигляд",
+    "exampleArrayFirst": "якщо ваш JSON — масив і вам потрібні дані першого елемента",
     "valueAtPath": "Значення за шляхом (попередній перегляд):",
     "jsonOptions": "Параметри JSON:",
     "flattenNested": "Розгорнути вкладені об'єкти (напр., user.name -> user_name)",

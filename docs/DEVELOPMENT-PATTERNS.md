@@ -1316,14 +1316,21 @@ const key = isSource ? 'labels.source' : 'labels.model';
 t(key);
 ```
 
-**HTML in Translations** (avoid if possible):
+**HTML in Translations** — never use `dangerouslySetInnerHTML` with user-interpolated variables (XSS risk, even self-XSS). Split into JSX instead:
 
-```typescript
-// Prefer breaking into multiple elements
-<div>
-  <strong>{t('dialog.warning')}</strong>
-  {t('dialog.description')}
-</div>
+```tsx
+// BAD — user data rendered as HTML
+<p dangerouslySetInnerHTML={{ __html: t('key', { name: userInput }) }} />
+
+// GOOD — user data rendered as text node, safe by default
+<p>{t('importCsv.replacingSource')} <em>{sourceName}</em></p>
+```
+
+When translatable text wraps around `<code>` or other markup, extract only the natural-language parts as i18n keys; keep universal code snippets as JSX:
+
+```tsx
+// Translation key: "if your JSON is" (no code in key)
+<code>results</code> ({t('importCsv.exampleIfJsonIs')} <code>{`{ "results": [...] }`}</code>)
 ```
 
 ---

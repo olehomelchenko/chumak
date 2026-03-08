@@ -109,11 +109,9 @@ export function ImportCsvDialog({
           ></span>
           <div class={styles.replaceInfo}>
             <strong>{t('importCsv.replaceMode')}</strong>
-            <p
-              dangerouslySetInnerHTML={{
-                __html: t('importCsv.replacingSource', { name: sourceName.value }),
-              }}
-            />
+            <p>
+              {t('importCsv.replacingSource')} <em>{sourceName.value}</em>
+            </p>
           </div>
         </div>
       )}
@@ -180,10 +178,11 @@ export function ImportCsvDialog({
               }}
             >
               <strong>{t('importCsv.examples')}</strong>
-              <br />• <code>results</code> (if your JSON is <code>{`{ "results": [...] }`}</code>)
-              <br />• <code>data.items</code> (if your JSON is{' '}
-              <code>{`{ "data": { "items": [...] } }`}</code>)<br />• <code>0.data</code> (if your
-              JSON is an array and you want the first element's data)
+              <br />• <code>results</code> ({t('importCsv.exampleIfJsonIs')}{' '}
+              <code>{`{ "results": [...] }`}</code>)
+              <br />• <code>data.items</code> ({t('importCsv.exampleIfJsonIs')}{' '}
+              <code>{`{ "data": { "items": [...] } }`}</code>)
+              <br />• <code>0.data</code> ({t('importCsv.exampleArrayFirst')})
             </div>
           </div>
 

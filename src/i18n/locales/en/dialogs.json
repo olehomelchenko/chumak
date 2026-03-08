@@ -822,7 +822,7 @@
   },
   "importCsv": {
     "replaceMode": "Replace Mode",
-    "replacingSource": "You are replacing data in source: <em>{{name}}</em>",
+    "replacingSource": "You are replacing data in source:",
     "sourceNameLabel": "Source Name:",
     "sourceNamePlaceholder": "e.g., sales_data",
     "sourceNameHelp": "This name will appear in the Sources panel",
@@ -831,6 +831,8 @@
     "reset": "Reset",
     "dataPathHelp": "Click keys above to navigate or type a path. If the array is nested, specify the path to it.",
     "examples": "Examples:",
+    "exampleIfJsonIs": "if your JSON is",
+    "exampleArrayFirst": "if your JSON is an array and you want the first element's data",
     "valueAtPath": "Value at path (preview):",
     "jsonOptions": "JSON Options:",
     "flattenNested": "Flatten nested objects (e.g., user.name -> user_name)",

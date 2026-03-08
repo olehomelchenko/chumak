@@ -105,20 +105,6 @@ See [custom-icons-setup.md](custom-icons-setup.md) for detailed setup guide and 
 
 ---
 
-### ImportCsvDialog Remaining Hardcoded Strings
-
-**Status**: Bug
-**Effort**: Small
-
-The JSON examples block in `ImportCsvDialog.tsx` (lines 183–186) still contains hardcoded English text: "if your JSON is...", "if your JSON is an array and you want the first element's data". The `"Examples:"` label was extracted to i18n but the example descriptions were not, due to inline `<code>` elements making extraction non-trivial. Consider restructuring as a list of i18n'd items or using `dangerouslySetInnerHTML` with a single translation key.
-
-### ImportCsvDialog XSS via dangerouslySetInnerHTML
-
-**Status**: Bug
-**Effort**: Small
-
-`ImportCsvDialog.tsx` uses `dangerouslySetInnerHTML` to render the `importCsv.replacingSource` translation, which embeds user-provided `sourceName` inside `<em>` tags. A source name containing HTML (e.g. `<img onerror=alert(1)>`) would be rendered as markup. Risk is limited to self-XSS (browser-only app, no backend), but should be replaced with JSX interpolation: separate the text and `<em>` into distinct elements.
-
 ### Deduplicate Transform Linter Validation Logic
 
 **Status**: Tech Debt
@@ -322,6 +308,7 @@ Completed features are documented here for posterity:
 - **Consolidate syto-app.ts into AppOrchestrator** — March 2026. Eliminated the `SytoApp` class and `syto-app.ts`. `AppOrchestrator.initApp()` is now the single initialization entry point (called from `main.tsx`). Callback wiring, keyboard/paste/click event handling (via `EventRouter`), and URL sync (via `UrlStateSync`) all consolidated. Removed duplicated utility functions from AppOrchestrator (already in AppController). Refactored `KeyboardHandlers` to use AppController directly instead of SytoApp proxy methods.
 - **ImportCsvDialog i18n** — March 2026. Extracted ~25 hardcoded English strings from `ImportCsvDialog.tsx` to the `dialogs` namespace (`importCsv.*` section) with Ukrainian translations. Covers replace mode banner, source name, JSON path/options, CSV delimiter/headers, manual column names, and duplicate warnings.
 - **Validate workflows on load** — March 2026. Added `validateSteps()` to `transform-linter.ts` for validating step objects loaded from IndexedDB. Checks for unknown transform keys, invalid expressions (filter, derive, conditional). `loadInitialData()` now validates all model steps on startup and shows a persistent warning toast for any issues found.
+- **ImportCsvDialog XSS fix & i18n completion** — March 2026. Replaced `dangerouslySetInnerHTML` with JSX interpolation for `replacingSource` translation (eliminated self-XSS via source names containing HTML). Extracted remaining hardcoded English strings from JSON examples block (`exampleIfJsonIs`, `exampleArrayFirst`) with Ukrainian translations.
 
 ---
 
