@@ -18,6 +18,32 @@ vi.mock('../handlers/core/notification-handlers', () => ({
   showSuccess: vi.fn(),
 }));
 
+vi.mock('./StepService', () => ({
+  StepService: {
+    computeModelUpToStep: vi.fn().mockReturnValue({
+      data: [{ name: 'Alice', age: 30 }],
+      schema: [
+        { name: 'name', type: 'string' },
+        { name: 'age', type: 'integer' },
+      ],
+    }),
+    createInitialSteps: vi
+      .fn()
+      .mockReturnValue([
+        {
+          import: {
+            source: 'Test Source',
+            fileName: 'test.csv',
+            delimiter: ',',
+            headerMode: 'first-row',
+          },
+        },
+        { types: { columns: {} } },
+      ]),
+    getContext: vi.fn().mockReturnValue({ sources: [], models: [] }),
+  },
+}));
+
 vi.mock('./DependencyService', () => ({
   DependencyService: {
     canDeleteModel: vi.fn().mockReturnValue({ canDelete: true }),
@@ -33,6 +59,7 @@ vi.mock('./DependencyService', () => ({
 
 import { ModelService } from './ModelService';
 import { PersistenceService } from './PersistenceService';
+import { StepService } from './StepService';
 import { DependencyService } from './DependencyService';
 import { showSuccess } from '../handlers/core/notification-handlers';
 
@@ -225,6 +252,122 @@ describe('ModelService', () => {
       const copied = AppStore.models.value[1];
       expect(copied.steps).not.toBe(model.steps);
       expect(copied.steps).toEqual(model.steps);
+    });
+  });
+
+  describe('forkModelAtStep', () => {
+    const switchToModelFn = vi.fn();
+
+    beforeEach(() => {
+      // Give the model multiple steps so forking at an intermediate step is meaningful
+      model.steps = [
+        {
+          import: {
+            source: 'Test Source',
+            fileName: 'test.csv',
+            delimiter: ',',
+            headerMode: 'first-row',
+          },
+        },
+        { types: {} },
+        { filter: 'age > 20' },
+      ];
+    });
+
+    it('alerts when no active model', async () => {
+      AppStore.activeModel.value = null;
+      const prompt = vi.fn();
+      const alert = vi.fn().mockResolvedValue(undefined);
+
+      await ModelService.forkModelAtStep(1, prompt, alert, switchToModelFn);
+
+      expect(alert).toHaveBeenCalledWith('No active model selected');
+    });
+
+    it('does nothing when prompt returns null', async () => {
+      const prompt = vi.fn().mockResolvedValue(null);
+      const alert = vi.fn();
+
+      await ModelService.forkModelAtStep(1, prompt, alert, switchToModelFn);
+
+      expect(AppStore.models.value).toHaveLength(1);
+    });
+
+    it('does nothing when prompt returns empty string', async () => {
+      const prompt = vi.fn().mockResolvedValue('  ');
+      const alert = vi.fn();
+
+      await ModelService.forkModelAtStep(1, prompt, alert, switchToModelFn);
+
+      expect(AppStore.models.value).toHaveLength(1);
+    });
+
+    it('alerts on duplicate name', async () => {
+      const prompt = vi.fn().mockResolvedValue('Model A');
+      const alert = vi.fn().mockResolvedValue(undefined);
+
+      await ModelService.forkModelAtStep(1, prompt, alert, switchToModelFn);
+
+      expect(alert).toHaveBeenCalledWith('A model with this name already exists for this source.');
+    });
+
+    it('creates fork with steps 0..stepIndex', async () => {
+      const prompt = vi.fn().mockResolvedValue('Forked Model');
+      const alert = vi.fn();
+
+      await ModelService.forkModelAtStep(1, prompt, alert, switchToModelFn);
+
+      expect(AppStore.models.value).toHaveLength(2);
+      const forked = AppStore.models.value[1];
+      expect(forked.name).toBe('Forked Model');
+      expect(forked.sourceId).toBe('src_1');
+      expect(forked.steps).toHaveLength(2); // steps 0 and 1 only
+      expect(forked.steps[0]).toHaveProperty('import');
+      expect(forked.steps[1]).toHaveProperty('types');
+    });
+
+    it('deep copies steps (no shared references)', async () => {
+      const prompt = vi.fn().mockResolvedValue('Forked Model');
+      const alert = vi.fn();
+
+      await ModelService.forkModelAtStep(1, prompt, alert, switchToModelFn);
+
+      const forked = AppStore.models.value[1];
+      expect(forked.steps).not.toBe(model.steps);
+      expect(forked.steps[0]).not.toBe(model.steps[0]);
+    });
+
+    it('computes data via StepService and switches to forked model', async () => {
+      const prompt = vi.fn().mockResolvedValue('Forked Model');
+      const alert = vi.fn();
+
+      await ModelService.forkModelAtStep(1, prompt, alert, switchToModelFn);
+
+      const forked = AppStore.models.value[1];
+      expect(StepService.computeModelUpToStep).toHaveBeenCalledWith(
+        forked,
+        1, // forkedSteps.length - 1
+        expect.objectContaining({ sources: expect.any(Array), models: expect.any(Array) })
+      );
+      expect(forked.data).toEqual([{ name: 'Alice', age: 30 }]);
+      expect(forked.schema).toEqual([
+        { name: 'name', type: 'string' },
+        { name: 'age', type: 'integer' },
+      ]);
+      expect(switchToModelFn).toHaveBeenCalledWith(forked);
+      expect(PersistenceService.autoSave).toHaveBeenCalled();
+      expect(showSuccess).toHaveBeenCalled();
+    });
+
+    it('preserves __v from original model', async () => {
+      model.__v = 3;
+      const prompt = vi.fn().mockResolvedValue('Forked Model');
+      const alert = vi.fn();
+
+      await ModelService.forkModelAtStep(1, prompt, alert, switchToModelFn);
+
+      const forked = AppStore.models.value[1];
+      expect(forked.__v).toBe(3);
     });
   });
 

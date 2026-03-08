@@ -48,7 +48,8 @@
     "editStep": "Edit this step",
     "removeStep": "Remove this step",
     "editJson": "Edit raw JSON (opens editor modal)",
-    "staleModel": "This model is outdated and will be recomputed when viewed"
+    "staleModel": "This model is outdated and will be recomputed when viewed",
+    "forkStep": "Create a new model from steps up to this point"
   },
   "header": {
     "tabs": {
@@ -71,6 +72,7 @@
       "step_other": "{{count}} steps",
       "viewingStep": "Viewing step {{current}} of {{total}}",
       "viewFinalResult": "View final result",
+      "forkFromHere": "Fork from here",
       "noStepsYet": "No transformation steps yet.",
       "noStepsHelp": "No transformation steps yet. Use the toolbar above to transform your data.",
       "editJson": "Edit JSON"
@@ -104,7 +106,8 @@
       "renamed": "Model renamed to \"{{name}}\"",
       "deleted": "Model \"{{name}}\" deleted",
       "extractCreated_one": "Model \"{{name}}\" created with {{count}} row",
-      "extractCreated_other": "Model \"{{name}}\" created with {{count}} rows"
+      "extractCreated_other": "Model \"{{name}}\" created with {{count}} rows",
+      "forked": "Model forked as \"{{name}}\""
     },
     "source": {
       "renamed": "Source renamed to \"{{name}}\"",
@@ -117,7 +120,8 @@
     "renameModel": "Enter new name for model:",
     "renameSource": "Enter new name for source:",
     "renameColumn": "Rename column \"{{name}}\" to:",
-    "extractModel": "Enter name for extracted model:"
+    "extractModel": "Enter name for extracted model:",
+    "forkModel": "Enter name for forked model:"
   },
   "confirms": {
     "clearData": "Are you sure you want to clear all data? This cannot be undone.",

@@ -23,6 +23,7 @@ export interface SidebarProps {
   onEditStep: (index: number) => void;
   onRemoveStep: (index: number) => void;
   onViewFinalResult: () => void;
+  onForkAtStep: () => void;
   onUndo: () => void;
   onRedo: () => void;
   // JSON edit
@@ -59,6 +60,7 @@ export function Sidebar({
   onEditStep,
   onRemoveStep,
   onViewFinalResult,
+  onForkAtStep,
   onUndo,
   onRedo,
   onGetStepsJson,
@@ -267,9 +269,18 @@ export function Sidebar({
                         total: activeModel.value?.steps?.length,
                       })}
                     </span>
-                    <button onClick={onViewFinalResult} class={styles.return}>
-                      {t('sidebar.steps.viewFinalResult')}
-                    </button>
+                    <div class={styles.viewingActions}>
+                      <button
+                        onClick={onForkAtStep}
+                        class={styles.fork}
+                        title={t('tooltips.forkStep')}
+                      >
+                        {t('sidebar.steps.forkFromHere')}
+                      </button>
+                      <button onClick={onViewFinalResult} class={styles.return}>
+                        {t('sidebar.steps.viewFinalResult')}
+                      </button>
+                    </div>
                   </div>
                 )}
               </div>

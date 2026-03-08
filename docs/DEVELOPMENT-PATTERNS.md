@@ -696,7 +696,27 @@ UI re-renders via signal subscriptions
 6. Reset:   DialogStore.resetAll() clears form state
 ```
 
-### 6.3 Import Pipeline Flow
+### 6.3 Model Operations Flow
+
+Model management operations (create, copy, fork, rename, delete) follow a different wiring pattern from transform dialogs. They are direct actions triggered from the Sidebar or toolbar — no dialog registry involved.
+
+**File flow**: `ModelService` method → `AppController` orchestration → `Sidebar` prop → `App.tsx` wiring
+
+**Adding a new model operation**:
+
+1. **`ModelService.ts`** — Add a static method with the business logic (validation, data cloning, store update, persistence). Follow the `copyCurrentModel()` pattern for operations that create new models.
+2. **`AppController.ts`** — Add an orchestration method that injects `NotificationHandlers` (prompt/alert/confirm) and `switchToModel` callback. Only needed when composing 2+ service/handler calls.
+3. **`Sidebar.tsx`** — Add callback prop to `SidebarProps` interface and destructure it. Wire a button or menu item.
+4. **`App.tsx`** — Wire the prop in `sidebarProps` to `AppController.methodName()`.
+5. **i18n** — Add keys to both `en/common.json` and `uk/common.json` (prompts, notifications, button labels).
+
+**ModelService vs StepService boundary**:
+
+- `ModelService` — model lifecycle (create, copy, fork, rename, delete, switch). Owns the model list in AppStore.
+- `StepService` — pipeline execution (compute steps, apply transforms, undo/redo). Owns step history and transform orchestration.
+- Operations that both create models and compute pipelines (fork, copy) call `StepService.computeModelUpToStep()` from within `ModelService`.
+
+### 6.4 Import Pipeline Flow
 
 All import paths (file upload, drag-drop, paste, URL) converge on the same core flow. Understanding this pipeline is essential when modifying import behavior.
 

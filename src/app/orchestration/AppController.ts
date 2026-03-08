@@ -137,6 +137,17 @@ export const AppController = {
     );
   },
 
+  async forkModelAtStep(): Promise<void> {
+    const stepIndex = AppStore.activeStepIndex.value;
+    if (stepIndex === null) return;
+    return ModelService.forkModelAtStep(
+      stepIndex,
+      NotificationHandlers.prompt,
+      NotificationHandlers.alert,
+      (model) => AppController.switchToModel(model)
+    );
+  },
+
   async renameCurrentModel(): Promise<void> {
     return ModelService.renameCurrentModel(NotificationHandlers.prompt, NotificationHandlers.alert);
   },

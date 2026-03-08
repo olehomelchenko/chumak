@@ -211,6 +211,61 @@ export class ModelService {
   }
 
   /**
+   * Forks the current model at a specific step, creating a new model with steps 0..stepIndex
+   */
+  static async forkModelAtStep(
+    stepIndex: number,
+    prompt: (msg: string, def?: string) => Promise<string | null>,
+    alert: (msg: string) => Promise<any>,
+    switchToModelFn: (model: Model) => void
+  ) {
+    const activeModel = AppStore.activeModel.value;
+    if (!activeModel) {
+      await alert(i18n.t('system.noActiveModel', { ns: 'errors' }));
+      return;
+    }
+
+    const newName = await prompt(
+      i18n.t('prompts.forkModel', { ns: 'common' }),
+      `${activeModel.name}_fork`
+    );
+    if (!newName || newName.trim() === '') return;
+    const name = newName.trim();
+
+    const existingModel = AppStore.models.value.find(
+      (m) => m.sourceId === activeModel.sourceId && m.name.toLowerCase() === name.toLowerCase()
+    );
+
+    if (existingModel) {
+      await alert(i18n.t('validation.duplicate.modelExists', { ns: 'errors' }));
+      return;
+    }
+
+    const forkedSteps = JSON.parse(JSON.stringify(activeModel.steps.slice(0, stepIndex + 1)));
+
+    const forkedModel: Model = {
+      id: `mdl_${Date.now()}`,
+      name: name,
+      sourceId: activeModel.sourceId,
+      steps: forkedSteps,
+      schema: [],
+      data: [],
+      __v: activeModel.__v ?? 1,
+    };
+
+    // Compute data up to the forked step
+    const context = { sources: AppStore.sources.value, models: AppStore.models.value };
+    const result = StepService.computeModelUpToStep(forkedModel, forkedSteps.length - 1, context);
+    forkedModel.data = result.data;
+    forkedModel.schema = result.schema;
+
+    AppStore.models.value = [...AppStore.models.value, forkedModel];
+    switchToModelFn(forkedModel);
+    await PersistenceService.autoSave();
+    showSuccess(i18n.t('notifications.model.forked', { ns: 'common', name }));
+  }
+
+  /**
    * Renames the current model
    */
   static async renameCurrentModel(

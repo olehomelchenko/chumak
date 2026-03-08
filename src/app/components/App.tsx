@@ -151,6 +151,7 @@ export function App() {
     onEditStep: (i: number) => editStep(i),
     onRemoveStep: (i: number) => removeStep(i),
     onViewFinalResult: () => viewFinalResult(),
+    onForkAtStep: () => AppController.forkModelAtStep(),
     onUndo: () => undo(),
     onRedo: () => redo(),
     onGetStepsJson: () => getStepsJson(),

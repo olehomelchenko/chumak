@@ -311,8 +311,30 @@
   font-size: 0.875rem;
   color: var(--color-dark-gray);
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  flex-direction: column;
+  gap: var(--space-sm);
+
+  .viewingActions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+  }
+
+  .fork {
+    color: var(--color-midnight-blue);
+    background: none;
+    border: 1px solid var(--color-cyan);
+    border-radius: var(--border-radius);
+    cursor: pointer;
+    font-size: 0.8125rem;
+    font-weight: var(--font-weight-medium);
+    padding: 2px 8px;
+    transition: all var(--transition-fast);
+
+    &:hover {
+      background: rgba(var(--color-cyan-rgb), 0.1);
+    }
+  }
 
   .return {
     color: var(--color-cyan);
