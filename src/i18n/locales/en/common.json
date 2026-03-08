@@ -107,7 +107,8 @@
       "deleted": "Model \"{{name}}\" deleted",
       "extractCreated_one": "Model \"{{name}}\" created with {{count}} row",
       "extractCreated_other": "Model \"{{name}}\" created with {{count}} rows",
-      "forked": "Model forked as \"{{name}}\""
+      "forked": "Model forked as \"{{name}}\"",
+      "recomputeFailed": "Failed to recompute \"{{name}}\""
     },
     "source": {
       "renamed": "Source renamed to \"{{name}}\"",

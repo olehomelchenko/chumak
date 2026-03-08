@@ -16,6 +16,7 @@ vi.mock('./PersistenceService', () => ({
 
 vi.mock('../handlers/core/notification-handlers', () => ({
   showSuccess: vi.fn(),
+  showWarning: vi.fn(),
 }));
 
 vi.mock('./StepService', () => ({
@@ -27,19 +28,17 @@ vi.mock('./StepService', () => ({
         { name: 'age', type: 'integer' },
       ],
     }),
-    createInitialSteps: vi
-      .fn()
-      .mockReturnValue([
-        {
-          import: {
-            source: 'Test Source',
-            fileName: 'test.csv',
-            delimiter: ',',
-            headerMode: 'first-row',
-          },
+    createInitialSteps: vi.fn().mockReturnValue([
+      {
+        import: {
+          source: 'Test Source',
+          fileName: 'test.csv',
+          delimiter: ',',
+          headerMode: 'first-row',
         },
-        { types: { columns: {} } },
-      ]),
+      },
+      { types: { columns: {} } },
+    ]),
     getContext: vi.fn().mockReturnValue({ sources: [], models: [] }),
   },
 }));
@@ -61,7 +60,7 @@ import { ModelService } from './ModelService';
 import { PersistenceService } from './PersistenceService';
 import { StepService } from './StepService';
 import { DependencyService } from './DependencyService';
-import { showSuccess } from '../handlers/core/notification-handlers';
+import { showSuccess, showWarning } from '../handlers/core/notification-handlers';
 
 describe('ModelService', () => {
   let source: ReturnType<typeof createTestSource>;
@@ -195,6 +194,180 @@ describe('ModelService', () => {
       );
 
       expect(AppStore.columns.value).toEqual([]);
+    });
+
+    it('recomputes stale model and clears flag', () => {
+      model.isStale = true;
+
+      ModelService.switchToModel(
+        model,
+        clearColumnSelection,
+        updatePagination,
+        'rows',
+        setRibbonTab
+      );
+
+      expect(StepService.computeModelUpToStep).toHaveBeenCalledWith(
+        model,
+        model.steps.length - 1,
+        expect.any(Object)
+      );
+      expect(DependencyService.clearStaleFlag).toHaveBeenCalledWith(model);
+    });
+
+    it('recomputes stale upstream dependencies before the target model', () => {
+      // Set up chain: modelA (stale upstream) -> model (stale target)
+      const modelA = createTestModel({ id: 'mdl_A', name: 'Model Upstream', isStale: true });
+      AppStore.models.value = [modelA, model];
+      model.isStale = true;
+
+      // Mock buildGraph to return a graph where model depends on modelA
+      const mockGraph = {
+        nodes: new Map([
+          [
+            'src_1',
+            {
+              id: 'src_1',
+              type: 'source' as const,
+              dependencies: new Set<string>(),
+              dependents: new Set(['mdl_A', model.id]),
+            },
+          ],
+          [
+            'mdl_A',
+            {
+              id: 'mdl_A',
+              type: 'model' as const,
+              dependencies: new Set(['src_1']),
+              dependents: new Set([model.id]),
+            },
+          ],
+          [
+            model.id,
+            {
+              id: model.id,
+              type: 'model' as const,
+              dependencies: new Set(['src_1', 'mdl_A']),
+              dependents: new Set<string>(),
+            },
+          ],
+        ]),
+      };
+      vi.mocked(DependencyService.buildGraph).mockReturnValueOnce(mockGraph);
+      // Execution order: source first, then modelA, then model
+      vi.mocked(DependencyService.getExecutionOrder).mockReturnValueOnce([
+        'src_1',
+        'mdl_A',
+        model.id,
+      ]);
+
+      ModelService.switchToModel(
+        model,
+        clearColumnSelection,
+        updatePagination,
+        'rows',
+        setRibbonTab
+      );
+
+      // Should recompute upstream modelA first, then the target model
+      expect(StepService.computeModelUpToStep).toHaveBeenCalledTimes(2);
+      expect(StepService.computeModelUpToStep).toHaveBeenNthCalledWith(
+        1,
+        modelA,
+        modelA.steps.length - 1,
+        expect.any(Object)
+      );
+      expect(StepService.computeModelUpToStep).toHaveBeenNthCalledWith(
+        2,
+        model,
+        model.steps.length - 1,
+        expect.any(Object)
+      );
+      expect(DependencyService.clearStaleFlag).toHaveBeenCalledWith(modelA);
+      expect(DependencyService.clearStaleFlag).toHaveBeenCalledWith(model);
+    });
+
+    it('skips non-stale upstream dependencies', () => {
+      const modelA = createTestModel({ id: 'mdl_A', name: 'Model Upstream', isStale: false });
+      AppStore.models.value = [modelA, model];
+      model.isStale = true;
+
+      const mockGraph = {
+        nodes: new Map([
+          [
+            'src_1',
+            {
+              id: 'src_1',
+              type: 'source' as const,
+              dependencies: new Set<string>(),
+              dependents: new Set(['mdl_A', model.id]),
+            },
+          ],
+          [
+            'mdl_A',
+            {
+              id: 'mdl_A',
+              type: 'model' as const,
+              dependencies: new Set(['src_1']),
+              dependents: new Set([model.id]),
+            },
+          ],
+          [
+            model.id,
+            {
+              id: model.id,
+              type: 'model' as const,
+              dependencies: new Set(['src_1', 'mdl_A']),
+              dependents: new Set<string>(),
+            },
+          ],
+        ]),
+      };
+      vi.mocked(DependencyService.buildGraph).mockReturnValueOnce(mockGraph);
+      vi.mocked(DependencyService.getExecutionOrder).mockReturnValueOnce([
+        'src_1',
+        'mdl_A',
+        model.id,
+      ]);
+
+      ModelService.switchToModel(
+        model,
+        clearColumnSelection,
+        updatePagination,
+        'rows',
+        setRibbonTab
+      );
+
+      // Only the target model should be recomputed (upstream is not stale)
+      expect(StepService.computeModelUpToStep).toHaveBeenCalledTimes(1);
+      expect(StepService.computeModelUpToStep).toHaveBeenCalledWith(
+        model,
+        model.steps.length - 1,
+        expect.any(Object)
+      );
+      expect(DependencyService.clearStaleFlag).not.toHaveBeenCalledWith(modelA);
+    });
+
+    it('keeps stale flag and shows warning on recomputation error', () => {
+      model.isStale = true;
+      vi.mocked(StepService.computeModelUpToStep).mockImplementationOnce(() => {
+        throw new Error('compute failed');
+      });
+
+      ModelService.switchToModel(
+        model,
+        clearColumnSelection,
+        updatePagination,
+        'rows',
+        setRibbonTab
+      );
+
+      expect(model.isStale).toBe(true);
+      expect(DependencyService.clearStaleFlag).not.toHaveBeenCalled();
+      expect(showWarning).toHaveBeenCalledWith(
+        expect.stringContaining(model.name),
+        'compute failed'
+      );
     });
   });
 

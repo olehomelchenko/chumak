@@ -109,7 +109,8 @@
       "extractCreated_one": "Модель \"{{name}}\" створено з {{count}} рядком",
       "extractCreated_few": "Модель \"{{name}}\" створено з {{count}} рядками",
       "extractCreated_many": "Модель \"{{name}}\" створено з {{count}} рядками",
-      "forked": "Модель відгалужено як \"{{name}}\""
+      "forked": "Модель відгалужено як \"{{name}}\"",
+      "recomputeFailed": "Не вдалося перерахувати \"{{name}}\""
     },
     "source": {
       "renamed": "Джерело перейменовано на \"{{name}}\"",

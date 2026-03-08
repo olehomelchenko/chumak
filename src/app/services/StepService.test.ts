@@ -583,4 +583,47 @@ describe('StepService', () => {
       expect(StepService.canUndo(model.id)).toBe(true);
     });
   });
+
+  describe('applyStepResult - dependency cancel rollback', () => {
+    it('fully restores data and steps when user cancels dependency dialog', async () => {
+      const callbacks = {
+        onTransformStart: vi.fn(),
+        onTransformEnd: vi.fn(),
+        onError: vi.fn(),
+        onDialogClose: vi.fn(),
+        updatePagination: vi.fn(),
+      };
+
+      // Capture state before the step
+      const stepsBefore = JSON.parse(JSON.stringify(model.steps));
+      const dataBefore = [...model.data];
+      const schemaBefore = [...model.schema];
+
+      // Mock handleDependencyImpact to simulate user cancelling
+      const spy = vi.spyOn(StepService, 'handleDependencyImpact').mockResolvedValueOnce(false);
+
+      // Apply a derive step (produces an array result)
+      const derivedData = model.data.map((row: any) => ({ ...row, senior: row.age >= 35 }));
+
+      await StepService.applyStepResult(
+        { derive: { senior: 'age >= 35' } },
+        derivedData,
+        callbacks
+      );
+
+      // Steps should be restored (the derive was popped)
+      expect(model.steps).toEqual(stepsBefore);
+      // Data should be recomputed to match the remaining steps
+      expect(model.data).toHaveLength(dataBefore.length);
+      expect(model.schema).toHaveLength(schemaBefore.length);
+      // AppStore should reflect the rollback
+      expect(AppStore.currentData.value).toBe(model.data);
+      // Undo snapshot should have been removed (nothing to undo)
+      expect(StepService.canUndo(model.id)).toBe(false);
+      // Dialog should be closed
+      expect(callbacks.onDialogClose).toHaveBeenCalledWith(true);
+
+      spy.mockRestore();
+    });
+  });
 });

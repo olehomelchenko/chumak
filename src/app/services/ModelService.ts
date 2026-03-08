@@ -4,7 +4,7 @@ import { SchemaEngine } from '../../core/schema-engine';
 import { PersistenceService } from './PersistenceService';
 import { DependencyService } from './DependencyService';
 import { StepService } from './StepService';
-import { showSuccess } from '../handlers/core/notification-handlers';
+import { showSuccess, showWarning } from '../handlers/core/notification-handlers';
 import i18n from '../../i18n';
 
 /**
@@ -69,9 +69,26 @@ export class ModelService {
     // Auto-recompute if model is stale (a dependency changed)
     if (model.isStale && model.steps.length > 0) {
       try {
+        const models = AppStore.models.value;
+        const sources = AppStore.sources.value;
         const context = StepService.getContext();
-        const result = StepService.computeModelUpToStep(model, model.steps.length - 1, context);
 
+        // Recompute stale upstream dependencies first (topological order)
+        const graph = DependencyService.buildGraph(sources, models);
+        const executionOrder = DependencyService.getExecutionOrder(graph, [model.id]);
+
+        for (const nodeId of executionOrder) {
+          if (nodeId === model.id) continue; // Handle target model below
+          const dep = models.find((m) => m.id === nodeId);
+          if (!dep?.isStale || dep.steps.length === 0) continue;
+
+          const depResult = StepService.computeModelUpToStep(dep, dep.steps.length - 1, context);
+          dep.data = depResult.data;
+          dep.schema = depResult.schema;
+          DependencyService.clearStaleFlag(dep);
+        }
+
+        const result = StepService.computeModelUpToStep(model, model.steps.length - 1, context);
         model.data = result.data;
         model.schema = result.schema;
         DependencyService.clearStaleFlag(model);
@@ -81,7 +98,10 @@ export class ModelService {
         PersistenceService.autoSave();
       } catch (error: any) {
         console.error('Failed to recompute stale model:', error);
-        // Keep stale flag, user will see outdated data
+        showWarning(
+          i18n.t('notifications.model.recomputeFailed', { ns: 'common', name: model.name }),
+          error.message || String(error)
+        );
       }
     }
 

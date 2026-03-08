@@ -305,4 +305,31 @@ These informed the consolidated design above but are not canonical documentation
 
 ---
 
+## Implementation Rules
+
+Constraints and conventions discovered during implementation. Violating these causes data correctness bugs.
+
+### Recomputation Order
+
+Both recomputation paths (lazy and eager) **must** recompute stale upstream dependencies in topological order before the target model. Without this, a model can be marked clean but contain data computed from stale intermediaries.
+
+- **Lazy path** (`ModelService.switchToModel`): builds graph, gets execution order for the target, recomputes any stale upstream models first
+- **Eager path** (`StepService.handleDependencyImpact`): uses `getExecutionOrder()` on all stale IDs, recomputes in sorted order
+- **On error**: keep `isStale` flag, show user-facing warning — never silently mark as clean
+
+### Copy vs Reference Semantics
+
+- **Model creation** (new, copy, fork): always deep-copies data, steps, and schema — models are fully independent objects
+- **Multi-model operations** (join, concat, union, etc.): resolve target data at compute time via `resolveTableFromContext()`, which reads `model.data` from the shared context. Arquero creates a new table, but the source array is read by reference — so stale data in context produces stale results
+- **Implication**: the recomputation order rule above is critical because context contains live model objects
+
+### Dependency Dialog Cancellation
+
+When a user applies a step that has downstream dependents, the dependency impact dialog appears. If the user **cancels**:
+
+- The step must be fully rolled back: pop from `model.steps`, recompute data from remaining steps, restore AppStore signals
+- The undo snapshot pushed before the step must also be popped (nothing to undo)
+
+---
+
 **Status**: All phases complete ✅

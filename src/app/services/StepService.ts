@@ -198,11 +198,28 @@ export class StepService {
     const shouldContinue = await StepService.handleDependencyImpact(model.id);
 
     if (!shouldContinue) {
-      // User cancelled - rollback the step addition
+      // User cancelled - fully rollback the step addition
       model.steps.pop();
-      // Note: We don't restore previous data here as it would require keeping a backup
-      // The step is removed but the current data remains (which is the result of the step)
-      // This is acceptable as the user can just undo their last action
+
+      // Restore data to match remaining steps
+      const context = StepService.getContext();
+      const rollbackResult = StepService.computeModelUpToStep(
+        model,
+        model.steps.length - 1,
+        context
+      );
+      model.data = rollbackResult.data;
+      model.schema = rollbackResult.schema;
+      AppStore.currentData.value = rollbackResult.data;
+      AppStore.columns.value = rollbackResult.columns;
+      AppStore.activeStepIndex.value = model.steps.length - 1;
+      callbacks.updatePagination?.();
+
+      // Pop the undo snapshot since the action was cancelled
+      const history = StepService.getHistory(model.id);
+      history.undo.pop();
+      AppStore.history.value = new Map(AppStore.history.value);
+
       callbacks.onDialogClose?.(true);
       return;
     }
