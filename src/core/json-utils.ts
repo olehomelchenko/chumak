@@ -25,18 +25,39 @@ export function resolvePath(obj: any, path: string): any {
   }
 }
 
+export type JsonKeyInfo = {
+  key: string;
+  type: 'object' | 'array' | 'primitive';
+  count?: number;
+};
+
+function classifyValue(value: any): Pick<JsonKeyInfo, 'type' | 'count'> {
+  if (value === null || value === undefined) return { type: 'primitive' };
+  if (Array.isArray(value)) return { type: 'array', count: value.length };
+  if (typeof value === 'object') return { type: 'object', count: Object.keys(value).length };
+  return { type: 'primitive' };
+}
+
 /**
- * Get suggested keys for JSON path navigation
+ * Get suggested keys for JSON path navigation, with type info.
+ * Objects and arrays are navigable; primitives are informational only.
  */
-export function getSuggestedKeys(obj: any): string[] {
+export function getSuggestedKeys(obj: any): JsonKeyInfo[] {
   if (obj === null || typeof obj !== 'object') return [];
   if (Array.isArray(obj)) {
     if (obj.length > 0) {
-      return ['0', ...Object.keys(obj[0] || {})];
+      const first = obj[0];
+      const result: JsonKeyInfo[] = [{ key: '0', ...classifyValue(first) }];
+      if (first && typeof first === 'object' && !Array.isArray(first)) {
+        for (const k of Object.keys(first)) {
+          result.push({ key: k, ...classifyValue(first[k]) });
+        }
+      }
+      return result;
     }
     return [];
   }
-  return Object.keys(obj);
+  return Object.keys(obj).map((k) => ({ key: k, ...classifyValue(obj[k]) }));
 }
 
 /**

@@ -32,12 +32,28 @@ describe('resolvePath', () => {
 });
 
 describe('getSuggestedKeys', () => {
-  it('returns object keys for plain objects', () => {
-    expect(getSuggestedKeys({ a: 1, b: 2 })).toEqual(['a', 'b']);
+  it('returns object keys with types for plain objects', () => {
+    expect(getSuggestedKeys({ a: 1, b: 'hello' })).toEqual([
+      { key: 'a', type: 'primitive' },
+      { key: 'b', type: 'primitive' },
+    ]);
   });
 
-  it('returns index + first element keys for arrays', () => {
-    expect(getSuggestedKeys([{ name: 'Alice', age: 30 }])).toEqual(['0', 'name', 'age']);
+  it('classifies nested objects and arrays with counts', () => {
+    expect(getSuggestedKeys({ data: { x: 1 }, items: [1, 2], name: 'test' })).toEqual([
+      { key: 'data', type: 'object', count: 1 },
+      { key: 'items', type: 'array', count: 2 },
+      { key: 'name', type: 'primitive' },
+    ]);
+  });
+
+  it('returns index + first element keys with types for arrays', () => {
+    expect(getSuggestedKeys([{ name: 'Alice', tags: ['a'], meta: { x: 1 } }])).toEqual([
+      { key: '0', type: 'object', count: 3 },
+      { key: 'name', type: 'primitive' },
+      { key: 'tags', type: 'array', count: 1 },
+      { key: 'meta', type: 'object', count: 1 },
+    ]);
   });
 
   it('returns empty array for empty arrays', () => {
@@ -48,6 +64,13 @@ describe('getSuggestedKeys', () => {
     expect(getSuggestedKeys(42)).toEqual([]);
     expect(getSuggestedKeys('hello')).toEqual([]);
     expect(getSuggestedKeys(null)).toEqual([]);
+  });
+
+  it('handles null values in objects', () => {
+    expect(getSuggestedKeys({ a: null, b: undefined })).toEqual([
+      { key: 'a', type: 'primitive' },
+      { key: 'b', type: 'primitive' },
+    ]);
   });
 });
 

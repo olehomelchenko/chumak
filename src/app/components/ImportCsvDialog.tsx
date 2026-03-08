@@ -155,16 +155,42 @@ export function ImportCsvDialog({
               >
                 {t('importCsv.reset')}
               </button>
-              {suggestedJsonKeys.value.map((key) => (
-                <button
-                  key={key}
-                  class="button button--secondary button--compact"
-                  style={{ fontSize: '11px', padding: '4px 8px', borderStyle: 'dashed' }}
-                  onClick={() => handleJsonPathSegmentSelect(key)}
-                >
-                  {key}
-                </button>
-              ))}
+              {suggestedJsonKeys.value.map((keyInfo) => {
+                const isPrimitive = keyInfo.type === 'primitive';
+                const typeSymbol =
+                  keyInfo.type === 'object'
+                    ? `{${keyInfo.count ?? ''}}`
+                    : keyInfo.type === 'array'
+                      ? `[${keyInfo.count ?? ''}]`
+                      : '';
+                return (
+                  <button
+                    key={keyInfo.key}
+                    class="button button--secondary button--compact"
+                    style={{
+                      fontSize: '11px',
+                      padding: '4px 8px',
+                      borderStyle: 'dashed',
+                      ...(isPrimitive ? { opacity: 0.45, cursor: 'default' } : {}),
+                    }}
+                    onClick={() => !isPrimitive && handleJsonPathSegmentSelect(keyInfo.key)}
+                    disabled={isPrimitive}
+                  >
+                    {typeSymbol && (
+                      <span
+                        style={{
+                          fontFamily: 'var(--font-mono)',
+                          marginRight: '3px',
+                          fontSize: '10px',
+                        }}
+                      >
+                        {typeSymbol}
+                      </span>
+                    )}
+                    {keyInfo.key}
+                  </button>
+                );
+              })}
             </div>
             <p class={styles.helpText} style={{ marginTop: '8px' }}>
               {t('importCsv.dataPathHelp')}

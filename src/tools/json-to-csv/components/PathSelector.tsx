@@ -32,11 +32,29 @@ export function PathSelector() {
         <>
           <div class={styles.pathHelp}>{t('jsonToCsv.path.help')}</div>
           <div class={styles.pathKeys}>
-            {keys.map((key) => (
-              <button key={key} class={styles.pathKey} onClick={() => selectPathSegment(key)}>
-                {key}
-              </button>
-            ))}
+            {keys.map((keyInfo) => {
+              const isPrimitive = keyInfo.type === 'primitive';
+              const typeSymbol =
+                keyInfo.type === 'object'
+                  ? `{${keyInfo.count ?? ''}}`
+                  : keyInfo.type === 'array'
+                    ? `[${keyInfo.count ?? ''}]`
+                    : '';
+              return (
+                <button
+                  key={keyInfo.key}
+                  class={styles.pathKey}
+                  style={isPrimitive ? { opacity: 0.45, cursor: 'default' } : undefined}
+                  onClick={() => !isPrimitive && selectPathSegment(keyInfo.key)}
+                  disabled={isPrimitive}
+                >
+                  {typeSymbol && (
+                    <span style={{ marginRight: '3px', fontSize: '0.65rem' }}>{typeSymbol}</span>
+                  )}
+                  {keyInfo.key}
+                </button>
+              );
+            })}
           </div>
         </>
       )}

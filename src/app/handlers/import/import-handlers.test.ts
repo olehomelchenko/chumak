@@ -83,14 +83,22 @@ describe('import-handlers', () => {
       expect(ImportHandlers.getSuggestedKeys(true)).toEqual([]);
     });
 
-    it('returns object keys for objects', () => {
+    it('returns object keys with types for objects', () => {
       const data = { foo: 1, bar: 2, baz: 3 };
-      expect(ImportHandlers.getSuggestedKeys(data)).toEqual(['foo', 'bar', 'baz']);
+      expect(ImportHandlers.getSuggestedKeys(data)).toEqual([
+        { key: 'foo', type: 'primitive' },
+        { key: 'bar', type: 'primitive' },
+        { key: 'baz', type: 'primitive' },
+      ]);
     });
 
-    it('returns index and first element keys for arrays', () => {
+    it('returns index and first element keys with types for arrays', () => {
       const data = [{ name: 'Alice', age: 30 }];
-      expect(ImportHandlers.getSuggestedKeys(data)).toEqual(['0', 'name', 'age']);
+      expect(ImportHandlers.getSuggestedKeys(data)).toEqual([
+        { key: '0', type: 'object', count: 2 },
+        { key: 'name', type: 'primitive' },
+        { key: 'age', type: 'primitive' },
+      ]);
     });
 
     it('returns just index for empty array', () => {
@@ -99,8 +107,8 @@ describe('import-handlers', () => {
 
     it('handles array of primitives', () => {
       const data = ['a', 'b', 'c'];
-      // First element is string 'a', Object.keys('a') returns ['0'] (string index)
-      expect(ImportHandlers.getSuggestedKeys(data)).toEqual(['0', '0']);
+      // First element is string 'a', not an object — only index shown
+      expect(ImportHandlers.getSuggestedKeys(data)).toEqual([{ key: '0', type: 'primitive' }]);
     });
   });
 

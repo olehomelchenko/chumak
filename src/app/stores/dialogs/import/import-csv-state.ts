@@ -2,6 +2,7 @@ import { signal } from '@preact/signals';
 import { registerResetFunction } from '../reset-registry';
 import type { HeaderMode } from '../../../../types/modes';
 import type { SchemaDiff } from '../../../../core/schema-engine';
+import type { JsonKeyInfo } from '../../../../core/json-utils';
 
 export const importCsvState = {
   fileName: signal(''),
@@ -9,7 +10,7 @@ export const importCsvState = {
   isJson: signal(false),
   jsonPath: signal(''),
   jsonRawValuePreview: signal(''),
-  suggestedJsonKeys: signal<string[]>([]),
+  suggestedJsonKeys: signal<JsonKeyInfo[]>([]),
   flattenJson: signal(false),
   serializeNested: signal(false),
   jsonData: signal<any>(null),

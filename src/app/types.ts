@@ -182,7 +182,7 @@ export interface ImportDialogState {
   fullJsonData?: any;
   jsonPath?: string;
   jsonRawValuePreview?: string;
-  suggestedJsonKeys?: string[];
+  suggestedJsonKeys?: import('../core/json-utils').JsonKeyInfo[];
   flattenJson?: boolean;
   serializeNested?: boolean;
   previewError?: string | null;

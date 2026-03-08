@@ -39,7 +39,7 @@ describe('ImportCsvDialog', () => {
   it('renders JSON mode correctly', () => {
     DialogStore.importCsvState.isJson.value = true;
     DialogStore.importCsvState.jsonPath.value = 'data.items';
-    DialogStore.importCsvState.suggestedJsonKeys.value = ['key1'];
+    DialogStore.importCsvState.suggestedJsonKeys.value = [{ key: 'key1', type: 'object' }];
     DialogStore.importCsvState.jsonData.value = [{}]; // Valid data
 
     render(<ImportCsvDialog />);
@@ -104,7 +104,7 @@ describe('ImportCsvDialog', () => {
     expect(onJsonPathReset).toHaveBeenCalled();
 
     // Segment select
-    DialogStore.importCsvState.suggestedJsonKeys.value = ['segment'];
+    DialogStore.importCsvState.suggestedJsonKeys.value = [{ key: 'segment', type: 'object' }];
     await screen.findByText('segment');
     fireEvent.click(screen.getByText('segment'));
     expect(onJsonPathSegmentSelect).toHaveBeenCalledWith('segment');
