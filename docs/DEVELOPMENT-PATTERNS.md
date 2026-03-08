@@ -1001,6 +1001,29 @@ When adding or removing dialog names from the `DialogName` union:
 - **Registry Check**: Verify [`dialog-registry.ts`](../src/app/dialog-registry.ts) matches the new types.
 - **Completeness Tests**: Update [`dialog-registry.test.ts`](../src/app/dialog-registry.test.ts) to ensure automated tests don't break on "undefined" config lookups.
 
+### 8.6 Known Repetitive Patterns (Tech Debt)
+
+> **Full analysis**: [CODE-REDUCTION-ANALYSIS.md](CODE-REDUCTION-ANALYSIS.md)
+
+Several patterns that were reasonable at small scale have become burdensome. Follow these rules to avoid making them worse while they await refactoring:
+
+**Shortcut handlers** (`shortcut-handlers.ts` → `AppController.ts` → `RibbonToolbar.tsx`):
+
+- 25 one-click transforms (upper, lower, trim, year, round, etc.) are currently implemented as individual exported functions, each proxied through AppController, each rendered as hand-written JSX.
+- **Planned refactor**: Replace with a declarative `SHORTCUTS` registry (data table) + one generic `executeShortcut()` function + data-driven popover rendering. See [CODE-REDUCTION-ANALYSIS.md §1](CODE-REDUCTION-ANALYSIS.md).
+- **Until refactored**: If adding a new shortcut, follow the existing pattern (add to `shortcut-handlers.ts`, proxy in `AppController.ts`, add JSX in `RibbonToolbar.tsx`). Don't introduce a second pattern — the refactor will convert everything at once.
+
+**`deriveNextSchema()` in `schema-engine.ts`**:
+
+- The "infer schema from sample data, preserving known columns" block is duplicated 6-7 times across transform branches (join, lookup, selectPattern, removePattern, renamePattern, concat/union).
+- **Planned refactor**: Extract as `inferSchemaFromSample()` helper. See [CODE-REDUCTION-ANALYSIS.md §2](CODE-REDUCTION-ANALYSIS.md).
+- **Until refactored**: If a new transform needs the same "iterate sampleData keys, check currentSchema, infer type" logic, copy the existing pattern but leave a `// TODO: use inferSchemaFromSample() when extracted` comment.
+
+**AppController pass-throughs**:
+
+- ~80 entries in `AppController.ts` are pure re-exports of handler functions with no added logic.
+- **Gradual fix**: Dialog-specific functions (preview, validation) used by only one dialog component can be imported directly from the handler module. Don't add new pass-throughs for single-consumer functions.
+
 ---
 
 ## 9. Internationalization (i18n)
