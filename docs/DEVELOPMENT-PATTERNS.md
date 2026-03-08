@@ -1053,4 +1053,48 @@ See **[I18N-GUIDE.md](I18N-GUIDE.md)** for the complete reference (adding langua
 
 ---
 
+## 10. Adding a Tool Page
+
+Tool pages are standalone Preact mini-apps (e.g., JSON-to-CSV converter) served at `/tools/<name>/`. They share the site header/footer via `styles/content.css` but are fully independent of the main app — no AppStore, no DialogStore.
+
+### 10.1 Key Constraints
+
+- **Self-contained state**: Each tool uses its own signals in `src/tools/<name>/state.ts`. Never import from `app/stores/`.
+- **Pure logic in `src/core/`**: Reusable data utilities go in `src/core/` with co-located tests, following the existing portability rule (no browser APIs, no Preact).
+- **`tools` i18n namespace**: All user-facing strings go in `src/i18n/locales/{en,uk}/tools.json` under a tool-specific key (e.g., `jsonToCsv`). Components use `useTranslation('tools')`.
+- **HTML is not templated**: Unlike content pages, each tool has a hand-crafted HTML file with its own SEO meta, structured data, and mount point. The site header/nav is duplicated (not generated from a template).
+
+### 10.2 Checklist
+
+**Files to create:**
+
+| #   | Path                                 | Purpose                                                                                                              |
+| --- | ------------------------------------ | -------------------------------------------------------------------------------------------------------------------- |
+| 1   | `tools/<name>/index.html`            | HTML shell: SEO meta, site header/nav, `<div id="tool-root">`, static SEO content, script tag pointing to `main.tsx` |
+| 2   | `src/tools/<name>/main.tsx`          | Entry point: imports i18n, wraps root component in `<I18nextProvider>`, renders into `#tool-root`                    |
+| 3   | `src/tools/<name>/<Name>App.tsx`     | Root component                                                                                                       |
+| 4   | `src/tools/<name>/state.ts`          | Signal-based state (self-contained)                                                                                  |
+| 5   | `src/tools/<name>/<Name>.module.css` | Tool-specific styles                                                                                                 |
+| 6   | `src/tools/<name>/components/*.tsx`  | Sub-components                                                                                                       |
+| 7   | `src/core/<utility>.ts` + `.test.ts` | Pure logic (if needed)                                                                                               |
+
+**Files to update:**
+
+| #   | File                             | Change                                                                                                                          |
+| --- | -------------------------------- | ------------------------------------------------------------------------------------------------------------------------------- |
+| 8   | `src/i18n/locales/en/tools.json` | Add tool-specific key with nested sections                                                                                      |
+| 9   | `src/i18n/locales/uk/tools.json` | Matching Ukrainian translations                                                                                                 |
+| 10  | `vite.config.ts`                 | Add Rollup input: `'<name>': resolve(__dirname, 'tools/<name>/index.html')`                                                     |
+| 11  | Navigation links                 | Update nav in `index.html`, tool HTML files, and `{{tools-href}}` in content page build scripts if a tools index page is needed |
+
+**No changes needed in**: `src/i18n/core.ts` (the `tools` namespace is already registered — just add keys to the JSON files), `scripts/content-pages-config.ts` (only for content pages).
+
+### 10.3 Styling
+
+Tool pages load `styles/content.css` for the shared site chrome (header, footer, layout). Tool-specific UI uses a CSS Module. Components from the main app (e.g., `DataTable.module.css`) can be imported if reuse is appropriate — note that imports from `src/tools/<name>/components/` to `src/app/components/` require three levels up (`../../../app/components/`), not two.
+
+The `content.css` file includes a `.tool-page` section with layout rules for tool pages.
+
+---
+
 **End of Development Patterns**

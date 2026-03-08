@@ -18,6 +18,7 @@ export const DEFAULT_LOCALE: Locale = 'en';
 export interface LocaleStrings {
   navAbout: string;
   navDocs: string;
+  navTools: string;
   navCta: string;
   footerText: string;
   footerLinkText: string;
@@ -28,6 +29,7 @@ export const localeStrings: Record<Locale, LocaleStrings> = {
   en: {
     navAbout: 'About',
     navDocs: 'Docs',
+    navTools: 'Tools',
     navCta: 'Open App',
     footerText: 'Syto — Data wrangling in the browser.',
     footerLinkText: 'Open source',
@@ -36,6 +38,7 @@ export const localeStrings: Record<Locale, LocaleStrings> = {
   uk: {
     navAbout: 'Про Syto',
     navDocs: 'Документація',
+    navTools: 'Інструменти',
     navCta: 'Відкрити',
     footerText: 'Syto — Обробка даних у браузері.',
     footerLinkText: 'Відкритий код',

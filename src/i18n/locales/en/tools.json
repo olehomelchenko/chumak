@@ -1,0 +1,50 @@
+{
+  "jsonToCsv": {
+    "title": "JSON to CSV Converter",
+    "subtitle": "Convert JSON files to CSV format instantly in your browser. No uploads, no servers — your data stays private.",
+    "input": {
+      "placeholder": "Paste your JSON here...",
+      "upload": "Upload file",
+      "hint": "Your data never leaves your browser"
+    },
+    "path": {
+      "label": "Data Path",
+      "reset": "Reset",
+      "help": "Navigate to the array of objects in your JSON",
+      "valueAtPath": "Value at path"
+    },
+    "options": {
+      "label": "Options",
+      "flatten": "Flatten nested objects",
+      "flattenHelp": "e.g. user.name becomes user_name",
+      "serialize": "Keep nested as JSON strings",
+      "serializeHelp": "Nested objects become JSON strings instead of [object Object]"
+    },
+    "preview": {
+      "title": "Preview",
+      "showing": "Showing {{count}} of {{total}} rows",
+      "columns": "{{count}} columns",
+      "placeholder": "Paste or upload JSON to see a preview"
+    },
+    "download": {
+      "button": "Download CSV",
+      "copy": "Copy CSV",
+      "copied": "Copied!",
+      "filename": "Filename"
+    },
+    "cta": {
+      "title": "Need more?",
+      "description": "Syto is a full data wrangling tool — filter, sort, join, pivot, and more.",
+      "button": "Open Syto"
+    },
+    "errors": {
+      "parseError": "Invalid JSON: {{message}}",
+      "noArray": "No array of objects found at this path",
+      "emptyFile": "The file is empty"
+    },
+    "newFile": "Clear"
+  },
+  "nav": {
+    "tools": "Tools"
+  }
+}

@@ -108,6 +108,10 @@
   --color-text-success: #0d652d;
   --color-border-success: #e6f4ea;
 
+  --color-warning-light: #fef9e7;
+  --color-warning: #f0c040;
+  --color-warning-dark: #7a5c00;
+
   /* Z-Indices */
   --z-index-base: 1;
   --z-index-header: 1000;

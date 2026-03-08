@@ -111,7 +111,7 @@ The i18n system provides multi-language support using i18next, split into two la
 Key characteristics:
 
 - **Languages**: English (en, default) and Ukrainian (uk) with automatic plural handling
-- **Namespaces**: `common` (buttons, labels), `settings` (settings dialog), `dialogs` (dialog titles)
+- **Namespaces**: `common` (shared chrome), `ui` (component text), `dialogs` (transform dialogs), `settings`, `errors`, `tools` (standalone tool pages)
 - **Storage**: User's language preference persisted in localStorage via UX settings
 - **Type Safety**: TypeScript type augmentation provides autocomplete for translation keys
 - **Initialization**: Language is loaded from localStorage before i18n initialization to prevent race conditions
@@ -174,16 +174,19 @@ Handles type conversion between column types with Power Query-style error cells.
 
 ### 3.5 Site Structure
 
-The site is a multi-page application (MPA) with three layers:
+The site is a multi-page application (MPA) with four layers:
 
-| Route     | Source             | Type                    | Purpose                            |
-| --------- | ------------------ | ----------------------- | ---------------------------------- |
-| `/`       | `index.html`       | Static landing page     | Hero page with CTA to app and docs |
-| `/app/`   | `app/index.html`   | Preact SPA              | The data wrangling application     |
-| `/about/` | `src/content/*.md` | Static HTML (generated) | About page                         |
-| `/docs/*` | `src/content/*.md` | Static HTML (generated) | Function reference and user guides |
+| Route      | Source                    | Type                    | Purpose                            |
+| ---------- | ------------------------- | ----------------------- | ---------------------------------- |
+| `/`        | `index.html`              | Static landing page     | Hero page with CTA to app and docs |
+| `/app/`    | `app/index.html`          | Preact SPA              | The data wrangling application     |
+| `/tools/*` | `tools/<name>/index.html` | Preact mini-app         | Standalone utility tools           |
+| `/about/`  | `src/content/*.md`        | Static HTML (generated) | About page                         |
+| `/docs/*`  | `src/content/*.md`        | Static HTML (generated) | Function reference and user guides |
 
-Content pages (`/about/`, `/docs/*`) are zero-JS static HTML generated from markdown at build time by `scripts/build-content-pages.ts`. During development, the Vite plugin `scripts/vite-plugin-content-pages.ts` serves them on-the-fly. Page definitions and sidebar structure are shared via `scripts/content-pages-config.ts`.
+**Tool pages** (`/tools/*`) are self-contained Preact apps with their own state, entry point, and CSS Module. Each tool is a Vite Rollup input in `vite.config.ts`. Tool logic lives in `src/tools/<name>/`, pure utilities in `src/core/`, and translations use the `tools` i18n namespace. Tool pages share the site header/footer via `styles/content.css` but are otherwise independent of the main app (no AppStore, no DialogStore). See [DEVELOPMENT-PATTERNS.md §10](DEVELOPMENT-PATTERNS.md) for the full checklist.
+
+**Content pages** (`/about/`, `/docs/*`) are zero-JS static HTML generated from markdown at build time by `scripts/build-content-pages.ts`. During development, the Vite plugin `scripts/vite-plugin-content-pages.ts` serves them on-the-fly. Page definitions and sidebar structure are shared via `scripts/content-pages-config.ts`.
 
 The SPA at `/app/` uses hash-based routing for navigation state (source, model, dialog). Content pages use file-based routing with clean URLs.
 
@@ -227,7 +230,10 @@ src/
 ├── content/                 # Markdown content (about, docs, functions)
 │   ├── functions/           # Auto-generated function reference docs
 │   └── templates/           # HTML shell template for content pages
+├── tools/                   # Standalone tool mini-apps (Preact + signals)
+│   └── <name>/              # Tool app (main.tsx, state.ts, components/)
 app/                         # SPA entry point (app/index.html)
+tools/                       # Tool page HTML entry points (tools/<name>/index.html)
 styles/                      # Global CSS (variables, base, layout, buttons)
 scripts/                     # Build scripts (function docs, content pages)
 docs/                        # Project documentation (internal)

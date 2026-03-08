@@ -145,6 +145,7 @@ export default defineConfig(({ mode }) => {
         input: {
           main: resolve(__dirname, 'index.html'),
           app: resolve(__dirname, 'app/index.html'),
+          'json-to-csv': resolve(__dirname, 'tools/json-to-csv/index.html'),
         },
         output: {
           manualChunks: (id) => {

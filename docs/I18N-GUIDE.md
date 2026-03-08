@@ -20,7 +20,7 @@ Syto uses **i18next** with **preact-i18next** for multi-language support. The sy
 - English (`en`) — default
 - Ukrainian (`uk`) — with automatic 3-form plural handling
 
-**Namespaces** (5 files per language):
+**Namespaces** (6 files per language):
 
 | Namespace  | Purpose                                                                                                      |
 | ---------- | ------------------------------------------------------------------------------------------------------------ |
@@ -29,6 +29,7 @@ Syto uses **i18next** with **preact-i18next** for multi-language support. The sy
 | `dialogs`  | Transform dialog content: titles, field labels, placeholders, validation messages, help text                 |
 | `settings` | Settings dialog strings                                                                                      |
 | `errors`   | Error messages (parsing, validation, runtime)                                                                |
+| `tools`    | Standalone tool pages: each tool gets a top-level key (e.g., `jsonToCsv`) to avoid collisions                |
 
 **Rule of thumb**: If the text appears in a dialog's form fields, use `dialogs`. If it's in a toolbar, view, or panel, use `ui`. If it's a button/label reused across multiple places, use `common`.
 

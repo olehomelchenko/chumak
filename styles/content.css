@@ -418,6 +418,59 @@ h6 {
   }
 }
 
+/* === Tool Pages === */
+
+.tool-page {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: var(--space-xl) var(--space-lg);
+  flex: 1;
+  width: 100%;
+}
+
+.tool-page__header {
+  text-align: center;
+  margin-bottom: var(--space-xl);
+
+  h1 {
+    margin-bottom: var(--space-sm);
+  }
+
+  p {
+    color: var(--color-dark-gray);
+    max-width: 600px;
+    margin: 0 auto;
+  }
+}
+
+.tool-page__how-it-works {
+  margin-top: var(--space-xl);
+  padding-top: var(--space-xl);
+  border-top: var(--border-width) solid var(--border-color);
+  max-width: 600px;
+  margin-left: auto;
+  margin-right: auto;
+
+  h2 {
+    font-size: 1.125rem;
+    margin-bottom: var(--space-md);
+  }
+
+  ol {
+    padding-left: 1.25rem;
+  }
+
+  li {
+    margin-bottom: var(--space-sm);
+  }
+
+  p {
+    color: var(--color-dark-gray);
+    font-size: var(--font-size-sm);
+    margin-top: var(--space-md);
+  }
+}
+
 /* === Responsive === */
 @media (max-width: 768px) {
   .site-header {

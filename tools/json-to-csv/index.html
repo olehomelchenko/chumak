@@ -1,0 +1,113 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>JSON to CSV Converter (Free, Online) — Syto</title>
+    <meta
+      name="description"
+      content="Convert JSON to CSV online for free. No uploads, no servers — your data stays in your browser. Handles nested JSON, arrays, and objects."
+    />
+    <link rel="canonical" href="https://syto.pages.dev/tools/json-to-csv/" />
+
+    <link rel="stylesheet" href="https://unpkg.com/normalize.css@8/normalize.css" />
+    <link rel="stylesheet" href="/styles/content.css" />
+    <link rel="icon" type="image/svg+xml" href="/logo.svg" />
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Finlandica:ital,wght@0,400..700;1,400..700&family=IBM+Plex+Mono:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;1,100;1,200;1,300;1,400;1,500;1,600;1,700&family=IBM+Plex+Sans:ital,wght@0,100..700;1,100..700&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- Structured data -->
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "WebApplication",
+        "name": "JSON to CSV Converter",
+        "url": "https://syto.pages.dev/tools/json-to-csv/",
+        "applicationCategory": "UtilityApplication",
+        "operatingSystem": "Any",
+        "offers": { "@type": "Offer", "price": "0", "priceCurrency": "USD" },
+        "description": "Convert JSON files to CSV format online. Free, private, client-side."
+      }
+    </script>
+
+    <!-- GoatCounter Analytics -->
+    <script type="module">
+      if (import.meta.env.PROD) {
+        let shouldLoad = true;
+        try {
+          const settings = localStorage.getItem('syto-ux-settings');
+          if (settings) {
+            const parsed = JSON.parse(settings);
+            if (parsed.analyticsOptOut === true) shouldLoad = false;
+          }
+        } catch (e) {}
+        if (shouldLoad) {
+          const script = document.createElement('script');
+          script.setAttribute('data-goatcounter', 'https://syto.goatcounter.com/count');
+          script.async = true;
+          script.src = '//gc.zgo.at/count.js';
+          document.head.appendChild(script);
+        }
+      }
+    </script>
+  </head>
+
+  <body data-theme="syto">
+    <header class="site-header">
+      <div class="site-header__inner">
+        <a href="/" class="site-header__logo">
+          <img src="/logo.svg" alt="Syto" />
+          <span>Syto</span>
+        </a>
+        <nav class="site-header__nav">
+          <a href="/about/">About</a>
+          <a href="/docs/">Docs</a>
+          <a href="/tools/json-to-csv/" aria-current="page">Tools</a>
+          <a href="/app/" class="site-header__cta">Open App</a>
+        </nav>
+      </div>
+    </header>
+
+    <main class="tool-page">
+      <div class="tool-page__header">
+        <h1>JSON to CSV Converter</h1>
+        <p>
+          Convert JSON files to CSV format instantly in your browser. No uploads, no servers — your
+          data stays private.
+        </p>
+      </div>
+
+      <div id="tool-root">
+        <noscript>
+          <p>This tool requires JavaScript. Please enable JavaScript in your browser.</p>
+        </noscript>
+      </div>
+
+      <section class="tool-page__how-it-works">
+        <h2>How it works</h2>
+        <ol>
+          <li><strong>Drop</strong> your JSON file or click to browse</li>
+          <li><strong>Navigate</strong> to the data array if your JSON is nested</li>
+          <li><strong>Configure</strong> flattening and serialization options</li>
+          <li><strong>Download</strong> your CSV file</li>
+        </ol>
+        <p>Everything runs in your browser. Your data never leaves your machine.</p>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <p>
+        Syto — Data wrangling in the browser.
+        <a href="https://github.com/omelchenko-oleh/syto">Open source</a> under MIT License.
+      </p>
+    </footer>
+
+    <script type="module" src="/src/tools/json-to-csv/main.tsx"></script>
+  </body>
+</html>

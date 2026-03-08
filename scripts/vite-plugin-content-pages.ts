@@ -65,6 +65,7 @@ export function contentPagesDevPlugin(): Plugin {
           );
           html = html.replace('>About</a>', '>Про Syto</a>');
           html = html.replace('>Docs</a>', '>Документація</a>');
+          html = html.replace('>Tools</a>', '>Інструменти</a>');
           // CTA appears twice (nav + hero)
           html = html.replaceAll('>Open App</a>', '>Відкрити</a>');
           html = html.replace(
@@ -144,6 +145,8 @@ export function contentPagesDevPlugin(): Plugin {
           html = html.replace(/\{\{docs-href\}\}/g, `${prefix}/docs/`);
           html = html.replace(/\{\{nav-about-label\}\}/g, strings.navAbout);
           html = html.replace(/\{\{nav-docs-label\}\}/g, strings.navDocs);
+          html = html.replace(/\{\{tools-href\}\}/g, '/tools/json-to-csv/');
+          html = html.replace(/\{\{nav-tools-label\}\}/g, strings.navTools);
           html = html.replace(/\{\{nav-cta-label\}\}/g, strings.navCta);
           html = html.replace(
             /\{\{lang-switch-href\}\}/g,

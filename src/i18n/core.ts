@@ -17,6 +17,7 @@ import enDialogs from './locales/en/dialogs.json';
 import enTransforms from './locales/en/transforms.json';
 import enErrors from './locales/en/errors.json';
 import enUi from './locales/en/ui.json';
+import enTools from './locales/en/tools.json';
 
 import ukCommon from './locales/uk/common.json';
 import ukSettings from './locales/uk/settings.json';
@@ -24,6 +25,7 @@ import ukDialogs from './locales/uk/dialogs.json';
 import ukTransforms from './locales/uk/transforms.json';
 import ukErrors from './locales/uk/errors.json';
 import ukUi from './locales/uk/ui.json';
+import ukTools from './locales/uk/tools.json';
 
 /**
  * Ukrainian Plural Rules (handled automatically by i18next)
@@ -60,6 +62,7 @@ declare module 'i18next' {
       transforms: typeof enTransforms;
       errors: typeof enErrors;
       ui: typeof enUi;
+      tools: typeof enTools;
     };
   }
 }
@@ -73,6 +76,7 @@ export const resources = {
     transforms: enTransforms,
     errors: enErrors,
     ui: enUi,
+    tools: enTools,
   },
   uk: {
     common: ukCommon,
@@ -81,11 +85,20 @@ export const resources = {
     transforms: ukTransforms,
     errors: ukErrors,
     ui: ukUi,
+    tools: ukTools,
   },
 };
 
 /** All translation namespace names */
-export const namespaces = ['common', 'settings', 'dialogs', 'transforms', 'errors', 'ui'] as const;
+export const namespaces = [
+  'common',
+  'settings',
+  'dialogs',
+  'transforms',
+  'errors',
+  'ui',
+  'tools',
+] as const;
 
 /**
  * Initialize i18next with default settings (English, no Preact bindings).

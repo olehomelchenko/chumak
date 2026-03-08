@@ -150,6 +150,8 @@ npm run format   # Prettier
 | UI component patterns | [UX-SPECIFICATION.md](docs/UX-SPECIFICATION.md) §3                |
 | What's safe to change | [FUTURE-PROOFING.md](docs/FUTURE-PROOFING.md)                     |
 | Date handling rules   | [DATE-STORAGE-ARCHITECTURE.md](docs/DATE-STORAGE-ARCHITECTURE.md) |
+| Adding tool pages     | [DEVELOPMENT-PATTERNS.md](docs/DEVELOPMENT-PATTERNS.md) §10       |
+| Site structure        | [SPECIFICATION.md](docs/SPECIFICATION.md) §3.5                    |
 | CSS debugging         | [DEBUGGING.md](docs/DEBUGGING.md)                                 |
 | Completed refactors   | [docs/archive/](docs/archive/)                                    |
 | Project philosophy    | [SOUL.md](SOUL.md)                                                |

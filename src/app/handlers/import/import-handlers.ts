@@ -35,119 +35,16 @@ export function setImportCallbacks(cb: ImportCallbacks): void {
   callbacks = cb;
 }
 
-// ============================================================================
-// Pure Functions (no this context needed)
-// ============================================================================
+// Re-exports for backwards compatibility (logic moved to src/core/json-utils.ts)
+import {
+  resolvePath,
+  getSuggestedKeys,
+  flattenData,
+  serializeNestedData,
+  resolveDuplicateHeaders,
+} from '../../../core/json-utils';
 
-/**
- * Resolve a path in a JSON object (e.g., "data.items.0")
- */
-export function resolvePath(obj: any, path: string): any {
-  if (!path) return obj;
-  try {
-    const parts = path.split('.');
-    let current = obj;
-    for (const part of parts) {
-      if (current === null || current === undefined) return undefined;
-      if (Array.isArray(current) && /^\d+$/.test(part)) {
-        current = current[parseInt(part, 10)];
-      } else {
-        current = current[part];
-      }
-    }
-    return current;
-  } catch (e) {
-    return undefined;
-  }
-}
-
-/**
- * Get suggested keys for JSON path navigation
- */
-export function getSuggestedKeys(obj: any): string[] {
-  if (obj === null || typeof obj !== 'object') return [];
-  if (Array.isArray(obj)) {
-    if (obj.length > 0) {
-      return ['0', ...Object.keys(obj[0] || {})];
-    }
-    return [];
-  }
-  return Object.keys(obj);
-}
-
-/**
- * Flatten nested JSON objects
- */
-export function flattenData(data: any[]): any[] {
-  return data.map((item) => {
-    const flattened: any = {};
-    const flatten = (obj: any, prefix = '') => {
-      if (obj === null || typeof obj !== 'object' || Array.isArray(obj)) {
-        const key = prefix.slice(0, -1);
-        if (key) flattened[key] = obj;
-        return;
-      }
-      Object.keys(obj).forEach((k) => {
-        flatten(obj[k], `${prefix}${k}_`);
-      });
-    };
-    flatten(item);
-    return flattened;
-  });
-}
-
-/**
- * Serialize nested objects to JSON strings
- */
-export function serializeNestedData(data: any[]): any[] {
-  return data.map((item) => {
-    const newItem: any = {};
-    Object.keys(item).forEach((key) => {
-      const val = item[key];
-      if (val !== null && typeof val === 'object') {
-        newItem[key] = JSON.stringify(val);
-      } else {
-        newItem[key] = val;
-      }
-    });
-    return newItem;
-  });
-}
-
-/**
- * Resolve duplicate headers by adding suffixes
- */
-export function resolveDuplicateHeaders(headers: string[]): {
-  resolvedHeaders: string[];
-  warning: string;
-} {
-  const seen: Record<string, number> = {};
-  const duplicates: { name: string; positions: number[] }[] = [];
-  const resolvedHeaders: string[] = [];
-  headers.forEach((header, index) => {
-    let finalHeader = header;
-    if (seen[header] !== undefined) {
-      if (!duplicates.some((d) => d.name === header)) {
-        duplicates.push({ name: header, positions: [seen[header] + 1] });
-      }
-      const dupEntry = duplicates.find((d) => d.name === header)!;
-      dupEntry.positions.push(index + 1);
-      let suffix = 2;
-      while (seen[`${header}_${suffix}`] !== undefined) suffix++;
-      finalHeader = `${header}_${suffix}`;
-    }
-    seen[finalHeader] = index;
-    resolvedHeaders.push(finalHeader);
-  });
-  let warning = '';
-  if (duplicates.length > 0) {
-    const dupList = duplicates
-      .map((d) => `"${d.name}" at positions ${d.positions.join(', ')}`)
-      .join('; ');
-    warning = `Found ${duplicates.length} duplicate column name${duplicates.length > 1 ? 's' : ''}: ${dupList}`;
-  }
-  return { resolvedHeaders, warning };
-}
+export { resolvePath, getSuggestedKeys, flattenData, serializeNestedData, resolveDuplicateHeaders };
 
 /**
  * Compute schema diff for preview
