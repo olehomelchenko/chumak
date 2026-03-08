@@ -86,15 +86,6 @@ See [custom-icons-setup.md](custom-icons-setup.md) for detailed setup guide and 
 
 `styles.noteBox` is referenced in `DependencyGraphDialog.tsx` and `SettingsDialog.tsx` but was never defined in any CSS file. The class resolves to `undefined`, so those `<div>`s render without styling. Either define `.noteBox` in the appropriate CSS module or replace with an existing class (e.g., `.helpText` or a new info-box style).
 
-### Selected Step Tracking
-
-**Status**: Planned
-**Effort**: Small
-
-No `selectedStepIndex` signal in AppStore — the `Delete` key always removes the last step. Add a selected-step concept so keyboard deletion targets the focused step.
-
----
-
 ## Infrastructure
 
 ### Template Landing Page for i18n
