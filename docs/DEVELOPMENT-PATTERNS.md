@@ -5,6 +5,7 @@
 > - **[SPECIFICATION.md](SPECIFICATION.md)**: Technical architecture and codebase map
 > - **[DATA-SPECIFICATION.md](DATA-SPECIFICATION.md)**: Data structures and transform format
 > - **[UX-SPECIFICATION.md](UX-SPECIFICATION.md)**: UI/UX design guidelines
+> - **[I18N-GUIDE.md](I18N-GUIDE.md)**: Complete i18n reference
 
 This document describes established patterns for developing Syto. Follow these conventions when adding features or modifying existing code.
 
@@ -21,7 +22,7 @@ This document describes established patterns for developing Syto. Follow these c
 
 ## 1. Adding a New Transform
 
-Adding a transform requires changes across multiple files. Use this checklist:
+Adding a transform requires changes across multiple files. All transform logic must be **non-destructive** — sources immutable, transforms return new tables, no side effects. See [SPECIFICATION.md §4.1](SPECIFICATION.md) for the full non-destructive principles.
 
 ### 1.1 Checklist
 
@@ -38,20 +39,6 @@ Adding a transform requires changes across multiple files. Use this checklist:
 | 9    | `src/core/transforms/*.test.ts`             | Core logic tests                   |
 | 10   | `src/app/handlers/*`                        | Cycle check (if external ref)      |
 | 11   | `docs/DATA-SPECIFICATION.md`                | Transform documentation            |
-
----
-
-## 2. Non-Destructive Transformation Pattern
-
-Syto is built on the principle of **non-destructive data wrangling**. Developers MUST ensure that:
-
-1. **Sources are Immutable to Transforms**: Never modify the `data` or `columns` of a `Source` object during transformation execution.
-2. **Explicit Replacement with Backups**: If a user explicitly replaces a source's data, the application must maintain a `.backup` of the previous state to allow restoration (Undo/Redo).
-3. **Transforms return new tables**: Always use Arquero verbs that return a new table instance or create a new set of objects.
-4. **Traceability**: Every user action that changes data must be represented as a `TransformStep` in a `Model`. This allows the application to "replay" the pipeline from the raw source at any time.
-5. **No Side Effects**: Transformation logic in `src/core/transforms/` must be pure and rely only on the input table, transform parameters, and schema.
-
-This pattern enables technical rollback, experimental workflows, and reproducibility—core pillars of the Syto philosophy.
 
 ### 1.2 Core Implementation (`transforms/handlers/`)
 
@@ -195,94 +182,43 @@ Handlers use stores directly and leverage shared utilities from `preview-engine.
 **Using Preview Engine** (recommended for new handlers):
 
 ```typescript
-// In src/app/handlers/<category>/your-transform-handlers.ts
-import { createDebouncedPreview, clearPreview } from './preview-engine';
-import { validateExpression } from './validation-engine';
-import { DialogStore } from '../stores/DialogStore';
-import { AppStore } from '../stores/AppStore';
+import { createDebouncedPreview } from './preview-engine';
 
-// Create debounced preview handle
 const previewHandle = createDebouncedPreview({
   compute: () => {
-    const { param1 } = DialogStore.yourTransformState;
-    if (!param1.value.trim()) return null;
-
-    const transform = { yourTransform: { param1: param1.value } };
-    const result = applyTransform(
-      AppStore.currentTable.value,
-      transform,
-      AppStore.currentSchema.value
-    );
-
-    return {
-      title: 'Your Transform',
-      stats: `${result.numRows()} rows`,
-      columns: ['existingCol'],
-      newColumns: ['newCol'],
-      rows: result.objects().slice(0, 100),
-    };
+    // Read dialog state, build transform, apply to AppStore.currentTable
+    // Return { title, stats, columns, newColumns, rows } or null
   },
   onError: (error) => {
-    DialogStore.yourTransformState.error.value = error.message;
+    state.error.value = error.message;
   },
 });
 
 export const debouncedUpdatePreview = previewHandle.trigger;
 export const clearYourTransformPreview = previewHandle.clear;
-
-export function applyYourTransform(callbacks: ExecutionCallbacks) {
-  const { param1 } = DialogStore.yourTransformState;
-
-  if (!param1.value.trim()) {
-    callbacks.onError('Parameter is required');
-    return;
-  }
-
-  const transform = { yourTransform: { param1: param1.value } };
-
-  StepService.runTransform('Your Transform', transform, callbacks, () =>
-    callbacks.onDialogClose?.()
-  );
-}
 ```
+
+See existing handlers (e.g., `filter-handlers.ts`) for full examples including `applyTransform` and `StepService.runTransform` patterns.
 
 **Using Validation Engine** (for expression/regex validation):
 
 ```typescript
 import { validateExpression, validateRegexPattern } from './validation-engine';
 
-// Validate user expressions
-const result = validateExpression(expression, columns, {
-  errorSignal: DialogStore.filterState.error,
-});
-if (result.valid) {
-  // Use result.ast for further processing
-}
+// Returns { valid, ast } — writes error to signal automatically
+validateExpression(expression, columns, { errorSignal: state.error });
 
-// Validate regex patterns
-const regexResult = validateRegexPattern(pattern, {
-  errorSignal: DialogStore.regexpState.error,
-  flags: 'gi',
-});
-if (regexResult.valid) {
-  // Use regexResult.regex for matching
-}
+// Returns { valid, regex }
+validateRegexPattern(pattern, { errorSignal: state.error, flags: 'gi' });
 ```
 
 **Callback Pattern** (for UI integration):
 
 ```typescript
-// Define callback interface
-interface YourHandlerCallbacks {
-  openDialog: (name: string) => void;
-  closeDialog: () => void;
-  runTransform: (...args: unknown[]) => Promise<boolean>;
-}
-
 let callbacks: YourHandlerCallbacks | null = null;
 
 // Called by AppOrchestrator.wireHandlerCallbacks() during initialization
-export function setYourHandlerCallbacks(cb: YourHandlerCallbacks) {
+export function setCallbacks(cb: YourHandlerCallbacks) {
   callbacks = cb;
 }
 
@@ -1046,292 +982,15 @@ When adding or removing dialog names from the `DialogName` union:
 
 ## 9. Internationalization (i18n)
 
-Syto uses **i18next** with **preact-i18next** for multi-language support. The system provides type-safe translations with automatic re-rendering on language changes.
-
-### 9.1 Architecture Overview
-
-**Core Components**:
-
-- **i18n Configuration**: `src/i18n/index.ts` — initialization, type augmentation, language settings
-- **Translation Files**: `src/i18n/locales/{lang}/{namespace}.json` — translation key-value pairs
-- **Provider**: `<I18nextProvider>` in `src/main.tsx` — enables reactive language switching
-- **Storage**: User preference persisted via `UXSettings` in localStorage
-
-**Supported Languages**:
-
-- English (`en`) — default
-- Ukrainian (`uk`) — with automatic 3-form plural handling
-
-**Namespaces** (5 files per language):
-
-| Namespace  | Purpose                                                                                                      |
-| ---------- | ------------------------------------------------------------------------------------------------------------ |
-| `common`   | Shared UI chrome: buttons, labels, tooltips, sidebar text, notifications, prompts, confirms                  |
-| `ui`       | Component-specific text: ribbon, pagination, toolbars, empty state, EDA, type menu, dataset/model info views |
-| `dialogs`  | Transform dialog content: titles, field labels, placeholders, validation messages, help text                 |
-| `settings` | Settings dialog strings                                                                                      |
-| `errors`   | Error messages (parsing, validation, runtime)                                                                |
-
-**Rule of thumb**: If the text appears in a dialog's form fields, use `dialogs`. If it's in a toolbar, view, or panel, use `ui`. If it's a button/label reused across multiple places, use `common`.
-
-### 9.2 Adding Translations to a Component
-
-**Step 1**: Import the hook and specify the namespace:
-
-```typescript
-import { useTranslation } from 'preact-i18next';
-
-export function MyComponent() {
-  const { t } = useTranslation('common'); // or 'settings', 'dialogs'
-
-  return <button>{t('buttons.apply')}</button>;
-}
-```
-
-**Multiple namespaces**: When a component needs keys from more than one namespace, pass an array. The first namespace is the default; use the `ns` option to reference others:
-
-```typescript
-const { t } = useTranslation(['dialogs', 'common']);
-
-// Default namespace (dialogs):
-t('importCsv.sourceNameLabel');
-
-// Explicit namespace override:
-t('buttons.backToDatasets', { ns: 'common' });
-```
-
-The test mock in `test-setup.ts` supports array namespaces and the `ns` option automatically.
-
-**Step 2**: Add keys to translation files:
-
-```json
-// src/i18n/locales/en/common.json
-{
-  "buttons": {
-    "apply": "Apply"
-  }
-}
-
-// src/i18n/locales/uk/common.json
-{
-  "buttons": {
-    "apply": "Застосувати"
-  }
-}
-```
-
-**TypeScript Support**: Translation keys are type-checked. Invalid keys will show TypeScript errors.
-
-### 9.3 Translation File Structure
-
-**Naming Convention**: Use nested objects to group related strings:
-
-```json
-{
-  "buttons": { "save": "...", "cancel": "..." },
-  "labels": { "name": "...", "type": "..." },
-  "tooltips": { "help": "..." }
-}
-```
-
-**Key Paths**: Reference with dot notation: `t('buttons.save')`, `t('labels.name')`
-
-**Keep Files Parallel**: All translation files must have matching structure across languages.
-
-### 9.4 Ukrainian Plural Forms
-
-Ukrainian has **3 plural forms** (vs. English's 2):
-
-- **Form 0**: Ends with 1 (not 11): `1 рядок`, `21 рядок`
-- **Form 1**: Ends with 2-4 (not 12-14): `2 рядки`, `23 рядки`
-- **Form 2**: All others: `0 рядків`, `5 рядків`, `11 рядків`
-
-**Implementation**: i18next handles this automatically. Use `count` parameter:
-
-```typescript
-// Translation files:
-// en: { "rows": "{{count}} row", "rows_other": "{{count}} rows" }
-// uk: {
-//   "rows_0": "{{count}} рядок",
-//   "rows_1": "{{count}} рядки",
-//   "rows_2": "{{count}} рядків"
-// }
-
-const { t } = useTranslation('common');
-t('rows', { count: 1 }); // "1 row" / "1 рядок"
-t('rows', { count: 5 }); // "5 rows" / "5 рядків"
-t('rows', { count: 23 }); // "23 rows" / "23 рядки"
-```
-
-**Reference**: See `src/i18n/index.ts` lines 21-35 for full plural rules documentation.
-
-### 9.5 Adding a New Language
-
-**Step 1**: Create translation files:
-
-```bash
-mkdir -p src/i18n/locales/fr
-cp src/i18n/locales/en/*.json src/i18n/locales/fr/
-# Translate content
-```
-
-**Step 2**: Update `src/i18n/index.ts`:
-
-```typescript
-// Add imports
-import frCommon from './locales/fr/common.json';
-import frSettings from './locales/fr/settings.json';
-import frDialogs from './locales/fr/dialogs.json';
-
-// Add to SUPPORTED_LANGUAGES
-export const SUPPORTED_LANGUAGES = ['en', 'uk', 'fr'] as const;
-
-// Add to LANGUAGE_NAMES
-export const LANGUAGE_NAMES: Record<SupportedLanguage, string> = {
-  en: 'English',
-  uk: 'Українська',
-  fr: 'Français',
-};
-
-// Add to resources
-i18n.use(initReactI18next).init({
-  resources: {
-    en: {
-      /* ... */
-    },
-    uk: {
-      /* ... */
-    },
-    fr: {
-      common: frCommon,
-      settings: frSettings,
-      dialogs: frDialogs,
-    },
-  },
-  // ...
-});
-```
-
-**Step 3**: Update `src/core/ux-settings.ts`:
-
-```typescript
-export interface UXSettings {
-  // ...
-  language: 'en' | 'uk' | 'fr';
-}
-```
-
-**Step 4**: Add language selector UI in `SettingsDialog.tsx`.
-
-### 9.6 Adding a New Namespace
-
-**Step 1**: Create translation files:
-
-```bash
-# For each language:
-echo '{}' > src/i18n/locales/en/errors.json
-echo '{}' > src/i18n/locales/uk/errors.json
-```
-
-**Step 2**: Update `src/i18n/index.ts`:
-
-```typescript
-// Add imports
-import enErrors from './locales/en/errors.json';
-import ukErrors from './locales/uk/errors.json';
-
-// Add to type augmentation
-declare module 'i18next' {
-  interface CustomTypeOptions {
-    defaultNS: 'common';
-    resources: {
-      common: typeof enCommon;
-      settings: typeof enSettings;
-      dialogs: typeof enDialogs;
-      errors: typeof enErrors; // Add this
-    };
-  }
-}
-
-// Add to resources and namespace list
-i18n.use(initReactI18next).init({
-  resources: {
-    en: { common: enCommon, settings: enSettings, dialogs: enDialogs, errors: enErrors },
-    uk: { common: ukCommon, settings: ukSettings, dialogs: ukDialogs, errors: ukErrors },
-  },
-  ns: ['common', 'settings', 'dialogs', 'errors'], // Add to list
-  // ...
-});
-```
-
-**Step 3**: Use in components:
-
-```typescript
-const { t } = useTranslation('errors');
-```
-
-### 9.7 Technical Implementation Details
-
-**Initialization Flow**:
-
-1. `src/i18n/index.ts` loads user's language from localStorage **before** `i18n.init()`
-2. i18next initializes with correct language (no race condition)
-3. `src/main.tsx` wraps `<App>` with `<I18nextProvider>`
-4. Components using `useTranslation()` subscribe to language changes
-
-**Language Switching**:
-
-1. User clicks language in Settings dialog
-2. `AppController.switchLanguage(lang)` called
-3. Updates: i18n, AppStore, localStorage
-4. `I18nextProvider` triggers re-render of all components using `useTranslation()`
-
-**Type Safety**:
-
-- Translation keys are validated at compile time
-- Namespace names are type-checked
-- Typos in `t('invalid.key')` produce TypeScript errors
-
-**Testing**: When adding translated text, verify:
-
-- Both EN and UK files have matching keys
-- No missing translation keys (would show fallback)
-- Plurals work correctly for Ukrainian
-- Run `npm run i18n:check` to validate key parity across all locales (plural-form aware)
-
-### 9.8 Common Patterns
-
-**Dynamic Text with Variables**:
-
-```typescript
-// Translation: "Showing {{count}} of {{total}} rows"
-t('table.showing', { count: 100, total: 1000 });
-```
-
-**Conditional Text**:
-
-```typescript
-// Use separate keys instead of logic in translation
-const key = isSource ? 'labels.source' : 'labels.model';
-t(key);
-```
-
-**HTML in Translations** — never use `dangerouslySetInnerHTML` with user-interpolated variables (XSS risk, even self-XSS). Split into JSX instead:
-
-```tsx
-// BAD — user data rendered as HTML
-<p dangerouslySetInnerHTML={{ __html: t('key', { name: userInput }) }} />
-
-// GOOD — user data rendered as text node, safe by default
-<p>{t('importCsv.replacingSource')} <em>{sourceName}</em></p>
-```
-
-When translatable text wraps around `<code>` or other markup, extract only the natural-language parts as i18n keys; keep universal code snippets as JSX:
-
-```tsx
-// Translation key: "if your JSON is" (no code in key)
-<code>results</code> ({t('importCsv.exampleIfJsonIs')} <code>{`{ "results": [...] }`}</code>)
-```
+See **[I18N-GUIDE.md](I18N-GUIDE.md)** for the complete reference (adding languages, namespaces, plural rules, technical details).
+
+**Quick reference** for everyday development:
+
+- Use `useTranslation('namespace')` — namespaces: `common` (shared UI), `ui` (components), `dialogs` (transform dialogs), `settings`, `errors`
+- Multiple namespaces: `useTranslation(['dialogs', 'common'])`, use `{ ns: 'common' }` for non-default
+- Keys must exist in both `en` and `uk` locale files. Run `npm run i18n:check` to validate parity.
+- Never use `dangerouslySetInnerHTML` with user-interpolated translation variables — split into JSX instead (see I18N-GUIDE.md § Common Patterns).
+- Ukrainian has 3 plural forms — use `count` parameter; i18next handles form selection automatically.
 
 ---
 

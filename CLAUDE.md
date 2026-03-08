@@ -21,6 +21,7 @@
 
 - **[DOCUMENTATION-GUIDE.md](docs/DOCUMENTATION-GUIDE.md)**: Documentation organization, user vs. internal docs, maintenance practices
 - **[DEVELOPMENT-PATTERNS.md](docs/DEVELOPMENT-PATTERNS.md)**: How to add transforms, testing patterns, state management conventions
+- **[I18N-GUIDE.md](docs/I18N-GUIDE.md)**: Internationalization setup — adding languages, namespaces, plural rules, common patterns
 - **[FUNCTION-DOCS-SYSTEM.md](docs/FUNCTION-DOCS-SYSTEM.md)**: Auto-generated function documentation system (JSDoc → markdown/JSON)
 - **[DEBUGGING.md](docs/DEBUGGING.md)**: CSS Module debugging and DevTools tips
 - **[BACKLOG.md](docs/BACKLOG.md)**: Feature backlog and future enhancements
