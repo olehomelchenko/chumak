@@ -5,53 +5,13 @@
 
 ---
 
-## 1. Shortcut Handlers → Data Table
+## 1. Shortcut Handlers → Data Table ✅ Done
 
 **Files**: `shortcut-handlers.ts`, `AppController.ts`, `RibbonToolbar.tsx`
-**Current cost**: ~570 LoC across three files
-**After refactor**: ~80 LoC (data table + generic renderer)
-**Savings**: ~490 LoC
-**Priority**: High (highest value-to-effort ratio)
+**Savings**: ~490 LoC → achieved ~235 net reduction (-533/+298)
+**Status**: Completed (March 2026)
 
-### Problem
-
-25 shortcut functions in `shortcut-handlers.ts` are all the same 4-line template:
-
-```ts
-export async function quickUpper(callbacks: any) {
-  const c = getColRef();
-  if (!c) return;
-  await applyDerive('Uppercase', c.col, `upper(${c.ref})`, callbacks);
-}
-```
-
-Each one is then re-exported in `AppController.ts` as:
-
-```ts
-quickUpper: () => ShortcutHandlers.quickUpper(shortcutCallbacks()),
-```
-
-And rendered in `RibbonToolbar.tsx` as hand-written JSX with identical `ShortcutChip` structure (~400 lines of repetitive popover content across Text/Date/Number/Convert popovers).
-
-Adding a new shortcut currently requires editing **three files**.
-
-### Solution
-
-Replace with a declarative shortcut registry:
-
-```ts
-const SHORTCUTS = [
-  // Text
-  { id: 'upper', category: 'text', section: 'case', fn: 'upper', mode: 'overwrite' },
-  { id: 'lower', category: 'text', section: 'case', fn: 'lower', mode: 'overwrite' },
-  { id: 'len', category: 'text', section: 'info', fn: 'len', mode: 'newCol', suffix: '_len' },
-  // Date extract
-  { id: 'year', category: 'date', section: 'extract', fn: 'year', mode: 'newCol', suffix: '_year' },
-  // ...
-];
-```
-
-One `executeShortcut(id, callbacks)` function. Popover content rendered via `SHORTCUTS.filter(s => s.category === category).map(...)`. Adding a shortcut becomes a one-line data entry.
+Replaced 25 individual shortcut functions with a declarative `SHORTCUT_REGISTRY` array + single `executeShortcut(id, callbacks)` function. AppController proxies a single method. RibbonToolbar renders popovers data-driven via `renderShortcutSections()`. Adding a new shortcut is now a one-line registry entry.
 
 ---
 
@@ -154,7 +114,7 @@ This makes dead CSS visible and prevents the file from growing further.
 
 | Area                        | Current  | After                      | Savings         | Priority      |
 | --------------------------- | -------- | -------------------------- | --------------- | ------------- |
-| Shortcut data table         | ~570 LoC | ~80 LoC                    | **~490**        | High          |
+| Shortcut data table         | ~570 LoC | ~335 LoC                   | **~235** ✅     | Done          |
 | `deriveNextSchema` dedup    | ~600 LoC | ~250 LoC                   | **~350**        | Medium        |
 | AppController pass-throughs | ~400 LoC | ~100 LoC                   | **~300**        | Low (gradual) |
 | TransformDialog.module.css  | 846 LoC  | same LoC, better structure | maintainability | Low           |

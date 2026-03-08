@@ -8,34 +8,7 @@ vi.mock('../../services/StepService', () => ({
   },
 }));
 
-import {
-  quickDuplicate,
-  quickUpper,
-  quickLower,
-  quickTitlecase,
-  quickTrim,
-  quickLen,
-  quickExtractYear,
-  quickExtractMonth,
-  quickExtractDay,
-  quickExtractQuarter,
-  quickExtractWeekday,
-  quickExtractWeek,
-  quickTruncYear,
-  quickTruncMonth,
-  quickTruncWeek,
-  quickTruncDay,
-  quickRound,
-  quickFloor,
-  quickCeil,
-  quickTrunc,
-  quickAbs,
-  quickSign,
-  quickConvertToString,
-  quickConvertToNumber,
-  quickConvertToInteger,
-  quickConvertToDate,
-} from './shortcut-handlers';
+import { executeShortcut, SHORTCUT_REGISTRY } from './shortcut-handlers';
 import { StepService } from '../../services/StepService';
 
 const callbacks = { onError: vi.fn() };
@@ -51,12 +24,52 @@ describe('shortcut-handlers', () => {
   });
 
   // ============================================================
+  // Registry completeness
+  // ============================================================
+
+  describe('registry', () => {
+    it('contains all expected shortcut IDs', () => {
+      const ids = SHORTCUT_REGISTRY.map((s) => s.id);
+      expect(ids).toContain('duplicate');
+      expect(ids).toContain('upper');
+      expect(ids).toContain('lower');
+      expect(ids).toContain('titlecase');
+      expect(ids).toContain('trim');
+      expect(ids).toContain('len');
+      expect(ids).toContain('extractYear');
+      expect(ids).toContain('extractWeek');
+      expect(ids).toContain('truncYear');
+      expect(ids).toContain('truncDay');
+      expect(ids).toContain('round');
+      expect(ids).toContain('sign');
+      expect(ids).toContain('convertToString');
+      expect(ids).toContain('convertToDate');
+    });
+
+    it('has no duplicate IDs', () => {
+      const ids = SHORTCUT_REGISTRY.map((s) => s.id);
+      expect(new Set(ids).size).toBe(ids.length);
+    });
+  });
+
+  // ============================================================
   // Common behavior: no-op when no column selected
   // ============================================================
 
   describe('no column selected', () => {
-    it('does nothing when selectedColumn is null', async () => {
-      await quickUpper(callbacks);
+    it('does nothing for derive shortcuts when selectedColumn is null', async () => {
+      await executeShortcut('upper', callbacks);
+      expect(StepService.runTransform).not.toHaveBeenCalled();
+    });
+
+    it('does nothing for convert shortcuts when selectedColumn is null', async () => {
+      await executeShortcut('convertToString', callbacks);
+      expect(StepService.runTransform).not.toHaveBeenCalled();
+    });
+
+    it('does nothing for unknown shortcut ID', async () => {
+      AppStore.selectedColumn.value = 'col';
+      await executeShortcut('nonexistent', callbacks);
       expect(StepService.runTransform).not.toHaveBeenCalled();
     });
   });
@@ -65,22 +78,22 @@ describe('shortcut-handlers', () => {
   // Column shortcuts
   // ============================================================
 
-  describe('quickDuplicate', () => {
+  describe('duplicate', () => {
     it('creates a derive with _copy suffix', async () => {
       AppStore.selectedColumn.value = 'name';
-      await quickDuplicate(callbacks);
+      await executeShortcut('duplicate', callbacks);
       expectTransform('Duplicate', { derive: { name_copy: '[name]' } });
     });
 
     it('clears selectedColumn after apply', async () => {
       AppStore.selectedColumn.value = 'name';
-      await quickDuplicate(callbacks);
+      await executeShortcut('duplicate', callbacks);
       expect(AppStore.selectedColumn.value).toBeNull();
     });
 
     it('handles column names with special characters', async () => {
       AppStore.selectedColumn.value = 'full name';
-      await quickDuplicate(callbacks);
+      await executeShortcut('duplicate', callbacks);
       expectTransform('Duplicate', { derive: { 'full name_copy': '[full name]' } });
     });
   });
@@ -90,39 +103,39 @@ describe('shortcut-handlers', () => {
   // ============================================================
 
   describe('text shortcuts', () => {
-    it('quickUpper wraps in upper()', async () => {
+    it('upper wraps in upper()', async () => {
       AppStore.selectedColumn.value = 'city';
-      await quickUpper(callbacks);
+      await executeShortcut('upper', callbacks);
       expectTransform('Uppercase', { derive: { city: 'upper([city])' } });
     });
 
-    it('quickLower wraps in lower()', async () => {
+    it('lower wraps in lower()', async () => {
       AppStore.selectedColumn.value = 'city';
-      await quickLower(callbacks);
+      await executeShortcut('lower', callbacks);
       expectTransform('Lowercase', { derive: { city: 'lower([city])' } });
     });
 
-    it('quickTitlecase wraps in titlecase()', async () => {
+    it('titlecase wraps in titlecase()', async () => {
       AppStore.selectedColumn.value = 'city';
-      await quickTitlecase(callbacks);
+      await executeShortcut('titlecase', callbacks);
       expectTransform('Title Case', { derive: { city: 'titlecase([city])' } });
     });
 
-    it('quickTrim wraps in trim()', async () => {
+    it('trim wraps in trim()', async () => {
       AppStore.selectedColumn.value = 'city';
-      await quickTrim(callbacks);
+      await executeShortcut('trim', callbacks);
       expectTransform('Trim', { derive: { city: 'trim([city])' } });
     });
 
-    it('quickLen creates _len column', async () => {
+    it('len creates _len column', async () => {
       AppStore.selectedColumn.value = 'city';
-      await quickLen(callbacks);
+      await executeShortcut('len', callbacks);
       expectTransform('Length', { derive: { city_len: 'len([city])' } });
     });
 
     it('quotes column names with special characters', async () => {
       AppStore.selectedColumn.value = 'first name';
-      await quickUpper(callbacks);
+      await executeShortcut('upper', callbacks);
       expectTransform('Uppercase', { derive: { 'first name': 'upper([first name])' } });
     });
   });
@@ -132,39 +145,39 @@ describe('shortcut-handlers', () => {
   // ============================================================
 
   describe('date extract shortcuts', () => {
-    it('quickExtractYear', async () => {
+    it('extractYear', async () => {
       AppStore.selectedColumn.value = 'date';
-      await quickExtractYear(callbacks);
+      await executeShortcut('extractYear', callbacks);
       expectTransform('Extract Year', { derive: { date_year: 'year([date])' } });
     });
 
-    it('quickExtractMonth', async () => {
+    it('extractMonth', async () => {
       AppStore.selectedColumn.value = 'date';
-      await quickExtractMonth(callbacks);
+      await executeShortcut('extractMonth', callbacks);
       expectTransform('Extract Month', { derive: { date_month: 'month([date])' } });
     });
 
-    it('quickExtractDay', async () => {
+    it('extractDay', async () => {
       AppStore.selectedColumn.value = 'date';
-      await quickExtractDay(callbacks);
+      await executeShortcut('extractDay', callbacks);
       expectTransform('Extract Day', { derive: { date_day: 'day([date])' } });
     });
 
-    it('quickExtractQuarter', async () => {
+    it('extractQuarter', async () => {
       AppStore.selectedColumn.value = 'date';
-      await quickExtractQuarter(callbacks);
+      await executeShortcut('extractQuarter', callbacks);
       expectTransform('Extract Quarter', { derive: { date_quarter: 'quarter([date])' } });
     });
 
-    it('quickExtractWeekday', async () => {
+    it('extractWeekday', async () => {
       AppStore.selectedColumn.value = 'date';
-      await quickExtractWeekday(callbacks);
+      await executeShortcut('extractWeekday', callbacks);
       expectTransform('Extract Weekday', { derive: { date_weekday: 'weekday([date])' } });
     });
 
-    it('quickExtractWeek', async () => {
+    it('extractWeek', async () => {
       AppStore.selectedColumn.value = 'date';
-      await quickExtractWeek(callbacks);
+      await executeShortcut('extractWeek', callbacks);
       expectTransform('Extract Week', { derive: { date_week: 'week([date])' } });
     });
   });
@@ -174,33 +187,33 @@ describe('shortcut-handlers', () => {
   // ============================================================
 
   describe('date truncate shortcuts', () => {
-    it('quickTruncYear', async () => {
+    it('truncYear', async () => {
       AppStore.selectedColumn.value = 'ts';
-      await quickTruncYear(callbacks);
+      await executeShortcut('truncYear', callbacks);
       expectTransform('Truncate to Year', {
         derive: { ts_year_trunc: 'date_trunc([ts], "year")' },
       });
     });
 
-    it('quickTruncMonth', async () => {
+    it('truncMonth', async () => {
       AppStore.selectedColumn.value = 'ts';
-      await quickTruncMonth(callbacks);
+      await executeShortcut('truncMonth', callbacks);
       expectTransform('Truncate to Month', {
         derive: { ts_month_trunc: 'date_trunc([ts], "month")' },
       });
     });
 
-    it('quickTruncWeek', async () => {
+    it('truncWeek', async () => {
       AppStore.selectedColumn.value = 'ts';
-      await quickTruncWeek(callbacks);
+      await executeShortcut('truncWeek', callbacks);
       expectTransform('Truncate to Week', {
         derive: { ts_week_trunc: 'date_trunc([ts], "week")' },
       });
     });
 
-    it('quickTruncDay', async () => {
+    it('truncDay', async () => {
       AppStore.selectedColumn.value = 'ts';
-      await quickTruncDay(callbacks);
+      await executeShortcut('truncDay', callbacks);
       expectTransform('Truncate to Day', {
         derive: { ts_day_trunc: 'date_trunc([ts], "day")' },
       });
@@ -212,39 +225,39 @@ describe('shortcut-handlers', () => {
   // ============================================================
 
   describe('number shortcuts', () => {
-    it('quickRound', async () => {
+    it('round', async () => {
       AppStore.selectedColumn.value = 'price';
-      await quickRound(callbacks);
+      await executeShortcut('round', callbacks);
       expectTransform('Round', { derive: { price: 'round([price])' } });
     });
 
-    it('quickFloor', async () => {
+    it('floor', async () => {
       AppStore.selectedColumn.value = 'price';
-      await quickFloor(callbacks);
+      await executeShortcut('floor', callbacks);
       expectTransform('Floor', { derive: { price: 'floor([price])' } });
     });
 
-    it('quickCeil', async () => {
+    it('ceil', async () => {
       AppStore.selectedColumn.value = 'price';
-      await quickCeil(callbacks);
+      await executeShortcut('ceil', callbacks);
       expectTransform('Ceiling', { derive: { price: 'ceil([price])' } });
     });
 
-    it('quickTrunc', async () => {
+    it('trunc', async () => {
       AppStore.selectedColumn.value = 'price';
-      await quickTrunc(callbacks);
+      await executeShortcut('trunc', callbacks);
       expectTransform('Truncate Decimals', { derive: { price: 'trunc([price])' } });
     });
 
-    it('quickAbs', async () => {
+    it('abs', async () => {
       AppStore.selectedColumn.value = 'balance';
-      await quickAbs(callbacks);
+      await executeShortcut('abs', callbacks);
       expectTransform('Absolute Value', { derive: { balance: 'abs([balance])' } });
     });
 
-    it('quickSign creates _sign column', async () => {
+    it('sign creates _sign column', async () => {
       AppStore.selectedColumn.value = 'balance';
-      await quickSign(callbacks);
+      await executeShortcut('sign', callbacks);
       expectTransform('Sign', { derive: { balance_sign: 'sign([balance])' } });
     });
   });
@@ -254,38 +267,38 @@ describe('shortcut-handlers', () => {
   // ============================================================
 
   describe('convert shortcuts', () => {
-    it('quickConvertToString', async () => {
+    it('convertToString', async () => {
       AppStore.selectedColumn.value = 'age';
-      await quickConvertToString(callbacks);
+      await executeShortcut('convertToString', callbacks);
       expectTransform('Convert to Text', { types: { age: 'string' } });
     });
 
-    it('quickConvertToNumber', async () => {
+    it('convertToNumber', async () => {
       AppStore.selectedColumn.value = 'amount';
-      await quickConvertToNumber(callbacks);
+      await executeShortcut('convertToNumber', callbacks);
       expectTransform('Convert to Number', { types: { amount: 'float' } });
     });
 
-    it('quickConvertToInteger', async () => {
+    it('convertToInteger', async () => {
       AppStore.selectedColumn.value = 'count';
-      await quickConvertToInteger(callbacks);
+      await executeShortcut('convertToInteger', callbacks);
       expectTransform('Convert to Integer', { types: { count: 'integer' } });
     });
 
-    it('quickConvertToDate', async () => {
+    it('convertToDate', async () => {
       AppStore.selectedColumn.value = 'created';
-      await quickConvertToDate(callbacks);
+      await executeShortcut('convertToDate', callbacks);
       expectTransform('Convert to Date', { types: { created: 'date' } });
     });
 
     it('clears selectedColumn after convert', async () => {
       AppStore.selectedColumn.value = 'age';
-      await quickConvertToString(callbacks);
+      await executeShortcut('convertToString', callbacks);
       expect(AppStore.selectedColumn.value).toBeNull();
     });
 
     it('does nothing when no column selected', async () => {
-      await quickConvertToString(callbacks);
+      await executeShortcut('convertToString', callbacks);
       expect(StepService.runTransform).not.toHaveBeenCalled();
     });
   });

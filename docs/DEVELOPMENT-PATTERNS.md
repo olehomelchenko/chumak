@@ -63,7 +63,16 @@ Adding a transform requires changes across multiple files. All transform logic m
 | 21   | `docs/DATA-SPECIFICATION.md`               | Transform documentation                          |
 | 22   | `src/app/handlers/*`                       | Cycle check (if external ref, e.g. join/concat)  |
 
-### 1.2 Core Implementation (`transforms/handlers/`)
+### 1.2 Adding a One-Click Shortcut (No Dialog)
+
+For simple one-click transforms that wrap a single expression (e.g., `upper()`, `round()`, `year()`) or convert a column type, use the shortcut registry instead of the full checklist above:
+
+1. Add one entry to `SHORTCUT_REGISTRY` in `src/app/handlers/transform/shortcut-handlers.ts`
+2. Add i18n keys (`label`, `title`) in both `en/ui.json` and `uk/ui.json` under `ribbon.popovers.{category}.shortcuts`
+
+No changes needed in `AppController`, `RibbonToolbar`, or other files — rendering and execution are data-driven.
+
+### 1.3 Core Implementation (`transforms/handlers/`)
 
 Transforms are organized into category files in `src/core/transforms/handlers/`. Pattern for transform logic:
 
@@ -98,7 +107,7 @@ Key conventions:
 - Throw descriptive errors for invalid inputs
 - Handle null/undefined values gracefully
 
-### 1.3 Schema Propagation (`schema-engine.ts`)
+### 1.4 Schema Propagation (`schema-engine.ts`)
 
 Every transform must define how it affects the schema:
 
@@ -118,7 +127,7 @@ if (transform.yourTransform) {
 }
 ```
 
-### 1.4 Dialog State (`stores/dialogs/`)
+### 1.5 Dialog State (`stores/dialogs/`)
 
 Dialog states are organized in `src/app/stores/dialogs/` by category (transform, column, aggregate, combine, text, pattern, import). Create a new state file in the appropriate category:
 
@@ -145,7 +154,7 @@ registerReset(() => {
 
 Then export from the category's `index.ts` and the main `dialogs/index.ts`.
 
-### 1.5 Dialog Component
+### 1.6 Dialog Component
 
 Standard dialog structure:
 
@@ -191,7 +200,7 @@ export function YourTransformDialog() {
 }
 ```
 
-### 1.6 Handler Functions
+### 1.7 Handler Functions
 
 Handlers are organized in `src/app/handlers/` subdirectories by category:
 
@@ -1007,11 +1016,10 @@ When adding or removing dialog names from the `DialogName` union:
 
 Several patterns that were reasonable at small scale have become burdensome. Follow these rules to avoid making them worse while they await refactoring:
 
-**Shortcut handlers** (`shortcut-handlers.ts` → `AppController.ts` → `RibbonToolbar.tsx`):
+**Shortcut handlers** (`shortcut-handlers.ts` → `AppController.ts` → `RibbonToolbar.tsx`): ✅ **Refactored**
 
-- 25 one-click transforms (upper, lower, trim, year, round, etc.) are currently implemented as individual exported functions, each proxied through AppController, each rendered as hand-written JSX.
-- **Planned refactor**: Replace with a declarative `SHORTCUTS` registry (data table) + one generic `executeShortcut()` function + data-driven popover rendering. See [CODE-REDUCTION-ANALYSIS.md §1](CODE-REDUCTION-ANALYSIS.md).
-- **Until refactored**: If adding a new shortcut, follow the existing pattern (add to `shortcut-handlers.ts`, proxy in `AppController.ts`, add JSX in `RibbonToolbar.tsx`). Don't introduce a second pattern — the refactor will convert everything at once.
+- All shortcuts are now declarative entries in `SHORTCUT_REGISTRY` (`shortcut-handlers.ts`). AppController exposes a single `executeShortcut(id)` method. RibbonToolbar renders popovers data-driven via `renderShortcutSections()`.
+- **To add a new shortcut**: Add one entry to `SHORTCUT_REGISTRY`, add i18n keys in both locale files. No other files need changes.
 
 **`deriveNextSchema()` in `schema-engine.ts`**:
 

@@ -91,7 +91,7 @@ See [custom-icons-setup.md](custom-icons-setup.md) for detailed setup guide and 
 
 Three areas where patterns that were fine for a few components became burdensome as the codebase grew (~1,100 LoC reduction potential):
 
-1. **Shortcut handlers → data table** (~490 LoC): 25 identical 4-line functions in `shortcut-handlers.ts` + proxy lines in `AppController.ts` + repetitive JSX in `RibbonToolbar.tsx`. Replace with a declarative registry and generic renderer. Adding a shortcut becomes a one-line data entry instead of editing three files.
+1. ~~**Shortcut handlers → data table** (~490 LoC)~~: ✅ Done — replaced with declarative `SHORTCUT_REGISTRY` + `executeShortcut()` + data-driven popover rendering.
 2. **`deriveNextSchema` dedup** (~350 LoC): The same "infer schema from sample data" block is copy-pasted 6-7 times in `schema-engine.ts`. Extract as `inferSchemaFromSample()` helper.
 3. **AppController pass-throughs** (~300 LoC, gradual): ~80 pure re-exports that add indirection without logic. Dialog-specific handlers can be imported directly by the consuming component.
 
@@ -249,7 +249,7 @@ These have been considered and explicitly excluded:
 
 1. Example workflows for onboarding & website video ([EXAMPLE-WORKFLOWS.md](future/EXAMPLE-WORKFLOWS.md))
 2. SEO landing pages (infrastructure done, content needed)
-3. Code reduction: shortcut data table refactor ([CODE-REDUCTION-ANALYSIS.md](CODE-REDUCTION-ANALYSIS.md) §1)
+3. ~~Code reduction: shortcut data table refactor~~ ✅ Done
 4. Top N per Group transform (small-medium effort, very common analytical need)
 5. Flatten JSON transform
 6. Fill Date Gaps transform (medium effort, important for time series)

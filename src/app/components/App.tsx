@@ -470,7 +470,7 @@ export function App() {
         onDate={() => AppController.quickDate()}
         onDedupe={() => AppController.quickDedupe()}
         onImpute={() => AppController.openDialog('impute')}
-        onDuplicate={() => AppController.quickDuplicate()}
+        onDuplicate={() => AppController.executeShortcut('duplicate')}
         onRemove={() => AppController.quickRemove()}
         onRemoveMultiple={() => AppController.quickRemoveMultiple()}
         getColumnType={(col: string) => AppController.getColumnType(col)}

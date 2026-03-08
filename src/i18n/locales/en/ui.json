@@ -248,22 +248,22 @@
           "toText": {
             "label": "→ Text",
             "title": "Convert to text",
-            "alreadyText": "Column is already text"
+            "already": "Column is already text"
           },
           "toNumber": {
             "label": "→ Number",
             "title": "Convert to number (float)",
-            "alreadyNumber": "Column is already a number"
+            "already": "Column is already a number"
           },
           "toInteger": {
             "label": "→ Integer",
             "title": "Convert to integer",
-            "alreadyInteger": "Column is already integer"
+            "already": "Column is already integer"
           },
           "toDate": {
             "label": "→ Date",
             "title": "Convert to date",
-            "alreadyDate": "Column is already a date"
+            "already": "Column is already a date"
           }
         },
         "noColumn": "Select a column first"

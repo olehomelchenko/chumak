@@ -4,6 +4,11 @@ import { useTranslation } from 'preact-i18next';
 import { AppStore } from '../stores/AppStore';
 import { AppController } from '../orchestration/AppController';
 import { getColumnType } from '../handlers/core/helper-handlers';
+import {
+  getShortcutsByCategory,
+  type DeriveShortcutDef,
+  type ConvertShortcutDef,
+} from '../handlers/transform/shortcut-handlers';
 import { DialogName } from '../types';
 import {
   RibbonPopover,
@@ -131,6 +136,50 @@ function getNoColumnTitle(t: any, requiredType: string): string {
 }
 
 // ============================================================
+// Data-driven popover rendering
+// ============================================================
+
+function renderShortcutSections(
+  category: string,
+  disabled: boolean,
+  noColTitle: string,
+  onClose: () => void,
+  t: any
+) {
+  const shortcuts = getShortcutsByCategory(category) as DeriveShortcutDef[];
+
+  // Group by section, preserving array order
+  const sections: { key: string; items: DeriveShortcutDef[] }[] = [];
+  for (const s of shortcuts) {
+    const last = sections[sections.length - 1];
+    if (last && last.key === s.section) {
+      last.items.push(s);
+    } else {
+      sections.push({ key: s.section, items: [s] });
+    }
+  }
+
+  return sections.map(({ key, items }) => (
+    <PopoverSection key={key} label={t(`ribbon.popovers.${category}.sections.${key}`)}>
+      {items.map((s) => (
+        <ShortcutChip
+          key={s.id}
+          label={t(`ribbon.popovers.${category}.shortcuts.${s.i18nKey}.label`)}
+          title={
+            disabled ? noColTitle : t(`ribbon.popovers.${category}.shortcuts.${s.i18nKey}.title`)
+          }
+          disabled={disabled}
+          onClick={() => {
+            onClose();
+            AppController.executeShortcut(s.id);
+          }}
+        />
+      ))}
+    </PopoverSection>
+  ));
+}
+
+// ============================================================
 // Popover content renderers
 // ============================================================
 
@@ -143,53 +192,12 @@ function TextPopoverContent({
   onClose: () => void;
   t: any;
 }) {
-  const type = getSelectedColumnType();
-  const disabled = !isTextColumn(type);
+  const disabled = !isTextColumn(getSelectedColumnType());
   const noColTitle = getNoColumnTitle(t, 'text');
-
-  const applyAndClose = (action: () => Promise<void>) => {
-    onClose();
-    action();
-  };
 
   return (
     <>
-      <PopoverSection label={t('ribbon.popovers.text.sections.case')}>
-        <ShortcutChip
-          label={t('ribbon.popovers.text.shortcuts.upper.label')}
-          title={disabled ? noColTitle : t('ribbon.popovers.text.shortcuts.upper.title')}
-          disabled={disabled}
-          onClick={() => applyAndClose(() => AppController.quickUpper())}
-        />
-        <ShortcutChip
-          label={t('ribbon.popovers.text.shortcuts.lower.label')}
-          title={disabled ? noColTitle : t('ribbon.popovers.text.shortcuts.lower.title')}
-          disabled={disabled}
-          onClick={() => applyAndClose(() => AppController.quickLower())}
-        />
-        <ShortcutChip
-          label={t('ribbon.popovers.text.shortcuts.title.label')}
-          title={disabled ? noColTitle : t('ribbon.popovers.text.shortcuts.title.title')}
-          disabled={disabled}
-          onClick={() => applyAndClose(() => AppController.quickTitlecase())}
-        />
-      </PopoverSection>
-      <PopoverSection label={t('ribbon.popovers.text.sections.clean')}>
-        <ShortcutChip
-          label={t('ribbon.popovers.text.shortcuts.trim.label')}
-          title={disabled ? noColTitle : t('ribbon.popovers.text.shortcuts.trim.title')}
-          disabled={disabled}
-          onClick={() => applyAndClose(() => AppController.quickTrim())}
-        />
-      </PopoverSection>
-      <PopoverSection label={t('ribbon.popovers.text.sections.info')}>
-        <ShortcutChip
-          label={t('ribbon.popovers.text.shortcuts.len.label')}
-          title={disabled ? noColTitle : t('ribbon.popovers.text.shortcuts.len.title')}
-          disabled={disabled}
-          onClick={() => applyAndClose(() => AppController.quickLen())}
-        />
-      </PopoverSection>
+      {renderShortcutSections('text', disabled, noColTitle, onClose, t)}
       <PopoverDivider />
       <div class={popoverStyles.dialogLinks}>
         <PopoverDialogLink
@@ -238,81 +246,12 @@ function DatePopoverContent({
   onClose: () => void;
   t: any;
 }) {
-  const type = getSelectedColumnType();
-  const disabled = !isDateColumn(type);
+  const disabled = !isDateColumn(getSelectedColumnType());
   const noColTitle = getNoColumnTitle(t, 'date');
-
-  const applyAndClose = (action: () => Promise<void>) => {
-    onClose();
-    action();
-  };
 
   return (
     <>
-      <PopoverSection label={t('ribbon.popovers.date.sections.extractPart')}>
-        <ShortcutChip
-          label={t('ribbon.popovers.date.shortcuts.year.label')}
-          title={disabled ? noColTitle : t('ribbon.popovers.date.shortcuts.year.title')}
-          disabled={disabled}
-          onClick={() => applyAndClose(() => AppController.quickExtractYear())}
-        />
-        <ShortcutChip
-          label={t('ribbon.popovers.date.shortcuts.month.label')}
-          title={disabled ? noColTitle : t('ribbon.popovers.date.shortcuts.month.title')}
-          disabled={disabled}
-          onClick={() => applyAndClose(() => AppController.quickExtractMonth())}
-        />
-        <ShortcutChip
-          label={t('ribbon.popovers.date.shortcuts.day.label')}
-          title={disabled ? noColTitle : t('ribbon.popovers.date.shortcuts.day.title')}
-          disabled={disabled}
-          onClick={() => applyAndClose(() => AppController.quickExtractDay())}
-        />
-        <ShortcutChip
-          label={t('ribbon.popovers.date.shortcuts.quarter.label')}
-          title={disabled ? noColTitle : t('ribbon.popovers.date.shortcuts.quarter.title')}
-          disabled={disabled}
-          onClick={() => applyAndClose(() => AppController.quickExtractQuarter())}
-        />
-        <ShortcutChip
-          label={t('ribbon.popovers.date.shortcuts.weekday.label')}
-          title={disabled ? noColTitle : t('ribbon.popovers.date.shortcuts.weekday.title')}
-          disabled={disabled}
-          onClick={() => applyAndClose(() => AppController.quickExtractWeekday())}
-        />
-        <ShortcutChip
-          label={t('ribbon.popovers.date.shortcuts.week.label')}
-          title={disabled ? noColTitle : t('ribbon.popovers.date.shortcuts.week.title')}
-          disabled={disabled}
-          onClick={() => applyAndClose(() => AppController.quickExtractWeek())}
-        />
-      </PopoverSection>
-      <PopoverSection label={t('ribbon.popovers.date.sections.truncateTo')}>
-        <ShortcutChip
-          label={t('ribbon.popovers.date.shortcuts.truncYear.label')}
-          title={disabled ? noColTitle : t('ribbon.popovers.date.shortcuts.truncYear.title')}
-          disabled={disabled}
-          onClick={() => applyAndClose(() => AppController.quickTruncYear())}
-        />
-        <ShortcutChip
-          label={t('ribbon.popovers.date.shortcuts.truncMonth.label')}
-          title={disabled ? noColTitle : t('ribbon.popovers.date.shortcuts.truncMonth.title')}
-          disabled={disabled}
-          onClick={() => applyAndClose(() => AppController.quickTruncMonth())}
-        />
-        <ShortcutChip
-          label={t('ribbon.popovers.date.shortcuts.truncWeek.label')}
-          title={disabled ? noColTitle : t('ribbon.popovers.date.shortcuts.truncWeek.title')}
-          disabled={disabled}
-          onClick={() => applyAndClose(() => AppController.quickTruncWeek())}
-        />
-        <ShortcutChip
-          label={t('ribbon.popovers.date.shortcuts.truncDay.label')}
-          title={disabled ? noColTitle : t('ribbon.popovers.date.shortcuts.truncDay.title')}
-          disabled={disabled}
-          onClick={() => applyAndClose(() => AppController.quickTruncDay())}
-        />
-      </PopoverSection>
+      {renderShortcutSections('date', disabled, noColTitle, onClose, t)}
       <PopoverDivider />
       <div class={popoverStyles.dialogLinks}>
         <PopoverDialogLink
@@ -345,57 +284,12 @@ function NumberPopoverContent({
   onClose: () => void;
   t: any;
 }) {
-  const type = getSelectedColumnType();
-  const disabled = !isNumericColumn(type);
+  const disabled = !isNumericColumn(getSelectedColumnType());
   const noColTitle = getNoColumnTitle(t, 'number');
-
-  const applyAndClose = (action: () => Promise<void>) => {
-    onClose();
-    action();
-  };
 
   return (
     <>
-      <PopoverSection label={t('ribbon.popovers.number.sections.rounding')}>
-        <ShortcutChip
-          label={t('ribbon.popovers.number.shortcuts.round.label')}
-          title={disabled ? noColTitle : t('ribbon.popovers.number.shortcuts.round.title')}
-          disabled={disabled}
-          onClick={() => applyAndClose(() => AppController.quickRound())}
-        />
-        <ShortcutChip
-          label={t('ribbon.popovers.number.shortcuts.floor.label')}
-          title={disabled ? noColTitle : t('ribbon.popovers.number.shortcuts.floor.title')}
-          disabled={disabled}
-          onClick={() => applyAndClose(() => AppController.quickFloor())}
-        />
-        <ShortcutChip
-          label={t('ribbon.popovers.number.shortcuts.ceil.label')}
-          title={disabled ? noColTitle : t('ribbon.popovers.number.shortcuts.ceil.title')}
-          disabled={disabled}
-          onClick={() => applyAndClose(() => AppController.quickCeil())}
-        />
-        <ShortcutChip
-          label={t('ribbon.popovers.number.shortcuts.trunc.label')}
-          title={disabled ? noColTitle : t('ribbon.popovers.number.shortcuts.trunc.title')}
-          disabled={disabled}
-          onClick={() => applyAndClose(() => AppController.quickTruncNum())}
-        />
-      </PopoverSection>
-      <PopoverSection label={t('ribbon.popovers.number.sections.other')}>
-        <ShortcutChip
-          label={t('ribbon.popovers.number.shortcuts.abs.label')}
-          title={disabled ? noColTitle : t('ribbon.popovers.number.shortcuts.abs.title')}
-          disabled={disabled}
-          onClick={() => applyAndClose(() => AppController.quickAbs())}
-        />
-        <ShortcutChip
-          label={t('ribbon.popovers.number.shortcuts.sign.label')}
-          title={disabled ? noColTitle : t('ribbon.popovers.number.shortcuts.sign.title')}
-          disabled={disabled}
-          onClick={() => applyAndClose(() => AppController.quickSign())}
-        />
-      </PopoverSection>
+      {renderShortcutSections('number', disabled, noColTitle, onClose, t)}
       <PopoverDivider />
       <div class={popoverStyles.dialogLinks}>
         <PopoverDialogLink
@@ -415,62 +309,31 @@ function ConvertPopoverContent({ onClose, t }: { onClose: () => void; t: any }) 
   const type = getSelectedColumnType();
   const noCol = !AppStore.selectedColumn.value;
   const noColTitle = noCol ? t('ribbon.popovers.convert.noColumn') : '';
-
-  const applyAndClose = (action: () => Promise<void>) => {
-    onClose();
-    action();
-  };
+  const shortcuts = getShortcutsByCategory('convert') as ConvertShortcutDef[];
 
   return (
     <PopoverSection label={t('ribbon.popovers.convert.section')}>
-      <ShortcutChip
-        label={t('ribbon.popovers.convert.shortcuts.toText.label')}
-        title={
-          noCol
-            ? noColTitle
-            : type === 'string'
-              ? t('ribbon.popovers.convert.shortcuts.toText.alreadyText')
-              : t('ribbon.popovers.convert.shortcuts.toText.title')
-        }
-        disabled={noCol || type === 'string'}
-        onClick={() => applyAndClose(() => AppController.quickConvertToString())}
-      />
-      <ShortcutChip
-        label={t('ribbon.popovers.convert.shortcuts.toNumber.label')}
-        title={
-          noCol
-            ? noColTitle
-            : type === 'float'
-              ? t('ribbon.popovers.convert.shortcuts.toNumber.alreadyNumber')
-              : t('ribbon.popovers.convert.shortcuts.toNumber.title')
-        }
-        disabled={noCol || type === 'float'}
-        onClick={() => applyAndClose(() => AppController.quickConvertToNumber())}
-      />
-      <ShortcutChip
-        label={t('ribbon.popovers.convert.shortcuts.toInteger.label')}
-        title={
-          noCol
-            ? noColTitle
-            : type === 'integer'
-              ? t('ribbon.popovers.convert.shortcuts.toInteger.alreadyInteger')
-              : t('ribbon.popovers.convert.shortcuts.toInteger.title')
-        }
-        disabled={noCol || type === 'integer'}
-        onClick={() => applyAndClose(() => AppController.quickConvertToInteger())}
-      />
-      <ShortcutChip
-        label={t('ribbon.popovers.convert.shortcuts.toDate.label')}
-        title={
-          noCol
-            ? noColTitle
-            : type === 'date' || type === 'datetime'
-              ? t('ribbon.popovers.convert.shortcuts.toDate.alreadyDate')
-              : t('ribbon.popovers.convert.shortcuts.toDate.title')
-        }
-        disabled={noCol || type === 'date' || type === 'datetime'}
-        onClick={() => applyAndClose(() => AppController.quickConvertToDate())}
-      />
+      {shortcuts.map((s) => {
+        const isAlready = !noCol && s.disabledWhenType.includes(type!);
+        return (
+          <ShortcutChip
+            key={s.id}
+            label={t(`ribbon.popovers.convert.shortcuts.${s.i18nKey}.label`)}
+            title={
+              noCol
+                ? noColTitle
+                : isAlready
+                  ? t(`ribbon.popovers.convert.shortcuts.${s.i18nKey}.already`)
+                  : t(`ribbon.popovers.convert.shortcuts.${s.i18nKey}.title`)
+            }
+            disabled={noCol || isAlready}
+            onClick={() => {
+              onClose();
+              AppController.executeShortcut(s.id);
+            }}
+          />
+        );
+      })}
     </PopoverSection>
   );
 }

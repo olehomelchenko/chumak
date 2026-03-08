@@ -527,32 +527,7 @@ export const AppController = {
   },
 
   // Shortcut actions (column, text, date, number, convert)
-  quickDuplicate: () => ShortcutHandlers.quickDuplicate(shortcutCallbacks()),
-  quickUpper: () => ShortcutHandlers.quickUpper(shortcutCallbacks()),
-  quickLower: () => ShortcutHandlers.quickLower(shortcutCallbacks()),
-  quickTitlecase: () => ShortcutHandlers.quickTitlecase(shortcutCallbacks()),
-  quickTrim: () => ShortcutHandlers.quickTrim(shortcutCallbacks()),
-  quickLen: () => ShortcutHandlers.quickLen(shortcutCallbacks()),
-  quickExtractYear: () => ShortcutHandlers.quickExtractYear(shortcutCallbacks()),
-  quickExtractMonth: () => ShortcutHandlers.quickExtractMonth(shortcutCallbacks()),
-  quickExtractDay: () => ShortcutHandlers.quickExtractDay(shortcutCallbacks()),
-  quickExtractQuarter: () => ShortcutHandlers.quickExtractQuarter(shortcutCallbacks()),
-  quickExtractWeekday: () => ShortcutHandlers.quickExtractWeekday(shortcutCallbacks()),
-  quickExtractWeek: () => ShortcutHandlers.quickExtractWeek(shortcutCallbacks()),
-  quickTruncYear: () => ShortcutHandlers.quickTruncYear(shortcutCallbacks()),
-  quickTruncMonth: () => ShortcutHandlers.quickTruncMonth(shortcutCallbacks()),
-  quickTruncWeek: () => ShortcutHandlers.quickTruncWeek(shortcutCallbacks()),
-  quickTruncDay: () => ShortcutHandlers.quickTruncDay(shortcutCallbacks()),
-  quickRound: () => ShortcutHandlers.quickRound(shortcutCallbacks()),
-  quickFloor: () => ShortcutHandlers.quickFloor(shortcutCallbacks()),
-  quickCeil: () => ShortcutHandlers.quickCeil(shortcutCallbacks()),
-  quickTruncNum: () => ShortcutHandlers.quickTrunc(shortcutCallbacks()),
-  quickAbs: () => ShortcutHandlers.quickAbs(shortcutCallbacks()),
-  quickSign: () => ShortcutHandlers.quickSign(shortcutCallbacks()),
-  quickConvertToString: () => ShortcutHandlers.quickConvertToString(shortcutCallbacks()),
-  quickConvertToNumber: () => ShortcutHandlers.quickConvertToNumber(shortcutCallbacks()),
-  quickConvertToInteger: () => ShortcutHandlers.quickConvertToInteger(shortcutCallbacks()),
-  quickConvertToDate: () => ShortcutHandlers.quickConvertToDate(shortcutCallbacks()),
+  executeShortcut: (id: string) => ShortcutHandlers.executeShortcut(id, shortcutCallbacks()),
 
   // ============================================================
   // JSON Editor
