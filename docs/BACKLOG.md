@@ -41,19 +41,9 @@ An `addMissingDates` transform that fills gaps in time series data. Given a date
 
 **Implementation**: Detect date range bounds from data, generate complete sequence at specified granularity, left-join original data onto the generated sequence. If grouping columns are specified (e.g., per-region time series), cross-join groups × dates first.
 
-### Duplicate Column Quick Action
+### ~~Duplicate Column Quick Action~~ ✓ Completed
 
-**Status**: Planned
-**Effort**: Small
-**Origin**: [Weaverbird comparison](future/WEAVERBIRD-COMPARISON.md) -- WB's `duplicate` step
-
-One-click "Duplicate" action (in ribbon or column toolbar) that creates a copy of the selected column. Generates a `derive` step: `{ "column_copy": "[column]" }`.
-
-**Why this matters**: Users commonly need a copy of a column before transforming it (e.g., keep original dates while extracting year). Currently requires opening the Derive dialog and manually typing the expression. A one-click action removes friction from a very common preparatory step.
-
-**Implementation**: No dialog needed -- directly generate and apply a `derive` step with the column name + `_copy` suffix. Auto-generate name. Could live in the ribbon's Columns → Manage group or as a column toolbar button.
-
-_Note: Text operations (upper/lower/trim) and Replace are already accessible via the ribbon's Text and Replace buttons. No additional toolbar entries needed for those._
+Moved to [Completed Features](#completed-features-historical-record).
 
 ---
 
@@ -248,10 +238,9 @@ These have been considered and explicitly excluded:
 1. Example workflows for onboarding & website video ([EXAMPLE-WORKFLOWS.md](future/EXAMPLE-WORKFLOWS.md))
 2. SEO landing pages (infrastructure done, content needed)
 3. Top N per Group transform (small-medium effort, very common analytical need)
-4. Duplicate Column quick action (small effort, common preparatory step)
-5. Flatten JSON transform
-6. Fill Date Gaps transform (medium effort, important for time series)
-7. Web Workers investigation for heavy transforms
+4. Flatten JSON transform
+5. Fill Date Gaps transform (medium effort, important for time series)
+6. Web Workers investigation for heavy transforms
 
 ---
 
@@ -297,6 +286,7 @@ Completed features are documented here for posterity:
 - **Validate workflows on load** — March 2026. Added `validateSteps()` to `transform-linter.ts` for validating step objects loaded from IndexedDB. Checks for unknown transform keys, invalid expressions (filter, derive, conditional). `loadInitialData()` now validates all model steps on startup and shows a persistent warning toast for any issues found.
 - **ImportCsvDialog XSS fix & i18n completion** — March 2026. Replaced `dangerouslySetInnerHTML` with JSX interpolation for `replacingSource` translation (eliminated self-XSS via source names containing HTML). Extracted remaining hardcoded English strings from JSON examples block (`exampleIfJsonIs`, `exampleArrayFirst`) with Ukrainian translations.
 - **Summary Statistics (Describe) transform** — March 2026. One-click `describe` transform that auto-generates summary statistics for selected columns: count, unique, mean, median, stdev, min, max for numeric; count, unique, top, freq for categorical. Output is a transposed summary table (rows = statistics, columns = source columns). Analogous to Pandas `df.describe()`.
+- **Duplicate Column quick action** — March 2026. One-click "Duplicate" button in the column toolbar that creates a copy of the selected column via a `derive` step (`{ "column_copy": "[column]" }`). No dialog needed.
 
 ---
 

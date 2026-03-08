@@ -42,6 +42,16 @@ async function applyTypes(
 }
 
 // ============================================================
+// Column shortcuts
+// ============================================================
+
+export async function quickDuplicate(callbacks: any) {
+  const c = getColRef();
+  if (!c) return;
+  await applyDerive('Duplicate', `${c.col}_copy`, c.ref, callbacks);
+}
+
+// ============================================================
 // Text shortcuts
 // ============================================================
 

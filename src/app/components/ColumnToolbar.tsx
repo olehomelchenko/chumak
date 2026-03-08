@@ -11,6 +11,7 @@ interface ColumnToolbarProps {
   onDate: () => void;
   onDedupe: () => void;
   onImpute: () => void;
+  onDuplicate: () => void;
   onRemove: () => void;
   onRemoveMultiple: () => void;
   getColumnType: (col: string) => string;
@@ -24,6 +25,7 @@ export function ColumnToolbar({
   onDate,
   onDedupe,
   onImpute,
+  onDuplicate,
   onRemove,
   onRemoveMultiple,
   getColumnType,
@@ -224,6 +226,13 @@ export function ColumnToolbar({
           data-icon="material-symbols-light:edit-arrow-down-outline-rounded"
           style="width: 24px; height: 24px;"
         ></span>
+      </button>
+      <button
+        class={styles.floatingToolbar__button}
+        onClick={onDuplicate}
+        title={t('toolbars.column.duplicate')}
+      >
+        <span class="iconify" data-icon="carbon:copy" style="width: 24px; height: 24px;"></span>
       </button>
       <button
         class={`${styles.floatingToolbar__button} ${styles.danger}`}

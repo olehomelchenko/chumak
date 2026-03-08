@@ -526,7 +526,8 @@ export const AppController = {
     AppStore.ribbonPopoverRect.value = null;
   },
 
-  // Shortcut actions (text, date, number, convert)
+  // Shortcut actions (column, text, date, number, convert)
+  quickDuplicate: () => ShortcutHandlers.quickDuplicate(shortcutCallbacks()),
   quickUpper: () => ShortcutHandlers.quickUpper(shortcutCallbacks()),
   quickLower: () => ShortcutHandlers.quickLower(shortcutCallbacks()),
   quickTitlecase: () => ShortcutHandlers.quickTitlecase(shortcutCallbacks()),

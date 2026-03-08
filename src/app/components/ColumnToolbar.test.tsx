@@ -18,6 +18,7 @@ describe('ColumnToolbar - keyboard navigation', () => {
     onDate: vi.fn(),
     onDedupe: vi.fn(),
     onImpute: vi.fn(),
+    onDuplicate: vi.fn(),
     onRemove: vi.fn(),
     onRemoveMultiple: vi.fn(),
     getColumnType: () => 'string',
@@ -53,8 +54,8 @@ describe('ColumnToolbar - keyboard navigation', () => {
     render(<ColumnToolbar {...mockProps} />);
 
     const buttons = getButtons();
-    // Sort asc, Sort desc, Filter, Rename, Split, Dedupe, Impute, Remove = 8
-    expect(buttons.length).toBe(8);
+    // Sort asc, Sort desc, Filter, Rename, Split, Dedupe, Impute, Duplicate, Remove = 9
+    expect(buttons.length).toBe(9);
   });
 
   it('should render date button for date columns', () => {
@@ -62,8 +63,8 @@ describe('ColumnToolbar - keyboard navigation', () => {
     render(<ColumnToolbar {...mockProps} getColumnType={() => 'date'} />);
 
     const buttons = getButtons();
-    // Sort asc, Sort desc, Filter, Rename, Split, Date, Dedupe, Impute, Remove = 9
-    expect(buttons.length).toBe(9);
+    // Sort asc, Sort desc, Filter, Rename, Split, Date, Dedupe, Impute, Duplicate, Remove = 10
+    expect(buttons.length).toBe(10);
   });
 
   it('should move focus right on ArrowRight', () => {

@@ -357,6 +357,7 @@
       "date": "Date transformation",
       "dedupe": "Dedupe by this column",
       "impute": "Impute missing values",
+      "duplicate": "Duplicate this column",
       "remove": "Remove this column"
     },
     "row": {
