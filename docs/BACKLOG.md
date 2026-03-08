@@ -83,35 +83,12 @@ See [custom-icons-setup.md](custom-icons-setup.md) for detailed setup guide and 
 
 ---
 
-### Code Reduction: Repeated Patterns at Scale
+### TransformDialog.module.css Decomposition
 
-**Status**: Tech Debt
-**Effort**: Medium (phased)
-**Reference**: [CODE-REDUCTION-ANALYSIS.md](CODE-REDUCTION-ANALYSIS.md)
+**Status**: Low priority
+**Effort**: Small (maintainability, not LoC)
 
-Three areas where patterns that were fine for a few components became burdensome as the codebase grew (~300 LoC remaining, ~260 already done):
-
-1. ~~**Shortcut handlers → data table** (~490 LoC)~~: ✅ Done — replaced with declarative `SHORTCUT_REGISTRY` + `executeShortcut()` + data-driven popover rendering.
-2. ~~**`deriveNextSchema` dedup** (~26 LoC)~~: ✅ Done — extracted `inferSchemaFromSample()` helper, replaced 5 duplicated blocks.
-3. **AppController pass-throughs** (~300 LoC, gradual): ~80 pure re-exports that add indirection without logic. Dialog-specific handlers can be imported directly by the consuming component.
-
-### ~~Deduplicate Transform Linter Validation Logic~~ ✓ Completed
-
-Moved to [Completed Features](#completed-features-historical-record).
-
----
-
-### Keyboard Accessibility
-
-**Status**: Implemented (February 2026)
-**Effort**: Small
-
-Completed improvements:
-
-- Global `:focus-visible` outline using `--color-cyan` tokens
-- Focus trapping in slide panel and centered modal dialogs (Tab wrapping + focus restoration)
-- Enter-to-submit in slide panel dialogs (with guards for textarea, CodeMirror, etc.)
-- Arrow key navigation in TypeMenu with ARIA `menu`/`menuitem` roles
+At 846 lines, `TransformDialog.module.css` styles 15+ different dialog types. Split into purpose-specific modules (`form-controls`, `expression-help`, `column-editor`) when next touching these areas. See [archive/CODE-REDUCTION-ANALYSIS.md](archive/CODE-REDUCTION-ANALYSIS.md) §4.
 
 ---
 
@@ -246,11 +223,10 @@ These have been considered and explicitly excluded:
 
 1. Example workflows for onboarding & website video ([EXAMPLE-WORKFLOWS.md](future/EXAMPLE-WORKFLOWS.md))
 2. SEO landing pages (infrastructure done, content needed)
-3. ~~Code reduction: shortcut data table refactor~~ ✅ Done
-4. Top N per Group transform (small-medium effort, very common analytical need)
-5. Flatten JSON transform
-6. Fill Date Gaps transform (medium effort, important for time series)
-7. Web Workers investigation for heavy transforms
+3. Top N per Group transform (small-medium effort, very common analytical need)
+4. Flatten JSON transform
+5. Fill Date Gaps transform (medium effort, important for time series)
+6. Web Workers investigation for heavy transforms
 
 ---
 
@@ -298,6 +274,8 @@ Completed features are documented here for posterity:
 - **Summary Statistics (Describe) transform** — March 2026. One-click `describe` transform that auto-generates summary statistics for selected columns: count, unique, mean, median, stdev, min, max for numeric; count, unique, top, freq for categorical. Output is a transposed summary table (rows = statistics, columns = source columns). Analogous to Pandas `df.describe()`.
 - **Duplicate Column quick action** — March 2026. One-click "Duplicate" button in the column toolbar that creates a copy of the selected column via a `derive` step (`{ "column_copy": "[column]" }`). No dialog needed.
 - **Transform linter deduplication** — March 2026. Extracted `validateStepExpressions()` generator from `transform-linter.ts` to share expression validation logic across `lintTransformJson`, `validateSteps`, and `getTransformJsonError`. Net reduction: 101 LoC (377 → 276).
+- **Code reduction refactors** — March 2026. Three completed refactors (~543 LoC net reduction): declarative `SHORTCUT_REGISTRY` replacing 25 handler functions, `inferSchemaFromSample()` deduplicating 5 schema blocks, AppController pass-through elimination (712 → 430 LoC). See [archive/CODE-REDUCTION-ANALYSIS.md](archive/CODE-REDUCTION-ANALYSIS.md).
+- **Keyboard accessibility** — February 2026. Global `:focus-visible` outlines, focus trapping in dialogs, Enter-to-submit in slide panels, arrow key navigation in TypeMenu with ARIA roles.
 
 ---
 

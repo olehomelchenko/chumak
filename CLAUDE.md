@@ -28,12 +28,11 @@
 - **[TRANSFORM-ARCHITECTURE-REVIEW.md](docs/TRANSFORM-ARCHITECTURE-REVIEW.md)**: Transform design analysis and improvement roadmap
 - **[MULTI-MODEL-ARCHITECTURE.md](docs/MULTI-MODEL-ARCHITECTURE.md)**: Dependency graph system, staleness tracking, and multi-model operations
 - **[DATE-STORAGE-ARCHITECTURE.md](docs/DATE-STORAGE-ARCHITECTURE.md)**: Date/datetime handling strategy, JavaScript Date pitfalls, and developer rules
-- **[CODE-REDUCTION-ANALYSIS.md](docs/CODE-REDUCTION-ANALYSIS.md)**: Identified repetitive patterns and planned refactors (~1,100 LoC reduction)
 
 ### Reference
 
 - **[docs/arquero/](docs/arquero/)**: Arquero library documentation (verbs, expressions, operators)
-- **[docs/archive/](docs/archive/)**: Architecture Decision Records (ADRs) - key architectural choices and rationale
+- **[docs/archive/](docs/archive/)**: Architecture Decision Records (ADRs), completed refactor analyses, and key architectural choices
 - **[docs/future/](docs/future/)**: Future roadmap documents (native app spec, custom icons, example workflows)
 
 ---
@@ -152,7 +151,7 @@ npm run format   # Prettier
 | What's safe to change | [FUTURE-PROOFING.md](docs/FUTURE-PROOFING.md)                     |
 | Date handling rules   | [DATE-STORAGE-ARCHITECTURE.md](docs/DATE-STORAGE-ARCHITECTURE.md) |
 | CSS debugging         | [DEBUGGING.md](docs/DEBUGGING.md)                                 |
-| Known tech debt       | [CODE-REDUCTION-ANALYSIS.md](docs/CODE-REDUCTION-ANALYSIS.md)     |
+| Completed refactors   | [docs/archive/](docs/archive/)                                    |
 | Project philosophy    | [SOUL.md](SOUL.md)                                                |
 
 ---
