@@ -1,7 +1,10 @@
 import { useTranslation } from 'preact-i18next';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
-import styles from './TransformDialog.module.css';
+import formStyles from './form-controls.module.css';
+import colStyles from './column-editor.module.css';
+import prevStyles from './preview-table.module.css';
+const styles = { ...formStyles, ...colStyles, ...prevStyles };
 import joinStyles from './JoinDialog.module.css';
 import tableStyles from './DataTable.module.css';
 import { JoinTreeSelector } from './JoinTreeSelector';

@@ -1,6 +1,6 @@
 import { useTranslation } from 'preact-i18next';
 import { DialogStore } from '../stores/DialogStore';
-import styles from './TransformDialog.module.css';
+import styles from './form-controls.module.css';
 
 const mod = /Mac|iPhone|iPad|iPod/.test(navigator.platform) ? '⌘' : 'Ctrl';
 

@@ -1,0 +1,30 @@
+.previewContainer {
+  padding: 1rem;
+  background: var(--color-soft-bg);
+  border-radius: var(--border-radius);
+  margin-bottom: 1rem;
+  border: 1px solid var(--border-color);
+}
+
+.previewScroll {
+  max-height: 300px;
+  overflow: auto;
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+}
+
+.previewTable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.75rem;
+
+  th {
+    position: sticky;
+    top: 0;
+    background: var(--color-soft-bg);
+    padding: 0.5rem;
+    text-align: left;
+    border-bottom: 2px solid var(--border-color);
+    white-space: nowrap;
+  }
+}

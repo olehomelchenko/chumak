@@ -1,5 +1,5 @@
 import type { Signal } from '@preact/signals';
-import styles from '../TransformDialog.module.css';
+import styles from '../form-controls.module.css';
 import joinStyles from '../JoinDialog.module.css';
 import type { JoinType } from '../JoinDialog';
 

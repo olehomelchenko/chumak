@@ -8,7 +8,7 @@ import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 import { ColumnSelector } from './column-selector';
 import * as SplitHandlers from '../handlers/transform/split-handlers';
-import styles from './TransformDialog.module.css';
+import styles from './form-controls.module.css';
 
 // Re-export for backward compatibility
 export type { SplitMode } from '../../types/modes';

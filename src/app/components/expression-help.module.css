@@ -1,0 +1,190 @@
+.expressionHelp {
+  margin-top: 1rem;
+  padding: 0.75rem;
+  background: var(--color-soft-bg);
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+}
+
+.expressionHelpTitle {
+  font-weight: 600;
+  font-size: 0.8rem;
+  color: var(--color-dark-gray);
+  margin-bottom: 0.5rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.exampleGrid {
+  font-size: 0.75rem;
+  font-family: var(--font-family-mono);
+  color: var(--color-text);
+  line-height: 1.8;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.25rem 1rem;
+}
+
+.exampleCode {
+  background: var(--color-white);
+  padding: 2px 4px;
+  border-radius: 3px;
+  border: 1px solid var(--border-color);
+}
+
+.fullSpan {
+  grid-column: 1 / -1;
+}
+
+.exampleTitle {
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-dark-gray);
+  margin-bottom: 0.25rem;
+}
+
+.exampleDescription {
+  color: var(--color-dark-gray);
+  font-family: var(--font-family);
+  margin-left: 4px;
+}
+
+.operatorList {
+  font-size: 0.7rem;
+  color: var(--color-medium-gray);
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.operatorTag {
+  background: var(--color-white);
+  padding: 2px 6px;
+  border-radius: 3px;
+  border: 1px solid var(--border-color);
+}
+
+.refLinks {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.375rem;
+  margin-top: 0.5rem;
+  padding-top: 0.5rem;
+  border-top: 1px dashed var(--border-color);
+}
+
+.refLink {
+  background: none;
+  border: 1px solid var(--border-color);
+  border-radius: 3px;
+  padding: 1px 6px;
+  font-size: 0.7rem;
+  color: var(--color-cyan);
+  cursor: pointer;
+  font-family: var(--font-family);
+  transition: all var(--transition-fast);
+
+  &:hover {
+    background: rgba(var(--color-cyan-rgb), 0.08);
+    border-color: var(--color-cyan);
+  }
+}
+
+/* Dynamic expression docs */
+
+.dynamicDocs {
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  background: var(--color-white);
+  border-radius: 6px;
+  border-left: 3px solid var(--color-cyan);
+  border-top: 1px solid var(--border-color);
+  border-right: 1px solid var(--border-color);
+  border-bottom: 1px solid var(--border-color);
+}
+
+.dynamicDocsTitle {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--color-dark-gray);
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  margin-bottom: 0.5rem;
+}
+
+.dynamicDocs > div + div {
+  margin-top: 0.75rem;
+  padding-top: 0.5rem;
+  border-top: 1px dashed var(--border-color);
+}
+
+.funcDoc {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  margin-bottom: 0.375rem;
+}
+
+.funcSignature {
+  font-family: var(--font-family-mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--color-midnight-blue);
+}
+
+.funcDescription {
+  font-size: 0.7rem;
+  color: var(--color-dark-gray);
+  line-height: 1.4;
+}
+
+.funcExample {
+  font-family: var(--font-family-mono);
+  font-size: 0.7rem;
+  background: var(--color-soft-bg);
+  padding: 1px 4px;
+  border-radius: 3px;
+  border: 1px solid var(--border-color);
+  margin-right: 0.25rem;
+}
+
+.columnRef {
+  display: flex;
+  flex-direction: column;
+  gap: 0.125rem;
+  margin-bottom: 0.375rem;
+}
+
+.columnName {
+  font-family: var(--font-family-mono);
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-midnight-blue);
+}
+
+.typeBadge {
+  display: inline-block;
+  font-size: 0.625rem;
+  font-weight: 600;
+  padding: 0 4px;
+  margin-left: 0.375rem;
+  border-radius: 3px;
+  background: rgba(var(--color-cyan-rgb), 0.12);
+  color: var(--color-cyan);
+  vertical-align: middle;
+}
+
+.availableColumns {
+  max-height: 260px;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.availableColumn {
+  display: flex;
+  align-items: center;
+  line-height: 1.4;
+}

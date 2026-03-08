@@ -1,6 +1,8 @@
 import { useTranslation } from 'preact-i18next';
 import { DialogStore } from '../../stores/DialogStore';
-import styles from '../TransformDialog.module.css';
+import formStyles from '../form-controls.module.css';
+import colStyles from '../column-editor.module.css';
+const styles = { ...formStyles, ...colStyles };
 import joinStyles from '../JoinDialog.module.css';
 import * as JoinHandlers from '../../handlers/transform/join-handlers';
 

@@ -38,7 +38,7 @@ const highlightStyle = HighlightStyle.define([
 
 /** Theme: compact single-line input with border, focus ring, and autocomplete styling */
 const editorTheme = EditorView.theme({
-  // Wrapper — matches .input class from TransformDialog.module.css
+  // Wrapper — matches .input class from form-controls.module.css
   '&': {
     width: '100%',
     padding: 'var(--space-sm) var(--space-md)',

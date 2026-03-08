@@ -79,12 +79,12 @@ See [custom-icons-setup.md](custom-icons-setup.md) for detailed setup guide and 
 
 ---
 
-### TransformDialog.module.css Decomposition
+### Undefined `noteBox` CSS Class
 
-**Status**: Low priority
-**Effort**: Small (maintainability, not LoC)
+**Status**: Bug (pre-existing)
+**Effort**: Tiny
 
-At 846 lines, `TransformDialog.module.css` styles 15+ different dialog types. Split into purpose-specific modules (`form-controls`, `expression-help`, `column-editor`) when next touching these areas. See [archive/CODE-REDUCTION-ANALYSIS.md](archive/CODE-REDUCTION-ANALYSIS.md) §4.
+`styles.noteBox` is referenced in `DependencyGraphDialog.tsx` and `SettingsDialog.tsx` but was never defined in any CSS file. The class resolves to `undefined`, so those `<div>`s render without styling. Either define `.noteBox` in the appropriate CSS module or replace with an existing class (e.g., `.helpText` or a new info-box style).
 
 ### Selected Step Tracking
 
@@ -261,6 +261,7 @@ Completed features are documented here for posterity:
 - **Transform linter deduplication** — March 2026. Extracted `validateStepExpressions()` generator from `transform-linter.ts` to share expression validation logic across `lintTransformJson`, `validateSteps`, and `getTransformJsonError`. Net reduction: 101 LoC (377 → 276).
 - **Code reduction refactors** — March 2026. Three completed refactors (~543 LoC net reduction): declarative `SHORTCUT_REGISTRY` replacing 25 handler functions, `inferSchemaFromSample()` deduplicating 5 schema blocks, AppController pass-through elimination (712 → 430 LoC). See [archive/CODE-REDUCTION-ANALYSIS.md](archive/CODE-REDUCTION-ANALYSIS.md).
 - **Keyboard accessibility** — February 2026. Global `:focus-visible` outlines, focus trapping in dialogs, Enter-to-submit in slide panels, arrow key navigation in TypeMenu with ARIA roles.
+- **TransformDialog.module.css decomposition** — March 2026. Split the 846-line monolithic CSS file into 11 purpose-specific modules: `form-controls.module.css` (universal form elements), `expression-help.module.css` (expression docs UI), `column-editor.module.css` (drag/drop column lists), plus 8 dialog-specific modules (Settings, Download, Date, ImportCsv, preview-table, Window, Aggregate, Generate). Updated 47 consumer file imports. See [archive/CODE-REDUCTION-ANALYSIS.md](archive/CODE-REDUCTION-ANALYSIS.md) §4.
 
 ---
 

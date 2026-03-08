@@ -220,11 +220,24 @@ The project follows a **Modular Token-Based Architecture** designed for high mod
 
 ### 6.1 Modular Structure
 
-Styles are divided into component-specific files (e.g., `ribbon.css`, `table.css`, `step-removal.css`), preventing side-effects and ensuring localized maintenance. This styling modularity is mirrored in the TypeScript architecture, where UI logic is delegated to specialized handler modules.
-
 - **Global Styles**: `styles/variables.css`, `styles/base.css`, `styles/layout.css`
-- **Component Styles**: CSS Modules co-located with components in `src/app/components/`
+- **Shared Dialog Styles**: Three utility modules provide reusable classes across all dialogs:
+  - `form-controls.module.css` — labels, inputs, checkboxes, radios, toggles, chips, error/warning boxes
+  - `expression-help.module.css` — expression docs, example grids, operator tags, dynamic docs
+  - `column-editor.module.css` — drag/drop column lists, rename inputs
+- **Dialog-Specific Styles**: Complex dialogs have their own `*.module.css` (e.g., `SettingsDialog.module.css`, `DateDialog.module.css`) for styles used by one or two components
+- **Component Styles**: Other CSS Modules co-located with components in `src/app/components/`
 - **Debugging**: See [DEBUGGING.md](DEBUGGING.md) for CSS Module class name patterns and DevTools tips
+
+When a dialog needs classes from multiple modules, import each and merge via spread:
+
+```ts
+import formStyles from './form-controls.module.css';
+import exprStyles from './expression-help.module.css';
+const styles = { ...formStyles, ...exprStyles };
+```
+
+**Rule**: Modifier classes (e.g., `.active` nested inside `.chip`) must come from the same module as their parent class — CSS Modules hashes are per-file, so cross-module compound selectors won't match.
 
 ### 6.2 Theming Logic
 

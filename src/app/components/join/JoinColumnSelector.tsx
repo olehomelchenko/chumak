@@ -1,4 +1,6 @@
-import styles from '../TransformDialog.module.css';
+import formStyles from '../form-controls.module.css';
+import colStyles from '../column-editor.module.css';
+const styles = { ...formStyles, ...colStyles };
 
 interface JoinColumnSelectorProps {
   label: string;

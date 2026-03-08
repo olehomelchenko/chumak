@@ -8,7 +8,7 @@ import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 import { ColumnSelector } from './column-selector/ColumnSelector';
 import * as MergeHandlers from '../handlers/transform/merge-handlers';
-import styles from './TransformDialog.module.css';
+import styles from './form-controls.module.css';
 
 export function MergeDialog() {
   const { t } = useTranslation('dialogs');

@@ -1,6 +1,8 @@
 import { useTranslation } from 'preact-i18next';
 import { GeneratorType } from '../../services/GeneratorService';
-import styles from '../TransformDialog.module.css';
+import formStyles from '../form-controls.module.css';
+import genStyles from '../GenerateDialog.module.css';
+const styles = { ...formStyles, ...genStyles };
 
 interface GeneratorConfigEditorProps {
   type: GeneratorType;

@@ -2,7 +2,9 @@ import { useTranslation } from 'preact-i18next';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 import { ColumnSelector } from './column-selector';
-import styles from './TransformDialog.module.css';
+import formStyles from './form-controls.module.css';
+import exprStyles from './expression-help.module.css';
+const styles = { ...formStyles, ...exprStyles };
 
 /**
  * UnrollDialog component

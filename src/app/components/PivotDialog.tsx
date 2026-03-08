@@ -4,7 +4,9 @@ import * as PivotHandlers from '../handlers/transform/pivot-handlers';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 import { ColumnSelector } from './column-selector';
-import styles from './TransformDialog.module.css';
+import formStyles from './form-controls.module.css';
+import exprStyles from './expression-help.module.css';
+const styles = { ...formStyles, ...exprStyles };
 import type { PivotAggregation } from '../../types/modes';
 
 // Re-export for backward compatibility

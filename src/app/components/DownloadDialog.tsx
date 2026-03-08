@@ -1,6 +1,8 @@
 import { ExportService } from '../services/ExportService';
 import { AppStore } from '../stores/AppStore';
-import styles from './TransformDialog.module.css';
+import formStyles from './form-controls.module.css';
+import dlStyles from './DownloadDialog.module.css';
+const styles = { ...formStyles, ...dlStyles };
 
 export function DownloadDialog() {
   const close = () => {

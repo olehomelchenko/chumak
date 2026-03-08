@@ -7,7 +7,9 @@ import { useState } from 'preact/hooks';
 import { AppStore } from '../../stores/AppStore';
 import { ColumnChip } from './ColumnChip';
 import { ColumnRow } from './ColumnRow';
-import styles from '../TransformDialog.module.css';
+import formStyles from '../form-controls.module.css';
+import colStyles from '../column-editor.module.css';
+const styles = { ...formStyles, ...colStyles };
 
 export interface ColumnSelectorProps {
   // Data

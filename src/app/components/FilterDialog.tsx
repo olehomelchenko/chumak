@@ -16,7 +16,9 @@ import {
 import { getActiveSchema } from '../handlers/core/helper-handlers';
 import { ExpressionEditor } from './ExpressionEditor';
 import { ExpressionDocs } from './ExpressionDocs';
-import styles from './TransformDialog.module.css';
+import formStyles from './form-controls.module.css';
+import exprStyles from './expression-help.module.css';
+const styles = { ...formStyles, ...exprStyles };
 
 // Re-export for backward compatibility
 export type { FilterPreviewMode } from '../../types/modes';

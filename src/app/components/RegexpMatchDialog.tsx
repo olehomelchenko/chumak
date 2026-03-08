@@ -6,7 +6,9 @@ import {
   validateRegexpMatchExpression,
   debouncedUpdateRegexpMatchPreview,
 } from '../handlers/transform/regexp-handlers';
-import styles from './TransformDialog.module.css';
+import formStyles from './form-controls.module.css';
+import exprStyles from './expression-help.module.css';
+const styles = { ...formStyles, ...exprStyles };
 
 export function RegexpMatchDialog() {
   const { t } = useTranslation('dialogs');

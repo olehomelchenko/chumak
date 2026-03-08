@@ -1,6 +1,8 @@
 import type { Signal } from '@preact/signals';
 import { GeneratorType } from '../../services/GeneratorService';
-import styles from '../TransformDialog.module.css';
+import formStyles from '../form-controls.module.css';
+import genStyles from '../GenerateDialog.module.css';
+const styles = { ...formStyles, ...genStyles };
 
 const generatorIcons: Record<GeneratorType, string> = {
   numberSequence: 'carbon:list-number',

@@ -2,7 +2,9 @@ import { JSX } from 'preact';
 import { useTranslation } from 'preact-i18next';
 import { DialogStore } from '../stores/DialogStore';
 import { SchemaDiffPanel } from './SchemaDiffPanel';
-import styles from './TransformDialog.module.css';
+import formStyles from './form-controls.module.css';
+import importStyles from './ImportCsvDialog.module.css';
+const styles = { ...formStyles, ...importStyles };
 
 // Props interface kept for reference/testing
 export interface ImportCsvDialogProps {

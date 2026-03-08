@@ -4,7 +4,7 @@ import { useTranslation } from 'preact-i18next';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 import { ExpressionEditor } from './ExpressionEditor';
-import styles from './TransformDialog.module.css';
+import styles from './form-controls.module.css';
 
 export function ConditionalDialog() {
   const { t } = useTranslation('dialogs');

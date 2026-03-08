@@ -1,0 +1,32 @@
+.downloadOption {
+  justify-content: flex-start;
+  gap: var(--space-md);
+  padding: var(--space-md);
+  display: flex !important;
+  align-items: center;
+  width: 100%;
+  text-align: left;
+
+  &:hover {
+    background: var(--color-soft-bg);
+  }
+
+  .iconify {
+    width: 24px;
+    height: 24px;
+    flex-shrink: 0;
+  }
+}
+
+.downloadInfo {
+  text-align: left;
+
+  div:first-child {
+    font-weight: var(--font-weight-medium);
+  }
+
+  div:last-child {
+    font-size: var(--font-size-xs);
+    opacity: 0.7;
+  }
+}

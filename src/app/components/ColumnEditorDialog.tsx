@@ -4,7 +4,10 @@ import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 import { useComputed } from '@preact/signals';
 import { ColumnSelector } from './column-selector';
-import styles from './TransformDialog.module.css';
+import formStyles from './form-controls.module.css';
+import colStyles from './column-editor.module.css';
+import exprStyles from './expression-help.module.css';
+const styles = { ...formStyles, ...colStyles, ...exprStyles };
 import * as Handlers from '../handlers/dialog/column-editor-handlers';
 
 export interface ColumnEditorItem {

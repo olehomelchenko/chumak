@@ -3,7 +3,11 @@ import * as WindowHandlers from '../handlers/transform/window-handlers';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 import { ColumnSelector } from './column-selector';
-import styles from './TransformDialog.module.css';
+import formStyles from './form-controls.module.css';
+import winStyles from './WindowDialog.module.css';
+import aggStyles from './AggregateDialog.module.css';
+import exprStyles from './expression-help.module.css';
+const styles = { ...formStyles, ...winStyles, ...aggStyles, ...exprStyles };
 import type { WindowFunction, OrderByItem } from '../stores/dialogs/aggregate/window-state';
 
 /** Window functions that require a source column */

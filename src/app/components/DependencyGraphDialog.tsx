@@ -3,7 +3,7 @@ import { AppStore } from '../stores/AppStore';
 import { DependencyService, DependencyGraph } from '../services/DependencyService';
 import { Source, Model } from '../types';
 import * as dagre from 'dagre';
-import styles from './TransformDialog.module.css';
+import styles from './form-controls.module.css';
 
 interface GraphNode {
   id: string;

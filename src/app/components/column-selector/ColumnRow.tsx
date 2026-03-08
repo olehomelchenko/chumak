@@ -2,7 +2,9 @@
  * ColumnRow - A row component for list-based column selection with drag-and-drop and renaming
  */
 
-import styles from '../TransformDialog.module.css';
+import formStyles from '../form-controls.module.css';
+import colStyles from '../column-editor.module.css';
+const styles = { ...formStyles, ...colStyles };
 
 export interface ColumnRowProps {
   column: string;

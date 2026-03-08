@@ -1,0 +1,53 @@
+.configGrid {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.configBox {
+  padding: 1rem;
+  background: var(--color-off-white);
+  border: 1px solid var(--border-color);
+  border-radius: 4px;
+  margin-bottom: var(--space-md);
+}
+
+.rowHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.autoLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  cursor: pointer;
+  color: var(--color-cyan);
+  font-weight: 600;
+}
+
+.flex1 {
+  flex: 1;
+}
+
+.flex15 {
+  flex: 1.5;
+}
+
+.flexRow {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.grid3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.5rem;
+}
+
+.unitSelect {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}

@@ -4,7 +4,10 @@
 
 import { useSignalEffect } from '@preact/signals';
 import { useTranslation } from 'preact-i18next';
-import styles from './TransformDialog.module.css';
+import formStyles from './form-controls.module.css';
+import exprStyles from './expression-help.module.css';
+import dateStyles from './DateDialog.module.css';
+const styles = { ...formStyles, ...exprStyles, ...dateStyles };
 import { ColumnSelector } from './column-selector';
 import { DialogStore } from '../stores/DialogStore';
 import * as TextHandlers from '../handlers/transform/text-handlers';

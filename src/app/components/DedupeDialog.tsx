@@ -3,7 +3,7 @@ import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 import { ColumnSelector } from './column-selector';
 import { toggleDedupeAllColumns, updateDedupePreview } from '../handlers/transform/dedupe-handlers';
-import styles from './TransformDialog.module.css';
+import styles from './form-controls.module.css';
 
 export function DedupeDialog() {
   const { t } = useTranslation('dialogs');

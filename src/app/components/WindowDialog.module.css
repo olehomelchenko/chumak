@@ -1,0 +1,29 @@
+.windowRow {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  margin-bottom: 0.75rem;
+  padding: 0.5rem;
+  background: var(--color-off-white);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+}
+
+.windowRowMain {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+}
+
+.windowRowExtra {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  padding-left: 0.5rem;
+  font-size: var(--font-size-sm);
+}
+
+.smallLabel {
+  font-size: var(--font-size-xs);
+  color: var(--color-dark-gray);
+}

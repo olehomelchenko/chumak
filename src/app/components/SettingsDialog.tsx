@@ -1,5 +1,7 @@
 import { DialogStore } from '../stores/DialogStore';
-import styles from './TransformDialog.module.css';
+import formStyles from './form-controls.module.css';
+import settingsStyles from './SettingsDialog.module.css';
+const styles = { ...formStyles, ...settingsStyles };
 import { useTranslation } from 'preact-i18next';
 
 // Props interface kept for reference/testing

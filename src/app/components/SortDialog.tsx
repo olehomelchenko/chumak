@@ -2,7 +2,7 @@ import { useTranslation } from 'preact-i18next';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 import type { SortField } from '../stores/dialogs/transform/sort-state';
-import styles from './TransformDialog.module.css';
+import styles from './form-controls.module.css';
 
 export function SortDialog() {
   const { t } = useTranslation('dialogs');

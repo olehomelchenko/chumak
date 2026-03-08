@@ -35,38 +35,25 @@ Removed all ~120 pure pass-through re-exports from AppController. Consumers (App
 
 ---
 
-## 4. TransformDialog.module.css Decomposition
+## 4. TransformDialog.module.css Decomposition ✅ Done
 
 **File**: `TransformDialog.module.css`
 **Current cost**: 846 lines — the largest CSS file
 **Savings**: Maintainability, not LoC
-**Priority**: Low
+**Status**: Completed (March 2026)
 
-### Problem
-
-This file styles 15+ different dialog types: column editors, date option tables, download modals, theme pickers, JSON views, warning boxes, expression docs, radio/checkbox controls, and more. The name "TransformDialog" no longer reflects its contents.
-
-### Solution
-
-Split into purpose-specific modules when touching these areas:
-
-- `form-controls.module.css` — inputs, labels, checkboxes, radio buttons, toggle buttons
-- `expression-help.module.css` — dynamic docs, example grids, operator tags
-- `column-editor.module.css` — drag/drop list, item styles
-- Remaining dialog-specific styles stay with their component CSS modules
-
-This makes dead CSS visible and prevents the file from growing further.
+Split into 11 purpose-specific CSS modules: `form-controls.module.css` (universal form elements), `expression-help.module.css` (expression docs UI), `column-editor.module.css` (drag/drop column lists), plus 8 dialog-specific modules (SettingsDialog, DownloadDialog, DateDialog, ImportCsvDialog, preview-table, WindowDialog, AggregateDialog, GenerateDialog). Updated 47 consumer file imports. Original file deleted.
 
 ---
 
 ## Summary
 
-| Area                        | Current  | After                      | Savings         | Priority |
-| --------------------------- | -------- | -------------------------- | --------------- | -------- |
-| Shortcut data table         | ~570 LoC | ~335 LoC                   | **~235** ✅     | Done     |
-| `deriveNextSchema` dedup    | ~65 LoC  | 1 helper + 5 calls         | **~26** ✅      | Done     |
-| AppController pass-throughs | ~712 LoC | ~430 LoC                   | **~282** ✅     | Done     |
-| TransformDialog.module.css  | 846 LoC  | same LoC, better structure | maintainability | Low      |
-| **Total**                   |          |                            | **~543 LoC**    |          |
+| Area                        | Current  | After              | Savings            | Priority |
+| --------------------------- | -------- | ------------------ | ------------------ | -------- |
+| Shortcut data table         | ~570 LoC | ~335 LoC           | **~235** ✅        | Done     |
+| `deriveNextSchema` dedup    | ~65 LoC  | 1 helper + 5 calls | **~26** ✅         | Done     |
+| AppController pass-throughs | ~712 LoC | ~430 LoC           | **~282** ✅        | Done     |
+| TransformDialog.module.css  | 846 LoC  | 11 focused modules | maintainability ✅ | Done     |
+| **Total**                   |          |                    | **~543 LoC**       |          |
 
-Remaining: TransformDialog.module.css decomposition.
+All items completed.

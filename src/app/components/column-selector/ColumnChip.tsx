@@ -2,7 +2,7 @@
  * ColumnChip - A chip button component for displaying and selecting columns
  */
 
-import styles from '../TransformDialog.module.css';
+import styles from '../form-controls.module.css';
 
 export interface ColumnChipProps {
   label: string;

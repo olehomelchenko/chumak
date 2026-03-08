@@ -3,7 +3,9 @@ import * as DescribeHandlers from '../handlers/transform/describe-handlers';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 import { ColumnSelector } from './column-selector';
-import styles from './TransformDialog.module.css';
+import formStyles from './form-controls.module.css';
+import exprStyles from './expression-help.module.css';
+const styles = { ...formStyles, ...exprStyles };
 
 export function DescribeDialog() {
   const { t } = useTranslation('dialogs');

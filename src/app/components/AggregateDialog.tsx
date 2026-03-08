@@ -3,7 +3,10 @@ import * as AggregateHandlers from '../handlers/transform/aggregate-handlers';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 import { ColumnSelector } from './column-selector';
-import styles from './TransformDialog.module.css';
+import formStyles from './form-controls.module.css';
+import aggStyles from './AggregateDialog.module.css';
+import exprStyles from './expression-help.module.css';
+const styles = { ...formStyles, ...aggStyles, ...exprStyles };
 
 export interface Aggregation {
   col: string;

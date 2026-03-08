@@ -1,6 +1,6 @@
 import type { ColumnSchema, ColumnType } from '../../core/schema-engine';
 import functionDocs from '../../schemas/functions.json';
-import styles from './TransformDialog.module.css';
+import styles from './expression-help.module.css';
 
 interface FunctionDoc {
   name: string;
