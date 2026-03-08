@@ -11,6 +11,9 @@ export default defineConfig(({ mode }) => {
   const isDev = mode === 'development';
 
   return {
+    define: {
+      __APP_VERSION__: JSON.stringify(require('./package.json').version),
+    },
     // For Cloudflare Pages: use root path
     // Change '/' to '/syto/' for GitHub Pages subdirectory
     base: '/',

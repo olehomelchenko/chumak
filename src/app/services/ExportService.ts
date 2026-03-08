@@ -74,7 +74,7 @@ export class ExportService {
       const source = AppStore.sources.value.find((s) => s.id === activeModel.sourceId);
       const workflow = {
         formatVersion: 1,
-        sytoVersion: '0.1.0', // TODO: Import from package.json in build
+        sytoVersion: __APP_VERSION__,
         name: activeModel.name,
         exportedAt: new Date().toISOString(),
         source: {

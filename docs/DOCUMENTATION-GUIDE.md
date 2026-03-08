@@ -235,13 +235,21 @@ What other options were evaluated?
 - PARSER-DESIGN-DECISION.md - Why security-first AST validation
 - ARQUERO-LEVERAGE-ANALYSIS.md - Why Arquero as data engine
 
+### Analysis & Review Documents
+
+Temporary analysis docs (e.g., code reduction plans, architecture reviews) that track a bounded set of work items:
+
+- Keep in `docs/` while work is in progress
+- When all items are completed, move to `docs/archive/` and update references (CLAUDE.md, BACKLOG.md, DEVELOPMENT-PATTERNS.md)
+- Add a brief completion entry to BACKLOG.md's Completed Features section
+
 ### Future Roadmap Documents
 
 Large planning documents for unimplemented features go in `docs/future/`:
 
 - Use when planning a major change (>1000 lines of code)
 - Include comprehensive specs with examples
-- Move to docs/archive/ after implementation or remove if abandoned
+- Move to `docs/archive/` after implementation or remove if abandoned
 
 ---
 

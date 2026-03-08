@@ -41,10 +41,6 @@ An `addMissingDates` transform that fills gaps in time series data. Given a date
 
 **Implementation**: Detect date range bounds from data, generate complete sequence at specified granularity, left-join original data onto the generated sequence. If grouping columns are specified (e.g., per-region time series), cross-join groups × dates first.
 
-### ~~Duplicate Column Quick Action~~ ✓ Completed
-
-Moved to [Completed Features](#completed-features-historical-record).
-
 ---
 
 ## UI/UX Enhancements
@@ -90,22 +86,16 @@ See [custom-icons-setup.md](custom-icons-setup.md) for detailed setup guide and 
 
 At 846 lines, `TransformDialog.module.css` styles 15+ different dialog types. Split into purpose-specific modules (`form-controls`, `expression-help`, `column-editor`) when next touching these areas. See [archive/CODE-REDUCTION-ANALYSIS.md](archive/CODE-REDUCTION-ANALYSIS.md) §4.
 
----
-
-## Documentation
-
-### Consolidate ADRs into DECISIONS.md
+### Selected Step Tracking
 
 **Status**: Planned
 **Effort**: Small
 
-Consolidate `docs/archive/` ADR files into a single `DECISIONS.md` quick-reference log. Large architectural decisions that warranted their own doc stay as linked references; smaller decisions (dependency choices, pattern selections, format trade-offs) that didn't deserve a standalone file get a one-line entry. Format: **decision → reason → alternatives considered → date**. This gives future sessions (human and AI) a single place to check "why was this done this way?" without hunting through individual ADR files.
+No `selectedStepIndex` signal in AppStore — the `Delete` key always removes the last step. Add a selected-step concept so keyboard deletion targets the focused step.
 
 ---
 
 ## Infrastructure
-
----
 
 ### Template Landing Page for i18n
 
@@ -117,8 +107,6 @@ The UK landing page (`/uk/`) is currently derived from the EN `index.html` via ~
 **Proposed fix**: Template `index.html` with `{{placeholder}}` tokens (the same pattern already used by `page-shell.html` for content pages). Add landing-specific strings to `localeStrings` in `content-pages-config.ts`. Use Vite's `transformIndexHtml` hook to fill EN values during both dev and build. For `/uk/`, the dev middleware and build script read the same template and fill UK values — no string-replacement gymnastics.
 
 **Why now matters**: Adding a third locale or changing any hero/footer copy will require updating two separate replacement chains that are already subtly inconsistent (`replace` vs `replaceAll`, exact strings vs regex). Templating eliminates this entire category of bugs.
-
----
 
 ---
 
@@ -160,8 +148,6 @@ The transformation JSON format needs to be stable enough that:
 
 ---
 
----
-
 ## Non-Destructive Pillar Strengthening
 
 **Status**: Analysis Complete / Implementation Planned
@@ -173,7 +159,6 @@ A comprehensive analysis of Syto's adherence to non-destructive principles was c
 | --------------------- | --------------------------------------------------------- | ------- |
 | **Shadow Sources**    | Preserve deleted model states if dependencies exist.      | Planned |
 | **Error Audit Trail** | Explicit warnings for records excluded from aggregations. | Planned |
-| **Command Undo/Redo** | First-class UI for undoing/redoing pipeline changes.      | Done    |
 
 ---
 
