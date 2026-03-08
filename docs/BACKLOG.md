@@ -79,13 +79,6 @@ See [custom-icons-setup.md](custom-icons-setup.md) for detailed setup guide and 
 
 ---
 
-### Undefined `noteBox` CSS Class
-
-**Status**: Bug (pre-existing)
-**Effort**: Tiny
-
-`styles.noteBox` is referenced in `DependencyGraphDialog.tsx` and `SettingsDialog.tsx` but was never defined in any CSS file. The class resolves to `undefined`, so those `<div>`s render without styling. Either define `.noteBox` in the appropriate CSS module or replace with an existing class (e.g., `.helpText` or a new info-box style).
-
 ## Infrastructure
 
 ### Template Landing Page for i18n

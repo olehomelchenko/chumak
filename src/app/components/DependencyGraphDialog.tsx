@@ -335,7 +335,7 @@ export function DependencyGraphDialog() {
         }}
       />
 
-      <div class={styles.noteBox} style={{ marginTop: '1rem' }}>
+      <div class={styles.noteBox}>
         <strong>Legend:</strong>
         <div style={{ display: 'flex', gap: '1.5rem', marginTop: '0.5rem', fontSize: '0.875rem' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>

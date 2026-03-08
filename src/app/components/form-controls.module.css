@@ -223,6 +223,16 @@
   padding-top: 0.5rem;
 }
 
+.noteBox {
+  margin-top: 1rem;
+  padding: 0.75rem 1rem;
+  background: var(--color-light-gray);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  font-size: var(--font-size-sm);
+  color: var(--color-text);
+}
+
 .warningBox {
   margin-top: 1rem;
   padding: 1rem;
