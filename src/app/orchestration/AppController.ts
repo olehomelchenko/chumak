@@ -1,53 +1,34 @@
 /**
- * AppController - Central action dispatcher
+ * AppController - Orchestration methods only
  *
- * This module exports all actions that UI components need.
- * It imports handlers directly and composes them, eliminating
- * the need for proxy methods.
+ * Contains methods that compose multiple handler/service calls or inject callbacks.
+ * Pure pass-throughs have been removed — consumers import handler functions directly.
  *
  * Usage in components:
  *   import { AppController } from '../orchestration/AppController';
- *   <button onClick={() => AppController.openDialog('filter')}>Filter</button>
+ *   // For orchestration methods (compose multiple handlers):
+ *   AppController.switchToModel(model)
+ *   // For direct handler calls, import from handler module:
+ *   import { openDialog } from '../handlers/dialog/dialog-handlers';
  */
 
 import { setUrlState, clearUrlHash } from '../infrastructure/url-state';
 import { updateUXSetting } from '../infrastructure/ux-settings';
 import { AppStore } from '../stores/AppStore';
-import { DialogStore } from '../stores/DialogStore';
 import { ModelService } from '../services/ModelService';
 import { ImportService } from '../services/ImportService';
 import { ExportService } from '../services/ExportService';
 import i18n from '../../i18n';
 
-// Handler imports - Transform
-import * as FilterHandlers from '../handlers/transform/filter-handlers';
-import * as DeriveHandlers from '../handlers/transform/derive-handlers';
-import * as AggregateHandlers from '../handlers/transform/aggregate-handlers';
-import * as WindowHandlers from '../handlers/transform/window-handlers';
-import * as JoinHandlers from '../handlers/transform/join-handlers';
-import * as AppendHandlers from '../handlers/transform/append-handlers';
-import * as PivotHandlers from '../handlers/transform/pivot-handlers';
-import * as FoldHandlers from '../handlers/transform/fold-handlers';
-import * as SplitHandlers from '../handlers/transform/split-handlers';
-import * as MergeHandlers from '../handlers/transform/merge-handlers';
-import * as DedupeHandlers from '../handlers/transform/dedupe-handlers';
-import * as RegexpHandlers from '../handlers/transform/regexp-handlers';
-import * as ShortcutHandlers from '../handlers/transform/shortcut-handlers';
-// Handler imports - Import
-import * as ImportHandlers from '../handlers/import/import-handlers';
-import * as GenerateHandlers from '../handlers/import/generate-handlers';
-import * as JsonHandlers from '../handlers/import/json-handlers';
-// Handler imports - Dialog
+// Handler imports — only those used by orchestration methods
 import * as DialogHandlers from '../handlers/dialog/dialog-handlers';
-// Handler imports - Core
-import * as StepHandlers from '../handlers/core/step-handlers';
 import * as NotificationHandlers from '../handlers/core/notification-handlers';
 import * as EDAHandlers from '../handlers/core/eda-handlers';
 import * as InteractionHandlers from '../handlers/core/interaction-handlers';
 import * as PaginationHandlers from '../handlers/core/pagination-handlers';
-import * as HelperHandlers from '../handlers/core/helper-handlers';
+import * as ShortcutHandlers from '../handlers/transform/shortcut-handlers';
 
-import type { Source, Model, ColumnSchema } from '../types';
+import type { Source, Model } from '../types';
 
 // ============================================================
 // Internal utilities
@@ -75,7 +56,7 @@ function shortcutCallbacks() {
 }
 
 // ============================================================
-// AppController - All UI actions in one place
+// AppController - Orchestration methods only
 // ============================================================
 
 export const AppController = {
@@ -89,61 +70,6 @@ export const AppController = {
     AppStore.viewMode.value = 'empty';
     clearUrlHash();
   },
-
-  openDialog: DialogHandlers.openDialog,
-  closeDialog: DialogHandlers.closeDialog,
-  handleHashChange: DialogHandlers.handleHashChange,
-  getDialogState: DialogHandlers.getDialogState,
-  initDialogState: DialogHandlers.initDialogState,
-  reSnapshot: DialogHandlers.reSnapshot,
-  resetDialogStates: DialogHandlers.resetDialogStates,
-  isSlidePanel: DialogHandlers.isSlidePanel,
-  isCenteredModal: DialogHandlers.isCenteredModal,
-  getDialogTitle: DialogHandlers.getDialogTitle,
-  getDialogButtonText: DialogHandlers.getDialogButtonText,
-  hasPreviewData: DialogHandlers.hasPreviewData,
-  getPreviewTitle: DialogHandlers.getPreviewTitle,
-  getPreviewStats: DialogHandlers.getPreviewStats,
-  getPreviewColumns: DialogHandlers.getPreviewColumns,
-  getPreviewRows: DialogHandlers.getPreviewRows,
-  clearPreview: DialogHandlers.clearPreview,
-  isNewPreviewColumn: DialogHandlers.isNewPreviewColumn,
-  activeDialogError: DialogHandlers.activeDialogError,
-  hasUnsavedChanges: DialogHandlers.hasUnsavedChanges,
-
-  // ============================================================
-  // Notifications & Dialogs
-  // ============================================================
-
-  showError: NotificationHandlers.showError,
-  showWarning: NotificationHandlers.showWarning,
-  showSuccess: NotificationHandlers.showSuccess,
-  dismissNotification: NotificationHandlers.dismissNotification,
-  getNotificationIcon: NotificationHandlers.getNotificationIcon,
-  alert: NotificationHandlers.alert,
-  confirm: NotificationHandlers.confirm,
-  prompt: NotificationHandlers.prompt,
-  closeMessageBox: NotificationHandlers.closeMessageBox,
-  getMessageBoxIcon: NotificationHandlers.getMessageBoxIcon,
-
-  // ============================================================
-  // Step Management
-  // ============================================================
-
-  applyActiveTransform: StepHandlers.applyActiveTransform,
-  computeModelUpToStep: StepHandlers.computeModelUpToStep,
-  computeUpToStep: StepHandlers.computeUpToStep,
-  viewStep: StepHandlers.viewStep,
-  viewFinalResult: StepHandlers.viewFinalResult,
-  editStep: StepHandlers.editStep,
-  cancelEdit: StepHandlers.cancelEdit,
-  removeStep: StepHandlers.removeStep,
-  showStepRemovalModal: StepHandlers.showStepRemovalModal,
-  closeStepRemovalModal: StepHandlers.closeStepRemovalModal,
-  executeStepRemoval: StepHandlers.executeStepRemoval,
-  updateStep: StepHandlers.updateStep,
-  undo: StepHandlers.undo,
-  redo: StepHandlers.redo,
 
   // ============================================================
   // Model & Source Management
@@ -243,37 +169,6 @@ export const AppController = {
   // Import
   // ============================================================
 
-  handleFileSelect: ImportHandlers.handleFileSelect,
-  handleFileDrop: ImportHandlers.handleFileDrop,
-  handlePaste: ImportHandlers.handlePaste,
-  promptPaste: ImportHandlers.promptPaste,
-  showImportDialog: ImportHandlers.showImportDialog,
-  handleJsonPreview: ImportHandlers.handleJsonPreview,
-  updateJsonPath: ImportHandlers.updateJsonPath,
-  resolvePath: ImportHandlers.resolvePath,
-  getSuggestedKeys: ImportHandlers.getSuggestedKeys,
-  selectJsonPathSegment: ImportHandlers.selectJsonPathSegment,
-  resetJsonPath: ImportHandlers.resetJsonPath,
-  flattenData: ImportHandlers.flattenData,
-  serializeNestedData: ImportHandlers.serializeNestedData,
-  handleCsvPreview: ImportHandlers.handleCsvPreview,
-  showImportUrlDialog: ImportHandlers.showImportUrlDialog,
-  fetchAndImportFromUrl: ImportHandlers.fetchAndImportFromUrl,
-  backToUrlImport: ImportHandlers.backToUrlImport,
-  confirmImport: ImportHandlers.confirmImport,
-  showReplaceSourceDialog: ImportHandlers.showReplaceSourceDialog,
-  updateImportPreview: ImportHandlers.updateImportPreview,
-  updateHeadersForPreview: ImportHandlers.updateHeadersForPreview,
-  resolveDuplicateHeaders: ImportHandlers.resolveDuplicateHeaders,
-
-  computeSchemaDiffForPreview(
-    oldSchema: ColumnSchema[],
-    previewColumns: string[],
-    previewData: any[][]
-  ) {
-    return ImportHandlers.computeSchemaDiffForPreview(oldSchema, previewColumns, previewData);
-  },
-
   async restoreSourceBackup(source: Source): Promise<void> {
     const { ReplaceSourceService } = await import('../services/ReplaceSourceService');
     await ReplaceSourceService.restoreBackup(source.id);
@@ -284,22 +179,6 @@ export const AppController = {
     if (fileInput) {
       fileInput.click();
     }
-  },
-
-  handlePasteClick(): void {
-    ImportHandlers.promptPaste();
-  },
-
-  confirmTextEntry(): void {
-    ImportHandlers.confirmTextEntry();
-  },
-
-  showEditTextDialog(source: Source): void {
-    ImportHandlers.showEditTextDialog(source);
-  },
-
-  backToTextEntry(): void {
-    ImportHandlers.backToTextEntry();
   },
 
   createSource(
@@ -357,27 +236,7 @@ export const AppController = {
   },
 
   // ============================================================
-  // Generate
-  // ============================================================
-
-  generateData: GenerateHandlers.generateData,
-  debouncedUpdateGeneratePreview: GenerateHandlers.debouncedUpdateGeneratePreview,
-
-  // ============================================================
-  // Pagination
-  // ============================================================
-
-  updatePagination: PaginationHandlers.updatePagination,
-  getPaginatedData: PaginationHandlers.getPaginatedData,
-  getPaginationInfo: PaginationHandlers.getPaginationInfo,
-  previousPage: PaginationHandlers.previousPage,
-  nextPage: PaginationHandlers.nextPage,
-  goToFirstPage: PaginationHandlers.goToFirstPage,
-  goToLastPage: PaginationHandlers.goToLastPage,
-  updatePageSize: PaginationHandlers.updatePageSize,
-
-  // ============================================================
-  // Interaction & Selection
+  // Interaction & Selection (inject callbacks)
   // ============================================================
 
   selectColumn(col: string, modifiers?: { shift?: boolean; meta?: boolean }): void {
@@ -418,18 +277,6 @@ export const AppController = {
   async extractSelectedRows() {
     await InteractionHandlers.extractSelectedRows((model) => AppController.switchToModel(model));
   },
-
-  selectEdaStat: EDAHandlers.selectEdaStat,
-  setEdaChartView: EDAHandlers.setEdaChartView,
-  setEdaDateTreatment: EDAHandlers.setEdaDateTreatment,
-  handleBrushSelection: EDAHandlers.handleBrushSelection,
-  applyBrushFilter: EDAHandlers.applyBrushFilter,
-  handleBodyClick: InteractionHandlers.handleBodyClick,
-  openTypeMenu: InteractionHandlers.openTypeMenu,
-  clearColumnSelection: InteractionHandlers.clearColumnSelection,
-  calculateToolbarPosition: InteractionHandlers.calculateToolbarPosition,
-  updateToolbarPosition: InteractionHandlers.updateToolbarPosition,
-  selectCell: InteractionHandlers.selectCell,
 
   async changeColumnType(col: string, newType: string) {
     await InteractionHandlers.changeColumnType(col, newType, {
@@ -526,131 +373,7 @@ export const AppController = {
     AppStore.ribbonPopoverRect.value = null;
   },
 
-  // Shortcut actions (column, text, date, number, convert)
   executeShortcut: (id: string) => ShortcutHandlers.executeShortcut(id, shortcutCallbacks()),
-
-  // ============================================================
-  // JSON Editor
-  // ============================================================
-
-  getStepsJson: JsonHandlers.getStepsJson,
-  enterJsonEditMode: JsonHandlers.enterJsonEditMode,
-  cancelJsonEdit: JsonHandlers.cancelJsonEdit,
-  applyJsonEdit: JsonHandlers.applyJsonEdit,
-  validateJsonEdit: JsonHandlers.validateJsonEdit,
-
-  // ============================================================
-  // Helper functions
-  // ============================================================
-
-  getModelMeta: HelperHandlers.getModelMeta,
-  describeTransform: HelperHandlers.describeTransformWrapper,
-  applyStepResult: HelperHandlers.applyStepResult,
-  runTransform: HelperHandlers.runTransform,
-  validateExpression: HelperHandlers.validateExpression,
-  getColumnType: HelperHandlers.getColumnType,
-  isComparable: HelperHandlers.isComparable,
-  isDateType: HelperHandlers.isDateType,
-  getTypeIcon: HelperHandlers.getTypeIcon,
-  formatCellValue: HelperHandlers.formatCellValue,
-  getTypeIndicator: HelperHandlers.getTypeIndicator,
-  quoteColumnRef: HelperHandlers.quoteColumnRef,
-  escapePattern: HelperHandlers.escapePattern,
-  formatLiteral: HelperHandlers.formatLiteral,
-  preparePreviewData: HelperHandlers.preparePreviewData,
-  getActiveSchema: HelperHandlers.getActiveSchema,
-
-  // ============================================================
-  // Transform handlers
-  // ============================================================
-
-  // Filter
-  validateFilterExpression: FilterHandlers.validateFilterExpression,
-  debouncedUpdateFilterPreview: FilterHandlers.debouncedUpdateFilterPreview,
-  updateFilterPreview: FilterHandlers.updateFilterPreview,
-  toggleFilterPreviewMode: FilterHandlers.toggleFilterPreviewMode,
-
-  // Derive
-  validateDeriveExpression: DeriveHandlers.validateDeriveExpression,
-  debouncedUpdateDerivePreview: DeriveHandlers.debouncedUpdateDerivePreview,
-  updateDerivePreview: DeriveHandlers.updateDerivePreview,
-
-  // Aggregate
-  addAggregation: AggregateHandlers.addAggregation,
-  removeAggregation: AggregateHandlers.removeAggregation,
-  updateAggregateOutputName: AggregateHandlers.updateAggregateOutputName,
-  constructAggregateStep: AggregateHandlers.constructAggregateStep,
-  updateAggregatePreview: AggregateHandlers.updateAggregatePreview,
-
-  // Window
-  updateWindowPreview: WindowHandlers.updateWindowPreview,
-  debouncedUpdateWindowPreview: WindowHandlers.debouncedUpdateWindowPreview,
-
-  // Join
-  initializeJoinDialog: JoinHandlers.initializeJoinDialog,
-  getColumnsForTarget: JoinHandlers.getColumnsForTarget,
-  onJoinTargetChange: JoinHandlers.onJoinTargetChange,
-  addJoinKeyPair: JoinHandlers.addJoinKeyPair,
-  removeJoinKeyPair: JoinHandlers.removeJoinKeyPair,
-  previewJoin: JoinHandlers.previewJoin,
-
-  // Append
-  initializeAppendDialog: AppendHandlers.initializeAppendDialog,
-  onAppendLeftModelChange: AppendHandlers.onAppendLeftModelChange,
-  onAppendTargetChange: AppendHandlers.onAppendTargetChange,
-
-  // Pivot
-  initializePivotDialog(): void {
-    const state = DialogStore.pivotState;
-    state.rowColumns.value = [];
-    state.columnColumn.value = '';
-    state.valueColumn.value = '';
-    state.aggregation.value = 'sum';
-    state.options.value = { sort: true, limit: null };
-    state.uniqueValueCount.value = 0;
-    state.previewData.value = null;
-    state.previewError.value = null;
-    state.isPreviewing.value = false;
-  },
-  onPivotConfigChange: PivotHandlers.onPivotConfigChange,
-  constructPivotStep: PivotHandlers.constructPivotStep,
-  previewPivot: PivotHandlers.previewPivot,
-
-  // Fold (Unpivot)
-  toggleColumnForFold: FoldHandlers.toggleColumnForFold,
-  toggleFoldMode: FoldHandlers.toggleFoldMode,
-  getColumnsToFold: FoldHandlers.getColumnsToFold,
-  selectAllForFold: FoldHandlers.selectAllForFold,
-  selectNoneForFold: FoldHandlers.selectNoneForFold,
-  updateFoldPreview: FoldHandlers.updateFoldPreview,
-
-  // Split
-  detectDelimiter: SplitHandlers.detectDelimiter,
-  debouncedUpdateSplitPreview: SplitHandlers.debouncedUpdateSplitPreview,
-  selectSplitColumn: SplitHandlers.selectSplitColumn,
-  updateSplitPreview: SplitHandlers.updateSplitPreview,
-
-  // Merge
-  selectMergeColumns: MergeHandlers.selectMergeColumns,
-
-  // Dedupe
-  toggleDedupeAllColumns: DedupeHandlers.toggleDedupeAllColumns,
-  toggleDedupeColumn: DedupeHandlers.toggleDedupeColumn,
-  selectAllForDedupe: DedupeHandlers.selectAllForDedupe,
-  selectNoneForDedupe: DedupeHandlers.selectNoneForDedupe,
-  getDedupeColumns: DedupeHandlers.getDedupeColumns,
-  findDuplicateRows: DedupeHandlers.findDuplicateRows,
-  updateDedupePreview: DedupeHandlers.updateDedupePreview,
-  findAllDuplicateRowCount: DedupeHandlers.findAllDuplicateRowCount,
-
-  // Regexp
-  validateRegexpPattern: RegexpHandlers.validateRegexpPattern,
-  validateRegexpMatchExpression: RegexpHandlers.validateRegexpMatchExpression,
-  debouncedUpdateRegexpMatchPreview: RegexpHandlers.debouncedUpdateRegexpMatchPreview,
-  updateRegexpMatchPreview: RegexpHandlers.updateRegexpMatchPreview,
-  validateRegexpExtractExpression: RegexpHandlers.validateRegexpExtractExpression,
-  debouncedUpdateRegexpExtractPreview: RegexpHandlers.debouncedUpdateRegexpExtractPreview,
-  updateRegexpExtractPreview: RegexpHandlers.updateRegexpExtractPreview,
 
   // ============================================================
   // Settings & Theme
@@ -691,13 +414,8 @@ export const AppController = {
   },
 
   switchLanguage(language: 'en' | 'uk'): void {
-    // Update i18n
     i18n.changeLanguage(language);
-
-    // Update app state
     AppStore.uxSettings.value = { ...AppStore.uxSettings.value, language };
-
-    // Persist to localStorage
     updateUXSetting('language', '', language);
   },
 

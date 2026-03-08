@@ -12,7 +12,7 @@ import { AppStore } from '../stores/AppStore';
 import { DialogStore } from '../stores/DialogStore';
 import { previewTypeConversion } from '../handlers/core/interaction-handlers';
 import { setEdaCallbacks } from '../handlers/core/eda-handlers';
-import { AppController } from '../orchestration/AppController';
+import { updateToolbarPosition, clearColumnSelection } from '../handlers/core/interaction-handlers';
 import { renderWithI18n } from '../test-utils';
 
 describe('App UX Interactions', () => {
@@ -50,8 +50,8 @@ describe('App UX Interactions', () => {
 
     // Set up EDA callbacks since tests don't call init()
     setEdaCallbacks({
-      updateToolbarPosition: () => AppController.updateToolbarPosition(),
-      clearColumnSelection: () => AppController.clearColumnSelection(),
+      updateToolbarPosition: () => updateToolbarPosition(),
+      clearColumnSelection: () => clearColumnSelection(),
     });
   });
 

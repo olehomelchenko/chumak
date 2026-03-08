@@ -23,18 +23,47 @@ import {
 import { setDialogCallbacks } from './DialogCoordinator';
 
 // Handler callback setup functions
-import { setDialogHandlerCallbacks } from '../handlers/dialog/dialog-handlers';
-import { setStepCallbacks } from '../handlers/core/step-handlers';
+import {
+  setDialogHandlerCallbacks,
+  openDialog,
+  closeDialog,
+} from '../handlers/dialog/dialog-handlers';
+import { setStepCallbacks, computeModelUpToStep } from '../handlers/core/step-handlers';
 import { setEdaCallbacks } from '../handlers/core/eda-handlers';
 import { setTransformCallbacks } from '../handlers/core/helper-handlers';
 import { setJsonEditCallbacks } from '../handlers/import/json-handlers';
-import { setImportCallbacks } from '../handlers/import/import-handlers';
-import { setGenerateCallbacks } from '../handlers/import/generate-handlers';
+import {
+  setImportCallbacks,
+  confirmImport,
+  confirmTextEntry,
+  fetchAndImportFromUrl,
+} from '../handlers/import/import-handlers';
+import { setGenerateCallbacks, generateData } from '../handlers/import/generate-handlers';
 import * as SimpleHandlers from '../handlers/transform/simple-handlers';
 
-// AppController for constructing callback objects
+// Direct handler imports for callback wiring
+import {
+  alert as notificationAlert,
+  confirm,
+  showWarning,
+} from '../handlers/core/notification-handlers';
+import { clearColumnSelection, updateToolbarPosition } from '../handlers/core/interaction-handlers';
+import { updatePagination } from '../handlers/core/pagination-handlers';
+import { initializeJoinDialog, onJoinTargetChange } from '../handlers/transform/join-handlers';
+import {
+  initializeAppendDialog,
+  onAppendTargetChange,
+} from '../handlers/transform/append-handlers';
+import { initializePivotDialog, onPivotConfigChange } from '../handlers/transform/pivot-handlers';
+import {
+  detectDelimiter,
+  debouncedUpdateSplitPreview,
+  updateSplitPreview,
+} from '../handlers/transform/split-handlers';
+import { updateDedupePreview } from '../handlers/transform/dedupe-handlers';
+
+// AppController for orchestration methods only
 import { AppController } from './AppController';
-import { showWarning } from '../handlers/core/notification-handlers';
 import i18n from '../../i18n';
 
 let initialized = false;
@@ -82,34 +111,34 @@ export async function initApp(): Promise<void> {
   initEventRouter();
 
   initUrlStateSync({
-    openDialog: (name, section) => AppController.openDialog(name, section),
+    openDialog: (name, section) => openDialog(name, section),
     switchToModel: (model) => AppController.switchToModel(model),
     switchToSource: (source) => AppController.switchToSource(source),
     showModelInfo: () => AppController.showModelInfo(),
     showDatasetInfo: (source) => AppController.showDatasetInfo(source),
-    clearColumnSelection: () => AppController.clearColumnSelection(),
+    clearColumnSelection: () => clearColumnSelection(),
   });
 
   setDialogCallbacks({
-    confirm: (msg) => AppController.confirm(msg),
-    clearColumnSelection: () => AppController.clearColumnSelection(),
-    initializeJoinDialog: () => AppController.initializeJoinDialog(),
-    initializeAppendDialog: () => AppController.initializeAppendDialog(),
-    initializePivotDialog: () => AppController.initializePivotDialog(),
-    detectDelimiter: (col) => AppController.detectDelimiter(col),
-    debouncedUpdateSplitPreview: () => AppController.debouncedUpdateSplitPreview(),
-    updateDedupePreview: () => AppController.updateDedupePreview(),
+    confirm: (msg) => confirm(msg),
+    clearColumnSelection: () => clearColumnSelection(),
+    initializeJoinDialog: () => initializeJoinDialog(),
+    initializeAppendDialog: () => initializeAppendDialog(),
+    initializePivotDialog: () => initializePivotDialog(),
+    detectDelimiter: (col) => detectDelimiter(col),
+    debouncedUpdateSplitPreview: () => debouncedUpdateSplitPreview(),
+    updateDedupePreview: () => updateDedupePreview(),
     updateImputePreview: () => SimpleHandlers.updateImputePreview(),
   });
 
   // Phase 4: Restore URL state
   restoreDialogsFromUrl(sources, models, {
-    openDialog: (name, section) => AppController.openDialog(name, section),
+    openDialog: (name, section) => openDialog(name, section),
     switchToModel: (model) => AppController.switchToModel(model),
     switchToSource: (source) => AppController.switchToSource(source),
     showModelInfo: () => AppController.showModelInfo(),
     showDatasetInfo: (source) => AppController.showDatasetInfo(source),
-    clearColumnSelection: () => AppController.clearColumnSelection(),
+    clearColumnSelection: () => clearColumnSelection(),
   });
 
   // Phase 5: Initialize data state
@@ -122,7 +151,7 @@ export async function initApp(): Promise<void> {
 
   initializeColumnsAndSchema();
 
-  AppController.updatePagination();
+  updatePagination();
 
   // Sync URL state after initial render
   setTimeout(() => syncCurrentStateToUrl(), 0);
@@ -132,63 +161,62 @@ export async function initApp(): Promise<void> {
 
 /**
  * Wire all handler callback registrations.
- * Connects handler modules to AppController methods.
+ * Connects handler modules to each other via callback interfaces.
  */
 function wireHandlerCallbacks(): void {
   setDialogHandlerCallbacks({
-    confirm: (msg) => AppController.confirm(msg),
-    clearColumnSelection: () => AppController.clearColumnSelection(),
-    openDialog: (dialog, section) => AppController.openDialog(dialog, section),
+    confirm: (msg) => confirm(msg),
+    clearColumnSelection: () => clearColumnSelection(),
+    openDialog: (dialog, section) => openDialog(dialog, section),
     switchToModel: (model) => AppController.switchToModel(model),
     switchToSource: (source) => AppController.switchToSource(source),
     showModelInfo: () => AppController.showModelInfo(),
     showDatasetInfo: (source) => AppController.showDatasetInfo(source),
-    initializeJoinDialog: () => AppController.initializeJoinDialog(),
-    initializeAppendDialog: () => AppController.initializeAppendDialog(),
-    initializePivotDialog: () => AppController.initializePivotDialog(),
-    detectDelimiter: (col) => AppController.detectDelimiter(col),
-    debouncedUpdateSplitPreview: () => AppController.debouncedUpdateSplitPreview(),
-    updateDedupePreview: () => AppController.updateDedupePreview(),
+    initializeJoinDialog: () => initializeJoinDialog(),
+    initializeAppendDialog: () => initializeAppendDialog(),
+    initializePivotDialog: () => initializePivotDialog(),
+    detectDelimiter: (col) => detectDelimiter(col),
+    debouncedUpdateSplitPreview: () => debouncedUpdateSplitPreview(),
+    updateDedupePreview: () => updateDedupePreview(),
     updateImputePreview: () => SimpleHandlers.updateImputePreview(),
   });
 
   setStepCallbacks({
-    updatePagination: () => AppController.updatePagination(),
-    openDialog: (name, section) => AppController.openDialog(name, section),
-    closeDialog: (force) => AppController.closeDialog(force),
-    onJoinTargetChange: () => AppController.onJoinTargetChange(),
-    onAppendTargetChange: () => AppController.onAppendTargetChange(),
-    onPivotConfigChange: () => AppController.onPivotConfigChange(),
-    updateSplitPreview: () => AppController.updateSplitPreview(),
-    updateDedupePreview: () => AppController.updateDedupePreview(),
-    confirmImport: () => AppController.confirmImport(),
-    confirmTextEntry: () => AppController.confirmTextEntry(),
-    fetchAndImportFromUrl: () => AppController.fetchAndImportFromUrl(),
-    generateData: () => AppController.generateData(),
+    updatePagination: () => updatePagination(),
+    openDialog: (name, section) => openDialog(name, section),
+    closeDialog: (force) => closeDialog(force),
+    onJoinTargetChange: () => onJoinTargetChange(),
+    onAppendTargetChange: () => onAppendTargetChange(),
+    onPivotConfigChange: () => onPivotConfigChange(),
+    updateSplitPreview: () => updateSplitPreview(),
+    updateDedupePreview: () => updateDedupePreview(),
+    confirmImport: () => confirmImport(),
+    confirmTextEntry: () => confirmTextEntry(),
+    fetchAndImportFromUrl: () => fetchAndImportFromUrl(),
+    generateData: () => generateData(),
   });
 
   setEdaCallbacks({
-    updateToolbarPosition: () => AppController.updateToolbarPosition(),
-    clearColumnSelection: () => AppController.clearColumnSelection(),
+    updateToolbarPosition: () => updateToolbarPosition(),
+    clearColumnSelection: () => clearColumnSelection(),
   });
 
   setTransformCallbacks({
     startTransformation: (label) => AppController.startTransformation(label),
     endTransformation: () => AppController.endTransformation(),
-    alert: (msg) => AppController.alert(msg),
-    closeDialog: (clearPreview) => AppController.closeDialog(clearPreview),
-    updatePagination: () => AppController.updatePagination(),
+    alert: (msg) => notificationAlert(msg),
+    closeDialog: (clearPreview) => closeDialog(clearPreview),
+    updatePagination: () => updatePagination(),
   });
 
   setJsonEditCallbacks({
-    computeModelUpToStep: (model, stepIndex) =>
-      AppController.computeModelUpToStep(model, stepIndex),
-    updatePagination: () => AppController.updatePagination(),
+    computeModelUpToStep: (model, stepIndex) => computeModelUpToStep(model, stepIndex),
+    updatePagination: () => updatePagination(),
   });
 
   setImportCallbacks({
-    openDialog: (name, section) => AppController.openDialog(name, section),
-    closeDialog: (force) => AppController.closeDialog(force),
+    openDialog: (name, section) => openDialog(name, section),
+    closeDialog: (force) => closeDialog(force),
     createSource: (file, name, columns, data, headerMode, delimiter, customHeaders, format) =>
       AppController.createSource(
         file,
@@ -203,8 +231,8 @@ function wireHandlerCallbacks(): void {
   });
 
   setGenerateCallbacks({
-    updatePagination: () => AppController.updatePagination(),
-    closeDialog: (force) => AppController.closeDialog(force),
+    updatePagination: () => updatePagination(),
+    closeDialog: (force) => closeDialog(force),
   });
 }
 

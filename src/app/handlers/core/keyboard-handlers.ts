@@ -1,6 +1,6 @@
 import { AppStore } from '../../stores/AppStore';
 import { ExportService } from '../../services/ExportService';
-import { AppController } from '../../orchestration/AppController';
+import { alert, showSuccess, showError } from './notification-handlers';
 import * as StepHandlers from './step-handlers';
 import i18n from '../../../i18n';
 
@@ -45,11 +45,11 @@ async function handleSave(event: KeyboardEvent) {
 
   try {
     await ExportService.exportWorkflowJSON(async (msg: string) => {
-      await AppController.alert(msg);
+      await alert(msg);
     });
-    AppController.showSuccess(i18n.t('notifications.workflowDownloaded', { ns: 'common' }));
+    showSuccess(i18n.t('notifications.workflowDownloaded', { ns: 'common' }));
   } catch (error: any) {
-    AppController.showError(
+    showError(
       i18n.t('system.downloadFailed', { ns: 'errors' }),
       error.message || i18n.t('system.downloadGenericFailed', { ns: 'errors' })
     );
@@ -70,7 +70,7 @@ async function handleDelete() {
   const lastStepIndex = model.steps.length - 1;
 
   try {
-    await AppController.removeStep(lastStepIndex);
+    await StepHandlers.removeStep(lastStepIndex);
   } catch (error: any) {
     console.error('Error removing step:', error);
   }
@@ -89,7 +89,7 @@ function handleNavigateUp(event: KeyboardEvent) {
 
   const currentIndex = AppStore.activeStepIndex.value ?? model.steps.length;
   if (currentIndex > 0) {
-    AppController.viewStep(currentIndex - 1);
+    StepHandlers.viewStep(currentIndex - 1);
   }
 }
 
@@ -106,7 +106,7 @@ function handleNavigateDown(event: KeyboardEvent) {
 
   const currentIndex = AppStore.activeStepIndex.value ?? -1;
   if (currentIndex < model.steps.length - 1) {
-    AppController.viewStep(currentIndex + 1);
+    StepHandlers.viewStep(currentIndex + 1);
   }
 }
 

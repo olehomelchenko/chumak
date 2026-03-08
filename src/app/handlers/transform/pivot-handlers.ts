@@ -8,6 +8,19 @@ import * as HelperHandlers from '../core/helper-handlers';
 import { createDebouncedPreview, clearPreview, PreviewResult } from '../preview-engine';
 import i18n from '../../../i18n';
 
+export function initializePivotDialog(): void {
+  const state = DialogStore.pivotState;
+  state.rowColumns.value = [];
+  state.columnColumn.value = '';
+  state.valueColumn.value = '';
+  state.aggregation.value = 'sum';
+  state.options.value = { sort: true, limit: null };
+  state.uniqueValueCount.value = 0;
+  state.previewData.value = null;
+  state.previewError.value = null;
+  state.isPreviewing.value = false;
+}
+
 export function onPivotConfigChange() {
   const state = DialogStore.pivotState;
   const columnColumn = state.columnColumn.value;

@@ -8,7 +8,11 @@
 import { AppStore } from '../stores/AppStore';
 import { isSlidePanel } from '../dialog-registry';
 import { activeDialogHasError } from './DialogCoordinator';
-import { AppController } from './AppController';
+import { closeDialog } from '../handlers/dialog/dialog-handlers';
+import { closeMessageBox } from '../handlers/core/notification-handlers';
+import { applyActiveTransform } from '../handlers/core/step-handlers';
+import { handlePaste as importHandlePaste } from '../handlers/import/import-handlers';
+import { handleBodyClick, clearColumnSelection } from '../handlers/core/interaction-handlers';
 import * as KeyboardHandlers from '../handlers/core/keyboard-handlers';
 
 let initialized = false;
@@ -23,7 +27,7 @@ export function initEventRouter(): void {
   }
 
   window.addEventListener('keydown', handleKeyDown);
-  window.addEventListener('paste', handlePaste);
+  window.addEventListener('paste', handlePasteEvent);
   window.addEventListener('click', handleClick);
 
   initialized = true;
@@ -34,7 +38,7 @@ export function initEventRouter(): void {
  */
 export function destroyEventRouter(): void {
   window.removeEventListener('keydown', handleKeyDown);
-  window.removeEventListener('paste', handlePaste);
+  window.removeEventListener('paste', handlePasteEvent);
   window.removeEventListener('click', handleClick);
 
   initialized = false;
@@ -48,13 +52,13 @@ function handleKeyDown(e: KeyboardEvent): void {
   if (e.key === 'Escape') {
     // 1. Message box (alert/confirm/prompt) - highest priority
     if (AppStore.messageBox.value.visible) {
-      AppController.closeMessageBox(false);
+      closeMessageBox(false);
       return;
     }
 
     // 2. Active dialog
     if (AppStore.activeDialog.value) {
-      AppController.closeDialog();
+      closeDialog();
       return;
     }
 
@@ -71,7 +75,7 @@ function handleKeyDown(e: KeyboardEvent): void {
       AppStore.selectedColumns.value.length > 0 ||
       AppStore.selectedRows.value.length > 0
     ) {
-      AppController.clearColumnSelection();
+      clearColumnSelection();
       return;
     }
   }
@@ -90,7 +94,7 @@ function handleKeyDown(e: KeyboardEvent): void {
       // Skip if Apply button is disabled (dialog has error)
       if (activeDialogHasError()) return;
       e.preventDefault();
-      AppController.applyActiveTransform();
+      applyActiveTransform();
       return;
     }
   }
@@ -102,15 +106,15 @@ function handleKeyDown(e: KeyboardEvent): void {
 /**
  * Handle paste events
  */
-function handlePaste(e: ClipboardEvent): void {
-  AppController.handlePaste(e);
+function handlePasteEvent(e: ClipboardEvent): void {
+  importHandlePaste(e);
 }
 
 /**
  * Handle body click events
  */
 function handleClick(e: MouseEvent): void {
-  AppController.handleBodyClick(e);
+  handleBodyClick(e);
 }
 
 /**

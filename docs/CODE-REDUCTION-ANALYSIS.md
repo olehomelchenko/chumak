@@ -25,32 +25,13 @@ Extracted `inferSchemaFromSample()` helper with options for the three behavioral
 
 ---
 
-## 3. AppController Pass-Through Reduction
+## 3. AppController Pass-Through Reduction ✅ Done
 
 **File**: `AppController.ts`
-**Current cost**: ~737 LoC, of which ~400 are pure re-exports
-**After refactor**: ~350 LoC
-**Savings**: ~300 LoC (gradual)
-**Priority**: Low (stop the bleeding, don't refactor all at once)
+**Savings**: ~282 net LoC (712 → 430)
+**Status**: Completed (March 2026)
 
-### Problem
-
-AppController was originally a class with `this` context, so proxying made sense. Now that handlers are standalone functions, ~80 entries are pure pass-throughs:
-
-```ts
-openDialog: DialogHandlers.openDialog,
-closeDialog: DialogHandlers.closeDialog,
-// ...
-```
-
-Components import `AppController` for everything, even dialog-specific functions like `validateFilterExpression` or `debouncedUpdateSplitPreview` that are only used in one dialog component.
-
-### Solution
-
-- **Keep AppController** as the public API for cross-cutting actions (navigation, notifications, step management, settings).
-- **Dialog-specific handlers** (preview, validation, state manipulation) should be imported directly by the dialog component that uses them. No need to route through AppController.
-- **Stop adding new pass-throughs.** New handler functions go directly to the consuming component.
-- Over time, remove pass-throughs that are only used by a single component.
+Removed all ~120 pure pass-through re-exports from AppController. Consumers (App.tsx, EventRouter.ts, keyboard-handlers.ts, AppOrchestrator.ts) now import handler functions directly. AppController retains only orchestration methods that compose multiple handler/service calls or inject callbacks (~40 methods). Also moved `initializePivotDialog` inline logic to `pivot-handlers.ts`.
 
 ---
 
@@ -80,12 +61,12 @@ This makes dead CSS visible and prevents the file from growing further.
 
 ## Summary
 
-| Area                        | Current  | After                      | Savings         | Priority      |
-| --------------------------- | -------- | -------------------------- | --------------- | ------------- |
-| Shortcut data table         | ~570 LoC | ~335 LoC                   | **~235** ✅     | Done          |
-| `deriveNextSchema` dedup    | ~65 LoC  | 1 helper + 5 calls         | **~26** ✅      | Done          |
-| AppController pass-throughs | ~400 LoC | ~100 LoC                   | **~300**        | Low (gradual) |
-| TransformDialog.module.css  | 846 LoC  | same LoC, better structure | maintainability | Low           |
-| **Total**                   |          |                            | **~561 LoC**    |               |
+| Area                        | Current  | After                      | Savings         | Priority |
+| --------------------------- | -------- | -------------------------- | --------------- | -------- |
+| Shortcut data table         | ~570 LoC | ~335 LoC                   | **~235** ✅     | Done     |
+| `deriveNextSchema` dedup    | ~65 LoC  | 1 helper + 5 calls         | **~26** ✅      | Done     |
+| AppController pass-throughs | ~712 LoC | ~430 LoC                   | **~282** ✅     | Done     |
+| TransformDialog.module.css  | 846 LoC  | same LoC, better structure | maintainability | Low      |
+| **Total**                   |          |                            | **~543 LoC**    |          |
 
-Remaining: gradual AppController pass-through cleanup and TransformDialog.module.css decomposition.
+Remaining: TransformDialog.module.css decomposition.

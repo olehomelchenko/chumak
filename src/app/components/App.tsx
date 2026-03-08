@@ -66,13 +66,59 @@ import {
   isNewPreviewColumn,
   activeDialogHasError,
 } from '../orchestration/DialogCoordinator';
-import { getDialogTitle, getDialogButtonText } from '../handlers/dialog/dialog-handlers';
+import {
+  openDialog,
+  closeDialog,
+  getDialogTitle,
+  getDialogButtonText,
+} from '../handlers/dialog/dialog-handlers';
 import {
   getModelMeta,
   getTypeIcon,
+  getColumnType,
   formatCellValue,
   formatCellValueForTooltip,
 } from '../handlers/core/helper-handlers';
+import {
+  viewStep,
+  editStep,
+  removeStep,
+  viewFinalResult,
+  undo,
+  redo,
+  applyActiveTransform,
+} from '../handlers/core/step-handlers';
+import {
+  handleFileSelect,
+  handleFileDrop,
+  showReplaceSourceDialog,
+  showEditTextDialog,
+  updateJsonPath,
+  resetJsonPath,
+  selectJsonPathSegment,
+  updateHeadersForPreview,
+  updateImportPreview,
+  backToUrlImport,
+  backToTextEntry,
+  fetchAndImportFromUrl,
+} from '../handlers/import/import-handlers';
+import {
+  getStepsJson,
+  enterJsonEditMode,
+  cancelJsonEdit,
+  applyJsonEdit,
+} from '../handlers/import/json-handlers';
+import {
+  getPaginatedData,
+  getPaginationInfo,
+  previousPage,
+  nextPage,
+  goToFirstPage,
+  goToLastPage,
+  updatePageSize,
+} from '../handlers/core/pagination-handlers';
+import { alert } from '../handlers/core/notification-handlers';
+import { openTypeMenu, selectCell } from '../handlers/core/interaction-handlers';
 import { AppController } from '../orchestration/AppController';
 import styles from './App.module.css';
 
@@ -96,36 +142,36 @@ export function App() {
   // Props Construction
   const sidebarProps = {
     onUploadClick: () => AppController.handleUploadClick(),
-    onUrlClick: () => AppController.openDialog('import-url'),
-    onEnterDataClick: () => AppController.openDialog('import-text'),
-    onGenerateClick: () => AppController.openDialog('generate'),
+    onUrlClick: () => openDialog('import-url'),
+    onEnterDataClick: () => openDialog('import-text'),
+    onGenerateClick: () => openDialog('generate'),
     onSwitchToSource: (s: any) => AppController.switchToSource(s),
     onSwitchToModel: (m: any) => AppController.switchToModel(m),
-    onViewStep: (i: number) => AppController.viewStep(i),
-    onEditStep: (i: number) => AppController.editStep(i),
-    onRemoveStep: (i: number) => AppController.removeStep(i),
-    onViewFinalResult: () => AppController.viewFinalResult(),
-    onUndo: () => AppController.undo(),
-    onRedo: () => AppController.redo(),
-    onGetStepsJson: () => AppController.getStepsJson(),
-    onEnterJsonEditMode: () => AppController.enterJsonEditMode(),
+    onViewStep: (i: number) => viewStep(i),
+    onEditStep: (i: number) => editStep(i),
+    onRemoveStep: (i: number) => removeStep(i),
+    onViewFinalResult: () => viewFinalResult(),
+    onUndo: () => undo(),
+    onRedo: () => redo(),
+    onGetStepsJson: () => getStepsJson(),
+    onEnterJsonEditMode: () => enterJsonEditMode(),
     getModelMeta: (m: any) => getModelMeta(m),
   };
 
   const mainContentProps = {
     // EmptyState
     onUploadClick: () => AppController.handleUploadClick(),
-    onUrlClick: () => AppController.openDialog('import-url'),
-    onEnterDataClick: () => AppController.openDialog('import-text'),
-    onFileDrop: (e: DragEvent) => AppController.handleFileDrop(e),
+    onUrlClick: () => openDialog('import-url'),
+    onEnterDataClick: () => openDialog('import-text'),
+    onFileDrop: (e: DragEvent) => handleFileDrop(e),
     // DatasetInfo
     onRenameSource: (s: any) => AppController.renameSource(s),
     onDeleteSource: (s: any) => AppController.deleteSource(s),
     onSwitchToModel: (m: any) => AppController.switchToModel(m),
     onCreateNewModel: (s: any) => AppController.createNewModel(s),
-    onReplaceSource: (s: any) => AppController.showReplaceSourceDialog(s),
+    onReplaceSource: (s: any) => showReplaceSourceDialog(s),
     onRestoreBackup: (s: any) => AppController.restoreSourceBackup(s),
-    onEditData: (s: any) => AppController.showEditTextDialog(s),
+    onEditData: (s: any) => showEditTextDialog(s),
     // ModelInfo
     onModelInfo: () => AppController.showModelInfo(),
     // Pagination
@@ -133,18 +179,18 @@ export function App() {
     onCopyModel: () => AppController.copyCurrentModel(),
     onCreateNewModelFromActive: () => AppController.createNewModelFromActive(),
     onDeleteModel: () => AppController.deleteCurrentModel(),
-    onOpenDialog: (d: any) => AppController.openDialog(d),
+    onOpenDialog: (d: any) => openDialog(d),
     onCopyCSV: () => AppController.copyCSVToClipboard(),
     onCopyJSON: () => AppController.copyJSONToClipboard(),
-    onFirstPage: () => AppController.goToFirstPage(),
-    onPrevPage: () => AppController.previousPage(),
-    onNextPage: () => AppController.nextPage(),
-    onLastPage: () => AppController.goToLastPage(),
-    onPageSizeChange: (s: any) => AppController.updatePageSize(s),
-    getPaginationInfo: () => AppController.getPaginationInfo(),
+    onFirstPage: () => goToFirstPage(),
+    onPrevPage: () => previousPage(),
+    onNextPage: () => nextPage(),
+    onLastPage: () => goToLastPage(),
+    onPageSizeChange: (s: any) => updatePageSize(s),
+    getPaginationInfo: () => getPaginationInfo(),
     // DataTable
-    getPaginatedData: () => AppController.getPaginatedData(),
-    getColumnType: (c: string) => AppController.getColumnType(c),
+    getPaginatedData: () => getPaginatedData(),
+    getColumnType: (c: string) => getColumnType(c),
     getTypeIcon: (c: string) => getTypeIcon(c),
     formatCellValue: (v: any) => formatCellValue(v),
     formatCellValueForTooltip: (v: any) => formatCellValueForTooltip(v),
@@ -154,17 +200,16 @@ export function App() {
     },
     onSelectCell: (c: string, value: any, i: number, e: MouseEvent) => {
       e.stopPropagation();
-      AppController.selectCell(c, value, i);
+      selectCell(c, value, i);
     },
     onSelectRow: (absoluteIdx: number, e: MouseEvent) => {
       e.stopPropagation();
       AppController.selectRow(absoluteIdx, { shift: e.shiftKey, meta: e.metaKey || e.ctrlKey });
     },
-    onOpenTypeMenu: (c: string, pos: { x: number; y: number }) =>
-      AppController.openTypeMenu(c, pos),
+    onOpenTypeMenu: (c: string, pos: { x: number; y: number }) => openTypeMenu(c, pos),
     onScroll: () => {}, // Table scroll handler removed - not needed
     onErrorCellClick: (message: string) => {
-      AppController.alert(message, 'Conversion Error');
+      alert(message, 'Conversion Error');
     },
   };
 
@@ -186,15 +231,15 @@ export function App() {
         type="file"
         id="file-input"
         class={styles.fileInput}
-        onChange={(e) => AppController.handleFileSelect(e)}
+        onChange={(e) => handleFileSelect(e)}
       />
 
       <AppHeader
-        onOpenDialog={(d: any) => AppController.openDialog(d)}
+        onOpenDialog={(d: any) => openDialog(d)}
         onLogoClick={() => AppController.goHome()}
       />
       <RibbonToolbar
-        onOpenDialog={(d: any) => AppController.openDialog(d)}
+        onOpenDialog={(d: any) => openDialog(d)}
         onAutoDetectSchema={() => AppController.autoDetectSchema()}
       />
 
@@ -214,14 +259,14 @@ export function App() {
             {/* Backdrop */}
             <div
               class={`${styles.backdrop} ${hasPreview ? styles.blurred : ''}`}
-              onClick={() => AppController.closeDialog()}
+              onClick={() => closeDialog()}
             />
 
             {/* Panel */}
             <div ref={slidePanelRef} class={`${styles.slidePanel} ${styles.open}`}>
               <div class={styles.slidePanelHeader}>
                 <h3>{dialogTitle}</h3>
-                <button onClick={() => AppController.closeDialog()} class={styles.closeButton}>
+                <button onClick={() => closeDialog()} class={styles.closeButton}>
                   ×
                 </button>
               </div>
@@ -254,22 +299,22 @@ export function App() {
                 {activeDialog === 'column-editor' && <ColumnEditorDialog />}
                 {activeDialog === 'import-csv' && (
                   <ImportCsvDialog
-                    onJsonPathUpdate={() => AppController.updateJsonPath()}
-                    onJsonPathReset={() => AppController.resetJsonPath()}
-                    onJsonPathSegmentSelect={(key) => AppController.selectJsonPathSegment(key)}
+                    onJsonPathUpdate={() => updateJsonPath()}
+                    onJsonPathReset={() => resetJsonPath()}
+                    onJsonPathSegmentSelect={(key) => selectJsonPathSegment(key)}
                     onParamChange={() => {
                       if (DialogStore.importCsvState.isJson.value) {
-                        AppController.updateHeadersForPreview();
+                        updateHeadersForPreview();
                       } else {
-                        AppController.updateImportPreview();
+                        updateImportPreview();
                       }
                     }}
-                    onBackToUrl={() => AppController.backToUrlImport()}
-                    onBackToText={() => AppController.backToTextEntry()}
+                    onBackToUrl={() => backToUrlImport()}
+                    onBackToText={() => backToTextEntry()}
                   />
                 )}
                 {activeDialog === 'import-url' && (
-                  <ImportUrlDialog onImport={() => AppController.fetchAndImportFromUrl()} />
+                  <ImportUrlDialog onImport={() => fetchAndImportFromUrl()} />
                 )}
                 {activeDialog === 'import-text' && <ImportTextDialog />}
                 {activeDialog === 'generate' && <GenerateDialog />}
@@ -282,15 +327,12 @@ export function App() {
               </div>
 
               <div class={styles.slidePanelFooter}>
-                <button
-                  class="button button--secondary"
-                  onClick={() => AppController.closeDialog()}
-                >
+                <button class="button button--secondary" onClick={() => closeDialog()}>
                   Cancel
                 </button>
                 <button
                   class="button button--primary"
-                  onClick={() => AppController.applyActiveTransform()}
+                  onClick={() => applyActiveTransform()}
                   disabled={dialogError}
                 >
                   {buttonText}
@@ -363,7 +405,7 @@ export function App() {
 
       {/* Centered Modal Shell */}
       {isCenteredModal(activeDialog) && (
-        <div class={styles.centeredModalBackdrop} onClick={() => AppController.closeDialog()}>
+        <div class={styles.centeredModalBackdrop} onClick={() => closeDialog()}>
           <div
             ref={centeredModalRef}
             class={styles.centeredModal}
@@ -380,7 +422,7 @@ export function App() {
             {activeDialog === 'type-conversion' ? (
               <TypeConversionDialog
                 onCancel={() => {
-                  AppController.closeDialog();
+                  closeDialog();
                   DialogStore.typeConversionState.column.value = null;
                   DialogStore.typeConversionState.targetType.value = null;
                   DialogStore.previewState.title.value = '';
@@ -395,7 +437,7 @@ export function App() {
                   if (col && type) {
                     await AppController.changeColumnType(col, type);
                   }
-                  AppController.closeDialog();
+                  closeDialog();
                   DialogStore.typeConversionState.column.value = null;
                   DialogStore.typeConversionState.targetType.value = null;
                   DialogStore.previewState.title.value = '';
@@ -409,7 +451,7 @@ export function App() {
               <>
                 <div class={styles.centeredModalHeader}>
                   <h3>{dialogTitle}</h3>
-                  <button onClick={() => AppController.closeDialog()} class={styles.closeButton}>
+                  <button onClick={() => closeDialog()} class={styles.closeButton}>
                     ×
                   </button>
                 </div>
@@ -440,15 +482,12 @@ export function App() {
                   activeDialog || ''
                 ) && (
                   <div class={styles.centeredModalFooter}>
-                    <button
-                      class="button button--secondary"
-                      onClick={() => AppController.closeDialog()}
-                    >
+                    <button class="button button--secondary" onClick={() => closeDialog()}>
                       Cancel
                     </button>
                     <button
                       class="button button--primary"
-                      onClick={() => AppController.applyActiveTransform()}
+                      onClick={() => applyActiveTransform()}
                       disabled={dialogError}
                     >
                       {buttonText}
@@ -469,11 +508,11 @@ export function App() {
         onSplit={() => AppController.quickSplit()}
         onDate={() => AppController.quickDate()}
         onDedupe={() => AppController.quickDedupe()}
-        onImpute={() => AppController.openDialog('impute')}
+        onImpute={() => openDialog('impute')}
         onDuplicate={() => AppController.executeShortcut('duplicate')}
         onRemove={() => AppController.quickRemove()}
         onRemoveMultiple={() => AppController.quickRemoveMultiple()}
-        getColumnType={(col: string) => AppController.getColumnType(col)}
+        getColumnType={(col: string) => getColumnType(col)}
       />
       <CellToolbar
         onFilter={(op: any) => AppController.applyQuickCellFilter(op)}
@@ -488,10 +527,7 @@ export function App() {
       <TypeMenu {...typeMenuProps} />
       <GlobalUI />
       <DependencyImpactDialog />
-      <JsonEditorModal
-        onCancel={() => AppController.cancelJsonEdit()}
-        onApply={() => AppController.applyJsonEdit()}
-      />
+      <JsonEditorModal onCancel={() => cancelJsonEdit()} onApply={() => applyJsonEdit()} />
     </div>
   );
 }

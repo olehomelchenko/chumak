@@ -370,9 +370,9 @@ describe('Generic Dialog Behavior', () => {
       AppStore.activeDialog.value = 'filter';
       expect(AppStore.activeDialog.value).toBe('filter');
 
-      // Close dialog via AppController
-      const { AppController } = await import('../orchestration/AppController');
-      AppController.closeDialog();
+      // Close dialog via handler
+      const { closeDialog } = await import('../handlers/dialog/dialog-handlers');
+      closeDialog();
 
       await waitFor(() => {
         expect(AppStore.activeDialog.value).toBe(null);

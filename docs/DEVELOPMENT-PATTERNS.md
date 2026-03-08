@@ -907,7 +907,6 @@ Import dialogs (e.g., `import-url`, `import-text`) don't use `applyHandler` in t
 | `src/app/handlers/core/step-handlers.ts`   | Add to `StepCallbacks` interface + switch case |
 | `src/app/handlers/test-utils.ts`           | Add mock to `createMockStepCallbacks()`        |
 | `src/app/orchestration/AppOrchestrator.ts` | Wire callback in `wireHandlerCallbacks()`      |
-| `src/app/orchestration/AppController.ts`   | Add delegating method                          |
 
 The switch case in `applyActiveTransform()` dispatches to the callback:
 
@@ -1033,10 +1032,10 @@ Several patterns that were reasonable at small scale have become burdensome. Fol
 - Shared `validateStepExpressions()` generator validates filter/derive/conditional expressions in one place, consumed by `lintTransformJson`, `validateSteps`, and `getTransformJsonError`.
 - **To add a new expression-bearing transform**: Add its validation to the generator, not to each consumer.
 
-**AppController pass-throughs**:
+**AppController pass-throughs**: ✅ **Refactored**
 
-- ~80 entries in `AppController.ts` are pure re-exports of handler functions with no added logic.
-- **Gradual fix**: Dialog-specific functions (preview, validation) used by only one dialog component can be imported directly from the handler module. Don't add new pass-throughs for single-consumer functions.
+- All pure pass-throughs removed. AppController now contains only orchestration methods that compose multiple handler/service calls or inject callbacks.
+- **Rule**: Import handler functions directly at the call site. Only add methods to AppController when they genuinely compose logic from multiple modules (e.g., `switchToModel` coordinates `ModelService`, `InteractionHandlers`, `PaginationHandlers`, and URL state).
 
 ---
 

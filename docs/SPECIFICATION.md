@@ -318,7 +318,7 @@ Browser-specific adapters, isolated from core logic:
 **Orchestration** (`orchestration/`):
 
 - `AppOrchestrator.ts` — Application initialization entry point: callback wiring, persisted state loading, subsystem init, URL restore
-- `AppController.ts` — Central action dispatcher (all UI → logic routing)
+- `AppController.ts` — Orchestration methods that compose multiple handler/service calls (model lifecycle, exports, interaction callbacks). Consumers import handler functions directly for non-orchestration actions.
 - `EventRouter.ts` — Global event listeners (keyboard, paste, click). Owns Escape (priority: message box → dialog → type menu → selection) and Enter-to-submit for slide panels (skips textarea, select, CodeMirror, error state). Delegates other keyboard shortcuts to `KeyboardHandlers` (Ctrl+S save, Delete step, arrow navigation)
 - `UrlStateSync.ts` — URL hash synchronization for navigation state
 - `DialogCoordinator.ts` — Dialog lifecycle, snapshots, and state management
@@ -436,14 +436,14 @@ Each transform is one object in an array.
 
 #### Prop Threading
 
-`App.tsx` is the wiring hub. It constructs prop objects (`mainContentProps`, `sidebarProps`, `typeMenuProps`) that map `AppController` methods to callback props, then passes them through container components to leaves:
+`App.tsx` is the wiring hub. It constructs prop objects (`mainContentProps`, `sidebarProps`, `typeMenuProps`) that map handler functions and `AppController` orchestration methods to callback props, then passes them through container components to leaves:
 
 ```
 App.tsx  →  mainContentProps  →  MainContent  →  EmptyState, DataTable, PaginationBar, ...
          →  sidebarProps      →  Sidebar      →  source/model/step lists
 ```
 
-Container components (`MainContent`, `Sidebar`) spread these props to child components. Leaf components (e.g., `EmptyState`) receive typed callback props (`onUploadClick`, `onUrlClick`) with no knowledge of `AppController`. This keeps leaves testable in isolation.
+Container components (`MainContent`, `Sidebar`) spread these props to child components. Leaf components (e.g., `EmptyState`) receive typed callback props (`onUploadClick`, `onUrlClick`) with no knowledge of handler modules. This keeps leaves testable in isolation.
 
 Dialog components are rendered directly in `App.tsx`'s slide panel/modal shells (not passed through containers), with props wired inline.
 
