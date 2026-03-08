@@ -13,3 +13,4 @@ export {
   type WindowFunction,
   type OrderByItem,
 } from './window-state';
+export { describeState, resetDescribeState } from './describe-state';

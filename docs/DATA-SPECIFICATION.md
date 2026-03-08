@@ -327,6 +327,7 @@ interface TransformStep {
 
   // Reshape operations
   aggregate?: { groupby: string[]; rollup: Record<string, string> };
+  describe?: { columns: string[] };
   fold?: { columns: string[]; as: [string, string] };
   pivot?: { rows?: string[]; keys: string; values: string; aggregation: string; options?: {...} };
   split?: { column: string; mode: string; delimiter: string; ... };
@@ -412,6 +413,12 @@ With regex pattern (e.g., format phone numbers):
     }
   }
 }
+```
+
+**Describe** — Summary statistics (count, mean, median, stdev, min, max) for selected columns. Output is transposed: statistics as rows, columns as columns.
+
+```json
+{ "describe": { "columns": ["sales", "revenue"] } }
 ```
 
 **Window** — Apply window functions with ordering and optional partitioning:

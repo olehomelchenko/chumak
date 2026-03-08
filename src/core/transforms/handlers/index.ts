@@ -80,6 +80,7 @@ export const TRANSFORM_HANDLERS: Record<string, TransformHandler> = {
 
   // Aggregate handlers
   aggregate: aggregateHandlers.aggregate,
+  describe: aggregateHandlers.describe,
 
   // Window handlers
   window: windowHandlers.window,

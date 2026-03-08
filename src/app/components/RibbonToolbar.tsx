@@ -737,6 +737,12 @@ export function RibbonToolbar({ onOpenDialog, onAutoDetectSchema }: RibbonToolba
                 title={t('ribbon.buttons.window.title')}
                 onClick={() => onOpenDialog('window')}
               />
+              <RibbonButton
+                icon="carbon:data-table"
+                label={t('ribbon.buttons.describe.label')}
+                title={t('ribbon.buttons.describe.title')}
+                onClick={() => onOpenDialog('describe')}
+              />
             </RibbonGroup>
 
             <RibbonDivider />

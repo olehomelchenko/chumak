@@ -92,6 +92,10 @@
         "label": "Вікно",
         "title": "Віконні функції (lag, lead, rank, row_number)"
       },
+      "describe": {
+        "label": "Описати",
+        "title": "Зведена статистика (count, mean, median, stdev, min, max)"
+      },
       "pivot": {
         "label": "Зведення",
         "title": "Зведення - створити стовпці зі значень (довгий → широкий)"

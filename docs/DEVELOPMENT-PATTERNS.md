@@ -26,19 +26,42 @@ Adding a transform requires changes across multiple files. All transform logic m
 
 ### 1.1 Checklist
 
-| Step | File                                        | What to Add                        |
-| ---- | ------------------------------------------- | ---------------------------------- |
-| 1    | `src/core/transforms/handlers/*.ts`         | Transform implementation           |
-| 2    | `src/core/transforms/describers/*.ts`       | Human-readable description         |
-| 3    | `src/core/schema-engine.ts`                 | Schema propagation logic           |
-| 4    | `src/app/types.ts`                          | Dialog state interface (if needed) |
-| 5    | `src/app/stores/dialogs/<category>/*.ts`    | Dialog state signals               |
-| 6    | `src/app/components/*Dialog.tsx`            | Dialog UI component                |
-| 7    | `src/app/handlers/<category>/*-handlers.ts` | Event handlers                     |
-| 8    | `src/app/components/Ribbon.tsx`             | Ribbon button (if new action)      |
-| 9    | `src/core/transforms/*.test.ts`             | Core logic tests                   |
-| 10   | `src/app/handlers/*`                        | Cycle check (if external ref)      |
-| 11   | `docs/DATA-SPECIFICATION.md`                | Transform documentation            |
+**Core layer** (portable, no browser APIs):
+
+| Step | File                                           | What to Add                                           |
+| ---- | ---------------------------------------------- | ----------------------------------------------------- |
+| 1    | `src/core/transforms/types.ts`                 | Add to `FullTransformStep` + `KNOWN_TRANSFORM_KEYS`   |
+| 2    | `src/core/schema-engine.ts`                    | Add to `TransformStep` interface + schema propagation |
+| 3    | `src/core/transforms/handlers/<category>.ts`   | Transform implementation                              |
+| 4    | `src/core/transforms/handlers/index.ts`        | Register handler in `TRANSFORM_HANDLERS`              |
+| 5    | `src/core/transforms/describers/<category>.ts` | Human-readable description                            |
+| 6    | `src/core/transforms/describers/index.ts`      | Register describer in `TRANSFORM_DESCRIBERS`          |
+
+**App layer** (dialog, state, UI):
+
+| Step | File                                           | What to Add                                       |
+| ---- | ---------------------------------------------- | ------------------------------------------------- |
+| 7    | `src/app/types.ts`                             | Add to `DialogName` union type                    |
+| 8    | `src/app/stores/dialogs/<category>/*-state.ts` | Dialog state signals + reset function             |
+| 9    | `src/app/stores/dialogs/<category>/index.ts`   | Export new state                                  |
+| 10   | `src/app/stores/DialogStore.ts`                | Import + add static field                         |
+| 11   | `src/app/handlers/transform/*-handlers.ts`     | Construct step, preview, apply handlers           |
+| 12   | `src/app/components/*Dialog.tsx`               | Dialog UI component                               |
+| 13   | `src/app/components/index.ts`                  | Export dialog component                           |
+| 14   | `src/app/components/App.tsx`                   | Render dialog in slide-panel section              |
+| 15   | `src/app/dialog-registry.ts`                   | Registry entry (`applyHandler`, `getState`, etc.) |
+| 16   | `src/app/components/RibbonToolbar.tsx`         | Ribbon button                                     |
+
+**i18n + docs + tests:**
+
+| Step | File                                       | What to Add                                      |
+| ---- | ------------------------------------------ | ------------------------------------------------ |
+| 17   | `src/i18n/locales/{en,uk}/dialogs.json`    | Dialog title + dialog-specific strings           |
+| 18   | `src/i18n/locales/{en,uk}/transforms.json` | Describer translation (with plural forms for UK) |
+| 19   | `src/i18n/locales/{en,uk}/ui.json`         | Ribbon button label + title                      |
+| 20   | `src/core/transforms-*.test.ts`            | Core logic tests                                 |
+| 21   | `docs/DATA-SPECIFICATION.md`               | Transform documentation                          |
+| 22   | `src/app/handlers/*`                       | Cycle check (if external ref, e.g. join/concat)  |
 
 ### 1.2 Core Implementation (`transforms/handlers/`)
 

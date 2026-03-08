@@ -40,7 +40,8 @@
     "expressions": "Reference",
     "reference": "Reference",
     "dependencyGraph": "Dependency Graph",
-    "promoteHeader": "Promote Row to Header"
+    "promoteHeader": "Promote Row to Header",
+    "describe": "Summary Statistics"
   },
   "common": {
     "labels": {
@@ -859,6 +860,27 @@
     "preview": {
       "willUse": "Row {{row}} will become the new column headers",
       "notEnoughRows": "Not enough rows in the data"
+    }
+  },
+  "describe": {
+    "columnsLabel": "Columns to Describe",
+    "columnsHelp": "Select columns to include in the summary. Statistics are computed based on column type.",
+    "previewButton": "Preview Result",
+    "previewing": "Previewing...",
+    "help": {
+      "title": "Computed statistics",
+      "description": "Statistics depend on column type:",
+      "allTitle": "All columns",
+      "numericTitle": "Numeric columns",
+      "categoricalTitle": "Text / categorical columns",
+      "countDesc": "Number of non-null values",
+      "uniqueDesc": "Number of distinct values",
+      "meanDesc": "Average value",
+      "medianDesc": "Middle value (50th percentile)",
+      "stdevDesc": "Standard deviation",
+      "minMaxDesc": "Smallest / largest value",
+      "topDesc": "Most frequent value",
+      "freqDesc": "Count of the most frequent value"
     }
   }
 }

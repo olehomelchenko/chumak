@@ -338,4 +338,188 @@ describe('Transform Engine - Aggregation Operations', () => {
       expect(rows[2].name).toBe('Unknown');
     });
   });
+
+  describe('applyTransform() - DESCRIBE', () => {
+    it('should compute summary statistics for numeric columns', () => {
+      const table = createTestTable();
+      const transform = { describe: { columns: ['sales', 'revenue'] } };
+
+      const result = applyTransform(table, transform, [
+        'sales',
+        'revenue',
+        'cost',
+        'region',
+        'status',
+      ]);
+      const rows = result.objects();
+
+      expect(result.numRows()).toBe(7);
+      expect(result.columnNames()).toEqual(['statistic', 'sales', 'revenue']);
+
+      // Check statistic names (numeric only — no top/freq)
+      const stats = rows.map((r: any) => r.statistic);
+      expect(stats).toEqual(['count', 'unique', 'mean', 'median', 'stdev', 'min', 'max']);
+
+      // Check count (non-null count via op.valid)
+      const countRow = rows.find((r: any) => r.statistic === 'count');
+      expect(countRow.sales).toBe(5);
+      expect(countRow.revenue).toBe(5);
+
+      // Check unique
+      const uniqueRow = rows.find((r: any) => r.statistic === 'unique');
+      expect(uniqueRow.sales).toBe(5);
+      expect(uniqueRow.revenue).toBe(5);
+
+      // Check min/max
+      const minRow = rows.find((r: any) => r.statistic === 'min');
+      expect(minRow.sales).toBe(500);
+      expect(minRow.revenue).toBe(3000);
+
+      const maxRow = rows.find((r: any) => r.statistic === 'max');
+      expect(maxRow.sales).toBe(2000);
+      expect(maxRow.revenue).toBe(10000);
+
+      // Check mean
+      const meanRow = rows.find((r: any) => r.statistic === 'mean');
+      expect(meanRow.sales).toBe(1160);
+      expect(meanRow.revenue).toBe(5800);
+    });
+
+    it('should compute statistics for categorical columns', () => {
+      const table = createTestTable();
+      const transform = { describe: { columns: ['region', 'status'] } };
+
+      const result = applyTransform(table, transform, ['region', 'status']);
+      const rows = result.objects();
+
+      // Categorical: count, unique, top, freq
+      const stats = rows.map((r: any) => r.statistic);
+      expect(stats).toEqual(['count', 'unique', 'top', 'freq']);
+
+      const countRow = rows.find((r: any) => r.statistic === 'count');
+      expect(countRow.region).toBe(5);
+      expect(countRow.status).toBe(5);
+
+      const uniqueRow = rows.find((r: any) => r.statistic === 'unique');
+      expect(uniqueRow.region).toBe(4); // North, South, East, West
+      expect(uniqueRow.status).toBe(3); // active, pending, inactive
+
+      const topRow = rows.find((r: any) => r.statistic === 'top');
+      expect(topRow.region).toBe('North'); // appears 2x
+      expect(topRow.status).toBe('active'); // appears 3x
+
+      const freqRow = rows.find((r: any) => r.statistic === 'freq');
+      expect(freqRow.region).toBe(2);
+      expect(freqRow.status).toBe(3);
+    });
+
+    it('should compute mixed stats for numeric + categorical columns', () => {
+      const table = createTestTable();
+      const transform = { describe: { columns: ['sales', 'region'] } };
+
+      const result = applyTransform(table, transform, ['sales', 'region']);
+      const rows = result.objects();
+
+      // Union: count, unique, top, freq (categorical), mean, median, stdev, min, max (numeric)
+      const stats = rows.map((r: any) => r.statistic);
+      expect(stats).toEqual([
+        'count',
+        'unique',
+        'top',
+        'freq',
+        'mean',
+        'median',
+        'stdev',
+        'min',
+        'max',
+      ]);
+
+      // Numeric column has null for top/freq
+      const topRow = rows.find((r: any) => r.statistic === 'top');
+      expect(topRow.sales).toBeNull();
+      expect(topRow.region).toBe('North');
+
+      // Categorical column has null for mean/median/stdev/min/max
+      const meanRow = rows.find((r: any) => r.statistic === 'mean');
+      expect(meanRow.sales).toBe(1160);
+      expect(meanRow.region).toBeNull();
+    });
+
+    it('should count non-null values (not total rows)', () => {
+      const table = (aq as any).from([
+        { val: 10, name: 'a' },
+        { val: null, name: 'b' },
+        { val: 30, name: null },
+        { val: 40, name: 'd' },
+      ]);
+      const transform = { describe: { columns: ['val', 'name'] } };
+
+      const result = applyTransform(table, transform, ['val', 'name']);
+      const rows = result.objects();
+
+      const countRow = rows.find((r: any) => r.statistic === 'count');
+      expect(countRow.val).toBe(3); // 10, 30, 40 (null excluded)
+      expect(countRow.name).toBe(3); // a, b, d (null excluded)
+    });
+
+    it('should handle boolean columns as categorical', () => {
+      const table = (aq as any).from([
+        { active: true },
+        { active: true },
+        { active: false },
+        { active: true },
+      ]);
+      const transform = { describe: { columns: ['active'] } };
+
+      const result = applyTransform(table, transform, ['active']);
+      const rows = result.objects();
+
+      const stats = rows.map((r: any) => r.statistic);
+      expect(stats).toEqual(['count', 'unique', 'top', 'freq']);
+
+      expect(rows.find((r: any) => r.statistic === 'unique').active).toBe(2);
+      expect(rows.find((r: any) => r.statistic === 'top').active).toBe(true);
+      expect(rows.find((r: any) => r.statistic === 'freq').active).toBe(3);
+    });
+
+    it('should compute statistics for a single column', () => {
+      const table = createTestTable();
+      const transform = { describe: { columns: ['cost'] } };
+
+      const result = applyTransform(table, transform, ['cost']);
+      const rows = result.objects();
+
+      expect(result.numRows()).toBe(7);
+      expect(result.columnNames()).toEqual(['statistic', 'cost']);
+
+      const minRow = rows.find((r: any) => r.statistic === 'min');
+      expect(minRow.cost).toBe(2000);
+    });
+
+    it('should handle floating point precision', () => {
+      const table = (aq as any).from([{ val: 0.1 }, { val: 0.2 }, { val: 0.3 }]);
+      const transform = { describe: { columns: ['val'] } };
+
+      const result = applyTransform(table, transform, ['val']);
+      const rows = result.objects();
+
+      const meanRow = rows.find((r: any) => r.statistic === 'mean');
+      expect(meanRow.val).toBe(0.2);
+    });
+
+    it('should throw for empty columns array', () => {
+      const table = createTestTable();
+      const transform = { describe: { columns: [] } };
+
+      expect(() => applyTransform(table, transform, [])).toThrow('At least one column is required');
+    });
+  });
+
+  describe('describeTransform() - DESCRIBE', () => {
+    it('should describe a describe transform', () => {
+      const transform = { describe: { columns: ['sales', 'revenue', 'cost'] } };
+      const desc = describeTransform(transform);
+      expect(desc).toContain('3');
+    });
+  });
 });

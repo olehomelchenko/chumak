@@ -290,7 +290,7 @@ functions/
 - `dialogs/` — Per-dialog state organized by category:
   - `transform/` — filter, derive, sort, slice, sample, etc.
   - `column/` — spread, unroll, merge, split, dedupe, etc.
-  - `aggregate/` — aggregate, pivot, fold
+  - `aggregate/` — aggregate, pivot, fold, describe, window
   - `combine/` — join, append
   - `text/` — text, date, regexp-match, regexp-extract
   - `pattern/` — select, remove, rename patterns

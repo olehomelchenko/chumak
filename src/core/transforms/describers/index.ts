@@ -77,6 +77,7 @@ export const TRANSFORM_DESCRIBERS: Record<string, TransformDescriber> = {
 
   // Aggregate describers
   aggregate: aggregateDescribers.aggregate,
+  describe: aggregateDescribers.describe,
 
   // Window describers
   window: windowDescribers.window,

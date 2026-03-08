@@ -130,6 +130,7 @@ export interface TransformStep {
   };
   removeRows?: { indices: number[] };
   keepRows?: { indices: number[] };
+  describe?: { columns: string[] };
 }
 
 export const SchemaEngine = {
@@ -656,6 +657,19 @@ export const SchemaEngine = {
       return newSchema;
     }
 
+    // 7b. DESCRIBE: Summary statistics (transposed)
+    if (transform.describe) {
+      const { columns } = transform.describe;
+      const newSchema: ColumnSchema[] = [
+        { name: 'statistic', type: 'string', originalPosition: 0 },
+      ];
+      let pos = 1;
+      for (const colName of columns) {
+        newSchema.push({ name: colName, type: 'string', format: {}, originalPosition: pos++ });
+      }
+      return newSchema;
+    }
+
     // 8. FOLD (Unpivot)
     if (transform.fold) {
       const { columns, as } = transform.fold;
@@ -1036,6 +1050,7 @@ export const SchemaEngine = {
       'impute',
       'selectPattern',
       'removePattern',
+      'describe',
       'conditional',
       'renamePattern',
       'concat',

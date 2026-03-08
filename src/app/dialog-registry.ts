@@ -15,6 +15,7 @@ import type { ComponentType } from 'preact';
 import type { DialogName } from './types';
 import type { ExecutionCallbacks } from './services/StepService';
 import { DialogStore } from './stores/DialogStore';
+import { AppStore } from './stores/AppStore';
 import { GeneratorService } from './services/GeneratorService';
 import i18n from '../i18n';
 
@@ -34,6 +35,7 @@ import * as TextHandlers from './handlers/transform/text-handlers';
 import * as FoldHandlers from './handlers/transform/fold-handlers';
 import * as PivotHandlers from './handlers/transform/pivot-handlers';
 import * as AggregateHandlers from './handlers/transform/aggregate-handlers';
+import * as DescribeHandlers from './handlers/transform/describe-handlers';
 import * as WindowHandlers from './handlers/transform/window-handlers';
 import * as JoinHandlers from './handlers/transform/join-handlers';
 import * as AppendHandlers from './handlers/transform/append-handlers';
@@ -306,6 +308,24 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
       groupBy: DialogStore.aggregateState.groupBy.value,
       aggregations: DialogStore.aggregateState.aggregations.value,
     }),
+  },
+
+  describe: {
+    name: 'describe',
+    title: 'Summary Statistics',
+    type: 'slide-panel',
+    applyHandler: (cb) => DescribeHandlers.applyDescribeTransform(cb),
+    initState: () => {
+      const schema = AppStore.activeModel.value?.schema || [];
+      const numericCols = schema
+        .filter((c: any) => ['integer', 'float'].includes(c.type))
+        .map((c: any) => c.name);
+      DialogStore.describeState.selectedColumns.value = numericCols;
+    },
+    getState: () => ({
+      selectedColumns: DialogStore.describeState.selectedColumns.value,
+    }),
+    hasError: () => DialogStore.describeState.selectedColumns.value.length === 0,
   },
 
   window: {

@@ -17,18 +17,6 @@ The main block contains details about not implemented yet features or fixes; the
 
 A new `flatten` transform that expands JSON object keys into separate columns (analogous to `spread` for arrays). Discovers keys from sample data, creates derived columns with configurable prefix. Initially available via JSON editor only.
 
-### Summary Statistics Transform
-
-**Status**: Planned
-**Effort**: Small
-**Origin**: [Weaverbird comparison](future/WEAVERBIRD-COMPARISON.md) -- WB's `statistics` step
-
-A `describe` or `statistics` transform that auto-generates descriptive statistics for numeric columns: count, mean, median, stdev, min, max. Output is a transposed summary table (rows = stats, columns = source columns).
-
-**Why this matters**: "What does this data look like?" is the first question analysts ask. Currently requires manually building an aggregate with 6+ rollup specs. A one-click describe is table stakes for data exploration and is the single most common first step in tools like Pandas (`df.describe()`), R (`summary()`), and Excel's Data Analysis ToolPak.
-
-**Implementation**: Iterate numeric columns, compute stats via Arquero `op` functions, assemble summary table. No new infrastructure needed -- this is a specialized aggregate under the hood.
-
 ### Top N per Group
 
 **Status**: Planned
@@ -259,12 +247,11 @@ These have been considered and explicitly excluded:
 
 1. Example workflows for onboarding & website video ([EXAMPLE-WORKFLOWS.md](future/EXAMPLE-WORKFLOWS.md))
 2. SEO landing pages (infrastructure done, content needed)
-3. Summary Statistics transform (small effort, high impact for data exploration)
-4. Top N per Group transform (small-medium effort, very common analytical need)
-5. Duplicate Column quick action (small effort, common preparatory step)
-6. Flatten JSON transform
-7. Fill Date Gaps transform (medium effort, important for time series)
-8. Web Workers investigation for heavy transforms
+3. Top N per Group transform (small-medium effort, very common analytical need)
+4. Duplicate Column quick action (small effort, common preparatory step)
+5. Flatten JSON transform
+6. Fill Date Gaps transform (medium effort, important for time series)
+7. Web Workers investigation for heavy transforms
 
 ---
 
@@ -309,6 +296,7 @@ Completed features are documented here for posterity:
 - **ImportCsvDialog i18n** — March 2026. Extracted ~25 hardcoded English strings from `ImportCsvDialog.tsx` to the `dialogs` namespace (`importCsv.*` section) with Ukrainian translations. Covers replace mode banner, source name, JSON path/options, CSV delimiter/headers, manual column names, and duplicate warnings.
 - **Validate workflows on load** — March 2026. Added `validateSteps()` to `transform-linter.ts` for validating step objects loaded from IndexedDB. Checks for unknown transform keys, invalid expressions (filter, derive, conditional). `loadInitialData()` now validates all model steps on startup and shows a persistent warning toast for any issues found.
 - **ImportCsvDialog XSS fix & i18n completion** — March 2026. Replaced `dangerouslySetInnerHTML` with JSX interpolation for `replacingSource` translation (eliminated self-XSS via source names containing HTML). Extracted remaining hardcoded English strings from JSON examples block (`exampleIfJsonIs`, `exampleArrayFirst`) with Ukrainian translations.
+- **Summary Statistics (Describe) transform** — March 2026. One-click `describe` transform that auto-generates summary statistics for selected columns: count, unique, mean, median, stdev, min, max for numeric; count, unique, top, freq for categorical. Output is a transposed summary table (rows = statistics, columns = source columns). Analogous to Pandas `df.describe()`.
 
 ---
 

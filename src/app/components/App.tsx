@@ -53,6 +53,7 @@ import {
   SelectPatternDialog,
   RemovePatternDialog,
   RenamePatternDialog,
+  DescribeDialog,
 } from './index';
 import { JsonEditorModal } from './JsonEditorModal';
 // Import pure helper functions (no 'this' context needed)
@@ -248,6 +249,7 @@ export function App() {
                 {activeDialog === 'join' && <JoinDialog />}
                 {activeDialog === 'append' && <AppendDialog />}
                 {activeDialog === 'aggregate' && <AggregateDialog />}
+                {activeDialog === 'describe' && <DescribeDialog />}
                 {activeDialog === 'window' && <WindowDialog />}
                 {activeDialog === 'column-editor' && <ColumnEditorDialog />}
                 {activeDialog === 'import-csv' && (

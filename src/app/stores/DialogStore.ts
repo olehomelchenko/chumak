@@ -32,6 +32,7 @@ import {
   aggregateState,
   pivotState,
   windowState,
+  describeState,
   // Text states
   textState,
   regexpMatchState,
@@ -94,6 +95,7 @@ export class DialogStore {
   static aggregateState = aggregateState;
   static pivotState = pivotState;
   static windowState = windowState;
+  static describeState = describeState;
 
   // Text states
   static textState = textState;

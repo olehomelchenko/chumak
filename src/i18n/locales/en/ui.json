@@ -92,6 +92,10 @@
         "label": "Window",
         "title": "Window functions (lag, lead, rank, row_number)"
       },
+      "describe": {
+        "label": "Describe",
+        "title": "Summary statistics (count, mean, median, stdev, min, max)"
+      },
       "pivot": {
         "label": "Pivot",
         "title": "Pivot - create columns from values (long to wide)"

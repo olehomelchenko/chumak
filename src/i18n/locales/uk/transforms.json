@@ -117,6 +117,11 @@
     "groupByColumns_few": "{{count}} стовпці",
     "groupByColumns_many": "{{count}} стовпців"
   },
+  "describe": {
+    "summary_one": "Зведена статистика для {{count}} стовпця",
+    "summary_few": "Зведена статистика для {{count}} стовпців",
+    "summary_many": "Зведена статистика для {{count}} стовпців"
+  },
   "window": {
     "window_one": "Вікно ({{count}} стовпець, за {{orderField}}{{partitionText}})",
     "window_few": "Вікно ({{count}} стовпці, за {{orderField}}{{partitionText}})",

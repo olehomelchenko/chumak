@@ -97,6 +97,10 @@
     "groupByColumns": "{{count}} column",
     "groupByColumns_other": "{{count}} columns"
   },
+  "describe": {
+    "summary": "Summary statistics for {{count}} column",
+    "summary_other": "Summary statistics for {{count}} columns"
+  },
   "window": {
     "window": "Window ({{count}} column, by {{orderField}}{{partitionText}})",
     "window_other": "Window ({{count}} columns, by {{orderField}}{{partitionText}})",

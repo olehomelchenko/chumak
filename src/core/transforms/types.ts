@@ -78,6 +78,7 @@ export interface FullTransformStep extends TransformStep {
     derive: Record<string, string>;
   };
   promoteHeader?: { skipRows: number };
+  describe?: { columns: string[] };
 }
 
 /**
@@ -118,4 +119,5 @@ export const KNOWN_TRANSFORM_KEYS: readonly string[] = [
   'removeRows',
   'keepRows',
   'promoteHeader',
+  'describe',
 ] as const;

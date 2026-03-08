@@ -12,6 +12,13 @@ export function describeAggregate(transform: any): string | null {
   return i18n.t('transforms:aggregate.groupBy', { groupLabel, count: aggs });
 }
 
+export function describeDescribe(transform: any): string | null {
+  if (!transform.describe) return null;
+  const { columns } = transform.describe;
+  return i18n.t('transforms:describe.summary', { count: columns.length });
+}
+
 export const aggregateDescribers = {
   aggregate: describeAggregate,
+  describe: describeDescribe,
 };

@@ -45,6 +45,7 @@ export type DialogName =
   | 'spread'
   | 'unroll'
   | 'promoteHeader'
+  | 'describe'
   | null;
 
 export interface Source {

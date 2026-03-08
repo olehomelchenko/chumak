@@ -48,6 +48,8 @@ export type { Aggregation } from './AggregateDialog';
 
 export { WindowDialog } from './WindowDialog';
 
+export { DescribeDialog } from './DescribeDialog';
+
 export { ImportCsvDialog } from './ImportCsvDialog';
 export type { ImportCsvDialogProps } from './ImportCsvDialog';
 
