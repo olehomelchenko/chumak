@@ -50,6 +50,76 @@ function findExpressionPosition(content: string, expr: string, afterKey?: string
   return match?.index ? match.index + 1 : 0;
 }
 
+interface StepExpressionError {
+  stepIndex: number;
+  field: string;
+  error: string;
+  expr: string;
+  jsonKey: string;
+}
+
+/**
+ * Shared generator that validates expressions in filter, derive, and conditional steps.
+ * Yields errors with enough context for each consumer to format its own output.
+ */
+function* validateStepExpressions(steps: any[]): Generator<StepExpressionError> {
+  for (let i = 0; i < steps.length; i++) {
+    const step = steps[i];
+    if (!step || typeof step !== 'object') continue;
+
+    if (step.filter && typeof step.filter === 'string') {
+      const error = validateExpression(step.filter);
+      if (error)
+        yield { stepIndex: i, field: 'filter', error, expr: step.filter, jsonKey: 'filter' };
+    }
+
+    if (step.derive && typeof step.derive === 'object') {
+      for (const [colName, expr] of Object.entries(step.derive)) {
+        if (typeof expr === 'string') {
+          const error = validateExpression(expr);
+          if (error)
+            yield { stepIndex: i, field: `derive "${colName}"`, error, expr, jsonKey: colName };
+        }
+      }
+    }
+
+    if (step.conditional) {
+      const { conditions, else: elseExpr } = step.conditional;
+      if (Array.isArray(conditions)) {
+        for (let j = 0; j < conditions.length; j++) {
+          const cond = conditions[j];
+          if (cond.when && typeof cond.when === 'string') {
+            const error = validateExpression(cond.when);
+            if (error)
+              yield {
+                stepIndex: i,
+                field: `condition ${j + 1} "when"`,
+                error,
+                expr: cond.when,
+                jsonKey: 'when',
+              };
+          }
+          if (cond.then && typeof cond.then === 'string') {
+            const error = validateExpression(cond.then);
+            if (error)
+              yield {
+                stepIndex: i,
+                field: `condition ${j + 1} "then"`,
+                error,
+                expr: cond.then,
+                jsonKey: 'then',
+              };
+          }
+        }
+      }
+      if (elseExpr && typeof elseExpr === 'string') {
+        const error = validateExpression(elseExpr);
+        if (error) yield { stepIndex: i, field: '"else"', error, expr: elseExpr, jsonKey: 'else' };
+      }
+    }
+  }
+}
+
 /**
  * Validates JSON content against the transform schema.
  * Returns CodeMirror diagnostics for inline error display.
@@ -149,82 +219,20 @@ export function lintTransformJson(content: string): Diagnostic[] {
         });
       }
     }
-
-    // Validate expressions in filter, derive, and conditional transforms
-    if (step.filter && typeof step.filter === 'string') {
-      const error = validateExpression(step.filter);
-      if (error) {
-        const pos = findExpressionPosition(content, step.filter, 'filter');
-        diagnostics.push({
-          from: pos,
-          to: pos + step.filter.length,
-          severity: 'error',
-          message: `Step ${index + 1} filter: ${error}`,
-        });
-      }
-    }
-
-    if (step.derive && typeof step.derive === 'object') {
-      for (const [colName, expr] of Object.entries(step.derive)) {
-        if (typeof expr === 'string') {
-          const error = validateExpression(expr);
-          if (error) {
-            const pos = findExpressionPosition(content, expr, colName);
-            diagnostics.push({
-              from: pos,
-              to: pos + expr.length,
-              severity: 'error',
-              message: `Step ${index + 1} derive "${colName}": ${error}`,
-            });
-          }
-        }
-      }
-    }
-
-    if (step.conditional) {
-      const { conditions, else: elseExpr } = step.conditional;
-      if (Array.isArray(conditions)) {
-        conditions.forEach((cond: any, condIndex: number) => {
-          if (cond.when && typeof cond.when === 'string') {
-            const error = validateExpression(cond.when);
-            if (error) {
-              const pos = findExpressionPosition(content, cond.when, 'when');
-              diagnostics.push({
-                from: pos,
-                to: pos + cond.when.length,
-                severity: 'error',
-                message: `Step ${index + 1} condition ${condIndex + 1} "when": ${error}`,
-              });
-            }
-          }
-          if (cond.then && typeof cond.then === 'string') {
-            const error = validateExpression(cond.then);
-            if (error) {
-              const pos = findExpressionPosition(content, cond.then, 'then');
-              diagnostics.push({
-                from: pos,
-                to: pos + cond.then.length,
-                severity: 'error',
-                message: `Step ${index + 1} condition ${condIndex + 1} "then": ${error}`,
-              });
-            }
-          }
-        });
-      }
-      if (elseExpr && typeof elseExpr === 'string') {
-        const error = validateExpression(elseExpr);
-        if (error) {
-          const pos = findExpressionPosition(content, elseExpr, 'else');
-          diagnostics.push({
-            from: pos,
-            to: pos + elseExpr.length,
-            severity: 'error',
-            message: `Step ${index + 1} "else": ${error}`,
-          });
-        }
-      }
-    }
   });
+
+  // Validate expressions in filter, derive, and conditional transforms
+  for (const { stepIndex, field, error, expr, jsonKey } of validateStepExpressions(
+    parsed.transforms
+  )) {
+    const pos = findExpressionPosition(content, expr, jsonKey);
+    diagnostics.push({
+      from: pos,
+      to: pos + expr.length,
+      severity: 'error',
+      message: `Step ${stepIndex + 1} ${field}: ${error}`,
+    });
+  }
 
   return diagnostics;
 }
@@ -253,52 +261,11 @@ export function validateSteps(steps: any[]): string[] {
         warnings.push(`Step ${i + 1}: unknown transform "${key}"`);
       }
     }
+  }
 
-    // Validate expressions
-    if (step.filter && typeof step.filter === 'string') {
-      const error = validateExpression(step.filter);
-      if (error) {
-        warnings.push(`Step ${i + 1} filter: ${error}`);
-      }
-    }
-
-    if (step.derive && typeof step.derive === 'object') {
-      for (const [colName, expr] of Object.entries(step.derive)) {
-        if (typeof expr === 'string') {
-          const error = validateExpression(expr);
-          if (error) {
-            warnings.push(`Step ${i + 1} derive "${colName}": ${error}`);
-          }
-        }
-      }
-    }
-
-    if (step.conditional) {
-      const { conditions, else: elseExpr } = step.conditional;
-      if (Array.isArray(conditions)) {
-        for (let j = 0; j < conditions.length; j++) {
-          const cond = conditions[j];
-          if (cond.when && typeof cond.when === 'string') {
-            const error = validateExpression(cond.when);
-            if (error) {
-              warnings.push(`Step ${i + 1} condition ${j + 1} "when": ${error}`);
-            }
-          }
-          if (cond.then && typeof cond.then === 'string') {
-            const error = validateExpression(cond.then);
-            if (error) {
-              warnings.push(`Step ${i + 1} condition ${j + 1} "then": ${error}`);
-            }
-          }
-        }
-      }
-      if (elseExpr && typeof elseExpr === 'string') {
-        const error = validateExpression(elseExpr);
-        if (error) {
-          warnings.push(`Step ${i + 1} "else": ${error}`);
-        }
-      }
-    }
+  // Validate expressions
+  for (const { stepIndex, field, error } of validateStepExpressions(steps)) {
+    warnings.push(`Step ${stepIndex + 1} ${field}: ${error}`);
   }
 
   return warnings;
@@ -315,58 +282,8 @@ export function getTransformJsonError(content: string): string | null {
       return 'JSON must contain a "transforms" array';
     }
 
-    // Validate expressions in each transform
-    for (let i = 0; i < parsed.transforms.length; i++) {
-      const step = parsed.transforms[i];
-      if (!step || typeof step !== 'object') continue;
-
-      // Validate filter expression
-      if (step.filter && typeof step.filter === 'string') {
-        const error = validateExpression(step.filter);
-        if (error) {
-          return `Step ${i + 1} filter: ${error}`;
-        }
-      }
-
-      // Validate derive expressions
-      if (step.derive && typeof step.derive === 'object') {
-        for (const [colName, expr] of Object.entries(step.derive)) {
-          if (typeof expr === 'string') {
-            const error = validateExpression(expr);
-            if (error) {
-              return `Step ${i + 1} derive "${colName}": ${error}`;
-            }
-          }
-        }
-      }
-
-      // Validate conditional expressions
-      if (step.conditional) {
-        const { conditions, else: elseExpr } = step.conditional;
-        if (Array.isArray(conditions)) {
-          for (let j = 0; j < conditions.length; j++) {
-            const cond = conditions[j];
-            if (cond.when && typeof cond.when === 'string') {
-              const error = validateExpression(cond.when);
-              if (error) {
-                return `Step ${i + 1} condition ${j + 1} "when": ${error}`;
-              }
-            }
-            if (cond.then && typeof cond.then === 'string') {
-              const error = validateExpression(cond.then);
-              if (error) {
-                return `Step ${i + 1} condition ${j + 1} "then": ${error}`;
-              }
-            }
-          }
-        }
-        if (elseExpr && typeof elseExpr === 'string') {
-          const error = validateExpression(elseExpr);
-          if (error) {
-            return `Step ${i + 1} "else": ${error}`;
-          }
-        }
-      }
+    for (const { stepIndex, field, error } of validateStepExpressions(parsed.transforms)) {
+      return `Step ${stepIndex + 1} ${field}: ${error}`;
     }
 
     return null;

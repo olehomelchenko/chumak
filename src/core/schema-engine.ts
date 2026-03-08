@@ -347,6 +347,45 @@ export const SchemaEngine = {
   },
 
   /**
+   * Infer schema from sample data, preserving type info for known columns.
+   * Shared helper for transform branches that produce a new column set from sample data.
+   */
+  inferSchemaFromSample(
+    currentSchema: ColumnSchema[],
+    sampleData: Record<string, any>[],
+    options?: {
+      updatePositions?: boolean;
+      promoteTypes?: boolean;
+      sampleSize?: number;
+    }
+  ): ColumnSchema[] {
+    const sampleSize = options?.sampleSize ?? 20;
+    const names = Object.keys(sampleData[0]);
+    return names.map((name, i) => {
+      const existing = currentSchema.find((c) => c.name === name);
+      if (existing) {
+        if (options?.promoteTypes) {
+          const sample = sampleData.slice(0, sampleSize).map((row) => row[name]);
+          const inferredType = this.inferType(sample);
+          return {
+            ...existing,
+            type: this.getPromotedType(existing.type, inferredType),
+            originalPosition: i,
+          };
+        }
+        return options?.updatePositions ? { ...existing, originalPosition: i } : { ...existing };
+      }
+      const sample = sampleData.slice(0, sampleSize).map((row) => row[name]);
+      return {
+        name,
+        type: this.inferType(sample),
+        format: {},
+        originalPosition: i,
+      };
+    });
+  },
+
+  /**
    * Calculate resulting schema after applying a transform to a model
    *
    * @param {ColumnSchema[]} currentSchema - Current ColumnSchema array
@@ -387,18 +426,7 @@ export const SchemaEngine = {
     // 3a. SELECT_PATTERN: Keep only columns matching pattern
     if (transform.selectPattern) {
       if (sampleData && sampleData.length > 0) {
-        const names = Object.keys(sampleData[0]);
-        return names.map((name, i) => {
-          const existing = currentSchema.find((c) => c.name === name);
-          if (existing) return { ...existing, originalPosition: i };
-          const sample = sampleData.slice(0, 20).map((row) => row[name]);
-          return {
-            name,
-            type: this.inferType(sample),
-            format: {},
-            originalPosition: i,
-          };
-        });
+        return this.inferSchemaFromSample(currentSchema, sampleData, { updatePositions: true });
       }
       // Fallback: use current schema (pattern matching will be done at runtime)
       return currentSchema;
@@ -407,18 +435,7 @@ export const SchemaEngine = {
     // 3b. REMOVE_PATTERN: Drop columns matching pattern
     if (transform.removePattern) {
       if (sampleData && sampleData.length > 0) {
-        const names = Object.keys(sampleData[0]);
-        return names.map((name, i) => {
-          const existing = currentSchema.find((c) => c.name === name);
-          if (existing) return { ...existing, originalPosition: i };
-          const sample = sampleData.slice(0, 20).map((row) => row[name]);
-          return {
-            name,
-            type: this.inferType(sample),
-            format: {},
-            originalPosition: i,
-          };
-        });
+        return this.inferSchemaFromSample(currentSchema, sampleData, { updatePositions: true });
       }
       // Fallback: use current schema
       return currentSchema;
@@ -549,38 +566,14 @@ export const SchemaEngine = {
     // 5. JOIN: Merge schemas from left and right tables
     if (transform.join) {
       if (sampleData && sampleData.length > 0) {
-        const names = Object.keys(sampleData[0]);
-        return names.map((name, i) => {
-          const existing = currentSchema.find((c) => c.name === name);
-          if (existing) return { ...existing };
-
-          const sample = sampleData.slice(0, 20).map((row) => row[name]);
-          return {
-            name,
-            type: this.inferType(sample),
-            format: {},
-            originalPosition: i,
-          };
-        });
+        return this.inferSchemaFromSample(currentSchema, sampleData);
       }
     }
 
     // 5a. LOOKUP: Add columns from right table
     if (transform.lookup) {
       if (sampleData && sampleData.length > 0) {
-        const names = Object.keys(sampleData[0]);
-        return names.map((name, i) => {
-          const existing = currentSchema.find((c) => c.name === name);
-          if (existing) return { ...existing };
-
-          const sample = sampleData.slice(0, 20).map((row) => row[name]);
-          return {
-            name,
-            type: this.inferType(sample),
-            format: {},
-            originalPosition: i,
-          };
-        });
+        return this.inferSchemaFromSample(currentSchema, sampleData);
       }
     }
 
@@ -897,29 +890,10 @@ export const SchemaEngine = {
     // 13. CONCAT / UNION: Merge schemas from both tables
     if (transform.concat || transform.union) {
       if (sampleData && sampleData.length > 0) {
-        const names = Object.keys(sampleData[0]);
-        return names.map((name, i) => {
-          const existing = currentSchema.find((c) => c.name === name);
-          // If column exists in current schema, we might still want to check if it needs promotion
-          // but for now, following Syto pattern of using sample data for new results.
-          const sample = sampleData.slice(0, 50).map((row) => row[name]);
-          const inferredType = this.inferType(sample);
-
-          if (existing) {
-            // Keep existing column but update type if inferred is different (handles promotion via inference)
-            return {
-              ...existing,
-              type: this.getPromotedType(existing.type, inferredType),
-              originalPosition: i,
-            };
-          }
-
-          return {
-            name,
-            type: inferredType,
-            format: {},
-            originalPosition: i,
-          };
+        return this.inferSchemaFromSample(currentSchema, sampleData, {
+          updatePositions: true,
+          promoteTypes: true,
+          sampleSize: 50,
         });
       }
     }

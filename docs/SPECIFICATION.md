@@ -217,6 +217,7 @@ src/
 │   │   ├── dialog/          # Dialog-specific handlers
 │   │   └── core/            # Core interaction handlers
 │   ├── orchestration/       # App lifecycle and coordination modules
+│   ├── linters/             # CodeMirror lint providers (transform JSON validation)
 │   ├── infrastructure/      # Browser-specific adapters
 │   │   ├── storage.ts       # IndexedDB persistence
 │   │   ├── url-state.ts     # URL hash state management

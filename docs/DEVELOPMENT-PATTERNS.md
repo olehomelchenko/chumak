@@ -114,18 +114,20 @@ Every transform must define how it affects the schema:
 ```typescript
 // In deriveNextSchema()
 if (transform.yourTransform) {
-  const { outputColumn, sourceColumn } = transform.yourTransform;
+  // Option A: Transform produces a new column set from sample data (join, lookup, selectPattern, etc.)
+  if (sampleData && sampleData.length > 0) {
+    return this.inferSchemaFromSample(currentSchema, sampleData, { updatePositions: true });
+  }
 
-  // Option A: Add new column
+  // Option B: Add/modify specific columns
   return [...schema, { name: outputColumn, type: 'string' }];
 
-  // Option B: Remove columns
+  // Option C: Remove columns
   return schema.filter((col) => col.name !== removedColumn);
-
-  // Option C: Modify existing column type
-  return schema.map((col) => (col.name === sourceColumn ? { ...col, type: 'integer' } : col));
 }
 ```
+
+For transforms that produce a new column set from sample data, use `inferSchemaFromSample()` instead of writing the inference loop manually. It accepts options: `updatePositions` (override `originalPosition`), `promoteTypes` (use `getPromotedType` for existing columns), `sampleSize` (default 20).
 
 ### 1.5 Dialog State (`stores/dialogs/`)
 
@@ -1021,11 +1023,15 @@ Several patterns that were reasonable at small scale have become burdensome. Fol
 - All shortcuts are now declarative entries in `SHORTCUT_REGISTRY` (`shortcut-handlers.ts`). AppController exposes a single `executeShortcut(id)` method. RibbonToolbar renders popovers data-driven via `renderShortcutSections()`.
 - **To add a new shortcut**: Add one entry to `SHORTCUT_REGISTRY`, add i18n keys in both locale files. No other files need changes.
 
-**`deriveNextSchema()` in `schema-engine.ts`**:
+**`deriveNextSchema()` in `schema-engine.ts`**: ✅ **Refactored**
 
-- The "infer schema from sample data, preserving known columns" block is duplicated 6-7 times across transform branches (join, lookup, selectPattern, removePattern, renamePattern, concat/union).
-- **Planned refactor**: Extract as `inferSchemaFromSample()` helper. See [CODE-REDUCTION-ANALYSIS.md §2](CODE-REDUCTION-ANALYSIS.md).
-- **Until refactored**: If a new transform needs the same "iterate sampleData keys, check currentSchema, infer type" logic, copy the existing pattern but leave a `// TODO: use inferSchemaFromSample() when extracted` comment.
+- Shared `inferSchemaFromSample()` helper handles the "iterate sample data columns, preserve known types, infer new" pattern. Used by selectPattern, removePattern, join, lookup, concat/union.
+- **To add a new sample-data-based branch**: Call `this.inferSchemaFromSample(currentSchema, sampleData, options)` — see §1.4.
+
+**Transform linter** (`src/app/linters/transform-linter.ts`): ✅ **Refactored**
+
+- Shared `validateStepExpressions()` generator validates filter/derive/conditional expressions in one place, consumed by `lintTransformJson`, `validateSteps`, and `getTransformJsonError`.
+- **To add a new expression-bearing transform**: Add its validation to the generator, not to each consumer.
 
 **AppController pass-throughs**:
 

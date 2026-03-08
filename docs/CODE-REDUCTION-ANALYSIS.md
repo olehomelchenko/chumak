@@ -15,45 +15,13 @@ Replaced 25 individual shortcut functions with a declarative `SHORTCUT_REGISTRY`
 
 ---
 
-## 2. `deriveNextSchema` Branch Deduplication
+## 2. `deriveNextSchema` Branch Deduplication ✅ Done
 
 **File**: `schema-engine.ts`
-**Current cost**: ~600 LoC (method body), 1133 LoC total file
-**After refactor**: ~250 LoC method body
-**Savings**: ~350 LoC
-**Priority**: Medium
+**Savings**: ~26 net LoC (1133 → 1107), 5 duplicated blocks → 1 shared helper
+**Status**: Completed (March 2026)
 
-### Problem
-
-`deriveNextSchema()` has 15+ branches for different transform types. Many share the same "infer schema from sample data, preserving known columns" pattern:
-
-```ts
-if (sampleData && sampleData.length > 0) {
-  const names = Object.keys(sampleData[0]);
-  return names.map((name, i) => {
-    const existing = currentSchema.find((c) => c.name === name);
-    if (existing) return { ...existing };
-    const sample = sampleData.slice(0, 20).map((row) => row[name]);
-    return { name, type: this.inferType(sample), format: {}, originalPosition: i };
-  });
-}
-```
-
-This exact block (or close variants) appears in: join, lookup, selectPattern, removePattern, renamePattern, concat/union, split, spread — **6-7 times verbatim**.
-
-### Solution
-
-Extract a helper:
-
-```ts
-inferSchemaFromSample(
-  currentSchema: ColumnSchema[],
-  sampleData: Record<string, any>[],
-  options?: { preserveExisting?: boolean; sampleSize?: number }
-): ColumnSchema[]
-```
-
-Each branch that currently repeats this pattern calls the helper instead. Branches with unique logic (aggregate, fold, pivot, window) keep their specialized code.
+Extracted `inferSchemaFromSample()` helper with options for the three behavioral variants (`updatePositions`, `promoteTypes`, `sampleSize`). Replaced verbatim blocks in: selectPattern, removePattern, join, lookup, concat/union. `renamePattern` kept its specialized rename-tracking logic. Branches with unique logic (aggregate, fold, pivot, window, split, spread) unchanged.
 
 ---
 
@@ -115,9 +83,9 @@ This makes dead CSS visible and prevents the file from growing further.
 | Area                        | Current  | After                      | Savings         | Priority      |
 | --------------------------- | -------- | -------------------------- | --------------- | ------------- |
 | Shortcut data table         | ~570 LoC | ~335 LoC                   | **~235** ✅     | Done          |
-| `deriveNextSchema` dedup    | ~600 LoC | ~250 LoC                   | **~350**        | Medium        |
+| `deriveNextSchema` dedup    | ~65 LoC  | 1 helper + 5 calls         | **~26** ✅      | Done          |
 | AppController pass-throughs | ~400 LoC | ~100 LoC                   | **~300**        | Low (gradual) |
 | TransformDialog.module.css  | 846 LoC  | same LoC, better structure | maintainability | Low           |
-| **Total**                   |          |                            | **~1,140 LoC**  |               |
+| **Total**                   |          |                            | **~561 LoC**    |               |
 
-Recommended order: shortcuts first (highest payoff, self-contained), then schema engine, then gradual AppController cleanup.
+Remaining: gradual AppController pass-through cleanup and TransformDialog.module.css decomposition.

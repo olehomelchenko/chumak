@@ -89,18 +89,15 @@ See [custom-icons-setup.md](custom-icons-setup.md) for detailed setup guide and 
 **Effort**: Medium (phased)
 **Reference**: [CODE-REDUCTION-ANALYSIS.md](CODE-REDUCTION-ANALYSIS.md)
 
-Three areas where patterns that were fine for a few components became burdensome as the codebase grew (~1,100 LoC reduction potential):
+Three areas where patterns that were fine for a few components became burdensome as the codebase grew (~300 LoC remaining, ~260 already done):
 
 1. ~~**Shortcut handlers → data table** (~490 LoC)~~: ✅ Done — replaced with declarative `SHORTCUT_REGISTRY` + `executeShortcut()` + data-driven popover rendering.
-2. **`deriveNextSchema` dedup** (~350 LoC): The same "infer schema from sample data" block is copy-pasted 6-7 times in `schema-engine.ts`. Extract as `inferSchemaFromSample()` helper.
+2. ~~**`deriveNextSchema` dedup** (~26 LoC)~~: ✅ Done — extracted `inferSchemaFromSample()` helper, replaced 5 duplicated blocks.
 3. **AppController pass-throughs** (~300 LoC, gradual): ~80 pure re-exports that add indirection without logic. Dialog-specific handlers can be imported directly by the consuming component.
 
-### Deduplicate Transform Linter Validation Logic
+### ~~Deduplicate Transform Linter Validation Logic~~ ✓ Completed
 
-**Status**: Tech Debt
-**Effort**: Small
-
-`transform-linter.ts` contains three functions with near-identical expression validation logic (filter/derive/conditional checks): `lintTransformJson` (returns `Diagnostic[]` with source positions), `getTransformJsonError` (returns first error string), and `validateSteps` (returns all warnings as `string[]`). The core validation could be extracted into a shared iterator yielding `{stepIndex, field, error}` tuples, with each function mapping to its own output format.
+Moved to [Completed Features](#completed-features-historical-record).
 
 ---
 
@@ -300,6 +297,7 @@ Completed features are documented here for posterity:
 - **ImportCsvDialog XSS fix & i18n completion** — March 2026. Replaced `dangerouslySetInnerHTML` with JSX interpolation for `replacingSource` translation (eliminated self-XSS via source names containing HTML). Extracted remaining hardcoded English strings from JSON examples block (`exampleIfJsonIs`, `exampleArrayFirst`) with Ukrainian translations.
 - **Summary Statistics (Describe) transform** — March 2026. One-click `describe` transform that auto-generates summary statistics for selected columns: count, unique, mean, median, stdev, min, max for numeric; count, unique, top, freq for categorical. Output is a transposed summary table (rows = statistics, columns = source columns). Analogous to Pandas `df.describe()`.
 - **Duplicate Column quick action** — March 2026. One-click "Duplicate" button in the column toolbar that creates a copy of the selected column via a `derive` step (`{ "column_copy": "[column]" }`). No dialog needed.
+- **Transform linter deduplication** — March 2026. Extracted `validateStepExpressions()` generator from `transform-linter.ts` to share expression validation logic across `lintTransformJson`, `validateSteps`, and `getTransformJsonError`. Net reduction: 101 LoC (377 → 276).
 
 ---
 
