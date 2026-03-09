@@ -14,25 +14,18 @@ import { convertType } from '../../../core/type-converter';
 import i18n from '../../../i18n';
 
 export function handleBodyClick(event: any) {
+  // Selection-safe UI surfaces use stopPropagation() so their clicks never reach here.
+  // The data-attribute checks below are belt-and-suspenders for elements that also stopPropagation.
   const hasSelection =
     AppStore.selectedColumn.value ||
     AppStore.selectedColumns.value.length > 0 ||
     AppStore.selectedRows.value.length > 0;
   if (
     hasSelection &&
-    !event.target.closest('.data-table__header') &&
     !event.target.closest('[data-row-gutter]') &&
-    !event.target.closest('.floating-toolbar') &&
-    !event.target.closest('.slide-panel') &&
-    !event.target.closest('.centered-modal') &&
-    !event.target.closest('[data-eda-panel="true"]') &&
-    !event.target.closest('[class*="edaPanel"]')
+    !event.target.closest('[data-eda-panel="true"]')
   ) {
-    AppStore.selectedColumn.value = null;
-    AppStore.selectedColumns.value = [];
-    AppStore.columnSelectionAnchor.value = null;
-    AppStore.selectedRows.value = [];
-    AppStore.rowSelectionAnchor.value = null;
+    clearColumnSelection();
   }
   if (
     AppStore.typeMenuOpen.value &&
@@ -451,7 +444,6 @@ export async function quickRemoveMultiple(callbacks: any) {
 export function quickDate(onOpenDialog: (name: string) => void) {
   if (!AppStore.selectedColumn.value) return;
   onOpenDialog('date');
-  AppStore.selectedColumn.value = null;
 }
 
 export function quickSplit(onOpenDialog: (name: string) => void) {

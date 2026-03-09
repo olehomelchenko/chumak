@@ -141,6 +141,8 @@ Comments are persisted to IndexedDB and automatically saved when edited.
 - **Type Badges**: Visual indicators for data types (Abc, #, 📅), synced with the granular schema engine.
 - **Type Menu**: Keyboard-navigable (`role="menu"`) with arrow key support (Up/Down/Home/End) and auto-focus on open.
 
+**Click-Outside & Selection Clearing**: A global click listener (`handleBodyClick` via `EventRouter`) clears column/row/cell selection when clicks land outside selection-relevant UI. Each surface that should **preserve** selection calls `e.stopPropagation()` on its root element — this is the primary protection mechanism. Protected surfaces: column headers, cells, row gutters (in App.tsx callbacks), floating toolbars, centered modals, RibbonToolbar, RibbonPopover content, and the EDA panel. Escape key also clears selection (priority: message box → dialog → type menu → selection). When adding a new UI surface that should preserve selection, add `onClick stopPropagation` to its root — do not add CSS class selectors to `handleBodyClick`.
+
 ### 3.5 Dialog System
 
 **Slide Panel Dialogs**: Transform operations (filter, derive, sort, join, etc.) and import dialogs (CSV/URL) use slide panels that open from the right side, occupying approximately 1/3 of the screen width. These panels support a preview pane that appears to the left when preview data is available.

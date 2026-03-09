@@ -1044,6 +1044,10 @@ Several patterns that were reasonable at small scale have become burdensome. Fol
 - All pure pass-throughs removed. AppController now contains only orchestration methods that compose multiple handler/service calls or inject callbacks.
 - **Rule**: Import handler functions directly at the call site. Only add methods to AppController when they genuinely compose logic from multiple modules (e.g., `switchToModel` coordinates `ModelService`, `InteractionHandlers`, `PaginationHandlers`, and URL state).
 
+### 8.7 CSS Modules & DOM Queries
+
+CSS Module class names are hashed at build time (dev: `Component__className___hash`, prod: hash-only). Never use CSS class selectors in `event.target.closest()`, `document.querySelector()`, or similar DOM queries from JavaScript — they won't match the hashed classes. Use **data attributes** (e.g., `[data-row-gutter]`, `[data-eda-panel="true"]`) for any element that needs to be found by event handlers or imperative DOM logic.
+
 ---
 
 ## 9. Internationalization (i18n)

@@ -419,7 +419,10 @@ export function RibbonToolbar({ onOpenDialog, onAutoDetectSchema }: RibbonToolba
   const hasData = useComputed(() => !!AppStore.currentData.value);
 
   return (
-    <div class={`${styles.ribbon} ${!hasData.value ? styles.disabled : ''}`}>
+    <div
+      class={`${styles.ribbon} ${!hasData.value ? styles.disabled : ''}`}
+      onClick={(e) => e.stopPropagation()}
+    >
       <div class={styles.content}>
         {/* Rows Tab */}
         {ribbonTab.value === 'rows' && (

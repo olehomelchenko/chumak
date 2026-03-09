@@ -136,6 +136,7 @@ export function RibbonPopover({ anchorRect, onClose, children }: RibbonPopoverPr
         class={styles.popover}
         role="menu"
         onKeyDown={handleKeyDown}
+        onClick={(e) => e.stopPropagation()}
         style={{ top: `${top}px`, left: `${left}px` }}
       >
         {children}
