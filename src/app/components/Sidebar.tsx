@@ -231,20 +231,18 @@ export function Sidebar({
                   >
                     <span class={styles.number}>{`${index + 1}.`}</span>
                     <span class={styles.description}>{describeTransform(step)}</span>
-                    {!step.import &&
-                      !step.types &&
-                      index === (activeModel.value?.steps?.length || 0) - 1 && (
-                        <button
-                          class={styles.edit}
-                          onClick={(e) => {
-                            e.stopPropagation();
-                            onEditStep(index);
-                          }}
-                          title={t('tooltips.editStep')}
-                        >
-                          ✎
-                        </button>
-                      )}
+                    {!step.import && !step.types && (
+                      <button
+                        class={styles.edit}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          onEditStep(index);
+                        }}
+                        title={t('tooltips.editStep')}
+                      >
+                        ✎
+                      </button>
+                    )}
                     {!step.import && (
                       <button
                         class={styles.delete}

@@ -406,6 +406,60 @@ export function editStep(stepIndex: number): void {
 
     state.windowFunctions.value = windowFunctions;
     state.isPreviewing.value = false;
+  } else if (step.sliceRows) {
+    callbacks?.openDialog('sliceRows');
+    DialogStore.sliceRowsState.count.value = step.sliceRows.count;
+    DialogStore.sliceRowsState.mode.value = step.sliceRows.mode;
+  } else if (step.addIndex) {
+    callbacks?.openDialog('index');
+    DialogStore.indexState.columnName.value = step.addIndex.columnName;
+    DialogStore.indexState.startFrom.value = step.addIndex.startFrom ?? 1;
+  } else if (step.promoteHeader) {
+    callbacks?.openDialog('promoteHeader');
+    DialogStore.promoteHeaderState.skipRows.value = step.promoteHeader.skipRows;
+  } else if (step.spread) {
+    callbacks?.openDialog('spread');
+    const state = DialogStore.spreadState;
+    state.column.value = step.spread.column;
+    state.limit.value = step.spread.limit;
+    state.keepOriginal.value = !!step.spread.keepOriginal;
+  } else if (step.unroll) {
+    callbacks?.openDialog('unroll');
+    const state = DialogStore.unrollState;
+    state.column.value = step.unroll.column;
+    state.indices.value = !!step.unroll.indices;
+    state.keepOriginal.value = !!step.unroll.keepOriginal;
+  } else if (step.selectPattern) {
+    callbacks?.openDialog('selectPattern');
+    const state = DialogStore.selectPatternState;
+    state.pattern.value = step.selectPattern.pattern;
+    state.matchType.value = step.selectPattern.matchType;
+    state.include.value = step.selectPattern.include || [];
+    state.error.value = null;
+  } else if (step.removePattern) {
+    callbacks?.openDialog('removePattern');
+    const state = DialogStore.removePatternState;
+    state.pattern.value = step.removePattern.pattern;
+    state.matchType.value = step.removePattern.matchType;
+    state.error.value = null;
+  } else if (step.renamePattern) {
+    callbacks?.openDialog('renamePattern');
+    const state = DialogStore.renamePatternState;
+    state.find.value = step.renamePattern.find;
+    state.replace.value = step.renamePattern.replace;
+    state.regex.value = !!step.renamePattern.regex;
+    state.error.value = null;
+  } else if (step.conditional) {
+    callbacks?.openDialog('conditional');
+    const state = DialogStore.conditionalState;
+    state.column.value = step.conditional.column;
+    state.conditions.value = step.conditional.conditions.map((c) => ({ ...c }));
+    state.else.value = step.conditional.else;
+    state.error.value = null;
+  } else if (step.describe) {
+    callbacks?.openDialog('describe');
+    DialogStore.describeState.selectedColumns.value = [...step.describe.columns];
+    DialogStore.describeState.isPreviewing.value = false;
   }
 }
 
