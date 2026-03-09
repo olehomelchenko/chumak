@@ -232,6 +232,8 @@ export const debouncedUpdatePreview = previewHandle.trigger;
 export const clearYourTransformPreview = previewHandle.clear;
 ```
 
+**Preview column selection**: Each transform handler decides which columns to show in its preview. Prefer showing columns relevant to the operation — e.g., derive shows columns referenced in the expression (via `computeTokens()` from `expression-token-extractor.ts`) + the output column; merge shows selected merge columns + output. Avoid arbitrary slicing like `columns.slice(0, N)`.
+
 See existing handlers (e.g., `filter-handlers.ts`) for full examples including `applyTransform` and `StepService.runTransform` patterns.
 
 **Using Validation Engine** (for expression/regex validation):

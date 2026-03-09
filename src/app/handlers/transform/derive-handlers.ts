@@ -1,5 +1,6 @@
 import { parseExpression } from '../../../core/expression-parser';
 import { interpretAST } from '../../../core/ast-interpreter';
+import { computeTokens } from '../../../core/expression-token-extractor';
 import { DialogStore } from '../../stores/DialogStore';
 import { AppStore } from '../../stores/AppStore';
 import * as HelperHandlers from '../core/helper-handlers';
@@ -42,8 +43,9 @@ const derivePreview = createDebouncedPreview({
       }
     });
 
-    // Show first 4 source columns + new derived column
-    const previewCols = [...columns.slice(0, 4), outputCol];
+    // Show columns referenced in the expression + the new derived column
+    const { columns: referencedCols } = computeTokens(expression, columns);
+    const previewCols = [...referencedCols.filter((c) => c !== outputCol), outputCol];
 
     return {
       title: `Derive: ${outputCol}`,

@@ -245,18 +245,19 @@ docs/                        # Project documentation (internal)
 
 The core engine is fully portable — no browser APIs, no Preact dependency. It can be used standalone in Node.js (e.g., for a CLI tool). It imports only from `src/i18n/core.ts` (portable i18n registry) and third-party libraries (Arquero, jsep).
 
-| File/Directory         | Purpose                                                          |
-| ---------------------- | ---------------------------------------------------------------- |
-| `expression-parser.ts` | jsep wrapper, converts expression strings to AST                 |
-| `ast-validator.ts`     | Security whitelist, arity checks, schema validation              |
-| `ast-interpreter.ts`   | Safe AST execution, delegates to `functions/`                    |
-| `functions/`           | Function implementations (date, math, string, regex, json, type) |
-| `transforms/`          | Modular transform system (see below)                             |
-| `schema-engine.ts`     | Type inference and schema propagation                            |
-| `type-converter.ts`    | Column type conversion with error cells                          |
-| `eda-engine.ts`        | Statistical profiling and column analysis                        |
-| `charts.ts`            | Vega-Lite specification generator                                |
-| `vega-themes.ts`       | Theme configurations for visualizations                          |
+| File/Directory                  | Purpose                                                                                     |
+| ------------------------------- | ------------------------------------------------------------------------------------------- |
+| `expression-parser.ts`          | jsep wrapper, converts expression strings to AST                                            |
+| `ast-validator.ts`              | Security whitelist, arity checks, schema validation                                         |
+| `ast-interpreter.ts`            | Safe AST execution, delegates to `functions/`                                               |
+| `expression-token-extractor.ts` | Extracts referenced column names and function names from expressions (AST or text fallback) |
+| `functions/`                    | Function implementations (date, math, string, regex, json, type)                            |
+| `transforms/`                   | Modular transform system (see below)                                                        |
+| `schema-engine.ts`              | Type inference and schema propagation                                                       |
+| `type-converter.ts`             | Column type conversion with error cells                                                     |
+| `eda-engine.ts`                 | Statistical profiling and column analysis                                                   |
+| `charts.ts`                     | Vega-Lite specification generator                                                           |
+| `vega-themes.ts`                | Theme configurations for visualizations                                                     |
 
 **Transforms Module** (`transforms/`):
 
