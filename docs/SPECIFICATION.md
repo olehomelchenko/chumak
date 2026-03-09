@@ -466,6 +466,7 @@ Dialog components are rendered directly in `App.tsx`'s slide panel/modal shells 
 
 - **Themed Visuals**: Charts automatically adopt the active application theme.
 - **Chart Types**: Boxplots, Histograms, and Categorical Bar charts for Exploratory Data Analysis (EDA).
+- **Field Name Escaping**: Vega-Lite treats `.`, `[`, `]` in field names as nested property accessors. All user-supplied column names must go through `escapeVegaField()` in `charts.ts` — never pass raw column names to `field:` in specs.
 - **Implementation**: `src/core/charts.ts`, `src/core/vega-themes.ts`
 - **Theming**: See [UX-SPECIFICATION.md](UX-SPECIFICATION.md) §1.2 for theme system details
 

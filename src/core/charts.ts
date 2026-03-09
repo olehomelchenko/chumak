@@ -8,6 +8,11 @@ import { isConversionError } from './type-converter';
  * Provides visualization capabilities using Vega-Lite.
  */
 
+/** Escape dots and brackets so Vega-Lite treats them as literal field names */
+function escapeVegaField(name: string): string {
+  return name.replace(/([.\[\]])/g, '\\$1');
+}
+
 export interface ChartOptions {
   width?: number | 'container';
   height?: number;
@@ -45,7 +50,7 @@ export const ChartsEngine = {
       padding: { top: 10, bottom: 20, left: 10, right: 10 },
       encoding: {
         x: {
-          field: column,
+          field: escapeVegaField(column),
           type: 'quantitative',
           title: '',
           scale: { zero: false },
@@ -210,7 +215,7 @@ export const ChartsEngine = {
       padding: { top: 10, bottom: 25, left: 10, right: 10 },
       encoding: {
         x: {
-          field: column,
+          field: escapeVegaField(column),
           type: 'quantitative',
           bin: { maxbins: options.maxbins || 40 },
           title: '',
@@ -258,11 +263,12 @@ export const ChartsEngine = {
       });
 
       if (onBrush) {
+        const escaped = escapeVegaField(column);
         result.view.addSignalListener('brush', (_name: string, value: any) => {
-          if (value && value[column]) {
+          if (value && value[escaped]) {
             onBrush({
-              min: value[column][0],
-              max: value[column][1],
+              min: value[escaped][0],
+              max: value[escaped][1],
             });
           } else {
             onBrush(null);
@@ -335,7 +341,7 @@ export const ChartsEngine = {
       },
       encoding: {
         x: {
-          field: column,
+          field: escapeVegaField(column),
           type: 'temporal',
           timeUnit: timeUnit,
           title: '',
@@ -347,7 +353,7 @@ export const ChartsEngine = {
           axis: null,
         },
         tooltip: [
-          { field: column, type: 'temporal', timeUnit: timeUnit, title: 'Date' },
+          { field: escapeVegaField(column), type: 'temporal', timeUnit: timeUnit, title: 'Date' },
           { aggregate: 'count', title: 'Count' },
         ],
       },
