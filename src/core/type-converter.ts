@@ -17,6 +17,21 @@ export interface ConversionError {
 export type ConversionResult = any | ConversionError;
 
 /**
+ * Clone a flat data array (array of {column: value} rows), recreating
+ * ConversionError objects whose methods make them incompatible with structuredClone.
+ */
+export function cloneData(data: any[]): any[] {
+  return data.map((row) => {
+    const clone: Record<string, any> = {};
+    for (const key in row) {
+      const value = row[key];
+      clone[key] = isConversionError(value) ? createErrorObject(value.message) : value;
+    }
+    return clone;
+  });
+}
+
+/**
  * Check if a value is a ConversionError object.
  * Centralizes the duck-typing check used across the codebase.
  */

@@ -192,42 +192,16 @@ export class ModelService {
     alert: (msg: string) => Promise<any>,
     switchToModelFn: (model: Model) => void
   ) {
-    const activeModel = AppStore.activeModel.value;
-    if (!activeModel) {
-      await alert(i18n.t('system.noActiveModel', { ns: 'errors' }));
-      return;
-    }
-
-    const newName = await prompt(
-      i18n.t('prompts.copyModel', { ns: 'common' }),
-      `${activeModel.name}_copy`
+    return ModelService.deriveModel(
+      {
+        promptKey: 'prompts.copyModel',
+        defaultSuffix: '_copy',
+        successKey: 'notifications.model.copied',
+      },
+      prompt,
+      alert,
+      switchToModelFn
     );
-    if (!newName || newName.trim() === '') return;
-    const name = newName.trim();
-
-    const existingModel = AppStore.models.value.find(
-      (m) => m.sourceId === activeModel.sourceId && m.name.toLowerCase() === name.toLowerCase()
-    );
-
-    if (existingModel) {
-      await alert(i18n.t('validation.duplicate.modelExists', { ns: 'errors' }));
-      return;
-    }
-
-    const copiedModel: Model = {
-      id: `mdl_${Date.now()}`,
-      name: name,
-      sourceId: activeModel.sourceId,
-      steps: JSON.parse(JSON.stringify(activeModel.steps)),
-      schema: activeModel.schema ? JSON.parse(JSON.stringify(activeModel.schema)) : [],
-      data: structuredClone(activeModel.data),
-      __v: activeModel.__v ?? 1, // Preserve version from original, default to 1
-    };
-
-    AppStore.models.value = [...AppStore.models.value, copiedModel];
-    switchToModelFn(copiedModel);
-    await PersistenceService.autoSave();
-    showSuccess(i18n.t('notifications.model.copied', { ns: 'common', name }));
   }
 
   /**
@@ -239,6 +213,28 @@ export class ModelService {
     alert: (msg: string) => Promise<any>,
     switchToModelFn: (model: Model) => void
   ) {
+    return ModelService.deriveModel(
+      {
+        promptKey: 'prompts.forkModel',
+        defaultSuffix: '_fork',
+        successKey: 'notifications.model.forked',
+        upToStep: stepIndex,
+      },
+      prompt,
+      alert,
+      switchToModelFn
+    );
+  }
+
+  /**
+   * Shared logic for copy/fork: clone steps, create a new model, recompute from source.
+   */
+  private static async deriveModel(
+    config: { promptKey: string; defaultSuffix: string; successKey: string; upToStep?: number },
+    prompt: (msg: string, def?: string) => Promise<string | null>,
+    alert: (msg: string) => Promise<any>,
+    switchToModelFn: (model: Model) => void
+  ) {
     const activeModel = AppStore.activeModel.value;
     if (!activeModel) {
       await alert(i18n.t('system.noActiveModel', { ns: 'errors' }));
@@ -246,8 +242,8 @@ export class ModelService {
     }
 
     const newName = await prompt(
-      i18n.t('prompts.forkModel', { ns: 'common' }),
-      `${activeModel.name}_fork`
+      i18n.t(config.promptKey as any, { ns: 'common' }),
+      `${activeModel.name}${config.defaultSuffix}`
     );
     if (!newName || newName.trim() === '') return;
     const name = newName.trim();
@@ -261,28 +257,31 @@ export class ModelService {
       return;
     }
 
-    const forkedSteps = JSON.parse(JSON.stringify(activeModel.steps.slice(0, stepIndex + 1)));
+    const sourceSteps =
+      config.upToStep !== undefined
+        ? activeModel.steps.slice(0, config.upToStep + 1)
+        : activeModel.steps;
+    const clonedSteps = JSON.parse(JSON.stringify(sourceSteps));
 
-    const forkedModel: Model = {
+    const newModel: Model = {
       id: `mdl_${Date.now()}`,
-      name: name,
+      name,
       sourceId: activeModel.sourceId,
-      steps: forkedSteps,
+      steps: clonedSteps,
       schema: [],
       data: [],
       __v: activeModel.__v ?? 1,
     };
 
-    // Compute data up to the forked step
     const context = { sources: AppStore.sources.value, models: AppStore.models.value };
-    const result = StepService.computeModelUpToStep(forkedModel, forkedSteps.length - 1, context);
-    forkedModel.data = result.data;
-    forkedModel.schema = result.schema;
+    const result = StepService.computeModelUpToStep(newModel, clonedSteps.length - 1, context);
+    newModel.data = result.data;
+    newModel.schema = result.schema;
 
-    AppStore.models.value = [...AppStore.models.value, forkedModel];
-    switchToModelFn(forkedModel);
+    AppStore.models.value = [...AppStore.models.value, newModel];
+    switchToModelFn(newModel);
     await PersistenceService.autoSave();
-    showSuccess(i18n.t('notifications.model.forked', { ns: 'common', name }));
+    showSuccess(i18n.t(config.successKey as any, { ns: 'common', name }));
   }
 
   /**

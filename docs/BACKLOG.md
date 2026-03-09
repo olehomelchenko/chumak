@@ -41,6 +41,20 @@ An `addMissingDates` transform that fills gaps in time series data. Given a date
 
 **Implementation**: Detect date range bounds from data, generate complete sequence at specified granularity, left-join original data onto the generated sequence. If grouping columns are specified (e.g., per-region time series), cross-join groups × dates first.
 
+### Bulk File Import with Optional Union
+
+**Status**: Planned
+**Effort**: Small-Medium
+**Origin**: Tidy data analysis — "one type in multiple tables" pattern (Wickham, 2014)
+
+Import multiple files at once via multi-select file picker (`<input multiple>`) or multi-file drag-drop. Each file becomes a separate source (using existing import logic in a loop). After import, offer a one-click "Combine into one?" option that auto-generates a `union` or `concat` step across all imported sources.
+
+**Optional enhancement**: Before combining, auto-derive a `source_file` column on each source so users can trace rows back to their origin file.
+
+**Why this matters**: A common real-world pattern is data split across many files (one per year, per region, per export batch). Currently each file must be imported individually and manually concatenated. Bulk import removes the tedium for the 2–20 file case, which covers most analyst workflows.
+
+**Technical notes**: No new dependencies. Browser APIs (`FileList`, `DataTransferItemList`) natively support multi-file selection. Schema mismatches across files are handled by existing `concat`/`union` column alignment logic.
+
 ---
 
 ## UI/UX Enhancements
@@ -193,9 +207,10 @@ These have been considered and explicitly excluded:
 1. Example workflows for onboarding & website video ([EXAMPLE-WORKFLOWS.md](future/EXAMPLE-WORKFLOWS.md))
 2. SEO landing pages (infrastructure done, content needed)
 3. Top N per Group transform (small-medium effort, very common analytical need)
-4. Flatten JSON transform
-5. Fill Date Gaps transform (medium effort, important for time series)
-6. Web Workers investigation for heavy transforms
+4. Bulk File Import with optional union (small-medium effort, common real-world pattern)
+5. Flatten JSON transform
+6. Fill Date Gaps transform (medium effort, important for time series)
+7. Web Workers investigation for heavy transforms
 
 ---
 

@@ -860,7 +860,9 @@ interface ConversionError {
 }
 ```
 
-**Implementation**: `createErrorObject()` and `isConversionError()` in `src/core/type-converter.ts`.
+**Implementation**: `createErrorObject()`, `isConversionError()`, and `cloneData()` in `src/core/type-converter.ts`.
+
+> **Cloning constraint**: The `toString()`/`valueOf()` methods make error objects incompatible with `structuredClone`. Use `cloneData()` for deep-cloning data arrays that may contain errors.
 
 ### 8.1 Sources of Errors
 

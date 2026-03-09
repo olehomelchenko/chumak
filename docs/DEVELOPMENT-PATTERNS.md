@@ -541,7 +541,10 @@ try {
 
 Type conversion failures and expression evaluation errors produce `ConversionError` objects that live in data cells (Power Query-style). See [DATA-SPECIFICATION.md §8](DATA-SPECIFICATION.md#8-error-objects) for the full specification.
 
-**Key rule**: Always use `isConversionError()` from `src/core/type-converter.ts` to detect error values — never inline duck-type `v.type === 'error'`.
+**Key rules**:
+
+- Always use `isConversionError()` from `src/core/type-converter.ts` to detect error values — never inline duck-type `v.type === 'error'`.
+- **Never use `structuredClone` on `model.data`** — `ConversionError` objects have `toString()`/`valueOf()` methods which `structuredClone` cannot clone (throws `DataCloneError`). Use `cloneData()` from `type-converter.ts` when a data backup is needed (e.g., error recovery). Prefer recomputing from source + steps over cloning when creating new models.
 
 **Error propagation in expressions**: Errors propagate through arithmetic, comparisons, and logical operators (like `null` propagation). `??` and `coalesce()` treat errors as missing. `is_error(value)` detects errors in user expressions.
 

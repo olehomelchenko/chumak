@@ -1,0 +1,68 @@
+{
+  "api_version": "2.1",
+  "status": "success",
+  "total_records": 4,
+  "metadata": {
+    "generated_at": "2026-03-09T12:00:00Z",
+    "source": "analytics_pipeline",
+    "config": {
+      "region": "eu-west",
+      "sampling_rate": 0.95
+    }
+  },
+  "data": {
+    "summary": "Q1 2026 Sales Report",
+    "currency": "USD",
+    "records": [
+      {
+        "id": 1,
+        "name": "Alice Chen",
+        "email": "alice@example.com",
+        "department": {
+          "name": "Engineering",
+          "floor": 3
+        },
+        "sales": 48200,
+        "tags": ["enterprise", "renewal"],
+        "active": true
+      },
+      {
+        "id": 2,
+        "name": "Bob Martinez",
+        "email": "bob@example.com",
+        "department": {
+          "name": "Sales",
+          "floor": 2
+        },
+        "sales": 61500,
+        "tags": ["new-business", "smb"],
+        "active": true
+      },
+      {
+        "id": 3,
+        "name": "Carol Wu",
+        "email": "carol@example.com",
+        "department": {
+          "name": "Engineering",
+          "floor": 3
+        },
+        "sales": 35800,
+        "tags": ["enterprise"],
+        "active": false
+      },
+      {
+        "id": 4,
+        "name": "David Kim",
+        "email": "david@example.com",
+        "department": {
+          "name": "Marketing",
+          "floor": 1
+        },
+        "sales": 29100,
+        "tags": ["smb", "trial-convert", "upsell"],
+        "active": true
+      }
+    ]
+  },
+  "errors": []
+}

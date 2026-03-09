@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { convertType } from './type-converter';
+import { convertType, cloneData, isConversionError } from './type-converter';
 
 describe('Type Converter', () => {
   describe('convertType()', () => {
@@ -235,6 +235,45 @@ describe('Type Converter', () => {
       it('should handle null for json conversions', () => {
         expect(convertType(null, 'string', 'json')).toBe(null);
       });
+    });
+  });
+
+  describe('cloneData()', () => {
+    it('should clone rows with primitive values', () => {
+      const data = [
+        { name: 'Alice', age: 30 },
+        { name: 'Bob', age: null },
+      ];
+      const cloned = cloneData(data);
+      expect(cloned).toEqual(data);
+      expect(cloned).not.toBe(data);
+      expect(cloned[0]).not.toBe(data[0]);
+    });
+
+    it('should clone rows containing ConversionError objects', () => {
+      const error = convertType('abc', 'string', 'integer');
+      const data = [
+        { name: 'Alice', value: 42 },
+        { name: 'Bob', value: error },
+      ];
+      const cloned = cloneData(data);
+
+      expect(isConversionError(cloned[1].value)).toBe(true);
+      expect(cloned[1].value.message).toBe(error.message);
+      expect(cloned[1].value.toString()).toBe('Error');
+      // Cloned error is a new object, not the same reference
+      expect(cloned[1].value).not.toBe(error);
+    });
+
+    it('should handle empty data', () => {
+      expect(cloneData([])).toEqual([]);
+    });
+
+    it('should not throw (unlike structuredClone) when data has errors', () => {
+      const error = convertType('abc', 'string', 'integer');
+      const data = [{ value: error }];
+      // structuredClone would throw DataCloneError here
+      expect(() => cloneData(data)).not.toThrow();
     });
   });
 });

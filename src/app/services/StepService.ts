@@ -6,6 +6,7 @@ import { PersistenceService } from './PersistenceService';
 import { DependencyService } from './DependencyService';
 import { Model, Source } from '../types';
 import { ColumnSchema, ColumnType, SchemaEngine, TransformStep } from '../../core/schema-engine';
+import { cloneData } from '../../core/type-converter';
 import { AppStore, HistoryStack } from '../stores/AppStore';
 import { showSuccess } from '../handlers/core/notification-handlers';
 import i18n from '../../i18n';
@@ -433,7 +434,7 @@ export class StepService {
 
     const backup = {
       steps: JSON.parse(JSON.stringify(model.steps)),
-      data: structuredClone(model.data),
+      data: cloneData(model.data),
       schema: JSON.parse(JSON.stringify(model.schema)),
     };
 
