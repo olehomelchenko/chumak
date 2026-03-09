@@ -133,6 +133,19 @@ This would require a proof-of-concept with benchmarks before committing to imple
 
 ---
 
+### Extract Preview Panel from App.tsx
+
+**Status**: Planned
+**Effort**: Small
+
+`App.tsx` wraps high-frequency dialog helpers (`activeDialogHasError`, `hasPreviewData`, `getPreviewStats`, `getPreviewTitle`) in `useComputed()` to prevent the entire tree from re-rendering on every keystroke. However, `getPreviewColumns()`, `getPreviewRows()`, and `isNewPreviewColumn()` are still called directly during App's render (inside the `hasPreview.value` guard), subscribing App to `DialogStore.previewState.columns`, `.rows`, and `.newColumns` signals.
+
+**Proposed fix**: Extract the preview table (lines ~351–404 of `App.tsx`) into a dedicated `<PreviewPanel />` component. The component would own its signal subscriptions, so preview data updates only re-render the preview panel — not the entire App tree including the sidebar, ribbon, main content, and all open dialogs.
+
+**Why it matters now**: The `useComputed` fix eliminated the worst offender (keystroke-triggered full re-renders), but preview data updates during transform editing still cause unnecessary work. The impact is lower than the keystroke case because preview data changes less frequently, but it scales with preview row count and the number of child components in App.
+
+---
+
 ### Workflow Format Stability
 
 **Status**: Important for future

@@ -329,6 +329,17 @@ AppStore.signal1.value = value1;
 AppStore.signal2.value = value2;
 ```
 
+**Signal subscription trap**: Any `.value` read during a component's render — including inside helper functions called during render — subscribes that component to the signal. A parent component that calls `helperThatReadsSignal()` during render will re-render whenever that signal changes, cascading to all children. Use `useComputed()` to isolate derived values:
+
+```tsx
+// BAD: App subscribes to expression.value, error.value via hasError() internals
+const dialogError = activeDialogHasError();
+
+// GOOD: App subscribes only to the computed boolean result
+const dialogError = useComputed(() => activeDialogHasError());
+// use dialogError.value in JSX
+```
+
 Effects for side-effects:
 
 ```typescript

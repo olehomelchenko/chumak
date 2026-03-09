@@ -1,3 +1,4 @@
+import { useComputed } from '@preact/signals';
 import { AppStore } from '../stores/AppStore';
 import { isConversionError } from '../../core/type-converter';
 import { DialogStore } from '../stores/DialogStore';
@@ -132,13 +133,15 @@ export function App() {
   const slidePanelRef = useFocusTrap<HTMLDivElement>(isSlidePanel(activeDialog));
   const centeredModalRef = useFocusTrap<HTMLDivElement>(isCenteredModal(activeDialog));
 
-  // Helper Wrappers - pure functions that access stores directly
-  const previewStats = getPreviewStats();
-  const previewTitle = getPreviewTitle();
+  // Computed signals: prevent App from subscribing to rapidly-changing dialog signals.
+  // Without useComputed, reading e.g. expression.value inside hasError() during render
+  // would cause the entire App tree to re-render on every keystroke.
+  const dialogError = useComputed(() => activeDialogHasError());
+  const hasPreview = useComputed(() => hasPreviewData());
+  const previewStats = useComputed(() => getPreviewStats());
+  const previewTitle = useComputed(() => getPreviewTitle());
   const dialogTitle = getDialogTitle();
   const buttonText = getDialogButtonText();
-  const hasPreview = hasPreviewData();
-  const dialogError = activeDialogHasError();
 
   // Props Construction
   const sidebarProps = {
@@ -256,11 +259,11 @@ export function App() {
         {/* Slide Panel Shell */}
         {isSlidePanel(activeDialog) && (
           <div
-            class={`${styles.slidePanelShell} ${styles.open} ${hasPreview ? styles.hasPreview : ''} ${activeDialog === 'join' ? styles.joinDialog : ''}`}
+            class={`${styles.slidePanelShell} ${styles.open} ${hasPreview.value ? styles.hasPreview : ''} ${activeDialog === 'join' ? styles.joinDialog : ''}`}
           >
             {/* Backdrop */}
             <div
-              class={`${styles.backdrop} ${hasPreview ? styles.blurred : ''}`}
+              class={`${styles.backdrop} ${hasPreview.value ? styles.blurred : ''}`}
               onClick={() => closeDialog()}
             />
 
@@ -335,7 +338,7 @@ export function App() {
                 <button
                   class="button button--primary"
                   onClick={() => applyActiveTransform()}
-                  disabled={dialogError}
+                  disabled={dialogError.value}
                 >
                   {buttonText}
                 </button>
@@ -345,14 +348,14 @@ export function App() {
         )}
 
         {/* Preview Panel Shell */}
-        {hasPreview && isSlidePanel(activeDialog) && (
+        {hasPreview.value && isSlidePanel(activeDialog) && (
           <div
             class={`${styles.previewPanelShell} ${activeDialog === 'join' ? styles.joinDialog : ''}`}
           >
             <div class={styles.previewPanel}>
               <div class={styles.previewPanelHeader}>
-                <h4>{previewTitle || 'Preview'}</h4>
-                <div dangerouslySetInnerHTML={{ __html: previewStats }}></div>
+                <h4>{previewTitle.value || 'Preview'}</h4>
+                <div dangerouslySetInnerHTML={{ __html: previewStats.value }}></div>
               </div>
               <div class={styles.previewPanelContent}>
                 <div class={tableStyles.tableContainer}>
@@ -486,7 +489,7 @@ export function App() {
                     <button
                       class="button button--primary"
                       onClick={() => applyActiveTransform()}
-                      disabled={dialogError}
+                      disabled={dialogError.value}
                     >
                       {buttonText}
                     </button>
