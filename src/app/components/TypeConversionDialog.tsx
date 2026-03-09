@@ -8,6 +8,7 @@ import {
   isNewPreviewColumn,
 } from '../orchestration/DialogCoordinator';
 import { formatCellValue } from '../handlers/core/helper-handlers';
+import { isConversionError } from '../../core/type-converter';
 import styles from './App.module.css';
 import tableStyles from './DataTable.module.css';
 
@@ -85,11 +86,7 @@ export function TypeConversionDialog({ onCancel, onApply }: TypeConversionDialog
                       >
                         {previewColumns.map((col: string) => {
                           const cellValue = row[col];
-                          const isError =
-                            cellValue &&
-                            typeof cellValue === 'object' &&
-                            'type' in cellValue &&
-                            cellValue.type === 'error';
+                          const isError = isConversionError(cellValue);
                           return (
                             <td
                               key={col}

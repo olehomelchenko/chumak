@@ -539,24 +539,11 @@ try {
 
 ### 4.4 Data Errors (Error Cells)
 
-Type conversion failures produce error objects:
+Type conversion failures and expression evaluation errors produce `ConversionError` objects that live in data cells (Power Query-style). See [DATA-SPECIFICATION.md §8](DATA-SPECIFICATION.md#8-error-objects) for the full specification.
 
-```typescript
-// In type-converter.ts
-if (cannotConvert) {
-  return {
-    type: 'error',
-    message: `Cannot convert '${value}' to integer`,
-    original: value,
-  };
-}
-```
+**Key rule**: Always use `isConversionError()` from `src/core/type-converter.ts` to detect error values — never inline duck-type `v.type === 'error'`.
 
-Error objects:
-
-- Display as "Error" with warning icon in table
-- Are tracked separately from nulls in EDA
-- Implement `toString()` returning `"Error"`
+**Error propagation in expressions**: Errors propagate through arithmetic, comparisons, and logical operators (like `null` propagation). `??` and `coalesce()` treat errors as missing. `is_error(value)` detects errors in user expressions.
 
 ---
 

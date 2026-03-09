@@ -3,6 +3,7 @@
  */
 
 import { AppStore } from '../stores/AppStore';
+import { isConversionError } from '../../core/type-converter';
 
 /**
  * Log current page data to console for debugging
@@ -33,7 +34,7 @@ export function debugLogCurrentPage() {
         typedRow[`${col} (type)`] =
           value === null || value === undefined
             ? 'null/undefined'
-            : typeof value === 'object' && value !== null && value.type === 'error'
+            : isConversionError(value)
               ? 'error'
               : typeof value;
         typedRow[`${col} (formatted)`] = formatValue(value);
@@ -51,7 +52,7 @@ export function debugLogCurrentPage() {
 
 function formatValue(value: any): string {
   if (value === null || value === undefined) return 'null';
-  if (typeof value === 'object' && value !== null && value.type === 'error') {
+  if (isConversionError(value)) {
     return `Error: ${value.message}`;
   }
   if (value instanceof Date) {

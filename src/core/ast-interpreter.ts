@@ -1,5 +1,6 @@
 import { ASTNode } from './expression-parser';
 import { FUNCTION_IMPLS, parseToDate } from './functions';
+import { isConversionError } from './type-converter';
 
 // Re-export parseToDate for backward compatibility
 export { parseToDate } from './functions';
@@ -53,20 +54,29 @@ function evaluateNode(node: ASTNode, rowData: Record<string, any>): any {
       // Short-circuit evaluation for && and 'and'
       if (node.operator === '&&' || node.operator === 'and') {
         const left = evaluateNode(node.left!, rowData);
+        if (isConversionError(left)) return left;
         return left ? evaluateNode(node.right!, rowData) : left;
       }
       // Short-circuit evaluation for || and 'or'
       if (node.operator === '||' || node.operator === 'or') {
         const left = evaluateNode(node.left!, rowData);
+        if (isConversionError(left)) return left;
         return left ? left : evaluateNode(node.right!, rowData);
       }
+      // Nullish coalescing: treats errors as missing (like null)
       if (node.operator === '??') {
         const left = evaluateNode(node.left!, rowData);
-        return left !== null && left !== undefined ? left : evaluateNode(node.right!, rowData);
+        return left !== null && left !== undefined && !isConversionError(left)
+          ? left
+          : evaluateNode(node.right!, rowData);
       }
 
       const left = evaluateNode(node.left!, rowData);
       const right = evaluateNode(node.right!, rowData);
+
+      // Error propagation: if either operand is a ConversionError, propagate it
+      if (isConversionError(left)) return left;
+      if (isConversionError(right)) return right;
 
       // Handle date comparisons
       const isComparison = ['>', '<', '>=', '<=', '==', '===', '!=', '!=='].includes(
@@ -112,6 +122,7 @@ function evaluateNode(node: ASTNode, rowData: Record<string, any>): any {
 
     case 'UnaryExpression': {
       const arg = evaluateNode(node.argument!, rowData);
+      if (isConversionError(arg)) return arg;
       const op = UNARY_OPS[node.operator!];
       if (!op) throw new Error(`Unknown unary operator: ${node.operator}`);
       return op(arg);
@@ -119,6 +130,7 @@ function evaluateNode(node: ASTNode, rowData: Record<string, any>): any {
 
     case 'ConditionalExpression': {
       const test = evaluateNode(node.test!, rowData);
+      if (isConversionError(test)) return test;
       return test
         ? evaluateNode(node.consequent!, rowData)
         : evaluateNode(node.alternate!, rowData);

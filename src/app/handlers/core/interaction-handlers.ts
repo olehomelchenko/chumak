@@ -1,4 +1,5 @@
 import { SchemaEngine, ColumnType } from '../../../core/schema-engine';
+import { isConversionError } from '../../../core/type-converter';
 import { DialogStore } from '../../stores/DialogStore';
 import { AppStore } from '../../stores/AppStore';
 import * as HelperHandlers from './helper-handlers';
@@ -113,7 +114,7 @@ export function previewTypeConversion(col: string, newType: string) {
     const key =
       value === null || value === undefined
         ? '__null__'
-        : typeof value === 'object' && value !== null && 'type' in value && value.type === 'error'
+        : isConversionError(value)
           ? `__error__${value.message}`
           : JSON.stringify(value);
 
@@ -137,12 +138,7 @@ export function previewTypeConversion(col: string, newType: string) {
     };
 
     // Mark errors
-    if (
-      convertedValue &&
-      typeof convertedValue === 'object' &&
-      'type' in convertedValue &&
-      convertedValue.type === 'error'
-    ) {
+    if (isConversionError(convertedValue)) {
       row._hasError = true;
     }
 

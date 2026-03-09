@@ -1,6 +1,6 @@
 # Conversion Functions
 
-4 functions available
+6 functions available
 
 ## parse_int
 
@@ -59,24 +59,59 @@ is_nan("abc") -> true
 
 ---
 
+## is_error
+
+Tests if a value is a conversion error
+
+**Parameters:**
+
+- `value` — Value to test
+
+**Returns:** true if value is an error object, false otherwise
+
+**Examples:**
+
+```
+is_error(price)
+is_error(price) -> true (when price contains a conversion error)
+```
+
+---
+
 ## if
 
-Returns the first non-null value from a list of arguments
+Returns one of two values based on a condition (if-then-else)
 
 **Parameters:**
 
 - `condition` — Expression that evaluates to true or false
 - `then_value` — Value returned when condition is true
 - `else_value` — Value returned when condition is false
-- `args` — Variable number of values to check
 
-**Returns:** First non-null/non-undefined value, or null if all are null
+**Returns:** then_value if condition is truthy, else_value otherwise
 
 **Examples:**
 
 ```
 if(age >= 18, "adult", "minor")
 if(score > 90, "A", "B") -> "A" (when score is 95)
+```
+
+---
+
+## coalesce
+
+Returns the first non-null, non-error value from a list of arguments
+
+**Parameters:**
+
+- `args` — Variable number of values to check
+
+**Returns:** First non-null/non-undefined/non-error value, or null if all are null/error
+
+**Examples:**
+
+```
 coalesce(preferred_name, first_name, "Unknown")
 coalesce(null, null, "fallback") -> "fallback"
 ```

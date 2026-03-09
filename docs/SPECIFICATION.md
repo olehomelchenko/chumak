@@ -159,9 +159,11 @@ Handles type conversion between column types with Power Query-style error cells.
 
 - **Implementation**: `src/core/type-converter.ts`
 - **Tests**: `src/core/type-converter.test.ts`
+- **Reference**: See [DATA-SPECIFICATION.md §8](DATA-SPECIFICATION.md#8-error-objects) for error propagation rules
 - **Features**:
-  - Converts between all supported types (string, integer, float, boolean, date, datetime)
-  - Returns error objects for invalid conversions
+  - Converts between all supported types (string, integer, float, boolean, date, datetime, json)
+  - Returns `ConversionError` objects for invalid conversions (Power Query-style error cells)
+  - `isConversionError()` — centralized type guard for detecting error values
   - Handles edge cases (null, empty strings, whitespace)
 
 ### 3.4 Storage

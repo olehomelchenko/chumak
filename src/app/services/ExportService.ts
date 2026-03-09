@@ -2,6 +2,7 @@ import { AppStore } from '../stores/AppStore';
 import Papa from 'papaparse';
 import { showSuccess } from '../handlers/core/notification-handlers';
 import i18n from '../../i18n';
+import { isConversionError } from '../../core/type-converter';
 
 /**
  * ExportService
@@ -23,11 +24,13 @@ export class ExportService {
 
     const start = performance.now();
     try {
-      // Pre-process: serialize any remaining native objects/arrays to JSON strings
+      // Pre-process: convert errors to null, serialize native objects/arrays to JSON strings
       const processedData = data.map((row: Record<string, any>) => {
         const newRow: Record<string, any> = {};
         for (const [key, value] of Object.entries(row)) {
-          if (value !== null && typeof value === 'object' && !(value instanceof Date)) {
+          if (isConversionError(value)) {
+            newRow[key] = null;
+          } else if (value !== null && typeof value === 'object' && !(value instanceof Date)) {
             newRow[key] = JSON.stringify(value);
           } else {
             newRow[key] = value;
@@ -123,7 +126,11 @@ export class ExportService {
 
     const start = performance.now();
     try {
-      const json = JSON.stringify(data, null, 2);
+      const json = JSON.stringify(
+        data,
+        (_key, value) => (isConversionError(value) ? null : value),
+        2
+      );
       const blob = new Blob([json], { type: 'application/json;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
@@ -160,7 +167,18 @@ export class ExportService {
     }
 
     try {
-      const csv = Papa.unparse(pageData);
+      const processedData = pageData.map((row: Record<string, any>) => {
+        const newRow: Record<string, any> = {};
+        for (const [key, value] of Object.entries(row)) {
+          if (isConversionError(value)) {
+            newRow[key] = null;
+          } else {
+            newRow[key] = value;
+          }
+        }
+        return newRow;
+      });
+      const csv = Papa.unparse(processedData);
       await navigator.clipboard.writeText(csv);
       showSuccess(i18n.t('notifications.copiedCsv', { ns: 'common' }));
     } catch (error: any) {
@@ -183,7 +201,11 @@ export class ExportService {
     }
 
     try {
-      const json = JSON.stringify(pageData, null, 2);
+      const json = JSON.stringify(
+        pageData,
+        (_key, value) => (isConversionError(value) ? null : value),
+        2
+      );
       await navigator.clipboard.writeText(json);
       showSuccess(i18n.t('notifications.copiedJson', { ns: 'common' }));
     } catch (error: any) {

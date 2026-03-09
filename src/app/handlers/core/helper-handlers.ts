@@ -1,4 +1,5 @@
 import { describeTransform } from '../../../core/transforms';
+import { isConversionError } from '../../../core/type-converter';
 import { parseExpression } from '../../../core/expression-parser';
 import { validateAST } from '../../../core/ast-validator';
 import { formatError } from '../../../core/error-formatter';
@@ -185,7 +186,7 @@ export function formatCellValue(value: any): string {
 
   // Handle error objects (Power Query-style error cells)
   // Return just "Error" for display - full message shown on click
-  if (value && typeof value === 'object' && value.type === 'error') {
+  if (isConversionError(value)) {
     return 'Error';
   }
 
@@ -231,7 +232,7 @@ export function formatCellValueForTooltip(value: any): string {
   if (value === null || value === undefined || value === '') return 'null';
 
   // Handle error objects - return "Error" instead of "[Object object]"
-  if (value && typeof value === 'object' && value.type === 'error') {
+  if (isConversionError(value)) {
     return 'Error';
   }
 

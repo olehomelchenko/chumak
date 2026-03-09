@@ -17,6 +17,14 @@ export interface ConversionError {
 export type ConversionResult = any | ConversionError;
 
 /**
+ * Check if a value is a ConversionError object.
+ * Centralizes the duck-typing check used across the codebase.
+ */
+export function isConversionError(value: any): value is ConversionError {
+  return value !== null && typeof value === 'object' && value.type === 'error';
+}
+
+/**
  * Create an error object with custom toString() and valueOf() methods
  * This ensures error objects display as "Error" instead of "[object Object]"
  */

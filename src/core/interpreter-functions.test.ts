@@ -826,4 +826,70 @@ describe('coalesce() function', () => {
   it('should work with literal fallback', () => {
     expect(interpretAST(parseExpression('coalesce(a, b, "fallback")'), row)).toBe('fallback');
   });
+
+  it('should skip error values', () => {
+    const errorObj = {
+      type: 'error' as const,
+      message: 'test',
+      toString: () => 'Error',
+      valueOf: () => 'Error',
+    };
+    const errRow = { ...row, errCol: errorObj };
+    expect(interpretAST(parseExpression('coalesce(errCol, 42)'), errRow)).toBe(42);
+  });
+
+  it('should skip null and error to find first good value', () => {
+    const errorObj = {
+      type: 'error' as const,
+      message: 'test',
+      toString: () => 'Error',
+      valueOf: () => 'Error',
+    };
+    const errRow = { ...row, errCol: errorObj };
+    expect(interpretAST(parseExpression('coalesce(a, errCol, 99)'), errRow)).toBe(99);
+  });
+
+  it('should return null when all values are null or error', () => {
+    const errorObj = {
+      type: 'error' as const,
+      message: 'test',
+      toString: () => 'Error',
+      valueOf: () => 'Error',
+    };
+    const errRow = { ...row, errCol: errorObj };
+    expect(interpretAST(parseExpression('coalesce(a, errCol)'), errRow)).toBe(null);
+  });
+});
+
+describe('is_error() function', () => {
+  const errorObj = {
+    type: 'error' as const,
+    message: 'Cannot convert "abc" to integer',
+    toString: () => 'Error',
+    valueOf: () => 'Error',
+  };
+  const row = { errCol: errorObj, sales: 1500, nullVal: null, name: 'Alice' };
+
+  it('should return true for error objects', () => {
+    expect(interpretAST(parseExpression('is_error(errCol)'), row)).toBe(true);
+  });
+
+  it('should return false for normal values', () => {
+    expect(interpretAST(parseExpression('is_error(sales)'), row)).toBe(false);
+    expect(interpretAST(parseExpression('is_error(name)'), row)).toBe(false);
+  });
+
+  it('should return false for null', () => {
+    expect(interpretAST(parseExpression('is_error(nullVal)'), row)).toBe(false);
+  });
+
+  it('should work in filter-like expressions', () => {
+    expect(interpretAST(parseExpression('not is_error(sales)'), row)).toBe(true);
+    expect(interpretAST(parseExpression('not is_error(errCol)'), row)).toBe(false);
+  });
+
+  it('should work in ternary for error recovery', () => {
+    expect(interpretAST(parseExpression('is_error(errCol) ? 0 : errCol'), row)).toBe(0);
+    expect(interpretAST(parseExpression('is_error(sales) ? 0 : sales'), row)).toBe(1500);
+  });
 });

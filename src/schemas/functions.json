@@ -1519,10 +1519,31 @@
       ]
     },
     {
+      "name": "is_error",
+      "category": "Conversion",
+      "description": "Tests if a value is a conversion error",
+      "signature": "is_error(value)",
+      "params": [
+        {
+          "name": "value",
+          "description": "Value to test"
+        }
+      ],
+      "returns": "true if value is an error object, false otherwise",
+      "examples": [
+        {
+          "expression": "is_error(price)"
+        },
+        {
+          "expression": "is_error(price) -> true (when price contains a conversion error)"
+        }
+      ]
+    },
+    {
       "name": "if",
       "category": "Conversion",
-      "description": "Returns the first non-null value from a list of arguments",
-      "signature": "if(condition, then_value, else_value, args)",
+      "description": "Returns one of two values based on a condition (if-then-else)",
+      "signature": "if(condition, then_value, else_value)",
       "params": [
         {
           "name": "condition",
@@ -1535,20 +1556,31 @@
         {
           "name": "else_value",
           "description": "Value returned when condition is false"
-        },
-        {
-          "name": "args",
-          "description": "Variable number of values to check"
         }
       ],
-      "returns": "First non-null/non-undefined value, or null if all are null",
+      "returns": "then_value if condition is truthy, else_value otherwise",
       "examples": [
         {
           "expression": "if(age >= 18, \"adult\", \"minor\")"
         },
         {
           "expression": "if(score > 90, \"A\", \"B\") -> \"A\" (when score is 95)"
-        },
+        }
+      ]
+    },
+    {
+      "name": "coalesce",
+      "category": "Conversion",
+      "description": "Returns the first non-null, non-error value from a list of arguments",
+      "signature": "coalesce(args...)",
+      "params": [
+        {
+          "name": "args",
+          "description": "Variable number of values to check"
+        }
+      ],
+      "returns": "First non-null/non-undefined/non-error value, or null if all are null/error",
+      "examples": [
         {
           "expression": "coalesce(preferred_name, first_name, \"Unknown\")"
         },

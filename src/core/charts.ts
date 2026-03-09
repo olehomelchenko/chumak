@@ -1,5 +1,6 @@
 import vegaEmbed from 'vega-embed';
 import { sytoTheme, bluesTheme } from './vega-themes';
+import { isConversionError } from './type-converter';
 
 /**
  * Syto Charts Engine
@@ -28,7 +29,13 @@ export const ChartsEngine = {
 
     const chartData = data
       .map((row) => ({ [column]: row[column] }))
-      .filter((row) => row[column] !== null && row[column] !== undefined && row[column] !== '');
+      .filter(
+        (row) =>
+          row[column] !== null &&
+          row[column] !== undefined &&
+          row[column] !== '' &&
+          !isConversionError(row[column])
+      );
 
     const spec: any = {
       $schema: 'https://vega.github.io/schema/vega-lite/v6.json',
@@ -187,7 +194,13 @@ export const ChartsEngine = {
 
     const chartData = data
       .map((row) => ({ [column]: row[column] }))
-      .filter((row) => row[column] !== null && row[column] !== undefined && row[column] !== '');
+      .filter(
+        (row) =>
+          row[column] !== null &&
+          row[column] !== undefined &&
+          row[column] !== '' &&
+          !isConversionError(row[column])
+      );
 
     const spec: any = {
       $schema: 'https://vega.github.io/schema/vega-lite/v6.json',
@@ -283,7 +296,7 @@ export const ChartsEngine = {
       .map((row) => ({ [column]: row[column] }))
       .filter((row) => {
         const val = row[column];
-        if (val === null || val === undefined || val === '') return false;
+        if (val === null || val === undefined || val === '' || isConversionError(val)) return false;
         const date = new Date(val);
         return !isNaN(date.getTime());
       })

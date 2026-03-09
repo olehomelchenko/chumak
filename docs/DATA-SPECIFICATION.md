@@ -136,6 +136,7 @@ For JSON:
 
 - JavaScript `number` → `integer` or `float`
 - JavaScript `boolean` → `boolean`
+- JavaScript `object` (non-null, non-Date) → `json`
 - JavaScript `string` → `string`
 - `null`/`undefined` → `string` (fallback)
 
@@ -187,13 +188,14 @@ Types are inferred using pattern matching with the following priority order:
 4. **Numeric Strings**: All non-null values are strings that parse cleanly as numbers (e.g., `"123"`, `"45.67"`)
    - Trimmed and validated with `Number()`, excluding `NaN` and `Infinity`
    - Returns `integer` if all parse as whole numbers, `float` otherwise
-5. **DateTime**: All non-null string values match regex:
+5. **JSON**: All non-null string values look like JSON (`{...}` or `[...]`) and at least one parses successfully
+6. **DateTime**: All non-null string values match regex:
    - ISO format: `YYYY-MM-DDTHH:MM:SS...`
    - SQL format: `YYYY-MM-DD HH:MM:SS...`
-6. **Date**: All non-null string values match one of:
+7. **Date**: All non-null string values match one of:
    - ISO format: `YYYY-MM-DD` or `YYYY/MM/DD`
    - American format: `MM/DD/YYYY` or `M/D/YYYY`
-7. **String**: Default fallback for all other cases
+8. **String**: Default fallback for all other cases
 
 **Null handling**: `null`, `undefined`, and empty strings (`""`) are excluded from pattern matching during inference.
 
@@ -239,6 +241,36 @@ When a `types` transform is applied, values are converted to the target logical 
 CSV File → PapaParse (dynamicTyping) → Physical Types (dataset) →
 Inference → Logical Types (model's first types step) → Data Wrangling
 ```
+
+#### 2.3.8 JSON Type: Design Rationale
+
+The `json` column type follows the same pattern as `date`/`datetime` — it's a **schema annotation on string data**, not a different storage mechanism. All types in the system store values as JavaScript primitives (strings, numbers, booleans, null); the type metadata tells the UI and transforms what operations are meaningful.
+
+**What `json` as a type provides:**
+
+- **UI signaling**: The `{}` badge in `TypeIndicator` tells users a column contains structured data
+- **Type conversion validation**: Casting a column to `json` validates that values parse as valid JSON
+- **Semantic intent**: Signals that `spread`, `unroll`, and `json_*` expression functions are relevant operations
+
+**What `json` does NOT provide:**
+
+- Expression functions (`json_extract`, `json_keys`, etc.) operate on any string containing valid JSON regardless of column type — they inspect runtime values, not schema metadata
+- `spread`/`unroll` transforms also inspect runtime values (`checkIfNeedsJsonParsing`) rather than checking the schema type
+
+**Dual representation (by design):**
+
+JSON columns can hold either serialized JSON strings or native JS objects:
+
+- **Serialized strings**: From CSV import, JSON import with `serializeNested: true`, or type conversion. Expression functions (`json_extract`, etc.) work correctly on these via `JSON.parse(String(value))`.
+- **Native JS objects**: From JSON import with `serializeNested: false`, or from expressions like `json_extract()` returning a nested object. Arquero `spread`/`unroll` work directly on these without parsing.
+
+This dual representation was considered for unification (always serialize to strings), but rejected because:
+
+1. `json_extract()` navigating to a nested path returns native objects — auto-stringifying the result would be surprising and would require a serialization pass after every derive step
+2. The current code handles both representations where they appear (`spread`/`unroll` check for strings and parse when needed)
+3. No bugs have been observed from the dual representation in practice
+
+**Type promotion**: When `json` is mixed with any other type in `promoteTypes()`, the result is `string`.
 
 ---
 
@@ -817,22 +849,54 @@ Exported workflow JSON for sharing and replay:
 
 ## 8. Error Objects
 
-Type conversion failures produce error objects instead of null:
+Type conversion failures and expression evaluation errors produce error objects instead of null:
 
 ```typescript
-interface ErrorValue {
+interface ConversionError {
   type: 'error';
   message: string; // e.g., "Cannot convert 'abc' to integer"
-  original: any; // Original value that failed conversion
+  toString(): string; // Returns "Error"
+  valueOf(): string; // Returns "Error"
 }
 ```
 
-Error objects:
+**Implementation**: `createErrorObject()` and `isConversionError()` in `src/core/type-converter.ts`.
 
-- Display as "Error" in the table (with warning icon)
-- Are tracked separately from nulls in EDA statistics
-- Are excluded from numeric calculations (mean, median, etc.)
-- Implement `toString()` returning `"Error"`
+### 8.1 Sources of Errors
+
+- **Type conversion**: Failed `types` transform (e.g., `"abc"` → integer)
+- **Expression evaluation**: Failed `derive` or `conditional` expression (e.g., division by zero)
+
+### 8.2 Error Display and Statistics
+
+- Display as "Error" in the table (red background, warning icon; click shows full message)
+- Tracked separately from nulls in EDA statistics (`errorCount`, `errorPercentage`)
+- Excluded from numeric calculations (mean, median, etc.)
+- Displayed as dark red bar in categorical charts
+- All error objects group together during aggregation (regardless of message)
+
+### 8.3 Error Handling in Expressions
+
+Errors propagate through expressions similarly to `null`:
+
+- **Arithmetic and comparisons**: `error + 1` → error. `error > 10` → error. Left error takes precedence.
+- **`??` (nullish coalescing)**: Treats errors as "missing" — `price ?? 0` returns `0` when `price` is null OR an error.
+- **`&&` / `||`**: If the left operand is an error, the error propagates (no short-circuit).
+- **`coalesce()`**: Skips error values (consistent with `??`).
+- **`is_error(value)`**: Returns `true` if the value is a conversion error, `false` otherwise.
+- **Ternary `? :`**: If the test is an error, the error propagates (neither branch executes).
+- **Unary operators**: `-error` → error. `!error` → error.
+
+### 8.4 Error Handling in Transforms
+
+- **Impute**: Error cells are treated as missing values and replaced by the imputation strategy.
+- **Filter**: Expression errors silently exclude the row.
+- **Aggregate (groupby)**: All error objects are grouped together as a single group (via `toString()` → `"Error"`).
+
+### 8.5 Error Handling in Export
+
+- **CSV/JSON export**: Error cells are exported as `null`.
+- **Clipboard copy**: Same as export — errors become `null`.
 
 ---
 

@@ -254,7 +254,7 @@ function generateOperatorsMarkdown(): string {
     {
       operator: '??',
       category: 'Special',
-      description: 'Null coalescing',
+      description: 'Null/error coalescing',
       example: 'discount ?? 0',
     },
   ];
@@ -274,6 +274,15 @@ function generateOperatorsMarkdown(): string {
     }
     lines.push('');
   }
+
+  lines.push(
+    '**Note on `??`:** The null coalescing operator treats both `null` and conversion errors as "missing". For example, `price ?? 0` returns `0` when `price` is null OR contains a conversion error.\n'
+  );
+
+  lines.push('## Error propagation\n');
+  lines.push(
+    'Conversion errors propagate through arithmetic, comparison, and logical operators. If either operand is an error, the result is an error. Use `is_error(value)` to detect errors, `??` or `coalesce()` to provide fallbacks.\n'
+  );
 
   return lines.join('\n');
 }

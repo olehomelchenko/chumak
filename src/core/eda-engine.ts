@@ -4,6 +4,8 @@
  * Provides statistical analysis and data profiling for columns.
  */
 
+import { isConversionError } from './type-converter';
+
 export interface CategoricalStat {
   value: string;
   count: number;
@@ -61,11 +63,10 @@ export const EDAEngine = {
     const values = data.map((row) => row[column]);
     const totalCount = values.length;
     // Separate error objects from nulls
-    const isError = (v: any) => v && typeof v === 'object' && v.type === 'error';
-    const errorCount = values.filter((v) => isError(v)).length;
+    const errorCount = values.filter((v) => isConversionError(v)).length;
     const nullCount = values.filter((v) => v === null || v === undefined || v === '').length;
     const nonNullValues = values.filter(
-      (v) => v !== null && v !== undefined && v !== '' && !isError(v)
+      (v) => v !== null && v !== undefined && v !== '' && !isConversionError(v)
     );
     const uniqueValues = new Set(nonNullValues);
 
@@ -104,7 +105,7 @@ export const EDAEngine = {
     const numericValues = values
       .filter((v) => {
         // Skip error objects
-        if (v && typeof v === 'object' && v.type === 'error') return false;
+        if (isConversionError(v)) return false;
         // Convert to number and check if valid
         const num = Number(v);
         return !isNaN(num) && isFinite(num);

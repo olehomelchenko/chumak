@@ -1,14 +1,16 @@
 import * as aq from 'arquero';
 import type { FullTransformStep } from '../types';
+import { isConversionError } from '../../type-converter';
 
 export function handleImpute(table: any, transform: FullTransformStep): any {
   const { column, strategy, value, includeEmptyString } = transform.impute!;
   const op = (aq as any).op;
 
-  // Helper to check for missing values
+  // Helper to check for missing values (includes conversion errors)
   const isMissing = includeEmptyString
-    ? (v: any) => v == null || (typeof v === 'number' && isNaN(v)) || v === ''
-    : (v: any) => v == null || (typeof v === 'number' && isNaN(v));
+    ? (v: any) =>
+        v == null || (typeof v === 'number' && isNaN(v)) || v === '' || isConversionError(v)
+    : (v: any) => v == null || (typeof v === 'number' && isNaN(v)) || isConversionError(v);
 
   switch (strategy) {
     case 'constant':

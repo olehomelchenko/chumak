@@ -1,4 +1,5 @@
 import { AppStore } from '../stores/AppStore';
+import { isConversionError } from '../../core/type-converter';
 import { DialogStore } from '../stores/DialogStore';
 import { AppHeader } from './AppHeader';
 import { RibbonToolbar } from './RibbonToolbar';
@@ -378,11 +379,7 @@ export function App() {
                             const isRemovedColumn =
                               row._removedColumns && row._removedColumns.includes(col);
                             const cellValue = row[col];
-                            const isError =
-                              cellValue &&
-                              typeof cellValue === 'object' &&
-                              'type' in cellValue &&
-                              cellValue.type === 'error';
+                            const isError = isConversionError(cellValue);
                             return (
                               <td
                                 key={col}

@@ -2,6 +2,7 @@ import { useTranslation } from 'preact-i18next';
 import { AppStore } from '../stores/AppStore';
 import type { DataRow } from '../types';
 import { debugLogCurrentPage } from '../utils/debug-helpers';
+import { isConversionError } from '../../core/type-converter';
 import styles from './DataTable.module.css';
 
 export interface DataTableProps {
@@ -55,7 +56,7 @@ export function DataTable({
       classes.push(styles.empty);
     } else if (value === 0 || value === '0') {
       classes.push(styles.zero);
-    } else if (value && typeof value === 'object' && value.type === 'error') {
+    } else if (isConversionError(value)) {
       classes.push(styles.error);
     }
 
@@ -275,8 +276,7 @@ export function DataTable({
                 </td>
                 {columns.value.map((column) => {
                   const cellValue = row[column];
-                  const isError =
-                    cellValue && typeof cellValue === 'object' && cellValue.type === 'error';
+                  const isError = isConversionError(cellValue);
                   const isBoolean = typeof cellValue === 'boolean';
 
                   return (

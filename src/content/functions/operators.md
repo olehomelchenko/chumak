@@ -34,4 +34,10 @@
 | Operator | Description           | Example                        |
 | -------- | --------------------- | ------------------------------ |
 | `? :`    | Conditional (ternary) | `profit > 0 ? "Gain" : "Loss"` |
-| `??`     | Null coalescing       | `discount ?? 0`                |
+| `??`     | Null/error coalescing | `discount ?? 0`                |
+
+**Note on `??`:** The null coalescing operator treats both `null` and conversion errors as "missing". For example, `price ?? 0` returns `0` when `price` is null OR contains a conversion error.
+
+## Error propagation
+
+Conversion errors propagate through arithmetic, comparison, and logical operators. If either operand is an error, the result is an error. Use `is_error(value)` to detect errors, `??` or `coalesce()` to provide fallbacks.

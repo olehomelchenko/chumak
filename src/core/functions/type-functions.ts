@@ -4,6 +4,8 @@
  * @category Conversion
  */
 
+import { isConversionError } from '../type-converter';
+
 /**
  * @category Conversion
  * @description Parses a value as an integer
@@ -46,6 +48,18 @@ export const is_nan = (value: any) => {
 };
 
 /**
+ * @category Conversion
+ * @description Tests if a value is a conversion error
+ * @param value - Value to test
+ * @returns true if value is an error object, false otherwise
+ * @example is_error(price)
+ * @example is_error(price) -> true (when price contains a conversion error)
+ */
+export const is_error = (value: any) => {
+  return isConversionError(value);
+};
+
+/**
  * @name if
  * @category Conversion
  * @description Returns one of two values based on a condition (if-then-else)
@@ -55,23 +69,24 @@ export const is_nan = (value: any) => {
  * @returns then_value if condition is truthy, else_value otherwise
  * @example if(age >= 18, "adult", "minor")
  * @example if(score > 90, "A", "B") -> "A" (when score is 95)
+ *
+ * Note: Both branches are eagerly evaluated (no short-circuit). Use ternary `? :` when branches may error.
  */
-// Both branches are eagerly evaluated (no short-circuit). Use ternary `? :` when branches may error.
 const if_ = (condition: any, thenValue: any, elseValue: any) => {
   return condition ? thenValue : elseValue;
 };
 
 /**
  * @category Conversion
- * @description Returns the first non-null value from a list of arguments
+ * @description Returns the first non-null, non-error value from a list of arguments
  * @param args - Variable number of values to check
- * @returns First non-null/non-undefined value, or null if all are null
+ * @returns First non-null/non-undefined/non-error value, or null if all are null/error
  * @example coalesce(preferred_name, first_name, "Unknown")
  * @example coalesce(null, null, "fallback") -> "fallback"
  */
 export const coalesce = (...args: any[]) => {
   for (const arg of args) {
-    if (arg !== null && arg !== undefined) return arg;
+    if (arg !== null && arg !== undefined && !isConversionError(arg)) return arg;
   }
   return null;
 };
@@ -80,6 +95,7 @@ export const typeFunctions: Record<string, (...args: any[]) => any> = {
   parse_int,
   parse_float,
   is_nan,
+  is_error,
   if: if_,
   coalesce,
 };
