@@ -418,14 +418,14 @@
       "totalRows": "Всього Рядків",
       "missing": "Пропущені",
       "missingTooltip": "{{percent}}% пропущено",
-      "uniqueValues": "Унікальні Значення",
+      "uniqueValues": "Унікальні",
       "errors": "Помилки",
       "errorsTooltip": "{{percent}}% помилок"
     },
     "numeric": {
       "title": "Розподіл та Викиди",
       "charts": {
-        "boxplot": "Ящик з Вусами",
+        "boxplot": "Боксплот",
         "histogram": "Гістограма"
       },
       "keepSelection": "Зберегти Лише Виділення",

@@ -1,83 +1,118 @@
 import { Fragment } from 'preact';
 import { useState, useEffect } from 'preact/hooks';
+import { useTranslation } from 'preact-i18next';
 import { syncDialogToUrl } from '../orchestration/UrlStateSync';
-import { html as operatorsHtml } from '../../content/functions/operators.md';
-import { html as regexHtml } from '../../content/functions/regex.md';
-import { html as dateHtml } from '../../content/functions/date.md';
-import { html as textHtml } from '../../content/functions/text.md';
-import { html as mathHtml } from '../../content/functions/math.md';
-import { html as conversionHtml } from '../../content/functions/conversion.md';
-import { html as jsonHtml } from '../../content/functions/json.md';
-import { html as aggregateHtml } from '../../content/functions/aggregate.md';
-import { html as gettingStartedHtml } from '../../content/getting-started.md';
-import { html as shortcutsHtml } from '../../content/shortcuts.md';
-import { html as whatsNewHtml } from '../../content/whats-new.md';
+
+// English content
+import { html as enOperators } from '../../content/functions/operators.md';
+import { html as enRegex } from '../../content/functions/regex.md';
+import { html as enDate } from '../../content/functions/date.md';
+import { html as enText } from '../../content/functions/text.md';
+import { html as enMath } from '../../content/functions/math.md';
+import { html as enConversion } from '../../content/functions/conversion.md';
+import { html as enJson } from '../../content/functions/json.md';
+import { html as enAggregate } from '../../content/functions/aggregate.md';
+import { html as enGettingStarted } from '../../content/getting-started.md';
+import { html as enShortcuts } from '../../content/shortcuts.md';
+import { html as enWhatsNew } from '../../content/whats-new.md';
+
+// Ukrainian content
+import { html as ukOperators } from '../../content/uk/functions/operators.md';
+import { html as ukRegex } from '../../content/uk/functions/regex.md';
+import { html as ukDate } from '../../content/uk/functions/date.md';
+import { html as ukText } from '../../content/uk/functions/text.md';
+import { html as ukMath } from '../../content/uk/functions/math.md';
+import { html as ukConversion } from '../../content/uk/functions/conversion.md';
+import { html as ukJson } from '../../content/uk/functions/json.md';
+import { html as ukAggregate } from '../../content/uk/functions/aggregate.md';
+import { html as ukGettingStarted } from '../../content/uk/getting-started.md';
+import { html as ukShortcuts } from '../../content/uk/shortcuts.md';
+import { html as ukWhatsNew } from '../../content/uk/whats-new.md';
+
 import styles from './FunctionReferenceDialog.module.css';
 
-interface Category {
-  id: string;
-  label: string;
-  html: string;
-}
+const contentByLocale: Record<string, Record<string, string>> = {
+  en: {
+    'getting-started': enGettingStarted,
+    operators: enOperators,
+    date: enDate,
+    text: enText,
+    math: enMath,
+    regex: enRegex,
+    conversion: enConversion,
+    json: enJson,
+    aggregate: enAggregate,
+    shortcuts: enShortcuts,
+    'whats-new': enWhatsNew,
+  },
+  uk: {
+    'getting-started': ukGettingStarted,
+    operators: ukOperators,
+    date: ukDate,
+    text: ukText,
+    math: ukMath,
+    regex: ukRegex,
+    conversion: ukConversion,
+    json: ukJson,
+    aggregate: ukAggregate,
+    shortcuts: ukShortcuts,
+    'whats-new': ukWhatsNew,
+  },
+};
 
-const sidebarGroups: Category[][] = [
-  // Guide
-  [{ id: 'getting-started', label: 'Getting Started', html: gettingStartedHtml }],
-  // Expression functions
-  [
-    { id: 'operators', label: 'Operators', html: operatorsHtml },
-    { id: 'date', label: 'Date', html: dateHtml },
-    { id: 'text', label: 'Text', html: textHtml },
-    { id: 'math', label: 'Math', html: mathHtml },
-    { id: 'regex', label: 'Regex', html: regexHtml },
-    { id: 'conversion', label: 'Conversion', html: conversionHtml },
-    { id: 'json', label: 'JSON', html: jsonHtml },
-    { id: 'aggregate', label: 'Aggregate', html: aggregateHtml },
-  ],
-  // Extras
-  [
-    { id: 'shortcuts', label: 'Shortcuts', html: shortcutsHtml },
-    { id: 'whats-new', label: "What's New", html: whatsNewHtml },
-  ],
+/** Section IDs grouped for sidebar rendering. */
+const sidebarGroups: string[][] = [
+  ['getting-started'],
+  ['operators', 'date', 'text', 'math', 'regex', 'conversion', 'json', 'aggregate'],
+  ['shortcuts', 'whats-new'],
 ];
 
-const allCategories = sidebarGroups.flat();
+const allSectionIds = sidebarGroups.flat();
 
 export function FunctionReferenceDialog({ section }: { section?: string } = {}) {
+  const { t, i18n } = useTranslation('dialogs');
+  const lang = i18n.language;
+
   // See dialog-registry.ts reference.initState for why globalThis is used here
   const initialSection = section || (globalThis as any).__referenceSection || 'getting-started';
   const [activeCategory, setActiveCategory] = useState(
-    allCategories.some((c) => c.id === initialSection) ? initialSection : 'getting-started'
+    allSectionIds.includes(initialSection) ? initialSection : 'getting-started'
   );
 
   useEffect(() => {
     delete (globalThis as any).__referenceSection;
   }, []);
 
-  const activeCategoryData = allCategories.find((cat) => cat.id === activeCategory);
+  const content = contentByLocale[lang]?.[activeCategory] ?? contentByLocale.en[activeCategory];
+  const docsHref = lang === 'uk' ? '/uk/docs/' : '/docs/';
 
   return (
     <div className={styles.container}>
       <div className={styles.sidebar}>
-        <a href="/docs/" target="_blank" rel="noopener noreferrer" className={styles.openInNewTab}>
-          Open in new tab &#8599;
+        <a
+          href={docsHref}
+          target="_blank"
+          rel="noopener noreferrer"
+          className={styles.openInNewTab}
+        >
+          {t('referencePage.openInNewTab')} &#8599;
         </a>
         <div className={styles.categoryList}>
           {sidebarGroups.map((group, groupIndex) => (
             <Fragment key={groupIndex}>
               {groupIndex > 0 && <hr className={styles.categorySeparator} />}
-              {group.map((item) => (
+              {group.map((id) => (
                 <button
-                  key={item.id}
+                  key={id}
                   className={`${styles.categoryButton} ${
-                    activeCategory === item.id ? styles.active : ''
+                    activeCategory === id ? styles.active : ''
                   }`}
                   onClick={() => {
-                    setActiveCategory(item.id);
-                    syncDialogToUrl('reference', item.id);
+                    setActiveCategory(id);
+                    syncDialogToUrl('reference', id);
                   }}
                 >
-                  {item.label}
+                  {t(`referencePage.sidebar.${id}`)}
                 </button>
               ))}
             </Fragment>
@@ -85,11 +120,8 @@ export function FunctionReferenceDialog({ section }: { section?: string } = {}) 
         </div>
       </div>
       <div className={styles.content}>
-        {activeCategoryData && (
-          <div
-            className={styles.documentation}
-            dangerouslySetInnerHTML={{ __html: activeCategoryData.html }}
-          />
+        {content && (
+          <div className={styles.documentation} dangerouslySetInnerHTML={{ __html: content }} />
         )}
       </div>
     </div>

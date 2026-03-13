@@ -89,6 +89,22 @@
       "conversion": "Conversion"
     }
   },
+  "referencePage": {
+    "openInNewTab": "Open in new tab",
+    "sidebar": {
+      "getting-started": "Getting Started",
+      "operators": "Operators",
+      "date": "Date",
+      "text": "Text",
+      "math": "Math",
+      "regex": "Regex",
+      "conversion": "Conversion",
+      "json": "JSON",
+      "aggregate": "Aggregate",
+      "shortcuts": "Shortcuts",
+      "whats-new": "What's New"
+    }
+  },
   "filter": {
     "label": "Keep rows where:",
     "placeholder": "e.g., sales > 1000",

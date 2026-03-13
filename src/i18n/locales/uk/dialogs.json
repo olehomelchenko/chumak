@@ -89,6 +89,22 @@
       "conversion": "Конвертація"
     }
   },
+  "referencePage": {
+    "openInNewTab": "Відкрити в новій вкладці",
+    "sidebar": {
+      "getting-started": "Початок роботи",
+      "operators": "Оператори",
+      "date": "Дата",
+      "text": "Текст",
+      "math": "Математика",
+      "regex": "Регулярні вирази",
+      "conversion": "Конвертація",
+      "json": "JSON",
+      "aggregate": "Агрегація",
+      "shortcuts": "Комбінації клавіш",
+      "whats-new": "Що нового"
+    }
+  },
   "filter": {
     "label": "Залишити рядки, де:",
     "placeholder": "напр., sales > 1000",

@@ -22,7 +22,7 @@
     },
     "preview": {
       "title": "Попередній перегляд",
-      "showing": "Показано {{count}} з {{total}} рядків",
+      "showing": "{{count}} з {{total}} рядків",
       "columns": "{{count}} стовпців",
       "placeholder": "Вставте або завантажте JSON для попереднього перегляду"
     },

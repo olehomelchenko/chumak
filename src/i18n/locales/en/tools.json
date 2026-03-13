@@ -22,7 +22,7 @@
     },
     "preview": {
       "title": "Preview",
-      "showing": "Showing {{count}} of {{total}} rows",
+      "showing": "{{count}} of {{total}} rows",
       "columns": "{{count}} columns",
       "placeholder": "Paste or upload JSON to see a preview"
     },
