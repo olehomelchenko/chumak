@@ -5,6 +5,7 @@
  * They work directly with stores.
  */
 
+import i18n from '../../../i18n/core';
 import { AppStore } from '../../stores/AppStore';
 import { updateUXSetting } from '../../infrastructure/ux-settings';
 import * as InteractionHandlers from './interaction-handlers';
@@ -53,13 +54,17 @@ export function getPaginationInfo(): string {
   const currentPage = AppStore.currentPage.value;
   const pageSize = AppStore.pageSize.value;
 
-  if (!currentData || currentData.length === 0) return 'No data';
+  if (!currentData || currentData.length === 0) return i18n.t('ui:pagination.noData');
 
   const totalRows = currentData.length;
   const start = (currentPage - 1) * pageSize + 1;
   const end = Math.min(currentPage * pageSize, totalRows);
 
-  return `Showing ${start.toLocaleString()}-${end.toLocaleString()} of ${totalRows.toLocaleString()}`;
+  return i18n.t('ui:pagination.showing', {
+    start: start.toLocaleString(),
+    end: end.toLocaleString(),
+    total: totalRows.toLocaleString(),
+  });
 }
 
 /**

@@ -1,4 +1,5 @@
 import { useComputed } from '@preact/signals';
+import i18n from '../../i18n/core';
 import { AppStore } from '../stores/AppStore';
 import { isConversionError } from '../../core/type-converter';
 import { DialogStore } from '../stores/DialogStore';
@@ -333,7 +334,7 @@ export function App() {
 
               <div class={styles.slidePanelFooter}>
                 <button class="button button--secondary" onClick={() => closeDialog()}>
-                  Cancel
+                  {i18n.t('common:buttons.cancel')}
                 </button>
                 <button
                   class="button button--primary"

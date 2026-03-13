@@ -838,6 +838,23 @@
       "placeholder": "А, Б, В"
     }
   },
+  "importUrl": {
+    "urlLabel": "URL до CSV:",
+    "helpText": "Введіть пряме посилання на CSV або TSV файл.",
+    "sampleDatasets": "Зразки наборів даних:",
+    "fetching": "Завантаження даних..."
+  },
+  "generate": {
+    "generatorType": "Тип генератора",
+    "types": {
+      "numberSequence": "Числова послідовність",
+      "dateSequence": "Послідовність дат",
+      "randomNumber": "Випадкове число",
+      "randomDate": "Випадкова дата",
+      "randomBoolean": "Випадкове булеве",
+      "randomCategory": "Випадкова категорія"
+    }
+  },
   "importCsv": {
     "replaceMode": "Режим заміни",
     "replacingSource": "Ви замінюєте дані в джерелі:",

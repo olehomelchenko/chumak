@@ -309,7 +309,9 @@
     "nextPage": "Next page",
     "lastPage": "Last page",
     "pageIndicator": "Page <strong>{{currentPage}}</strong> of <strong>{{totalPages}}</strong>",
-    "rowsLabel": "Rows:"
+    "rowsLabel": "Rows:",
+    "showing": "Showing {{start}}-{{end}} of {{total}}",
+    "noData": "No data"
   },
   "modelInfo": {
     "subtitle": "Model",

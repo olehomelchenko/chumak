@@ -1,3 +1,4 @@
+import { useTranslation } from 'preact-i18next';
 import { DialogStore } from '../stores/DialogStore';
 import styles from './form-controls.module.css';
 
@@ -23,6 +24,7 @@ const POPULAR_DATASETS = [
 const CDN_BASE_URL = 'https://cdn.jsdelivr.net/npm/vega-datasets@latest/data';
 
 export function ImportUrlDialog({ onImport }: ImportUrlDialogProps) {
+  const { t } = useTranslation('dialogs');
   const { url, error, isFetching } = DialogStore.importUrlState;
 
   const handleDatasetClick = (filename: string, e: Event) => {
@@ -35,7 +37,7 @@ export function ImportUrlDialog({ onImport }: ImportUrlDialogProps) {
   return (
     <div>
       <div class={styles.group}>
-        <label class={styles.label}>CSV URL:</label>
+        <label class={styles.label}>{t('importUrl.urlLabel')}</label>
         <input
           type="url"
           class={styles.input}
@@ -52,12 +54,12 @@ export function ImportUrlDialog({ onImport }: ImportUrlDialogProps) {
           }}
           autoFocus
         />
-        <p class={styles.helpText}>Enter the direct link to a CSV or TSV file.</p>
+        <p class={styles.helpText}>{t('importUrl.helpText')}</p>
       </div>
 
       <div class={styles.group} style={{ marginTop: '1rem' }}>
         <p class={styles.helpText} style={{ marginBottom: '0.5rem' }}>
-          Sample datasets:
+          {t('importUrl.sampleDatasets')}
         </p>
         <div>
           {POPULAR_DATASETS.map((filename) => (
@@ -104,7 +106,7 @@ export function ImportUrlDialog({ onImport }: ImportUrlDialogProps) {
           }}
         >
           <span class="iconify spinning" data-icon="carbon:renew"></span>
-          <span>Fetching data...</span>
+          <span>{t('importUrl.fetching')}</span>
         </div>
       )}
     </div>

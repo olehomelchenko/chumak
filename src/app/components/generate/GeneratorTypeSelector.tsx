@@ -1,4 +1,5 @@
 import type { Signal } from '@preact/signals';
+import { useTranslation } from 'preact-i18next';
 import { GeneratorType } from '../../services/GeneratorService';
 import formStyles from '../form-controls.module.css';
 import genStyles from '../GenerateDialog.module.css';
@@ -13,13 +14,13 @@ const generatorIcons: Record<GeneratorType, string> = {
   randomCategory: 'carbon:direction-loop',
 };
 
-const generatorLabels: Record<GeneratorType, string> = {
-  numberSequence: 'Number Sequence',
-  dateSequence: 'Date Sequence',
-  randomNumber: 'Random Number',
-  randomDate: 'Random Date',
-  randomBoolean: 'Random Boolean',
-  randomCategory: 'Random Category',
+const GENERATOR_TYPE_KEYS: Record<GeneratorType, string> = {
+  numberSequence: 'generate.types.numberSequence',
+  dateSequence: 'generate.types.dateSequence',
+  randomNumber: 'generate.types.randomNumber',
+  randomDate: 'generate.types.randomDate',
+  randomBoolean: 'generate.types.randomBoolean',
+  randomCategory: 'generate.types.randomCategory',
 };
 
 const GENERATOR_TYPES: GeneratorType[] = [
@@ -37,22 +38,29 @@ interface GeneratorTypeSelectorProps {
 }
 
 export function GeneratorTypeSelector({ type, onChange }: GeneratorTypeSelectorProps) {
+  const { t } = useTranslation('dialogs');
   return (
     <div class={styles.group}>
-      <label class={styles.label}>Generator Type</label>
+      <label class={styles.label}>{t('generate.generatorType')}</label>
       <div class={styles.grid3} style={{ marginBottom: '1rem' }}>
-        {GENERATOR_TYPES.map((t) => (
-          <label key={t} class={styles.radioLabelCentered}>
+        {GENERATOR_TYPES.map((gt) => (
+          <label key={gt} class={styles.radioLabelCentered}>
             <input
               type="radio"
               name="generatorType"
-              value={t}
-              checked={type.value === t}
-              onChange={() => onChange(t)}
+              value={gt}
+              checked={type.value === gt}
+              onChange={() => onChange(gt)}
               style={{ display: 'none' }}
             />
-            <span class="iconify" data-icon={generatorIcons[t]} style={{ fontSize: '16px' }}></span>
-            <span style={{ fontSize: '0.75rem', whiteSpace: 'nowrap' }}>{generatorLabels[t]}</span>
+            <span
+              class="iconify"
+              data-icon={generatorIcons[gt]}
+              style={{ fontSize: '16px' }}
+            ></span>
+            <span style={{ fontSize: '0.75rem', whiteSpace: 'nowrap' }}>
+              {t(GENERATOR_TYPE_KEYS[gt])}
+            </span>
           </label>
         ))}
       </div>

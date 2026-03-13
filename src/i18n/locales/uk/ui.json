@@ -36,7 +36,7 @@
         "title": "Використати рядок даних як заголовки стовпців"
       },
       "editColumns": {
-        "label": "Редагувати Стовпці",
+        "label": "Стовпці",
         "title": "Вибрати, перейменувати, видалити, змінити порядок стовпців та застосувати шаблонні операції"
       },
       "split": {
@@ -309,7 +309,9 @@
     "nextPage": "Наступна сторінка",
     "lastPage": "Остання сторінка",
     "pageIndicator": "ст. <strong>{{currentPage}}</strong> з <strong>{{totalPages}}</strong>",
-    "rowsLabel": "Рядків:"
+    "rowsLabel": "Рядків:",
+    "showing": "{{start}}-{{end}} з {{total}}",
+    "noData": "Немає даних"
   },
   "modelInfo": {
     "subtitle": "Модель",

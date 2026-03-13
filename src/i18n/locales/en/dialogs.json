@@ -837,6 +837,23 @@
       "placeholder": "A, B, C"
     }
   },
+  "importUrl": {
+    "urlLabel": "CSV URL:",
+    "helpText": "Enter the direct link to a CSV or TSV file.",
+    "sampleDatasets": "Sample datasets:",
+    "fetching": "Fetching data..."
+  },
+  "generate": {
+    "generatorType": "Generator Type",
+    "types": {
+      "numberSequence": "Number Sequence",
+      "dateSequence": "Date Sequence",
+      "randomNumber": "Random Number",
+      "randomDate": "Random Date",
+      "randomBoolean": "Random Boolean",
+      "randomCategory": "Random Category"
+    }
+  },
   "importCsv": {
     "replaceMode": "Replace Mode",
     "replacingSource": "You are replacing data in source:",
