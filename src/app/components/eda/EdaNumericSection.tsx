@@ -49,25 +49,21 @@ export function EdaNumericSection({
         <div class={styles.chartContainer}>
           {view === 'boxplot' && <div ref={boxPlotRef} class={styles.chart} />}
           {view === 'histogram' && <div ref={histogramRef} class={styles.chart} />}
-        </div>
-      </div>
-
-      {/* Container 2: Selection Preview + Stats Flow */}
-      <div class={styles.edaStatsSection}>
-        <div class={styles.selectionPreview}>
-          {view === 'histogram' && brushSelection ? (
-            <>
-              <button class="button button--primary button--small" onClick={onApplyBrush}>
-                {t('eda.numeric.keepSelection')}
-              </button>
+          {view === 'histogram' && brushSelection && (
+            <div class={styles.brushTooltip}>
               <span class={styles.brushBounds}>
                 [{Number(brushSelection.min).toFixed(3)} - {Number(brushSelection.max).toFixed(3)}]
               </span>
-            </>
-          ) : (
-            <span class={styles.selectionPlaceholder}></span>
+              <button class="button button--primary button--small" onClick={onApplyBrush}>
+                {t('eda.numeric.keepSelection')}
+              </button>
+            </div>
           )}
         </div>
+      </div>
+
+      {/* Container 2: Stats Flow */}
+      <div class={styles.edaStatsSection}>
         <EdaStatsFlow edaStats={edaStats} onSelectStat={onSelectStat} />
       </div>
     </div>
@@ -91,7 +87,6 @@ function EdaStatsFlow({ edaStats, onSelectStat }: EdaStatsFlowProps) {
         <div class={styles.edaFlowItem__label}>{t('eda.numeric.stats.min')}</div>
         <div class={styles.edaFlowItem__value}>{edaStats.min}</div>
       </div>
-      <div class={styles.edaFlowConnector}></div>
       <div
         class={styles.edaFlowItem}
         onClick={(e) =>
@@ -101,7 +96,6 @@ function EdaStatsFlow({ edaStats, onSelectStat }: EdaStatsFlowProps) {
         <div class={styles.edaFlowItem__label}>{t('eda.numeric.stats.meanMinus3SigmaLabel')}</div>
         <div class={styles.edaFlowItem__value}>{edaStats.meanMinus3Sigma}</div>
       </div>
-      <div class={styles.edaFlowConnector}></div>
       <div
         class={styles.edaFlowItem}
         onClick={(e) => onSelectStat(t('eda.numeric.stats.p25'), edaStats.raw.p25, e)}
@@ -109,7 +103,6 @@ function EdaStatsFlow({ edaStats, onSelectStat }: EdaStatsFlowProps) {
         <div class={styles.edaFlowItem__label}>{t('eda.numeric.stats.p25Label')}</div>
         <div class={styles.edaFlowItem__value}>{edaStats.p25}</div>
       </div>
-      <div class={styles.edaFlowConnector}></div>
       <div
         class={styles.edaFlowItem}
         onClick={(e) => onSelectStat(t('eda.numeric.stats.median'), edaStats.raw.median, e)}
@@ -119,7 +112,6 @@ function EdaStatsFlow({ edaStats, onSelectStat }: EdaStatsFlowProps) {
           {edaStats.median}
         </div>
       </div>
-      <div class={styles.edaFlowConnector}></div>
       <div
         class={styles.edaFlowItem}
         onClick={(e) => onSelectStat(t('eda.numeric.stats.p75'), edaStats.raw.p75, e)}
@@ -127,7 +119,6 @@ function EdaStatsFlow({ edaStats, onSelectStat }: EdaStatsFlowProps) {
         <div class={styles.edaFlowItem__label}>{t('eda.numeric.stats.p75Label')}</div>
         <div class={styles.edaFlowItem__value}>{edaStats.p75}</div>
       </div>
-      <div class={styles.edaFlowConnector}></div>
       <div
         class={styles.edaFlowItem}
         onClick={(e) =>
@@ -137,7 +128,6 @@ function EdaStatsFlow({ edaStats, onSelectStat }: EdaStatsFlowProps) {
         <div class={styles.edaFlowItem__label}>{t('eda.numeric.stats.meanPlus3SigmaLabel')}</div>
         <div class={styles.edaFlowItem__value}>{edaStats.meanPlus3Sigma}</div>
       </div>
-      <div class={styles.edaFlowConnector}></div>
       <div
         class={styles.edaFlowItem}
         onClick={(e) => onSelectStat(t('eda.numeric.stats.max'), edaStats.raw.max, e)}
