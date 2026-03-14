@@ -150,6 +150,7 @@ npm run format   # Prettier
 | State management      | [DEVELOPMENT-PATTERNS.md](docs/DEVELOPMENT-PATTERNS.md) §2        |
 | UI component patterns | [UX-SPECIFICATION.md](docs/UX-SPECIFICATION.md) §3                |
 | UI vocabulary & terms | [UI-VOCAB.md](docs/UI-VOCAB.md)                                   |
+| Content & writing     | [CONTENT-GUIDELINES.md](docs/CONTENT-GUIDELINES.md)               |
 | What's safe to change | [FUTURE-PROOFING.md](docs/FUTURE-PROOFING.md)                     |
 | Date handling rules   | [DATE-STORAGE-ARCHITECTURE.md](docs/DATE-STORAGE-ARCHITECTURE.md) |
 | Adding tool pages     | [DEVELOPMENT-PATTERNS.md](docs/DEVELOPMENT-PATTERNS.md) §10       |

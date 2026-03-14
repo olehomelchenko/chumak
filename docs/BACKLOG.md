@@ -91,6 +91,32 @@ Migrate from Iconify CDN to custom hand-drawn SVG icons for better brand consist
 
 See [custom-icons-setup.md](custom-icons-setup.md) for detailed setup guide and migration strategy.
 
+### Content Guidelines Audit
+
+**Status**: Planned
+**Effort**: Small
+**Reference**: [CONTENT-GUIDELINES.md](CONTENT-GUIDELINES.md)
+
+Align existing UI text with the new content guidelines:
+
+- **errors.json**: Remove "Please" from ~30 validation messages. Replace with imperative or declarative forms (e.g., "Please enter a column name" → "Column name is required").
+- **Dialog button text**: Update `dialog-registry.ts` `buttonText` entries to use task-specific verbs (Filter → "Filter", Sort → "Sort", Derive → "Add column") instead of generic "Apply".
+- **Cancel vs Close**: Use "Cancel" for deferred-apply dialogs, "Close" for immediate-apply/informational.
+
+### Reduced Motion Support
+
+**Status**: Planned
+**Effort**: Small
+
+Add `prefers-reduced-motion` media query to `styles/base.css` to respect OS animation preferences. See [UX-SPECIFICATION.md](UX-SPECIFICATION.md) §5.2 for the CSS rule.
+
+### Empty State Components
+
+**Status**: Planned
+**Effort**: Medium
+
+Add designed empty states for scenarios currently showing blank space. See [UX-SPECIFICATION.md](UX-SPECIFICATION.md) §3.8 for the inventory: zero rows after filter, no steps in pipeline, empty EDA panel, no columns selected in dialog.
+
 ---
 
 ## Infrastructure

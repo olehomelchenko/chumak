@@ -17,6 +17,7 @@ Located in `docs/`:
 - **SPECIFICATION.md** - Technical architecture and codebase map
 - **DATA-SPECIFICATION.md** - Data structures, transforms, expression syntax
 - **UX-SPECIFICATION.md** - UI/UX patterns, component design
+- **CONTENT-GUIDELINES.md** - UI text conventions, error messages, i18n-friendly writing
 - **FUTURE-PROOFING.md** - Schema evolution and compatibility constraints
 
 #### Development Guides
@@ -82,6 +83,7 @@ Each type of information has ONE authoritative location:
 - **Architecture overview** → SPECIFICATION.md
 - **Data structures** → DATA-SPECIFICATION.md
 - **UI patterns** → UX-SPECIFICATION.md
+- **Content/writing conventions** → CONTENT-GUIDELINES.md
 - **User help** → src/content/ (about, getting-started, shortcuts, whats-new)
 - **Function reference** → JSDoc in ast-interpreter.ts (auto-generated docs)
 - **Content page config** → scripts/content-pages-config.ts
@@ -127,6 +129,7 @@ Function and expression documentation is generated from code:
 | Add new import/export format  | DATA-SPECIFICATION.md                                              |
 | Update user help content      | src/content/\*.md                                                  |
 | Add new content page          | scripts/content-pages-config.ts + src/content/\*.md                |
+| Change UI text conventions    | CONTENT-GUIDELINES.md                                              |
 
 ### Writing Guidelines
 

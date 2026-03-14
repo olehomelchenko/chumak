@@ -7,6 +7,7 @@
 > - **[DEVELOPMENT-PATTERNS.md](DEVELOPMENT-PATTERNS.md)**: How to add transforms, testing, state management
 > - **[CLAUDE.md](../CLAUDE.md)**: Development onboarding and quick reference
 > - **[DEBUGGING.md](DEBUGGING.md)**: CSS Module debugging and component identification
+> - **[CONTENT-GUIDELINES.md](CONTENT-GUIDELINES.md)**: UI text conventions, error messages, writing patterns
 
 ## 1. Design Foundation
 
@@ -27,6 +28,17 @@ Syto supports high-fidelity theme switching, accessible via the **Settings** dia
 - **Blues (KSE)**: Rigorous Navy palette, optimized for academic and business environments.
 
 **Integration**: Vega-Lite charts automatically inherit the active theme's color palette, axis styling, and typography for a seamless visual experience.
+
+### 1.3 Design Principles
+
+Principles guiding Syto's UX decisions, adapted from established design systems.
+
+| Principle                        | Meaning                                                                              | Example                                                                                                                                           |
+| -------------------------------- | ------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Match disruption to severity** | Low-priority feedback is non-blocking; high-priority interrupts the workflow         | Success → auto-dismissing toast. Error → persistent toast. Destructive action → confirmation dialog                                               |
+| **Mark the minority**            | Label whichever state is less common — required or optional fields                   | If most fields are required, mark only optional ones "(optional)". If most are optional, mark required with asterisk                              |
+| **Two channels for status**      | Never communicate status through color alone — always pair with icon, shape, or text | Error: red border + icon + message. Disabled: opacity + tooltip. Type: icon + label (Abc, #)                                                      |
+| **Progressive disclosure**       | Show simple options first, advanced settings on demand                               | Quick actions in popovers for common operations; full dialog for complex configuration. Disclosure sections for advanced options in dialog bodies |
 
 ---
 
@@ -202,6 +214,146 @@ Toast notifications provide non-blocking feedback for user actions. They appear 
 
 **Error Notifications** include step context when applicable (e.g., "Step 3: Filter: sales > 1000") to help users identify which transformation failed.
 
+#### Notification Channel Selection
+
+| Channel                 | Persistence                                      | Blocks user? | When to use                                                               |
+| ----------------------- | ------------------------------------------------ | ------------ | ------------------------------------------------------------------------- |
+| **Toast**               | Auto-dismiss (success/warning) or manual (error) | No           | Confirming completed actions, reporting failures                          |
+| **Inline message**      | Until resolved                                   | No           | Field-level errors, form validation (`.error`, `.warningBox`, `.noteBox`) |
+| **Banner**              | Until dismissed                                  | Partial      | Ongoing conditions: stale model, replaced source data, multi-step errors  |
+| **Confirmation dialog** | Until responded                                  | Yes          | Destructive actions: delete, replace, remove                              |
+
+**Rules**:
+
+- One action per notification — no multi-button toasts
+- Never auto-dismiss error notifications
+- Prefer inline feedback near the action over toasts — use toasts for operations that complete away from the trigger
+- For content writing conventions (tone, length, capitalization): see [CONTENT-GUIDELINES.md](CONTENT-GUIDELINES.md)
+
+### 3.7 Form Design Patterns
+
+#### Field Composition
+
+Standard anatomy for form fields in dialogs:
+
+```
+label              ← identifies the field
+input              ← the control itself
+helper text        ← persistent guidance, always visible
+error message      ← appears on validation failure
+```
+
+CSS classes for all four elements are defined in `form-controls.module.css` (`.label`, `.input`, `.helpText`, `.error`).
+
+#### Validation Timing
+
+- **Validate on blur** (field loses focus) — not on every keystroke
+- **Expression editors**: validate on debounce (existing behavior, keep it)
+- **Show error state**: red border on input + error message below field
+- **Dialog-level errors** (affecting the entire operation): use `.error` box in dialog body
+
+#### Required vs Optional Fields
+
+Follow the **"mark the minority"** principle (see §1.3):
+
+- If most fields are required → mark only optional ones with "(optional)" after the label
+- If most fields are optional → mark required ones with red asterisk (\*)
+- Never mark both required and optional — pick one
+
+#### Control Selection Thresholds
+
+| Option count  | Recommended control                |
+| ------------- | ---------------------------------- |
+| 2–3           | Radio buttons or segmented control |
+| 4–7           | Radio buttons or chip selector     |
+| 8+            | Combobox with type-ahead filtering |
+| Dynamic / 50+ | Combobox (essential)               |
+
+Cross-reference: [UI-VOCAB.md](UI-VOCAB.md) §1 for the full control inventory.
+
+#### Helper Text vs Placeholder vs Tooltip
+
+| Channel         | Persistence      | Content type                      | Example                             |
+| --------------- | ---------------- | --------------------------------- | ----------------------------------- |
+| **Helper text** | Always visible   | Format hints, constraints         | "e.g., `sales > 1000`"              |
+| **Placeholder** | Until user types | Example value                     | "Enter expression..."               |
+| **Tooltip**     | On hover only    | Supplementary, non-essential info | "Columns with spaces: `[Col Name]`" |
+
+Never use placeholder as the sole label — it disappears on input. See [CONTENT-GUIDELINES.md](CONTENT-GUIDELINES.md) §6 for detailed rules.
+
+#### Form Spacing in Dialogs
+
+| Gap  | Token        | Use                                 |
+| ---- | ------------ | ----------------------------------- |
+| 4px  | `--space-xs` | Between label and input             |
+| 8px  | `--space-sm` | Between input and helper/error text |
+| 16px | `--space-md` | Between field groups                |
+| 24px | `--space-lg` | Between form sections               |
+
+### 3.8 Empty States
+
+Every screen that can be empty should have a designed empty state — not blank space.
+
+#### Types
+
+| Type            | Trigger                                | Syto example                                       |
+| --------------- | -------------------------------------- | -------------------------------------------------- |
+| **No data**     | Nothing to display yet                 | Main area before import (`EmptyState.tsx`)         |
+| **User action** | User filtered/searched to zero results | Zero rows after filter, no columns selected in EDA |
+| **Error**       | Operation failed                       | Pipeline error, failed import                      |
+
+#### Principles
+
+- **Positive framing**: describe what the user can do, not what's missing. "Import data to get started" not "No data loaded."
+- **Always provide next action**: button, link, or instruction.
+- **Replace the container content** — don't show an empty table shell with column headers and zero rows.
+- **Anatomy**: icon (optional) + title + subtitle (optional) + action button(s).
+
+#### Key Scenarios
+
+| Scenario                      | Empty state message                                        |
+| ----------------------------- | ---------------------------------------------------------- |
+| No data loaded                | "Import data to get started" + action buttons              |
+| Zero rows after filter        | "No rows match this filter. Try adjusting the expression." |
+| No steps in pipeline          | "Add a transform from the ribbon above"                    |
+| No columns selected in dialog | "Select a column to begin"                                 |
+| EDA panel with no column      | "Select a column to see statistics"                        |
+| No search results             | "No matches found"                                         |
+
+For text conventions in empty states: see [CONTENT-GUIDELINES.md](CONTENT-GUIDELINES.md) §8.
+
+### 3.9 Disabled & Read-Only States
+
+#### Variants
+
+| State         | Visual treatment                    | Cursor        | Use case                          |
+| ------------- | ----------------------------------- | ------------- | --------------------------------- |
+| **Disabled**  | 50% opacity                         | `not-allowed` | Preconditions not met (temporary) |
+| **Read-only** | Normal appearance, no hover effects | `default`     | Display-only contexts             |
+| **Hidden**    | Not rendered                        | N/A           | Irrelevant to current context     |
+
+#### "Why Disabled" Tooltip
+
+Every disabled interactive element should explain _why_ it is disabled via a `title` attribute or tooltip. This pattern already exists for ribbon quick actions and should be generalized:
+
+- Ribbon buttons: "Select a date column to use date operations"
+- Dialog Apply button: "Fix validation errors to apply"
+- Column-conditional controls: "Requires a numeric column"
+
+#### CSS Convention
+
+```css
+/* Standard disabled pattern */
+&:disabled,
+&[aria-disabled='true'] {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: auto; /* preserve tooltip access */
+}
+```
+
+Note: `pointer-events: auto` is required so that `title` tooltips remain accessible on disabled elements.
+
 ---
 
 ## 4. Typography & Scaling
@@ -218,6 +370,44 @@ Toast notifications provide non-blocking feedback for user actions. They appear 
 - **Micro-interactions**: Subtle hover states and status transitions (`--transition-fast`).
 - **Z-Index Strategy**: Centralized stacking order defined in `variables.css` to prevent overlap conflicts.
 - **Token Usage**: Strict adherence to functional variables (e.g., `--color-text`, `--shadow-xl`) over hardcoded values.
+
+### 5.1 Spacing Token Usage
+
+| Token               | Size                                                               | Intended use |
+| ------------------- | ------------------------------------------------------------------ | ------------ |
+| `--space-xs` (4px)  | Tight internal gaps: label-to-input, icon-to-text, chip padding    |
+| `--space-sm` (8px)  | Component internal padding, chip grid gaps, toolbar button spacing |
+| `--space-md` (16px) | Between form field groups, dialog body padding, table cell padding |
+| `--space-lg` (24px) | Between major sections within a dialog, panel content padding      |
+| `--space-xl` (32px) | Page-level margins, large empty state padding                      |
+
+**Principle**: proximity signals connection. Elements that are related should be closer together than elements that are not. Use the smallest token that maintains visual distinction between groups.
+
+### 5.2 Motion & Animation
+
+#### Reduced Motion
+
+All animations must respect the user's OS preference. Add to `styles/base.css`:
+
+```css
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+```
+
+#### Duration Tiers
+
+| Tier       | Token                 | Duration | Use                                                        |
+| ---------- | --------------------- | -------- | ---------------------------------------------------------- |
+| **Fast**   | `--transition-fast`   | 150ms    | Hover states, focus rings, toggle switches                 |
+| **Normal** | `--transition-normal` | 200ms    | Slide panel open/close, expanding sections, dropdown menus |
+
+Both tokens use `ease-out` easing, which is correct for entrances. Exit animations (elements leaving the screen) should use `ease-in` if distinct easing is needed, but for Syto's current scope the single easing is sufficient.
 
 ---
 

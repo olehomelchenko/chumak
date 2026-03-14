@@ -7,7 +7,7 @@
 >
 > Items marked with **→** are recommended additions not yet in the codebase.
 
-> **Related**: [UX-SPECIFICATION.md](UX-SPECIFICATION.md) (authoritative technical spec), [SOUL.md](../SOUL.md) (design philosophy)
+> **Related**: [UX-SPECIFICATION.md](UX-SPECIFICATION.md) (authoritative technical spec), [SOUL.md](../SOUL.md) (design philosophy), [CONTENT-GUIDELINES.md](CONTENT-GUIDELINES.md) (writing conventions)
 
 ---
 
@@ -120,11 +120,11 @@ This distinction matters for change detection — deferred dialogs snapshot stat
 
 ### Recommended Dialog Improvements
 
-| Pattern                 | Description                                                                                               | Where It Helps                                                                                                                                    |
-| ----------------------- | --------------------------------------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **→ Inline validation** | Real-time feedback on individual fields (red border + message below the input) before the user hits Apply | Expression editors already show parse errors, but column selectors and other inputs fail silently until Apply. Early feedback reduces round-trips |
-| **→ Sticky footer**     | Dialog footer stays visible when body content scrolls                                                     | Complex dialogs (aggregate with many columns, join with many key pairs) can push the Apply button offscreen                                       |
-| **→ Field composition** | Structured pattern: label + input + help text + error message as a single unit                            | Currently labels and help text are ad-hoc. A consistent field wrapper would unify spacing and error placement across all dialogs                  |
+| Pattern                 | Description                                                                                               | Where It Helps                                                                                                                                                                                              |
+| ----------------------- | --------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **→ Inline validation** | Real-time feedback on individual fields (red border + message below the input) before the user hits Apply | Expression editors already show parse errors, but column selectors and other inputs fail silently until Apply. Early feedback reduces round-trips. See UX-SPECIFICATION.md §3.7 for validation timing rules |
+| **→ Sticky footer**     | Dialog footer stays visible when body content scrolls                                                     | Complex dialogs (aggregate with many columns, join with many key pairs) can push the Apply button offscreen                                                                                                 |
+| **→ Field composition** | Structured pattern: label + input + help text + error message as a single unit                            | Documented in UX-SPECIFICATION.md §3.7. Uses existing `.label`, `.input`, `.helpText`, `.error` classes from `form-controls.module.css`                                                                     |
 
 ---
 
@@ -169,13 +169,13 @@ These are unique to Syto and form the core of the direct-manipulation experience
 
 ### Recommended Additions
 
-| Pattern                              | What It Is                                                                           | Where It Helps                                                                                                                                                                                                                                       |
-| ------------------------------------ | ------------------------------------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **→ Empty state**                    | A designed placeholder with illustration, explanatory text, and a primary action CTA | Syto has a basic empty state in the sidebar (dashed border + text), but most empty scenarios show blank space. Key opportunities: empty model (no steps yet), empty table (zero rows after filter), empty EDA panel, no columns selected in a dialog |
-| **→ Skeleton / Loading placeholder** | Animated placeholder mirroring the shape of expected content while data loads        | Transforms that take time (join, aggregate on large data) show no feedback between click and result. A skeleton in the preview panel communicates progress                                                                                           |
-| **→ Progress indicator**             | Determinate (progress bar) or indeterminate (spinner) for long operations            | Large file imports, complex multi-step pipeline recomputation. Currently the UI freezes during heavy computation with no visual feedback                                                                                                             |
-| **→ Inline success feedback**        | Momentary green flash or checkmark on a control after a successful action            | Subtle confirmation that an immediate-apply setting was saved, or that a step was successfully added. Toasts work but are spatially disconnected from the action                                                                                     |
-| **→ Banner / Callout**               | Persistent inline alert within a page section, not auto-dismissing                   | Useful for ongoing conditions: "This model has errors in 3 steps" or "Source data has been replaced since this model was last run." More persistent than toasts, less intrusive than error boxes                                                     |
+| Pattern                              | What It Is                                                                           | Where It Helps                                                                                                                                                                                              |
+| ------------------------------------ | ------------------------------------------------------------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **→ Empty state**                    | A designed placeholder with illustration, explanatory text, and a primary action CTA | Taxonomy and inventory documented in UX-SPECIFICATION.md §3.8. Text conventions in CONTENT-GUIDELINES.md §8. Key opportunities: empty model, empty table after filter, empty EDA panel, no columns selected |
+| **→ Skeleton / Loading placeholder** | Animated placeholder mirroring the shape of expected content while data loads        | Transforms that take time (join, aggregate on large data) show no feedback between click and result. A skeleton in the preview panel communicates progress                                                  |
+| **→ Progress indicator**             | Determinate (progress bar) or indeterminate (spinner) for long operations            | Large file imports, complex multi-step pipeline recomputation. Currently the UI freezes during heavy computation with no visual feedback                                                                    |
+| **→ Inline success feedback**        | Momentary green flash or checkmark on a control after a successful action            | Subtle confirmation that an immediate-apply setting was saved, or that a step was successfully added. Toasts work but are spatially disconnected from the action                                            |
+| **→ Banner / Callout**               | Persistent inline alert within a page section, not auto-dismissing                   | Useful for ongoing conditions: "This model has errors in 3 steps" or "Source data has been replaced since this model was last run." More persistent than toasts, less intrusive than error boxes            |
 
 ---
 
