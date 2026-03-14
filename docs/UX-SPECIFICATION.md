@@ -311,14 +311,14 @@ Every screen that can be empty should have a designed empty state — not blank 
 
 #### Key Scenarios
 
-| Scenario                      | Empty state message                                        |
-| ----------------------------- | ---------------------------------------------------------- |
-| No data loaded                | "Import data to get started" + action buttons              |
-| Zero rows after filter        | "No rows match this filter. Try adjusting the expression." |
-| No steps in pipeline          | "Add a transform from the ribbon above"                    |
-| No columns selected in dialog | "Select a column to begin"                                 |
-| EDA panel with no column      | "Select a column to see statistics"                        |
-| No search results             | "No matches found"                                         |
+| Scenario                      | Empty state message                                                                   |
+| ----------------------------- | ------------------------------------------------------------------------------------- |
+| No data loaded                | "Import data to get started" + action buttons                                         |
+| Zero rows after filter        | Title: "No rows match the current filter" + Subtitle: "Try adjusting the expression." |
+| No steps in pipeline          | "Add a transform from the ribbon above"                                               |
+| No columns selected in dialog | "Select a column to begin"                                                            |
+| EDA panel with no column      | "Select a column to see statistics"                                                   |
+| No search results             | "No matches found"                                                                    |
 
 For text conventions in empty states: see [CONTENT-GUIDELINES.md](CONTENT-GUIDELINES.md) §8.
 
@@ -343,6 +343,10 @@ Every disabled interactive element should explain _why_ it is disabled via a `ti
 #### CSS Convention
 
 ```css
+/* Exclude aria-disabled from interactive pseudo-classes */
+&:hover:not(:disabled):not([aria-disabled='true']) { ... }
+&:active:not(:disabled):not([aria-disabled='true']) { ... }
+
 /* Standard disabled pattern */
 &:disabled,
 &[aria-disabled='true'] {
@@ -351,6 +355,8 @@ Every disabled interactive element should explain _why_ it is disabled via a `ti
   pointer-events: auto; /* preserve tooltip access */
 }
 ```
+
+The hover/active exclusion is required because `aria-disabled` doesn't suppress pseudo-classes the way native `disabled` does. Without it, hover effects show on disabled buttons (depends on CSS source order for correctness — the explicit `:not()` is more robust).
 
 Note: `pointer-events: auto` is required so that `title` tooltips remain accessible on disabled elements.
 
@@ -528,11 +534,11 @@ Complex dialogs are split into focused sub-components organized in directories:
 
 **Column Selector** (`column-selector/`):
 
-| Component            | Purpose                             |
-| -------------------- | ----------------------------------- |
-| `ColumnSelector.tsx` | Unified selection (Grid/List modes) |
-| `ColumnChip.tsx`     | Individual column chip component    |
-| `ColumnRow.tsx`      | List mode row component             |
+| Component            | Purpose                                                       |
+| -------------------- | ------------------------------------------------------------- |
+| `ColumnSelector.tsx` | Unified selection (Grid/List modes, opt-in `searchable` prop) |
+| `ColumnChip.tsx`     | Individual column chip component                              |
+| `ColumnRow.tsx`      | List mode row component                                       |
 
 ### 7.6 Shared Components
 

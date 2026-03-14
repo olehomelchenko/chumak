@@ -191,6 +191,7 @@ export function ColumnEditorDialog() {
             onRenameChange={handleRenameChange}
             onReorder={handleReorder}
             maxHeight={400}
+            searchable
           />
         </div>
       )}

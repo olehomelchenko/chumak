@@ -371,6 +371,16 @@ export function activeDialogHasError(): boolean {
 }
 
 /**
+ * Get the error message for the current dialog's disabled Apply button.
+ * Returns null if no error or if the dialog doesn't expose error messages.
+ */
+export function getActiveDialogError(): string | null {
+  const dialog = AppStore.activeDialog.value;
+  if (!dialog) return null;
+  return DIALOG_REGISTRY[dialog]?.getError?.() ?? null;
+}
+
+/**
  * Check if current dialog has preview data
  */
 export function hasPreviewData(): boolean {

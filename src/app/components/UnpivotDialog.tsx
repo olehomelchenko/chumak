@@ -124,6 +124,7 @@ export function UnpivotDialog() {
         display="chip"
         allowSelectAll={true}
         label={labelText.value}
+        searchable
       />
     </div>
   );

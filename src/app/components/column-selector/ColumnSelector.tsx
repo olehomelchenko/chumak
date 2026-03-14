@@ -3,7 +3,8 @@
  * Supports both chip grid and list display modes with single/multi-select
  */
 
-import { useState } from 'preact/hooks';
+import { useMemo, useState } from 'preact/hooks';
+import { useTranslation } from 'preact-i18next';
 import { AppStore } from '../../stores/AppStore';
 import { ColumnChip } from './ColumnChip';
 import { ColumnRow } from './ColumnRow';
@@ -37,6 +38,9 @@ export interface ColumnSelectorProps {
   // Labels
   label?: string;
   helpText?: string;
+
+  // Search
+  searchable?: boolean;
 }
 
 export function ColumnSelector({
@@ -56,8 +60,11 @@ export function ColumnSelector({
   gridColumns = 'auto',
   label,
   helpText,
+  searchable = false,
 }: ColumnSelectorProps) {
+  const { t } = useTranslation('dialogs');
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [searchText, setSearchText] = useState('');
 
   // Get column type from schema
   const getColumnType = (columnName: string): string => {
@@ -164,6 +171,16 @@ export function ColumnSelector({
     setDraggedIndex(null);
   };
 
+  // Filter columns by search text
+  const filteredColumns = useMemo(() => {
+    if (!searchable || !searchText) return columns;
+    const lower = searchText.toLowerCase();
+    return columns.filter((col) => col.toLowerCase().includes(lower));
+  }, [searchable, searchText, columns]);
+
+  // Drag is unsafe when search filters the list — indices won't match the full array
+  const effectiveAllowDrag = allowDrag && !searchText;
+
   // Determine grid class
   const getGridClass = () => {
     if (gridColumns === 2) return styles.chipGrid2;
@@ -175,6 +192,18 @@ export function ColumnSelector({
     <div>
       {/* Label */}
       {label && <label class={styles.label}>{label}</label>}
+
+      {/* Search Input */}
+      {searchable && (
+        <input
+          type="text"
+          class={styles.input}
+          placeholder={t('common.placeholders.searchColumns')}
+          value={searchText}
+          onInput={(e) => setSearchText(e.currentTarget.value)}
+          style={{ marginBottom: 'var(--space-sm)' }}
+        />
+      )}
 
       {/* Select All/None buttons */}
       {allowSelectAll && mode === 'multi' && (
@@ -195,7 +224,7 @@ export function ColumnSelector({
       {/* Chip Grid Display */}
       {display === 'chip' && (
         <div class={getGridClass()} style={maxHeight ? { maxHeight: `${maxHeight}px` } : undefined}>
-          {columns.map((column) => (
+          {filteredColumns.map((column) => (
             <ColumnChip
               key={column}
               label={column}
@@ -215,22 +244,22 @@ export function ColumnSelector({
           class={styles.columnEditorList}
           style={maxHeight ? { maxHeight: `${maxHeight}px` } : undefined}
         >
-          {columns.map((column, index) => (
+          {filteredColumns.map((column, index) => (
             <ColumnRow
               key={column}
               column={column}
               icon={getIcon(column)}
               isSelected={isSelected(column)}
               isDragging={draggedIndex === index}
-              allowDrag={allowDrag}
+              allowDrag={effectiveAllowDrag}
               allowRename={allowRename}
               renamedValue={renameValues[column] || column}
               onToggle={() => handleSelectionChange(column)}
               onRename={(value) => onRenameChange && onRenameChange(column, value)}
-              onDragStart={allowDrag ? handleDragStart(index) : undefined}
-              onDragOver={allowDrag ? handleDragOver : undefined}
-              onDrop={allowDrag ? handleDrop(index) : undefined}
-              onDragEnd={allowDrag ? handleDragEnd : undefined}
+              onDragStart={effectiveAllowDrag ? handleDragStart(index) : undefined}
+              onDragOver={effectiveAllowDrag ? handleDragOver : undefined}
+              onDrop={effectiveAllowDrag ? handleDrop(index) : undefined}
+              onDragEnd={effectiveAllowDrag ? handleDragEnd : undefined}
             />
           ))}
         </div>

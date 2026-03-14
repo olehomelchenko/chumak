@@ -522,7 +522,9 @@
   },
   "dataTable": {
     "typeMenuTooltip": "Click to change type",
-    "ariaLabel": "Data table"
+    "ariaLabel": "Data table",
+    "noRowsTitle": "No rows match the current filter",
+    "noRowsSubtitle": "Try adjusting the expression."
   },
   "jsonEditor": {
     "title": "Edit transform pipeline (JSON)",

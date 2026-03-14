@@ -139,3 +139,51 @@ describe('DataTable - header keyboard navigation', () => {
     expect(document.activeElement).toBe(headers[2]);
   });
 });
+
+describe('DataTable - empty state', () => {
+  beforeEach(() => {
+    AppStore.reset();
+    AppStore.columns.value = ['name', 'age', 'city'];
+  });
+
+  const baseProps = {
+    getPaginatedData: () => [] as any[],
+    getColumnType: () => 'string',
+    getTypeIcon: () => 'carbon:text-font',
+    formatCellValue: (v: any) => String(v ?? ''),
+    formatCellValueForTooltip: (v: any) => String(v ?? ''),
+    onSelectColumn: vi.fn(),
+    onSelectCell: vi.fn(),
+    onOpenTypeMenu: vi.fn(),
+    onSelectRow: vi.fn(),
+    onScroll: vi.fn(),
+  };
+
+  it('should render empty state message when no rows match', () => {
+    render(<DataTable {...baseProps} />);
+
+    const emptyCell = document.querySelector('[class*="emptyStateCell"]');
+    expect(emptyCell).toBeDefined();
+    expect(emptyCell!.textContent).toContain('No rows match the current filter');
+    expect(emptyCell!.textContent).toContain('Try adjusting the expression.');
+  });
+
+  it('should not render empty state when rows exist', () => {
+    const props = {
+      ...baseProps,
+      getPaginatedData: () => [{ name: 'Alice', age: 30, city: 'Boston' }],
+    };
+    render(<DataTable {...props} />);
+
+    const emptyCell = document.querySelector('[class*="emptyStateCell"]');
+    expect(emptyCell).toBeNull();
+  });
+
+  it('should not render empty state when no columns exist', () => {
+    AppStore.columns.value = [];
+    render(<DataTable {...baseProps} />);
+
+    const emptyCell = document.querySelector('[class*="emptyStateCell"]');
+    expect(emptyCell).toBeNull();
+  });
+});

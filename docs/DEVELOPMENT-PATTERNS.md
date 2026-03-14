@@ -39,18 +39,18 @@ Adding a transform requires changes across multiple files. All transform logic m
 
 **App layer** (dialog, state, UI):
 
-| Step | File                                           | What to Add                                       |
-| ---- | ---------------------------------------------- | ------------------------------------------------- |
-| 7    | `src/app/types.ts`                             | Add to `DialogName` union type                    |
-| 8    | `src/app/stores/dialogs/<category>/*-state.ts` | Dialog state signals + reset function             |
-| 9    | `src/app/stores/dialogs/<category>/index.ts`   | Export new state                                  |
-| 10   | `src/app/stores/DialogStore.ts`                | Import + add static field                         |
-| 11   | `src/app/handlers/transform/*-handlers.ts`     | Construct step, preview, apply handlers           |
-| 12   | `src/app/components/*Dialog.tsx`               | Dialog UI component                               |
-| 13   | `src/app/components/index.ts`                  | Export dialog component                           |
-| 14   | `src/app/components/App.tsx`                   | Render dialog in slide-panel section              |
-| 15   | `src/app/dialog-registry.ts`                   | Registry entry (`applyHandler`, `getState`, etc.) |
-| 16   | `src/app/components/RibbonToolbar.tsx`         | Ribbon button                                     |
+| Step | File                                           | What to Add                                                   |
+| ---- | ---------------------------------------------- | ------------------------------------------------------------- |
+| 7    | `src/app/types.ts`                             | Add to `DialogName` union type                                |
+| 8    | `src/app/stores/dialogs/<category>/*-state.ts` | Dialog state signals + reset function                         |
+| 9    | `src/app/stores/dialogs/<category>/index.ts`   | Export new state                                              |
+| 10   | `src/app/stores/DialogStore.ts`                | Import + add static field                                     |
+| 11   | `src/app/handlers/transform/*-handlers.ts`     | Construct step, preview, apply handlers                       |
+| 12   | `src/app/components/*Dialog.tsx`               | Dialog UI component                                           |
+| 13   | `src/app/components/index.ts`                  | Export dialog component                                       |
+| 14   | `src/app/components/App.tsx`                   | Render dialog in slide-panel section                          |
+| 15   | `src/app/dialog-registry.ts`                   | Registry entry (`applyHandler`, `getState`, `getError`, etc.) |
+| 16   | `src/app/components/RibbonToolbar.tsx`         | Ribbon button                                                 |
 
 **i18n + docs + tests:**
 
@@ -952,6 +952,8 @@ yourDialog: {
 ```
 
 If the handler needs user confirmation, import `confirm` or `prompt` directly from `notification-handlers` instead of passing an `app` parameter.
+
+**Error tooltips on Apply button**: If the dialog has an `.error` signal, add `getError: () => DialogStore.yourState.error.value` to the registry entry. This surfaces the error message as a tooltip on the disabled Apply button. The Apply button uses `aria-disabled` (not native `disabled`) so tooltips remain visible — `buttons.css` styles both identically.
 
 #### Non-Transform Dialogs (Import/Utility)
 

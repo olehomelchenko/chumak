@@ -154,7 +154,41 @@ describe('Generic Dialog Behavior', () => {
         const footer = document.querySelector('[class*="slidePanelFooter"]');
         const applyButton = footer?.querySelector('.button--primary') as HTMLButtonElement;
         expect(applyButton).toBeDefined();
-        expect(applyButton.hasAttribute('disabled')).toBe(true);
+        expect(applyButton.getAttribute('aria-disabled')).toBe('true');
+      });
+    });
+
+    it('should show error message as tooltip on disabled Apply button', async () => {
+      renderWithI18n(<App />);
+
+      // Set an invalid expression — the filter dialog validates in real-time
+      DialogStore.filterState.expression.value = 'age >';
+      DialogStore.filterState.error.value = 'Expected expression after operator';
+
+      await waitFor(() => {
+        const footer = document.querySelector('[class*="slidePanelFooter"]');
+        const applyButton = footer?.querySelector('.button--primary') as HTMLButtonElement;
+        expect(applyButton).toBeDefined();
+        expect(applyButton.getAttribute('aria-disabled')).toBe('true');
+        // Tooltip should show the error message (whatever validation produces)
+        const title = applyButton.getAttribute('title');
+        expect(title).toBeTruthy();
+        expect(typeof title).toBe('string');
+      });
+    });
+
+    it('should not show tooltip when Apply button is enabled', async () => {
+      renderWithI18n(<App />);
+
+      DialogStore.filterState.expression.value = 'age > 10';
+      DialogStore.filterState.error.value = null;
+
+      await waitFor(() => {
+        const footer = document.querySelector('[class*="slidePanelFooter"]');
+        const applyButton = footer?.querySelector('.button--primary') as HTMLButtonElement;
+        expect(applyButton).toBeDefined();
+        expect(applyButton.hasAttribute('aria-disabled')).toBe(false);
+        expect(applyButton.hasAttribute('title')).toBe(false);
       });
     });
 
@@ -297,7 +331,7 @@ describe('Generic Dialog Behavior', () => {
         const footer = document.querySelector('[class*="slidePanelFooter"]');
         const applyButton = footer?.querySelector('.button--primary') as HTMLButtonElement;
         expect(applyButton).toBeDefined();
-        expect(applyButton.hasAttribute('disabled')).toBe(true);
+        expect(applyButton.getAttribute('aria-disabled')).toBe('true');
       });
     });
 
@@ -313,7 +347,7 @@ describe('Generic Dialog Behavior', () => {
         const footer = document.querySelector('[class*="slidePanelFooter"]');
         const applyButton = footer?.querySelector('.button--primary') as HTMLButtonElement;
         expect(applyButton).toBeDefined();
-        expect(applyButton.hasAttribute('disabled')).toBe(true);
+        expect(applyButton.getAttribute('aria-disabled')).toBe('true');
       });
     });
   });

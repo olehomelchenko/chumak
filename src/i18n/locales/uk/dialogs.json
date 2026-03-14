@@ -60,7 +60,8 @@
       "removeSortLevel": "Видалити рівень сортування"
     },
     "placeholders": {
-      "selectColumn": "Виберіть стовпець…"
+      "selectColumn": "Виберіть стовпець…",
+      "searchColumns": "Пошук стовпців…"
     },
     "matchTypes": {
       "prefix": "Префікс (починається з)",

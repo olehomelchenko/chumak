@@ -60,7 +60,8 @@
       "removeSortLevel": "Remove sort level"
     },
     "placeholders": {
-      "selectColumn": "Select column…"
+      "selectColumn": "Select column…",
+      "searchColumns": "Search columns…"
     },
     "matchTypes": {
       "prefix": "Prefix (starts with)",

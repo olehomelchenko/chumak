@@ -250,79 +250,88 @@ export function DataTable({
           </tr>
         </thead>
         <tbody>
-          {getPaginatedData().map((row, rowIndex) => {
-            const absoluteIndex = pageOffset + rowIndex;
-            const isRowSelected = selectedRows.value.includes(absoluteIndex);
+          {getPaginatedData().length === 0 && columns.value.length > 0 ? (
+            <tr class={styles.emptyStateRow}>
+              <td colSpan={columns.value.length + 1} class={styles.emptyStateCell}>
+                <div>{t('dataTable.noRowsTitle')}</div>
+                <div class={styles.emptyStateHint}>{t('dataTable.noRowsSubtitle')}</div>
+              </td>
+            </tr>
+          ) : (
+            getPaginatedData().map((row, rowIndex) => {
+              const absoluteIndex = pageOffset + rowIndex;
+              const isRowSelected = selectedRows.value.includes(absoluteIndex);
 
-            return (
-              <tr
-                key={`${contextKey}-${rowIndex}`}
-                class={`${styles.dataTable__row} ${row._removed ? styles.removed : ''} ${row._duplicate ? styles.duplicate : ''} ${isRowSelected ? styles.selectedRow : ''}`}
-                aria-selected={isRowSelected || undefined}
-              >
-                <td
-                  class={`${styles.rowGutterCell} ${isRowSelected ? styles.rowGutterSelected : ''}`}
-                  data-row-gutter="true"
-                  tabIndex={rowIndex === 0 ? 0 : -1}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onSelectRow(absoluteIndex, e as unknown as MouseEvent);
-                  }}
-                  onKeyDown={(e) =>
-                    handleGutterKeyDown(absoluteIndex, e as unknown as KeyboardEvent)
-                  }
+              return (
+                <tr
+                  key={`${contextKey}-${rowIndex}`}
+                  class={`${styles.dataTable__row} ${row._removed ? styles.removed : ''} ${row._duplicate ? styles.duplicate : ''} ${isRowSelected ? styles.selectedRow : ''}`}
+                  aria-selected={isRowSelected || undefined}
                 >
-                  {absoluteIndex + 1}
-                </td>
-                {columns.value.map((column) => {
-                  const cellValue = row[column];
-                  const isError = isConversionError(cellValue);
-                  const isBoolean = typeof cellValue === 'boolean';
+                  <td
+                    class={`${styles.rowGutterCell} ${isRowSelected ? styles.rowGutterSelected : ''}`}
+                    data-row-gutter="true"
+                    tabIndex={rowIndex === 0 ? 0 : -1}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onSelectRow(absoluteIndex, e as unknown as MouseEvent);
+                    }}
+                    onKeyDown={(e) =>
+                      handleGutterKeyDown(absoluteIndex, e as unknown as KeyboardEvent)
+                    }
+                  >
+                    {absoluteIndex + 1}
+                  </td>
+                  {columns.value.map((column) => {
+                    const cellValue = row[column];
+                    const isError = isConversionError(cellValue);
+                    const isBoolean = typeof cellValue === 'boolean';
 
-                  return (
-                    <td
-                      key={column}
-                      class={getCellClassName(cellValue, column, row)}
-                      data-col={column}
-                      data-row={rowIndex}
-                      title={`${column}: ${formatCellValueForTooltip(cellValue)}`}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        // If it's an error cell and we have a click handler, show the error message
-                        if (isError && onErrorCellClick && cellValue.message) {
-                          onErrorCellClick(cellValue.message);
-                        } else {
-                          onSelectCell(column, cellValue, rowIndex, e as unknown as MouseEvent);
-                        }
-                      }}
-                    >
-                      {isError ? (
-                        <span class={styles.errorCell}>
+                    return (
+                      <td
+                        key={column}
+                        class={getCellClassName(cellValue, column, row)}
+                        data-col={column}
+                        data-row={rowIndex}
+                        title={`${column}: ${formatCellValueForTooltip(cellValue)}`}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          // If it's an error cell and we have a click handler, show the error message
+                          if (isError && onErrorCellClick && cellValue.message) {
+                            onErrorCellClick(cellValue.message);
+                          } else {
+                            onSelectCell(column, cellValue, rowIndex, e as unknown as MouseEvent);
+                          }
+                        }}
+                      >
+                        {isError ? (
+                          <span class={styles.errorCell}>
+                            <span
+                              class="iconify"
+                              aria-hidden="true"
+                              data-icon="carbon:warning-filled"
+                            ></span>
+                            <span>{formatCellValue(cellValue)}</span>
+                          </span>
+                        ) : isBoolean ? (
                           <span
-                            class="iconify"
-                            aria-hidden="true"
-                            data-icon="carbon:warning-filled"
-                          ></span>
-                          <span>{formatCellValue(cellValue)}</span>
-                        </span>
-                      ) : isBoolean ? (
-                        <span
-                          style={{
-                            color: cellValue ? 'var(--color-green)' : 'var(--color-red)',
-                            fontSize: '1.25rem',
-                          }}
-                        >
-                          {formatCellValue(cellValue)}
-                        </span>
-                      ) : (
-                        formatCellValue(cellValue)
-                      )}
-                    </td>
-                  );
-                })}
-              </tr>
-            );
-          })}
+                            style={{
+                              color: cellValue ? 'var(--color-green)' : 'var(--color-red)',
+                              fontSize: '1.25rem',
+                            }}
+                          >
+                            {formatCellValue(cellValue)}
+                          </span>
+                        ) : (
+                          formatCellValue(cellValue)
+                        )}
+                      </td>
+                    );
+                  })}
+                </tr>
+              );
+            })
+          )}
         </tbody>
       </table>
     </div>

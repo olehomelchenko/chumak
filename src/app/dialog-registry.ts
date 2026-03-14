@@ -59,6 +59,7 @@ export interface DialogConfig {
   initState?: (section?: string) => void; // Optional initialization logic
   getState?: () => Record<string, any> | null; // Serializable state for change detection
   hasError?: () => boolean; // Whether Apply button should be disabled
+  getError?: () => string | null; // Error message for disabled Apply tooltip
   isUrlNavigable?: boolean; // Whether dialog should update URL hash
   applyHandler?: ApplyHandler; // Handler called when Apply is clicked
 }
@@ -83,6 +84,7 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
       previewMode: DialogStore.filterState.previewMode.value,
     }),
     hasError: () => !!DialogStore.filterState.error.value,
+    getError: () => DialogStore.filterState.error.value,
   },
 
   derive: {
@@ -99,6 +101,7 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
       const s = DialogStore.deriveState;
       return !!s.error.value || !s.columnName.value?.trim() || !s.expression.value?.trim();
     },
+    getError: () => DialogStore.deriveState.error.value,
   },
 
   sort: {
@@ -196,6 +199,7 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
       maxColumns: DialogStore.splitState.maxColumns.value,
     }),
     hasError: () => !!DialogStore.splitState.error.value,
+    getError: () => DialogStore.splitState.error.value,
   },
 
   merge: {
@@ -214,6 +218,7 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
       !!DialogStore.mergeState.error.value ||
       DialogStore.mergeState.columns.value.length === 0 ||
       !DialogStore.mergeState.columnName.value?.trim(),
+    getError: () => DialogStore.mergeState.error.value,
   },
 
   regexpMatch: {
@@ -228,6 +233,7 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
       columnName: DialogStore.regexpMatchState.columnName.value,
     }),
     hasError: () => !!DialogStore.regexpMatchState.error.value,
+    getError: () => DialogStore.regexpMatchState.error.value,
   },
 
   regexpExtract: {
@@ -243,6 +249,7 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
       group: DialogStore.regexpExtractState.group.value,
     }),
     hasError: () => !!DialogStore.regexpExtractState.error.value,
+    getError: () => DialogStore.regexpExtractState.error.value,
   },
 
   date: {

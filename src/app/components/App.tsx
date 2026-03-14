@@ -68,6 +68,7 @@ import {
   getPreviewRows,
   isNewPreviewColumn,
   activeDialogHasError,
+  getActiveDialogError,
 } from '../orchestration/DialogCoordinator';
 import {
   openDialog,
@@ -139,6 +140,7 @@ export function App() {
   // Without useComputed, reading e.g. expression.value inside hasError() during render
   // would cause the entire App tree to re-render on every keystroke.
   const dialogError = useComputed(() => activeDialogHasError());
+  const dialogErrorMessage = useComputed(() => getActiveDialogError());
   const hasPreview = useComputed(() => hasPreviewData());
   const previewStats = useComputed(() => getPreviewStats());
   const previewTitle = useComputed(() => getPreviewTitle());
@@ -357,8 +359,9 @@ export function App() {
                 </button>
                 <button
                   class="button button--primary"
-                  onClick={() => applyActiveTransform()}
-                  disabled={dialogError.value}
+                  onClick={() => !dialogError.value && applyActiveTransform()}
+                  aria-disabled={dialogError.value || undefined}
+                  title={dialogErrorMessage.value || undefined}
                 >
                   {buttonText}
                 </button>
@@ -515,8 +518,9 @@ export function App() {
                     </button>
                     <button
                       class="button button--primary"
-                      onClick={() => applyActiveTransform()}
-                      disabled={dialogError.value}
+                      onClick={() => !dialogError.value && applyActiveTransform()}
+                      aria-disabled={dialogError.value || undefined}
+                      title={dialogErrorMessage.value || undefined}
                     >
                       {buttonText}
                     </button>

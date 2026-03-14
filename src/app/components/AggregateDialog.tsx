@@ -52,6 +52,7 @@ export function AggregateDialog() {
           allowSelectAll={true}
           label={t('aggregate.groupByLabel')}
           helpText={t('aggregate.groupByHelp')}
+          searchable
         />
       </div>
 

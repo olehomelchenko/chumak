@@ -1,6 +1,6 @@
 # Syto — UX Improvement Plan
 
-> **Status**: Phase 2 complete (1.1–1.6, 2.1–2.8 done)
+> **Status**: Phase 3 high-priority complete (1.1–1.6, 2.1–2.8, 3.1–3.3 done)
 > **Date**: March 2026
 > **Basis**: Comprehensive audit against IBM Carbon Design System best practices
 > **Related**: [DESIGN-SYSTEM-EVALUATION.md](archive/DESIGN-SYSTEM-EVALUATION.md), [CONTENT-GUIDELINES.md](CONTENT-GUIDELINES.md), [UX-SPECIFICATION.md](UX-SPECIFICATION.md)
@@ -140,26 +140,17 @@ In `DataTable.tsx`: Added `aria-label={t('dataTable.ariaLabel')}` to the `<table
 
 _Estimated scope: New components + modifications to existing ones_
 
-### 3.1 Empty state for zero rows after filter (High)
+### 3.1 Empty state for zero rows after filter (High) ✅
 
-When `DataTable` receives zero data rows, render an empty state message instead of a blank table body.
+Added empty state row in `DataTable.tsx` when `getPaginatedData().length === 0 && columns.length > 0`. Shows i18n message ("No rows match the current filter" / "Try adjusting the expression.") in a colspan'd cell with muted, centered styling.
 
-Content: "No rows match this filter. Try adjusting the expression." (already defined in UX-SPECIFICATION.md §3.8)
+### 3.2 Disabled Apply button tooltip (High) ✅
 
-Implementation: In `DataTable.tsx`, when `data.length === 0 && columns.length > 0`, render an empty state row spanning all columns.
+Switched Apply buttons (both slide panel and centered modal) from native `disabled` to `aria-disabled="true"` so tooltips display on hover. Added `getError?: () => string | null` to `DialogConfig` interface and implemented for 6 dialogs with `.error` signals (filter, derive, split, merge, regexpMatch, regexpExtract). Added `getActiveDialogError()` in `DialogCoordinator.ts`. Error message shown via `title` attribute.
 
-### 3.2 Disabled Apply button tooltip (High)
+### 3.3 Column search in ColumnSelector (High) ✅
 
-When `dialogError.value` is true on the Apply button in `App.tsx`:
-
-- Switch from native `disabled` to `aria-disabled="true"` (so tooltips still show)
-- Add `title` with the current validation error message
-
-This requires `activeDialogHasError()` to also expose the error message text, not just a boolean.
-
-### 3.3 Column search in ColumnSelector (High)
-
-Add an optional `searchable` prop to `ColumnSelector.tsx`. When enabled, render a text input above the column list that filters visible items in real time. Enable it in dialogs where column lists commonly exceed 20 items: ColumnEditorDialog, AggregateDialog, FoldDialog, DescribeDialog, JoinColumnSelector.
+Added `searchable?: boolean` prop to `ColumnSelector.tsx`. When enabled, renders a search input above the column list that filters visible columns by case-insensitive substring match. Enabled in ColumnEditorDialog, AggregateDialog, UnpivotDialog (fold), and DescribeDialog.
 
 ### 3.4 Improve success toast context (Medium)
 

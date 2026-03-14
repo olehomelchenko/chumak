@@ -228,6 +228,23 @@
   background-color: rgba(var(--color-cyan-rgb), 0.06);
 }
 
+.emptyStateRow {
+  cursor: default;
+}
+
+.emptyStateCell {
+  text-align: center;
+  padding: var(--space-xxl) var(--space-md);
+  color: var(--color-dark-gray);
+  font-family: var(--font-family);
+  font-style: italic;
+}
+
+.emptyStateHint {
+  margin-top: var(--space-xs);
+  font-size: var(--font-size-sm);
+}
+
 .typeIndicator {
   display: inline-flex;
   align-items: center;

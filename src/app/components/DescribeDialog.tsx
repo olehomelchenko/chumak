@@ -24,6 +24,7 @@ export function DescribeDialog() {
           allowSelectAll={true}
           label={t('describe.columnsLabel')}
           helpText={t('describe.columnsHelp')}
+          searchable
         />
       </div>
 
