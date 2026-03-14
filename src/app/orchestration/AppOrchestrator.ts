@@ -17,7 +17,7 @@ import { initEventRouter, destroyEventRouter } from './EventRouter';
 import {
   initUrlStateSync,
   destroyUrlStateSync,
-  restoreDialogsFromUrl,
+  restoreStateFromUrl,
   syncCurrentStateToUrl,
 } from './UrlStateSync';
 import { setDialogCallbacks } from './DialogCoordinator';
@@ -132,7 +132,7 @@ export async function initApp(): Promise<void> {
   });
 
   // Phase 4: Restore URL state
-  restoreDialogsFromUrl(sources, models, {
+  restoreStateFromUrl(sources, models, {
     openDialog: (name, section) => openDialog(name, section),
     switchToModel: (model) => AppController.switchToModel(model),
     switchToSource: (source) => AppController.switchToSource(source),

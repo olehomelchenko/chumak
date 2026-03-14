@@ -160,12 +160,12 @@ export function getCurrentUrlState(): URLState {
 }
 
 /**
- * Restore only dialog pages (reference, settings, expressions) from URL on startup.
- * Does not auto-navigate to models/sources — the main menu is always the starting view.
+ * Restore app state from URL on startup.
+ * Handles dialog pages, model/source routes, and info views.
  */
-export function restoreDialogsFromUrl(
-  _sources: any[],
-  _models: any[],
+export function restoreStateFromUrl(
+  sources: any[],
+  models: any[],
   callbacks: UrlSyncCallbacks
 ): boolean {
   const urlState = getUrlState();
@@ -176,8 +176,29 @@ export function restoreDialogsFromUrl(
     return true;
   }
 
-  // Clear any stale model/source hash so it doesn't persist
-  if (urlState.sourceId || urlState.modelId) {
+  // Restore model or source view from URL
+  if (urlState.modelId) {
+    const model = models.find((m) => m.id === urlState.modelId);
+    if (model) {
+      if (urlState.section === 'info') {
+        callbacks.switchToModel(model);
+        callbacks.showModelInfo();
+      } else {
+        callbacks.switchToModel(model);
+      }
+      return true;
+    }
+    clearUrlHash();
+  } else if (urlState.sourceId) {
+    const source = sources.find((s) => s.id === urlState.sourceId);
+    if (source) {
+      if (urlState.section === 'info') {
+        callbacks.showDatasetInfo(source);
+      } else {
+        callbacks.switchToSource(source);
+      }
+      return true;
+    }
     clearUrlHash();
   }
 
