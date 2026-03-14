@@ -1,10 +1,10 @@
 {
   "ribbon": {
     "groups": {
-      "filterSort": "Фільтрація та Сортування",
+      "filterSort": "Фільтрація та сортування",
       "manage": "Керування",
-      "newColumns": "Нові Стовпці",
-      "transformValues": "Перетворення Значень",
+      "newColumns": "Нові стовпці",
+      "transformValues": "Перетворення значень",
       "types": "Типи",
       "summarize": "Підсумки",
       "reshape": "Реструктуризація",
@@ -24,7 +24,7 @@
         "title": "Обробка дублікатів рядків"
       },
       "sliceRows": {
-        "label": "Зріз Рядків",
+        "label": "Зріз рядків",
         "title": "Зберегти або видалити перші/останні N рядків"
       },
       "sample": {
@@ -81,7 +81,7 @@
         "title": "Заповнити пропущені значення (null, undefined, NaN)"
       },
       "autoDetect": {
-        "label": "Авто-Визначення",
+        "label": "Авто-визначення",
         "title": "Повторно запустити визначення типів для всіх стовпців"
       },
       "groupBy": {
@@ -146,15 +146,15 @@
           "split": "Розділити...",
           "replace": "Замінити...",
           "extractRegex": "Витягти (regex)...",
-          "textOperations": "Текстові Операції..."
+          "textOperations": "Текстові операції..."
         },
         "noColumn": "Спочатку виберіть стовпець",
         "requiresText": "Потрібен текстовий стовпець"
       },
       "date": {
         "sections": {
-          "extractPart": "Витягти Частину",
-          "truncateTo": "Скоротити До"
+          "extractPart": "Витягти частину",
+          "truncateTo": "Скоротити до"
         },
         "shortcuts": {
           "year": {
@@ -199,8 +199,8 @@
           }
         },
         "links": {
-          "dateOperations": "Операції з Датами...",
-          "parseDate": "Парсити Дату..."
+          "dateOperations": "Операції з датами...",
+          "parseDate": "Парсити дату..."
         },
         "noColumn": "Спочатку виберіть стовпець",
         "requiresDate": "Потрібен стовпець дати"
@@ -237,13 +237,13 @@
           }
         },
         "links": {
-          "deriveExpression": "Вивести Вираз..."
+          "deriveExpression": "Вивести вираз..."
         },
         "noColumn": "Спочатку виберіть стовпець",
         "requiresNumeric": "Потрібен числовий стовпець"
       },
       "convert": {
-        "section": "Конвертувати В",
+        "section": "Конвертувати в",
         "shortcuts": {
           "toText": {
             "label": "→ Текст",
@@ -317,9 +317,9 @@
     "subtitle": "Модель",
     "rename": "Перейменувати",
     "delete": "Видалити",
-    "heading": "Інформація про Модель",
+    "heading": "Інформація про модель",
     "labels": {
-      "modelName": "Назва Моделі",
+      "modelName": "Назва моделі",
       "source": "Джерело",
       "rows": "Рядків",
       "columns": "Стовпців",
@@ -336,10 +336,10 @@
     "save": "Зберегти",
     "cancel": "Скасувати",
     "noComment": "Коментар ще не додано.",
-    "editComment": "Редагувати Коментар",
-    "addComment": "Додати Коментар",
-    "schemaHeading": "Схема Стовпців",
-    "schemaSubtitle": "Типи Даних",
+    "editComment": "Редагувати коментар",
+    "addComment": "Додати коментар",
+    "schemaHeading": "Схема стовпців",
+    "schemaSubtitle": "Типи даних",
     "schemaTitle": "Логічні типи для обробки даних (після виведення та перетворень)",
     "tableHeaders": {
       "column": "Стовпець",
@@ -356,8 +356,8 @@
       "multiRemoveTitle_many": "Видалити {{count}} стовпців",
       "ariaLabel": "Дії зі стовпцем",
       "ariaLabelMulti": "Дії з кількома стовпцями",
-      "sortAsc": "Сортувати за Зростанням",
-      "sortDesc": "Сортувати за Спаданням",
+      "sortAsc": "Сортувати за зростанням",
+      "sortDesc": "Сортувати за спаданням",
       "filter": "Фільтрувати за цим стовпцем",
       "rename": "Перейменувати цей стовпець",
       "split": "Розділити цей стовпець",
@@ -404,7 +404,7 @@
     "subtitle": "Перетягніть CSV файл сюди або скористайтеся однією з опцій нижче",
     "uploadButton": "Файл",
     "urlButton": "URL",
-    "enterButton": "Ввести Дані",
+    "enterButton": "Ввести дані",
     "videoPlaceholder": "Відео незабаром"
   },
   "toast": {
@@ -417,7 +417,7 @@
     },
     "overview": {
       "title": "Огляд",
-      "totalRows": "Всього Рядків",
+      "totalRows": "Всього рядків",
       "missing": "Пропущені",
       "missingTooltip": "{{percent}}% пропущено",
       "uniqueValues": "Унікальні",
@@ -425,12 +425,12 @@
       "errorsTooltip": "{{percent}}% помилок"
     },
     "numeric": {
-      "title": "Розподіл та Викиди",
+      "title": "Розподіл та викиди",
       "charts": {
         "boxplot": "Боксплот",
         "histogram": "Гістограма"
       },
-      "keepSelection": "Зберегти Лише Виділення",
+      "keepSelection": "Зберегти лише виділення",
       "stats": {
         "min": "Мін",
         "meanMinus3Sigma": "Середнє - 3σ",
@@ -447,28 +447,28 @@
       }
     },
     "temporal": {
-      "title": "Розподіл за Часом"
+      "title": "Розподіл за часом"
     },
     "categorical": {
-      "title": "Розподіл Частот",
+      "title": "Розподіл частот",
       "emptyValue": "(порожньо)"
     }
   },
   "typeMenu": {
-    "title": "Змінити Тип",
+    "title": "Змінити тип",
     "types": {
       "string": "Текст",
-      "integer": "Ціле Число",
+      "integer": "Ціле число",
       "float": "Число",
       "boolean": "Булеве",
       "date": "Дата",
-      "datetime": "Дата і Час",
+      "datetime": "Дата і час",
       "json": "JSON",
       "auto": "Автовизначення"
     }
   },
   "stepRemoval": {
-    "title": "Видалити Крок",
+    "title": "Видалити крок",
     "message": "Видалити крок \"{{stepName}}\"?",
     "modes": {
       "all": "Видалити цей крок і всі наступні кроки",
@@ -478,36 +478,36 @@
     "warning": "Наступні кроки можуть завершитися помилкою, якщо вони залежать від результату цього кроку"
   },
   "datasetInfo": {
-    "subtitle": "Джерело Даних",
+    "subtitle": "Джерело даних",
     "actions": {
-      "editData": "Редагувати Дані",
-      "replace": "Замінити Дані",
-      "restore": "Відновити Резервну Копію",
+      "editData": "Редагувати дані",
+      "replace": "Замінити дані",
+      "restore": "Відновити резервну копію",
       "rename": "Перейменувати",
       "delete": "Видалити"
     },
-    "title": "Інформація про Набір Даних",
+    "title": "Інформація про набір даних",
     "labels": {
-      "sourceName": "Назва Джерела",
-      "originalFile": "Оригінальний Файл",
+      "sourceName": "Назва джерела",
+      "originalFile": "Оригінальний файл",
       "imported": "Імпортовано",
       "rows": "Рядків",
       "columns": "Стовпців",
-      "modified": "Остання Зміна",
+      "modified": "Остання зміна",
       "comment": "Коментар",
-      "fileSize": "Розмір Файлу"
+      "fileSize": "Розмір файлу"
     },
     "commentPlaceholder": "Додайте опис або нотатки про цей набір даних...",
     "commentEdit": "Редагувати",
     "commentSave": "Зберегти",
     "commentCancel": "Скасувати",
     "noComment": "Коментар ще не додано.",
-    "commentAdd": "Додати Коментар",
-    "commentEditButton": "Редагувати Коментар",
+    "commentAdd": "Додати коментар",
+    "commentEditButton": "Редагувати коментар",
     "models": {
       "title": "Моделі",
       "subtitle": "Моделі, створені з цього джерела",
-      "create": "Нова Модель",
+      "create": "Нова модель",
       "viewSteps_one": "{{count}} крок",
       "viewSteps_few": "{{count}} кроки",
       "viewSteps_many": "{{count}} кроків",
@@ -518,8 +518,8 @@
       "staleTooltip": "Ця модель застаріла"
     },
     "schema": {
-      "title": "Схема Стовпців",
-      "subtitle": "Типи Імпорту",
+      "title": "Схема стовпців",
+      "subtitle": "Типи імпорту",
       "subtitleTooltip": "Типи, імпортовані парсером (до виведення)",
       "name": "Назва",
       "type": "Тип",
@@ -532,10 +532,10 @@
     "typeMenuTooltip": "Натисніть, щоб змінити тип"
   },
   "jsonEditor": {
-    "title": "Редагувати Конвеєр Перетворень (JSON)",
+    "title": "Редагувати конвеєр перетворень (JSON)",
     "close": "Закрити",
     "warning": "Пряме редагування JSON обходить валідацію. Невірні зміни можуть зламати ваш конвеєр.",
-    "applyChanges": "Застосувати Зміни"
+    "applyChanges": "Застосувати зміни"
   },
   "importText": {
     "label": "Вставте або введіть ваші дані:",

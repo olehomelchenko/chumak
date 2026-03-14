@@ -28,7 +28,7 @@ The plan is organized into **4 phases** by effort and impact. Each phase is inde
 _Estimated scope: ~200 string edits across JSON files + 1 CSS rule + token cleanup_
 _No component logic changes. Pure text and style fixes._
 
-### 1.1 Remove "please" from all validation messages
+### 1.1 Remove "please" from all validation messages ✅
 
 **39 instances** in `src/i18n/locales/en/errors.json` and `src/i18n/locales/en/dialogs.json` (plus Ukrainian equivalents).
 
@@ -39,7 +39,7 @@ Files:
 - `errors.json`: `validation.required.*` (16), `validation.selection.*` (14), `validation.invalid.*` (6), `import.*` (3)
 - Mirror changes in `uk/errors.json`
 
-### 1.2 Fix title case → sentence case
+### 1.2 Fix title case → sentence case ✅
 
 **~100+ violations** across all i18n JSON files. Every dialog title, section heading, button label, and field label uses Title Case instead of sentence case.
 

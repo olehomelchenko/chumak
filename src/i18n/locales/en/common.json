@@ -17,11 +17,11 @@
     "continue": "Continue",
     "undo": "Undo",
     "redo": "Redo",
-    "applyJoin": "Apply Join",
-    "applyAppend": "Apply Append",
+    "applyJoin": "Apply join",
+    "applyAppend": "Apply append",
     "backToDatasets": "Back to datasets",
     "backToTextEntry": "Back to text entry",
-    "fetchData": "Fetch Data",
+    "fetchData": "Fetch data",
     "generate": "Generate",
     "download": "Download"
   },
@@ -38,9 +38,9 @@
   },
   "tooltips": {
     "about": "About Syto",
-    "help": "Help & Reference",
+    "help": "Help & reference",
     "graph": "View dependency graph between sources and models",
-    "settings": "Application Settings",
+    "settings": "Application settings",
     "upload": "Upload CSV file",
     "url": "Import from URL",
     "generate": "Generate synthetic data",
@@ -59,7 +59,7 @@
     }
   },
   "sidebar": {
-    "title": "Sources & Models",
+    "title": "Sources & models",
     "actions": {
       "upload": "Upload",
       "url": "URL",
@@ -99,7 +99,7 @@
     "jsonApplied": "JSON configuration applied successfully",
     "workflowDownloaded": "Workflow downloaded successfully",
     "dataCleared": "All data has been cleared.",
-    "workflowValidationTitle": "Workflow Validation",
+    "workflowValidationTitle": "Workflow validation",
     "model": {
       "created": "Model \"{{name}}\" created",
       "copied": "Model copied as \"{{name}}\"",
@@ -138,11 +138,11 @@
     "removeStep": "Remove step \"{{name}}\"?",
     "replaceNulls": "Replace null/empty values?",
     "overwriteColumn": "{{message}}. It will be overwritten. Continue?",
-    "confirmReplacement": "Confirm Replacement",
+    "confirmReplacement": "Confirm replacement",
     "schemaDiffWarning": "⚠️ Warning: The new data is missing {{count}} column(s) that exist in the current source:\n\n{{columns}}\n\nDependent models may break when recomputed. Are you sure you want to proceed?"
   },
   "dependencyDialog": {
-    "title": "Dependency Impact",
+    "title": "Dependency impact",
     "message_one": "This change will affect <strong>{{count}}</strong> dependent model:",
     "message_other": "This change will affect <strong>{{count}}</strong> dependent models:",
     "question": "What would you like to do?",

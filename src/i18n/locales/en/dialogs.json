@@ -1,48 +1,48 @@
 {
   "titles": {
-    "filter": "Filter Rows",
-    "derive": "Derive Column",
-    "sort": "Sort Rows",
-    "sliceRows": "Keep / Remove Rows",
-    "index": "Add Index Column",
-    "sample": "Sample Rows",
-    "spread": "Spread Array Column",
-    "unroll": "Unroll Array Column",
-    "split": "Split Column",
-    "merge": "Merge Columns",
-    "regexpMatch": "Regexp Match",
-    "regexpExtract": "Regexp Extract",
-    "date": "Date Operations",
-    "parseDate": "Parse Date",
-    "text": "Text Operations",
+    "filter": "Filter rows",
+    "derive": "Derive column",
+    "sort": "Sort rows",
+    "sliceRows": "Keep / remove rows",
+    "index": "Add index column",
+    "sample": "Sample rows",
+    "spread": "Spread array column",
+    "unroll": "Unroll array column",
+    "split": "Split column",
+    "merge": "Merge columns",
+    "regexpMatch": "Regexp match",
+    "regexpExtract": "Regexp extract",
+    "date": "Date operations",
+    "parseDate": "Parse date",
+    "text": "Text operations",
     "dedupe": "Duplicates",
-    "fold": "Unpivot Data (Fold)",
-    "pivot": "Pivot Data (Wide)",
-    "aggregate": "Group By",
-    "window": "Window Functions",
-    "join": "Join Data",
-    "append": "Append Data",
-    "replace": "Replace Values",
-    "columnEditor": "Edit Columns",
-    "impute": "Impute Missing Values",
-    "selectPattern": "Select Pattern",
-    "removePattern": "Remove Pattern",
-    "conditional": "Conditional Column",
-    "renamePattern": "Rename Pattern",
+    "fold": "Unpivot data (fold)",
+    "pivot": "Pivot data (wide)",
+    "aggregate": "Group by",
+    "window": "Window functions",
+    "join": "Join data",
+    "append": "Append data",
+    "replace": "Replace values",
+    "columnEditor": "Edit columns",
+    "impute": "Impute missing values",
+    "selectPattern": "Select pattern",
+    "removePattern": "Remove pattern",
+    "conditional": "Conditional column",
+    "renamePattern": "Rename pattern",
     "importCsv": "Import CSV",
     "importJson": "Import JSON",
     "importExcel": "Import Excel",
     "importUrl": "Import from URL",
-    "importText": "Enter Data",
-    "generate": "Generate Data",
+    "importText": "Enter data",
+    "generate": "Generate data",
     "settings": "Settings",
-    "download": "Download Data",
-    "typeConversion": "Type Conversion",
+    "download": "Download data",
+    "typeConversion": "Type conversion",
     "expressions": "Reference",
     "reference": "Reference",
-    "dependencyGraph": "Dependency Graph",
-    "promoteHeader": "Promote Row to Header",
-    "describe": "Summary Statistics"
+    "dependencyGraph": "Dependency graph",
+    "promoteHeader": "Promote row to header",
+    "describe": "Summary statistics"
   },
   "common": {
     "labels": {
@@ -55,7 +55,7 @@
     "buttons": {
       "cancel": "Cancel",
       "apply": "Apply",
-      "fullReference": "Full Reference",
+      "fullReference": "Full reference",
       "addSortLevel": "Add sort level",
       "removeSortLevel": "Remove sort level"
     },
@@ -93,7 +93,7 @@
   "referencePage": {
     "openInNewTab": "Open in new tab",
     "sidebar": {
-      "getting-started": "Getting Started",
+      "getting-started": "Getting started",
       "operators": "Operators",
       "date": "Date",
       "text": "Text",
@@ -103,15 +103,15 @@
       "json": "JSON",
       "aggregate": "Aggregate",
       "shortcuts": "Shortcuts",
-      "whats-new": "What's New"
+      "whats-new": "What's new"
     }
   },
   "filter": {
     "label": "Keep rows where:",
     "placeholder": "e.g., sales > 1000",
     "previewModes": {
-      "all": "Show All",
-      "matching": "Matching Only"
+      "all": "Show all",
+      "matching": "Matching only"
     },
     "examples": {
       "and": "— AND",
@@ -154,7 +154,7 @@
     }
   },
   "typeConversion": {
-    "title": "Type Conversion Preview",
+    "title": "Type conversion preview",
     "noPreview": "No preview available"
   },
   "sliceRows": {
@@ -175,10 +175,10 @@
     "totalRows": "(of {{count}} total rows)"
   },
   "sample": {
-    "sampleSize": "Sample Size",
+    "sampleSize": "Sample size",
     "totalAvailable": "Total available rows: {{count}}",
     "seed": {
-      "label": "Random Seed (Optional)",
+      "label": "Random seed (optional)",
       "placeholder": "Enter a number for reproducible sampling",
       "helpText": "Use a seed to get the same 'random' sample every time you run this step."
     },
@@ -188,28 +188,28 @@
     }
   },
   "impute": {
-    "columnLabel": "Column to Impute",
+    "columnLabel": "Column to impute",
     "columnHelp": "Select the column containing missing values.",
     "typeLabel": "Type: {{type}}",
-    "strategyLabel": "Imputation Strategy",
+    "strategyLabel": "Imputation strategy",
     "strategies": {
       "constant": "Constant",
       "mean": "Mean",
       "min": "Min",
-      "forwardFill": "Forward Fill",
+      "forwardFill": "Forward fill",
       "linear": "Linear",
       "median": "Median",
       "max": "Max",
-      "backwardFill": "Backward Fill"
+      "backwardFill": "Backward fill"
     },
     "numericOnlyHint": "This strategy requires a numeric column",
     "orderDependentHint": "Tip: This strategy is order-dependent. Consider adding a Sort step before this one to ensure rows are in the expected order.",
     "includeEmptyString": "Include empty strings ('') as missing",
     "includeEmptyStringHelp": "By default, only null, undefined, and NaN are considered missing.",
-    "replacementValue": "Replacement Value",
+    "replacementValue": "Replacement value",
     "replacementPlaceholder": "Enter value (e.g. 0, N/A, Unknown)",
     "replacementHelp": "Missing values will be replaced by this value.",
-    "previewTitle": "Strategy Preview (Example Data)",
+    "previewTitle": "Strategy preview (example data)",
     "preview": {
       "original": "Original",
       "imputed": "Imputed"
@@ -234,13 +234,13 @@
   "dedupe": {
     "action": {
       "label": "Action",
-      "remove": "Remove Duplicates",
-      "keep": "Keep Only Duplicates"
+      "remove": "Remove duplicates",
+      "keep": "Keep only duplicates"
     },
     "compareBy": {
-      "label": "Compare By",
-      "allColumns": "All Columns",
-      "specificColumns": "Specific Columns"
+      "label": "Compare by",
+      "allColumns": "All columns",
+      "specificColumns": "Specific columns"
     },
     "selectKeyHelp": "Select columns to use as composite key:",
     "allColumnsInfo": "Rows are considered duplicates if all columns have identical values.",
@@ -276,11 +276,11 @@
     "useRegex": "Use as regex pattern (e.g., \\s+ for whitespace, [-_] for dash or underscore)",
     "modeLabel": "Split mode:",
     "modes": {
-      "spread": "Spread All - create column for each segment",
-      "left": "Keep Left - keep only first segment",
-      "right": "Keep Right - keep only last segment",
-      "firstN": "Keep First N - limit number of columns",
-      "lastN": "Keep Last N - keep last N segments"
+      "spread": "Spread all - create column for each segment",
+      "left": "Keep left - keep only first segment",
+      "right": "Keep right - keep only last segment",
+      "firstN": "Keep first N - limit number of columns",
+      "lastN": "Keep last N - keep last N segments"
     },
     "maxColumnsLabel": "Max columns:",
     "maxColumnsPlaceholder": "e.g., 3",
@@ -292,12 +292,12 @@
   },
   "columnEditor": {
     "modes": {
-      "list": "List Mode",
-      "text": "Text Mode",
-      "pattern": "Pattern Mode"
+      "list": "List mode",
+      "text": "Text mode",
+      "pattern": "Pattern mode"
     },
     "listMode": {
-      "patternMatchingLabel": "Pattern Matching (optional):",
+      "patternMatchingLabel": "Pattern matching (optional):",
       "select": "Select",
       "deselect": "Deselect",
       "matchTypes": {
@@ -307,11 +307,11 @@
       },
       "patternPlaceholder": "e.g., sales_ or _2023",
       "apply": "Apply",
-      "selectAll": "Select All",
-      "selectNone": "Select None"
+      "selectAll": "Select all",
+      "selectNone": "Select none"
     },
     "textMode": {
-      "operationLabel": "Text Mode Operation:",
+      "operationLabel": "Text mode operation:",
       "operations": {
         "rename": "Rename",
         "reorder": "Reorder",
@@ -325,11 +325,11 @@
       "placeholder": "Enter column names, one per line..."
     },
     "patternMode": {
-      "operationLabel": "Pattern Operation:",
+      "operationLabel": "Pattern operation:",
       "operations": {
-        "select": "Select by Pattern",
-        "remove": "Remove by Pattern",
-        "rename": "Rename by Pattern"
+        "select": "Select by pattern",
+        "remove": "Remove by pattern",
+        "rename": "Rename by pattern"
       },
       "patternLabel": "Pattern:",
       "patternPlaceholder": "e.g., sales_ or _2023",
@@ -363,28 +363,28 @@
       }
     },
     "changesPreview": {
-      "title": "Changes Preview:",
+      "title": "Changes preview:",
       "remove": "Remove: ",
       "rename": "Rename: ",
       "reordered": "Column order changed"
     }
   },
   "join": {
-    "leftTable": "Left Table",
-    "rightTable": "Right Table",
-    "leftColumnsLabel": "Left Columns to Include",
-    "rightColumnsLabel": "Right Columns to Include",
-    "suffixesLabel": "Column Name Suffixes (for conflicts)",
+    "leftTable": "Left table",
+    "rightTable": "Right table",
+    "leftColumnsLabel": "Left columns to include",
+    "rightColumnsLabel": "Right columns to include",
+    "suffixesLabel": "Column name suffixes (for conflicts)",
     "suffixesHelp": "Applied to left/right columns when names conflict",
     "suffixPlaceholder": {
       "left": "_x",
       "right": "_y"
     },
     "saveAsNew": "Save result as a new model",
-    "preview": "Preview Join",
+    "preview": "Preview join",
     "previewing": "Previewing...",
     "types": {
-      "title": "Join Types",
+      "title": "Join types",
       "left": "Left",
       "leftDesc": "Keep all left rows, match right where possible",
       "right": "Right",
@@ -400,15 +400,15 @@
     }
   },
   "aggregate": {
-    "groupByLabel": "Group By (Columns)",
+    "groupByLabel": "Group by (columns)",
     "groupByHelp": "Selected columns will define the grouping keys.",
-    "summarizeLabel": "Summarize / Rollup",
+    "summarizeLabel": "Summarize / rollup",
     "selectColumn": "Select column...",
     "allRows": "(All rows)",
     "outputPlaceholder": "Output name (auto-generated)",
-    "addAggregation": "+ Add Aggregation",
+    "addAggregation": "+ Add aggregation",
     "remove": "Remove",
-    "previewButton": "Preview Result",
+    "previewButton": "Preview result",
     "previewing": "Previewing...",
     "functions": {
       "count": "Count",
@@ -424,7 +424,7 @@
     },
     "help": {
       "title": "How it works",
-      "description": "Group By columns define the groups — rows with the same values are combined. Aggregations compute a summary value for each group.",
+      "description": "Group by columns define the groups — rows with the same values are combined. Aggregations compute a summary value for each group.",
       "countDesc": "Number of rows",
       "sumDesc": "Total of numeric values",
       "meanDesc": "Average value",
@@ -451,7 +451,7 @@
     "resultFrom": "new columns from",
     "resultShowing": "showing",
     "resultOf": "of",
-    "previewButton": "Preview Result",
+    "previewButton": "Preview result",
     "previewing": "Previewing...",
     "aggregations": {
       "sum": "Sum",
@@ -462,7 +462,7 @@
       "any": "First value"
     },
     "help": {
-      "title": "How Pivot works",
+      "title": "How pivot works",
       "description": "Pivot transforms long data into wide format. Unique values from the Columns field become new column headers, and cells are filled with the aggregated Values.",
       "exampleBefore": "Before:",
       "exampleBeforeValue": "Name, Subject, Score",
@@ -471,7 +471,7 @@
       "usage": "Use Rows for grouping, Columns for new headers, Values for cell data. Use Unpivot (Fold) to reverse."
     },
     "advanced": {
-      "title": "Advanced Options",
+      "title": "Advanced options",
       "sortColumns": "Sort column names alphabetically",
       "limitLabel": "Limit new columns",
       "limitPlaceholder": "No limit",
@@ -480,37 +480,37 @@
   },
   "unpivot": {
     "description": "Select columns to collapse into key-value pairs (wide to long format):",
-    "keyNameLabel": "Key Column Name",
+    "keyNameLabel": "Key column name",
     "keyNamePlaceholder": "e.g. Year",
     "keyNameHelp": "Contains original headers",
-    "valueNameLabel": "Value Column Name",
+    "valueNameLabel": "Value column name",
     "valueNamePlaceholder": "e.g. Sales",
     "valueNameHelp": "Contains values",
-    "modeLabel": "Selection Mode:",
+    "modeLabel": "Selection mode:",
     "modes": {
-      "keep": "Columns to Keep (as index)",
-      "fold": "Columns to Fold"
+      "keep": "Columns to keep (as index)",
+      "fold": "Columns to fold"
     },
     "modeHelp": {
       "keep": "Select columns to keep as identifiers; all other columns will be folded.",
       "fold": "Select columns to fold into key-value pairs."
     },
-    "selectKeep": "Select Columns to Keep:",
-    "selectFold": "Select Columns to Fold:"
+    "selectKeep": "Select columns to keep:",
+    "selectFold": "Select columns to fold:"
   },
   "window": {
-    "orderByLabel": "Order By",
+    "orderByLabel": "Order by",
     "orderByHelp": "Required for meaningful window results. Determines row order for lag/lead/rank.",
     "selectColumn": "Select column...",
     "ascending": "Ascending",
     "descending": "Descending",
     "remove": "Remove",
-    "addOrderColumn": "+ Add Order Column",
-    "partitionByLabel": "Partition By (Optional)",
+    "addOrderColumn": "+ Add order column",
+    "partitionByLabel": "Partition by (optional)",
     "partitionByHelp": "Window functions will restart for each group. Leave empty for no partitioning.",
-    "windowFunctionsLabel": "Window Functions",
+    "windowFunctionsLabel": "Window functions",
     "outputPlaceholder": "Output column name",
-    "addWindowFunction": "+ Add Window Function",
+    "addWindowFunction": "+ Add window function",
     "offsetPlaceholder": {
       "ntile": "N",
       "other": "Offset"
@@ -522,17 +522,17 @@
     "defaultValueLabel": "Default value (if no prior/next row):",
     "defaultValuePlaceholder": "(null)",
     "functions": {
-      "row_number": "Row Number",
+      "row_number": "Row number",
       "rank": "Rank",
-      "dense_rank": "Dense Rank",
+      "dense_rank": "Dense rank",
       "lag": "Lag",
       "lead": "Lead",
-      "first_value": "First Value",
-      "last_value": "Last Value",
-      "percent_rank": "Percent Rank",
-      "ntile": "N-Tile",
-      "fill_down": "Fill Down",
-      "fill_up": "Fill Up"
+      "first_value": "First value",
+      "last_value": "Last value",
+      "percent_rank": "Percent rank",
+      "ntile": "N-tile",
+      "fill_down": "Fill down",
+      "fill_up": "Fill up"
     },
     "functionDescriptions": {
       "row_number": "Sequential row numbers",
@@ -556,7 +556,7 @@
       "fill_down": "Fill nulls with value above",
       "orderByNote": "Use <strong>Order By</strong> to control row sequence. Use <strong>Partition By</strong> to restart numbering per group."
     },
-    "previewButton": "Preview Result",
+    "previewButton": "Preview result",
     "previewing": "Previewing..."
   },
   "text": {
@@ -573,7 +573,7 @@
     },
     "trimWhitespace": "Trim whitespace (remove leading and trailing spaces)",
     "help": {
-      "title": "About Operations",
+      "title": "About operations",
       "description": "Select a case transformation (optional) and/or enable trim whitespace.<br /><strong>Order:</strong> If both are selected, trim is applied first, then case transformation."
     },
     "removeOrigin": "Remove origin column after transformation"
@@ -583,16 +583,16 @@
     "noColumnsHelp": "No date/datetime columns found. Use the column type menu to set a column as date.",
     "operationLabel": "Operation:",
     "operations": {
-      "extract": "Extract Part",
+      "extract": "Extract part",
       "truncate": "Truncate"
     },
     "help": {
       "extract": {
-        "title": "Extract — What it does",
+        "title": "Extract — what it does",
         "description": "Extracts a numeric part from a date/datetime value. Useful for grouping or analyzing data by time periods (e.g., sales by month, events by weekday)."
       },
       "truncate": {
-        "title": "Truncate — What it does",
+        "title": "Truncate — what it does",
         "description": "Rounds down a date/datetime to the start of the specified period. For hours, minutes, and seconds you can set a custom interval (e.g., every 5 minutes, every 4 hours)."
       }
     },
@@ -608,9 +608,9 @@
       "quarter": "Quarter",
       "month": "Month",
       "weekday": "Weekday",
-      "day": "Day of Month",
-      "dayOfYear": "Day of Year",
-      "week": "Week of Year",
+      "day": "Day of month",
+      "dayOfYear": "Day of year",
+      "week": "Week of year",
       "hour": "Hour",
       "minute": "Minute",
       "second": "Second"
@@ -638,9 +638,9 @@
       "iso": "ISO 8601",
       "us": "US (M/D/YYYY)",
       "eu": "EU (D/M/YYYY)",
-      "usTime": "US + Time",
-      "euTime": "EU + Time",
-      "unix": "Unix Timestamp"
+      "usTime": "US + time",
+      "euTime": "EU + time",
+      "unix": "Unix timestamp"
     },
     "examples": {
       "iso": "2024-03-15",
@@ -659,7 +659,7 @@
     "columnNameLabel": "New column name:",
     "columnNamePlaceholder": "e.g., is_valid_code",
     "help": {
-      "title": "Pattern Examples",
+      "title": "Pattern examples",
       "upperLetters": "— starts with 2 uppercase letters",
       "phoneFormat": "— phone format 123-4567",
       "caseInsensitive": "— case-insensitive \"error\"",
@@ -675,7 +675,7 @@
     "columnNameLabel": "New column name:",
     "columnNamePlaceholder": "e.g., domain",
     "help": {
-      "title": "Pattern Examples",
+      "title": "Pattern examples",
       "dateParts": "— date parts (1=year, 2=month, 3=day)",
       "emailDomain": "— domain from email (group 1)",
       "extractLevel": "— extract level (case-insensitive)",
@@ -693,7 +693,7 @@
     "whenPlaceholder": "e.g., sales > 10000",
     "thenLabel": "Then (expression):",
     "thenPlaceholder": "e.g., 'platinum'",
-    "addCondition": "Add Condition",
+    "addCondition": "Add condition",
     "elseLabel": "Else (default value):",
     "elsePlaceholder": "e.g., 'bronze'",
     "elseHelp": "Value used when no conditions match"
@@ -701,7 +701,7 @@
   "spread": {
     "columnLabel": "Column to spread:",
     "columnHelp": "Select a column containing array values to spread into separate columns. Works with both native arrays and JSON string arrays (e.g., [\"a\",\"b\",\"c\"]).",
-    "limitLabel": "Maximum Columns (Optional)",
+    "limitLabel": "Maximum columns (optional)",
     "limitPlaceholder": "No limit (spread all array elements)",
     "limitHelp": "Limit the number of columns created. Leave empty to spread all array elements.",
     "keepOriginal": "Keep original column",
@@ -722,39 +722,48 @@
     }
   },
   "append": {
-    "leftTableLabel": "Left Table (Base)",
-    "rightTableLabel": "Right Table (Append)",
+    "leftTableLabel": "Left table (base)",
+    "rightTableLabel": "Right table (append)",
     "icon": {
       "model": "📊",
       "source": "📄"
     },
     "selected": "Selected",
-    "removeDuplicates": "Remove duplicate rows (Union)",
+    "removeDuplicates": "Remove duplicate rows (union)",
     "removeDuplicatesHelp": {
       "on": "Stacks rows and removes complete duplicates across all columns.",
       "off": "Stacks rows below current rows and keeps all original rows."
     },
-    "leftColumnsLabel": "Left Columns to Include",
-    "rightColumnsLabel": "Right Columns to Include",
-    "selectAll": "Select All",
-    "selectNone": "Select None",
-    "previewButton": "Preview Append",
+    "leftColumnsLabel": "Left columns to include",
+    "rightColumnsLabel": "Right columns to include",
+    "selectAll": "Select all",
+    "selectNone": "Select none",
+    "previewButton": "Preview append",
     "previewing": "Previewing...",
-    "previewTitle": "Preview Result:",
+    "previewTitle": "Preview result:",
     "previewCount": "{{rowCount}} rows, {{columnCount}} columns"
   },
   "generate": {
-    "sourceNameLabel": "Source Name",
+    "sourceNameLabel": "Source name",
     "sourceNamePlaceholder": "generated_data",
-    "columnNameLabel": "Column Name",
+    "columnNameLabel": "Column name",
     "columnNamePlaceholder": "id",
-    "rowCountLabel": "Number of Rows",
+    "rowCountLabel": "Number of rows",
     "autoCalculate": "Auto-calculate",
     "rowCountPlaceholder": "100",
     "rowCountHelp": {
       "auto": "Calculated {{count}} rows",
       "autoNeed": "Add a sequence with a \"Stop\" value to calculate rows",
       "manual": "Maximum: 100,000 rows"
+    },
+    "generatorType": "Generator type",
+    "types": {
+      "numberSequence": "Number sequence",
+      "dateSequence": "Date sequence",
+      "randomNumber": "Random number",
+      "randomDate": "Random date",
+      "randomBoolean": "Random boolean",
+      "randomCategory": "Random category"
     }
   },
   "index": {
@@ -790,8 +799,8 @@
     "clickToView": "Click to view values",
     "leftOnlyPercent": "({{percent}}% of left rows)",
     "rightOnlyPercent": "({{percent}}% of right rows)",
-    "joinKeysLabel": "Join Keys",
-    "addKeyPair": "+ Add Key Pair",
+    "joinKeysLabel": "Join keys",
+    "addKeyPair": "+ Add key pair",
     "helpText": "Match rows where these columns have equal values"
   },
   "generatorConfig": {
@@ -803,9 +812,9 @@
       "decimals": "Decimals"
     },
     "dateSequence": {
-      "startDate": "Start Date *",
+      "startDate": "Start date *",
       "startPlaceholder": "YYYY-MM-DD HH:mm:ss",
-      "stopDate": "Stop Date *",
+      "stopDate": "Stop date *",
       "stopPlaceholder": "YYYY-MM-DD HH:mm:ss",
       "step": "Step (opt)",
       "unit": "Unit",
@@ -831,7 +840,7 @@
       "toPlaceholder": "YYYY-MM-DD"
     },
     "randomBoolean": {
-      "trueProbability": "True Probability (0-1)"
+      "trueProbability": "True probability (0-1)"
     },
     "randomCategory": {
       "values": "Values (comma-separated)",
@@ -844,24 +853,13 @@
     "sampleDatasets": "Sample datasets:",
     "fetching": "Fetching data..."
   },
-  "generate": {
-    "generatorType": "Generator Type",
-    "types": {
-      "numberSequence": "Number Sequence",
-      "dateSequence": "Date Sequence",
-      "randomNumber": "Random Number",
-      "randomDate": "Random Date",
-      "randomBoolean": "Random Boolean",
-      "randomCategory": "Random Category"
-    }
-  },
   "importCsv": {
-    "replaceMode": "Replace Mode",
+    "replaceMode": "Replace mode",
     "replacingSource": "You are replacing data in source:",
-    "sourceNameLabel": "Source Name:",
+    "sourceNameLabel": "Source name:",
     "sourceNamePlaceholder": "e.g., sales_data",
     "sourceNameHelp": "This name will appear in the Sources panel",
-    "dataPathLabel": "Data Path (dot notation):",
+    "dataPathLabel": "Data path (dot notation):",
     "dataPathPlaceholder": "e.g., results or data.items",
     "reset": "Reset",
     "dataPathHelp": "Click keys above to navigate or type a path. If the array is nested, specify the path to it.",
@@ -869,7 +867,7 @@
     "exampleIfJsonIs": "if your JSON is",
     "exampleArrayFirst": "if your JSON is an array and you want the first element's data",
     "valueAtPath": "Value at path (preview):",
-    "jsonOptions": "JSON Options:",
+    "jsonOptions": "JSON options:",
     "flattenNested": "Flatten nested objects (e.g., user.name -> user_name)",
     "serializeNested": "Serialize nested structures to JSON strings",
     "serializeHelp": "By default, nested objects are serialized to avoid \"[object Object]\".",
@@ -879,14 +877,14 @@
     "delimiterComma": "Comma (,)",
     "delimiterTab": "Tab",
     "delimiterSemicolon": "Semicolon (;)",
-    "columnHeadersLabel": "Column Headers:",
+    "columnHeadersLabel": "Column headers:",
     "headerFirstRow": "First row contains headers (recommended)",
     "headerAutoGenerate": "Auto-generate headers (Column 1, Column 2, ...)",
     "headerManual": "Specify manually",
     "specifyColumnNames": "Specify column names:",
     "columnPlaceholder": "Column {{index}}",
     "autoGenerateMessage": "Columns will be named: Column 1, Column 2, Column 3, ...",
-    "duplicateTitle": "Duplicate Column Names Detected",
+    "duplicateTitle": "Duplicate column names detected",
     "duplicateHelp": "Duplicates have been automatically renamed by adding a suffix (e.g., \"_2\", \"_3\")."
   },
   "promoteHeader": {
@@ -898,9 +896,9 @@
     }
   },
   "describe": {
-    "columnsLabel": "Columns to Describe",
+    "columnsLabel": "Columns to describe",
     "columnsHelp": "Select columns to include in the summary. Statistics are computed based on column type.",
-    "previewButton": "Preview Result",
+    "previewButton": "Preview result",
     "previewing": "Previewing...",
     "help": {
       "title": "Computed statistics",

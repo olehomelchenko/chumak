@@ -1,6 +1,6 @@
 {
   "jsonToCsv": {
-    "title": "JSON to CSV Converter",
+    "title": "JSON to CSV converter",
     "subtitle": "Convert JSON files to CSV format instantly in your browser. No uploads, no servers — your data stays private.",
     "input": {
       "placeholder": "Paste your JSON here...",
@@ -8,7 +8,7 @@
       "hint": "Your data never leaves your browser"
     },
     "path": {
-      "label": "Data Path",
+      "label": "Data path",
       "reset": "Reset",
       "help": "Navigate to the array of objects in your JSON",
       "valueAtPath": "Value at path"

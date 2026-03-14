@@ -1,10 +1,10 @@
 {
   "ribbon": {
     "groups": {
-      "filterSort": "Filter & Sort",
+      "filterSort": "Filter & sort",
       "manage": "Manage",
-      "newColumns": "New Columns",
-      "transformValues": "Transform Values",
+      "newColumns": "New columns",
+      "transformValues": "Transform values",
       "types": "Types",
       "summarize": "Summarize",
       "reshape": "Reshape",
@@ -24,7 +24,7 @@
         "title": "Handle duplicate rows"
       },
       "sliceRows": {
-        "label": "Slice Rows",
+        "label": "Slice rows",
         "title": "Keep or remove top/bottom N rows"
       },
       "sample": {
@@ -36,7 +36,7 @@
         "title": "Use a data row as column headers"
       },
       "editColumns": {
-        "label": "Edit Columns",
+        "label": "Edit columns",
         "title": "Select, rename, remove, reorder columns, and apply pattern operations"
       },
       "split": {
@@ -81,11 +81,11 @@
         "title": "Fill missing values (null, undefined, NaN)"
       },
       "autoDetect": {
-        "label": "Auto-Detect",
+        "label": "Auto-detect",
         "title": "Re-run type detection for all columns"
       },
       "groupBy": {
-        "label": "Group By",
+        "label": "Group by",
         "title": "Group rows and calculate aggregates"
       },
       "window": {
@@ -146,15 +146,15 @@
           "split": "Split...",
           "replace": "Replace...",
           "extractRegex": "Extract (regex)...",
-          "textOperations": "Text Operations..."
+          "textOperations": "Text operations..."
         },
         "noColumn": "Select a column first",
         "requiresText": "Requires a text column"
       },
       "date": {
         "sections": {
-          "extractPart": "Extract Part",
-          "truncateTo": "Truncate To"
+          "extractPart": "Extract part",
+          "truncateTo": "Truncate to"
         },
         "shortcuts": {
           "year": {
@@ -199,8 +199,8 @@
           }
         },
         "links": {
-          "dateOperations": "Date Operations...",
-          "parseDate": "Parse Date..."
+          "dateOperations": "Date operations...",
+          "parseDate": "Parse date..."
         },
         "noColumn": "Select a column first",
         "requiresDate": "Requires a date column"
@@ -237,13 +237,13 @@
           }
         },
         "links": {
-          "deriveExpression": "Derive Expression..."
+          "deriveExpression": "Derive expression..."
         },
         "noColumn": "Select a column first",
         "requiresNumeric": "Requires a numeric column"
       },
       "convert": {
-        "section": "Convert To",
+        "section": "Convert to",
         "shortcuts": {
           "toText": {
             "label": "→ Text",
@@ -276,8 +276,8 @@
   },
   "pagination": {
     "modelInfo": {
-      "button": "Model Info",
-      "title": "Model Info"
+      "button": "Model info",
+      "title": "Model info"
     },
     "rename": {
       "button": "Rename",
@@ -317,9 +317,9 @@
     "subtitle": "Model",
     "rename": "Rename",
     "delete": "Delete",
-    "heading": "Model Information",
+    "heading": "Model information",
     "labels": {
-      "modelName": "Model Name",
+      "modelName": "Model name",
       "source": "Source",
       "rows": "Rows",
       "columns": "Columns",
@@ -335,10 +335,10 @@
     "save": "Save",
     "cancel": "Cancel",
     "noComment": "No comment added yet.",
-    "editComment": "Edit Comment",
-    "addComment": "Add Comment",
-    "schemaHeading": "Column Schema",
-    "schemaSubtitle": "Data Types",
+    "editComment": "Edit comment",
+    "addComment": "Add comment",
+    "schemaHeading": "Column schema",
+    "schemaSubtitle": "Data types",
     "schemaTitle": "Logical types for data wrangling (after inference and transforms)",
     "tableHeaders": {
       "column": "Column",
@@ -351,8 +351,8 @@
       "multiRemoveTitle": "Remove {{count}} columns",
       "ariaLabel": "Column actions",
       "ariaLabelMulti": "Multi-column actions",
-      "sortAsc": "Sort Ascending",
-      "sortDesc": "Sort Descending",
+      "sortAsc": "Sort ascending",
+      "sortDesc": "Sort descending",
       "filter": "Filter by this column",
       "rename": "Rename this column",
       "split": "Split this column",
@@ -391,11 +391,11 @@
     }
   },
   "emptyState": {
-    "title": "Get Started with Syto",
+    "title": "Get started with Syto",
     "subtitle": "Drag and drop a CSV file here, or use one of the options below",
     "uploadButton": "Upload CSV",
     "urlButton": "Import from URL",
-    "enterButton": "Enter Data",
+    "enterButton": "Enter data",
     "videoPlaceholder": "Video coming soon"
   },
   "toast": {
@@ -408,20 +408,20 @@
     },
     "overview": {
       "title": "Overview",
-      "totalRows": "Total Rows",
+      "totalRows": "Total rows",
       "missing": "Missing",
       "missingTooltip": "{{percent}}% missing",
-      "uniqueValues": "Unique Values",
+      "uniqueValues": "Unique values",
       "errors": "Errors",
       "errorsTooltip": "{{percent}}% errors"
     },
     "numeric": {
-      "title": "Distribution & Outliers",
+      "title": "Distribution & outliers",
       "charts": {
-        "boxplot": "Box Plot",
+        "boxplot": "Box plot",
         "histogram": "Histogram"
       },
-      "keepSelection": "Keep Only Selection",
+      "keepSelection": "Keep only selection",
       "stats": {
         "min": "Min",
         "meanMinus3Sigma": "Mean - 3σ",
@@ -438,15 +438,15 @@
       }
     },
     "temporal": {
-      "title": "Timeline Distribution"
+      "title": "Timeline distribution"
     },
     "categorical": {
-      "title": "Frequency Distribution",
+      "title": "Frequency distribution",
       "emptyValue": "(empty)"
     }
   },
   "typeMenu": {
-    "title": "Change Type",
+    "title": "Change type",
     "types": {
       "string": "String",
       "integer": "Integer",
@@ -459,7 +459,7 @@
     }
   },
   "stepRemoval": {
-    "title": "Remove Step",
+    "title": "Remove step",
     "message": "Remove step \"{{stepName}}\"?",
     "modes": {
       "all": "Remove this step and all following steps",
@@ -469,36 +469,36 @@
     "warning": "Following steps may fail if they depend on this step's output"
   },
   "datasetInfo": {
-    "subtitle": "Dataset Source",
+    "subtitle": "Dataset source",
     "actions": {
-      "editData": "Edit Data",
-      "replace": "Replace Data",
-      "restore": "Restore Backup",
+      "editData": "Edit data",
+      "replace": "Replace data",
+      "restore": "Restore backup",
       "rename": "Rename",
       "delete": "Delete"
     },
-    "title": "Dataset Information",
+    "title": "Dataset information",
     "labels": {
-      "sourceName": "Source Name",
-      "originalFile": "Original File",
+      "sourceName": "Source name",
+      "originalFile": "Original file",
       "imported": "Imported",
       "rows": "Rows",
       "columns": "Columns",
-      "modified": "Last Modified",
+      "modified": "Last modified",
       "comment": "Comment",
-      "fileSize": "File Size"
+      "fileSize": "File size"
     },
     "commentPlaceholder": "Add a description or notes about this dataset...",
     "commentEdit": "Edit",
     "commentSave": "Save",
     "commentCancel": "Cancel",
     "noComment": "No comment added yet.",
-    "commentAdd": "Add Comment",
-    "commentEditButton": "Edit Comment",
+    "commentAdd": "Add comment",
+    "commentEditButton": "Edit comment",
     "models": {
       "title": "Models",
       "subtitle": "Models created from this source",
-      "create": "New Model",
+      "create": "New model",
       "viewSteps": "View {{count}} steps",
       "viewSteps_one": "{{count}} step",
       "viewSteps_other": "{{count}} steps",
@@ -508,8 +508,8 @@
       "staleTooltip": "This model is outdated"
     },
     "schema": {
-      "title": "Column Schema",
-      "subtitle": "Import Types",
+      "title": "Column schema",
+      "subtitle": "Import types",
       "subtitleTooltip": "Types as imported by the parser (before inference)",
       "name": "Name",
       "type": "Type",
@@ -522,10 +522,10 @@
     "typeMenuTooltip": "Click to change type"
   },
   "jsonEditor": {
-    "title": "Edit Transform Pipeline (JSON)",
+    "title": "Edit transform pipeline (JSON)",
     "close": "Close",
     "warning": "Direct JSON editing bypasses validation. Invalid changes may break your pipeline.",
-    "applyChanges": "Apply Changes"
+    "applyChanges": "Apply changes"
   },
   "importText": {
     "label": "Paste or type your data:",

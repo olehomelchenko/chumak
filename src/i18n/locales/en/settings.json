@@ -3,7 +3,7 @@
     "label": "Language"
   },
   "theme": {
-    "label": "Color Scheme",
+    "label": "Color scheme",
     "syto": {
       "name": "Syto",
       "description": "Modern vibrant custom palette"
@@ -14,7 +14,7 @@
     }
   },
   "preview": {
-    "label": "Preview Row Limit",
+    "label": "Preview row limit",
     "description": "Maximum number of rows to show in transform previews. Higher values may slow down previews for complex expressions.",
     "range": "rows (10-10000)"
   },
@@ -24,8 +24,8 @@
   },
   "note": "Some interface elements use the primary theme color. The \"Syto\" theme also uses custom typography and removes border radiuses for a sharper look.",
   "dangerZone": {
-    "title": "Danger Zone",
+    "title": "Danger zone",
     "description": "This will permanently delete all sources, models, and steps from your browser's storage. This action cannot be undone.",
-    "button": "Clear All Data"
+    "button": "Clear all data"
   }
 }
