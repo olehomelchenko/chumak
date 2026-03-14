@@ -8,7 +8,7 @@ const styles = { ...formStyles, ...genStyles };
 const generatorIcons: Record<GeneratorType, string> = {
   numberSequence: 'carbon:list-number',
   dateSequence: 'carbon:calendar',
-  randomNumber: 'carbon:help',
+  randomNumber: 'carbon:hashtag',
   randomDate: 'carbon:calendar-tools',
   randomBoolean: 'carbon:boolean',
   randomCategory: 'carbon:direction-loop',

@@ -10,8 +10,8 @@ const joinTypeIcons: Record<JoinType, string> = {
   right: 'carbon:join-right',
   full: 'carbon:join-full',
   cross: 'carbon:join',
-  semi: 'carbon:dot-mark',
-  anti: 'carbon:error-filled',
+  semi: 'carbon:filter',
+  anti: 'carbon:filter-remove',
   lookup: 'carbon:search',
 };
 

@@ -429,7 +429,25 @@ Five tiers in `variables.css` cover all icon dimensions:
 
 **Rule**: Use icon tokens only for `.iconify` elements and icon-sized button containers. Non-icon UI elements (radio circles, color swatches, dots) should use explicit pixel values — icon tokens are a visual sizing tier, not a general "small square" abstraction.
 
-### 5.4 Button System
+### 5.4 Icon Sets
+
+The project uses [Iconify](https://iconify.design/) with icons loaded on demand. Multiple icon sets are in use — each has a defined role:
+
+| Set                       | Role                                             | Examples                                                     |
+| ------------------------- | ------------------------------------------------ | ------------------------------------------------------------ |
+| `carbon:`                 | Primary — general UI actions, status, navigation | `carbon:filter`, `carbon:edit`, `carbon:warning`             |
+| `ix:`                     | Data-type column indicators                      | `ix:data-type-string`, `ix:data-type-integer`, `ix:calendar` |
+| `material-symbols-light:` | Specialized domain icons (impute, pivot, split)  | `material-symbols-light:pivot-table-chart-rounded`           |
+| `codicon:`                | Code-related actions                             | `codicon:replace`                                            |
+| `mdi:`                    | JSON type only                                   | `mdi:code-json`                                              |
+
+**Rules**:
+
+- Default to `carbon:` for new icons. Only reach for another set when Carbon lacks a suitable glyph.
+- Use `material-symbols-light:` (not `material-symbols:`) when Material Symbols icons are needed — the light weight matches the overall thin-line aesthetic.
+- `getTypeIcon()` in `helper-handlers.ts` is the **single source** for column type → icon mappings. Components needing a type icon should import it rather than maintaining a local switch.
+
+### 5.5 Button System
 
 The global `buttons.css` defines shared button variants. Local CSS modules consume interaction tokens but own their layout.
 

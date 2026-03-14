@@ -36,50 +36,50 @@ export function ImputeDialog() {
     {
       id: 'constant',
       label: t('impute.strategies.constant'),
-      icon: 'material-symbols:format-quote-rounded',
+      icon: 'material-symbols-light:format-quote-rounded',
       numericOnly: false,
     },
     {
       id: 'mean',
       label: t('impute.strategies.mean'),
-      icon: 'material-symbols:average-rounded',
+      icon: 'material-symbols-light:average-rounded',
       numericOnly: true,
     },
     {
       id: 'min',
       label: t('impute.strategies.min'),
-      icon: 'material-symbols:vertical-align-bottom-rounded',
+      icon: 'material-symbols-light:vertical-align-bottom-rounded',
       numericOnly: true,
     },
     {
       id: 'forwardFill',
       label: t('impute.strategies.forwardFill'),
-      icon: 'material-symbols:arrow-downward-rounded',
+      icon: 'material-symbols-light:arrow-downward-rounded',
       numericOnly: false,
     },
     // Row 2
     {
       id: 'linearInterpolation',
       label: t('impute.strategies.linear'),
-      icon: 'material-symbols:show-chart-rounded',
+      icon: 'material-symbols-light:show-chart-rounded',
       numericOnly: true,
     },
     {
       id: 'median',
       label: t('impute.strategies.median'),
-      icon: 'material-symbols:equalizer-rounded',
+      icon: 'material-symbols-light:equalizer-rounded',
       numericOnly: true,
     },
     {
       id: 'max',
       label: t('impute.strategies.max'),
-      icon: 'material-symbols:vertical-align-top-rounded',
+      icon: 'material-symbols-light:vertical-align-top-rounded',
       numericOnly: true,
     },
     {
       id: 'backwardFill',
       label: t('impute.strategies.backwardFill'),
-      icon: 'material-symbols:arrow-upward-rounded',
+      icon: 'material-symbols-light:arrow-upward-rounded',
       numericOnly: false,
     },
   ];
@@ -244,7 +244,7 @@ export function ImputeDialog() {
 
       {state.error.value && (
         <div className={styles.error}>
-          <span className="iconify" data-icon="material-symbols:error-outline-rounded" />
+          <span className="iconify" data-icon="material-symbols-light:error-outline-rounded" />
           <span>{state.error.value}</span>
         </div>
       )}

@@ -95,6 +95,7 @@ export function ColumnToolbar({
   if (isMulti) {
     return (
       <div
+        key="multi"
         ref={toolbarRef}
         role="toolbar"
         aria-label={t('toolbars.column.ariaLabelMulti')}
@@ -136,6 +137,7 @@ export function ColumnToolbar({
 
   return (
     <div
+      key="single"
       ref={toolbarRef}
       role="toolbar"
       aria-label={t('toolbars.column.ariaLabel')}

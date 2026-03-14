@@ -228,7 +228,7 @@ function TextPopoverContent({
           }}
         />
         <PopoverDialogLink
-          icon="carbon:string-text"
+          icon="carbon:text-search"
           label={t('ribbon.popovers.text.links.extractRegex')}
           onClick={() => {
             onClose();
@@ -532,7 +532,7 @@ export function RibbonToolbar({ onOpenDialog, onAutoDetectSchema }: RibbonToolba
                 onClick={() => onOpenDialog('regexpMatch')}
               />
               <RibbonButton
-                icon="carbon:string-text"
+                icon="carbon:text-search"
                 label={t('ribbon.buttons.extract.label')}
                 title={t('ribbon.buttons.extract.title')}
                 onClick={() => onOpenDialog('regexpExtract')}

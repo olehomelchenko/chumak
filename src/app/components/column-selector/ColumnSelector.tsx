@@ -5,7 +5,7 @@
 
 import { useMemo, useState } from 'preact/hooks';
 import { useTranslation } from 'preact-i18next';
-import { AppStore } from '../../stores/AppStore';
+import { getTypeIcon } from '../../handlers/core/helper-handlers';
 import { ColumnChip } from './ColumnChip';
 import { ColumnRow } from './ColumnRow';
 import formStyles from '../form-controls.module.css';
@@ -66,45 +66,6 @@ export function ColumnSelector({
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
   const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const [searchText, setSearchText] = useState('');
-
-  // Get column type from schema
-  const getColumnType = (columnName: string): string => {
-    const schema = AppStore.activeModel.value?.schema || [];
-    const col = schema.find((c: any) => c.name === columnName);
-    if (col) return col.type;
-
-    if (AppStore.activeSource.value?.columns) {
-      const sourceCol = AppStore.activeSource.value.columns.find((c: any) => c.name === columnName);
-      if (sourceCol) return sourceCol.type;
-    }
-    return 'string';
-  };
-
-  // Get icon for a column based on its type
-  const getIcon = (columnName: string): string => {
-    const type = getColumnType(columnName);
-
-    switch (type) {
-      case 'date':
-      case 'datetime':
-        return 'ix:calendar';
-      case 'time':
-        return 'carbon:time';
-      case 'float':
-      case 'number':
-        return 'ix:data-type-double';
-      case 'string':
-        return 'ix:data-type-string';
-      case 'boolean':
-        return 'ix:data-type-boolean';
-      case 'integer':
-        return 'ix:data-type-integer';
-      case 'json':
-        return 'mdi:code-json';
-      default:
-        return 'ix:data-type-string';
-    }
-  };
 
   // Check if a column is selected
   const isSelected = (column: string): boolean => {
@@ -234,7 +195,7 @@ export function ColumnSelector({
             <ColumnChip
               key={column}
               label={column}
-              icon={getIcon(column)}
+              icon={getTypeIcon(column)}
               isActive={isSelected(column)}
               onClick={() => handleSelectionChange(column)}
               disabled={disabledColumns.includes(column)}
@@ -254,7 +215,7 @@ export function ColumnSelector({
             <ColumnRow
               key={column}
               column={column}
-              icon={getIcon(column)}
+              icon={getTypeIcon(column)}
               isSelected={isSelected(column)}
               isDragging={draggedIndex === index}
               isDropTarget={

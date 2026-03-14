@@ -157,7 +157,7 @@ export function getTypeIcon(colName: string): string {
   const type = getColumnType(colName);
   switch (type) {
     case 'date':
-      return 'ix:calendar';
+      return 'carbon:calendar';
     case 'datetime':
       return 'ix:calendar';
     case 'time':
