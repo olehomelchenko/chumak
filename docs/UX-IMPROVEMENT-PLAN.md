@@ -1,6 +1,6 @@
 # Syto — UX Improvement Plan
 
-> **Status**: Phase 1 in progress (1.1–1.5 done)
+> **Status**: Phase 1 complete (1.1–1.6 done)
 > **Date**: March 2026
 > **Basis**: Comprehensive audit against IBM Carbon Design System best practices
 > **Related**: [DESIGN-SYSTEM-EVALUATION.md](archive/DESIGN-SYSTEM-EVALUATION.md), [CONTENT-GUIDELINES.md](CONTENT-GUIDELINES.md), [UX-SPECIFICATION.md](UX-SPECIFICATION.md)
@@ -72,20 +72,16 @@ Extend `confirm()` in `notification-handlers.ts` to accept an optional `confirmL
 | Overwrite column | Yes            | Overwrite |
 | Replace source   | Yes            | Replace   |
 
-### 1.6 Add fix guidance to error messages
+### 1.6 Add fix guidance to error messages ✅
 
-**~28 error messages** in `errors.json` state a problem but give no recovery hint.
+Added recovery hints to 28 error messages across `errors.json` in both locales. Every message now follows the two-part pattern from CONTENT-GUIDELINES.md §5.1: what happened + how to fix it.
 
-Pattern: `"Error reading CSV: {{message}}"` → `"Could not read CSV file. Check the file format and try again."`
+Changes by category:
 
-Priority errors to fix:
-
-- `system.modelNotFound` → add "Select a model from the sidebar."
-- `system.noActiveModel` → add "Select a model from the sidebar."
-- `export.noData` → add "Import a dataset first."
-- `export.noWorkflow` → add "Add transform steps first."
-- `system.undoFailed` / `system.redoFailed` → add "There may be no more actions to undo/redo."
-- All `transform.*Failed` → add "Check the configuration and try again."
+- **import** (5): CSV/Excel errors now suggest checking format/encoding; fetch errors suggest checking URL
+- **export** (2): `noData` → "Import a dataset first"; `noWorkflow` → "Add transform steps first"
+- **transform** (7): All `*Failed` messages now append "Check the configuration and try again"
+- **system** (14): `modelNotFound`/`noActiveModel` → "Select a model from the sidebar"; `undoFailed`/`redoFailed` → "Nothing to undo/redo"; step errors suggest specific recovery actions; `circularDependency` explains the constraint; import step errors explain why removal is blocked
 
 ---
 

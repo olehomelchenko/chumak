@@ -204,7 +204,9 @@ describe('StepService', () => {
       const result = await StepService.runTransform('Filter', { filter: 'age > 25' }, callbacks);
 
       expect(result).toBe(false);
-      expect(callbacks.onError).toHaveBeenCalledWith('No active model');
+      expect(callbacks.onError).toHaveBeenCalledWith(
+        'No active model. Select a model from the sidebar.'
+      );
     });
 
     it('returns false and calls onError when no current data', async () => {

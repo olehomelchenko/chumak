@@ -34,7 +34,7 @@ describe('ExportService', () => {
       const result = await ExportService.exportCSV(alert);
 
       expect(result).toBeUndefined();
-      expect(alert).toHaveBeenCalledWith('No data to export');
+      expect(alert).toHaveBeenCalledWith('No data to export. Import a dataset first.');
     });
 
     it('alerts and returns undefined when data is empty', async () => {
@@ -43,7 +43,7 @@ describe('ExportService', () => {
       const result = await ExportService.exportCSV(alert);
 
       expect(result).toBeUndefined();
-      expect(alert).toHaveBeenCalledWith('No data to export');
+      expect(alert).toHaveBeenCalledWith('No data to export. Import a dataset first.');
     });
 
     it('returns CSV string for valid data', async () => {
@@ -88,7 +88,7 @@ describe('ExportService', () => {
 
       await ExportService.exportWorkflowJSON(alert);
 
-      expect(alert).toHaveBeenCalledWith('No workflow to export');
+      expect(alert).toHaveBeenCalledWith('No workflow to export. Add transform steps first.');
     });
 
     it('exports workflow with correct structure', async () => {
@@ -113,7 +113,7 @@ describe('ExportService', () => {
 
       await ExportService.exportDataJSON(alert);
 
-      expect(alert).toHaveBeenCalledWith('No data to export');
+      expect(alert).toHaveBeenCalledWith('No data to export. Import a dataset first.');
     });
 
     it('exports data as JSON', async () => {
@@ -142,7 +142,7 @@ describe('ExportService', () => {
 
       await ExportService.copyCSVToClipboard(getPaginatedData, alert);
 
-      expect(alert).toHaveBeenCalledWith('No data to export');
+      expect(alert).toHaveBeenCalledWith('No data to export. Import a dataset first.');
     });
 
     it('writes CSV to clipboard', async () => {
@@ -184,7 +184,7 @@ describe('ExportService', () => {
 
       await ExportService.copyJSONToClipboard(getPaginatedData, alert);
 
-      expect(alert).toHaveBeenCalledWith('No data to export');
+      expect(alert).toHaveBeenCalledWith('No data to export. Import a dataset first.');
     });
 
     it('writes JSON to clipboard', async () => {

@@ -381,7 +381,9 @@ describe('ModelService', () => {
 
       await ModelService.copyCurrentModel(prompt, alert, switchToModelFn);
 
-      expect(alert).toHaveBeenCalledWith('No active model selected');
+      expect(alert).toHaveBeenCalledWith(
+        'No active model selected. Select a model from the sidebar.'
+      );
     });
 
     it('does nothing when prompt returns null', async () => {
@@ -454,7 +456,9 @@ describe('ModelService', () => {
 
       await ModelService.forkModelAtStep(1, prompt, alert, switchToModelFn);
 
-      expect(alert).toHaveBeenCalledWith('No active model selected');
+      expect(alert).toHaveBeenCalledWith(
+        'No active model selected. Select a model from the sidebar.'
+      );
     });
 
     it('does nothing when prompt returns null', async () => {
@@ -552,7 +556,9 @@ describe('ModelService', () => {
 
       await ModelService.renameCurrentModel(prompt, alert);
 
-      expect(alert).toHaveBeenCalledWith('No active model selected');
+      expect(alert).toHaveBeenCalledWith(
+        'No active model selected. Select a model from the sidebar.'
+      );
     });
 
     it('does nothing when prompt returns null', async () => {
@@ -607,7 +613,9 @@ describe('ModelService', () => {
 
       await ModelService.deleteCurrentModel(confirm, alert, switchToModelFn);
 
-      expect(alert).toHaveBeenCalledWith('No active model selected');
+      expect(alert).toHaveBeenCalledWith(
+        'No active model selected. Select a model from the sidebar.'
+      );
     });
 
     it('alerts when only one model for source', async () => {

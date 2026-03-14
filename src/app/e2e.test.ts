@@ -187,7 +187,7 @@ Test,100`;
       { filter: 'invalid_column > 100' } as any,
       {
         onError: async (msg) => {
-          expect(msg).toContain('Error');
+          expect(msg).toContain('Could not apply');
         },
       }
     );
