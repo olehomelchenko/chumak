@@ -874,6 +874,7 @@
     "serializeNested": "Serialize nested structures to JSON strings",
     "serializeHelp": "By default, nested objects are serialized to avoid \"[object Object]\".",
     "noValidArray": "No valid array of objects found at this path.",
+    "sheetLabel": "Sheet:",
     "delimiterLabel": "Delimiter:",
     "delimiterComma": "Comma (,)",
     "delimiterTab": "Tab",

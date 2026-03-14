@@ -168,6 +168,11 @@ In replace mode, the Import Dialog displays:
 - **Multi-select chips**: For bulk column operations (remove, unpivot) with Cmd/Ctrl+click toggle
 - **List Selection**: For detailed management (rename, reorder, select) with drag-and-drop support
 
+**Form Control Conventions**:
+
+- **Radio buttons**: Preferred for small option sets in dialogs (delimiter, header mode, sheet selection). Keeps all choices visible at a glance.
+- **Native `<select>`**: Avoid in dialogs — use radio buttons or chip selectors instead. Reserve `<select>` only for inline/toolbar contexts where space is extremely constrained.
+
 **Preview Triggers**:
 
 - **Auto-updating (debounced)**: filter, derive, regexp-match, regexp-extract, date, select-columns, impute

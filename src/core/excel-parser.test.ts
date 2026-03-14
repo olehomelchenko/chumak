@@ -121,6 +121,36 @@ describe('excel-parser', () => {
     expect(result.data).toEqual([['A'], [1]]);
   });
 
+  it('selects a specific sheet by index', async () => {
+    const { parseExcelFile } = await import('./excel-parser');
+    const buffer = createMultiSheetBuffer([
+      { name: 'First', data: [['A'], [1]] },
+      { name: 'Second', data: [['B'], [2]] },
+      { name: 'Third', data: [['C'], [3]] },
+    ]);
+
+    const second = await parseExcelFile(buffer, 1);
+    expect(second.data).toEqual([['B'], [2]]);
+    expect(second.sheetNames).toEqual(['First', 'Second', 'Third']);
+
+    const third = await parseExcelFile(buffer, 2);
+    expect(third.data).toEqual([['C'], [3]]);
+  });
+
+  it('preview limits rows on a specific sheet', async () => {
+    const { parseExcelPreview } = await import('./excel-parser');
+    const rows: unknown[][] = [['Header']];
+    for (let i = 1; i <= 50; i++) rows.push([i]);
+    const buffer = createMultiSheetBuffer([
+      { name: 'Small', data: [['X'], [99]] },
+      { name: 'Large', data: rows },
+    ]);
+
+    const result = await parseExcelPreview(buffer, 5, 1);
+    expect(result.data.length).toBeLessThanOrEqual(5);
+    expect(result.data[0]).toEqual(['Header']);
+  });
+
   it('preview limits rows', async () => {
     const { parseExcelPreview } = await import('./excel-parser');
     const rows: unknown[][] = [['Header']];

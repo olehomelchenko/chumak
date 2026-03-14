@@ -390,6 +390,9 @@ export async function handleExcelPreview(file: File): Promise<void> {
     s.duplicateWarning.value = '';
     s.jsonData.value = null;
     s.fullJsonData.value = null;
+    s.sheetNames.value = preview.sheetNames;
+    s.selectedSheetIndex.value = 0;
+    s.excelBuffer.value = buffer;
 
     // Parse full file and store for confirm step (no re-parse needed)
     const full = await parseExcelFile(buffer);
@@ -412,6 +415,52 @@ export async function handleExcelPreview(file: File): Promise<void> {
     callbacks?.openDialog('import-csv');
   } catch (error: any) {
     console.error('Excel preview error:', error);
+    await alert(i18n.t('import.excelError', { ns: 'errors', message: error.message }));
+  }
+}
+
+export async function handleSheetChange(sheetIndex: number): Promise<void> {
+  const s = DialogStore.importCsvState;
+  const buffer = s.excelBuffer.value;
+  if (!buffer) return;
+
+  const previewLimit = AppStore.uxSettings.value.preview.rowLimit;
+
+  try {
+    const { parseExcelPreview, parseExcelFile } = await import('../../../core/excel-parser');
+
+    const preview = await parseExcelPreview(buffer, previewLimit, sheetIndex);
+    const data = preview.data;
+    const firstRow = data[0] || [];
+    const initialHeaders = (firstRow as unknown[]).map((cell, i) =>
+      cell != null ? String(cell) : `Column ${i + 1}`
+    );
+
+    s.selectedSheetIndex.value = sheetIndex;
+    s.rawPreviewData.value = data;
+    s.originalHeaders.value = initialHeaders;
+    s.customHeaders.value = initialHeaders;
+    s.headerMode.value = 'first-row';
+    s.duplicateWarning.value = '';
+
+    const full = await parseExcelFile(buffer, sheetIndex);
+    s.excelData.value = full.data;
+
+    updateHeadersForPreview();
+
+    if (s.isReplaceMode.value) {
+      const sourceId = s.targetSourceId.value;
+      const source = AppStore.sources.value.find((src) => src.id === sourceId);
+      if (source) {
+        computeSchemaDiffForPreview(
+          source.columns,
+          s.previewHeaders.value,
+          s.previewDataRows.value
+        );
+      }
+    }
+  } catch (error: any) {
+    console.error('Excel sheet change error:', error);
     await alert(i18n.t('import.excelError', { ns: 'errors', message: error.message }));
   }
 }

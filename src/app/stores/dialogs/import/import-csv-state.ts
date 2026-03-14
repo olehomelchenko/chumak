@@ -30,6 +30,9 @@ export const importCsvState = {
   fromTextEntry: signal(false),
   isExcel: signal(false),
   excelData: signal<unknown[][] | null>(null),
+  sheetNames: signal<string[]>([]),
+  selectedSheetIndex: signal(0),
+  excelBuffer: signal<ArrayBuffer | null>(null),
 };
 
 export function resetImportCsvState() {
@@ -58,6 +61,9 @@ export function resetImportCsvState() {
   importCsvState.fromTextEntry.value = false;
   importCsvState.isExcel.value = false;
   importCsvState.excelData.value = null;
+  importCsvState.sheetNames.value = [];
+  importCsvState.selectedSheetIndex.value = 0;
+  importCsvState.excelBuffer.value = null;
 }
 
 registerResetFunction(resetImportCsvState);

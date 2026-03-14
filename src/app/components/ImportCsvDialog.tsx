@@ -14,6 +14,7 @@ export interface ImportCsvDialogProps {
   onParamChange?: () => void;
   onBackToUrl?: () => void;
   onBackToText?: () => void;
+  onSheetChange?: (index: number) => void;
 }
 
 export function ImportCsvDialog({
@@ -23,6 +24,7 @@ export function ImportCsvDialog({
   onParamChange,
   onBackToUrl,
   onBackToText,
+  onSheetChange,
 }: ImportCsvDialogProps = {}) {
   const { t } = useTranslation(['dialogs', 'common']);
   const {
@@ -43,6 +45,8 @@ export function ImportCsvDialog({
     fromUrlImport,
     fromTextEntry,
     isExcel,
+    sheetNames,
+    selectedSheetIndex,
   } = DialogStore.importCsvState;
 
   const handleJsonPathInput = (e: JSX.TargetedEvent<HTMLInputElement>) => {
@@ -270,6 +274,31 @@ export function ImportCsvDialog({
             </div>
           )}
         </>
+      )}
+
+      {/* Sheet Selector (multi-sheet Excel only) */}
+      {isExcel.value && sheetNames.value.length > 1 && (
+        <div class={styles.group}>
+          <label class={styles.label}>{t('importCsv.sheetLabel')}</label>
+          <div style={{ display: 'flex', gap: '16px', alignItems: 'center', flexWrap: 'wrap' }}>
+            {sheetNames.value.map((name, i) => (
+              <label key={i} class={styles.checkboxLabel} style={{ margin: 0 }}>
+                <input
+                  type="radio"
+                  name="sheetIndex"
+                  value={i}
+                  checked={selectedSheetIndex.value === i}
+                  onChange={() => {
+                    if (onSheetChange) {
+                      onSheetChange(i);
+                    }
+                  }}
+                />
+                <span>{name}</span>
+              </label>
+            ))}
+          </div>
+        </div>
       )}
 
       {/* CSV / Excel Section */}

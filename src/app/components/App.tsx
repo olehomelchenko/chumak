@@ -104,6 +104,7 @@ import {
   backToUrlImport,
   backToTextEntry,
   fetchAndImportFromUrl,
+  handleSheetChange,
 } from '../handlers/import/import-handlers';
 import {
   getStepsJson,
@@ -321,6 +322,7 @@ export function App() {
                     }}
                     onBackToUrl={() => backToUrlImport()}
                     onBackToText={() => backToTextEntry()}
+                    onSheetChange={(index) => handleSheetChange(index)}
                   />
                 )}
                 {activeDialog === 'import-url' && (

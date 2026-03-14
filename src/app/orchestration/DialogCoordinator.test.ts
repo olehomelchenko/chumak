@@ -221,7 +221,12 @@ describe('DialogCoordinator', () => {
       DialogStore.importCsvState.delimiter.value = ',';
 
       const state = getDialogState('import-csv');
-      expect(state).toEqual({ sourceName: 'sales.csv', headerMode: 'first-row', delimiter: ',' });
+      expect(state).toEqual({
+        sourceName: 'sales.csv',
+        headerMode: 'first-row',
+        delimiter: ',',
+        selectedSheetIndex: 0,
+      });
     });
 
     it('returns import-url state', () => {

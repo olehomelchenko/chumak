@@ -459,6 +459,7 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
       sourceName: DialogStore.importCsvState.sourceName.value,
       headerMode: DialogStore.importCsvState.headerMode.value,
       delimiter: DialogStore.importCsvState.delimiter.value,
+      selectedSheetIndex: DialogStore.importCsvState.selectedSheetIndex.value,
     }),
   },
 

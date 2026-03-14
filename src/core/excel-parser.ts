@@ -28,9 +28,14 @@ function convertDates(data: unknown[][]): unknown[][] {
   return data.map((row) => row.map((cell) => (cell instanceof Date ? formatDate(cell) : cell)));
 }
 
-function parseWorkbook(wb: WorkBook, XLSX: any, rowLimit?: number): ExcelParseResult {
+function parseWorkbook(
+  wb: WorkBook,
+  XLSX: any,
+  sheetIndex = 0,
+  rowLimit?: number
+): ExcelParseResult {
   const sheetNames = wb.SheetNames;
-  const sheet = wb.Sheets[sheetNames[0]];
+  const sheet = wb.Sheets[sheetNames[sheetIndex]];
   if (!sheet) {
     return { data: [], sheetNames };
   }
@@ -49,18 +54,22 @@ function parseWorkbook(wb: WorkBook, XLSX: any, rowLimit?: number): ExcelParseRe
   };
 }
 
-export async function parseExcelFile(buffer: ArrayBuffer): Promise<ExcelParseResult> {
+export async function parseExcelFile(
+  buffer: ArrayBuffer,
+  sheetIndex = 0
+): Promise<ExcelParseResult> {
   const XLSX = await loadXlsx();
   const wb = XLSX.read(buffer, { type: 'array', cellDates: true });
-  return parseWorkbook(wb, XLSX);
+  return parseWorkbook(wb, XLSX, sheetIndex);
 }
 
 export async function parseExcelPreview(
   buffer: ArrayBuffer,
-  rowLimit: number
+  rowLimit: number,
+  sheetIndex = 0
 ): Promise<ExcelParseResult> {
   const XLSX = await loadXlsx();
   // sheetRows limits parsing to first N rows for efficiency
   const wb = XLSX.read(buffer, { type: 'array', cellDates: true, sheetRows: rowLimit });
-  return parseWorkbook(wb, XLSX, rowLimit);
+  return parseWorkbook(wb, XLSX, sheetIndex, rowLimit);
 }

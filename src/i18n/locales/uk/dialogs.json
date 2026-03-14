@@ -875,6 +875,7 @@
     "serializeNested": "Серіалізувати вкладені структури в рядки JSON",
     "serializeHelp": "За замовчуванням, вкладені об'єкти серіалізуються, щоб уникнути \"[object Object]\".",
     "noValidArray": "За цим шляхом не знайдено дійсного масиву об'єктів.",
+    "sheetLabel": "Аркуш:",
     "delimiterLabel": "Роздільник:",
     "delimiterComma": "Кома (,)",
     "delimiterTab": "Табуляція",
