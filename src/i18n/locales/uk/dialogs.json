@@ -31,6 +31,7 @@
     "renamePattern": "Перейменувати за шаблоном",
     "importCsv": "Імпорт CSV",
     "importJson": "Імпорт JSON",
+    "importExcel": "Імпорт Excel",
     "importUrl": "Імпорт з URL",
     "importText": "Ввести дані",
     "generate": "Згенерувати дані",

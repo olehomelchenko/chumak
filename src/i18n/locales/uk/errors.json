@@ -57,11 +57,12 @@
     }
   },
   "import": {
-    "dropFile": "Будь ласка, перетягніть CSV або JSON файл",
+    "dropFile": "Будь ласка, перетягніть підтримуваний файл (CSV, TSV, TXT, JSON, Excel, ODS)",
     "clipboardEmpty": "Буфер обміну порожній або не містить тексту. Спробуйте скопіювати CSV або JSON дані спочатку.",
     "clipboardNotSupported": "Ваш браузер не підтримує прямий доступ до буфера обміну. Будь ласка, використовуйте Ctrl+V для вставки даних.",
     "pastePrompt": "Будь ласка, натисніть Ctrl+V, щоб вставити ваші дані безпосередньо.",
     "csvError": "Помилка читання CSV: {{message}}",
+    "excelError": "Помилка читання Excel файлу: {{message}}",
     "fetchError": "Не вдалося отримати дані: {{status}}",
     "emptyResponse": "URL повернув порожню відповідь",
     "jsonInvalidStructure": "JSON повинен містити масив \"transforms\"",

@@ -31,6 +31,7 @@
     "renamePattern": "Rename Pattern",
     "importCsv": "Import CSV",
     "importJson": "Import JSON",
+    "importExcel": "Import Excel",
     "importUrl": "Import from URL",
     "importText": "Enter Data",
     "generate": "Generate Data",

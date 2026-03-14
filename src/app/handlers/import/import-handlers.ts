@@ -67,6 +67,40 @@ export function computeSchemaDiffForPreview(
   DialogStore.importCsvState.schemaDiff.value = diff;
 }
 
+/**
+ * Map a 2D array to DataRow objects using header mode logic.
+ * Shared by CSV and Excel confirm paths.
+ */
+function mapRawDataToRows(
+  rawData: unknown[][],
+  headerMode: string,
+  customHeaders: string[]
+): { columns: string[]; data: DataRow[] } {
+  let columns: string[];
+  let dataRows: unknown[][];
+
+  if (headerMode === 'first-row') {
+    columns = customHeaders;
+    dataRows = rawData.slice(1);
+  } else if (headerMode === 'auto-generate') {
+    columns = rawData[0]?.map((_, i) => `Column ${i + 1}`) || [];
+    dataRows = rawData;
+  } else {
+    columns = customHeaders;
+    dataRows = rawData;
+  }
+
+  const data = dataRows.map((row) => {
+    const obj: DataRow = {};
+    columns.forEach((col, i) => {
+      obj[col] = (row as any[])[i];
+    });
+    return obj;
+  });
+
+  return { columns, data };
+}
+
 // ============================================================================
 // Event Handlers
 // ============================================================================
@@ -87,7 +121,15 @@ export async function handleFileDrop(event: DragEvent): Promise<void> {
   if (!files || files.length === 0) return;
   const file = files[0];
   const fileName = file.name.toLowerCase();
-  if (!fileName.endsWith('.csv') && !fileName.endsWith('.json')) {
+  if (
+    !fileName.endsWith('.csv') &&
+    !fileName.endsWith('.tsv') &&
+    !fileName.endsWith('.txt') &&
+    !fileName.endsWith('.json') &&
+    !fileName.endsWith('.xls') &&
+    !fileName.endsWith('.xlsx') &&
+    !fileName.endsWith('.ods')
+  ) {
     await alert(i18n.t('import.dropFile', { ns: 'errors' }));
     return;
   }
@@ -106,10 +148,19 @@ export async function handlePaste(event: ClipboardEvent): Promise<void> {
     const fn = file.name.toLowerCase();
     if (
       fn.endsWith('.csv') ||
+      fn.endsWith('.tsv') ||
+      fn.endsWith('.txt') ||
       fn.endsWith('.json') ||
+      fn.endsWith('.xls') ||
+      fn.endsWith('.xlsx') ||
+      fn.endsWith('.ods') ||
       file.type === 'text/csv' ||
       file.type === 'application/json' ||
-      file.type === 'text/plain'
+      file.type === 'text/plain' ||
+      file.type === 'text/tab-separated-values' ||
+      file.type === 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' ||
+      file.type === 'application/vnd.ms-excel' ||
+      file.type === 'application/vnd.oasis.opendocument.spreadsheet'
     ) {
       showImportDialog(file);
       return;
@@ -174,6 +225,8 @@ export function showImportDialog(file: File): void {
       }
     };
     reader.readAsText(file);
+  } else if (fileName.endsWith('.xls') || fileName.endsWith('.xlsx') || fileName.endsWith('.ods')) {
+    handleExcelPreview(file);
   } else {
     handleCsvPreview(file);
   }
@@ -269,7 +322,7 @@ export function handleCsvPreview(file: File): void {
     complete: (previewResult) => {
       const data = previewResult.data as string[][];
       const firstRow = data[0] || [];
-      const defaultName = file.name.replace(/\.csv$/i, '');
+      const defaultName = file.name.replace(/\.(csv|tsv|txt)$/i, '');
       const initialHeaders = firstRow.map((cell, i) => cell || `Column ${i + 1}`);
 
       const s = DialogStore.importCsvState;
@@ -307,6 +360,60 @@ export function handleCsvPreview(file: File): void {
       await alert(i18n.t('import.csvError', { ns: 'errors', message: error.message }));
     },
   });
+}
+
+export async function handleExcelPreview(file: File): Promise<void> {
+  const previewLimit = AppStore.uxSettings.value.preview.rowLimit;
+
+  try {
+    const buffer = await file.arrayBuffer();
+    const { parseExcelPreview, parseExcelFile } = await import('../../../core/excel-parser');
+
+    const preview = await parseExcelPreview(buffer, previewLimit);
+    const data = preview.data;
+    const firstRow = data[0] || [];
+    const defaultName = file.name.replace(/\.(xlsx?|ods)$/i, '');
+    const initialHeaders = (firstRow as unknown[]).map((cell, i) =>
+      cell != null ? String(cell) : `Column ${i + 1}`
+    );
+
+    const s = DialogStore.importCsvState;
+    s.fileName.value = file.name;
+    s.sourceName.value = defaultName;
+    s.isJson.value = false;
+    s.isExcel.value = true;
+    s.delimiter.value = ',';
+    s.headerMode.value = 'first-row';
+    s.originalHeaders.value = initialHeaders;
+    s.customHeaders.value = initialHeaders;
+    s.rawPreviewData.value = data;
+    s.duplicateWarning.value = '';
+    s.jsonData.value = null;
+    s.fullJsonData.value = null;
+
+    // Parse full file and store for confirm step (no re-parse needed)
+    const full = await parseExcelFile(buffer);
+    s.excelData.value = full.data;
+
+    updateHeadersForPreview();
+
+    if (s.isReplaceMode.value) {
+      const sourceId = s.targetSourceId.value;
+      const source = AppStore.sources.value.find((src) => src.id === sourceId);
+      if (source) {
+        computeSchemaDiffForPreview(
+          source.columns,
+          s.previewHeaders.value,
+          s.previewDataRows.value
+        );
+      }
+    }
+
+    callbacks?.openDialog('import-csv');
+  } catch (error: any) {
+    console.error('Excel preview error:', error);
+    await alert(i18n.t('import.excelError', { ns: 'errors', message: error.message }));
+  }
 }
 
 export function showImportUrlDialog(): void {
@@ -576,6 +683,21 @@ export async function confirmImport(): Promise<void> {
     return;
   }
 
+  // Excel: use pre-parsed data (no re-parse needed)
+  const isExcel = s.isExcel.value;
+  const excelData = s.excelData.value;
+
+  if (isExcel && excelData) {
+    if (excelData.length === 0) {
+      await alert(i18n.t('import.excelError', { ns: 'errors', message: 'Excel file is empty' }));
+      return;
+    }
+
+    const { columns, data } = mapRawDataToRows(excelData, headerMode, customHeaders);
+    await finishImport(s, file, sourceName, columns, data, headerMode, delimiter, customHeaders);
+    return;
+  }
+
   Papa.parse(file, {
     header: false,
     delimiter: delimiter === '\t' ? '\t' : delimiter,
@@ -588,91 +710,75 @@ export async function confirmImport(): Promise<void> {
         return;
       }
 
-      let columns: string[], data: DataRow[];
-      if (headerMode === 'first-row') {
-        columns = customHeaders;
-        const dataRows = rawData.slice(1);
-        data = dataRows.map((row) => {
-          const obj: DataRow = {};
-          columns.forEach((col, i) => {
-            obj[col] = row[i];
-          });
-          return obj;
-        });
-      } else if (headerMode === 'auto-generate') {
-        columns = rawData[0]?.map((_, i) => `Column ${i + 1}`) || [];
-        data = rawData.map((row) => {
-          const obj: DataRow = {};
-          columns.forEach((col, i) => {
-            obj[col] = row[i];
-          });
-          return obj;
-        });
-      } else {
-        columns = customHeaders;
-        data = rawData.map((row) => {
-          const obj: DataRow = {};
-          columns.forEach((col, i) => {
-            obj[col] = row[i];
-          });
-          return obj;
-        });
-      }
-
-      if (s.isReplaceMode.value) {
-        const sourceId = s.targetSourceId.value!;
-        const schemaDiff = s.schemaDiff.value;
-
-        const executeReplacement = async () => {
-          const fullColumns = SchemaEngine.createPhysicalSchema(data);
-          await ReplaceSourceService.replaceSource(sourceId, data, fullColumns, {
-            fileName: file.name,
-            headerMode,
-            delimiter,
-          });
-
-          setRawTextOnReplacedSource(sourceId);
-          s.isReplaceMode.value = false;
-          s.targetSourceId.value = null;
-          s.schemaDiff.value = null;
-          callbacks?.closeDialog();
-        };
-
-        if (schemaDiff && schemaDiff.missingColumns.length > 0) {
-          const msg = i18n.t('confirms.schemaDiffWarning', {
-            ns: 'common',
-            count: schemaDiff.missingColumns.length,
-            columns: schemaDiff.missingColumns.join(', '),
-          });
-          const confirmed = await confirm(
-            msg,
-            i18n.t('confirms.confirmReplacement', { ns: 'common' })
-          );
-          if (confirmed) {
-            await executeReplacement();
-          }
-        } else {
-          await executeReplacement();
-        }
-        return;
-      }
-
-      await callbacks?.createSource(
-        file,
-        sourceName.trim(),
-        columns,
-        data,
-        headerMode,
-        delimiter,
-        customHeaders
-      );
-      setRawTextIfTextEntry();
+      const { columns, data } = mapRawDataToRows(rawData, headerMode, customHeaders);
+      await finishImport(s, file, sourceName, columns, data, headerMode, delimiter, customHeaders);
     },
     error: async (error) => {
       console.error('CSV parsing error:', error);
       await alert(i18n.t('import.csvError', { ns: 'errors', message: error.message }));
     },
   });
+}
+
+/**
+ * Shared logic for finishing CSV/Excel import (replace mode or new source).
+ */
+async function finishImport(
+  s: typeof DialogStore.importCsvState,
+  file: File,
+  sourceName: string,
+  columns: string[],
+  data: DataRow[],
+  headerMode: string,
+  delimiter: string,
+  customHeaders: string[]
+): Promise<void> {
+  if (s.isReplaceMode.value) {
+    const sourceId = s.targetSourceId.value!;
+    const schemaDiff = s.schemaDiff.value;
+
+    const executeReplacement = async () => {
+      const fullColumns = SchemaEngine.createPhysicalSchema(data);
+      await ReplaceSourceService.replaceSource(sourceId, data, fullColumns, {
+        fileName: file.name,
+        headerMode,
+        delimiter,
+      });
+
+      setRawTextOnReplacedSource(sourceId);
+      s.isReplaceMode.value = false;
+      s.targetSourceId.value = null;
+      s.schemaDiff.value = null;
+      callbacks?.closeDialog();
+    };
+
+    if (schemaDiff && schemaDiff.missingColumns.length > 0) {
+      const msg = i18n.t('confirms.schemaDiffWarning', {
+        ns: 'common',
+        count: schemaDiff.missingColumns.length,
+        columns: schemaDiff.missingColumns.join(', '),
+      });
+      const confirmed = await confirm(msg, i18n.t('confirms.confirmReplacement', { ns: 'common' }));
+      if (confirmed) {
+        await executeReplacement();
+      }
+    } else {
+      await executeReplacement();
+    }
+    return;
+  }
+
+  await callbacks?.createSource(
+    file,
+    sourceName.trim(),
+    columns,
+    data,
+    headerMode,
+    delimiter,
+    customHeaders,
+    s.isExcel.value ? 'excel' : undefined
+  );
+  setRawTextIfTextEntry();
 }
 
 export function updateImportPreview(): void {

@@ -742,24 +742,30 @@ All entry points create a `File` object and call `showImportDialog(file)` in `im
 ```
 showImportDialog(file)
     │
-    ├── .json file?  →  FileReader  →  handleJsonPreview(file, data)
-    │                                       │
-    │                                       ├── Populates importCsvState signals:
-    │                                       │   previewHeaders, previewDataRows,
-    │                                       │   isJson, jsonData, suggestedJsonKeys, etc.
-    │                                       │
-    │                                       └── callbacks.openDialog('import-csv')
+    ├── .json file?       →  FileReader  →  handleJsonPreview(file, data)
+    │                                             │
+    │                                             ├── Populates importCsvState signals:
+    │                                             │   previewHeaders, previewDataRows,
+    │                                             │   isJson, jsonData, suggestedJsonKeys, etc.
+    │                                             │
+    │                                             └── callbacks.openDialog('import-csv')
     │
-    └── .csv file?   →  handleCsvPreview(file)
-                            │
-                            ├── PapaParse preview (first N rows)
-                            │
-                            ├── Populates importCsvState signals:
-                            │   previewHeaders, previewDataRows,
-                            │   rawPreviewData, delimiter, headerMode, etc.
-                            │
-                            └── callbacks.openDialog('import-csv')
+    ├── .xls/.xlsx file?  →  handleExcelPreview(file)
+    │                             │
+    │                             ├── Lazy-loads SheetJS via dynamic import()
+    │                             ├── Parses preview + full file → stores in excelData signal
+    │                             ├── Populates importCsvState (isExcel, rawPreviewData, etc.)
+    │                             └── callbacks.openDialog('import-csv')
+    │
+    └── .csv file?        →  handleCsvPreview(file)
+                                  │
+                                  ├── PapaParse preview (first N rows)
+                                  ├── Populates importCsvState signals:
+                                  │   rawPreviewData, delimiter, headerMode, etc.
+                                  └── callbacks.openDialog('import-csv')
 ```
+
+**Dialog reuse rule**: All formats share the `import-csv` dialog. Format-specific sections are toggled via flags (`isJson`, `isExcel`). Delimiter controls are hidden for Excel; JSON path controls are shown only for JSON. Header mode and preview table are shared by all formats.
 
 #### Preview Mechanism
 
@@ -767,7 +773,7 @@ When the `import-csv` dialog opens, the preview panel in `App.tsx` renders becau
 
 1. `hasPreviewData()` in `DialogCoordinator` checks `importCsvState.previewDataRows.value.length > 0`
 2. Preview columns/rows come from `importCsvState.previewHeaders` and `previewDataRows`
-3. When the user changes delimiter or header mode, `updateImportPreview()` or `updateHeadersForPreview()` re-parses and updates these signals
+3. When the user changes delimiter or header mode, `updateImportPreview()` (CSV only — re-parses with new delimiter) or `updateHeadersForPreview()` (JSON/Excel — no re-parse needed) updates these signals
 
 For transform dialogs, preview data uses `DialogStore.previewState` signals instead (set by `preview-engine.ts`).
 
@@ -834,6 +840,33 @@ confirmImport()
 | `components/ImportTextDialog.tsx`            | Textarea for manual data entry                            |
 | `services/ImportService.ts`                  | Source and model creation                                 |
 | `orchestration/DialogCoordinator.ts`         | Preview data routing (`hasPreviewData`, `getPreviewRows`) |
+| `core/excel-parser.ts`                       | SheetJS wrapper (lazy-loaded via dynamic `import()`)      |
+
+#### Lazy-Loading for Heavy Parsers
+
+Large parser libraries should be loaded on demand via dynamic `import()` so they don't bloat the initial bundle. Excel import demonstrates the pattern:
+
+1. Parser wrapper lives in `src/core/` (portable, testable — no browser APIs)
+2. Handler calls `await import('../../../core/excel-parser')` only when an Excel file is selected
+3. `vite.config.ts` has a `manualChunks` entry to split the library into its own bundle chunk
+4. Full parsed data is stored in a signal (e.g., `excelData`) to avoid re-loading the library on confirm
+
+Apply the same pattern for any new dependency >50KB gzip that's only used for a specific import/export path.
+
+#### Adding a New Import Format
+
+Follow this checklist (Excel is the reference implementation):
+
+1. **Parser wrapper** (`src/core/<format>-parser.ts`) — thin async wrapper over the library, returns `unknown[][]` (2D array matching PapaParse output shape)
+2. **State signals** (`import-csv-state.ts`) — add `is<Format>` flag + any format-specific data signal; reset in `resetImportCsvState()`
+3. **File detection** (`import-handlers.ts`) — update `handleFileDrop()`, `handlePaste()`, and `showImportDialog()` to accept new extensions/MIME types
+4. **Preview function** (`import-handlers.ts`) — new `handle<Format>Preview()` that lazy-loads the parser, populates `importCsvState`, and opens the dialog
+5. **Confirm branch** (`import-handlers.ts`) — add format branch in `confirmImport()` before CSV fallback; reuse `mapRawDataToRows()` + `finishImport()`
+6. **Dialog UI** (`ImportCsvDialog.tsx`) — hide/show format-specific controls via the `is<Format>` flag
+7. **Dialog title** (`dialog-registry.ts`) — add `is<Format>` case in `getDialogTitle()`
+8. **Bundle splitting** (`vite.config.ts`) — add `manualChunks` entry for the new library
+9. **i18n** — title key in `dialogs.json`, error key in `errors.json`, update `dropFile` message (en + uk)
+10. **File accept** (`App.tsx`) — add extensions to the file input `accept` attribute
 
 ---
 

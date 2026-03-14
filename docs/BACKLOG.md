@@ -95,6 +95,15 @@ See [custom-icons-setup.md](custom-icons-setup.md) for detailed setup guide and 
 
 ## Infrastructure
 
+### i18n: Hardcoded Empty-File Messages in Import
+
+**Status**: Minor
+**Effort**: Tiny
+
+`confirmImport()` in `import-handlers.ts` passes hardcoded English strings (`'Excel file is empty'`, `'CSV file is empty'`) as the `message` parameter to i18n error templates (`excelError`, `csvError`). Extract these to their own i18n keys so the inner message is also translated.
+
+---
+
 ### Template Landing Page for i18n
 
 **Status**: Planned

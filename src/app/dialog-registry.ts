@@ -589,6 +589,9 @@ export function getDialogTitle(dialogName: DialogName): string {
   if (dialogName === 'import-csv' && DialogStore.importCsvState.isJson.value) {
     return i18n.t('dialogs:titles.importJson');
   }
+  if (dialogName === 'import-csv' && DialogStore.importCsvState.isExcel.value) {
+    return i18n.t('dialogs:titles.importExcel');
+  }
   if (dialogName === 'import-csv') {
     return i18n.t('dialogs:titles.importCsv');
   }

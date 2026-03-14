@@ -176,6 +176,10 @@ export default defineConfig(({ mode }) => {
             if (id.includes('@codemirror') || id.includes('codemirror')) {
               return 'codemirror';
             }
+            // Split SheetJS Excel parser (lazy-loaded)
+            if (id.includes('node_modules/xlsx')) {
+              return 'xlsx';
+            }
             // Keep other node_modules vendor code separate
             if (id.includes('node_modules')) {
               return 'vendor';

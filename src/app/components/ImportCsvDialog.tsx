@@ -42,6 +42,7 @@ export function ImportCsvDialog({
     schemaDiff,
     fromUrlImport,
     fromTextEntry,
+    isExcel,
   } = DialogStore.importCsvState;
 
   const handleJsonPathInput = (e: JSX.TargetedEvent<HTMLInputElement>) => {
@@ -271,30 +272,32 @@ export function ImportCsvDialog({
         </>
       )}
 
-      {/* CSV Section */}
+      {/* CSV / Excel Section */}
       {!isJson.value && (
         <>
-          <div class={styles.group}>
-            <label class={styles.label}>{t('importCsv.delimiterLabel')}</label>
-            <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
-              {[
-                { val: ',', label: t('importCsv.delimiterComma') },
-                { val: '\t', label: t('importCsv.delimiterTab') },
-                { val: ';', label: t('importCsv.delimiterSemicolon') },
-              ].map((opt) => (
-                <label key={opt.val} class={styles.checkboxLabel} style={{ margin: 0 }}>
-                  <input
-                    type="radio"
-                    name="delimiter"
-                    value={opt.val}
-                    checked={delimiter.value === opt.val}
-                    onChange={() => handleDelimiterChange(opt.val)}
-                  />
-                  <span>{opt.label}</span>
-                </label>
-              ))}
+          {!isExcel.value && (
+            <div class={styles.group}>
+              <label class={styles.label}>{t('importCsv.delimiterLabel')}</label>
+              <div style={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
+                {[
+                  { val: ',', label: t('importCsv.delimiterComma') },
+                  { val: '\t', label: t('importCsv.delimiterTab') },
+                  { val: ';', label: t('importCsv.delimiterSemicolon') },
+                ].map((opt) => (
+                  <label key={opt.val} class={styles.checkboxLabel} style={{ margin: 0 }}>
+                    <input
+                      type="radio"
+                      name="delimiter"
+                      value={opt.val}
+                      checked={delimiter.value === opt.val}
+                      onChange={() => handleDelimiterChange(opt.val)}
+                    />
+                    <span>{opt.label}</span>
+                  </label>
+                ))}
+              </div>
             </div>
-          </div>
+          )}
 
           <div class={styles.group}>
             <label class={styles.label}>{t('importCsv.columnHeadersLabel')}</label>

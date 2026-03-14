@@ -28,6 +28,8 @@ export const importCsvState = {
   schemaDiff: signal<SchemaDiff | null>(null),
   fromUrlImport: signal(false),
   fromTextEntry: signal(false),
+  isExcel: signal(false),
+  excelData: signal<unknown[][] | null>(null),
 };
 
 export function resetImportCsvState() {
@@ -54,6 +56,8 @@ export function resetImportCsvState() {
   importCsvState.schemaDiff.value = null;
   importCsvState.fromUrlImport.value = false;
   importCsvState.fromTextEntry.value = false;
+  importCsvState.isExcel.value = false;
+  importCsvState.excelData.value = null;
 }
 
 registerResetFunction(resetImportCsvState);

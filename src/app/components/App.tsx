@@ -237,6 +237,7 @@ export function App() {
         type="file"
         id="file-input"
         class={styles.fileInput}
+        accept=".csv,.tsv,.txt,.json,.xls,.xlsx,.ods"
         onChange={(e) => handleFileSelect(e)}
       />
 
@@ -309,7 +310,10 @@ export function App() {
                     onJsonPathReset={() => resetJsonPath()}
                     onJsonPathSegmentSelect={(key) => selectJsonPathSegment(key)}
                     onParamChange={() => {
-                      if (DialogStore.importCsvState.isJson.value) {
+                      if (
+                        DialogStore.importCsvState.isJson.value ||
+                        DialogStore.importCsvState.isExcel.value
+                      ) {
                         updateHeadersForPreview();
                       } else {
                         updateImportPreview();
