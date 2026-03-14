@@ -2,6 +2,7 @@ import { useTranslation } from 'preact-i18next';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 import { ColumnSelector } from './column-selector';
+import { InlineBanner } from './InlineBanner';
 import { toggleDedupeAllColumns, updateDedupePreview } from '../handlers/transform/dedupe-handlers';
 import styles from './form-controls.module.css';
 
@@ -113,34 +114,19 @@ export function DedupeDialog() {
         </div>
       )}
 
-      <div
-        class={styles.warningBox}
-        style={{
-          background:
-            duplicateCount.value > 0 ? 'rgba(255, 193, 7, 0.15)' : 'rgba(76, 175, 80, 0.1)',
-          borderColor: duplicateCount.value > 0 ? 'var(--color-yellow)' : 'var(--color-green)',
-        }}
+      <InlineBanner
+        variant={duplicateCount.value > 0 ? 'warning' : 'success'}
+        icon={duplicateCount.value > 0 ? 'carbon:warning' : 'carbon:checkmark-outline'}
       >
-        <span
-          class="iconify"
-          aria-hidden="true"
-          data-icon={duplicateCount.value > 0 ? 'carbon:warning' : 'carbon:checkmark-outline'}
-          style={{
-            fontSize: '1.25rem',
-            color: duplicateCount.value > 0 ? 'var(--color-yellow)' : 'var(--color-green)',
-          }}
-        ></span>
-        <div class={styles.warningText} style={{ color: 'var(--color-text)' }}>
-          {duplicateCount.value > 0 ? (
-            <span>
-              <strong>{duplicateCount.value.toLocaleString()}</strong>{' '}
-              {t('dedupe.preview.found', { count: duplicateCount.value })}
-            </span>
-          ) : (
-            <span>{t('dedupe.preview.none')}</span>
-          )}
-        </div>
-      </div>
+        {duplicateCount.value > 0 ? (
+          <span>
+            <strong>{duplicateCount.value.toLocaleString()}</strong>{' '}
+            {t('dedupe.preview.found', { count: duplicateCount.value })}
+          </span>
+        ) : (
+          <span>{t('dedupe.preview.none')}</span>
+        )}
+      </InlineBanner>
 
       <p
         class={styles.helpText}

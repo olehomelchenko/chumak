@@ -378,11 +378,11 @@ export class StepService {
       onError: (error: Error) => void;
     }
   ): Promise<void> {
+    // Capture description before mutation (splice removes the step)
+    const stepDesc = describeTransform(model.steps[stepIndex]);
+
     // Snapshot for undo before mutation
-    const removedDesc =
-      mode === 'all'
-        ? `Remove steps ${stepIndex + 1}+`
-        : `Remove ${describeTransform(model.steps[stepIndex])}`;
+    const removedDesc = mode === 'all' ? `Remove steps ${stepIndex + 1}+` : `Remove ${stepDesc}`;
     StepService.pushSnapshot(model, removedDesc);
 
     try {
@@ -408,7 +408,7 @@ export class StepService {
       await StepService.handleDependencyImpact(model.id);
 
       await PersistenceService.autoSave();
-      showSuccess(i18n.t('notifications.stepRemoved', { ns: 'common' }));
+      showSuccess(i18n.t('notifications.stepRemoved', { ns: 'common', description: stepDesc }));
     } catch (error: any) {
       callbacks.onError(error);
     }
@@ -457,7 +457,12 @@ export class StepService {
       await StepService.handleDependencyImpact(model.id);
 
       await PersistenceService.autoSave();
-      showSuccess(i18n.t('notifications.stepUpdated', { ns: 'common' }));
+      showSuccess(
+        i18n.t('notifications.stepUpdated', {
+          ns: 'common',
+          description: describeTransform(newTransform),
+        })
+      );
     } catch (error: any) {
       callbacks.onError(error, backup);
     }

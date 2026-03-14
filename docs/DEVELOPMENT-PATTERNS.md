@@ -671,22 +671,24 @@ const pageData = allData.slice(startIdx, startIdx + pageSize);
 ### 6.1 Transform Execution Flow
 
 ```
-User action (click Apply)
+User clicks Apply
     ↓
-Handler function (e.g., filter-handlers.applyTransform)
+applyActiveTransform() → dialog registry applyHandler
+    ↓
+Handler function (e.g., filter-handlers.applyFilterTransform)
     ↓
 StepService.runTransform(label, transform, callbacks)
-    ↓
-ModelService.addStep(modelId, transform)
-    ↓
-transforms.applyTransform(table, transform, schema)
-    ↓
-schema-engine.deriveNextSchema(schema, transform)
-    ↓
-AppStore signals updated (models, currentTable, schema)
+    ├─ callbacks.onTransformStart(label)     → AppStore.isTransforming = true
+    ├─ transforms.applyTransform(table, transform, columns)
+    ├─ StepService.applyStepResult(...)      → updates model + AppStore signals
+    └─ callbacks.onTransformEnd()            → AppStore.isTransforming = false
     ↓
 UI re-renders via signal subscriptions
 ```
+
+**Key signals**: `AppStore.isTransforming` (boolean, true during execution) and `AppStore.transformMessage` (label string shown in StatusBar). Both are set/cleared by `AppController.startTransformation()`/`endTransformation()`, wired as callbacks via `AppOrchestrator`.
+
+**Callbacks**: `ExecutionCallbacks` (defined in `StepService.ts`) are created by `createExecutionCallbacks()` in `helper-handlers.ts` and passed through handlers to `StepService`.
 
 ### 6.2 Dialog Lifecycle
 
@@ -951,7 +953,13 @@ yourDialog: {
 },
 ```
 
-If the handler needs user confirmation, import `confirm` or `prompt` directly from `notification-handlers` instead of passing an `app` parameter.
+**Notification API**: All user-facing notifications are in `src/app/handlers/core/notification-handlers.ts`. Import directly — no `app` parameter needed:
+
+- `showSuccess(message)` — auto-dismissing toast (3s)
+- `showError(title, message)` — persistent error toast with optional step context
+- `alert(message)` — blocking modal alert (returns Promise)
+- `confirm(message, options?)` — blocking confirmation with optional `confirmLabel`
+- `prompt(message, defaultValue?)` — blocking text input
 
 **Error tooltips on Apply button**: If the dialog has an `.error` signal, add `getError: () => DialogStore.yourState.error.value` to the registry entry. This surfaces the error message as a tooltip on the disabled Apply button. The Apply button uses `aria-disabled` (not native `disabled`) so tooltips remain visible — `buttons.css` styles both identically.
 

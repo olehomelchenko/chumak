@@ -1,5 +1,5 @@
 import { Fragment } from 'preact';
-import { useState, useEffect } from 'preact/hooks';
+import { useState, useEffect, useMemo } from 'preact/hooks';
 import { useTranslation } from 'preact-i18next';
 import { syncDialogToUrl } from '../orchestration/UrlStateSync';
 
@@ -78,10 +78,34 @@ export function FunctionReferenceDialog({ section }: { section?: string } = {}) 
   const [activeCategory, setActiveCategory] = useState(
     allSectionIds.includes(initialSection) ? initialSection : 'getting-started'
   );
+  const [searchText, setSearchText] = useState('');
 
   useEffect(() => {
     delete (globalThis as any).__referenceSection;
   }, []);
+
+  // Filter sidebar sections by search text (searches HTML content stripped of tags)
+  const matchingSections = useMemo(() => {
+    if (!searchText) return null;
+    const lower = searchText.toLowerCase();
+    const locale = contentByLocale[lang] || contentByLocale.en;
+    return allSectionIds.filter((id) => {
+      const html = locale[id] || contentByLocale.en[id] || '';
+      const text = html.replace(/<[^>]+>/g, '').toLowerCase();
+      return text.includes(lower);
+    });
+  }, [searchText, lang]);
+
+  // Auto-select first matching category when search filters results
+  useEffect(() => {
+    if (
+      matchingSections &&
+      matchingSections.length > 0 &&
+      !matchingSections.includes(activeCategory)
+    ) {
+      setActiveCategory(matchingSections[0]);
+    }
+  }, [matchingSections]);
 
   const content = contentByLocale[lang]?.[activeCategory] ?? contentByLocale.en[activeCategory];
   const docsHref = lang === 'uk' ? '/uk/docs/' : '/docs/';
@@ -97,26 +121,43 @@ export function FunctionReferenceDialog({ section }: { section?: string } = {}) 
         >
           {t('referencePage.openInNewTab')} &#8599;
         </a>
+        <div className={styles.searchBox}>
+          <input
+            type="text"
+            className={styles.searchInput}
+            placeholder={t('referencePage.searchPlaceholder')}
+            value={searchText}
+            onInput={(e) => setSearchText(e.currentTarget.value)}
+          />
+        </div>
         <div className={styles.categoryList}>
-          {sidebarGroups.map((group, groupIndex) => (
-            <Fragment key={groupIndex}>
-              {groupIndex > 0 && <hr className={styles.categorySeparator} />}
-              {group.map((id) => (
-                <button
-                  key={id}
-                  className={`${styles.categoryButton} ${
-                    activeCategory === id ? styles.active : ''
-                  }`}
-                  onClick={() => {
-                    setActiveCategory(id);
-                    syncDialogToUrl('reference', id);
-                  }}
-                >
-                  {t(`referencePage.sidebar.${id}`)}
-                </button>
-              ))}
-            </Fragment>
-          ))}
+          {sidebarGroups.map((group, groupIndex) => {
+            const filtered = matchingSections
+              ? group.filter((id) => matchingSections.includes(id))
+              : group;
+            if (filtered.length === 0) return null;
+            return (
+              <Fragment key={groupIndex}>
+                {groupIndex > 0 && filtered.length > 0 && (
+                  <hr className={styles.categorySeparator} />
+                )}
+                {filtered.map((id) => (
+                  <button
+                    key={id}
+                    className={`${styles.categoryButton} ${
+                      activeCategory === id ? styles.active : ''
+                    }`}
+                    onClick={() => {
+                      setActiveCategory(id);
+                      syncDialogToUrl('reference', id);
+                    }}
+                  >
+                    {t(`referencePage.sidebar.${id}`)}
+                  </button>
+                ))}
+              </Fragment>
+            );
+          })}
         </div>
       </div>
       <div className={styles.content}>

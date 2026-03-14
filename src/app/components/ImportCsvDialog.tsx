@@ -2,6 +2,7 @@ import { JSX } from 'preact';
 import { useTranslation } from 'preact-i18next';
 import { DialogStore } from '../stores/DialogStore';
 import { SchemaDiffPanel } from './SchemaDiffPanel';
+import { InlineBanner } from './InlineBanner';
 import formStyles from './form-controls.module.css';
 import importStyles from './ImportCsvDialog.module.css';
 const styles = { ...formStyles, ...importStyles };
@@ -118,20 +119,11 @@ export function ImportCsvDialog({
 
       {/* Replace Mode Banner */}
       {isReplaceMode.value && (
-        <div class={styles.replaceBanner}>
-          <span
-            class={`iconify ${styles.replaceIcon}`}
-            aria-hidden="true"
-            data-icon="carbon:cyclostat"
-            style={{ fontSize: '24px' }}
-          ></span>
-          <div class={styles.replaceInfo}>
-            <strong>{t('importCsv.replaceMode')}</strong>
-            <p>
-              {t('importCsv.replacingSource')} <em>{sourceName.value}</em>
-            </p>
-          </div>
-        </div>
+        <InlineBanner variant="info" icon="carbon:cyclostat" title={t('importCsv.replaceMode')}>
+          <p style={{ margin: 0, fontSize: '0.8rem', color: 'var(--color-dark-gray)' }}>
+            {t('importCsv.replacingSource')} <em>{sourceName.value}</em>
+          </p>
+        </InlineBanner>
       )}
 
       {/* Schema Diff Panel */}
@@ -279,10 +271,9 @@ export function ImportCsvDialog({
           )}
 
           {!jsonData.value && (
-            <div class={styles.error} style={{ marginBottom: '1rem' }}>
-              <span class="iconify" aria-hidden="true" data-icon="carbon:warning"></span>
-              <span>{t('importCsv.noValidArray')}</span>
-            </div>
+            <InlineBanner variant="error" icon="carbon:warning">
+              {t('importCsv.noValidArray')}
+            </InlineBanner>
           )}
         </>
       )}
@@ -398,16 +389,10 @@ export function ImportCsvDialog({
 
       {/* Duplicate Warning */}
       {duplicateWarning.value && (
-        <div class={styles.warningBox}>
-          <span style={{ fontSize: '20px' }}>⚠️</span>
-          <div style={{ flex: 1 }}>
-            <div class={styles.warningTitle}>{t('importCsv.duplicateTitle')}</div>
-            <div class={styles.warningText} style={{ marginBottom: '0.5rem' }}>
-              {duplicateWarning.value}
-            </div>
-            <div class={styles.warningText}>{t('importCsv.duplicateHelp')}</div>
-          </div>
-        </div>
+        <InlineBanner variant="warning" icon="carbon:warning" title={t('importCsv.duplicateTitle')}>
+          <div style={{ fontSize: '13px', marginBottom: '0.5rem' }}>{duplicateWarning.value}</div>
+          <div style={{ fontSize: '13px' }}>{t('importCsv.duplicateHelp')}</div>
+        </InlineBanner>
       )}
     </div>
   );

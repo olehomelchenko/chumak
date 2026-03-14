@@ -93,6 +93,7 @@
   },
   "referencePage": {
     "openInNewTab": "Відкрити в новій вкладці",
+    "searchPlaceholder": "Пошук функцій\u2026",
     "sidebar": {
       "getting-started": "Початок роботи",
       "operators": "Оператори",

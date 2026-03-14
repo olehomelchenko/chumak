@@ -232,25 +232,3 @@
   font-size: var(--font-size-sm);
   color: var(--color-text);
 }
-
-.warningBox {
-  margin-top: 1rem;
-  padding: 1rem;
-  background: var(--color-warning-light);
-  border: 1px solid var(--color-warning);
-  border-radius: var(--border-radius);
-  display: flex;
-  align-items: start;
-  gap: 0.5rem;
-}
-
-.warningTitle {
-  font-weight: 600;
-  color: var(--color-warning-dark);
-  margin-bottom: 0.5rem;
-}
-
-.warningText {
-  font-size: 13px;
-  color: var(--color-warning-dark);
-}

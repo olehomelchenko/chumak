@@ -1,0 +1,60 @@
+.banner {
+  display: flex;
+  align-items: start;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  border-radius: var(--border-radius);
+  font-size: var(--font-size-sm);
+  border: 1px solid transparent;
+}
+
+.info {
+  background: rgba(var(--color-cyan-rgb), 0.1);
+  border-color: var(--color-cyan);
+  color: var(--color-text);
+}
+
+.warning {
+  background: rgba(var(--color-yellow-rgb), 0.15);
+  border-color: var(--color-yellow);
+  color: var(--color-text);
+}
+
+.error {
+  background: rgba(var(--color-dark-red-rgb), 0.05);
+  border-color: var(--color-dark-red);
+  color: var(--color-dark-red);
+}
+
+.success {
+  background: rgba(var(--color-green-rgb), 0.1);
+  border-color: var(--color-green);
+  color: var(--color-text);
+}
+
+.icon {
+  flex-shrink: 0;
+  font-size: 1.25rem;
+}
+
+.info .icon {
+  color: var(--color-cyan);
+}
+.warning .icon {
+  color: var(--color-yellow);
+}
+.error .icon {
+  color: var(--color-dark-red);
+}
+.success .icon {
+  color: var(--color-green);
+}
+
+.content {
+  flex: 1;
+}
+
+.title {
+  font-weight: 600;
+  margin-bottom: 2px;
+}

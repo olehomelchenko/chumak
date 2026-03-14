@@ -141,6 +141,7 @@ export function App() {
   // would cause the entire App tree to re-render on every keystroke.
   const dialogError = useComputed(() => activeDialogHasError());
   const dialogErrorMessage = useComputed(() => getActiveDialogError());
+  const isApplying = useComputed(() => AppStore.isTransforming.value);
   const hasPreview = useComputed(() => hasPreviewData());
   const previewStats = useComputed(() => getPreviewStats());
   const previewTitle = useComputed(() => getPreviewTitle());
@@ -359,11 +360,11 @@ export function App() {
                 </button>
                 <button
                   class="button button--primary"
-                  onClick={() => !dialogError.value && applyActiveTransform()}
-                  aria-disabled={dialogError.value || undefined}
+                  onClick={() => !dialogError.value && !isApplying.value && applyActiveTransform()}
+                  aria-disabled={dialogError.value || isApplying.value || undefined}
                   title={dialogErrorMessage.value || undefined}
                 >
-                  {buttonText}
+                  {isApplying.value ? i18n.t('common:statusBar.processing') : buttonText}
                 </button>
               </div>
             </div>
@@ -518,11 +519,13 @@ export function App() {
                     </button>
                     <button
                       class="button button--primary"
-                      onClick={() => !dialogError.value && applyActiveTransform()}
-                      aria-disabled={dialogError.value || undefined}
+                      onClick={() =>
+                        !dialogError.value && !isApplying.value && applyActiveTransform()
+                      }
+                      aria-disabled={dialogError.value || isApplying.value || undefined}
                       title={dialogErrorMessage.value || undefined}
                     >
-                      {buttonText}
+                      {isApplying.value ? i18n.t('common:statusBar.processing') : buttonText}
                     </button>
                   </div>
                 )}

@@ -26,7 +26,7 @@ Determine the review scope using `git diff` (unstaged) and `git diff --staged` (
 
 4. **Code Cleanup**: Remove leftover code, unnecessary defensive programming, and simplify over-engineered solutions from iterative development. Examples: dead code from previous iterations, try/catch around internal calls that can't throw, abstraction layers wrapping a single implementation. Proceed with caution; ask for clarification if unsure.
 
-5. **Styles and UI**: When implementing or altering CSS or layout, follow or generalize to existing patterns rather than writing them from scratch.
+5. **Styles and UI**: When implementing or altering CSS or layout, follow or generalize to existing patterns rather than writing them from scratch. Do not fix whitespace or formatting issues (trailing blank lines, extra newlines) — the project uses Prettier for that.
 
 6. **Code Comments**: Comments should not duplicate what the code already expresses. Remove parroting comments (e.g., `// increment counter` above `counter++`). Instead, ensure comments capture non-obvious design decisions, constraints, "why" reasoning, and gotchas that would be hidden from reading the code alone. Flag missing comments where a reader would reasonably ask "why is this done this way?"
 

@@ -1,6 +1,6 @@
 # Syto — UX Improvement Plan
 
-> **Status**: Phase 3 high-priority complete (1.1–1.6, 2.1–2.8, 3.1–3.3 done)
+> **Status**: Phase 3 complete (1.1–1.6, 2.1–2.8, 3.1–3.8 done)
 > **Date**: March 2026
 > **Basis**: Comprehensive audit against IBM Carbon Design System best practices
 > **Related**: [DESIGN-SYSTEM-EVALUATION.md](archive/DESIGN-SYSTEM-EVALUATION.md), [CONTENT-GUIDELINES.md](CONTENT-GUIDELINES.md), [UX-SPECIFICATION.md](UX-SPECIFICATION.md)
@@ -152,34 +152,54 @@ Switched Apply buttons (both slide panel and centered modal) from native `disabl
 
 Added `searchable?: boolean` prop to `ColumnSelector.tsx`. When enabled, renders a search input above the column list that filters visible columns by case-insensitive substring match. Enabled in ColumnEditorDialog, AggregateDialog, UnpivotDialog (fold), and DescribeDialog.
 
-### 3.4 Improve success toast context (Medium)
+### 3.4 Improve success toast context (Medium) ✅
 
-- `StepService.ts` "Step removed" / "Step updated" → include step description: "Removed: Filter: age > 18"
-- `ExportService.ts` clipboard copy → include row count: "Copied 250 rows (CSV)"
-- `keyboard-handlers.ts` workflow download → include filename
+Added contextual details to success toasts:
 
-### 3.5 Drag & drop insertion indicator (Medium)
+- `StepService.ts`: "Step removed" / "Step updated" now include step description via `describeTransform()` — e.g., "Removed: Filter: age > 18", "Updated: Sort: name (asc)"
+- `ExportService.ts`: Clipboard copy toasts now include row count — e.g., "Copied 250 rows (CSV)"
+- `keyboard-handlers.ts`: Removed duplicate toast (ExportService already shows one with filename). Simplified `handleSave` error handling since ExportService handles its own errors.
 
-In `ColumnSelector.tsx` / `column-editor.module.css`:
+### 3.5 Drag & drop insertion indicator (Medium) ✅
 
-- Track `dragOverIndex` state during `onDragOver`
-- Render a blue insertion line between rows at the drop position
-- Apply subtle background tint to the drop target zone
+Added visual drop target feedback in `ColumnSelector.tsx` / `ColumnRow.tsx` / `column-editor.module.css`:
 
-### 3.6 Loading state for Apply button (Medium)
+- Added `dragOverIndex` state tracked during index-aware `onDragOver` handler
+- Blue insertion line (via `box-shadow`) appears above the target row during drag
+- Subtle background tint on the drop target zone (`.dropTarget` CSS class)
+- Indicator suppressed when hovering over the item being dragged
+- Clears on drop and drag end
 
-When the Apply button is clicked and the transform is executing:
+### 3.6 Loading state for Apply button (Medium) ✅
 
-- Show a brief "Applying..." text or disable with a spinner
-- Ensure `startTransformation()` is called consistently for all dialog-based apply paths
+Added loading state to both slide panel and centered modal Apply buttons in `App.tsx`:
 
-### 3.7 Function reference search (Low)
+- Button shows "Processing..." text (reusing existing i18n key) during transform execution
+- Button is `aria-disabled` and click-blocked while `AppStore.isTransforming` is true
+- Uses `useComputed()` wrapper to avoid subscribing the entire App tree to the signal
+- `startTransformation()` was already called consistently via `StepService.runTransform` callbacks
 
-Add a search input at the top of `FunctionReferenceDialog.tsx` sidebar. Build a simple function-name index that maps to categories for filtering.
+### 3.7 Function reference search (Low) ✅
 
-### 3.8 Create shared InlineBanner component (Low)
+Added search input at the top of `FunctionReferenceDialog.tsx` sidebar:
 
-Extract the ad-hoc warning/info/error banner patterns from ImportCsvDialog, DedupeDialog, JsonEditorModal, and PivotDialog into a shared `InlineBanner.tsx` component with typed variants (info, warning, error) and consistent styling.
+- Searches HTML content (stripped of tags) across all categories for case-insensitive text matching
+- Filters sidebar to show only categories with matching content
+- Auto-navigates to first matching category when search narrows results
+- Styled with `.searchBox` / `.searchInput` in `FunctionReferenceDialog.module.css`
+- i18n placeholder: "Search functions..." / "Пошук функцій..."
+
+### 3.8 Create shared InlineBanner component (Low) ✅
+
+Created `InlineBanner.tsx` with `InlineBanner.module.css` — typed variants (info, warning, error, success) with consistent styling using existing CSS tokens. Props: `variant`, `icon?`, `title?`, `children`, `className?`.
+
+Refactored 6 ad-hoc banner patterns across 3 files:
+
+- `JsonEditorModal.tsx`: warning banner + error bar → InlineBanner
+- `DedupeDialog.tsx`: dynamic warning/success preview → InlineBanner with conditional variant
+- `ImportCsvDialog.tsx`: replace mode (info), JSON error (error), duplicate warning → InlineBanner
+
+Removed dead CSS: `.warningBanner`/`.errorBar` from JsonEditorModal, `.replaceBanner`/`.replaceIcon`/`.replaceInfo` from ImportCsvDialog, `.warningBox`/`.warningTitle`/`.warningText` from form-controls.
 
 ---
 

@@ -3,6 +3,7 @@ import { useTranslation } from 'preact-i18next';
 import { EditorView } from '@codemirror/view';
 import { AppStore } from '../stores/AppStore';
 import { CodeMirrorEditor } from './CodeMirrorEditor';
+import { InlineBanner } from './InlineBanner';
 import { lintTransformJson, getTransformJsonError } from '../linters/transform-linter';
 import appStyles from './App.module.css';
 import styles from './JsonEditorModal.module.css';
@@ -84,10 +85,9 @@ export function JsonEditorModal({ onCancel, onApply }: JsonEditorModalProps) {
           </button>
         </div>
 
-        <div class={styles.warningBanner}>
-          <span>&#9888;</span>
-          <span>{t('jsonEditor.warning')}</span>
-        </div>
+        <InlineBanner variant="warning" icon="carbon:warning">
+          {t('jsonEditor.warning')}
+        </InlineBanner>
 
         <div class={styles.editorContainer}>
           <CodeMirrorEditor
@@ -99,7 +99,7 @@ export function JsonEditorModal({ onCancel, onApply }: JsonEditorModalProps) {
           />
         </div>
 
-        {jsonEditError && <div class={styles.errorBar}>{jsonEditError}</div>}
+        {jsonEditError && <InlineBanner variant="error">{jsonEditError}</InlineBanner>}
 
         <div class={appStyles.centeredModalFooter}>
           <button class="button button--secondary" onClick={onCancel}>

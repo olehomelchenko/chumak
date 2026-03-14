@@ -180,7 +180,7 @@ export class ExportService {
       });
       const csv = Papa.unparse(processedData);
       await navigator.clipboard.writeText(csv);
-      showSuccess(i18n.t('notifications.copiedCsv', { ns: 'common' }));
+      showSuccess(i18n.t('notifications.copiedCsv', { ns: 'common', count: pageData.length }));
     } catch (error: any) {
       console.error('Copy to clipboard error:', error);
       await alert(i18n.t('export.clipboardFailed', { ns: 'errors', message: error.message }));
@@ -207,7 +207,7 @@ export class ExportService {
         2
       );
       await navigator.clipboard.writeText(json);
-      showSuccess(i18n.t('notifications.copiedJson', { ns: 'common' }));
+      showSuccess(i18n.t('notifications.copiedJson', { ns: 'common', count: pageData.length }));
     } catch (error: any) {
       console.error('Copy to clipboard error:', error);
       await alert(i18n.t('export.clipboardFailed', { ns: 'errors', message: error.message }));

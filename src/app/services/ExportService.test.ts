@@ -154,7 +154,7 @@ describe('ExportService', () => {
       const written = mockWriteText.mock.calls[0][0];
       expect(written).toContain('name');
       expect(written).toContain('Alice');
-      expect(showSuccess).toHaveBeenCalledWith('Copied to clipboard (CSV)');
+      expect(showSuccess).toHaveBeenCalledWith('Copied 1 rows (CSV)');
     });
 
     it('alerts on clipboard error', async () => {
@@ -193,7 +193,7 @@ describe('ExportService', () => {
       await ExportService.copyJSONToClipboard(getPaginatedData, alert);
 
       expect(mockWriteText).toHaveBeenCalled();
-      expect(showSuccess).toHaveBeenCalledWith('Copied to clipboard (JSON)');
+      expect(showSuccess).toHaveBeenCalledWith('Copied 1 rows (JSON)');
     });
   });
 });

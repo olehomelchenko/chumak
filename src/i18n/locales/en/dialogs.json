@@ -93,6 +93,7 @@
   },
   "referencePage": {
     "openInNewTab": "Open in new tab",
+    "searchPlaceholder": "Search functions\u2026",
     "sidebar": {
       "getting-started": "Getting started",
       "operators": "Operators",

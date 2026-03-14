@@ -1,8 +1,7 @@
 import { AppStore } from '../../stores/AppStore';
 import { ExportService } from '../../services/ExportService';
-import { alert, showSuccess, showError } from './notification-handlers';
+import { alert } from './notification-handlers';
 import * as StepHandlers from './step-handlers';
-import i18n from '../../../i18n';
 
 /**
  * Keyboard Shortcuts Handler
@@ -43,17 +42,9 @@ async function handleSave(event: KeyboardEvent) {
     return;
   }
 
-  try {
-    await ExportService.exportWorkflowJSON(async (msg: string) => {
-      await alert(msg);
-    });
-    showSuccess(i18n.t('notifications.workflowDownloaded', { ns: 'common' }));
-  } catch (error: any) {
-    showError(
-      i18n.t('system.downloadFailed', { ns: 'errors' }),
-      error.message || i18n.t('system.downloadGenericFailed', { ns: 'errors' })
-    );
-  }
+  await ExportService.exportWorkflowJSON(async (msg: string) => {
+    await alert(msg);
+  });
 }
 
 /**

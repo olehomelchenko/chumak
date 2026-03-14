@@ -13,6 +13,20 @@
   overflow-y: auto;
 }
 
+.searchBox {
+  padding: var(--space-sm) var(--space-md) 0;
+}
+
+.searchInput {
+  width: 100%;
+  padding: var(--space-sm);
+  border: 1px solid var(--border-color);
+  border-radius: var(--border-radius);
+  font-size: var(--font-size-xs);
+  background: var(--color-white);
+  box-sizing: border-box;
+}
+
 .categoryList {
   display: flex;
   flex-direction: column;

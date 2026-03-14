@@ -315,7 +315,7 @@ describe('StepService', () => {
 
       await StepService.executeStepRemoval(model, 1, 'single', { onSuccess, onError });
 
-      expect(showSuccess).toHaveBeenCalledWith('Step removed');
+      expect(showSuccess).toHaveBeenCalledWith('Removed: Filter: age > 25');
     });
   });
 
@@ -370,7 +370,7 @@ describe('StepService', () => {
 
       await StepService.updateStep(model, 1, { filter: 'age > 30' }, { onSuccess, onError });
 
-      expect(showSuccess).toHaveBeenCalledWith('Step updated');
+      expect(showSuccess).toHaveBeenCalledWith('Updated: Filter: age > 30');
     });
   });
 

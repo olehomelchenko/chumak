@@ -216,12 +216,12 @@ Toast notifications provide non-blocking feedback for user actions. They appear 
 
 #### Notification Channel Selection
 
-| Channel                 | Persistence                                      | Blocks user? | When to use                                                               |
-| ----------------------- | ------------------------------------------------ | ------------ | ------------------------------------------------------------------------- |
-| **Toast**               | Auto-dismiss (success/warning) or manual (error) | No           | Confirming completed actions, reporting failures                          |
-| **Inline message**      | Until resolved                                   | No           | Field-level errors, form validation (`.error`, `.warningBox`, `.noteBox`) |
-| **Banner**              | Until dismissed                                  | Partial      | Ongoing conditions: stale model, replaced source data, multi-step errors  |
-| **Confirmation dialog** | Until responded                                  | Yes          | Destructive actions: delete, replace, remove                              |
+| Channel                 | Persistence                                      | Blocks user? | When to use                                                                         |
+| ----------------------- | ------------------------------------------------ | ------------ | ----------------------------------------------------------------------------------- |
+| **Toast**               | Auto-dismiss (success/warning) or manual (error) | No           | Confirming completed actions, reporting failures                                    |
+| **Inline message**      | Until resolved                                   | No           | Field-level errors, form validation (`.error`), contextual banners (`InlineBanner`) |
+| **Banner**              | Until dismissed                                  | Partial      | Ongoing conditions: stale model, replaced source data, multi-step errors            |
+| **Confirmation dialog** | Until responded                                  | Yes          | Destructive actions: delete, replace, remove                                        |
 
 **Rules**:
 
@@ -542,16 +542,17 @@ Complex dialogs are split into focused sub-components organized in directories:
 
 ### 7.6 Shared Components
 
-| Component              | Purpose                                            |
-| ---------------------- | -------------------------------------------------- |
-| `ColumnToolbar.tsx`    | Floating actions on column header (single + multi) |
-| `CellToolbar.tsx`      | Floating actions on cell click                     |
-| `RowToolbar.tsx`       | Floating actions on row selection                  |
-| `TypeIndicator.tsx`    | Column type indicator with icon                    |
-| `ExpressionEditor.tsx` | CM6 single-line input with syntax highlighting     |
-| `ExpressionDocs.tsx`   | Context-aware inline docs for expression dialogs   |
-| `GlobalUI.tsx`         | Toast notifications (see §3.6) and global modals   |
-| `ToastContainer.tsx`   | Renders toast notification stack                   |
+| Component              | Purpose                                                              |
+| ---------------------- | -------------------------------------------------------------------- |
+| `ColumnToolbar.tsx`    | Floating actions on column header (single + multi)                   |
+| `CellToolbar.tsx`      | Floating actions on cell click                                       |
+| `RowToolbar.tsx`       | Floating actions on row selection                                    |
+| `TypeIndicator.tsx`    | Column type indicator with icon                                      |
+| `ExpressionEditor.tsx` | CM6 single-line input with syntax highlighting                       |
+| `ExpressionDocs.tsx`   | Context-aware inline docs for expression dialogs                     |
+| `InlineBanner.tsx`     | Typed banner (info/warning/error/success) for dialog inline feedback |
+| `GlobalUI.tsx`         | Toast notifications (see §3.6) and global modals                     |
+| `ToastContainer.tsx`   | Renders toast notification stack                                     |
 
 ---
 

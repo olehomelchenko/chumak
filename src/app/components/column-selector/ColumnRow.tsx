@@ -11,6 +11,7 @@ export interface ColumnRowProps {
   icon: string; // iconify icon name
   isSelected: boolean;
   isDragging: boolean;
+  isDropTarget?: boolean;
   allowDrag?: boolean;
   allowRename?: boolean;
   renamedValue?: string;
@@ -27,6 +28,7 @@ export function ColumnRow({
   icon,
   isSelected,
   isDragging,
+  isDropTarget = false,
   allowDrag = false,
   allowRename = false,
   renamedValue = '',
@@ -39,7 +41,7 @@ export function ColumnRow({
 }: ColumnRowProps) {
   return (
     <div
-      class={`${styles.columnEditorItem} ${!isSelected ? styles.unselected : ''} ${isDragging ? styles.dragging : ''}`}
+      class={`${styles.columnEditorItem} ${!isSelected ? styles.unselected : ''} ${isDragging ? styles.dragging : ''} ${isDropTarget ? styles.dropTarget : ''}`}
       draggable={allowDrag}
       onDragStart={onDragStart}
       onDragOver={onDragOver}

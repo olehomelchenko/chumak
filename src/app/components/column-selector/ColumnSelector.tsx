@@ -64,6 +64,7 @@ export function ColumnSelector({
 }: ColumnSelectorProps) {
   const { t } = useTranslation('dialogs');
   const [draggedIndex, setDraggedIndex] = useState<number | null>(null);
+  const [dragOverIndex, setDragOverIndex] = useState<number | null>(null);
   const [searchText, setSearchText] = useState('');
 
   // Get column type from schema
@@ -146,10 +147,13 @@ export function ColumnSelector({
     }
   };
 
-  const handleDragOver = (e: DragEvent) => {
+  const handleDragOver = (index: number) => (e: DragEvent) => {
     e.preventDefault();
     if (e.dataTransfer) {
       e.dataTransfer.dropEffect = 'move';
+    }
+    if (draggedIndex !== null && draggedIndex !== index) {
+      setDragOverIndex(index);
     }
   };
 
@@ -165,10 +169,12 @@ export function ColumnSelector({
     }
 
     setDraggedIndex(null);
+    setDragOverIndex(null);
   };
 
   const handleDragEnd = () => {
     setDraggedIndex(null);
+    setDragOverIndex(null);
   };
 
   // Filter columns by search text
@@ -251,13 +257,16 @@ export function ColumnSelector({
               icon={getIcon(column)}
               isSelected={isSelected(column)}
               isDragging={draggedIndex === index}
+              isDropTarget={
+                dragOverIndex === index && draggedIndex !== null && draggedIndex !== index
+              }
               allowDrag={effectiveAllowDrag}
               allowRename={allowRename}
               renamedValue={renameValues[column] || column}
               onToggle={() => handleSelectionChange(column)}
               onRename={(value) => onRenameChange && onRenameChange(column, value)}
               onDragStart={effectiveAllowDrag ? handleDragStart(index) : undefined}
-              onDragOver={effectiveAllowDrag ? handleDragOver : undefined}
+              onDragOver={effectiveAllowDrag ? handleDragOver(index) : undefined}
               onDrop={effectiveAllowDrag ? handleDrop(index) : undefined}
               onDragEnd={effectiveAllowDrag ? handleDragEnd : undefined}
             />
