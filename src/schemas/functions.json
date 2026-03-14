@@ -1572,7 +1572,7 @@
       "name": "coalesce",
       "category": "Conversion",
       "description": "Returns the first non-null, non-error value from a list of arguments",
-      "signature": "coalesce(args...)",
+      "signature": "coalesce(args)",
       "params": [
         {
           "name": "args",

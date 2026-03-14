@@ -564,4 +564,70 @@ Located in `styles/` directory:
 
 ---
 
+## 9. Accessibility Patterns
+
+Syto targets WCAG 2.1 AA for dialog and widget semantics. These conventions apply to all components.
+
+### 9.1 Dialog ARIA Roles
+
+Every modal surface must declare its role, trap focus, and be labeled:
+
+| Attribute         | Value                                                                    | Notes                                                                  |
+| ----------------- | ------------------------------------------------------------------------ | ---------------------------------------------------------------------- |
+| `role`            | `"dialog"` (informational) or `"alertdialog"` (destructive/confirmation) | Use `alertdialog` for step removal, dependency impact, unsaved changes |
+| `aria-modal`      | `"true"`                                                                 | Always present on dialog surfaces                                      |
+| `aria-labelledby` | Unique ID matching the title element                                     | e.g., `"filter-dialog-title"`                                          |
+
+Title elements (`<h2>`, `<h3>`) must have a matching `id`. Close buttons must have `aria-label={t('buttons.close', { ns: 'common' })}` (or a hardcoded string if the component doesn't use i18n).
+
+### 9.2 Live Regions
+
+| Component        | Role     | aria-live | Rationale                            |
+| ---------------- | -------- | --------- | ------------------------------------ |
+| `ToastContainer` | `log`    | `polite`  | Informational — should not interrupt |
+| `StatusBar`      | `status` | `polite`  | Processing indicator                 |
+
+Never use `role="alert"` (assertive) for toasts — it interrupts screen reader speech mid-sentence.
+
+### 9.3 Decorative Icons
+
+All `<span class="iconify">` elements must have `aria-hidden="true"`. Icons are decorative; adjacent text provides meaning.
+
+```tsx
+// Correct
+<span class="iconify" aria-hidden="true" data-icon="carbon:filter"></span>
+
+// Wrong — screen reader announces meaningless icon name
+<span class="iconify" data-icon="carbon:filter"></span>
+```
+
+### 9.4 Icon-Only Buttons
+
+Buttons with only an icon (no visible text) must have both `title` and `aria-label` with the same value:
+
+```tsx
+<button title={t('sort.ascending')} aria-label={t('sort.ascending')}>
+  <span class="iconify" aria-hidden="true" data-icon="carbon:sort-ascending"></span>
+</button>
+```
+
+Applies to: `ColumnToolbar`, `RowToolbar`, `PaginationBar`, and any toolbar with icon-only actions.
+
+### 9.5 Tab Widgets
+
+Tab-like navigation (e.g., `AppHeader` ribbon tabs) must use:
+
+- `role="tablist"` + `aria-label` on the container
+- `role="tab"` + `aria-selected` on each tab button
+
+### 9.6 Data Tables
+
+The `<table>` element in `DataTable` must have `aria-label={t('dataTable.ariaLabel')}`.
+
+### 9.7 Skip Navigation
+
+A visually-hidden skip link (`<a href="#main-content" class="visually-hidden">`) is rendered as the first child of `App.tsx`. The `<main>` element has `id="main-content"`. The `.visually-hidden` utility class in `styles/util.css` hides the link until focused.
+
+---
+
 **End of UX Specification**

@@ -50,7 +50,7 @@ export function PaginationBar({
           onClick={onModelInfo}
           title={t('pagination.modelInfo.title')}
         >
-          <span class="iconify" data-icon="carbon:information"></span>
+          <span class="iconify" aria-hidden="true" data-icon="carbon:information"></span>
           <span>{t('pagination.modelInfo.button')}</span>
         </button>
         <button
@@ -58,7 +58,7 @@ export function PaginationBar({
           onClick={onRenameModel}
           title={t('pagination.rename.title')}
         >
-          <span class="iconify" data-icon="carbon:edit"></span>
+          <span class="iconify" aria-hidden="true" data-icon="carbon:edit"></span>
           <span>{t('pagination.rename.button')}</span>
         </button>
         <button
@@ -66,7 +66,7 @@ export function PaginationBar({
           onClick={onCopyModel}
           title={t('pagination.copy.title')}
         >
-          <span class="iconify" data-icon="carbon:copy"></span>
+          <span class="iconify" aria-hidden="true" data-icon="carbon:copy"></span>
           <span>{t('pagination.copy.button')}</span>
         </button>
         <button
@@ -74,7 +74,7 @@ export function PaginationBar({
           onClick={onCreateNewModelFromActive}
           title={t('pagination.new.title')}
         >
-          <span class="iconify" data-icon="carbon:add-filled"></span>
+          <span class="iconify" aria-hidden="true" data-icon="carbon:add-filled"></span>
           <span>{t('pagination.new.button')}</span>
         </button>
         <button
@@ -82,7 +82,7 @@ export function PaginationBar({
           onClick={onDeleteModel}
           title={t('pagination.delete.title')}
         >
-          <span class="iconify" data-icon="carbon:trash-can"></span>
+          <span class="iconify" aria-hidden="true" data-icon="carbon:trash-can"></span>
           <span>{t('pagination.delete.button')}</span>
         </button>
 
@@ -92,28 +92,45 @@ export function PaginationBar({
           class="button button--ghost button--small"
           onClick={() => onOpenDialog('download')}
           title={t('pagination.download.title')}
+          aria-label={t('pagination.download.title')}
         >
-          <span class="iconify" data-icon="carbon:download"></span>
+          <span class="iconify" aria-hidden="true" data-icon="carbon:download"></span>
         </button>
 
-        <button class={styles.copyButton} onClick={onCopyCSV} title={t('pagination.copyCSV.title')}>
+        <button
+          class={styles.copyButton}
+          onClick={onCopyCSV}
+          title={t('pagination.copyCSV.title')}
+          aria-label={t('pagination.copyCSV.title')}
+        >
           <span
             class={`iconify ${styles.baseIcon}`}
+            aria-hidden="true"
             data-icon="material-symbols-light:csv-outline-rounded"
           ></span>
-          <span class={`iconify ${styles.overlayIcon}`} data-icon="carbon:copy"></span>
+          <span
+            class={`iconify ${styles.overlayIcon}`}
+            aria-hidden="true"
+            data-icon="carbon:copy"
+          ></span>
         </button>
 
         <button
           class={styles.copyButton}
           onClick={onCopyJSON}
           title={t('pagination.copyJSON.title')}
+          aria-label={t('pagination.copyJSON.title')}
         >
           <span
             class={`iconify ${styles.baseIcon}`}
+            aria-hidden="true"
             data-icon="material-symbols-light:file-json-outline-rounded"
           ></span>
-          <span class={`iconify ${styles.overlayIcon}`} data-icon="carbon:copy"></span>
+          <span
+            class={`iconify ${styles.overlayIcon}`}
+            aria-hidden="true"
+            data-icon="carbon:copy"
+          ></span>
         </button>
       </div>
 
@@ -129,6 +146,7 @@ export function PaginationBar({
             onClick={onFirstPage}
             disabled={currentPage.value === 1}
             title={t('pagination.firstPage')}
+            aria-label={t('pagination.firstPage')}
           >
             «
           </button>
@@ -137,6 +155,7 @@ export function PaginationBar({
             onClick={onPrevPage}
             disabled={currentPage.value === 1}
             title={t('pagination.prevPage')}
+            aria-label={t('pagination.prevPage')}
           >
             ‹
           </button>
@@ -154,6 +173,7 @@ export function PaginationBar({
             onClick={onNextPage}
             disabled={currentPage.value >= totalPages.value}
             title={t('pagination.nextPage')}
+            aria-label={t('pagination.nextPage')}
           >
             ›
           </button>
@@ -162,6 +182,7 @@ export function PaginationBar({
             onClick={onLastPage}
             disabled={currentPage.value >= totalPages.value}
             title={t('pagination.lastPage')}
+            aria-label={t('pagination.lastPage')}
           >
             »
           </button>

@@ -95,13 +95,23 @@ export function ImportCsvDialog({
     <div>
       {fromUrlImport.value && onBackToUrl && (
         <button class={styles.backLink} onClick={onBackToUrl}>
-          <span class="iconify" data-icon="carbon:arrow-left" style={{ fontSize: '14px' }}></span>
+          <span
+            class="iconify"
+            aria-hidden="true"
+            data-icon="carbon:arrow-left"
+            style={{ fontSize: '14px' }}
+          ></span>
           {t('buttons.backToDatasets', { ns: 'common' })}
         </button>
       )}
       {fromTextEntry.value && onBackToText && (
         <button class={styles.backLink} onClick={onBackToText}>
-          <span class="iconify" data-icon="carbon:arrow-left" style={{ fontSize: '14px' }}></span>
+          <span
+            class="iconify"
+            aria-hidden="true"
+            data-icon="carbon:arrow-left"
+            style={{ fontSize: '14px' }}
+          ></span>
           {t('buttons.backToTextEntry', { ns: 'common' })}
         </button>
       )}
@@ -111,6 +121,7 @@ export function ImportCsvDialog({
         <div class={styles.replaceBanner}>
           <span
             class={`iconify ${styles.replaceIcon}`}
+            aria-hidden="true"
             data-icon="carbon:cyclostat"
             style={{ fontSize: '24px' }}
           ></span>
@@ -269,7 +280,7 @@ export function ImportCsvDialog({
 
           {!jsonData.value && (
             <div class={styles.error} style={{ marginBottom: '1rem' }}>
-              <span class="iconify" data-icon="carbon:warning"></span>
+              <span class="iconify" aria-hidden="true" data-icon="carbon:warning"></span>
               <span>{t('importCsv.noValidArray')}</span>
             </div>
           )}

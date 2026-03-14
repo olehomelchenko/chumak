@@ -42,7 +42,11 @@ export function TypeIndicator({ type, showLabel = true, size = 'medium' }: TypeI
   return (
     <span class={`${styles.typeIndicator} ${sizeClass}`}>
       <span class={`${styles.indicator} ${styles[type]}`}>
-        {display.icon ? <span class="iconify" data-icon={display.icon}></span> : display.symbol}
+        {display.icon ? (
+          <span class="iconify" aria-hidden="true" data-icon={display.icon}></span>
+        ) : (
+          display.symbol
+        )}
       </span>
       {showLabel && <span class={styles.label}>{display.label}</span>}
     </span>

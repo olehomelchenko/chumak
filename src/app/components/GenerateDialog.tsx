@@ -126,7 +126,7 @@ export function GenerateDialog() {
 
       {error.value && (
         <div class={styles.error}>
-          <span class="iconify" data-icon="carbon:warning"></span>
+          <span class="iconify" aria-hidden="true" data-icon="carbon:warning"></span>
           <span>{error.value}</span>
         </div>
       )}

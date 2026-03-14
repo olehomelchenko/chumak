@@ -213,7 +213,7 @@ export function DataTable({
           Debug Page
         </button>
       )}
-      <table class={styles.dataTable}>
+      <table class={styles.dataTable} aria-label={t('dataTable.ariaLabel')}>
         <thead>
           <tr>
             <th class={styles.rowGutter}></th>
@@ -242,7 +242,7 @@ export function DataTable({
                   }}
                   title={t('dataTable.typeMenuTooltip')}
                 >
-                  <span class="iconify" data-icon={getTypeIcon(column)}></span>
+                  <span class="iconify" aria-hidden="true" data-icon={getTypeIcon(column)}></span>
                 </span>
                 <span>{column}</span>
               </th>
@@ -298,7 +298,11 @@ export function DataTable({
                     >
                       {isError ? (
                         <span class={styles.errorCell}>
-                          <span class="iconify" data-icon="carbon:warning-filled"></span>
+                          <span
+                            class="iconify"
+                            aria-hidden="true"
+                            data-icon="carbon:warning-filled"
+                          ></span>
                           <span>{formatCellValue(cellValue)}</span>
                         </span>
                       ) : isBoolean ? (

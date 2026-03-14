@@ -61,7 +61,7 @@ export function ColumnRow({
       </button>
 
       {/* Type Icon */}
-      <span class={`iconify ${styles.chipIcon}`} data-icon={icon} />
+      <span class={`iconify ${styles.chipIcon}`} aria-hidden="true" data-icon={icon} />
 
       {/* Original Name */}
       <span

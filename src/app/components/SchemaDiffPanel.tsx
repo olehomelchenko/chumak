@@ -15,6 +15,7 @@ export const SchemaDiffPanel = ({ diff }: SchemaDiffPanelProps) => {
         <div class={styles.title}>
           <span
             class="iconify"
+            aria-hidden="true"
             data-icon="carbon:checkmark-filled"
             style={{ color: '#4caf50', fontSize: '20px' }}
           ></span>
@@ -29,6 +30,7 @@ export const SchemaDiffPanel = ({ diff }: SchemaDiffPanelProps) => {
       <div class={styles.title}>
         <span
           class={`iconify ${styles.icon} ${diff.missingColumns.length > 0 ? styles.warning : ''}`}
+          aria-hidden="true"
           data-icon={
             diff.missingColumns.length > 0 ? 'carbon:warning-filled' : 'carbon:information-filled'
           }
@@ -81,6 +83,7 @@ export const SchemaDiffPanel = ({ diff }: SchemaDiffPanelProps) => {
                   {change.column}: <span class={styles.oldType}>{change.oldType}</span>
                   <span
                     class="iconify"
+                    aria-hidden="true"
                     data-icon="carbon:arrow-right"
                     style={{ margin: '0 4px', verticalAlign: 'middle' }}
                   ></span>

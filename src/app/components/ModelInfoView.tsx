@@ -55,11 +55,21 @@ export function ModelInfoView({ onRenameModel, onDeleteModel }: ModelInfoViewPro
         </div>
         <div class={styles.actions}>
           <button class="button button--secondary" onClick={onRenameModel}>
-            <span class="iconify" data-icon="carbon:edit" style={{ fontSize: '24px' }}></span>
+            <span
+              class="iconify"
+              aria-hidden="true"
+              data-icon="carbon:edit"
+              style={{ fontSize: '24px' }}
+            ></span>
             {t('modelInfo.rename')}
           </button>
           <button class="button button--danger" onClick={onDeleteModel}>
-            <span class="iconify" data-icon="carbon:trash-can" style={{ fontSize: '24px' }}></span>
+            <span
+              class="iconify"
+              aria-hidden="true"
+              data-icon="carbon:trash-can"
+              style={{ fontSize: '24px' }}
+            ></span>
             {t('modelInfo.delete')}
           </button>
         </div>
@@ -154,7 +164,12 @@ export function ModelInfoView({ onRenameModel, onDeleteModel }: ModelInfoViewPro
                 onClick={() => setIsEditingComment(true)}
                 style={{ marginTop: 'var(--space-sm)' }}
               >
-                <span class="iconify" data-icon="carbon:edit" style={{ fontSize: '16px' }}></span>
+                <span
+                  class="iconify"
+                  aria-hidden="true"
+                  data-icon="carbon:edit"
+                  style={{ fontSize: '16px' }}
+                ></span>
                 {comment ? t('modelInfo.editComment') : t('modelInfo.addComment')}
               </button>
             </div>

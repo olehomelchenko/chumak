@@ -28,11 +28,14 @@ export function DependencyImpactDialog() {
     <div class={styles.centeredModalBackdrop} style={{ zIndex: 10000 }} onClick={handleCancel}>
       <div
         class={styles.centeredModal}
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="dependency-impact-title"
         style={{ maxWidth: '500px' }}
         onClick={(e) => e.stopPropagation()}
       >
         <div class={styles.centeredModalHeader}>
-          <h2>⚠️ {t('dependencyDialog.title')}</h2>
+          <h2 id="dependency-impact-title">⚠️ {t('dependencyDialog.title')}</h2>
           <button onClick={handleCancel} aria-label={t('buttons.close')}>
             ×
           </button>

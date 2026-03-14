@@ -106,11 +106,11 @@ export function Sidebar({
         <h2 class={styles.header}>{t('sidebar.title')}</h2>
         <div class={styles.importActions}>
           <button class={styles.importAction} onClick={onUploadClick} title={t('tooltips.upload')}>
-            <span class="iconify" data-icon="carbon:upload"></span>
+            <span class="iconify" aria-hidden="true" data-icon="carbon:upload"></span>
             <span>{t('sidebar.actions.upload')}</span>
           </button>
           <button class={styles.importAction} onClick={onUrlClick} title={t('tooltips.url')}>
-            <span class="iconify" data-icon="carbon:link"></span>
+            <span class="iconify" aria-hidden="true" data-icon="carbon:link"></span>
             <span>{t('sidebar.actions.url')}</span>
           </button>
           <button
@@ -118,7 +118,7 @@ export function Sidebar({
             onClick={onEnterDataClick}
             title={t('tooltips.enter')}
           >
-            <span class="iconify" data-icon="carbon:text-long-paragraph"></span>
+            <span class="iconify" aria-hidden="true" data-icon="carbon:text-long-paragraph"></span>
             <span>{t('sidebar.actions.enter')}</span>
           </button>
           <button
@@ -126,7 +126,7 @@ export function Sidebar({
             onClick={onGenerateClick}
             title={t('tooltips.generate')}
           >
-            <span class="iconify" data-icon="carbon:data-2"></span>
+            <span class="iconify" aria-hidden="true" data-icon="carbon:data-2"></span>
             <span>{t('sidebar.actions.generate')}</span>
           </button>
         </div>
@@ -196,6 +196,7 @@ export function Sidebar({
             >
               <span
                 class="iconify"
+                aria-hidden="true"
                 data-icon="carbon:undo"
                 style={{ width: '16px', height: '16px' }}
               ></span>
@@ -208,6 +209,7 @@ export function Sidebar({
             >
               <span
                 class="iconify"
+                aria-hidden="true"
                 data-icon="carbon:redo"
                 style={{ width: '16px', height: '16px' }}
               ></span>
@@ -311,6 +313,7 @@ export function Sidebar({
                 >
                   <span
                     class="iconify"
+                    aria-hidden="true"
                     data-icon="carbon:edit"
                     style={{ width: '14px', height: '14px' }}
                   ></span>

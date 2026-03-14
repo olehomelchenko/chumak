@@ -408,9 +408,11 @@
     "videoPlaceholder": "Відео незабаром"
   },
   "toast": {
-    "dismiss": "Закрити"
+    "dismiss": "Закрити",
+    "containerLabel": "Сповіщення"
   },
   "eda": {
+    "closePanel": "Закрити аналіз стовпця",
     "dateTreatment": {
       "temporal": "Темпоральний",
       "categorical": "Категоріальний"
@@ -529,7 +531,8 @@
     }
   },
   "dataTable": {
-    "typeMenuTooltip": "Натисніть, щоб змінити тип"
+    "typeMenuTooltip": "Натисніть, щоб змінити тип",
+    "ariaLabel": "Таблиця даних"
   },
   "jsonEditor": {
     "title": "Редагувати конвеєр перетворень (JSON)",

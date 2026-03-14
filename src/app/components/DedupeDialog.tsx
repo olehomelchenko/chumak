@@ -105,6 +105,7 @@ export function DedupeDialog() {
         <div class={styles.helpText} style={{ margin: '0.75rem 0' }}>
           <span
             class="iconify"
+            aria-hidden="true"
             data-icon="carbon:information"
             style={{ verticalAlign: 'middle' }}
           ></span>{' '}
@@ -122,6 +123,7 @@ export function DedupeDialog() {
       >
         <span
           class="iconify"
+          aria-hidden="true"
           data-icon={duplicateCount.value > 0 ? 'carbon:warning' : 'carbon:checkmark-outline'}
           style={{
             fontSize: '1.25rem',

@@ -56,7 +56,12 @@ export function JoinTreeSelector({
                 onClick={(e) => handlePreviewClick(e, source.id)}
                 title={t('joinTreeSelector.previewTable')}
               >
-                <span class="iconify" data-icon="carbon:view" style={{ fontSize: '14px' }}></span>
+                <span
+                  class="iconify"
+                  aria-hidden="true"
+                  data-icon="carbon:view"
+                  style={{ fontSize: '14px' }}
+                ></span>
               </button>
             )}
           </div>
@@ -81,6 +86,7 @@ export function JoinTreeSelector({
                   >
                     <span
                       class="iconify"
+                      aria-hidden="true"
                       data-icon="carbon:view"
                       style={{ fontSize: '14px' }}
                     ></span>

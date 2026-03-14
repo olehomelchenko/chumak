@@ -55,6 +55,7 @@ export function GeneratorTypeSelector({ type, onChange }: GeneratorTypeSelectorP
             />
             <span
               class="iconify"
+              aria-hidden="true"
               data-icon={generatorIcons[gt]}
               style={{ fontSize: '16px' }}
             ></span>

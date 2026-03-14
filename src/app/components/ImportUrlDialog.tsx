@@ -90,7 +90,7 @@ export function ImportUrlDialog({ onImport }: ImportUrlDialogProps) {
 
       {error.value && (
         <div class={styles.error} style={{ marginTop: '1rem' }}>
-          <span class="iconify" data-icon="carbon:warning"></span>
+          <span class="iconify" aria-hidden="true" data-icon="carbon:warning"></span>
           <span>{error.value}</span>
         </div>
       )}

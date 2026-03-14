@@ -61,14 +61,17 @@ export function GlobalDialogs() {
     >
       <div
         class={`${styles.dialog} ${styles[messageBox.type]}`}
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="global-dialog-title"
         onClick={(e) => e.stopPropagation()}
       >
         <div class={styles.header}>
-          <h3 class={styles.title}>
-            <span class="iconify" data-icon={getIcon()}></span>
+          <h3 id="global-dialog-title" class={styles.title}>
+            <span class="iconify" aria-hidden="true" data-icon={getIcon()}></span>
             <span>{messageBox.title}</span>
           </h3>
-          <button class={styles.close} onClick={() => close(false)}>
+          <button class={styles.close} onClick={() => close(false)} aria-label={t('buttons.close')}>
             ×
           </button>
         </div>

@@ -79,16 +79,24 @@ export function RowToolbar({
         class={styles.floatingToolbar__button}
         onClick={onKeepRows}
         title={t('toolbars.row.keepTitle', { count: selectedRows.length })}
+        aria-label={t('toolbars.row.keepTitle', { count: selectedRows.length })}
       >
-        <span class="iconify" data-icon="carbon:filter" style="width: 24px; height: 24px;"></span>
+        <span
+          class="iconify"
+          aria-hidden="true"
+          data-icon="carbon:filter"
+          style="width: 24px; height: 24px;"
+        ></span>
       </button>
       <button
         class={`${styles.floatingToolbar__button} ${styles.danger}`}
         onClick={onRemoveRows}
         title={t('toolbars.row.removeTitle', { count: selectedRows.length })}
+        aria-label={t('toolbars.row.removeTitle', { count: selectedRows.length })}
       >
         <span
           class="iconify"
+          aria-hidden="true"
           data-icon="carbon:trash-can"
           style="width: 24px; height: 24px;"
         ></span>
@@ -100,9 +108,11 @@ export function RowToolbar({
             class={styles.floatingToolbar__button}
             onClick={onExtractToModel}
             title={t('toolbars.row.extractTitle', { count: selectedRows.length })}
+            aria-label={t('toolbars.row.extractTitle', { count: selectedRows.length })}
           >
             <span
               class="iconify"
+              aria-hidden="true"
               data-icon="carbon:data-table"
               style="width: 24px; height: 24px;"
             ></span>
@@ -116,9 +126,11 @@ export function RowToolbar({
             class={styles.floatingToolbar__button}
             onClick={onPromoteToHeader}
             title={t('toolbars.row.promoteTitle')}
+            aria-label={t('toolbars.row.promoteTitle')}
           >
             <span
               class="iconify"
+              aria-hidden="true"
               data-icon="carbon:table-of-contents"
               style="width: 24px; height: 24px;"
             ></span>

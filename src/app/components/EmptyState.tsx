@@ -51,15 +51,15 @@ export function EmptyState({
         <p class="empty-state__text">{t('emptyState.subtitle')}</p>
         <div class="empty-state__actions">
           <button class="button button--primary" onClick={onUploadClick}>
-            <span class="iconify" data-icon="carbon:upload"></span>
+            <span class="iconify" aria-hidden="true" data-icon="carbon:upload"></span>
             {t('emptyState.uploadButton')}
           </button>
           <button class="button button--primary" onClick={onUrlClick}>
-            <span class="iconify" data-icon="carbon:link"></span>
+            <span class="iconify" aria-hidden="true" data-icon="carbon:link"></span>
             {t('emptyState.urlButton')}
           </button>
           <button class="button button--primary" onClick={onEnterDataClick}>
-            <span class="iconify" data-icon="carbon:text-long-paragraph"></span>
+            <span class="iconify" aria-hidden="true" data-icon="carbon:text-long-paragraph"></span>
             {t('emptyState.enterButton')}
           </button>
         </div>

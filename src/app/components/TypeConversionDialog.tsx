@@ -39,12 +39,19 @@ export function TypeConversionDialog({ onCancel, onApply }: TypeConversionDialog
     <div class={styles.centeredModalBackdrop} onClick={onCancel}>
       <div
         class={styles.centeredModal}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="type-conversion-title"
         onClick={(e) => e.stopPropagation()}
         style={{ width: '800px', maxWidth: '90vw' }}
       >
         <div class={styles.centeredModalHeader}>
-          <h3>{previewTitle || t('typeConversion.title')}</h3>
-          <button onClick={onCancel} class={styles.closeButton}>
+          <h3 id="type-conversion-title">{previewTitle || t('typeConversion.title')}</h3>
+          <button
+            onClick={onCancel}
+            class={styles.closeButton}
+            aria-label={t('buttons.close', { ns: 'common' })}
+          >
             ×
           </button>
         </div>

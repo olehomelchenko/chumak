@@ -34,14 +34,19 @@ export function ToastContainer() {
   };
 
   return (
-    <div class={styles.toastContainer}>
+    <div
+      class={styles.toastContainer}
+      role="log"
+      aria-live="polite"
+      aria-label={t('toast.containerLabel')}
+    >
       {notifications.map((notification) => (
         <div
           key={notification.id}
           class={`${styles.toast} ${notification.visible ? styles.visible : ''} ${styles[notification.type]}`}
         >
           <div class={styles.toast__icon}>
-            <span class="iconify" data-icon={getIcon(notification.type)}></span>
+            <span class="iconify" aria-hidden="true" data-icon={getIcon(notification.type)}></span>
           </div>
           <div class={styles.toast__content}>
             <div class={styles.toast__title}>{notification.title}</div>
@@ -54,6 +59,7 @@ export function ToastContainer() {
             class={styles.toast__close}
             onClick={() => dismiss(notification.id)}
             title={t('toast.dismiss')}
+            aria-label={t('toast.dismiss')}
           >
             ×
           </button>

@@ -71,11 +71,14 @@ export function JsonEditorModal({ onCancel, onApply }: JsonEditorModalProps) {
     >
       <div
         class={appStyles.centeredModal}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="json-editor-title"
         style={{ width: '900px', maxWidth: '90vw', height: '80vh' }}
         onClick={handleDialogClick}
       >
         <div class={appStyles.centeredModalHeader}>
-          <h3>{t('jsonEditor.title')}</h3>
+          <h3 id="json-editor-title">{t('jsonEditor.title')}</h3>
           <button onClick={onCancel} aria-label={t('jsonEditor.close')}>
             &times;
           </button>

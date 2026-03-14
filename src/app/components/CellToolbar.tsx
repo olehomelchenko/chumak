@@ -87,7 +87,12 @@ export function CellToolbar({ onFilter, onReplace }: CellToolbarProps) {
         onClick={() => onFilter('exact')}
         title={isComparable ? t('toolbars.cell.filterExact') : t('toolbars.cell.filterExactSimple')}
       >
-        <span class="iconify" data-icon="carbon:filter" style="width: 24px; height: 24px;"></span>
+        <span
+          class="iconify"
+          aria-hidden="true"
+          data-icon="carbon:filter"
+          style="width: 24px; height: 24px;"
+        ></span>
         {isComparable && <span class={styles.floatingToolbar__operatorLabel}>=</span>}
       </button>
 
@@ -98,6 +103,7 @@ export function CellToolbar({ onFilter, onReplace }: CellToolbarProps) {
       >
         <span
           class="iconify"
+          aria-hidden="true"
           data-icon="carbon:filter-remove"
           style="width: 24px; height: 24px;"
         ></span>
@@ -110,7 +116,12 @@ export function CellToolbar({ onFilter, onReplace }: CellToolbarProps) {
         onClick={onReplace}
         title={t('toolbars.cell.replace')}
       >
-        <span class="iconify" data-icon="codicon:replace" style="width: 24px; height: 24px;"></span>
+        <span
+          class="iconify"
+          aria-hidden="true"
+          data-icon="codicon:replace"
+          style="width: 24px; height: 24px;"
+        ></span>
       </button>
 
       {isComparable && (

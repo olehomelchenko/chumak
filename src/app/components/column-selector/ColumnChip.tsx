@@ -34,10 +34,11 @@ export function ColumnChip({
       onClick={onClick}
       disabled={disabled}
     >
-      <span class={`iconify ${styles.chipIcon}`} data-icon={icon} />
+      <span class={`iconify ${styles.chipIcon}`} aria-hidden="true" data-icon={icon} />
       {showCheckmark && isActive && (
         <span
           class={`iconify ${styles.chipIcon}`}
+          aria-hidden="true"
           data-icon="carbon:checkmark-filled"
           style={{
             position: 'absolute',

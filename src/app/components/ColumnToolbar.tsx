@@ -117,9 +117,11 @@ export function ColumnToolbar({
           class={`${styles.floatingToolbar__button} ${styles.danger}`}
           onClick={onRemoveMultiple}
           title={t('toolbars.column.multiRemoveTitle', { count: selectedColumns.length })}
+          aria-label={t('toolbars.column.multiRemoveTitle', { count: selectedColumns.length })}
         >
           <span
             class="iconify"
+            aria-hidden="true"
             data-icon="carbon:trash-can"
             style="width: 24px; height: 24px;"
           ></span>
@@ -152,16 +154,24 @@ export function ColumnToolbar({
         class={styles.floatingToolbar__button}
         onClick={() => onSort('asc')}
         title={t('toolbars.column.sortAsc')}
+        aria-label={t('toolbars.column.sortAsc')}
       >
-        <span class="iconify" data-icon="carbon:arrow-up" style="width: 24px; height: 24px;"></span>
+        <span
+          class="iconify"
+          aria-hidden="true"
+          data-icon="carbon:arrow-up"
+          style="width: 24px; height: 24px;"
+        ></span>
       </button>
       <button
         class={styles.floatingToolbar__button}
         onClick={() => onSort('desc')}
         title={t('toolbars.column.sortDesc')}
+        aria-label={t('toolbars.column.sortDesc')}
       >
         <span
           class="iconify"
+          aria-hidden="true"
           data-icon="carbon:arrow-down"
           style="width: 24px; height: 24px;"
         ></span>
@@ -171,23 +181,37 @@ export function ColumnToolbar({
         class={styles.floatingToolbar__button}
         onClick={onFilter}
         title={t('toolbars.column.filter')}
+        aria-label={t('toolbars.column.filter')}
       >
-        <span class="iconify" data-icon="carbon:filter" style="width: 24px; height: 24px;"></span>
+        <span
+          class="iconify"
+          aria-hidden="true"
+          data-icon="carbon:filter"
+          style="width: 24px; height: 24px;"
+        ></span>
       </button>
       <button
         class={styles.floatingToolbar__button}
         onClick={onRename}
         title={t('toolbars.column.rename')}
+        aria-label={t('toolbars.column.rename')}
       >
-        <span class="iconify" data-icon="carbon:edit" style="width: 24px; height: 24px;"></span>
+        <span
+          class="iconify"
+          aria-hidden="true"
+          data-icon="carbon:edit"
+          style="width: 24px; height: 24px;"
+        ></span>
       </button>
       <button
         class={styles.floatingToolbar__button}
         onClick={onSplit}
         title={t('toolbars.column.split')}
+        aria-label={t('toolbars.column.split')}
       >
         <span
           class="iconify"
+          aria-hidden="true"
           data-icon="carbon:split-screen"
           style="width: 24px; height: 24px;"
         ></span>
@@ -197,9 +221,11 @@ export function ColumnToolbar({
           class={styles.floatingToolbar__button}
           onClick={onDate}
           title={t('toolbars.column.date')}
+          aria-label={t('toolbars.column.date')}
         >
           <span
             class="iconify"
+            aria-hidden="true"
             data-icon="carbon:calendar"
             style="width: 24px; height: 24px;"
           ></span>
@@ -209,9 +235,11 @@ export function ColumnToolbar({
         class={styles.floatingToolbar__button}
         onClick={onDedupe}
         title={t('toolbars.column.dedupe')}
+        aria-label={t('toolbars.column.dedupe')}
       >
         <span
           class="iconify"
+          aria-hidden="true"
           data-icon="carbon:checkbox-checked"
           style="width: 24px; height: 24px;"
         ></span>
@@ -220,9 +248,11 @@ export function ColumnToolbar({
         class={styles.floatingToolbar__button}
         onClick={onImpute}
         title={t('toolbars.column.impute')}
+        aria-label={t('toolbars.column.impute')}
       >
         <span
           class="iconify"
+          aria-hidden="true"
           data-icon="material-symbols-light:edit-arrow-down-outline-rounded"
           style="width: 24px; height: 24px;"
         ></span>
@@ -231,16 +261,24 @@ export function ColumnToolbar({
         class={styles.floatingToolbar__button}
         onClick={onDuplicate}
         title={t('toolbars.column.duplicate')}
+        aria-label={t('toolbars.column.duplicate')}
       >
-        <span class="iconify" data-icon="carbon:copy" style="width: 24px; height: 24px;"></span>
+        <span
+          class="iconify"
+          aria-hidden="true"
+          data-icon="carbon:copy"
+          style="width: 24px; height: 24px;"
+        ></span>
       </button>
       <button
         class={`${styles.floatingToolbar__button} ${styles.danger}`}
         onClick={onRemove}
         title={t('toolbars.column.remove')}
+        aria-label={t('toolbars.column.remove')}
       >
         <span
           class="iconify"
+          aria-hidden="true"
           data-icon="carbon:trash-can"
           style="width: 24px; height: 24px;"
         ></span>

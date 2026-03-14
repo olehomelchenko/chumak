@@ -63,6 +63,7 @@ export function JoinTypeSelector({ joinType, onChange }: JoinTypeSelectorProps) 
             />
             <span
               class="iconify"
+              aria-hidden="true"
               data-icon={joinTypeIcons[type]}
               style={{ fontSize: '16px' }}
             ></span>

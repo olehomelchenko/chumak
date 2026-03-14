@@ -101,13 +101,13 @@ export function TypeMenu({ onClose, onOpenTypeConversionDialog }: TypeMenuProps)
         </button>
         <button class={styles.item} role="menuitem" onClick={handleTypeClick('date')}>
           <span class={`${styles.indicator} ${styles.date}`}>
-            <span class="iconify" data-icon="carbon:calendar"></span>
+            <span class="iconify" aria-hidden="true" data-icon="carbon:calendar"></span>
           </span>
           {t('typeMenu.types.date')}
         </button>
         <button class={styles.item} role="menuitem" onClick={handleTypeClick('datetime')}>
           <span class={`${styles.indicator} ${styles.datetime}`}>
-            <span class="iconify" data-icon="ix:calendar"></span>
+            <span class="iconify" aria-hidden="true" data-icon="ix:calendar"></span>
           </span>
           {t('typeMenu.types.datetime')}
         </button>
@@ -117,7 +117,7 @@ export function TypeMenu({ onClose, onOpenTypeConversionDialog }: TypeMenuProps)
         </button>
         <div class={styles.divider}></div>
         <button class={styles.item} role="menuitem" onClick={handleTypeClick('auto')}>
-          <span class="iconify" data-icon="carbon:flash"></span>
+          <span class="iconify" aria-hidden="true" data-icon="carbon:flash"></span>
           {t('typeMenu.types.auto')}
         </button>
       </div>

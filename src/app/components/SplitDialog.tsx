@@ -109,7 +109,11 @@ export function SplitDialog() {
             onClick={() => setPreset('\\s+', true)}
             title={t('split.presetTitles.whitespace')}
           >
-            <span class="iconify" data-icon="material-symbols-light:space-bar-rounded" />
+            <span
+              class="iconify"
+              aria-hidden="true"
+              data-icon="material-symbols-light:space-bar-rounded"
+            />
           </button>
           <button
             type="button"
@@ -118,7 +122,11 @@ export function SplitDialog() {
             onClick={() => setPreset('\\t', true)}
             title={t('split.presetTitles.tab')}
           >
-            <span class="iconify" data-icon="material-symbols-light:keyboard-tab-rounded" />
+            <span
+              class="iconify"
+              aria-hidden="true"
+              data-icon="material-symbols-light:keyboard-tab-rounded"
+            />
           </button>
         </div>
         <input

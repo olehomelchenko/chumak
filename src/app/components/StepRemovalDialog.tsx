@@ -29,13 +29,23 @@ export function StepRemovalDialog() {
         if (e.key === 'Escape') close(false);
       }}
     >
-      <div class={`${styles.dialog} ${styles.warning}`} onClick={(e) => e.stopPropagation()}>
+      <div
+        class={`${styles.dialog} ${styles.warning}`}
+        role="alertdialog"
+        aria-modal="true"
+        aria-labelledby="step-removal-title"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div class={styles.header}>
-          <h3 class={styles.title}>
-            <span class="iconify" data-icon="carbon:warning"></span>
+          <h3 id="step-removal-title" class={styles.title}>
+            <span class="iconify" aria-hidden="true" data-icon="carbon:warning"></span>
             <span>{t('stepRemoval.title')}</span>
           </h3>
-          <button class={styles.close} onClick={() => close(false)}>
+          <button
+            class={styles.close}
+            onClick={() => close(false)}
+            aria-label={t('buttons.close', { ns: 'common' })}
+          >
             ×
           </button>
         </div>
@@ -77,6 +87,7 @@ export function StepRemovalDialog() {
                 <div class={styles.warning}>
                   <span
                     class="iconify"
+                    aria-hidden="true"
                     data-icon="carbon:warning"
                     style={{ color: 'var(--color-yellow)' }}
                   ></span>

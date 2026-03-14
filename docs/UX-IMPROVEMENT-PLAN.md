@@ -1,6 +1,6 @@
 # Syto — UX Improvement Plan
 
-> **Status**: Phase 1 complete (1.1–1.6 done)
+> **Status**: Phase 2 complete (1.1–1.6, 2.1–2.8 done)
 > **Date**: March 2026
 > **Basis**: Comprehensive audit against IBM Carbon Design System best practices
 > **Related**: [DESIGN-SYSTEM-EVALUATION.md](archive/DESIGN-SYSTEM-EVALUATION.md), [CONTENT-GUIDELINES.md](CONTENT-GUIDELINES.md), [UX-SPECIFICATION.md](UX-SPECIFICATION.md)
@@ -89,75 +89,50 @@ Changes by category:
 
 _Estimated scope: ~15 component files, mostly adding attributes_
 
-### 2.1 Add dialog ARIA semantics (Critical)
+### 2.1 Add dialog ARIA semantics (Critical) ✅
 
-Add to both slide panel and centered modal containers in `App.tsx`:
+Added `role="dialog"` / `role="alertdialog"`, `aria-modal="true"`, and `aria-labelledby` to all dialog containers. Added unique `id` to each dialog title `<h3>`/`<h2>`.
 
-- `role="dialog"`
-- `aria-modal="true"`
-- `aria-labelledby` pointing to the dialog title `<h3>` (add `id` to each `<h3>`)
+Files changed: `App.tsx` (slide panel + centered modal), `GlobalDialogs.tsx`, `StepRemovalDialog.tsx`, `DependencyImpactDialog.tsx`, `TablePreviewModal.tsx` (both modals), `TypeConversionDialog.tsx`, `JsonEditorModal.tsx`.
 
-Also add to:
+### 2.2 Add `aria-live` to toasts (Critical) ✅
 
-- `GlobalDialogs.tsx`: `role="alertdialog"` + `aria-labelledby` + `aria-describedby`
-- `StepRemovalDialog.tsx`: `role="alertdialog"`
-- `DependencyImpactDialog.tsx`: `role="dialog"`
-- `TablePreviewModal.tsx`: `role="dialog"` + `aria-modal="true"`
+- `ToastContainer.tsx`: Added `role="log"` + `aria-live="polite"` + `aria-label` on the toast container. Added `aria-label` to toast close buttons.
+- `StatusBar.tsx`: Added `role="status"` + `aria-live="polite"` to the `<footer>`.
 
-### 2.2 Add `aria-live` to toasts (Critical)
+### 2.3 Add skip-to-content link (Critical) ✅
 
-In `ToastContainer.tsx`, add:
+Added `.visually-hidden` utility class in `util.css` (with `:focus`/`:active` override for visibility).
 
-- `role="alert"` on error toasts
-- `aria-live="polite"` on the toast container for success/info/warning toasts
+Added `<a href="#main-content" class="visually-hidden">` as first child of `appContainer` in `App.tsx`. Added `id="main-content"` to `<main>`.
 
-Also add `aria-live="polite"` to `StatusBar.tsx` for transform progress messages.
+### 2.4 Fix close button accessible names (Critical) ✅
 
-### 2.3 Add skip-to-content link (Critical)
+Added `aria-label` to all 7 close buttons that render `×` without accessible names:
 
-Add a visually-hidden skip link as the first element in `App.tsx`:
+`App.tsx` (slide panel + centered modal), `GlobalDialogs.tsx`, `StepRemovalDialog.tsx`, `TablePreviewModal.tsx` (2 modals), `TypeConversionDialog.tsx`, `EdaPanel.tsx`.
 
-```tsx
-<a href="#main-content" class="visually-hidden-focusable">
-  Skip to main content
-</a>
-```
+`DependencyImpactDialog.tsx` and `JsonEditorModal.tsx` already had `aria-label` — no changes needed.
 
-Add `id="main-content"` to the `<main>` element. Add `.visually-hidden-focusable` utility in `util.css`.
+### 2.5 Add `aria-hidden="true"` to decorative icons ✅
 
-### 2.4 Fix close button accessible names (Critical)
+Added `aria-hidden="true"` to all ~104 `<span class="iconify">` elements across ~30 component files. Handled both `class="iconify"` and template-literal `class={`iconify ${...}`}` patterns.
 
-Add `aria-label` to all close buttons that render only "x" / "&times;":
+### 2.6 Add `aria-label` to icon-only buttons ✅
 
-- `App.tsx` slide panel close button (line 277)
-- `App.tsx` centered modal close button (line 462)
-- `GlobalDialogs.tsx` message box close button (line 71)
-- `StepRemovalDialog.tsx` (line 38)
-- `TablePreviewModal.tsx` (lines 25, 109)
-- `TypeConversionDialog.tsx` (line 47)
-- `EdaPanel.tsx` (line 218)
+Added `aria-label` matching the existing `title` value to all icon-only buttons:
 
-Pattern: `aria-label={t('common:buttons.close')}`
+- `PaginationBar.tsx`: 7 buttons (download, copy CSV, copy JSON, first/prev/next/last page)
+- `ColumnToolbar.tsx`: 12 buttons (sort asc/desc, filter, rename, split, date, dedupe, impute, duplicate, remove, multi-remove)
+- `RowToolbar.tsx`: 4 buttons (keep, remove, extract, promote)
 
-### 2.5 Add `aria-hidden="true"` to decorative icons
+### 2.7 Add `<nav>` and tab roles to ribbon ✅
 
-All `<span class="iconify">` elements that appear next to text labels are decorative and should have `aria-hidden="true"`. This is a bulk change across ~50+ locations.
+In `AppHeader.tsx`: Added `role="tablist"` + `aria-label` to the tabs container. Added `role="tab"` + `aria-selected` to each of the 3 tab buttons (rows, columns, table).
 
-### 2.6 Add `aria-label` to icon-only buttons
+### 2.8 Add `<caption>` or `aria-label` to data table ✅
 
-Buttons in `PaginationBar.tsx`, `ColumnToolbar.tsx`, `RowToolbar.tsx` that have only an icon + `title` should also get `aria-label` (matching the `title` value). `title` is not reliably announced by screen readers.
-
-### 2.7 Add `<nav>` and tab roles to ribbon
-
-In `AppHeader.tsx`:
-
-- Wrap the tabs in `<nav aria-label="Workspace tabs">`
-- Add `role="tablist"` to the tab container
-- Add `role="tab"` and `aria-selected` to each tab button
-
-### 2.8 Add `<caption>` or `aria-label` to data table
-
-In `DataTable.tsx`: `<table aria-label={modelName}>` or add a `<caption class="visually-hidden">`.
+In `DataTable.tsx`: Added `aria-label={t('dataTable.ariaLabel')}` to the `<table>` element.
 
 ---
 

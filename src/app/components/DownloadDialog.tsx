@@ -26,7 +26,11 @@ export function DownloadDialog() {
           close();
         }}
       >
-        <span class="iconify" data-icon="material-symbols-light:csv-outline-rounded"></span>
+        <span
+          class="iconify"
+          aria-hidden="true"
+          data-icon="material-symbols-light:csv-outline-rounded"
+        ></span>
         <div class={styles.downloadInfo}>
           <div>Recent Model (CSV)</div>
           <div>Export current model data as a CSV file</div>
@@ -40,7 +44,11 @@ export function DownloadDialog() {
           close();
         }}
       >
-        <span class="iconify" data-icon="material-symbols-light:file-json-outline-rounded"></span>
+        <span
+          class="iconify"
+          aria-hidden="true"
+          data-icon="material-symbols-light:file-json-outline-rounded"
+        ></span>
         <div class={styles.downloadInfo}>
           <div>Recent Model (JSON)</div>
           <div>Export current model data as a JSON file</div>
@@ -54,7 +62,7 @@ export function DownloadDialog() {
           close();
         }}
       >
-        <span class="iconify" data-icon="carbon:document"></span>
+        <span class="iconify" aria-hidden="true" data-icon="carbon:document"></span>
         <div class={styles.downloadInfo}>
           <div>Workflow (JSON)</div>
           <div>Export transformation steps as a JSON workflow</div>

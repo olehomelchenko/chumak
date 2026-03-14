@@ -293,7 +293,7 @@ export function DependencyGraphDialog() {
           class={`button ${viewMode === 'all' ? 'button--primary' : 'button--secondary'} button--small`}
           onClick={() => setViewMode('all')}
         >
-          <span class="iconify" data-icon="carbon:network-3"></span>
+          <span class="iconify" aria-hidden="true" data-icon="carbon:network-3"></span>
           <span>All</span>
         </button>
         <button
@@ -304,7 +304,7 @@ export function DependencyGraphDialog() {
             hasActiveModel ? 'Show current model and all its dependencies' : 'Select a model first'
           }
         >
-          <span class="iconify" data-icon="carbon:arrow-left"></span>
+          <span class="iconify" aria-hidden="true" data-icon="carbon:arrow-left"></span>
           <span>Dependencies (Upstream)</span>
         </button>
         <button
@@ -317,7 +317,7 @@ export function DependencyGraphDialog() {
               : 'Select a model first'
           }
         >
-          <span class="iconify" data-icon="carbon:arrow-right"></span>
+          <span class="iconify" aria-hidden="true" data-icon="carbon:arrow-right"></span>
           <span>Dependents (Downstream)</span>
         </button>
       </div>

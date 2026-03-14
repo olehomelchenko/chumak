@@ -19,10 +19,16 @@ export function TablePreviewModal() {
 
     return (
       <div class={styles.backdrop} onClick={handleClose}>
-        <div class={styles.modal} onClick={(e) => e.stopPropagation()}>
+        <div
+          class={styles.modal}
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="preview-mismatch-title"
+          onClick={(e) => e.stopPropagation()}
+        >
           <div class={styles.header}>
-            <h3>{title}</h3>
-            <button class={styles.closeButton} onClick={handleClose}>
+            <h3 id="preview-mismatch-title">{title}</h3>
+            <button class={styles.closeButton} onClick={handleClose} aria-label="Close">
               ×
             </button>
           </div>
@@ -103,10 +109,16 @@ export function TablePreviewModal() {
 
   return (
     <div class={styles.backdrop} onClick={handleClose}>
-      <div class={styles.modal} onClick={(e) => e.stopPropagation()}>
+      <div
+        class={styles.modal}
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="preview-table-title"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div class={styles.header}>
-          <h3>{title}</h3>
-          <button class={styles.closeButton} onClick={handleClose}>
+          <h3 id="preview-table-title">{title}</h3>
+          <button class={styles.closeButton} onClick={handleClose} aria-label="Close">
             ×
           </button>
         </div>

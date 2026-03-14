@@ -234,6 +234,9 @@ export function App() {
 
   return (
     <div class={styles.appContainer}>
+      <a href="#main-content" class="visually-hidden">
+        {i18n.t('common:buttons.skipToContent')}
+      </a>
       <input
         type="file"
         id="file-input"
@@ -254,7 +257,7 @@ export function App() {
       <div class={styles.mainLayoutRow}>
         <Sidebar {...sidebarProps} />
 
-        <main class={styles.mainContent}>
+        <main id="main-content" class={styles.mainContent}>
           <MainContent {...mainContentProps} />
           <EdaPanel />
         </main>
@@ -271,10 +274,20 @@ export function App() {
             />
 
             {/* Panel */}
-            <div ref={slidePanelRef} class={`${styles.slidePanel} ${styles.open}`}>
+            <div
+              ref={slidePanelRef}
+              class={`${styles.slidePanel} ${styles.open}`}
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="slide-panel-title"
+            >
               <div class={styles.slidePanelHeader}>
-                <h3>{dialogTitle}</h3>
-                <button onClick={() => closeDialog()} class={styles.closeButton}>
+                <h3 id="slide-panel-title">{dialogTitle}</h3>
+                <button
+                  onClick={() => closeDialog()}
+                  class={styles.closeButton}
+                  aria-label={i18n.t('common:buttons.close')}
+                >
                   ×
                 </button>
               </div>
@@ -417,6 +430,9 @@ export function App() {
           <div
             ref={centeredModalRef}
             class={styles.centeredModal}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="centered-modal-title"
             style={{
               width:
                 activeDialog === 'dependency-graph'
@@ -458,8 +474,12 @@ export function App() {
             ) : (
               <>
                 <div class={styles.centeredModalHeader}>
-                  <h3>{dialogTitle}</h3>
-                  <button onClick={() => closeDialog()} class={styles.closeButton}>
+                  <h3 id="centered-modal-title">{dialogTitle}</h3>
+                  <button
+                    onClick={() => closeDialog()}
+                    class={styles.closeButton}
+                    aria-label={i18n.t('common:buttons.close')}
+                  >
                     ×
                   </button>
                 </div>

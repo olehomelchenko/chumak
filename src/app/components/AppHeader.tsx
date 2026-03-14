@@ -39,11 +39,13 @@ export function AppHeader({ onOpenDialog, onLogoClick }: AppHeaderProps) {
         </button>
 
         {/* Ribbon Tabs */}
-        <div class={styles.tabs}>
+        <div class={styles.tabs} role="tablist" aria-label={t('aria.headerTabs')}>
           <button
             class={getTabClass('rows')}
             disabled={!hasData.value}
             onClick={() => setTab('rows')}
+            role="tab"
+            aria-selected={ribbonTab.value === 'rows'}
           >
             {t('header.tabs.rows')}
           </button>
@@ -51,6 +53,8 @@ export function AppHeader({ onOpenDialog, onLogoClick }: AppHeaderProps) {
             class={getTabClass('columns')}
             disabled={!hasData.value}
             onClick={() => setTab('columns')}
+            role="tab"
+            aria-selected={ribbonTab.value === 'columns'}
           >
             {t('header.tabs.columns')}
           </button>
@@ -58,6 +62,8 @@ export function AppHeader({ onOpenDialog, onLogoClick }: AppHeaderProps) {
             class={getTabClass('table')}
             disabled={!hasData.value}
             onClick={() => setTab('table')}
+            role="tab"
+            aria-selected={ribbonTab.value === 'table'}
           >
             {t('header.tabs.table')}
           </button>
@@ -70,7 +76,7 @@ export function AppHeader({ onOpenDialog, onLogoClick }: AppHeaderProps) {
             href="/about/"
             title={t('tooltips.about')}
           >
-            <span class="iconify" data-icon="carbon:information"></span>
+            <span class="iconify" aria-hidden="true" data-icon="carbon:information"></span>
             <span>{t('buttons.about')}</span>
           </a>
           <button
@@ -78,7 +84,7 @@ export function AppHeader({ onOpenDialog, onLogoClick }: AppHeaderProps) {
             onClick={() => onOpenDialog('reference')}
             title={t('tooltips.help')}
           >
-            <span class="iconify" data-icon="carbon:help"></span>
+            <span class="iconify" aria-hidden="true" data-icon="carbon:help"></span>
             <span>{t('buttons.help')}</span>
           </button>
           <button
@@ -86,7 +92,7 @@ export function AppHeader({ onOpenDialog, onLogoClick }: AppHeaderProps) {
             onClick={() => onOpenDialog('dependency-graph')}
             title={t('tooltips.graph')}
           >
-            <span class="iconify" data-icon="carbon:network-3"></span>
+            <span class="iconify" aria-hidden="true" data-icon="carbon:network-3"></span>
             <span>{t('labels.graph')}</span>
           </button>
           <button
@@ -94,7 +100,7 @@ export function AppHeader({ onOpenDialog, onLogoClick }: AppHeaderProps) {
             onClick={() => onOpenDialog('settings')}
             title={t('tooltips.settings')}
           >
-            <span class="iconify" data-icon="carbon:settings"></span>
+            <span class="iconify" aria-hidden="true" data-icon="carbon:settings"></span>
             <span>{t('buttons.settings')}</span>
           </button>
         </div>

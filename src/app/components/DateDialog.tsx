@@ -71,6 +71,7 @@ export function DateDialog() {
               >
                 <span
                   class="iconify"
+                  aria-hidden="true"
                   data-icon="carbon:chart-custom"
                   style={{ fontSize: '1rem' }}
                 />
@@ -82,7 +83,12 @@ export function DateDialog() {
                 style={{ flex: 1, justifyContent: 'center' }}
                 onClick={() => (operation.value = 'truncate')}
               >
-                <span class="iconify" data-icon="carbon:cut-out" style={{ fontSize: '1rem' }} />
+                <span
+                  class="iconify"
+                  aria-hidden="true"
+                  data-icon="carbon:cut-out"
+                  style={{ fontSize: '1rem' }}
+                />
                 {t('date.operations.truncate')}
               </button>
             </div>

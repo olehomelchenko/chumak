@@ -40,7 +40,12 @@ function RibbonButton({ icon, label, title, onClick, disabled }: RibbonButtonPro
       title={title}
       disabled={disabled}
     >
-      <span class="iconify" data-icon={icon} style="width: 32px; height: 32px;"></span>
+      <span
+        class="iconify"
+        aria-hidden="true"
+        data-icon={icon}
+        style="width: 32px; height: 32px;"
+      ></span>
       <span>{label}</span>
     </button>
   );
@@ -94,10 +99,16 @@ function RibbonDropdownButton({ icon, label, category, disabled }: RibbonDropdow
       title={label}
       disabled={disabled}
     >
-      <span class="iconify" data-icon={icon} style="width: 20px; height: 20px;"></span>
+      <span
+        class="iconify"
+        aria-hidden="true"
+        data-icon={icon}
+        style="width: 20px; height: 20px;"
+      ></span>
       <span>{label}</span>
       <span
         class="iconify"
+        aria-hidden="true"
         data-icon="carbon:chevron-down"
         style="width: 12px; height: 12px;"
       ></span>

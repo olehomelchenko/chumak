@@ -47,7 +47,12 @@ interface PopoverDialogLinkProps {
 export function PopoverDialogLink({ icon, label, onClick }: PopoverDialogLinkProps) {
   return (
     <button class={styles.dialogLink} onClick={onClick} role="menuitem">
-      <span class="iconify" data-icon={icon} style="width: 14px; height: 14px;" />
+      <span
+        class="iconify"
+        aria-hidden="true"
+        data-icon={icon}
+        style="width: 14px; height: 14px;"
+      />
       {label}
     </button>
   );

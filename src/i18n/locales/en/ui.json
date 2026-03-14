@@ -399,9 +399,11 @@
     "videoPlaceholder": "Video coming soon"
   },
   "toast": {
-    "dismiss": "Dismiss"
+    "dismiss": "Dismiss",
+    "containerLabel": "Notifications"
   },
   "eda": {
+    "closePanel": "Close column analysis",
     "dateTreatment": {
       "temporal": "Temporal",
       "categorical": "Categorical"
@@ -519,7 +521,8 @@
     }
   },
   "dataTable": {
-    "typeMenuTooltip": "Click to change type"
+    "typeMenuTooltip": "Click to change type",
+    "ariaLabel": "Data table"
   },
   "jsonEditor": {
     "title": "Edit transform pipeline (JSON)",

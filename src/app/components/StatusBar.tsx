@@ -10,7 +10,7 @@ export function StatusBar() {
   if (!isTransforming) return null;
 
   return (
-    <footer class={styles.statusBar}>
+    <footer class={styles.statusBar} role="status" aria-live="polite">
       <div class={styles.content}>
         <span class={styles.message}>{message || t('statusBar.processing')}</span>
         <div class={styles.loader}>

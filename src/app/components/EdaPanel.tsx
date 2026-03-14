@@ -215,7 +215,11 @@ export function EdaPanel() {
             </div>
           )}
         </div>
-        <button class={styles.edaPanel__close} onClick={clearSelection}>
+        <button
+          class={styles.edaPanel__close}
+          onClick={clearSelection}
+          aria-label={t('eda.closePanel')}
+        >
           ×
         </button>
       </div>
