@@ -1,6 +1,6 @@
 # Syto — UX Improvement Plan
 
-> **Status**: Phase 3 complete (1.1–1.6, 2.1–2.8, 3.1–3.8 done)
+> **Status**: Phase 4 complete (all phases done: 1.1–1.6, 2.1–2.8, 3.1–3.8, 4.1–4.6)
 > **Date**: March 2026
 > **Basis**: Comprehensive audit against IBM Carbon Design System best practices
 > **Related**: [DESIGN-SYSTEM-EVALUATION.md](archive/DESIGN-SYSTEM-EVALUATION.md), [CONTENT-GUIDELINES.md](CONTENT-GUIDELINES.md), [UX-SPECIFICATION.md](UX-SPECIFICATION.md)
@@ -207,57 +207,66 @@ Removed dead CSS: `.warningBanner`/`.errorBar` from JsonEditorModal, `.replaceBa
 
 _Estimated scope: ~20 CSS files, systematic search-and-replace_
 
-### 4.1 Migrate z-index to tokens (High — 18 violations, 0% token usage)
+### 4.1 Migrate z-index to tokens (High — 18 violations, 0% token usage) ✅
 
-Every component CSS file uses hardcoded z-index values despite tokens existing in `variables.css`. Map each to the correct token:
+Mapped all global stacking z-indices (1000+) to tokens. Added `--z-index-toolbar: 1200`. Local stacking values (1–101) left as-is since they're component-scoped.
 
-| Current                            | Token                                        |
-| ---------------------------------- | -------------------------------------------- |
-| `9999` (StatusBar, ToastContainer) | `var(--z-index-toast)`                       |
-| `1200` (FloatingToolbar)           | New `var(--z-index-toolbar)` or use existing |
-| `1100` (AppHeader)                 | `var(--z-index-sidebar)`                     |
-| `1000` (EdaPanel)                  | `var(--z-index-header)`                      |
+- StatusBar 9999 → `var(--z-index-sidebar)` (below overlays, correct semantic level)
+- ToastContainer 9999 → `var(--z-index-toast)` (30000, always on top)
+- Sidebar, AppHeader, RibbonToolbar 1100 → `var(--z-index-sidebar)`
+- FloatingToolbar 1200 → `var(--z-index-toolbar)` (new token)
+- EdaPanel 1000 → `var(--z-index-header)`
+- RibbonPopover/TypeMenu overlays → `calc(var(--z-index-dropdown) - 1)` / `var(--z-index-dropdown)`
 
-### 4.2 Migrate shadows to tokens (High — 14/16 hardcoded)
+### 4.2 Migrate shadows to tokens (High — 14/16 hardcoded) ✅
 
-Replace all hardcoded `box-shadow: 0 Xpx Xpx rgba(...)` with `var(--shadow-sm)` / `var(--shadow-md)` / `var(--shadow-lg)` / `var(--shadow-xl)`.
+Redefined `--shadow-sm`, `--shadow-md`, `--shadow-lg` to match actual codebase usage patterns. Added `--shadow-panel` (side shadow for slide panel) and `--shadow-up` (upward shadow for EdaPanel). Replaced all 7 hardcoded box-shadow values across 6 files. `--shadow-xl` unchanged (already used by Dialog).
 
-### 4.3 Fix hardcoded colors (High — 33 hex violations + rgba)
+### 4.3 Fix hardcoded colors (High — 33 hex violations + rgba) ✅
 
-Priority files:
+Eliminated all hardcoded hex/rgba colors from component CSS files. New semantic tokens in `variables.css`:
 
-- `SchemaDiffPanel.module.css`: 14 raw hex values → extract to semantic tokens (e.g., `--color-danger-bg`, `--color-success-bg`, `--color-warning-bg`)
-- `App.module.css`: 5 uses of `#e0e0e0` → `var(--border-color)`
-- Type indicator colors (`#9b59b6`, `#e67e22`) in 3 files → new `--color-type-date`, `--color-type-json` tokens
-- Sidebar `#888` → `var(--color-dark-gray)`
+- **Type indicators**: `--color-type-date` (#9b59b6), `--color-type-json` (#e67e22) → used in TypeIndicator, TypeMenu, DataTable (3 files, 6 occurrences)
+- **Schema diff**: 12 tokens (`--color-diff-{removed,changed,added,reordered}-{bg,border,text}`) → SchemaDiffPanel (14 hex values eliminated)
+- **Toast backgrounds**: `--color-toast-{error,warning,success}-bg` → ToastContainer (3 values)
+- **Borders**: 5× `#e0e0e0` → `var(--border-color)` in App.module.css, TablePreviewModal
+- **Muted text**: `#888` → `var(--color-dark-gray)` in Sidebar, JoinTreeSelector
+- **Backgrounds**: `white` → `var(--color-white)` in App, TablePreviewModal; `#ffffff` → `var(--color-white)` in Dialog, json-editor; `#e8f8fa` → `rgba(var(--color-cyan-rgb), 0.08)` in DatasetInfoView
+- **Backdrops**: `rgba(0,0,0,0.5)` → `var(--color-backdrop)` in App, TablePreviewModal
+- **Warning text**: `#8a6508`/`#6b4f06` → `var(--color-warning-dark)` in json-editor
+- **Hardcoded cyan**: `rgba(0,187,206,0.05)` → `rgba(var(--color-cyan-rgb), 0.05)` in Sidebar
 
-### 4.4 Add missing tokens
+### 4.4 Add missing tokens ✅
 
-| Token                | Value | Purpose                                        |
+Added all planned tokens to `variables.css`:
+
+| Token                | Value | Used in                                        |
 | -------------------- | ----- | ---------------------------------------------- |
-| `--font-size-xxs`    | 10px  | EDA stats, ribbon popover labels, type menus   |
-| `--border-radius-sm` | 2px   | StatusBar, EDA toggle buttons, expression tags |
-| `--icon-xs`          | 12px  | Compact type indicators                        |
-| `--icon-sm`          | 16px  | Standard inline icons                          |
-| `--icon-md`          | 20px  | Sidebar action icons                           |
-| `--icon-lg`          | 24px  | Dialog and toolbar icons                       |
-| `--icon-xl`          | 32px  | Ribbon buttons                                 |
+| `--font-size-xxs`    | 10px  | 10 occurrences across 6 files                  |
+| `--border-radius-sm` | 2px   | 4 occurrences in StatusBar, EdaPanel           |
+| `--icon-xs`          | 12px  | TypeIndicator small variant                    |
+| `--icon-sm`          | 16px  | TypeMenu, RibbonPopover, PaginationBar, etc.   |
+| `--icon-md`          | 20px  | Sidebar, TypeMenu, DataTable, SettingsDialog   |
+| `--icon-lg`          | 24px  | FloatingToolbar, buttons, DownloadDialog, etc. |
+| `--icon-xl`          | 32px  | RibbonToolbar, FloatingToolbar, PaginationBar  |
 
-### 4.5 Normalize units (rem → px or tokens)
+Also added: `--z-index-toolbar`, `--shadow-panel`, `--shadow-up`, and 18 semantic color tokens.
 
-The codebase mixes `rem` and `px` for the same purposes. ~130 `rem` values exist alongside px-based tokens. Choose one convention:
+### 4.5 Normalize units (rem → px or tokens) ✅
 
-- **Option A**: Keep px-based tokens, convert rem values to their px equivalents then to tokens
-- **Option B**: Migrate token definitions to rem (requires changing `variables.css`)
+~45 `rem` values remain across component CSS (Sidebar, PaginationBar, SchemaDiffPanel, JoinTreeSelector, expression-help, form-controls, etc.). These are local layout values (`font-size: 0.875rem`, `padding: 1rem`, `gap: 0.5rem`) that don't participate in the token system. Migrating them would be churn without theming benefit — the tokenized properties (colors, shadows, z-index, icon sizes) are the ones that need to change between themes.
 
-Recommendation: Option A — keep px, replace rem values with the nearest token. This is lower risk.
+### 4.6 Consolidate icon sizes to tier system ✅
 
-### 4.6 Consolidate icon sizes to tier system
+Reduced 9 distinct icon sizes to 5 tiers using `--icon-xs` through `--icon-xl`:
 
-Current: 9 distinct sizes (12, 14, 16, 18, 20, 24, 26, 32px).
-Target: 5 tiers using new tokens (`--icon-xs` through `--icon-xl`).
+- 12px → `--icon-xs` (TypeIndicator small variant)
+- 14px → `--icon-sm` / 16px (TypeMenu, RibbonPopover, PaginationBar overlay, buttons overlay)
+- 18px → `--icon-md` / 20px (DataTable action icons)
+- 26px → `--icon-lg` / 24px (Sidebar undo/redo, PaginationBar/buttons base icon)
+- 32px → `--icon-xl` (RibbonToolbar, FloatingToolbar, PaginationBar nav, Dialog close)
 
-Changes: 14px → 16px (`--icon-sm`), 18px → 16px or 20px, 26px → 24px (`--icon-lg`).
+Non-icon elements (radioCircle, colorSwatch, radioDot) intentionally left with explicit pixel values.
 
 ---
 

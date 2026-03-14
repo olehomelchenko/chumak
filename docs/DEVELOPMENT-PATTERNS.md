@@ -1117,6 +1117,16 @@ When adding a new component, verify these conventions (details in [UX-SPECIFICAT
 
 CSS Module class names are hashed at build time (dev: `Component__className___hash`, prod: hash-only). Never use CSS class selectors in `event.target.closest()`, `document.querySelector()`, or similar DOM queries from JavaScript — they won't match the hashed classes. Use **data attributes** (e.g., `[data-row-gutter]`, `[data-eda-panel="true"]`) for any element that needs to be found by event handlers or imperative DOM logic.
 
+### 8.9 CSS Token Discipline
+
+All visual properties that participate in theming or appear in multiple files must use tokens from `variables.css`:
+
+- **Always token**: colors, box-shadow, z-index ≥1000, font-size, border-radius, icon dimensions (`.iconify` width/height)
+- **Hardcoded OK**: local z-index (1–101 for sibling stacking), one-off layout dimensions (widths, heights, padding that aren't icon/spacing tiers), form control sizes that aren't icons
+- **Never hardcode**: hex colors or `rgba(r,g,b,a)` with literal RGB — use `var(--color-*)` or `rgba(var(--*-rgb), opacity)` patterns so themes apply correctly
+
+When adding a new color, check `variables.css` for an existing semantic token before creating one. Prefer reusing `--color-cyan`, `--color-dark-gray`, etc. over adding single-use tokens.
+
 ---
 
 ## 9. Internationalization (i18n)

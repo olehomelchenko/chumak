@@ -5,7 +5,7 @@
   align-items: center;
   padding: 0 var(--space-lg);
   position: relative;
-  z-index: 1100;
+  z-index: var(--z-index-sidebar);
   height: 60px; /* Added height for consistency */
 }
 

@@ -4,7 +4,7 @@
   display: flex;
   flex-direction: column;
   position: relative;
-  z-index: 1100;
+  z-index: var(--z-index-sidebar);
 
   &.disabled {
     .content {
@@ -63,8 +63,8 @@
   }
 
   .iconify {
-    width: 32px;
-    height: 32px;
+    width: var(--icon-xl);
+    height: var(--icon-xl);
     stroke-width: 2px;
   }
 
@@ -89,7 +89,7 @@
 }
 
 .groupLabel {
-  font-size: 10px;
+  font-size: var(--font-size-xxs);
   color: var(--color-neutral-500);
   text-transform: uppercase;
   letter-spacing: 0.5px;

@@ -7,8 +7,8 @@
 }
 
 .panel.danger {
-  background: #fff5f5;
-  border-color: #feb2b2;
+  background: var(--color-diff-removed-bg);
+  border-color: var(--color-diff-removed-border);
 }
 
 .title {
@@ -22,15 +22,15 @@
 }
 
 .panel.danger .title {
-  color: #c53030;
+  color: var(--color-diff-removed-text);
 }
 
 .warning {
-  color: #ff9800;
+  color: var(--color-diff-changed-text);
 }
 
 .panel.danger .warning {
-  color: #c53030;
+  color: var(--color-diff-removed-text);
 }
 
 .icon {
@@ -68,21 +68,21 @@
 }
 
 .missing .chip {
-  background: #fff3e0;
-  border-color: #ffe0b2;
-  color: #e65100;
+  background: var(--color-diff-changed-bg);
+  border-color: var(--color-diff-changed-border);
+  color: var(--color-diff-changed-text);
 }
 
 .new .chip {
-  background: #e8f5e9;
-  border-color: #c8e6c9;
-  color: #2e7d32;
+  background: var(--color-diff-added-bg);
+  border-color: var(--color-diff-added-border);
+  color: var(--color-diff-added-text);
 }
 
 .typeChange .chip {
-  background: #e3f2fd;
-  border-color: #bbdefb;
-  color: #1565c0;
+  background: var(--color-diff-reordered-bg);
+  border-color: var(--color-diff-reordered-border);
+  color: var(--color-diff-reordered-text);
 }
 
 .oldType {

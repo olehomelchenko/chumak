@@ -37,7 +37,7 @@
   background: rgba(var(--color-yellow-rgb), 0.1);
   border: 1px solid var(--color-yellow);
   border-radius: var(--border-radius);
-  color: #8a6508;
+  color: var(--color-warning-dark);
   font-size: var(--font-size-sm);
   font-weight: 500;
   cursor: pointer;
@@ -45,7 +45,6 @@
 
   &:hover {
     border-color: var(--color-yellow);
-    color: #6b4f06;
     background: rgba(var(--color-yellow-rgb), 0.2);
   }
 }
@@ -98,7 +97,7 @@
   padding: var(--space-sm);
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius);
-  background: #ffffff;
+  background: var(--color-white);
   color: var(--color-midnight-blue);
   resize: vertical;
   line-height: var(--line-height-relaxed);

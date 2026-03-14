@@ -57,6 +57,7 @@
   --font-family-mono: 'SF Mono', 'Consolas', 'Monaco', monospace;
   --font-family-heading: var(--font-family);
 
+  --font-size-xxs: 10px;
   --font-size-xs: 12px;
   --font-size-sm: 13px;
   --font-size-base: 14px;
@@ -86,6 +87,7 @@
   /* Borders */
   --border-width: 1px;
   --border-color: var(--color-medium-gray);
+  --border-radius-sm: 2px;
   --border-radius: 4px;
   --border-radius-lg: 8px;
 
@@ -94,12 +96,15 @@
   --transition-normal: 200ms ease-out;
 
   /* Elevation & Shadows */
-  --shadow-sm: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.12);
+  --shadow-md: 0 4px 12px rgba(0, 0, 0, 0.1);
+  --shadow-lg: 0 8px 24px rgba(0, 0, 0, 0.15);
   --shadow-xl: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+  --shadow-panel: 4px 0 16px rgba(0, 0, 0, 0.1);
+  --shadow-up: 0 -4px 12px rgba(0, 0, 0, 0.05);
 
   /* Overlays */
+  --color-backdrop-light: rgba(0, 0, 0, 0.3);
   --color-backdrop: rgba(0, 0, 0, 0.5);
   --color-backdrop-blur: rgba(var(--color-midnight-blue-rgb), 0.6);
 
@@ -112,10 +117,41 @@
   --color-warning: #f0c040;
   --color-warning-dark: #7a5c00;
 
+  /* Type indicator colors */
+  --color-type-date: #9b59b6;
+  --color-type-json: #e67e22;
+
+  /* Toast backgrounds */
+  --color-toast-error-bg: #fff5f4;
+  --color-toast-warning-bg: #fffcf0;
+  --color-toast-success-bg: #f7fdf0;
+
+  /* Schema diff */
+  --color-diff-removed-bg: #fff5f5;
+  --color-diff-removed-border: #feb2b2;
+  --color-diff-removed-text: #c53030;
+  --color-diff-changed-bg: #fff3e0;
+  --color-diff-changed-border: #ffe0b2;
+  --color-diff-changed-text: #e65100;
+  --color-diff-added-bg: #e8f5e9;
+  --color-diff-added-border: #c8e6c9;
+  --color-diff-added-text: #2e7d32;
+  --color-diff-reordered-bg: #e3f2fd;
+  --color-diff-reordered-border: #bbdefb;
+  --color-diff-reordered-text: #1565c0;
+
+  /* Icon Sizes */
+  --icon-xs: 12px;
+  --icon-sm: 16px;
+  --icon-md: 20px;
+  --icon-lg: 24px;
+  --icon-xl: 32px;
+
   /* Z-Indices */
   --z-index-base: 1;
   --z-index-header: 1000;
   --z-index-sidebar: 1100;
+  --z-index-toolbar: 1200;
   --z-index-dropdown: 2000;
   --z-index-modal-backdrop: 3000;
   --z-index-modal: 3100;

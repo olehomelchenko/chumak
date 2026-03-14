@@ -65,8 +65,8 @@
   color: var(--color-dark-gray);
   cursor: pointer;
   padding: 0;
-  width: 32px;
-  height: 32px;
+  width: var(--icon-xl);
+  height: var(--icon-xl);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -104,7 +104,7 @@
   width: 100%;
   padding: 10px 12px;
   border: 1px solid var(--border-color);
-  background: #ffffff;
+  background: var(--color-white);
   border-radius: var(--border-radius);
   font-family: var(--font-family);
   font-size: var(--font-size-base);

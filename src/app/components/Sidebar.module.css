@@ -8,7 +8,7 @@
   display: flex;
   flex-direction: column;
   position: relative;
-  z-index: 1100;
+  z-index: var(--z-index-sidebar);
 }
 
 .panelSection {
@@ -66,8 +66,8 @@
   transition: all var(--transition-fast);
 
   .iconify {
-    width: 20px;
-    height: 20px;
+    width: var(--icon-md);
+    height: var(--icon-md);
     color: var(--color-cyan);
   }
 
@@ -93,7 +93,7 @@
 
   .empty {
     padding: 1rem;
-    color: #888;
+    color: var(--color-dark-gray);
     font-size: 0.875rem;
   }
 }
@@ -168,8 +168,8 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 26px;
-  height: 26px;
+  width: var(--icon-lg);
+  height: var(--icon-lg);
   padding: 0;
   background: transparent;
   border: none;
@@ -221,7 +221,7 @@
 
   .empty {
     padding: 1rem;
-    color: #888;
+    color: var(--color-dark-gray);
     font-size: 0.875rem;
   }
 }
@@ -271,8 +271,8 @@
     right: 28px;
     top: 50%;
     transform: translateY(-50%);
-    width: 20px;
-    height: 20px;
+    width: var(--icon-md);
+    height: var(--icon-md);
     background: transparent;
     border: none;
     color: var(--color-cyan);
@@ -293,8 +293,8 @@
     right: 4px;
     top: 50%;
     transform: translateY(-50%);
-    width: 20px;
-    height: 20px;
+    width: var(--icon-md);
+    height: var(--icon-md);
     background: transparent;
     border: none;
     color: var(--color-dark-red);
@@ -312,7 +312,7 @@
 
 .viewingIntermediate {
   padding: 0.75rem 1rem;
-  background: rgba(0, 187, 206, 0.05);
+  background: rgba(var(--color-cyan-rgb), 0.05);
   border-top: 1px solid var(--color-cyan);
   margin-top: 0.5rem;
   font-size: 0.875rem;

@@ -136,7 +136,7 @@
   cursor: pointer;
 
   &:hover {
-    background: #e8f8fa;
+    background: rgba(var(--color-cyan-rgb), 0.08);
     border-color: var(--color-cyan);
     transform: translateX(4px);
 

@@ -1,24 +1,24 @@
 .overlay {
   position: fixed;
   inset: 0;
-  z-index: 1999;
+  z-index: calc(var(--z-index-dropdown) - 1);
   background: transparent;
 }
 
 .typeMenu {
   position: fixed;
-  z-index: 2000;
+  z-index: var(--z-index-dropdown);
   background: var(--color-white);
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-md);
   padding: 4px 0;
   min-width: 150px;
 }
 
 .header {
   padding: 6px 12px;
-  font-size: 10px;
+  font-size: var(--font-size-xxs);
   text-transform: uppercase;
   color: var(--color-dark-gray);
   border-bottom: 1px solid var(--color-light-gray);
@@ -48,8 +48,8 @@
 
   .iconify {
     margin-right: 8px;
-    width: 14px;
-    height: 14px;
+    width: var(--icon-sm);
+    height: var(--icon-sm);
     color: var(--color-dark-gray);
   }
 }
@@ -66,10 +66,10 @@
   align-items: center;
   justify-content: center;
   margin-right: 10px;
-  width: 20px;
-  height: 20px;
+  width: var(--icon-md);
+  height: var(--icon-md);
   border-radius: 4px;
-  font-size: 10px;
+  font-size: var(--font-size-xxs);
   font-weight: bold;
   font-family: var(--font-family-mono);
   background: var(--color-light-gray);
@@ -84,18 +84,18 @@
   }
   &.date,
   &.datetime {
-    color: #9b59b6;
+    color: var(--color-type-date);
   }
   &.boolean {
     color: var(--color-green);
   }
   &.json {
-    color: #e67e22;
+    color: var(--color-type-json);
   }
 
   .iconify {
     margin-right: 0;
-    width: 14px;
-    height: 14px;
+    width: var(--icon-sm);
+    height: var(--icon-sm);
   }
 }

@@ -415,6 +415,20 @@ All animations must respect the user's OS preference. Add to `styles/base.css`:
 
 Both tokens use `ease-out` easing, which is correct for entrances. Exit animations (elements leaving the screen) should use `ease-in` if distinct easing is needed, but for Syto's current scope the single easing is sufficient.
 
+### 5.3 Icon Size Tokens
+
+Five tiers in `variables.css` cover all icon dimensions:
+
+| Token       | Size | Typical use                                        |
+| ----------- | ---- | -------------------------------------------------- |
+| `--icon-xs` | 12px | Compact type indicators (small variant)            |
+| `--icon-sm` | 16px | Inline icons in menus, popovers, form controls     |
+| `--icon-md` | 20px | Sidebar/toolbar action icons, type indicator badge |
+| `--icon-lg` | 24px | Button icons, dialog icons, toolbar icons          |
+| `--icon-xl` | 32px | Ribbon buttons, close buttons, nav buttons         |
+
+**Rule**: Use icon tokens only for `.iconify` elements and icon-sized button containers. Non-icon UI elements (radio circles, color swatches, dots) should use explicit pixel values — icon tokens are a visual sizing tier, not a general "small square" abstraction.
+
 ---
 
 ## 6. CSS Architecture & Maintainability
@@ -451,7 +465,7 @@ A two-tier variable system separates static palettes from functional tokens:
 
 ### 6.3 Unified Component Patterns
 
-- **Elevations**: Unified shadow system (`--shadow-sm` to `--shadow-xl`) applied across all overlays.
+- **Elevations**: Shadow tokens `--shadow-sm` through `--shadow-xl` for standard drop shadows, plus `--shadow-panel` (side shadow for slide panels) and `--shadow-up` (upward shadow for bottom-anchored panels like EdaPanel). Use the standard tiers for overlays and floating elements; use the directional variants only for edge-anchored UI.
 - **Overlays**: Shared backdrop and blur tokens provide a consistent "glassmorphism" feel for both Slide Panels and Centered Dialogs.
 - **Aesthetic Consistency**: Modals and Dialogs share standardized header/footer padding and styling, ensuring a contiguous visual language regardless of the interaction type.
 

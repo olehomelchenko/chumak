@@ -4,10 +4,10 @@
   background: var(--color-white);
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius-lg);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: var(--shadow-lg);
   padding: 2px;
   gap: 1px;
-  z-index: 1200;
+  z-index: var(--z-index-toolbar);
   pointer-events: auto;
   transform: translateX(-50%);
 
@@ -41,8 +41,8 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 32px;
-    height: 32px;
+    width: var(--icon-xl);
+    height: var(--icon-xl);
     padding: 20px;
     border: none;
     background: transparent;
@@ -63,14 +63,14 @@
     }
 
     :global(.iconify) {
-      width: 24px !important;
-      height: 24px !important;
-      font-size: 24px !important;
+      width: var(--icon-lg) !important;
+      height: var(--icon-lg) !important;
+      font-size: var(--icon-lg) !important;
     }
 
     :global(.iconify svg) {
-      width: 24px !important;
-      height: 24px !important;
+      width: var(--icon-lg) !important;
+      height: var(--icon-lg) !important;
     }
 
     &.danger {
@@ -95,7 +95,7 @@
   }
 
   &__operatorLabel {
-    font-size: 10px;
+    font-size: var(--font-size-xxs);
     margin-left: 2px;
     font-weight: bold;
   }

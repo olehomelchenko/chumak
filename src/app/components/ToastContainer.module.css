@@ -2,7 +2,7 @@
   position: fixed;
   top: var(--space-lg);
   right: var(--space-lg);
-  z-index: 9999;
+  z-index: var(--z-index-toast);
   display: flex;
   flex-direction: column;
   gap: var(--space-sm);
@@ -29,17 +29,17 @@
 
   &.error {
     border-left-color: var(--color-dark-red);
-    background: #fff5f4;
+    background: var(--color-toast-error-bg);
   }
 
   &.warning {
     border-left-color: var(--color-yellow);
-    background: #fffcf0;
+    background: var(--color-toast-warning-bg);
   }
 
   &.success {
     border-left-color: var(--color-green);
-    background: #f7fdf0;
+    background: var(--color-toast-success-bg);
   }
 
   &__icon {

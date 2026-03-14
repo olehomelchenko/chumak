@@ -163,8 +163,8 @@
   gap: 6px;
 
   .iconify {
-    width: 16px;
-    height: 16px;
+    width: var(--icon-sm);
+    height: var(--icon-sm);
     flex-shrink: 0;
   }
 }
@@ -250,15 +250,15 @@
   align-items: center;
   justify-content: center;
   margin-right: 8px;
-  width: 24px;
-  height: 24px;
+  width: var(--icon-lg);
+  height: var(--icon-lg);
   border-radius: 4px; /* Added some polish */
   transition: all var(--transition-fast);
   color: var(--color-dark-gray);
 
   .iconify {
-    width: 18px;
-    height: 18px;
+    width: var(--icon-md);
+    height: var(--icon-md);
     display: block;
   }
 
@@ -277,12 +277,12 @@
   &.date,
   &.datetime,
   &.time {
-    color: #9b59b6;
+    color: var(--color-type-date);
   }
   &.boolean {
     color: var(--color-green);
   }
   &.json {
-    color: #e67e22;
+    color: var(--color-type-json);
   }
 }

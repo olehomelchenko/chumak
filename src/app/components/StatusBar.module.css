@@ -7,7 +7,7 @@
   align-items: center;
   padding: 0 var(--space-md);
   font-size: var(--font-size-xs);
-  z-index: 9999;
+  z-index: var(--z-index-sidebar);
   position: relative;
   border-top: 1px solid var(--border-color);
 }
@@ -28,7 +28,7 @@
   flex: 1;
   height: 4px;
   background: var(--color-medium-gray);
-  border-radius: 2px;
+  border-radius: var(--border-radius-sm);
   overflow: hidden;
 }
 
@@ -36,7 +36,7 @@
   height: 100%;
   width: 30%;
   background: var(--color-cyan);
-  border-radius: 2px;
+  border-radius: var(--border-radius-sm);
   animation: loading-bar 1s infinite linear;
 }
 
