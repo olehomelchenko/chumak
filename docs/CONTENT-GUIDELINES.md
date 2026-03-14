@@ -1,6 +1,6 @@
 # Syto — Content Guidelines
 
-> **Purpose**: Conventions for writing UI text — labels, error messages, notifications, and all user-facing copy. Adapted from IBM Carbon Design System principles, tailored to Syto's bilingual (en/uk) context.
+> **Purpose**: Conventions for writing UI text — labels, error messages, notifications, and all user-facing copy. Adapted from IBM Carbon Design System principles, tailored to Syto's bilingual (en/uk) context. See [DESIGN-SYSTEM-EVALUATION.md](archive/DESIGN-SYSTEM-EVALUATION.md) for the full rationale.
 >
 > **Related**: [UX-SPECIFICATION.md](UX-SPECIFICATION.md) (UI patterns), [I18N-GUIDE.md](I18N-GUIDE.md) (translation setup), [SOUL.md](../SOUL.md) (project philosophy)
 
