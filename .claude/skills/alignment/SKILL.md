@@ -55,6 +55,7 @@ Update relevant internal docs if the feature is significant:
 - **[SPECIFICATION.md](docs/SPECIFICATION.md)**: Architecture or feature additions
 - **[DATA-SPECIFICATION.md](docs/DATA-SPECIFICATION.md)**: New data structures or transform schemas
 - **[UX-SPECIFICATION.md](docs/UX-SPECIFICATION.md)**: New UI patterns or components
+- **[UI-VOCAB.md](docs/UI-VOCAB.md)**: If new controls or interaction patterns are introduced
 - **[MULTI-MODEL-ARCHITECTURE.md](docs/MULTI-MODEL-ARCHITECTURE.md)**: If feature affects dependency graph or multi-model operations
 - **[BACKLOG.md](docs/BACKLOG.md)**: Mark completed items
 
@@ -90,6 +91,8 @@ Verify changes align with:
 
 - **[SOUL.md](SOUL.md)**: Project philosophy (must not violate without good reason)
 - **[DEVELOPMENT-PATTERNS.md](docs/DEVELOPMENT-PATTERNS.md)**: Coding conventions and patterns
+- **[FUTURE-PROOFING.md](docs/FUTURE-PROOFING.md)**: Persistence compatibility if feature touches data formats or storage
+- **[UX-SPECIFICATION.md](docs/UX-SPECIFICATION.md)**: UI consistency if feature adds or modifies components
 
 ---
 
@@ -144,6 +147,8 @@ Update affected documentation:
 
 - **[SPECIFICATION.md](docs/SPECIFICATION.md)**: If architecture or module responsibilities changed
 - **[DATA-SPECIFICATION.md](docs/DATA-SPECIFICATION.md)**: If data structures or interfaces were altered
+- **[UX-SPECIFICATION.md](docs/UX-SPECIFICATION.md)**: If UI components or patterns were restructured
+- **[UI-VOCAB.md](docs/UI-VOCAB.md)**: If control types or interaction patterns changed
 - **[DEVELOPMENT-PATTERNS.md](docs/DEVELOPMENT-PATTERNS.md)**: If coding patterns or conventions evolved
 - Code comments: Update JSDoc or inline comments if function signatures or behavior changed
 
@@ -169,17 +174,20 @@ Verify refactoring aligns with:
 
 ## Reference Documents
 
-| Document                                                        | Purpose                                          |
-| --------------------------------------------------------------- | ------------------------------------------------ |
-| [SOUL.md](SOUL.md)                                              | Project philosophy and core values               |
-| [CLAUDE.md](CLAUDE.md)                                          | AI onboarding and documentation index            |
-| [DOCUMENTATION-GUIDE.md](docs/DOCUMENTATION-GUIDE.md)           | Documentation organization and maintenance guide |
-| [SPECIFICATION.md](docs/SPECIFICATION.md)                       | Technical architecture                           |
-| [DATA-SPECIFICATION.md](docs/DATA-SPECIFICATION.md)             | Data structures and persistence                  |
-| [UX-SPECIFICATION.md](docs/UX-SPECIFICATION.md)                 | UI/UX guidelines                                 |
-| [FUTURE-PROOFING.md](docs/FUTURE-PROOFING.md)                   | Schema evolution constraints                     |
-| [DEVELOPMENT-PATTERNS.md](docs/DEVELOPMENT-PATTERNS.md)         | Coding conventions                               |
-| [MULTI-MODEL-ARCHITECTURE.md](docs/MULTI-MODEL-ARCHITECTURE.md) | Dependency graph and multi-model system          |
-| [FUNCTION-DOCS-SYSTEM.md](docs/FUNCTION-DOCS-SYSTEM.md)         | Auto-generated function documentation            |
-| [DEBUGGING.md](docs/DEBUGGING.md)                               | CSS Module debugging                             |
-| [BACKLOG.md](docs/BACKLOG.md)                                   | Feature backlog                                  |
+| Document                                                          | Purpose                                          |
+| ----------------------------------------------------------------- | ------------------------------------------------ |
+| [SOUL.md](SOUL.md)                                                | Project philosophy and core values               |
+| [CLAUDE.md](CLAUDE.md)                                            | AI onboarding and documentation index            |
+| [DOCUMENTATION-GUIDE.md](docs/DOCUMENTATION-GUIDE.md)             | Documentation organization and maintenance guide |
+| [SPECIFICATION.md](docs/SPECIFICATION.md)                         | Technical architecture                           |
+| [DATA-SPECIFICATION.md](docs/DATA-SPECIFICATION.md)               | Data structures and persistence                  |
+| [UX-SPECIFICATION.md](docs/UX-SPECIFICATION.md)                   | UI/UX guidelines                                 |
+| [UI-VOCAB.md](docs/UI-VOCAB.md)                                   | UI terminology, design vocabulary, and patterns  |
+| [FUTURE-PROOFING.md](docs/FUTURE-PROOFING.md)                     | Schema evolution constraints                     |
+| [DEVELOPMENT-PATTERNS.md](docs/DEVELOPMENT-PATTERNS.md)           | Coding conventions                               |
+| [MULTI-MODEL-ARCHITECTURE.md](docs/MULTI-MODEL-ARCHITECTURE.md)   | Dependency graph and multi-model system          |
+| [FUNCTION-DOCS-SYSTEM.md](docs/FUNCTION-DOCS-SYSTEM.md)           | Auto-generated function documentation            |
+| [I18N-GUIDE.md](docs/I18N-GUIDE.md)                               | Internationalization patterns                    |
+| [DATE-STORAGE-ARCHITECTURE.md](docs/DATE-STORAGE-ARCHITECTURE.md) | Date/datetime handling rules                     |
+| [DEBUGGING.md](docs/DEBUGGING.md)                                 | CSS Module debugging                             |
+| [BACKLOG.md](docs/BACKLOG.md)                                     | Feature backlog                                  |

@@ -20,6 +20,8 @@ Documentation serves two purposes — know **where to look** and know **what to 
 
 **Navigation maps** use file/module names (stable) to show flow direction. **Decision rules** capture "when/why" constraints. **Code walkthroughs** restate implementation details — that's what reading the code is for.
 
+For documentation organization standards and the "When to Update Which Doc" table, see **[DOCUMENTATION-GUIDE.md](docs/DOCUMENTATION-GUIDE.md)**.
+
 ## Process
 
 ### 1. Analyze the session
@@ -36,15 +38,16 @@ Produce a brief list of gaps before proceeding. For each gap, state what's neede
 
 Map each gap to the right document using the project's single-source-of-truth principle:
 
-| Gap type                                        | Target document                     |
-| ----------------------------------------------- | ----------------------------------- |
-| Architecture, features, system behavior         | `docs/SPECIFICATION.md`             |
-| Data structures, transform schemas, expressions | `docs/DATA-SPECIFICATION.md`        |
-| UI patterns, component design, styling          | `docs/UX-SPECIFICATION.md`          |
-| Development conventions, how-to patterns        | `docs/DEVELOPMENT-PATTERNS.md`      |
-| Schema evolution, compatibility                 | `docs/FUTURE-PROOFING.md`           |
-| Dependency graph, multi-model ops               | `docs/MULTI-MODEL-ARCHITECTURE.md`  |
-| Date/datetime handling                          | `docs/DATE-STORAGE-ARCHITECTURE.md` |
+| Gap type                                         | Target document                     |
+| ------------------------------------------------ | ----------------------------------- |
+| Architecture, features, system behavior          | `docs/SPECIFICATION.md`             |
+| Data structures, transform schemas, expressions  | `docs/DATA-SPECIFICATION.md`        |
+| UI patterns, component design, styling           | `docs/UX-SPECIFICATION.md`          |
+| UI terminology, design vocabulary, control types | `docs/UI-VOCAB.md`                  |
+| Development conventions, how-to patterns         | `docs/DEVELOPMENT-PATTERNS.md`      |
+| Schema evolution, compatibility                  | `docs/FUTURE-PROOFING.md`           |
+| Dependency graph, multi-model ops                | `docs/MULTI-MODEL-ARCHITECTURE.md`  |
+| Date/datetime handling                           | `docs/DATE-STORAGE-ARCHITECTURE.md` |
 
 If a gap doesn't fit any existing document, consider whether it warrants a new dedicated doc or belongs as a new section in an existing one. Prefer extending existing docs.
 
