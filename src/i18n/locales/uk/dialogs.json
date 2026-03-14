@@ -756,6 +756,15 @@
       "auto": "Розраховано {{count}} рядків",
       "autoNeed": "Додайте послідовність зі значенням \"Зупинка\" для розрахунку рядків",
       "manual": "Максимум: 100 000 рядків"
+    },
+    "generatorType": "Тип генератора",
+    "types": {
+      "numberSequence": "Числова послідовність",
+      "dateSequence": "Послідовність дат",
+      "randomNumber": "Випадкове число",
+      "randomDate": "Випадкова дата",
+      "randomBoolean": "Випадкове булеве",
+      "randomCategory": "Випадкова категорія"
     }
   },
   "index": {
@@ -844,17 +853,6 @@
     "helpText": "Введіть пряме посилання на CSV або TSV файл.",
     "sampleDatasets": "Зразки наборів даних:",
     "fetching": "Завантаження даних..."
-  },
-  "generate": {
-    "generatorType": "Тип генератора",
-    "types": {
-      "numberSequence": "Числова послідовність",
-      "dateSequence": "Послідовність дат",
-      "randomNumber": "Випадкове число",
-      "randomDate": "Випадкова дата",
-      "randomBoolean": "Випадкове булеве",
-      "randomCategory": "Випадкова категорія"
-    }
   },
   "importCsv": {
     "replaceMode": "Режим заміни",

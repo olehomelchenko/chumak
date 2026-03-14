@@ -20,7 +20,7 @@ describe('SampleDialog', () => {
   it('renders with default values', () => {
     renderWithI18n(<SampleDialog />);
 
-    const countInput = screen.getByLabelText('Sample Size') as HTMLInputElement;
+    const countInput = screen.getByLabelText('Sample size') as HTMLInputElement;
     expect(countInput.value).toBe('100');
     expect(screen.getByText(/Total available rows:/)).toBeDefined();
   });
@@ -28,7 +28,7 @@ describe('SampleDialog', () => {
   it('updates count when typed', () => {
     renderWithI18n(<SampleDialog />);
 
-    const countInput = screen.getByLabelText('Sample Size') as HTMLInputElement;
+    const countInput = screen.getByLabelText('Sample size') as HTMLInputElement;
     fireEvent.input(countInput, { target: { value: '50' } });
 
     expect(DialogStore.sampleState.count.value).toBe(50);
@@ -37,7 +37,7 @@ describe('SampleDialog', () => {
   it('updates seed when typed', () => {
     renderWithI18n(<SampleDialog />);
 
-    const seedInput = screen.getByLabelText('Random Seed (Optional)') as HTMLInputElement;
+    const seedInput = screen.getByLabelText('Random seed (optional)') as HTMLInputElement;
     fireEvent.input(seedInput, { target: { value: '123' } });
 
     expect(DialogStore.sampleState.seed.value).toBe(123);
@@ -47,7 +47,7 @@ describe('SampleDialog', () => {
     DialogStore.sampleState.seed.value = 42;
     renderWithI18n(<SampleDialog />);
 
-    const seedInput = screen.getByLabelText('Random Seed (Optional)') as HTMLInputElement;
+    const seedInput = screen.getByLabelText('Random seed (optional)') as HTMLInputElement;
     fireEvent.input(seedInput, { target: { value: '' } });
 
     expect(DialogStore.sampleState.seed.value).toBeUndefined();
@@ -56,7 +56,7 @@ describe('SampleDialog', () => {
   it('handles invalid count gracefully', () => {
     renderWithI18n(<SampleDialog />);
 
-    const countInput = screen.getByLabelText('Sample Size') as HTMLInputElement;
+    const countInput = screen.getByLabelText('Sample size') as HTMLInputElement;
     fireEvent.input(countInput, { target: { value: 'abc' } });
 
     expect(DialogStore.sampleState.count.value).toBe(0);

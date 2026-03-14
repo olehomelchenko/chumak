@@ -45,9 +45,7 @@ describe('simple-handlers', () => {
 
       await applySortTransform(callbacks);
 
-      expect(callbacks.onError).toHaveBeenCalledWith(
-        'Please select at least one column to sort by'
-      );
+      expect(callbacks.onError).toHaveBeenCalledWith('Select at least one column to sort by');
       expect(StepService.runTransform).not.toHaveBeenCalled();
     });
 
@@ -72,7 +70,7 @@ describe('simple-handlers', () => {
 
       await applySliceRowsTransform(callbacks);
 
-      expect(callbacks.onError).toHaveBeenCalledWith('Please enter a valid number of rows');
+      expect(callbacks.onError).toHaveBeenCalledWith('Enter a valid number of rows');
     });
 
     it('errors when count is negative', async () => {
@@ -81,7 +79,7 @@ describe('simple-handlers', () => {
 
       await applySliceRowsTransform(callbacks);
 
-      expect(callbacks.onError).toHaveBeenCalledWith('Please enter a valid number of rows');
+      expect(callbacks.onError).toHaveBeenCalledWith('Enter a valid number of rows');
     });
 
     it('runs transform with count and mode', async () => {
@@ -106,7 +104,7 @@ describe('simple-handlers', () => {
 
       await applyIndexTransform(callbacks);
 
-      expect(callbacks.onError).toHaveBeenCalledWith('Please enter a column name');
+      expect(callbacks.onError).toHaveBeenCalledWith('Enter a column name');
     });
 
     it('errors when column name is whitespace', async () => {
@@ -115,7 +113,7 @@ describe('simple-handlers', () => {
 
       await applyIndexTransform(callbacks);
 
-      expect(callbacks.onError).toHaveBeenCalledWith('Please enter a column name');
+      expect(callbacks.onError).toHaveBeenCalledWith('Enter a column name');
     });
 
     it('runs transform with column name and start value', async () => {
@@ -154,7 +152,7 @@ describe('simple-handlers', () => {
 
       await applyReplaceTransform(callbacks);
 
-      expect(callbacks.onError).toHaveBeenCalledWith('Please select a column');
+      expect(callbacks.onError).toHaveBeenCalledWith('Select a column');
     });
 
     it('asks confirmation for null/empty replace', async () => {
@@ -179,7 +177,7 @@ describe('simple-handlers', () => {
 
       await applyReplaceTransform(callbacks);
 
-      expect(callbacks.onError).toHaveBeenCalledWith('Please enter a regex pattern');
+      expect(callbacks.onError).toHaveBeenCalledWith('Enter a regex pattern');
     });
 
     it('runs transform with correct shape', async () => {
@@ -242,7 +240,7 @@ describe('simple-handlers', () => {
 
       await applyImputeTransform(callbacks);
 
-      expect(callbacks.onError).toHaveBeenCalledWith('Please select a column');
+      expect(callbacks.onError).toHaveBeenCalledWith('Select a column');
     });
 
     it('runs transform with strategy', async () => {

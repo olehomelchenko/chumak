@@ -40,10 +40,10 @@ describe('JoinDialog', () => {
   it('renders correctly with initial state', () => {
     renderWithI18n(<JoinDialog />);
 
-    expect(screen.getByText('Left Table')).toBeDefined();
-    expect(screen.getByText('Right Table')).toBeDefined();
-    expect(screen.getByText('Join Type')).toBeDefined();
-    expect(screen.getByText('Join Keys')).toBeDefined();
+    expect(screen.getByText('Left table')).toBeDefined();
+    expect(screen.getByText('Right table')).toBeDefined();
+    expect(screen.getByText('Join types')).toBeDefined();
+    expect(screen.getByText('Join keys')).toBeDefined();
     // Default join type is left
     const leftRadio = screen.getByLabelText('Left') as HTMLInputElement;
     expect(leftRadio.checked).toBe(true);
@@ -72,7 +72,7 @@ describe('JoinDialog', () => {
 
     // The tree selector will be rendered, but we can't easily test clicking on it
     // without more complex setup. For now, we'll test that the component renders.
-    expect(screen.getByText('Right Table')).toBeDefined();
+    expect(screen.getByText('Right table')).toBeDefined();
   });
 
   it('updates join type', () => {
@@ -87,14 +87,14 @@ describe('JoinDialog', () => {
 
     renderWithI18n(<JoinDialog />);
 
-    expect(screen.queryByText('Join Keys')).toBeNull();
+    expect(screen.queryByText('Join keys')).toBeNull();
   });
 
   it('adds and removes key pairs', () => {
     renderWithI18n(<JoinDialog />);
 
     // Initial state: 1 pair
-    const addBtn = screen.getByText('+ Add Key Pair');
+    const addBtn = screen.getByText('+ Add key pair');
     fireEvent.click(addBtn);
     expect(DialogStore.joinState.keyPairs.value.length).toBe(2);
 
@@ -126,6 +126,6 @@ describe('JoinDialog', () => {
 
     renderWithI18n(<JoinDialog />);
 
-    expect(screen.getByText('Preview Join')).toBeDefined();
+    expect(screen.getByText('Preview join')).toBeDefined();
   });
 });

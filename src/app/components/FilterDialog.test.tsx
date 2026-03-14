@@ -35,7 +35,7 @@ describe('FilterDialog', () => {
     renderWithI18n(<FilterDialog />);
 
     expect(screen.getByPlaceholderText('e.g., sales > 1000')).toBeDefined();
-    expect(screen.getByText('Show All').className).toContain('button--primary');
+    expect(screen.getByText('Show all').className).toContain('button--primary');
   });
 
   it('updates expression when typed', () => {
@@ -50,7 +50,7 @@ describe('FilterDialog', () => {
   it('toggles preview mode', () => {
     renderWithI18n(<FilterDialog />);
 
-    const matchingButton = screen.getByText('Matching Only');
+    const matchingButton = screen.getByText('Matching only');
     fireEvent.click(matchingButton);
 
     expect(DialogStore.filterState.previewMode.value).toBe('matching');
@@ -71,7 +71,7 @@ describe('FilterDialog', () => {
   it('opens reference dialog when reference button is clicked', () => {
     renderWithI18n(<FilterDialog />);
 
-    const refButton = screen.getByText('Full Reference');
+    const refButton = screen.getByText('Full reference');
     fireEvent.click(refButton);
 
     expect(AppStore.activeDialog.value).toBe('reference');

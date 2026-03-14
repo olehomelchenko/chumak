@@ -130,9 +130,9 @@ describe('Dialog Registry', () => {
 
   describe('getDialogTitle', () => {
     it('returns correct title for dialog', () => {
-      expect(getDialogTitle('filter')).toBe('Filter Rows');
-      expect(getDialogTitle('derive')).toBe('Derive Column');
-      expect(getDialogTitle('join')).toBe('Join Data');
+      expect(getDialogTitle('filter')).toBe('Filter rows');
+      expect(getDialogTitle('derive')).toBe('Derive column');
+      expect(getDialogTitle('join')).toBe('Join data');
       expect(getDialogTitle('expressions')).toBe('Reference');
     });
 
@@ -156,15 +156,15 @@ describe('Dialog Registry', () => {
   describe('getDialogButtonText', () => {
     it('returns custom button text when specified', () => {
       expect(getDialogButtonText('import-csv')).toBe('Import');
-      expect(getDialogButtonText('import-url')).toBe('Fetch Data');
-      expect(getDialogButtonText('join')).toBe('Apply Join');
+      expect(getDialogButtonText('import-url')).toBe('Fetch data');
+      expect(getDialogButtonText('join')).toBe('Join');
       expect(getDialogButtonText('download')).toBe('Download');
     });
 
-    it('returns default "Apply" for dialogs without custom text', () => {
-      expect(getDialogButtonText('filter')).toBe('Apply');
-      expect(getDialogButtonText('derive')).toBe('Apply');
-      expect(getDialogButtonText('sort')).toBe('Apply');
+    it('returns action-specific button text for transform dialogs', () => {
+      expect(getDialogButtonText('filter')).toBe('Filter');
+      expect(getDialogButtonText('derive')).toBe('Add column');
+      expect(getDialogButtonText('sort')).toBe('Sort');
     });
 
     it('returns "Apply" for null', () => {

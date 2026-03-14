@@ -54,7 +54,7 @@ describe('SplitDialog', () => {
     expect(screen.queryByPlaceholderText('e.g., 3')).toBeNull();
 
     // Click "Keep First N" which has value="firstN"
-    const radio = screen.getByLabelText('Keep First N - limit number of columns');
+    const radio = screen.getByLabelText('Keep first N - limit number of columns');
     fireEvent.click(radio);
     expect(DialogStore.splitState.mode.value).toBe('firstN');
     expect(screen.getByPlaceholderText('e.g., 3')).toBeDefined();

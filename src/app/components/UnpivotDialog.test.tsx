@@ -27,7 +27,7 @@ describe('UnpivotDialog', () => {
     expect(screen.getByDisplayValue('Year')).toBeDefined();
     expect(screen.getByDisplayValue('Sales')).toBeDefined();
     // Check that the button has the active class (CSS module class contains "active")
-    const keepButton = screen.getByText('Columns to Keep (as index)').closest('button');
+    const keepButton = screen.getByText('Columns to keep (as index)').closest('button');
     expect(keepButton?.className).toContain('active');
   });
 
@@ -44,9 +44,9 @@ describe('UnpivotDialog', () => {
   it('toggles mode', () => {
     renderWithI18n(<UnpivotDialog />);
 
-    fireEvent.click(screen.getByText('Columns to Fold'));
+    fireEvent.click(screen.getByText('Columns to fold'));
     expect(DialogStore.foldState.mode.value).toBe('fold');
-    expect(screen.getByText('Select Columns to Fold:')).toBeDefined();
+    expect(screen.getByText('Select columns to fold:')).toBeDefined();
   });
 
   it('toggles column selection', () => {

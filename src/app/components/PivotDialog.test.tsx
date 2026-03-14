@@ -28,7 +28,7 @@ describe('PivotDialog', () => {
   it('renders with default values', () => {
     renderWithI18n(<PivotDialog />);
 
-    expect(screen.getByText('How Pivot works')).toBeDefined();
+    expect(screen.getByText('How pivot works')).toBeDefined();
     expect(screen.getAllByText('Rows')[0]).toBeDefined();
     expect(screen.getAllByText('Columns')[0]).toBeDefined();
     expect(screen.getAllByText('Values')[0]).toBeDefined();
@@ -86,7 +86,7 @@ describe('PivotDialog', () => {
 
     renderWithI18n(<PivotDialog />);
 
-    fireEvent.click(screen.getByText('Preview Result'));
+    fireEvent.click(screen.getByText('Preview result'));
     expect(PivotHandlers.previewPivot).toHaveBeenCalled();
   });
 });

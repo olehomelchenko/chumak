@@ -113,7 +113,7 @@ export function validateColumnEditorText(): boolean {
   const originalNameSet = new Set(appColumns);
 
   if (lines.length === 0) {
-    state.textError.value = 'Please enter at least one column name';
+    state.textError.value = 'Enter at least one column name';
     return false;
   }
 

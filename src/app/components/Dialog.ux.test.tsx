@@ -58,7 +58,7 @@ describe('Generic Dialog Behavior', () => {
       AppStore.activeDialog.value = 'filter';
     });
 
-    it('should render Cancel and Apply buttons', async () => {
+    it('should render Cancel and Filter buttons', async () => {
       renderWithI18n(<App />);
 
       await waitFor(() => {
@@ -66,7 +66,7 @@ describe('Generic Dialog Behavior', () => {
         const footer = document.querySelector('[class*="slidePanelFooter"]');
         expect(footer).toBeDefined();
         expect(footer?.textContent).toContain('Cancel');
-        expect(footer?.textContent).toContain('Apply');
+        expect(footer?.textContent).toContain('Filter');
       });
     });
 
@@ -171,13 +171,13 @@ describe('Generic Dialog Behavior', () => {
         return f;
       });
 
-      // Verify both Cancel and Apply buttons exist
+      // Verify both Cancel and Filter buttons exist
       const cancelButton = footer?.querySelector('.button--secondary');
       const applyButton = footer?.querySelector('.button--primary');
       expect(cancelButton).toBeDefined();
       expect(applyButton).toBeDefined();
       expect(cancelButton?.textContent).toContain('Cancel');
-      expect(applyButton?.textContent).toContain('Apply');
+      expect(applyButton?.textContent).toContain('Filter');
     });
   });
 
@@ -321,7 +321,16 @@ describe('Generic Dialog Behavior', () => {
   describe('Cross-Dialog Consistency', () => {
     const dialogs = ['filter', 'sort', 'derive', 'split', 'aggregate'] as const;
 
-    it.each(dialogs)('should have Cancel and Apply buttons for %s dialog', async (dialogName) => {
+    // Each dialog now has action-specific button text instead of generic "Apply"
+    const expectedButtonText: Record<string, string> = {
+      filter: 'Filter',
+      sort: 'Sort',
+      derive: 'Add column',
+      split: 'Split',
+      aggregate: 'Group',
+    };
+
+    it.each(dialogs)('should have Cancel and action button for %s dialog', async (dialogName) => {
       // Open dialog directly via store
       AppStore.activeDialog.value = dialogName;
       renderWithI18n(<App />);
@@ -330,7 +339,7 @@ describe('Generic Dialog Behavior', () => {
         const footer = document.querySelector('[class*="slidePanelFooter"]');
         expect(footer).toBeDefined();
         expect(footer?.textContent).toContain('Cancel');
-        expect(footer?.textContent).toContain('Apply');
+        expect(footer?.textContent).toContain(expectedButtonText[dialogName]);
       });
     });
 

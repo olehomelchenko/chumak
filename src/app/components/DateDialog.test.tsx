@@ -41,7 +41,7 @@ describe('DateDialog', () => {
     renderWithI18n(<DateDialog />);
 
     expect(screen.getByText('Operation:')).toBeDefined();
-    expect(screen.getByText('Extract Part')).toBeDefined();
+    expect(screen.getByText('Extract part')).toBeDefined();
   });
 
   it('toggles operation mode', () => {
@@ -81,7 +81,7 @@ describe('DateDialog', () => {
     renderWithI18n(<DateDialog />);
 
     // Find the Day row and get the button (the checkbox button is a sibling of the span containing "Day")
-    const dayRow = screen.getByText('Day of Month').closest('tr');
+    const dayRow = screen.getByText('Day of month').closest('tr');
     const dayButton = dayRow?.querySelector('button');
     expect(dayButton).toBeDefined();
 

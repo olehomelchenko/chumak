@@ -63,7 +63,7 @@ describe('filter-handlers', () => {
 
       await FilterHandlers.applyFilterTransform(callbacks);
 
-      expect(callbacks.onError).toHaveBeenCalledWith('Please enter a filter expression');
+      expect(callbacks.onError).toHaveBeenCalledWith('Enter a filter expression');
       expect(StepService.runTransform).not.toHaveBeenCalled();
     });
 
@@ -74,9 +74,7 @@ describe('filter-handlers', () => {
 
       await FilterHandlers.applyFilterTransform(callbacks);
 
-      expect(callbacks.onError).toHaveBeenCalledWith(
-        'Please fix the expression errors before applying'
-      );
+      expect(callbacks.onError).toHaveBeenCalledWith('Fix the expression errors before applying');
       expect(StepService.runTransform).not.toHaveBeenCalled();
     });
 

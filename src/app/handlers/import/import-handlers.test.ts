@@ -380,7 +380,7 @@ describe('import-handlers', () => {
 
       await ImportHandlers.fetchAndImportFromUrl();
 
-      expect(DialogStore.importUrlState.error.value).toBe('Please enter a valid URL');
+      expect(DialogStore.importUrlState.error.value).toBe('Enter a valid URL');
     });
 
     it('sets error when URL is whitespace only', async () => {
@@ -388,7 +388,7 @@ describe('import-handlers', () => {
 
       await ImportHandlers.fetchAndImportFromUrl();
 
-      expect(DialogStore.importUrlState.error.value).toBe('Please enter a valid URL');
+      expect(DialogStore.importUrlState.error.value).toBe('Enter a valid URL');
     });
   });
 

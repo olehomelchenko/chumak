@@ -15,7 +15,7 @@ describe('SettingsDialog', () => {
   it('renders correctly', () => {
     renderWithI18n(<SettingsDialog />);
 
-    expect(screen.getByText('Color Scheme')).toBeDefined();
+    expect(screen.getByText('Color scheme')).toBeDefined();
     expect(screen.getByText('Syto')).toBeDefined();
     expect(screen.getByText('Blues (KSE)')).toBeDefined();
     expect(screen.getByDisplayValue('100')).toBeDefined();

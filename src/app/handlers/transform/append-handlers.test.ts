@@ -242,7 +242,7 @@ describe('append-handlers', () => {
 
       await AppendHandlers.previewAppend();
 
-      expect(DialogStore.appendState.previewError.value).toBe('Please select a left table');
+      expect(DialogStore.appendState.previewError.value).toBe('Select a left table');
     });
 
     it('sets error when no target model selected', async () => {
@@ -251,9 +251,7 @@ describe('append-handlers', () => {
 
       await AppendHandlers.previewAppend();
 
-      expect(DialogStore.appendState.previewError.value).toBe(
-        'Please select a model or source to append'
-      );
+      expect(DialogStore.appendState.previewError.value).toBe('Select a model or source to append');
     });
 
     it('sets error when circular dependency detected', async () => {
@@ -323,7 +321,7 @@ describe('append-handlers', () => {
 
       await AppendHandlers.applyAppendTransform(callbacks);
 
-      expect(callbacks.onError).toHaveBeenCalledWith('Please select a left table');
+      expect(callbacks.onError).toHaveBeenCalledWith('Select a left table');
     });
 
     it('calls onError when no target model selected', async () => {
@@ -333,7 +331,7 @@ describe('append-handlers', () => {
 
       await AppendHandlers.applyAppendTransform(callbacks);
 
-      expect(callbacks.onError).toHaveBeenCalledWith('Please select a model or source to append');
+      expect(callbacks.onError).toHaveBeenCalledWith('Select a model or source to append');
     });
 
     it('calls onError when circular dependency detected', async () => {

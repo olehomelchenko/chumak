@@ -22,7 +22,7 @@ describe('AggregateDialog', () => {
 
     renderWithI18n(<AggregateDialog />);
 
-    expect(screen.getByText('Group By (Columns)')).toBeDefined();
+    expect(screen.getByText('Group by (columns)')).toBeDefined();
     expect(columns.length).toBe(3);
     columns.forEach((col) => {
       expect(screen.getAllByText(col).length).toBeGreaterThan(0);
@@ -63,7 +63,7 @@ describe('AggregateDialog', () => {
 
     renderWithI18n(<AggregateDialog />);
 
-    fireEvent.click(screen.getByText('+ Add Aggregation'));
+    fireEvent.click(screen.getByText('+ Add aggregation'));
     expect(DialogStore.aggregateState.aggregations.value.length).toBe(1);
     expect(DialogStore.aggregateState.aggregations.value[0].func).toBe('count');
 

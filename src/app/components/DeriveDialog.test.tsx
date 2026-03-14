@@ -69,7 +69,7 @@ describe('DeriveDialog', () => {
   it('opens reference dialog when reference button is clicked', () => {
     renderWithI18n(<DeriveDialog />);
 
-    fireEvent.click(screen.getByText('Full Reference'));
+    fireEvent.click(screen.getByText('Full reference'));
     expect(AppStore.activeDialog.value).toBe('reference');
   });
 });

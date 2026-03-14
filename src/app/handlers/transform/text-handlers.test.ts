@@ -320,7 +320,7 @@ describe('text-handlers', () => {
 
       await TextHandlers.applyTextTransform(callbacks);
 
-      expect(callbacks.onError).toHaveBeenCalledWith('Please select a source column');
+      expect(callbacks.onError).toHaveBeenCalledWith('Select a source column');
     });
 
     it('calls onError when no operations selected', async () => {
@@ -330,7 +330,7 @@ describe('text-handlers', () => {
 
       await TextHandlers.applyTextTransform(callbacks);
 
-      expect(callbacks.onError).toHaveBeenCalledWith('Please select at least one operation');
+      expect(callbacks.onError).toHaveBeenCalledWith('Select at least one operation');
     });
   });
 

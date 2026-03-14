@@ -47,7 +47,7 @@ describe('merge-handlers', () => {
 
       MergeHandlers.updateMergePreview();
 
-      expect(DialogStore.mergeState.error.value).toBe('Please enter an output column name');
+      expect(DialogStore.mergeState.error.value).toBe('Enter an output column name');
     });
 
     it('sets error when selected column does not exist', () => {

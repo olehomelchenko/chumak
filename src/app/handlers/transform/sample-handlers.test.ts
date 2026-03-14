@@ -22,9 +22,7 @@ describe('sample-handlers', () => {
 
       await applySampleTransform(callbacks);
 
-      expect(callbacks.onError).toHaveBeenCalledWith(
-        'Please enter a valid sample size greater than 0'
-      );
+      expect(callbacks.onError).toHaveBeenCalledWith('Enter a valid sample size greater than 0');
       expect(StepService.runTransform).not.toHaveBeenCalled();
     });
 

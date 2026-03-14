@@ -42,7 +42,7 @@ describe('pattern-handlers', () => {
 
       await applySelectPatternTransform(callbacks);
 
-      expect(callbacks.onError).toHaveBeenCalledWith('Please enter a pattern');
+      expect(callbacks.onError).toHaveBeenCalledWith('Enter a pattern');
     });
 
     it('errors when pattern is whitespace', async () => {
@@ -51,7 +51,7 @@ describe('pattern-handlers', () => {
 
       await applySelectPatternTransform(callbacks);
 
-      expect(callbacks.onError).toHaveBeenCalledWith('Please enter a pattern');
+      expect(callbacks.onError).toHaveBeenCalledWith('Enter a pattern');
     });
 
     it('validates regex when matchType is regex', async () => {
@@ -113,7 +113,7 @@ describe('pattern-handlers', () => {
 
       await applyRemovePatternTransform(callbacks);
 
-      expect(callbacks.onError).toHaveBeenCalledWith('Please enter a pattern');
+      expect(callbacks.onError).toHaveBeenCalledWith('Enter a pattern');
     });
 
     it('validates regex when matchType is regex', async () => {
@@ -158,7 +158,7 @@ describe('pattern-handlers', () => {
 
       await applyConditionalTransform(callbacks);
 
-      expect(callbacks.onError).toHaveBeenCalledWith('Please enter a column name');
+      expect(callbacks.onError).toHaveBeenCalledWith('Enter a column name');
     });
 
     it('errors when no valid conditions', async () => {
@@ -171,7 +171,7 @@ describe('pattern-handlers', () => {
 
       await applyConditionalTransform(callbacks);
 
-      expect(callbacks.onError).toHaveBeenCalledWith('Please add at least one valid condition');
+      expect(callbacks.onError).toHaveBeenCalledWith('Add at least one valid condition');
     });
 
     it('errors when else value is empty', async () => {
@@ -182,7 +182,7 @@ describe('pattern-handlers', () => {
 
       await applyConditionalTransform(callbacks);
 
-      expect(callbacks.onError).toHaveBeenCalledWith('Please enter an else value');
+      expect(callbacks.onError).toHaveBeenCalledWith('Enter an else value');
     });
 
     it('runs transform with valid conditions', async () => {
@@ -221,7 +221,7 @@ describe('pattern-handlers', () => {
 
       await applyRenamePatternTransform(callbacks);
 
-      expect(callbacks.onError).toHaveBeenCalledWith('Please enter a find pattern');
+      expect(callbacks.onError).toHaveBeenCalledWith('Enter a find pattern');
     });
 
     it('validates regex when enabled', async () => {

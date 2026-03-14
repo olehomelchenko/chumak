@@ -327,7 +327,7 @@ describe('column-editor-handlers', () => {
       const result = ColumnEditorHandlers.validateColumnEditorText();
 
       expect(result).toBe(false);
-      expect(state.textError.value).toBe('Please enter at least one column name');
+      expect(state.textError.value).toBe('Enter at least one column name');
     });
 
     it('returns false when duplicate column names exist', () => {
@@ -646,7 +646,7 @@ describe('column-editor-handlers', () => {
 
         await ColumnEditorHandlers.applyColumnEditorTransform(callbacks);
 
-        expect(callbacks.onError).toHaveBeenCalledWith('Please enter a pattern');
+        expect(callbacks.onError).toHaveBeenCalledWith('Enter a pattern');
       });
 
       it('sets pattern error for invalid regex', async () => {
@@ -673,7 +673,7 @@ describe('column-editor-handlers', () => {
 
         await ColumnEditorHandlers.applyColumnEditorTransform(callbacks);
 
-        expect(callbacks.onError).toHaveBeenCalledWith('Please enter a pattern');
+        expect(callbacks.onError).toHaveBeenCalledWith('Enter a pattern');
       });
     });
 
@@ -687,7 +687,7 @@ describe('column-editor-handlers', () => {
 
         await ColumnEditorHandlers.applyColumnEditorTransform(callbacks);
 
-        expect(callbacks.onError).toHaveBeenCalledWith('Please enter a find pattern');
+        expect(callbacks.onError).toHaveBeenCalledWith('Enter a find pattern');
       });
 
       it('sets pattern error for invalid regex in rename mode', async () => {

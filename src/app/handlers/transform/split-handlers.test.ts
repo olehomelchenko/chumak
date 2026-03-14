@@ -129,7 +129,7 @@ describe('split-handlers', () => {
 
       await applySplitTransform(callbacks);
 
-      expect(callbacks.onError).toHaveBeenCalledWith('Please select a column');
+      expect(callbacks.onError).toHaveBeenCalledWith('Select a column');
     });
 
     it('errors when no delimiter entered', async () => {
@@ -139,7 +139,7 @@ describe('split-handlers', () => {
 
       await applySplitTransform(callbacks);
 
-      expect(callbacks.onError).toHaveBeenCalledWith('Please enter a delimiter');
+      expect(callbacks.onError).toHaveBeenCalledWith('Enter a delimiter');
     });
   });
 });

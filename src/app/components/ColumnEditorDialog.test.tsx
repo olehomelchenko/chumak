@@ -26,7 +26,7 @@ describe('ColumnEditorDialog', () => {
   it('renders list mode correctly', () => {
     renderWithI18n(<ColumnEditorDialog />);
 
-    expect(screen.getByText('List Mode')).toBeDefined();
+    expect(screen.getByText('List mode')).toBeDefined();
     expect(screen.getByText('col1')).toBeDefined();
     expect(screen.getByText('col2')).toBeDefined(); // Original name
     expect(screen.getByDisplayValue('col2_renamed')).toBeDefined();
@@ -36,7 +36,7 @@ describe('ColumnEditorDialog', () => {
     DialogStore.columnEditorState.mode.value = 'text';
     renderWithI18n(<ColumnEditorDialog />);
 
-    expect(screen.getByText('Text Mode Operation:')).toBeDefined();
+    expect(screen.getByText('Text mode operation:')).toBeDefined();
     expect(screen.getByRole('textbox')).toBeDefined();
   });
 
@@ -70,7 +70,7 @@ describe('ColumnEditorDialog', () => {
 
     renderWithI18n(<ColumnEditorDialog />);
 
-    await screen.findByText('Changes Preview:');
+    await screen.findByText('Changes preview:');
     expect(screen.getAllByText(/col1/).length).toBeGreaterThan(0);
     expect(screen.getByText(/col2 → new_name/)).toBeDefined();
   });
@@ -78,7 +78,7 @@ describe('ColumnEditorDialog', () => {
   it('switches to text mode', () => {
     renderWithI18n(<ColumnEditorDialog />);
 
-    fireEvent.click(screen.getByText('Text Mode'));
+    fireEvent.click(screen.getByText('Text mode'));
     expect(DialogStore.columnEditorState.mode.value).toBe('text');
   });
 });

@@ -46,7 +46,8 @@
     "backToTextEntry": "Back to text entry",
     "fetchData": "Fetch data",
     "generate": "Generate",
-    "download": "Download"
+    "download": "Download",
+    "discard": "Discard"
   },
   "labels": {
     "name": "Name",
@@ -161,6 +162,8 @@
     "removeStep": "Remove step \"{{name}}\"?",
     "replaceNulls": "Replace null/empty values?",
     "overwriteColumn": "{{message}}. It will be overwritten. Continue?",
+    "overwriteColumns": "Columns {{columns}} already exist. They will be overwritten. Continue?",
+    "unsavedChanges": "You have unsaved changes. Are you sure you want to discard them?",
     "confirmReplacement": "Confirm replacement",
     "schemaDiffWarning": "⚠️ Warning: The new data is missing {{count}} column(s) that exist in the current source:\n\n{{columns}}\n\nDependent models may break when recomputed. Are you sure you want to proceed?"
   },

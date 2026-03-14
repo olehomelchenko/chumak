@@ -91,24 +91,14 @@ Migrate from Iconify CDN to custom hand-drawn SVG icons for better brand consist
 
 See [custom-icons-setup.md](custom-icons-setup.md) for detailed setup guide and migration strategy.
 
-### Content Guidelines Audit
-
-**Status**: Planned
-**Effort**: Small
-**Reference**: [CONTENT-GUIDELINES.md](CONTENT-GUIDELINES.md)
-
-Align existing UI text with the new content guidelines:
-
-- **errors.json**: Remove "Please" from ~30 validation messages. Replace with imperative or declarative forms (e.g., "Please enter a column name" → "Column name is required").
-- **Dialog button text**: Update `dialog-registry.ts` `buttonText` entries to use task-specific verbs (Filter → "Filter", Sort → "Sort", Derive → "Add column") instead of generic "Apply".
-- **Cancel vs Close**: Use "Cancel" for deferred-apply dialogs, "Close" for immediate-apply/informational.
-
-### Reduced Motion Support
+### Test Mock Deduplication
 
 **Status**: Planned
 **Effort**: Small
 
-Add `prefers-reduced-motion` media query to `styles/base.css` to respect OS animation preferences. See [UX-SPECIFICATION.md](UX-SPECIFICATION.md) §5.2 for the CSS rule.
+11 handler test files copy-paste the same `StepService` mock, 4 repeat `notification-handlers`, 4 repeat `preview-engine`, 3 repeat `validation-engine`. This causes cascade failures when shared interfaces change (e.g., adding a parameter to `confirm()` required updating 27 files).
+
+**Proposed fix**: Add shared mock factories to `src/app/handlers/test-utils.ts` using `vi.hoisted()` so they work with Vitest's `vi.mock` hoisting. E.g., `mockStepService()`, `mockNotificationHandlers()`, `mockPreviewEngine()`.
 
 ### Empty State Components
 
@@ -309,6 +299,8 @@ Completed features are documented here for posterity:
 - **Code reduction refactors** — March 2026. Three completed refactors (~543 LoC net reduction): declarative `SHORTCUT_REGISTRY` replacing 25 handler functions, `inferSchemaFromSample()` deduplicating 5 schema blocks, AppController pass-through elimination (712 → 430 LoC). See [archive/CODE-REDUCTION-ANALYSIS.md](archive/CODE-REDUCTION-ANALYSIS.md).
 - **Keyboard accessibility** — February 2026. Global `:focus-visible` outlines, focus trapping in dialogs, Enter-to-submit in slide panels, arrow key navigation in TypeMenu with ARIA roles.
 - **TransformDialog.module.css decomposition** — March 2026. Split the 846-line monolithic CSS file into 11 purpose-specific modules: `form-controls.module.css` (universal form elements), `expression-help.module.css` (expression docs UI), `column-editor.module.css` (drag/drop column lists), plus 8 dialog-specific modules (Settings, Download, Date, ImportCsv, preview-table, Window, Aggregate, Generate). Updated 47 consumer file imports. See [archive/CODE-REDUCTION-ANALYSIS.md](archive/CODE-REDUCTION-ANALYSIS.md) §4.
+- **Content guidelines audit** — March 2026. Removed "Please" from ~40 validation messages across handlers/services (imperative form: "Enter a column name"). Updated `dialog-registry.ts` `buttonText` entries to task-specific verbs (Filter, Sort, Add column, etc.) instead of generic "Apply". Added action-specific confirm labels (Delete, Remove, Overwrite, Discard, Replace, Clear all) to all confirmation dialogs. Replaced remaining hardcoded English strings in `dialog-handlers.ts` and `date-handlers.ts` with i18n calls.
+- **Reduced motion support** — March 2026. Added `prefers-reduced-motion: reduce` media query to `styles/base.css` covering all animations and transitions.
 
 ---
 

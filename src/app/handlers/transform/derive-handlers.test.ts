@@ -66,9 +66,7 @@ describe('derive-handlers', () => {
 
       await applyDeriveTransform(callbacks);
 
-      expect(callbacks.onError).toHaveBeenCalledWith(
-        'Please provide both column name and expression'
-      );
+      expect(callbacks.onError).toHaveBeenCalledWith('Provide both column name and expression');
       expect(StepService.runTransform).not.toHaveBeenCalled();
     });
 
@@ -79,9 +77,7 @@ describe('derive-handlers', () => {
 
       await applyDeriveTransform(callbacks);
 
-      expect(callbacks.onError).toHaveBeenCalledWith(
-        'Please provide both column name and expression'
-      );
+      expect(callbacks.onError).toHaveBeenCalledWith('Provide both column name and expression');
     });
 
     it('errors when expression has validation error', async () => {
@@ -92,9 +88,7 @@ describe('derive-handlers', () => {
 
       await applyDeriveTransform(callbacks);
 
-      expect(callbacks.onError).toHaveBeenCalledWith(
-        'Please fix the expression errors before applying'
-      );
+      expect(callbacks.onError).toHaveBeenCalledWith('Fix the expression errors before applying');
     });
 
     it('asks for confirmation when column already exists', async () => {

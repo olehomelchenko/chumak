@@ -28,7 +28,7 @@ describe('ImportCsvDialog', () => {
   it('renders CSV mode correctly', () => {
     render(<ImportCsvDialog />);
 
-    expect(screen.getByText('Source Name:')).toBeDefined();
+    expect(screen.getByText('Source name:')).toBeDefined();
     expect(screen.getByDisplayValue('test_source')).toBeDefined();
     expect(screen.getByText('Delimiter:')).toBeDefined();
     expect(screen.getAllByRole('radio').length).toBe(6); // 3 delimiter + 3 header mode
@@ -44,7 +44,7 @@ describe('ImportCsvDialog', () => {
 
     render(<ImportCsvDialog />);
 
-    expect(screen.getByText('Data Path (dot notation):')).toBeDefined();
+    expect(screen.getByText('Data path (dot notation):')).toBeDefined();
     expect(screen.getByDisplayValue('data.items')).toBeDefined();
     expect(screen.getByText('key1')).toBeDefined();
     expect(screen.queryByText('Delimiter:')).toBeNull();

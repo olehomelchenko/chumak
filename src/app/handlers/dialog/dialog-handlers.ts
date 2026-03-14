@@ -5,6 +5,7 @@
  * Functions are pure (no 'this' context needed).
  */
 
+import i18n from '../../../i18n/core';
 import { AppStore } from '../../stores/AppStore';
 import { DialogStore } from '../../stores/DialogStore';
 import {
@@ -224,7 +225,8 @@ export async function closeDialog(force = false): Promise<void> {
     const confirmFn = dialogHandlerCallbacks.confirm;
     if (confirmFn) {
       const confirmed = await confirmFn(
-        'You have unsaved changes. Are you sure you want to discard them?'
+        i18n.t('confirms.unsavedChanges', { ns: 'common' }),
+        i18n.t('buttons.discard', { ns: 'common' })
       );
       if (!confirmed) return;
     }

@@ -363,7 +363,7 @@ describe('date-handlers', () => {
 
       await DateHandlers.applyDateTransform(callbacks);
 
-      expect(callbacks.onError).toHaveBeenCalledWith('Please select a source column');
+      expect(callbacks.onError).toHaveBeenCalledWith('Select a source column');
     });
 
     it('calls onError when no parts selected', async () => {
@@ -375,7 +375,7 @@ describe('date-handlers', () => {
       await DateHandlers.applyDateTransform(callbacks);
 
       expect(callbacks.onError).toHaveBeenCalledWith(
-        'Please select at least one date part or unit to extract/truncate'
+        'Select at least one date part or unit to extract/truncate'
       );
     });
   });

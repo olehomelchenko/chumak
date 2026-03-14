@@ -358,7 +358,10 @@ export async function applyDateTransform(callbacks: any, app?: any) {
               name: existingCols[0],
             }),
           })
-        : `Columns ${existingCols.map((c) => `"${c}"`).join(', ')} already exist. They will be overwritten. Continue?`;
+        : i18n.t('confirms.overwriteColumns', {
+            ns: 'common',
+            columns: existingCols.map((c) => `"${c}"`).join(', '),
+          });
     const confirmed = await app.confirm(message, i18n.t('buttons.overwrite', { ns: 'common' }));
     if (!confirmed) return;
   }
