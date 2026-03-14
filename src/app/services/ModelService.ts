@@ -321,7 +321,7 @@ export class ModelService {
    * Deletes the current model
    */
   static async deleteCurrentModel(
-    confirm: (msg: string) => Promise<boolean>,
+    confirm: (msg: string, confirmLabel?: string) => Promise<boolean>,
     alert: (msg: string) => Promise<any>,
     switchToModelFn: (model: Model) => void
   ) {
@@ -351,7 +351,12 @@ export class ModelService {
       return;
     }
 
-    if (!(await confirm(i18n.t('confirms.deleteModel', { ns: 'common', name: activeModel.name }))))
+    if (
+      !(await confirm(
+        i18n.t('confirms.deleteModel', { ns: 'common', name: activeModel.name }),
+        i18n.t('buttons.delete', { ns: 'common' })
+      ))
+    )
       return;
 
     const deletedModelName = activeModel.name;
@@ -396,7 +401,7 @@ export class ModelService {
    */
   static async deleteSource(
     source: Source,
-    confirm: (msg: string) => Promise<boolean>,
+    confirm: (msg: string, confirmLabel?: string) => Promise<boolean>,
     alert: (msg: string) => Promise<any>
   ) {
     // Check if source's models are referenced by models in other sources
@@ -423,7 +428,7 @@ export class ModelService {
           })
         : i18n.t('confirms.deleteSource', { ns: 'common', name: source.name });
 
-    if (!(await confirm(message))) return;
+    if (!(await confirm(message, i18n.t('buttons.delete', { ns: 'common' })))) return;
 
     const deletedSourceName = source.name;
     try {
@@ -455,7 +460,7 @@ export class ModelService {
    * Resets all application data
    */
   static async clearAllData(
-    confirm: (msg: string) => Promise<boolean>,
+    confirm: (msg: string, confirmLabel?: string) => Promise<boolean>,
     alert: (msg: string) => Promise<any>
   ) {
     return PersistenceService.clearAllData(confirm, alert);

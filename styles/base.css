@@ -30,6 +30,17 @@ h6 {
   outline-offset: 2px;
 }
 
+/* Respect reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
 /* Alpine.js cloak */
 [x-cloak] {
   display: none !important;

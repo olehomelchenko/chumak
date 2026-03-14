@@ -149,7 +149,9 @@ export async function applyMergeTransform(callbacks: any) {
           ns: 'errors',
           name: columnName.value,
         }),
-      })
+      }),
+      undefined,
+      i18n.t('buttons.overwrite', { ns: 'common' })
     );
     if (!confirmed) return;
   }

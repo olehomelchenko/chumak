@@ -89,7 +89,9 @@ export async function applyDeriveTransform(callbacks: any) {
       i18n.t('confirms.overwriteColumn', {
         ns: 'common',
         message: i18n.t('validation.duplicate.columnExists', { ns: 'errors', name: columnName }),
-      })
+      }),
+      undefined,
+      i18n.t('buttons.overwrite', { ns: 'common' })
     );
     if (!confirmed) return;
   }

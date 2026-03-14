@@ -1,6 +1,6 @@
 # Syto — UX Improvement Plan
 
-> **Status**: Phase 1 in progress (1.1–1.3 done)
+> **Status**: Phase 1 in progress (1.1–1.5 done)
 > **Date**: March 2026
 > **Basis**: Comprehensive audit against IBM Carbon Design System best practices
 > **Related**: [DESIGN-SYSTEM-EVALUATION.md](archive/DESIGN-SYSTEM-EVALUATION.md), [CONTENT-GUIDELINES.md](CONTENT-GUIDELINES.md), [UX-SPECIFICATION.md](UX-SPECIFICATION.md)
@@ -40,7 +40,7 @@ Fixed ~100+ Title Case violations to sentence case across all i18n JSON files (`
 
 Replaced generic "Apply" with task-specific verbs in `dialog-registry.ts` `buttonText` entries for all transform dialogs. Added 23 new i18n keys in `en/common.json` and `uk/common.json`. Only `sliceRows` (dual keep/remove mode) and `column-editor` (heterogeneous batch edits) retain "Apply".
 
-### 1.4 Add `prefers-reduced-motion` support
+### 1.4 Add `prefers-reduced-motion` support ✅
 
 One CSS rule in `styles/base.css`:
 
@@ -58,7 +58,7 @@ One CSS rule in `styles/base.css`:
 
 This covers all existing animations: dialog zoom-in, StatusBar loading bar, util.css spinner, and ~42 transition declarations.
 
-### 1.5 Fix confirmation button labels
+### 1.5 Fix confirmation button labels ✅
 
 Extend `confirm()` in `notification-handlers.ts` to accept an optional `confirmLabel` parameter. Update `GlobalDialogs.tsx` to use it instead of hardcoded "Yes".
 

@@ -96,7 +96,9 @@ export function GlobalDialogs() {
             </button>
           )}
           <button class="button button--primary" onClick={() => close(true)}>
-            {messageBox.type === 'confirm' ? t('buttons.yes') : t('buttons.ok')}
+            {messageBox.type === 'confirm'
+              ? messageBox.confirmLabel || t('buttons.yes')
+              : t('buttons.ok')}
           </button>
         </div>
       </div>

@@ -22,7 +22,7 @@ export type DialogCallbacks = {
   updateDedupePreview?: () => void;
   updateImputePreview?: () => void;
   clearColumnSelection?: () => void;
-  confirm?: (message: string) => Promise<boolean>;
+  confirm?: (message: string, confirmLabel?: string) => Promise<boolean>;
 };
 
 let callbacks: DialogCallbacks | null = null;

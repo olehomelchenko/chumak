@@ -50,7 +50,11 @@ export async function applyReplaceTransform(callbacks: any) {
     return;
   }
   if (!isRegex.value && (findValue.value === undefined || findValue.value === null)) {
-    const confirmed = await confirm(i18n.t('confirms.replaceNulls', { ns: 'common' }));
+    const confirmed = await confirm(
+      i18n.t('confirms.replaceNulls', { ns: 'common' }),
+      undefined,
+      i18n.t('buttons.replace', { ns: 'common' })
+    );
     if (!confirmed) return;
   }
   if (isRegex.value && !findValue.value) {

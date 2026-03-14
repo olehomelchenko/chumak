@@ -24,10 +24,13 @@ export class PersistenceService {
    * Clears all data from the application and storage
    */
   static async clearAllData(
-    confirm: (msg: string) => Promise<boolean>,
+    confirm: (msg: string, confirmLabel?: string) => Promise<boolean>,
     alert: (msg: string) => Promise<void>
   ): Promise<void> {
-    const confirmed = await confirm(i18n.t('confirms.clearData', { ns: 'common' }));
+    const confirmed = await confirm(
+      i18n.t('confirms.clearData', { ns: 'common' }),
+      i18n.t('buttons.clearAll', { ns: 'common' })
+    );
     if (!confirmed) return;
 
     try {

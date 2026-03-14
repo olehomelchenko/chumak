@@ -136,7 +136,8 @@ export function alert(
  */
 export function confirm(
   message: string,
-  title = i18n.t('notifications.confirmTitle', { ns: 'common' })
+  title = i18n.t('notifications.confirmTitle', { ns: 'common' }),
+  confirmLabel?: string
 ): Promise<boolean> {
   return new Promise((resolve) => {
     AppStore.messageBox.value = {
@@ -145,6 +146,7 @@ export function confirm(
       message,
       type: 'confirm',
       inputValue: '',
+      confirmLabel,
       resolve,
     };
   });

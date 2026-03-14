@@ -708,7 +708,8 @@ export async function confirmImport(): Promise<void> {
         });
         const confirmed = await confirm(
           msg,
-          i18n.t('confirms.confirmReplacement', { ns: 'common' })
+          i18n.t('confirms.confirmReplacement', { ns: 'common' }),
+          i18n.t('buttons.replace', { ns: 'common' })
         );
         if (confirmed) {
           await executeReplacement();
@@ -807,7 +808,11 @@ async function finishImport(
         count: schemaDiff.missingColumns.length,
         columns: schemaDiff.missingColumns.join(', '),
       });
-      const confirmed = await confirm(msg, i18n.t('confirms.confirmReplacement', { ns: 'common' }));
+      const confirmed = await confirm(
+        msg,
+        i18n.t('confirms.confirmReplacement', { ns: 'common' }),
+        i18n.t('buttons.replace', { ns: 'common' })
+      );
       if (confirmed) {
         await executeReplacement();
       }

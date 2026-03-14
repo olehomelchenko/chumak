@@ -2,8 +2,10 @@
   "buttons": {
     "apply": "Apply",
     "cancel": "Cancel",
+    "clearAll": "Clear all",
     "close": "Close",
     "ok": "OK",
+    "overwrite": "Overwrite",
     "yes": "Yes",
     "delete": "Delete",
     "remove": "Remove",

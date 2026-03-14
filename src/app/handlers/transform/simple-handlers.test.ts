@@ -167,7 +167,7 @@ describe('simple-handlers', () => {
 
       await applyReplaceTransform(callbacks);
 
-      expect(confirm).toHaveBeenCalledWith('Replace null/empty values?');
+      expect(confirm).toHaveBeenCalledWith('Replace null/empty values?', undefined, 'Replace');
       expect(StepService.runTransform).not.toHaveBeenCalled();
     });
 

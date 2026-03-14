@@ -491,7 +491,9 @@ export async function removeStep(stepIndex: number): Promise<void> {
 
   if (isLastStep) {
     const confirmed = await confirm(
-      i18n.t('confirms.removeStep', { ns: 'common', name: describeTransform(step) })
+      i18n.t('confirms.removeStep', { ns: 'common', name: describeTransform(step) }),
+      undefined,
+      i18n.t('buttons.remove', { ns: 'common' })
     );
     if (!confirmed) return;
     await executeStepRemoval(stepIndex, 'single');

@@ -59,7 +59,8 @@ describe('PersistenceService', () => {
       await PersistenceService.clearAllData(confirm, alert);
 
       expect(confirm).toHaveBeenCalledWith(
-        'Are you sure you want to clear all data? This cannot be undone.'
+        'Are you sure you want to clear all data? This cannot be undone.',
+        'Clear all'
       );
       expect(storageClearAllData).toHaveBeenCalled();
       expect(AppStore.sources.value).toEqual([]);

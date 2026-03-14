@@ -107,7 +107,9 @@ describe('derive-handlers', () => {
       await applyDeriveTransform(callbacks);
 
       expect(confirm).toHaveBeenCalledWith(
-        'Column "age" already exists. It will be overwritten. Continue?'
+        'Column "age" already exists. It will be overwritten. Continue?',
+        undefined,
+        'Overwrite'
       );
       expect(StepService.runTransform).not.toHaveBeenCalled();
     });

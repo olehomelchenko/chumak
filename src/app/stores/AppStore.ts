@@ -82,6 +82,7 @@ export class AppStore {
     message: string;
     type: 'alert' | 'confirm' | 'prompt';
     inputValue: string;
+    confirmLabel?: string;
     resolve: ((result: any) => void) | null;
   }>({
     visible: false,

@@ -420,7 +420,9 @@ export async function quickRemove(callbacks: any) {
   const col = selectedColumn;
   const confirmed = await NotificationHandlers.confirm.call(
     null as any,
-    i18n.t('confirms.removeColumn', { ns: 'common', name: col })
+    i18n.t('confirms.removeColumn', { ns: 'common', name: col }),
+    undefined,
+    i18n.t('buttons.remove', { ns: 'common' })
   );
   if (confirmed) {
     await StepService.runTransform('Remove Column', { remove: [col] }, callbacks);
@@ -433,7 +435,9 @@ export async function quickRemoveMultiple(callbacks: any) {
   if (cols.length === 0) return;
   const confirmed = await NotificationHandlers.confirm.call(
     null as any,
-    i18n.t('confirms.removeColumns', { ns: 'common', count: cols.length, names: cols.join(', ') })
+    i18n.t('confirms.removeColumns', { ns: 'common', count: cols.length, names: cols.join(', ') }),
+    undefined,
+    i18n.t('buttons.remove', { ns: 'common' })
   );
   if (confirmed) {
     await StepService.runTransform('Remove Columns', { remove: [...cols] }, callbacks);
@@ -496,7 +500,9 @@ export async function removeSelectedRows(callbacks: any) {
   if (indices.length === 0) return;
   const confirmed = await NotificationHandlers.confirm.call(
     null as any,
-    i18n.t('confirms.removeRows', { ns: 'common', count: indices.length })
+    i18n.t('confirms.removeRows', { ns: 'common', count: indices.length }),
+    undefined,
+    i18n.t('buttons.remove', { ns: 'common' })
   );
   if (!confirmed) return;
   await StepService.runTransform(
@@ -520,7 +526,9 @@ export async function promoteSelectedRowToHeader(callbacks: any) {
   const rowIndex = indices[0];
   const confirmed = await NotificationHandlers.confirm.call(
     null as any,
-    i18n.t('confirms.promoteRow', { ns: 'common', row: rowIndex + 1 })
+    i18n.t('confirms.promoteRow', { ns: 'common', row: rowIndex + 1 }),
+    undefined,
+    i18n.t('buttons.promote', { ns: 'common' })
   );
   if (!confirmed) return;
   await StepService.runTransform(

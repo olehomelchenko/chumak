@@ -254,7 +254,7 @@ export async function applyTextTransform(callbacks: any, app?: any) {
       ns: 'common',
       message: i18n.t('validation.duplicate.columnExists', { ns: 'errors', name: outputName }),
     });
-    const confirmed = await app.confirm(message);
+    const confirmed = await app.confirm(message, i18n.t('buttons.overwrite', { ns: 'common' }));
     if (!confirmed) return;
   }
 

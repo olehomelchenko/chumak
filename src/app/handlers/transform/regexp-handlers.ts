@@ -79,7 +79,9 @@ export async function applyRegexpMatchTransform(callbacks: any) {
       i18n.t('confirms.overwriteColumn', {
         ns: 'common',
         message: i18n.t('validation.duplicate.columnExists', { ns: 'errors', name: colName }),
-      })
+      }),
+      undefined,
+      i18n.t('buttons.overwrite', { ns: 'common' })
     );
     if (!confirmed) return;
   }
@@ -177,7 +179,9 @@ export async function applyRegexpExtractTransform(callbacks: any) {
       i18n.t('confirms.overwriteColumn', {
         ns: 'common',
         message: i18n.t('validation.duplicate.columnExists', { ns: 'errors', name: colName }),
-      })
+      }),
+      undefined,
+      i18n.t('buttons.overwrite', { ns: 'common' })
     );
     if (!confirmed) return;
   }

@@ -120,7 +120,7 @@ export async function initApp(): Promise<void> {
   });
 
   setDialogCallbacks({
-    confirm: (msg) => confirm(msg),
+    confirm: (msg, label) => confirm(msg, undefined, label),
     clearColumnSelection: () => clearColumnSelection(),
     initializeJoinDialog: () => initializeJoinDialog(),
     initializeAppendDialog: () => initializeAppendDialog(),
@@ -165,7 +165,7 @@ export async function initApp(): Promise<void> {
  */
 function wireHandlerCallbacks(): void {
   setDialogHandlerCallbacks({
-    confirm: (msg) => confirm(msg),
+    confirm: (msg, label) => confirm(msg, undefined, label),
     clearColumnSelection: () => clearColumnSelection(),
     openDialog: (dialog, section) => openDialog(dialog, section),
     switchToModel: (model) => AppController.switchToModel(model),

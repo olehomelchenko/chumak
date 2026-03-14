@@ -33,7 +33,7 @@ export {
  * Callbacks for dialog operations that need external methods
  */
 export interface DialogHandlerCallbacks {
-  confirm?: (message: string) => Promise<boolean>;
+  confirm?: (message: string, confirmLabel?: string) => Promise<boolean>;
   clearColumnSelection?: () => void;
   openDialog?: (dialog: string, section?: string) => void;
   switchToModel?: (model: any) => void;
