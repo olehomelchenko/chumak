@@ -1,6 +1,6 @@
 # Syto — UX Improvement Plan
 
-> **Status**: Audit complete, ready for implementation
+> **Status**: Phase 1 in progress (1.1–1.3 done)
 > **Date**: March 2026
 > **Basis**: Comprehensive audit against IBM Carbon Design System best practices
 > **Related**: [DESIGN-SYSTEM-EVALUATION.md](archive/DESIGN-SYSTEM-EVALUATION.md), [CONTENT-GUIDELINES.md](CONTENT-GUIDELINES.md), [UX-SPECIFICATION.md](UX-SPECIFICATION.md)
@@ -30,57 +30,15 @@ _No component logic changes. Pure text and style fixes._
 
 ### 1.1 Remove "please" from all validation messages ✅
 
-**39 instances** in `src/i18n/locales/en/errors.json` and `src/i18n/locales/en/dialogs.json` (plus Ukrainian equivalents).
-
-Pattern: `"Please select a column"` → `"Select a column"`
-
-Files:
-
-- `errors.json`: `validation.required.*` (16), `validation.selection.*` (14), `validation.invalid.*` (6), `import.*` (3)
-- Mirror changes in `uk/errors.json`
+Removed 39 instances of "Please" / "Будь ласка" from `errors.json` and `dialogs.json` in both locales.
 
 ### 1.2 Fix title case → sentence case ✅
 
-**~100+ violations** across all i18n JSON files. Every dialog title, section heading, button label, and field label uses Title Case instead of sentence case.
+Fixed ~100+ Title Case violations to sentence case across all i18n JSON files (`dialogs.json`, `ui.json`, `settings.json`, `common.json`, `tools.json`) in both locales. Preserved proper nouns and acronyms.
 
-Files and counts:
+### 1.3 Add task-specific button verbs ✅
 
-- `dialogs.json` titles: ~35 (e.g., "Filter Rows" → "Filter rows", "Derive Column" → "Derive column")
-- `dialogs.json` labels: ~40 (e.g., "Join Keys" → "Join keys", "Sample Size" → "Sample size")
-- `ui.json`: ~30 (e.g., "Sort Ascending" → "Sort ascending", "Model Info" → "Model info")
-- `settings.json`: ~4 (e.g., "Color Scheme" → "Color scheme")
-- `common.json`: ~5 (e.g., "Application Settings" → "Application settings")
-- `tools.json`: ~3
-
-Exceptions to preserve: proper nouns (CSV, JSON, Syto, Excel, Arquero, Vega-Lite), acronyms (EDA, TSV, URL).
-
-### 1.3 Add task-specific button verbs
-
-Replace generic "Apply" with task-specific verbs in `dialog-registry.ts` `buttonText` entries.
-
-| Dialog      | Current      | Should be   |
-| ----------- | ------------ | ----------- |
-| filter      | Apply        | Filter      |
-| derive      | Apply        | Add column  |
-| sort        | Apply        | Sort        |
-| aggregate   | Apply        | Group       |
-| pivot       | Apply        | Pivot       |
-| fold        | Apply        | Unpivot     |
-| join        | Apply Join   | Join        |
-| append      | Apply Append | Append      |
-| split       | Apply        | Split       |
-| merge       | Apply        | Merge       |
-| replace     | Apply        | Replace     |
-| dedupe      | Apply        | Deduplicate |
-| impute      | Apply        | Impute      |
-| sample      | Apply        | Sample      |
-| window      | Apply        | Add columns |
-| conditional | Apply        | Add column  |
-| describe    | Apply        | Describe    |
-| spread      | Apply        | Spread      |
-| unroll      | Apply        | Unroll      |
-
-Also add `buttonText` entries with i18n keys per dialog. Update `en/common.json` and `uk/common.json` with new button translation keys.
+Replaced generic "Apply" with task-specific verbs in `dialog-registry.ts` `buttonText` entries for all transform dialogs. Added 23 new i18n keys in `en/common.json` and `uk/common.json`. Only `sliceRows` (dual keep/remove mode) and `column-editor` (heterogeneous batch edits) retain "Apply".
 
 ### 1.4 Add `prefers-reduced-motion` support
 

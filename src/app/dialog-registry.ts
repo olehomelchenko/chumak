@@ -76,6 +76,7 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     name: 'filter',
     title: 'Filter Rows',
     type: 'slide-panel',
+    buttonText: 'buttons.filter',
     applyHandler: (cb) => FilterHandlers.applyFilterTransform(cb),
     getState: () => ({
       expression: DialogStore.filterState.expression.value,
@@ -88,6 +89,7 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     name: 'derive',
     title: 'Derive Column',
     type: 'slide-panel',
+    buttonText: 'buttons.addColumn',
     applyHandler: (cb) => DeriveHandlers.applyDeriveTransform(cb),
     getState: () => ({
       columnName: DialogStore.deriveState.columnName.value,
@@ -103,6 +105,7 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     name: 'sort',
     title: 'Sort Rows',
     type: 'slide-panel',
+    buttonText: 'buttons.sort',
     applyHandler: (cb) => SimpleHandlers.applySortTransform(cb),
     getState: () => ({ fields: DialogStore.sortState.fields.value }),
   },
@@ -124,6 +127,7 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     name: 'index',
     title: 'Add Index Column',
     type: 'slide-panel',
+    buttonText: 'buttons.addColumn',
     applyHandler: (cb) => SimpleHandlers.applyIndexTransform(cb),
     getState: () => ({
       columnName: DialogStore.indexState.columnName.value,
@@ -138,6 +142,7 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     name: 'sample',
     title: 'Sample Rows',
     type: 'slide-panel',
+    buttonText: 'buttons.sample',
     applyHandler: (cb) => SampleHandlers.applySampleTransform(cb),
     getState: () => ({
       count: DialogStore.sampleState.count.value,
@@ -151,6 +156,7 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     name: 'spread',
     title: 'Spread Array Column',
     type: 'slide-panel',
+    buttonText: 'buttons.spread',
     applyHandler: (cb) => SpreadHandlers.applySpreadTransform(cb),
     getState: () => ({
       column: DialogStore.spreadState.column.value,
@@ -165,6 +171,7 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     name: 'unroll',
     title: 'Unroll Array Column',
     type: 'slide-panel',
+    buttonText: 'buttons.unroll',
     applyHandler: (cb) => UnrollHandlers.applyUnrollTransform(cb),
     getState: () => ({
       column: DialogStore.unrollState.column.value,
@@ -179,6 +186,7 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     name: 'split',
     title: 'Split Column',
     type: 'slide-panel',
+    buttonText: 'buttons.split',
     applyHandler: (cb) => SplitHandlers.applySplitTransform(cb),
     getState: () => ({
       column: DialogStore.splitState.column.value,
@@ -194,6 +202,7 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     name: 'merge',
     title: 'Merge Columns',
     type: 'slide-panel',
+    buttonText: 'buttons.merge',
     applyHandler: (cb) => MergeHandlers.applyMergeTransform(cb),
     getState: () => ({
       columns: DialogStore.mergeState.columns.value,
@@ -211,6 +220,7 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     name: 'regexpMatch',
     title: 'Regexp Match',
     type: 'slide-panel',
+    buttonText: 'buttons.match',
     applyHandler: (cb) => RegexpHandlers.applyRegexpMatchTransform(cb),
     getState: () => ({
       sourceColumn: DialogStore.regexpMatchState.sourceColumn.value,
@@ -224,6 +234,7 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     name: 'regexpExtract',
     title: 'Regexp Extract',
     type: 'slide-panel',
+    buttonText: 'buttons.extract',
     applyHandler: (cb) => RegexpHandlers.applyRegexpExtractTransform(cb),
     getState: () => ({
       sourceColumn: DialogStore.regexpExtractState.sourceColumn.value,
@@ -238,6 +249,7 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     name: 'date',
     title: 'Date Operations',
     type: 'slide-panel',
+    buttonText: 'buttons.addColumn',
     applyHandler: (cb) => DateHandlers.applyDateTransform(cb),
   },
 
@@ -245,6 +257,7 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     name: 'parseDate',
     title: 'Parse Date',
     type: 'slide-panel',
+    buttonText: 'buttons.parse',
     applyHandler: (cb) => ParseDateHandlers.applyParseDateTransform(cb),
   },
 
@@ -252,6 +265,7 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     name: 'text',
     title: 'Text Operations',
     type: 'slide-panel',
+    buttonText: 'buttons.addColumn',
     applyHandler: (cb) => TextHandlers.applyTextTransform(cb),
   },
 
@@ -259,6 +273,7 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     name: 'dedupe',
     title: 'Duplicates',
     type: 'slide-panel',
+    buttonText: 'buttons.deduplicate',
     applyHandler: (cb) => DedupeHandlers.applyDedupeTransform(cb),
     getState: () => ({
       selectedColumns: DialogStore.dedupeState.selectedColumns.value,
@@ -274,6 +289,7 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     name: 'fold',
     title: 'Unpivot Data (Fold)',
     type: 'slide-panel',
+    buttonText: 'buttons.unpivot',
     applyHandler: (cb) => FoldHandlers.applyFoldTransform(cb),
     getState: () => ({
       keyName: DialogStore.foldState.keyName.value,
@@ -287,6 +303,7 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     name: 'pivot',
     title: 'Pivot Data (Wide)',
     type: 'slide-panel',
+    buttonText: 'buttons.pivot',
     applyHandler: (cb) => PivotHandlers.applyPivotTransform(cb),
     getState: () => ({
       rowColumns: DialogStore.pivotState.rowColumns.value,
@@ -303,6 +320,7 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     name: 'aggregate',
     title: 'Group By',
     type: 'slide-panel',
+    buttonText: 'buttons.group',
     applyHandler: (cb) => AggregateHandlers.applyAggregateTransform(cb),
     getState: () => ({
       groupBy: DialogStore.aggregateState.groupBy.value,
@@ -314,6 +332,7 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     name: 'describe',
     title: 'Summary Statistics',
     type: 'slide-panel',
+    buttonText: 'buttons.describe',
     applyHandler: (cb) => DescribeHandlers.applyDescribeTransform(cb),
     initState: () => {
       const schema = AppStore.activeModel.value?.schema || [];
@@ -332,6 +351,7 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     name: 'window',
     title: 'Window Functions',
     type: 'slide-panel',
+    buttonText: 'buttons.addColumns',
     applyHandler: (cb) => WindowHandlers.applyWindowTransform(cb),
   },
 
@@ -339,7 +359,7 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     name: 'join',
     title: 'Join Data',
     type: 'slide-panel',
-    buttonText: 'buttons.applyJoin',
+    buttonText: 'buttons.join',
     applyHandler: (cb) => JoinHandlers.applyJoinTransform(cb),
     getState: () => ({
       rightModel: DialogStore.joinState.rightModel.value,
@@ -361,7 +381,7 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     name: 'append',
     title: 'Append Data',
     type: 'slide-panel',
-    buttonText: 'buttons.applyAppend',
+    buttonText: 'buttons.append',
     applyHandler: (cb) => AppendHandlers.applyAppendTransform(cb),
     getState: () => ({
       targetModel: DialogStore.appendState.targetModel.value,
@@ -374,6 +394,7 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     name: 'replace',
     title: 'Replace Values',
     type: 'slide-panel',
+    buttonText: 'buttons.replace',
     applyHandler: (cb) => SimpleHandlers.applyReplaceTransform(cb),
     getState: () => ({
       column: DialogStore.replaceState.column.value,
@@ -394,6 +415,7 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     name: 'impute',
     title: 'Impute Missing Values',
     type: 'slide-panel',
+    buttonText: 'buttons.impute',
     applyHandler: (cb) => SimpleHandlers.applyImputeTransform(cb),
     getState: () => ({
       column: DialogStore.imputeState.column.value,
@@ -410,6 +432,7 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     name: 'selectPattern',
     title: 'Select Pattern',
     type: 'slide-panel',
+    buttonText: 'buttons.select',
     applyHandler: (cb) => PatternHandlers.applySelectPatternTransform(cb),
   },
 
@@ -417,6 +440,7 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     name: 'removePattern',
     title: 'Remove Pattern',
     type: 'slide-panel',
+    buttonText: 'buttons.remove',
     applyHandler: (cb) => PatternHandlers.applyRemovePatternTransform(cb),
   },
 
@@ -424,6 +448,7 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     name: 'conditional',
     title: 'Conditional Column',
     type: 'slide-panel',
+    buttonText: 'buttons.addColumn',
     applyHandler: (cb) => PatternHandlers.applyConditionalTransform(cb),
   },
 
@@ -431,6 +456,7 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     name: 'renamePattern',
     title: 'Rename Pattern',
     type: 'slide-panel',
+    buttonText: 'buttons.rename',
     applyHandler: (cb) => PatternHandlers.applyRenamePatternTransform(cb),
   },
 
@@ -438,6 +464,7 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     name: 'promoteHeader',
     title: 'Promote Row to Header',
     type: 'slide-panel',
+    buttonText: 'buttons.promote',
     applyHandler: (cb) => SimpleHandlers.applyPromoteHeaderTransform(cb),
     initState: () => {
       DialogStore.promoteHeaderState.skipRows.value = 0;
@@ -624,7 +651,7 @@ export function getDialogButtonText(dialogName: DialogName): string {
   const config = getDialogConfig(dialogName);
   if (!config?.buttonText) return i18n.t('common:buttons.apply');
 
-  // buttonText stores a translation key like 'buttons.applyJoin'
+  // buttonText stores a translation key like 'buttons.filter'
   // Prefix with 'common:' to specify the namespace
   return i18n.t(`common:${config.buttonText}` as any);
 }
