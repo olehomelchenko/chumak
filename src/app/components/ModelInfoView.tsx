@@ -54,22 +54,12 @@ export function ModelInfoView({ onRenameModel, onDeleteModel }: ModelInfoViewPro
           <p class={styles.subtitle}>{t('modelInfo.subtitle')}</p>
         </div>
         <div class={styles.actions}>
-          <button class="button button--secondary" onClick={onRenameModel}>
-            <span
-              class="iconify"
-              aria-hidden="true"
-              data-icon="carbon:edit"
-              style={{ fontSize: '24px' }}
-            ></span>
+          <button class="button button--ghost" onClick={onRenameModel}>
+            <span class="iconify" aria-hidden="true" data-icon="carbon:edit"></span>
             {t('modelInfo.rename')}
           </button>
-          <button class="button button--danger" onClick={onDeleteModel}>
-            <span
-              class="iconify"
-              aria-hidden="true"
-              data-icon="carbon:trash-can"
-              style={{ fontSize: '24px' }}
-            ></span>
+          <button class="button button--ghost button--danger-text" onClick={onDeleteModel}>
+            <span class="iconify" aria-hidden="true" data-icon="carbon:trash-can"></span>
             {t('modelInfo.delete')}
           </button>
         </div>
@@ -160,16 +150,11 @@ export function ModelInfoView({ onRenameModel, onDeleteModel }: ModelInfoViewPro
                 </p>
               )}
               <button
-                class="button button--secondary"
+                class="button button--ghost"
                 onClick={() => setIsEditingComment(true)}
                 style={{ marginTop: 'var(--space-sm)' }}
               >
-                <span
-                  class="iconify"
-                  aria-hidden="true"
-                  data-icon="carbon:edit"
-                  style={{ fontSize: '16px' }}
-                ></span>
+                <span class="iconify" aria-hidden="true" data-icon="carbon:edit"></span>
                 {comment ? t('modelInfo.editComment') : t('modelInfo.addComment')}
               </button>
             </div>

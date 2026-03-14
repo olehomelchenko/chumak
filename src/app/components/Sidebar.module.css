@@ -184,7 +184,7 @@
 
   &:disabled {
     color: var(--color-dark-gray);
-    opacity: 0.3;
+    opacity: var(--btn-disabled-opacity);
     cursor: default;
   }
 }
@@ -333,7 +333,7 @@
     border: 1px solid var(--color-cyan);
     border-radius: var(--border-radius);
     cursor: pointer;
-    font-size: 0.8125rem;
+    font-size: var(--font-size-sm);
     font-weight: var(--font-weight-medium);
     padding: 2px 8px;
     transition: all var(--transition-fast);
@@ -349,7 +349,7 @@
     background: none;
     border: none;
     cursor: pointer;
-    font-size: 0.875rem;
+    font-size: var(--font-size-base);
     padding: 0;
   }
 }

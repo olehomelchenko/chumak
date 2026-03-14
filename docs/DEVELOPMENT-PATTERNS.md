@@ -1127,6 +1127,8 @@ All visual properties that participate in theming or appear in multiple files mu
 
 When adding a new color, check `variables.css` for an existing semantic token before creating one. Prefer reusing `--color-cyan`, `--color-dark-gray`, etc. over adding single-use tokens.
 
+For button-specific tokens (`--btn-hover-bg`, `--btn-disabled-opacity`, etc.) and variant conventions, see [UX-SPECIFICATION.md §5.4](UX-SPECIFICATION.md).
+
 ---
 
 ## 9. Internationalization (i18n)

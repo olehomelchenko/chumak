@@ -71,16 +71,12 @@ export function AppHeader({ onOpenDialog, onLogoClick }: AppHeaderProps) {
 
         {/* Action Buttons */}
         <div class={styles.actions}>
-          <a
-            class="button button--secondary button--small"
-            href="/about/"
-            title={t('tooltips.about')}
-          >
+          <a class="button button--ghost button--small" href="/about/" title={t('tooltips.about')}>
             <span class="iconify" aria-hidden="true" data-icon="carbon:information"></span>
             <span>{t('buttons.about')}</span>
           </a>
           <button
-            class="button button--secondary button--small"
+            class="button button--ghost button--small"
             onClick={() => onOpenDialog('reference')}
             title={t('tooltips.help')}
           >
@@ -88,7 +84,7 @@ export function AppHeader({ onOpenDialog, onLogoClick }: AppHeaderProps) {
             <span>{t('buttons.help')}</span>
           </button>
           <button
-            class="button button--secondary button--small"
+            class="button button--ghost button--small"
             onClick={() => onOpenDialog('dependency-graph')}
             title={t('tooltips.graph')}
           >
@@ -96,7 +92,7 @@ export function AppHeader({ onOpenDialog, onLogoClick }: AppHeaderProps) {
             <span>{t('labels.graph')}</span>
           </button>
           <button
-            class="button button--secondary button--small"
+            class="button button--ghost button--small"
             onClick={() => onOpenDialog('settings')}
             title={t('tooltips.settings')}
           >

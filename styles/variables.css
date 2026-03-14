@@ -140,6 +140,12 @@
   --color-diff-reordered-border: #bbdefb;
   --color-diff-reordered-text: #1565c0;
 
+  /* Button Interaction Tokens */
+  --btn-hover-bg: rgba(var(--color-cyan-rgb), 0.08);
+  --btn-pressed-bg: rgba(var(--color-cyan-rgb), 0.15);
+  --btn-disabled-opacity: 0.5;
+  --btn-danger-hover-bg: rgba(var(--color-red-rgb), 0.1);
+
   /* Icon Sizes */
   --icon-xs: 12px;
   --icon-sm: 16px;

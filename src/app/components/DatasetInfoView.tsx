@@ -68,52 +68,34 @@ export function DatasetInfoView({
         </div>
         <div class={styles.actions}>
           {source.rawText && (
-            <button class="button button--secondary" onClick={() => onEditData(source)}>
+            <button class="button button--ghost" onClick={() => onEditData(source)}>
               <span
                 class="iconify"
                 aria-hidden="true"
                 data-icon="carbon:text-long-paragraph"
-                style={{ fontSize: '24px' }}
               ></span>
               {t('datasetInfo.actions.editData')}
             </button>
           )}
-          <button class="button button--secondary" onClick={() => onReplaceSource(source)}>
-            <span
-              class="iconify"
-              aria-hidden="true"
-              data-icon="carbon:cyclostat"
-              style={{ fontSize: '24px' }}
-            ></span>
+          <button class="button button--ghost" onClick={() => onReplaceSource(source)}>
+            <span class="iconify" aria-hidden="true" data-icon="carbon:cyclostat"></span>
             {t('datasetInfo.actions.replace')}
           </button>
           {source.backup && (
-            <button class="button button--secondary" onClick={() => onRestoreBackup(source)}>
-              <span
-                class="iconify"
-                aria-hidden="true"
-                data-icon="carbon:undo"
-                style={{ fontSize: '24px' }}
-              ></span>
+            <button class="button button--ghost" onClick={() => onRestoreBackup(source)}>
+              <span class="iconify" aria-hidden="true" data-icon="carbon:undo"></span>
               {t('datasetInfo.actions.restore')}
             </button>
           )}
-          <button class="button button--secondary" onClick={() => onRenameSource(source)}>
-            <span
-              class="iconify"
-              aria-hidden="true"
-              data-icon="carbon:edit"
-              style={{ fontSize: '24px' }}
-            ></span>
+          <button class="button button--ghost" onClick={() => onRenameSource(source)}>
+            <span class="iconify" aria-hidden="true" data-icon="carbon:edit"></span>
             {t('datasetInfo.actions.rename')}
           </button>
-          <button class="button button--danger" onClick={() => onDeleteSource(source)}>
-            <span
-              class="iconify"
-              aria-hidden="true"
-              data-icon="carbon:trash-can"
-              style={{ fontSize: '24px' }}
-            ></span>
+          <button
+            class="button button--ghost button--danger-text"
+            onClick={() => onDeleteSource(source)}
+          >
+            <span class="iconify" aria-hidden="true" data-icon="carbon:trash-can"></span>
             {t('datasetInfo.actions.delete')}
           </button>
         </div>
@@ -202,16 +184,11 @@ export function DatasetInfoView({
                 </p>
               )}
               <button
-                class="button button--secondary"
+                class="button button--ghost"
                 onClick={() => setIsEditingComment(true)}
                 style={{ marginTop: 'var(--space-sm)' }}
               >
-                <span
-                  class="iconify"
-                  aria-hidden="true"
-                  data-icon="carbon:edit"
-                  style={{ fontSize: '16px' }}
-                ></span>
+                <span class="iconify" aria-hidden="true" data-icon="carbon:edit"></span>
                 {comment ? t('datasetInfo.commentEditButton') : t('datasetInfo.commentAdd')}
               </button>
             </div>

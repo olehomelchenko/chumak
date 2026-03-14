@@ -156,7 +156,7 @@ export function ImportCsvDialog({
             />
             <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', marginTop: '8px' }}>
               <button
-                class="button button--secondary button--compact"
+                class="button button--secondary"
                 style={{ fontSize: '11px', padding: '4px 8px' }}
                 onClick={handleJsonPathReset}
                 disabled={!jsonPath.value}
@@ -174,7 +174,7 @@ export function ImportCsvDialog({
                 return (
                   <button
                     key={keyInfo.key}
-                    class="button button--secondary button--compact"
+                    class="button button--secondary"
                     style={{
                       fontSize: '11px',
                       padding: '4px 8px',

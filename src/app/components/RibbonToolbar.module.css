@@ -8,7 +8,7 @@
 
   &.disabled {
     .content {
-      opacity: 0.4;
+      opacity: var(--btn-disabled-opacity);
       pointer-events: none;
     }
   }
@@ -27,7 +27,8 @@
   align-items: center;
 }
 
-.button {
+.button,
+.dropdownButton {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -44,16 +45,16 @@
   min-width: 60px;
 
   &:hover:not(:disabled) {
-    background: rgba(var(--color-cyan-rgb), 0.08);
+    background: var(--btn-hover-bg);
     border-color: var(--color-cyan);
   }
 
   &:active:not(:disabled) {
-    background: rgba(var(--color-cyan-rgb), 0.15);
+    background: var(--btn-pressed-bg);
   }
 
   &.disabled {
-    opacity: 0.4;
+    opacity: var(--btn-disabled-opacity);
     cursor: not-allowed;
 
     &:hover {
@@ -62,16 +63,20 @@
     }
   }
 
-  .iconify {
-    width: var(--icon-xl);
-    height: var(--icon-xl);
-    stroke-width: 2px;
-  }
-
   span {
     line-height: 1.2;
     text-align: center;
   }
+}
+
+.button .iconify {
+  width: var(--icon-xl);
+  height: var(--icon-xl);
+  stroke-width: 2px;
+}
+
+.dropdownButton {
+  position: relative;
 }
 
 .divider {
@@ -90,49 +95,12 @@
 
 .groupLabel {
   font-size: var(--font-size-xxs);
-  color: var(--color-neutral-500);
+  color: var(--color-dark-gray);
   text-transform: uppercase;
   letter-spacing: 0.5px;
   padding: 0 8px;
   margin-bottom: 2px;
   font-weight: 500;
-}
-
-.dropdownButton {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: 2px;
-  padding: 6px 12px;
-  background: transparent;
-  border: var(--border-width) solid transparent;
-  border-radius: var(--border-radius);
-  font-family: var(--font-family);
-  font-size: var(--font-size-xs);
-  color: var(--color-midnight-blue);
-  cursor: pointer;
-  transition: all var(--transition-fast);
-  min-width: 60px;
-  position: relative;
-
-  &:hover:not(:disabled) {
-    background: rgba(var(--color-cyan-rgb), 0.08);
-    border-color: var(--color-cyan);
-  }
-
-  &:active:not(:disabled) {
-    background: rgba(var(--color-cyan-rgb), 0.15);
-  }
-
-  &.disabled {
-    opacity: 0.4;
-    cursor: not-allowed;
-  }
-
-  span {
-    line-height: 1.2;
-    text-align: center;
-  }
 }
 
 .dropdownOpen {

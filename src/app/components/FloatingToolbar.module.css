@@ -50,7 +50,7 @@
     cursor: pointer;
     border-radius: var(--border-radius);
     transition: all var(--transition-fast);
-    font-size: 14px;
+    font-size: var(--font-size-base);
 
     &:hover,
     &:focus-visible {
@@ -63,21 +63,21 @@
     }
 
     :global(.iconify) {
-      width: var(--icon-lg) !important;
-      height: var(--icon-lg) !important;
-      font-size: var(--icon-lg) !important;
+      width: var(--icon-lg);
+      height: var(--icon-lg);
+      font-size: var(--icon-lg);
     }
 
     :global(.iconify svg) {
-      width: var(--icon-lg) !important;
-      height: var(--icon-lg) !important;
+      width: var(--icon-lg);
+      height: var(--icon-lg);
     }
 
     &.danger {
       color: var(--color-dark-red);
 
       &:hover {
-        background: rgba(var(--color-red-rgb), 0.1);
+        background: var(--btn-danger-hover-bg);
         color: var(--color-dark-red);
       }
     }
@@ -101,7 +101,7 @@
   }
 
   &__textOp {
-    font-size: 14px;
+    font-size: var(--font-size-base);
     font-weight: bold;
     font-family: var(--font-family-mono);
   }

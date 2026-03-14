@@ -429,6 +429,57 @@ Five tiers in `variables.css` cover all icon dimensions:
 
 **Rule**: Use icon tokens only for `.iconify` elements and icon-sized button containers. Non-icon UI elements (radio circles, color swatches, dots) should use explicit pixel values — icon tokens are a visual sizing tier, not a general "small square" abstraction.
 
+### 5.4 Button System
+
+The global `buttons.css` defines shared button variants. Local CSS modules consume interaction tokens but own their layout.
+
+#### Variants
+
+| Variant         | When to use                                                    |
+| --------------- | -------------------------------------------------------------- |
+| `--primary`     | CTAs, form submit, confirmation dialogs                        |
+| `--ghost`       | Default action button — use unless another variant fits better |
+| `--secondary`   | Cancel buttons, navigation controls, toggle groups             |
+| `--danger`      | High-emphasis destructive (confirmation dialogs)               |
+| `--danger-text` | Standard destructive actions (delete, remove)                  |
+| `--text`        | Links styled as buttons                                        |
+| `--active`      | Toggle-on state (pairs with `--ghost` for toggle-off)          |
+| `--small`       | Compact size modifier, combinable with any variant             |
+
+#### Choosing a variant
+
+1. **Is it destructive?** Use `--danger-text`. In confirmation dialogs, use `--danger` for the confirm action.
+2. **Is it the primary action?** Use `--primary` (submit, confirm, CTA).
+3. **Is it cancel or a secondary choice?** Use `--secondary`.
+4. **Otherwise** use `--ghost` — it's the default for action buttons in chrome, content areas, and toolbars.
+
+#### Local systems
+
+- **Ribbon**: Vertical stack buttons with `--icon-xl` icons. Own layout, consumes `--btn-hover-bg`, `--btn-pressed-bg`, `--btn-disabled-opacity` tokens.
+- **FloatingToolbar**: Icon-only buttons. Uses `--color-light-gray` hover (gray, not cyan — overlays data table where cyan means selection). Danger variant uses `--btn-danger-hover-bg`.
+- **Sidebar**: Specialized undo/redo and step navigation. Consumes `--btn-disabled-opacity`.
+
+#### Icon sizing
+
+Button variants define `.iconify` sizing via CSS rules — never use inline `fontSize` styles:
+
+- Standard buttons (`--secondary`, `--danger`, `--ghost`, `--active`): `--icon-lg` (24px)
+- `--small` buttons: `--icon-md` (20px)
+- Ribbon buttons: `--icon-xl` (32px) via local CSS module
+
+#### Disabled states
+
+A base disabled rule on `.button` provides `opacity: var(--btn-disabled-opacity)` (0.5), `cursor: not-allowed`, and `pointer-events: auto` (preserves tooltip access per §3.9). All variant hover/active states are guarded with `:not(:disabled):not([aria-disabled='true'])`.
+
+#### Interaction tokens (`variables.css`)
+
+| Token                    | Value                               | Purpose                    |
+| ------------------------ | ----------------------------------- | -------------------------- |
+| `--btn-hover-bg`         | `rgba(var(--color-cyan-rgb), 0.08)` | Standard button hover      |
+| `--btn-pressed-bg`       | `rgba(var(--color-cyan-rgb), 0.15)` | Active/pressed state       |
+| `--btn-disabled-opacity` | `0.5`                               | Universal disabled opacity |
+| `--btn-danger-hover-bg`  | `rgba(var(--color-red-rgb), 0.1)`   | Danger variant hover       |
+
 ---
 
 ## 6. CSS Architecture & Maintainability
@@ -437,7 +488,7 @@ The project follows a **Modular Token-Based Architecture** designed for high mod
 
 ### 6.1 Modular Structure
 
-- **Global Styles**: `styles/variables.css`, `styles/base.css`, `styles/layout.css`
+- **Global Styles**: `styles/variables.css`, `styles/base.css`, `styles/layout.css`, `styles/buttons.css`
 - **Shared Dialog Styles**: Three utility modules provide reusable classes across all dialogs:
   - `form-controls.module.css` — labels, inputs, checkboxes, radios, toggles, chips, error/warning boxes
   - `expression-help.module.css` — expression docs, example grids, operator tags, dynamic docs
