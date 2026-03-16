@@ -242,7 +242,7 @@ export function ColumnToolbar({
         <span
           class="iconify"
           aria-hidden="true"
-          data-icon="carbon:checkbox-checked"
+          data-icon="carbon:replicate"
           style="width: 24px; height: 24px;"
         ></span>
       </button>

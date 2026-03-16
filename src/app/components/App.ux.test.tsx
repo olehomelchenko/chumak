@@ -564,7 +564,7 @@ describe('App UX Interactions', () => {
 
       // Find sample button by its icon
       const sampleButton = document
-        .querySelector('[data-icon="carbon:chart-venn-diagram"]')
+        .querySelector('[data-icon="material-symbols-light:shuffle-rounded"]')
         ?.closest('button');
       expect(sampleButton).toBeDefined();
 

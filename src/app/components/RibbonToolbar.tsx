@@ -228,7 +228,7 @@ function TextPopoverContent({
           }}
         />
         <PopoverDialogLink
-          icon="carbon:text-search"
+          icon="carbon:text-highlight"
           label={t('ribbon.popovers.text.links.extractRegex')}
           onClick={() => {
             onClose();
@@ -452,25 +452,25 @@ export function RibbonToolbar({ onOpenDialog, onAutoDetectSchema }: RibbonToolba
                 onClick={() => onOpenDialog('sort')}
               />
               <RibbonButton
-                icon="carbon:checkbox-checked"
+                icon="carbon:replicate"
                 label={t('ribbon.buttons.duplicates.label')}
                 title={t('ribbon.buttons.duplicates.title')}
                 onClick={() => onOpenDialog('dedupe')}
               />
               <RibbonButton
-                icon="carbon:result"
+                icon="material-symbols-light:content-cut-rounded"
                 label={t('ribbon.buttons.sliceRows.label')}
                 title={t('ribbon.buttons.sliceRows.title')}
                 onClick={() => onOpenDialog('sliceRows')}
               />
               <RibbonButton
-                icon="carbon:chart-venn-diagram"
+                icon="material-symbols-light:shuffle-rounded"
                 label={t('ribbon.buttons.sample.label')}
                 title={t('ribbon.buttons.sample.title')}
                 onClick={() => onOpenDialog('sample')}
               />
               <RibbonButton
-                icon="carbon:table-of-contents"
+                icon="material-symbols-light:vertical-align-top-rounded"
                 label={t('ribbon.buttons.promoteHeader.label')}
                 title={t('ribbon.buttons.promoteHeader.title')}
                 onClick={() => onOpenDialog('promoteHeader')}
@@ -485,7 +485,7 @@ export function RibbonToolbar({ onOpenDialog, onAutoDetectSchema }: RibbonToolba
             {/* Manage Group */}
             <RibbonGroup label={t('ribbon.groups.manage')}>
               <RibbonButton
-                icon="carbon:table-split"
+                icon="carbon:list-boxes"
                 label={t('ribbon.buttons.editColumns.label')}
                 title={t('ribbon.buttons.editColumns.title')}
                 onClick={() => onOpenDialog('column-editor')}
@@ -497,7 +497,7 @@ export function RibbonToolbar({ onOpenDialog, onAutoDetectSchema }: RibbonToolba
                 onClick={() => onOpenDialog('split')}
               />
               <RibbonButton
-                icon="carbon:join-left"
+                icon="material-symbols-light:merge-type-rounded"
                 label={t('ribbon.buttons.merge.label')}
                 title={t('ribbon.buttons.merge.title')}
                 onClick={() => onOpenDialog('merge')}
@@ -526,19 +526,19 @@ export function RibbonToolbar({ onOpenDialog, onAutoDetectSchema }: RibbonToolba
                 onClick={() => onOpenDialog('conditional')}
               />
               <RibbonButton
-                icon="carbon:text-link-analysis"
+                icon="carbon:search-locate"
                 label={t('ribbon.buttons.match.label')}
                 title={t('ribbon.buttons.match.title')}
                 onClick={() => onOpenDialog('regexpMatch')}
               />
               <RibbonButton
-                icon="carbon:text-search"
+                icon="carbon:text-highlight"
                 label={t('ribbon.buttons.extract.label')}
                 title={t('ribbon.buttons.extract.title')}
                 onClick={() => onOpenDialog('regexpExtract')}
               />
               <RibbonButton
-                icon="carbon:row-insert"
+                icon="carbon:list-numbered"
                 label={t('ribbon.buttons.index.label')}
                 title={t('ribbon.buttons.index.title')}
                 onClick={() => onOpenDialog('index')}
@@ -609,13 +609,13 @@ export function RibbonToolbar({ onOpenDialog, onAutoDetectSchema }: RibbonToolba
                 onClick={() => onOpenDialog('aggregate')}
               />
               <RibbonButton
-                icon="carbon:chart-stepper"
+                icon="material-symbols-light:query-stats-rounded"
                 label={t('ribbon.buttons.window.label')}
                 title={t('ribbon.buttons.window.title')}
                 onClick={() => onOpenDialog('window')}
               />
               <RibbonButton
-                icon="carbon:data-table"
+                icon="carbon:analytics"
                 label={t('ribbon.buttons.describe.label')}
                 title={t('ribbon.buttons.describe.title')}
                 onClick={() => onOpenDialog('describe')}
@@ -645,13 +645,13 @@ export function RibbonToolbar({ onOpenDialog, onAutoDetectSchema }: RibbonToolba
             {/* Combine Group */}
             <RibbonGroup label={t('ribbon.groups.combine')}>
               <RibbonButton
-                icon="carbon:branch"
+                icon="carbon:connect"
                 label={t('ribbon.buttons.join.label')}
                 title={t('ribbon.buttons.join.title')}
                 onClick={() => onOpenDialog('join')}
               />
               <RibbonButton
-                icon="carbon:join-full"
+                icon="material-symbols-light:playlist-add-rounded"
                 label={t('ribbon.buttons.append.label')}
                 title={t('ribbon.buttons.append.title')}
                 onClick={() => onOpenDialog('append')}

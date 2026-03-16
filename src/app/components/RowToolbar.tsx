@@ -131,7 +131,7 @@ export function RowToolbar({
             <span
               class="iconify"
               aria-hidden="true"
-              data-icon="carbon:table-of-contents"
+              data-icon="material-symbols-light:vertical-align-top-rounded"
               style="width: 24px; height: 24px;"
             ></span>
           </button>
