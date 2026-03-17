@@ -739,7 +739,12 @@ export async function confirmImport(): Promise<void> {
 
   if (isExcel && excelData) {
     if (excelData.length === 0) {
-      await alert(i18n.t('import.excelError', { ns: 'errors', message: 'Excel file is empty' }));
+      await alert(
+        i18n.t('import.excelError', {
+          ns: 'errors',
+          message: i18n.t('import.emptyExcelFile', { ns: 'errors' }),
+        })
+      );
       return;
     }
 
@@ -756,7 +761,12 @@ export async function confirmImport(): Promise<void> {
     complete: async (results) => {
       const rawData = results.data as unknown[][];
       if (!rawData || rawData.length === 0) {
-        await alert(i18n.t('import.csvError', { ns: 'errors', message: 'CSV file is empty' }));
+        await alert(
+          i18n.t('import.csvError', {
+            ns: 'errors',
+            message: i18n.t('import.emptyCsvFile', { ns: 'errors' }),
+          })
+        );
         return;
       }
 

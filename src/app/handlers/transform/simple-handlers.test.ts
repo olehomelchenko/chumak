@@ -2,17 +2,12 @@ import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { resetStores, suppressConsole } from '../test-utils';
 import { DialogStore } from '../../stores/DialogStore';
 
-vi.mock('../../services/StepService', () => ({
-  StepService: {
-    runTransform: vi.fn().mockResolvedValue(true),
-  },
-}));
-
-vi.mock('../core/notification-handlers', () => ({
-  confirm: vi.fn().mockResolvedValue(true),
-  alert: vi.fn().mockResolvedValue(undefined),
-  prompt: vi.fn().mockResolvedValue(''),
-}));
+vi.mock('../../services/StepService', async () =>
+  (await import('../test-utils')).MockFactories.stepService()
+);
+vi.mock('../core/notification-handlers', async () =>
+  (await import('../test-utils')).MockFactories.notificationHandlers()
+);
 
 import {
   applySortTransform,

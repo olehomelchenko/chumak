@@ -3,9 +3,9 @@ import { resetStores, setTestData, TestData } from '../test-utils';
 import { AppStore } from '../../stores/AppStore';
 import { DialogStore } from '../../stores/DialogStore';
 
-vi.mock('../../services/StepService', () => ({
-  StepService: { runTransform: vi.fn().mockResolvedValue(true) },
-}));
+vi.mock('../../services/StepService', async () =>
+  (await import('../test-utils')).MockFactories.stepService()
+);
 
 import {
   findDuplicateRows,

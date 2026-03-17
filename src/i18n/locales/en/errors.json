@@ -63,6 +63,8 @@
     "pastePrompt": "Press Ctrl+V to paste your data directly.",
     "csvError": "Could not read CSV file: {{message}}. Check the file format and encoding.",
     "excelError": "Could not read Excel file: {{message}}. Check that the file is a valid spreadsheet.",
+    "emptyCsvFile": "CSV file is empty",
+    "emptyExcelFile": "Excel file is empty",
     "fetchError": "Could not fetch data (status {{status}}). Check the URL and try again.",
     "emptyResponse": "The URL returned an empty response. Check the URL and try again.",
     "jsonInvalidStructure": "JSON must contain a \"transforms\" array",

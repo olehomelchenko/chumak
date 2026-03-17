@@ -3,23 +3,15 @@ import { resetStores, setTestData, suppressConsole, TestData } from '../test-uti
 import { DialogStore } from '../../stores/DialogStore';
 import { AppStore } from '../../stores/AppStore';
 
-vi.mock('../../services/StepService', () => ({
-  StepService: {
-    runTransform: vi.fn().mockResolvedValue(true),
-  },
-}));
-
-vi.mock('../core/notification-handlers', () => ({
-  alert: vi.fn().mockResolvedValue(undefined),
-}));
-
-vi.mock('../preview-engine', () => ({
-  createDebouncedPreview: vi.fn().mockReturnValue({
-    trigger: vi.fn(),
-    compute: vi.fn(),
-  }),
-  clearPreview: vi.fn(),
-}));
+vi.mock('../../services/StepService', async () =>
+  (await import('../test-utils')).MockFactories.stepService()
+);
+vi.mock('../core/notification-handlers', async () =>
+  (await import('../test-utils')).MockFactories.notificationHandlers()
+);
+vi.mock('../preview-engine', async () =>
+  (await import('../test-utils')).MockFactories.previewEngine()
+);
 
 import {
   toggleColumnForFold,

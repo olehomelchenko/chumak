@@ -3,24 +3,15 @@ import { resetStores, setTestData, suppressConsole } from '../test-utils';
 import { AppStore } from '../../stores/AppStore';
 import { DialogStore } from '../../stores/DialogStore';
 
-vi.mock('../../services/StepService', () => ({
-  StepService: {
-    runTransform: vi.fn().mockResolvedValue(true),
-    applyStepResult: vi.fn().mockResolvedValue(undefined),
-  },
-}));
-
-vi.mock('../preview-engine', () => ({
-  createDebouncedPreview: vi.fn().mockReturnValue({
-    trigger: vi.fn(),
-    compute: vi.fn(),
-  }),
-  clearPreview: vi.fn(),
-}));
-
-vi.mock('../validation-engine', () => ({
-  validateRegexPattern: vi.fn().mockReturnValue({ valid: true }),
-}));
+vi.mock('../../services/StepService', async () =>
+  (await import('../test-utils')).MockFactories.stepServiceFull()
+);
+vi.mock('../preview-engine', async () =>
+  (await import('../test-utils')).MockFactories.previewEngine()
+);
+vi.mock('../validation-engine', async () =>
+  (await import('../test-utils')).MockFactories.validationEngineRegex()
+);
 
 import { detectDelimiter, applySplitTransform } from './split-handlers';
 

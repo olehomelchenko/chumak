@@ -2,11 +2,9 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { AppStore } from '../../stores/AppStore';
 import { resetStores } from '../test-utils';
 
-vi.mock('../../services/StepService', () => ({
-  StepService: {
-    runTransform: vi.fn().mockResolvedValue(true),
-  },
-}));
+vi.mock('../../services/StepService', async () =>
+  (await import('../test-utils')).MockFactories.stepService()
+);
 
 import { executeShortcut, SHORTCUT_REGISTRY } from './shortcut-handlers';
 import { StepService } from '../../services/StepService';

@@ -2,15 +2,12 @@ import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { resetStores, suppressConsole } from '../test-utils';
 import { DialogStore } from '../../stores/DialogStore';
 
-vi.mock('../../services/StepService', () => ({
-  StepService: {
-    runTransform: vi.fn().mockResolvedValue(true),
-  },
-}));
-
-vi.mock('../validation-engine', () => ({
-  validateRegexPattern: vi.fn().mockReturnValue({ valid: true }),
-}));
+vi.mock('../../services/StepService', async () =>
+  (await import('../test-utils')).MockFactories.stepService()
+);
+vi.mock('../validation-engine', async () =>
+  (await import('../test-utils')).MockFactories.validationEngineRegex()
+);
 
 import {
   applySelectPatternTransform,

@@ -18,17 +18,17 @@ Syto's architecture effectively prevents data loss and ensures reproducibility t
 
 ### 1. Multi-Model Dependency Fragility
 
-**Severity: Medium**
+**Severity: Medium — Decided: Keep Current Behavior**
 
-- **Issue**: Deleting a model that others depend on (via joins or unions) can break downstream workflows. While currently "blocked," this creates a rigid UX.
-- **Proposed Enhancement**: **"Shadow Sources"**. When a referenced model is deleted, convert its final state into a hidden static source that persists for the benefit of dependent models.
+- **Issue**: Deleting a model that others depend on (via joins or unions) is blocked with a clear message naming the dependent models.
+- **Resolution**: The hard-block approach is simple, transparent, and sufficient. The proposed "Shadow Sources" alternative (hidden frozen snapshots) was rejected — it would add a new concept (hidden state) that conflicts with the project's transparency values, for marginal benefit in an edge-case scenario (reorganizing 4+ interconnected models).
 
 ### 2. Aggregate "Silent Exclusion"
 
-**Severity: Low**
+**Severity: Low — Decided: Accept Current Behavior**
 
-- **Issue**: Aggregations (sum, mean, etc.) currently skip "Error Objects" (created during type conversion failures) without explicitly alerting the user in the context of the calculation.
-- **Proposed Enhancement**: **Error Audit Trail**. Implement a model-level warning indicator that summarizes records excluded from calculations, ensuring transparency in data integrity.
+- **Issue**: Aggregations (sum, mean, etc.) silently skip error objects without alerting the user in the context of the calculation.
+- **Resolution**: Error counts are already visible per-column in the EDA sidebar before aggregation. Adding post-aggregation warnings would require a warnings sideband in the transform pipeline — significant architectural cost for marginal transparency gain.
 
 ### 3. JSON "Danger Zone" Validation
 

@@ -2,9 +2,9 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { resetStores } from '../test-utils';
 import { DialogStore } from '../../stores/DialogStore';
 
-vi.mock('../../services/StepService', () => ({
-  StepService: { runTransform: vi.fn().mockResolvedValue(true) },
-}));
+vi.mock('../../services/StepService', async () =>
+  (await import('../test-utils')).MockFactories.stepService()
+);
 
 import { applySampleTransform } from './sample-handlers';
 import { StepService } from '../../services/StepService';

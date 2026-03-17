@@ -2,25 +2,16 @@ import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { resetStores, setTestData, suppressConsole, TestData } from '../test-utils';
 import { DialogStore } from '../../stores/DialogStore';
 
-vi.mock('../../services/StepService', () => ({
-  StepService: {
-    runTransform: vi.fn().mockResolvedValue(true),
-    applyStepResult: vi.fn().mockResolvedValue(undefined),
-  },
-}));
-
+vi.mock('../../services/StepService', async () =>
+  (await import('../test-utils')).MockFactories.stepServiceFull()
+);
 vi.mock('../core/helper-handlers', () => ({
   preparePreviewData: vi.fn(),
   getPreviewRowLimit: vi.fn().mockReturnValue(10),
 }));
-
-vi.mock('../preview-engine', () => ({
-  createDebouncedPreview: vi.fn().mockReturnValue({
-    trigger: vi.fn(),
-    compute: vi.fn(),
-  }),
-  clearPreview: vi.fn(),
-}));
+vi.mock('../preview-engine', async () =>
+  (await import('../test-utils')).MockFactories.previewEngine()
+);
 
 import { constructPivotStep, onPivotConfigChange } from './pivot-handlers';
 import { AppStore } from '../../stores/AppStore';

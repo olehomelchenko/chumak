@@ -2,29 +2,18 @@ import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { resetStores, setTestData, suppressConsole, TestData } from '../test-utils';
 import { DialogStore } from '../../stores/DialogStore';
 
-vi.mock('../../services/StepService', () => ({
-  StepService: {
-    runTransform: vi.fn().mockResolvedValue(true),
-  },
-}));
-
-vi.mock('../preview-engine', () => ({
-  createDebouncedPreview: vi.fn().mockReturnValue({
-    trigger: vi.fn(),
-    compute: vi.fn(),
-  }),
-  clearPreview: vi.fn(),
-}));
-
-vi.mock('../validation-engine', () => ({
-  validateExpression: vi.fn(),
-}));
-
-vi.mock('../core/notification-handlers', () => ({
-  confirm: vi.fn().mockResolvedValue(true),
-  alert: vi.fn().mockResolvedValue(undefined),
-  prompt: vi.fn().mockResolvedValue(''),
-}));
+vi.mock('../../services/StepService', async () =>
+  (await import('../test-utils')).MockFactories.stepService()
+);
+vi.mock('../preview-engine', async () =>
+  (await import('../test-utils')).MockFactories.previewEngine()
+);
+vi.mock('../validation-engine', async () =>
+  (await import('../test-utils')).MockFactories.validationEngineExpression()
+);
+vi.mock('../core/notification-handlers', async () =>
+  (await import('../test-utils')).MockFactories.notificationHandlers()
+);
 
 import { applyDeriveTransform, validateDeriveExpression } from './derive-handlers';
 import { confirm } from '../core/notification-handlers';

@@ -506,6 +506,16 @@ When to mock:
 | Signal stores         | Sometimes | Reset in `beforeEach`, mock for isolation |
 | Date/time             | Yes       | `vi.useFakeTimers()`                      |
 
+**Shared mock factories**: Handler tests must use `MockFactories` from `test-utils.ts` instead of inline mock definitions. This centralizes mock shapes so interface changes only need one update:
+
+```typescript
+vi.mock('../../services/StepService', async () =>
+  (await import('../test-utils')).MockFactories.stepService()
+);
+```
+
+Available factories: `stepService`, `stepServiceFull` (adds `applyStepResult`), `notificationHandlers`, `previewEngine`, `validationEngineExpression`, `validationEngineRegex`.
+
 ---
 
 ## 4. Error Handling

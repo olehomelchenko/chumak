@@ -59,47 +59,6 @@ Import multiple files at once via multi-select file picker (`<input multiple>`) 
 
 ## UI/UX Enhancements
 
-### Custom Icon Library
-
-**Status**: Planned
-**Effort**: Medium-Large
-**Reference**: [custom-icons-setup.md](custom-icons-setup.md)
-
-Migrate from Iconify CDN to custom hand-drawn SVG icons for better brand consistency and offline support.
-
-**Current State**: Syto uses Iconify via CDN script (`iconify.min.js`) with icons from Carbon Design (`carbon:*`), Material Symbols Light (`material-symbols-light:*`), Codicon (`codicon:*`), and Iconify Extended (`ix:*`).
-
-**Proposed Solution**:
-
-- Generate Preact components from hand-drawn SVGs using SVGR
-- Create icon wrapper component for gradual migration
-- Build icon registry for programmatic access (e.g., `getTypeIcon`)
-- Phase-based migration: infrastructure → high-visibility icons → dialogs → complete
-
-**Benefits**:
-
-- Offline support (no CDN dependency)
-- Consistent visual style with hand-drawn aesthetic
-- Better tree-shaking (only used icons in bundle)
-- Brand identity through custom iconography
-
-**Challenges**:
-
-- ~100+ icons currently in use across components
-- Need to maintain backward compatibility during migration
-- Icon functions (`getTypeIcon`, `getNotificationIcon`) need updates
-
-See [custom-icons-setup.md](custom-icons-setup.md) for detailed setup guide and migration strategy.
-
-### Test Mock Deduplication
-
-**Status**: Planned
-**Effort**: Small
-
-11 handler test files copy-paste the same `StepService` mock, 4 repeat `notification-handlers`, 4 repeat `preview-engine`, 3 repeat `validation-engine`. This causes cascade failures when shared interfaces change (e.g., adding a parameter to `confirm()` required updating 27 files).
-
-**Proposed fix**: Add shared mock factories to `src/app/handlers/test-utils.ts` using `vi.hoisted()` so they work with Vitest's `vi.mock` hoisting. E.g., `mockStepService()`, `mockNotificationHandlers()`, `mockPreviewEngine()`.
-
 ### Empty State Components
 
 **Status**: Planned
@@ -109,92 +68,19 @@ Add designed empty states for scenarios currently showing blank space. See [UX-S
 
 ---
 
-## Infrastructure
-
-### i18n: Hardcoded Empty-File Messages in Import
-
-**Status**: Minor
-**Effort**: Tiny
-
-`confirmImport()` in `import-handlers.ts` passes hardcoded English strings (`'Excel file is empty'`, `'CSV file is empty'`) as the `message` parameter to i18n error templates (`excelError`, `csvError`). Extract these to their own i18n keys so the inner message is also translated.
-
----
-
-### Template Landing Page for i18n
-
-**Status**: Planned
-**Effort**: Small
-
-The UK landing page (`/uk/`) is currently derived from the EN `index.html` via ~15 positional string replacements in both `build-content-pages.ts` and `vite-plugin-content-pages.ts`. This is fragile — any change to `index.html` text, whitespace, or element order can silently produce a broken UK page with no build error.
-
-**Proposed fix**: Template `index.html` with `{{placeholder}}` tokens (the same pattern already used by `page-shell.html` for content pages). Add landing-specific strings to `localeStrings` in `content-pages-config.ts`. Use Vite's `transformIndexHtml` hook to fill EN values during both dev and build. For `/uk/`, the dev middleware and build script read the same template and fill UK values — no string-replacement gymnastics.
-
-**Why now matters**: Adding a third locale or changing any hero/footer copy will require updating two separate replacement chains that are already subtly inconsistent (`replace` vs `replaceAll`, exact strings vs regex). Templating eliminates this entire category of bugs.
-
----
-
-### Performance Profiling & Limits
-
-**Status**: Ongoing
-**Effort**: Investigation
-
-Current soft limit is ~100K rows based on browser memory. Need systematic testing to determine:
-
-- Comfortable limit on various machines
-- Where bottlenecks occur (parsing, transforms, rendering)
-
-#### Web Workers for Heavy Transforms
-
-**Status**: Deferred (investigation needed)
-**Effort**: Medium
-
-Investigate whether Arquero transforms can run in web workers to keep UI responsive during heavy operations. Questions to answer:
-
-- Can Arquero tables be transferred to workers efficiently (structured clone vs transferable)?
-- Which transforms would benefit most (join, aggregate, large filter operations)?
-- What's the serialization overhead vs transform time tradeoff?
-
-This would require a proof-of-concept with benchmarks before committing to implementation.
-
----
-
-### Extract Preview Panel from App.tsx
-
-**Status**: Planned
-**Effort**: Small
-
-`App.tsx` wraps high-frequency dialog helpers (`activeDialogHasError`, `hasPreviewData`, `getPreviewStats`, `getPreviewTitle`) in `useComputed()` to prevent the entire tree from re-rendering on every keystroke. However, `getPreviewColumns()`, `getPreviewRows()`, and `isNewPreviewColumn()` are still called directly during App's render (inside the `hasPreview.value` guard), subscribing App to `DialogStore.previewState.columns`, `.rows`, and `.newColumns` signals.
-
-**Proposed fix**: Extract the preview table (lines ~351–404 of `App.tsx`) into a dedicated `<PreviewPanel />` component. The component would own its signal subscriptions, so preview data updates only re-render the preview panel — not the entire App tree including the sidebar, ribbon, main content, and all open dialogs.
-
-**Why it matters now**: The `useComputed` fix eliminated the worst offender (keystroke-triggered full re-renders), but preview data updates during transform editing still cause unnecessary work. The impact is lower than the keystroke case because preview data changes less frequently, but it scales with preview row count and the number of child components in App.
-
----
-
-### Workflow Format Stability
-
-**Status**: Important for future
-**Effort**: Documentation + validation
-
-The transformation JSON format needs to be stable enough that:
-
-- Workflows saved today work in future versions
-- Format could be executed by different backends (Arquero, DuckDB, etc.)
-- Breaking changes are versioned and documented
-
 ---
 
 ## Non-Destructive Pillar Strengthening
 
-**Status**: Analysis Complete / Implementation Planned
+**Status**: Analysis Complete — No Remaining Gaps
 **Reference**: [NON-DESTRUCTIVE-ANALYSIS.md](NON-DESTRUCTIVE-ANALYSIS.md)
 
-A comprehensive analysis of Syto's adherence to non-destructive principles was conducted in January 2026. While the core foundation is solid, several infrastructure enhancements are planned to make the "unbreakable" workflow a reality.
+A comprehensive analysis of Syto's adherence to non-destructive principles was conducted in January 2026. The original analysis identified 4 gaps; all have been resolved:
 
-| Enhancement           | Description                                               | Status  |
-| --------------------- | --------------------------------------------------------- | ------- |
-| **Shadow Sources**    | Preserve deleted model states if dependencies exist.      | Planned |
-| **Error Audit Trail** | Explicit warnings for records excluded from aggregations. | Planned |
+- **Undo/Redo** — Implemented (March 2026)
+- **JSON Danger Zone Validation** — Implemented (February 2026)
+- **Shadow Sources** — Decided against. The current hard-block on deleting referenced models is simpler, more transparent, and sufficient.
+- **Error Audit Trail** — Decided against. Error counts are already visible in EDA before aggregation. Adding a warnings sideband to the transform pipeline would require significant architectural changes for marginal benefit.
 
 ---
 
@@ -248,7 +134,11 @@ These have been considered and explicitly excluded:
 4. Bulk File Import with optional union (small-medium effort, common real-world pattern)
 5. Flatten JSON transform
 6. Fill Date Gaps transform (medium effort, important for time series)
-7. Web Workers investigation for heavy transforms
+7. Empty State Components (medium effort, UX polish)
+
+### Future Ideas (not on active backlog)
+
+See [future/FUTURE-IDEAS.md](future/FUTURE-IDEAS.md) for ideas worth revisiting when the app has traction: custom icon library, performance/Web Workers, workflow format stability, i18n landing page templating.
 
 ---
 
@@ -301,6 +191,8 @@ Completed features are documented here for posterity:
 - **TransformDialog.module.css decomposition** — March 2026. Split the 846-line monolithic CSS file into 11 purpose-specific modules: `form-controls.module.css` (universal form elements), `expression-help.module.css` (expression docs UI), `column-editor.module.css` (drag/drop column lists), plus 8 dialog-specific modules (Settings, Download, Date, ImportCsv, preview-table, Window, Aggregate, Generate). Updated 47 consumer file imports. See [archive/CODE-REDUCTION-ANALYSIS.md](archive/CODE-REDUCTION-ANALYSIS.md) §4.
 - **Content guidelines audit** — March 2026. Removed "Please" from ~40 validation messages across handlers/services (imperative form: "Enter a column name"). Updated `dialog-registry.ts` `buttonText` entries to task-specific verbs (Filter, Sort, Add column, etc.) instead of generic "Apply". Added action-specific confirm labels (Delete, Remove, Overwrite, Discard, Replace, Clear all) to all confirmation dialogs. Replaced remaining hardcoded English strings in `dialog-handlers.ts` and `date-handlers.ts` with i18n calls.
 - **Reduced motion support** — March 2026. Added `prefers-reduced-motion: reduce` media query to `styles/base.css` covering all animations and transitions.
+- **i18n hardcoded import messages** — March 2026. Extracted hardcoded English strings (`'Excel file is empty'`, `'CSV file is empty'`) in `confirmImport()` to i18n keys (`import.emptyExcelFile`, `import.emptyCsvFile`) with Ukrainian translations.
+- **Test mock deduplication** — March 2026. Added `MockFactories` to `test-utils.ts` with shared factories for `StepService`, `notification-handlers`, `preview-engine`, and `validation-engine`. Updated 11 handler test files to use centralized factories via async `vi.mock` with dynamic import, so interface changes require updating one file instead of 11+.
 
 ---
 

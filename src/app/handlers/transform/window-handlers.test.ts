@@ -2,9 +2,9 @@ import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { resetStores, suppressConsole, createMockExecutionCallbacks } from '../test-utils';
 import { DialogStore } from '../../stores/DialogStore';
 
-vi.mock('../../services/StepService', () => ({
-  StepService: { runTransform: vi.fn().mockResolvedValue(true) },
-}));
+vi.mock('../../services/StepService', async () =>
+  (await import('../test-utils')).MockFactories.stepService()
+);
 
 import { constructWindowStep, applyWindowTransform } from './window-handlers';
 import { StepService } from '../../services/StepService';

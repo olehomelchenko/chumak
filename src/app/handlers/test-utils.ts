@@ -354,4 +354,41 @@ export function createTestSchema(...cols: [string, ColumnType][]): ColumnSchema[
   return cols.map(([name, type]) => ({ name, type }));
 }
 
-// expect is imported at the top and used by assertion helpers
+/**
+ * Shared mock factories for vi.mock() calls.
+ * Centralizes mock shapes so interface changes only need one update.
+ *
+ * Usage in test files:
+ *   vi.mock('../../services/StepService', async () =>
+ *     (await import('../test-utils')).MockFactories.stepService()
+ *   );
+ */
+export const MockFactories = {
+  stepService: () => ({
+    StepService: { runTransform: vi.fn().mockResolvedValue(true) },
+  }),
+  stepServiceFull: () => ({
+    StepService: {
+      runTransform: vi.fn().mockResolvedValue(true),
+      applyStepResult: vi.fn().mockResolvedValue(undefined),
+    },
+  }),
+  notificationHandlers: () => ({
+    confirm: vi.fn().mockResolvedValue(true),
+    alert: vi.fn().mockResolvedValue(undefined),
+    prompt: vi.fn().mockResolvedValue(''),
+  }),
+  previewEngine: () => ({
+    createDebouncedPreview: vi.fn().mockReturnValue({
+      trigger: vi.fn(),
+      compute: vi.fn(),
+    }),
+    clearPreview: vi.fn(),
+  }),
+  validationEngineExpression: () => ({
+    validateExpression: vi.fn(),
+  }),
+  validationEngineRegex: () => ({
+    validateRegexPattern: vi.fn().mockReturnValue({ valid: true }),
+  }),
+};
