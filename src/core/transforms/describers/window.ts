@@ -1,17 +1,5 @@
 import i18n from '../../../i18n/core';
-
-const AGGREGATE_FUNCTIONS = [
-  'sum',
-  'mean',
-  'min',
-  'max',
-  'count',
-  'product',
-  'median',
-  'mode',
-  'stdev',
-  'variance',
-];
+import { AGGREGATE_FUNCTIONS } from '../window-constants';
 
 export function describeWindow(transform: any): string | null {
   if (!transform.window) return null;

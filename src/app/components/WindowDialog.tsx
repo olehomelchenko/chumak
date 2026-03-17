@@ -9,46 +9,16 @@ import aggStyles from './AggregateDialog.module.css';
 import exprStyles from './expression-help.module.css';
 const styles = { ...formStyles, ...winStyles, ...aggStyles, ...exprStyles };
 import type { WindowFunction, OrderByItem } from '../stores/dialogs/aggregate/window-state';
-
-/** Window functions that require a source column */
-const COLUMN_REQUIRED_FUNCTIONS = [
-  'lag',
-  'lead',
-  'first_value',
-  'last_value',
-  'nth_value',
-  'fill_down',
-  'fill_up',
-  'sum',
-  'mean',
-  'min',
-  'max',
-  'product',
-  'median',
-  'mode',
-  'stdev',
-  'variance',
-];
+import {
+  AGGREGATE_FUNCTIONS,
+  COLUMN_REQUIRED_FUNCTIONS,
+} from '../../core/transforms/window-constants';
 
 /** Window functions that use the offset parameter */
 const OFFSET_FUNCTIONS = ['lag', 'lead', 'ntile', 'nth_value'];
 
 /** Window functions that can have a default value */
 const DEFAULT_VALUE_FUNCTIONS = ['lag', 'lead'];
-
-/** Aggregate functions that support frame specification */
-const AGGREGATE_FUNCTIONS = [
-  'sum',
-  'mean',
-  'min',
-  'max',
-  'count',
-  'product',
-  'median',
-  'mode',
-  'stdev',
-  'variance',
-];
 
 export function WindowDialog() {
   const { t } = useTranslation('dialogs');

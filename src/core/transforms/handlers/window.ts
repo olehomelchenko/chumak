@@ -1,9 +1,8 @@
 import * as aq from 'arquero';
 import type { FullTransformStep, TransformContext } from '../types';
+import { AGGREGATE_FUNCTIONS } from '../window-constants';
 
-/**
- * Pure window functions: operate on row position/order within the frame.
- */
+/** Pure window functions: operate on row position/order within the frame. */
 const WINDOW_FUNCTIONS = [
   'lag',
   'lead',
@@ -19,24 +18,6 @@ const WINDOW_FUNCTIONS = [
   'nth_value',
   'fill_down',
   'fill_up',
-];
-
-/**
- * Aggregate functions: when used in a window context with aq.rolling(),
- * these compute cumulative or rolling aggregates over the window frame.
- * Default frame is [-Infinity, 0] (cumulative), matching SQL behavior.
- */
-const AGGREGATE_FUNCTIONS = [
-  'sum',
-  'mean',
-  'min',
-  'max',
-  'count',
-  'product',
-  'median',
-  'mode',
-  'stdev',
-  'variance',
 ];
 
 const ALLOWED_WINDOW_FUNCTIONS = [...WINDOW_FUNCTIONS, ...AGGREGATE_FUNCTIONS];

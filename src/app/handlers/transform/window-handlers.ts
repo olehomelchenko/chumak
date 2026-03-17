@@ -7,40 +7,10 @@ import * as HelperHandlers from '../core/helper-handlers';
 import { createDebouncedPreview, clearPreview, PreviewResult } from '../preview-engine';
 import type { WindowFunction } from '../../stores/dialogs/aggregate/window-state';
 import i18n from '../../../i18n';
-
-/** Window functions that require a source column */
-const COLUMN_REQUIRED_FUNCTIONS = [
-  'lag',
-  'lead',
-  'first_value',
-  'last_value',
-  'nth_value',
-  'fill_down',
-  'fill_up',
-  'sum',
-  'mean',
-  'min',
-  'max',
-  'product',
-  'median',
-  'mode',
-  'stdev',
-  'variance',
-];
-
-/** Aggregate functions that support window frames */
-const AGGREGATE_FUNCTIONS = [
-  'sum',
-  'mean',
-  'min',
-  'max',
-  'count',
-  'product',
-  'median',
-  'mode',
-  'stdev',
-  'variance',
-];
+import {
+  AGGREGATE_FUNCTIONS,
+  COLUMN_REQUIRED_FUNCTIONS,
+} from '../../../core/transforms/window-constants';
 
 /**
  * Build the window expression string for a window function
