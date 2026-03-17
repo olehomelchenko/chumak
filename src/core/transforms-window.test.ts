@@ -112,6 +112,64 @@ describe('Transform Engine - Window Operations', () => {
       expect(rows[3].dense_rank).toBe(3); // score 80 (no gap)
     });
 
+    it('should apply avg_rank function', () => {
+      const table = (aq as any).from([{ score: 100 }, { score: 90 }, { score: 90 }, { score: 80 }]);
+      const transform = {
+        window: {
+          orderBy: [{ field: 'score', order: 'desc' as const }],
+          derive: { avg_rnk: 'op.avg_rank()' },
+        },
+      };
+
+      const result = applyTransform(table, transform, ['score']);
+      const rows = result.objects();
+
+      expect(rows[0].avg_rnk).toBe(1); // score 100
+      expect(rows[1].avg_rnk).toBe(2.5); // score 90 (tied: average of 2 and 3)
+      expect(rows[2].avg_rnk).toBe(2.5); // score 90
+      expect(rows[3].avg_rnk).toBe(4); // score 80
+    });
+
+    it('should apply cume_dist function', () => {
+      const table = (aq as any).from([{ score: 100 }, { score: 90 }, { score: 90 }, { score: 80 }]);
+      const transform = {
+        window: {
+          orderBy: [{ field: 'score', order: 'desc' as const }],
+          derive: { cdist: 'op.cume_dist()' },
+        },
+      };
+
+      const result = applyTransform(table, transform, ['score']);
+      const rows = result.objects();
+
+      expect(rows[0].cdist).toBe(0.25); // 1/4
+      expect(rows[1].cdist).toBe(0.75); // 3/4 (ties share highest position)
+      expect(rows[2].cdist).toBe(0.75); // 3/4
+      expect(rows[3].cdist).toBe(1); // 4/4
+    });
+
+    it('should apply nth_value function', () => {
+      const table = (aq as any).from([
+        { date: '2024-01-01', value: 10 },
+        { date: '2024-01-02', value: 20 },
+        { date: '2024-01-03', value: 30 },
+      ]);
+      const transform = {
+        window: {
+          orderBy: [{ field: 'date', order: 'asc' as const }],
+          derive: { second_val: "op.nth_value('value', 2)" },
+        },
+      };
+
+      const result = applyTransform(table, transform, ['date', 'value']);
+      const rows = result.objects();
+
+      // nth_value(2) returns the 2nd value in the full window
+      expect(rows[0].second_val).toBe(20);
+      expect(rows[1].second_val).toBe(20);
+      expect(rows[2].second_val).toBe(20);
+    });
+
     it('should apply window function with partitioning', () => {
       const table = createTestTable();
       const transform = {

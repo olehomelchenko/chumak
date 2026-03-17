@@ -2,6 +2,7 @@ import { useComputed } from '@preact/signals';
 import { useRef } from 'preact/hooks';
 import { useTranslation } from 'preact-i18next';
 import { AppStore } from '../stores/AppStore';
+import { DialogStore } from '../stores/DialogStore';
 import { AppController } from '../orchestration/AppController';
 import { getColumnType } from '../handlers/core/helper-handlers';
 import {
@@ -350,6 +351,86 @@ function ConvertPopoverContent({ onClose, t }: { onClose: () => void; t: any }) 
 }
 
 // ============================================================
+// Window presets popover
+// ============================================================
+
+interface WindowPreset {
+  i18nKey: string;
+  func: string;
+  needsColumn: boolean;
+  frameStart?: number | null;
+  frameEnd?: number | null;
+}
+
+const WINDOW_PRESETS: WindowPreset[] = [
+  { i18nKey: 'rowNumber', func: 'row_number', needsColumn: false },
+  { i18nKey: 'rank', func: 'rank', needsColumn: false },
+  { i18nKey: 'previousValue', func: 'lag', needsColumn: true },
+  { i18nKey: 'runningTotal', func: 'sum', needsColumn: true, frameStart: null, frameEnd: 0 },
+  { i18nKey: 'movingAverage', func: 'mean', needsColumn: true, frameStart: -2, frameEnd: 0 },
+  { i18nKey: 'fillDown', func: 'fill_down', needsColumn: true },
+];
+
+function applyWindowPreset(preset: WindowPreset) {
+  const selectedCol = AppStore.selectedColumn.value ?? '';
+  const sourceCol = preset.needsColumn ? selectedCol : '';
+  const output = preset.needsColumn && sourceCol ? `${preset.func}_${sourceCol}` : '';
+
+  DialogStore.windowState.windowFunctions.value = [
+    {
+      func: preset.func,
+      sourceCol,
+      offset: 1,
+      defaultValue: '',
+      output,
+      frameStart: preset.frameStart ?? null,
+      frameEnd: preset.frameEnd ?? 0,
+    },
+  ];
+}
+
+function WindowPopoverContent({
+  onOpenDialog,
+  onClose,
+  t,
+}: {
+  onOpenDialog: (d: DialogName) => void;
+  onClose: () => void;
+  t: any;
+}) {
+  return (
+    <>
+      <PopoverSection label={t('ribbon.popovers.window.section')}>
+        {WINDOW_PRESETS.map((preset) => (
+          <ShortcutChip
+            key={preset.i18nKey}
+            label={t(`ribbon.popovers.window.shortcuts.${preset.i18nKey}.label`)}
+            title={t(`ribbon.popovers.window.shortcuts.${preset.i18nKey}.title`)}
+            disabled={false}
+            onClick={() => {
+              onClose();
+              applyWindowPreset(preset);
+              onOpenDialog('window');
+            }}
+          />
+        ))}
+      </PopoverSection>
+      <PopoverDivider />
+      <div class={popoverStyles.dialogLinks}>
+        <PopoverDialogLink
+          icon="material-symbols-light:query-stats-rounded"
+          label={t('ribbon.popovers.window.links.customWindow')}
+          onClick={() => {
+            onClose();
+            onOpenDialog('window');
+          }}
+        />
+      </div>
+    </>
+  );
+}
+
+// ============================================================
 // More dropdown (overflow for niche operations)
 // ============================================================
 
@@ -408,6 +489,9 @@ function ActivePopover({ onOpenDialog }: { onOpenDialog: (d: DialogName) => void
         <NumberPopoverContent onOpenDialog={onOpenDialog} onClose={onClose} t={t} />
       )}
       {category === 'convert' && <ConvertPopoverContent onClose={onClose} t={t} />}
+      {category === 'window' && (
+        <WindowPopoverContent onOpenDialog={onOpenDialog} onClose={onClose} t={t} />
+      )}
       {category === 'more' && (
         <MorePopoverContent onOpenDialog={onOpenDialog} onClose={onClose} t={t} />
       )}
@@ -608,11 +692,10 @@ export function RibbonToolbar({ onOpenDialog, onAutoDetectSchema }: RibbonToolba
                 title={t('ribbon.buttons.groupBy.title')}
                 onClick={() => onOpenDialog('aggregate')}
               />
-              <RibbonButton
+              <RibbonDropdownButton
                 icon="material-symbols-light:query-stats-rounded"
                 label={t('ribbon.buttons.window.label')}
-                title={t('ribbon.buttons.window.title')}
-                onClick={() => onOpenDialog('window')}
+                category="window"
               />
               <RibbonButton
                 icon="carbon:analytics"

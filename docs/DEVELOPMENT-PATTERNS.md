@@ -72,6 +72,30 @@ For simple one-click transforms that wrap a single expression (e.g., `upper()`, 
 
 No changes needed in `AppController`, `RibbonToolbar`, or other files — rendering and execution are data-driven.
 
+### 1.2.1 Adding a Dialog Pre-Fill Preset (Opens Dialog with State)
+
+For ribbon popover chips that pre-configure a dialog rather than applying instantly (e.g., Window presets like "Running Total", or `quickFilter`/`quickSplit` in `interaction-handlers.ts`):
+
+1. Define preset data and a function that writes to `DialogStore.*State` signals
+2. Add a `ShortcutChip` in the popover content that calls the pre-fill function, then `onOpenDialog('...')`
+3. Add i18n keys under `ribbon.popovers.{category}.shortcuts`
+
+This is distinct from §1.2 shortcuts (which apply immediately). Use this pattern when the transform needs user review before applying.
+
+### 1.2.2 Adding a New Window Function
+
+Window functions are a sub-system of the `window` transform. Adding a new function touches fewer files than a full transform but requires registration in multiple layers:
+
+| Layer     | File                                                                           | What to Add                                                                  |
+| --------- | ------------------------------------------------------------------------------ | ---------------------------------------------------------------------------- |
+| Runtime   | `src/core/transforms/handlers/window.ts`                                       | Add to `WINDOW_FUNCTIONS` list                                               |
+| Constants | `src/core/transforms/window-constants.ts`                                      | Add to `COLUMN_REQUIRED_FUNCTIONS` if it needs a source column               |
+| Handler   | `src/app/handlers/transform/window-handlers.ts`                                | Add case in `buildWindowExpression()`                                        |
+| Schema    | `src/core/schema-engine.ts`                                                    | Add type inference rule (ranking → float, positional → inherits source type) |
+| UI        | `src/app/components/WindowDialog.tsx`                                          | Add to the correct category in `functionCategories`                          |
+| i18n      | `src/i18n/locales/{en,uk}/dialogs.json`                                        | Add `window.functions.*` and `window.functionDescriptions.*`                 |
+| Docs      | `src/content/functions/aggregate.md` + `src/content/uk/functions/aggregate.md` | Add to the appropriate table                                                 |
+
 ### 1.3 Core Implementation (`transforms/handlers/`)
 
 Transforms are organized into category files in `src/core/transforms/handlers/`. Pattern for transform logic:

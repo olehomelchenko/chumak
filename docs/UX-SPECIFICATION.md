@@ -99,13 +99,15 @@ The **Transform Values** group uses dropdown popovers with type-aware quick acti
 
 Quick actions apply immediately to the selected column (generating a `derive` or `types` step) without opening a dialog. Buttons are disabled with explanatory tooltips when no column of the required type is selected.
 
+The **Summarize** group includes a **Window ▾** dropdown popover with preset chips (Row Number, Rank, Previous Value, Running Total, Moving Average, Fill Down) that open the Window dialog pre-configured. Unlike Transform Values quick actions, these presets pre-fill dialog state for user review rather than applying instantly. A "Custom window..." link opens the blank dialog.
+
 #### Table Tab
 
-| Group         | Actions                                |
-| ------------- | -------------------------------------- |
-| **Summarize** | Group By (aggregate), Window Functions |
-| **Reshape**   | Pivot, Unpivot (Fold)                  |
-| **Combine**   | Join, Append (concat/union)            |
+| Group         | Actions                                  |
+| ------------- | ---------------------------------------- |
+| **Summarize** | Group By (aggregate), Window ▾, Describe |
+| **Reshape**   | Pivot, Unpivot (Fold)                    |
+| **Combine**   | Join, Append (concat/union)              |
 
 ### 3.2 Sources & Models Sidebar
 

@@ -43,7 +43,9 @@ Used in the **Window Functions** transform. These add computed columns based on 
 | `row_number`   | Sequential numbers              | 1, 2, 3, 4, 5         |
 | `rank`         | Rank with gaps for ties         | 1, 2, 2, 4, 5         |
 | `dense_rank`   | Rank without gaps               | 1, 2, 2, 3, 4         |
+| `avg_rank`     | Average rank for ties           | 1, 2.5, 2.5, 4, 5     |
 | `percent_rank` | Percentage rank (0 to 1)        | 0, 0.25, 0.5, 0.75, 1 |
+| `cume_dist`    | Cumulative distribution (0–1)   | 0.2, 0.6, 0.6, 0.8, 1 |
 | `ntile`        | Distribute into N equal buckets | 1, 1, 2, 2, 3         |
 
 ### Offset
@@ -54,6 +56,7 @@ Used in the **Window Functions** transform. These add computed columns based on 
 | `lead`        | Value from N rows after the current row  |
 | `first_value` | First value in the partition             |
 | `last_value`  | Last value in the partition              |
+| `nth_value`   | Value at Nth position in the partition   |
 
 ### Fill
 

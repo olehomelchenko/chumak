@@ -28,11 +28,19 @@ export function WindowDialog() {
   const functionCategories = [
     {
       label: t('window.functionCategories.ranking'),
-      functions: ['row_number', 'rank', 'dense_rank', 'percent_rank', 'ntile'],
+      functions: [
+        'row_number',
+        'rank',
+        'dense_rank',
+        'avg_rank',
+        'percent_rank',
+        'cume_dist',
+        'ntile',
+      ],
     },
     {
       label: t('window.functionCategories.positional'),
-      functions: ['lag', 'lead', 'first_value', 'last_value'],
+      functions: ['lag', 'lead', 'first_value', 'last_value', 'nth_value'],
     },
     {
       label: t('window.functionCategories.fill'),

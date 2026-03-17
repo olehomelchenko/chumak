@@ -268,6 +268,38 @@
         },
         "noColumn": "Select a column first"
       },
+      "window": {
+        "section": "Common",
+        "shortcuts": {
+          "rowNumber": {
+            "label": "Row Number",
+            "title": "Add sequential row numbers"
+          },
+          "rank": {
+            "label": "Rank",
+            "title": "Rank rows by order"
+          },
+          "previousValue": {
+            "label": "Previous Value",
+            "title": "Get value from previous row (lag)"
+          },
+          "runningTotal": {
+            "label": "Running Total",
+            "title": "Cumulative sum over rows"
+          },
+          "movingAverage": {
+            "label": "Moving Average",
+            "title": "Rolling average over nearby rows"
+          },
+          "fillDown": {
+            "label": "Fill Down",
+            "title": "Fill nulls with preceding value"
+          }
+        },
+        "links": {
+          "customWindow": "Custom window..."
+        }
+      },
       "more": {
         "spread": "Spread (arrays → columns)",
         "unroll": "Unroll (arrays → rows)"

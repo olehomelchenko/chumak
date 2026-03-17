@@ -121,6 +121,51 @@ describe('window-handlers', () => {
       expect(step.window.derive.first_price).toBe("op.first_value('price')");
     });
 
+    it('builds step for avg_rank', () => {
+      DialogStore.windowState.orderBy.value = ['score'];
+      DialogStore.windowState.partitionBy.value = [];
+      DialogStore.windowState.windowFunctions.value = [
+        { func: 'avg_rank', output: 'avg_rnk', sourceCol: '' },
+      ];
+
+      const step = constructWindowStep();
+
+      expect(step.window.derive.avg_rnk).toBe('op.avg_rank()');
+    });
+
+    it('builds step for cume_dist', () => {
+      DialogStore.windowState.orderBy.value = ['score'];
+      DialogStore.windowState.partitionBy.value = [];
+      DialogStore.windowState.windowFunctions.value = [
+        { func: 'cume_dist', output: 'cdist', sourceCol: '' },
+      ];
+
+      const step = constructWindowStep();
+
+      expect(step.window.derive.cdist).toBe('op.cume_dist()');
+    });
+
+    it('builds step for nth_value', () => {
+      DialogStore.windowState.orderBy.value = ['date'];
+      DialogStore.windowState.partitionBy.value = [];
+      DialogStore.windowState.windowFunctions.value = [
+        { func: 'nth_value', output: 'second_price', sourceCol: 'price', offset: 2 },
+      ];
+
+      const step = constructWindowStep();
+
+      expect(step.window.derive.second_price).toBe("op.nth_value('price', 2)");
+    });
+
+    it('throws when nth_value lacks sourceCol', () => {
+      DialogStore.windowState.orderBy.value = ['date'];
+      DialogStore.windowState.windowFunctions.value = [
+        { func: 'nth_value', output: 'nth', sourceCol: '' },
+      ];
+
+      expect(() => constructWindowStep()).toThrow('Source column is required for nth_value');
+    });
+
     it('builds step with multiple window functions', () => {
       DialogStore.windowState.orderBy.value = ['date'];
       DialogStore.windowState.partitionBy.value = [];
