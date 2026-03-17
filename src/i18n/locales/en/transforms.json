@@ -102,11 +102,13 @@
     "summary_other": "Summary statistics for {{count}} columns"
   },
   "window": {
-    "window": "Window ({{count}} column, by {{orderField}}{{partitionText}})",
-    "window_other": "Window ({{count}} columns, by {{orderField}}{{partitionText}})",
+    "window": "Window{{modeText}} ({{count}} column, by {{orderField}}{{partitionText}})",
+    "window_other": "Window{{modeText}} ({{count}} columns, by {{orderField}}{{partitionText}})",
     "defaultOrder": "default order",
     "partitioned": ", partitioned by {{count}} column",
-    "partitioned_other": ", partitioned by {{count}} columns"
+    "partitioned_other": ", partitioned by {{count}} columns",
+    "cumulative": " cumulative",
+    "rolling": " rolling"
   },
   "import": {
     "import": "Import: {{source}}{{headerDesc}}",

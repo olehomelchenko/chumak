@@ -523,6 +523,12 @@
     },
     "defaultValueLabel": "Default value (if no prior/next row):",
     "defaultValuePlaceholder": "(null)",
+    "functionCategories": {
+      "ranking": "Ranking",
+      "positional": "Positional",
+      "fill": "Fill",
+      "runningAggregate": "Running / Rolling"
+    },
     "functions": {
       "row_number": "Row number",
       "rank": "Rank",
@@ -534,7 +540,17 @@
       "percent_rank": "Percent rank",
       "ntile": "N-tile",
       "fill_down": "Fill down",
-      "fill_up": "Fill up"
+      "fill_up": "Fill up",
+      "sum": "Running sum",
+      "mean": "Running mean",
+      "min": "Running min",
+      "max": "Running max",
+      "count": "Running count",
+      "product": "Running product",
+      "median": "Running median",
+      "mode": "Running mode",
+      "stdev": "Running std dev",
+      "variance": "Running variance"
     },
     "functionDescriptions": {
       "row_number": "Sequential row numbers",
@@ -547,7 +563,25 @@
       "percent_rank": "Percentage rank (0-1)",
       "ntile": "Distribute into N buckets",
       "fill_down": "Fill nulls with preceding value",
-      "fill_up": "Fill nulls with following value"
+      "fill_up": "Fill nulls with following value",
+      "sum": "Cumulative sum over the window frame",
+      "mean": "Running average over the window frame",
+      "min": "Running minimum over the window frame",
+      "max": "Running maximum over the window frame",
+      "count": "Cumulative row count over the window frame",
+      "product": "Running product over the window frame",
+      "median": "Running median over the window frame",
+      "mode": "Running mode (most frequent) over the window frame",
+      "stdev": "Running standard deviation over the window frame",
+      "variance": "Running variance over the window frame"
+    },
+    "frame": {
+      "label": "Window frame",
+      "cumulative": "Cumulative (all rows up to current)",
+      "rolling": "Rolling (fixed window size)",
+      "rowsBefore": "rows before",
+      "rowsAfter": "rows after",
+      "current": "current row"
     },
     "help": {
       "title": "What are window functions?",
@@ -556,6 +590,8 @@
       "rank": "1, 2, 2, 4 (gaps for ties)",
       "lagLead": "Previous / next row value",
       "fill_down": "Fill nulls with value above",
+      "runningSum": "10, 30, 60, ... (cumulative sum)",
+      "rollingMean": "Moving average over N rows",
       "orderByNote": "Use <strong>Order By</strong> to control row sequence. Use <strong>Partition By</strong> to restart numbering per group."
     },
     "previewButton": "Preview result",

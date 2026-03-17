@@ -362,7 +362,15 @@ export function editStep(stepIndex: number): void {
       // Match expressions like op.func('col', offset, default) or op.func()
       const match = (exprString as string).match(/^op\.(\w+)\(([^)]*)\)$/);
       if (!match) {
-        return { func: 'row_number', sourceCol: '', offset: 1, defaultValue: '', output };
+        return {
+          func: 'row_number',
+          sourceCol: '',
+          offset: 1,
+          defaultValue: '',
+          output,
+          frameStart: null,
+          frameEnd: 0,
+        };
       }
 
       const func = match[1];
@@ -401,7 +409,12 @@ export function editStep(stepIndex: number): void {
         }
       }
 
-      return { func, sourceCol, offset, defaultValue, output };
+      // Read frame from step.window.frames map if present
+      const frameSpec = step.window!.frames?.[output];
+      const frameStart = frameSpec ? frameSpec[0] : null;
+      const frameEnd = frameSpec ? frameSpec[1] : 0;
+
+      return { func, sourceCol, offset, defaultValue, output, frameStart, frameEnd };
     });
 
     state.windowFunctions.value = windowFunctions;

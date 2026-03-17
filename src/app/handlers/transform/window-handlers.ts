@@ -17,6 +17,29 @@ const COLUMN_REQUIRED_FUNCTIONS = [
   'nth_value',
   'fill_down',
   'fill_up',
+  'sum',
+  'mean',
+  'min',
+  'max',
+  'product',
+  'median',
+  'mode',
+  'stdev',
+  'variance',
+];
+
+/** Aggregate functions that support window frames */
+const AGGREGATE_FUNCTIONS = [
+  'sum',
+  'mean',
+  'min',
+  'max',
+  'count',
+  'product',
+  'median',
+  'mode',
+  'stdev',
+  'variance',
 ];
 
 /**
@@ -62,6 +85,25 @@ function buildWindowExpression(wf: WindowFunction): string {
         );
       return `op.nth_value('${wf.sourceCol}', ${wf.offset || 1})`;
 
+    // Aggregate functions (used as rolling/cumulative via aq.rolling in handler)
+    case 'sum':
+    case 'mean':
+    case 'min':
+    case 'max':
+    case 'product':
+    case 'median':
+    case 'mode':
+    case 'stdev':
+    case 'variance':
+      if (!wf.sourceCol)
+        throw new Error(
+          i18n.t('validation.selection.columnForFunction', { ns: 'errors', func: wf.func })
+        );
+      return `op.${wf.func}('${wf.sourceCol}')`;
+
+    case 'count':
+      return `op.count()`;
+
     default:
       throw new Error(`Unknown window function: ${wf.func}`);
   }
@@ -93,10 +135,22 @@ export function constructWindowStep() {
     }
   }
 
-  // Build derive expressions
+  // Build derive expressions and frames
   const derive: Record<string, string> = {};
+  const frames: Record<string, [number | null, number | null]> = {};
+  let hasFrames = false;
+
   for (const wf of windowFunctions.value) {
     derive[wf.output] = buildWindowExpression(wf);
+
+    // Only aggregate functions support frame specification
+    if (AGGREGATE_FUNCTIONS.includes(wf.func)) {
+      const isDefaultFrame = wf.frameStart === null && wf.frameEnd === 0;
+      if (!isDefaultFrame) {
+        frames[wf.output] = [wf.frameStart, wf.frameEnd];
+        hasFrames = true;
+      }
+    }
   }
 
   return {
@@ -104,6 +158,7 @@ export function constructWindowStep() {
       orderBy: orderBy.value,
       ...(partitionBy.value.length > 0 && { partitionBy: partitionBy.value }),
       derive,
+      ...(hasFrames && { frames }),
     },
   };
 }

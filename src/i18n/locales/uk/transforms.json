@@ -123,13 +123,15 @@
     "summary_many": "Зведена статистика для {{count}} стовпців"
   },
   "window": {
-    "window_one": "Вікно ({{count}} стовпець, за {{orderField}}{{partitionText}})",
-    "window_few": "Вікно ({{count}} стовпці, за {{orderField}}{{partitionText}})",
-    "window_many": "Вікно ({{count}} стовпців, за {{orderField}}{{partitionText}})",
+    "window_one": "Вікно{{modeText}} ({{count}} стовпець, за {{orderField}}{{partitionText}})",
+    "window_few": "Вікно{{modeText}} ({{count}} стовпці, за {{orderField}}{{partitionText}})",
+    "window_many": "Вікно{{modeText}} ({{count}} стовпців, за {{orderField}}{{partitionText}})",
     "defaultOrder": "стандартне сортування",
     "partitioned_one": ", розділено за {{count}} стовпцем",
     "partitioned_few": ", розділено за {{count}} стовпцями",
-    "partitioned_many": ", розділено за {{count}} стовпцями"
+    "partitioned_many": ", розділено за {{count}} стовпцями",
+    "cumulative": " накопичувальне",
+    "rolling": " ковзне"
   },
   "import": {
     "import": "Імпорт: {{source}}{{headerDesc}}",

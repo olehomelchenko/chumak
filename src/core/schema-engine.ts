@@ -127,6 +127,7 @@ export interface TransformStep {
     orderBy: Array<{ field: string; order: 'asc' | 'desc' }>;
     partitionBy?: string[];
     derive: Record<string, string>;
+    frames?: Record<string, [number | null, number | null]>;
   };
   removeRows?: { indices: number[] };
   keepRows?: { indices: number[] };
@@ -911,15 +912,19 @@ export const SchemaEngine = {
         const funcMatch = typeof exprString === 'string' ? exprString.match(/^op\.(\w+)/) : null;
         const funcName = funcMatch ? funcMatch[1] : '';
 
-        // row_number, rank, dense_rank, ntile return integers
-        if (['row_number', 'rank', 'dense_rank', 'ntile'].includes(funcName)) {
+        // row_number, rank, dense_rank, ntile, count return integers
+        if (['row_number', 'rank', 'dense_rank', 'ntile', 'count'].includes(funcName)) {
           type = 'integer';
         }
-        // percent_rank, cume_dist, avg_rank return floats
-        else if (['percent_rank', 'cume_dist', 'avg_rank'].includes(funcName)) {
+        // percent_rank, cume_dist, avg_rank, mean, stdev, variance always return floats
+        else if (
+          ['percent_rank', 'cume_dist', 'avg_rank', 'mean', 'stdev', 'variance'].includes(funcName)
+        ) {
           type = 'float';
         }
-        // lag, lead, first_value, last_value, nth_value, fill_down, fill_up inherit from source column
+        // Functions that inherit type from source column:
+        // - Window: lag, lead, first_value, last_value, nth_value, fill_down, fill_up
+        // - Aggregate: sum, min, max, product, median, mode
         else if (
           [
             'lag',
@@ -929,6 +934,12 @@ export const SchemaEngine = {
             'nth_value',
             'fill_down',
             'fill_up',
+            'sum',
+            'min',
+            'max',
+            'product',
+            'median',
+            'mode',
           ].includes(funcName)
         ) {
           const colMatch =

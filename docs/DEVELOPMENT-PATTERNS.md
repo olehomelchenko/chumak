@@ -107,6 +107,11 @@ Key conventions:
 - Throw descriptive errors for invalid inputs
 - Handle null/undefined values gracefully
 
+**Two expression styles in transforms:**
+
+- **Row-wise** (derive, filter, conditional): Full AST pipeline — `parseExpression()` → `validateAST()` → `interpretAST()` per row. See §7.
+- **Arquero op-based** (window, aggregate): String `"op.func('col')"` parsed by regex, called as `aq.op.func()`. Aggregate functions in window context **must** be wrapped with `aq.rolling(opResult, frame)` — plain `op.sum` in `derive()` gives the whole-group total, not a running aggregate. Default frame `[-Infinity, 0]` gives SQL-consistent cumulative behavior.
+
 ### 1.4 Schema Propagation (`schema-engine.ts`)
 
 Every transform must define how it affects the schema:

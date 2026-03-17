@@ -76,6 +76,7 @@ export interface FullTransformStep extends TransformStep {
     orderBy: Array<{ field: string; order: 'asc' | 'desc' }>;
     partitionBy?: string[];
     derive: Record<string, string>;
+    frames?: Record<string, [number | null, number | null]>;
   };
   promoteHeader?: { skipRows: number };
   describe?: { columns: string[] };

@@ -3,11 +3,13 @@ import { registerResetFunction } from '../reset-registry';
 import type { DataRow } from '../../../types';
 
 export interface WindowFunction {
-  func: string; // 'lag', 'lead', 'row_number', 'rank', etc.
-  sourceCol: string; // Source column (for lag/lead/first_value/etc.)
+  func: string; // 'lag', 'lead', 'row_number', 'rank', 'sum', 'mean', etc.
+  sourceCol: string; // Source column (for lag/lead/first_value/aggregates/etc.)
   offset: number; // For lag/lead/ntile/nth_value
   defaultValue: string; // For lag/lead (as string for UI)
   output: string; // Output column name
+  frameStart: number | null; // Window frame start (null = unbounded, only for aggregates)
+  frameEnd: number | null; // Window frame end (null = unbounded, only for aggregates)
 }
 
 export interface OrderByItem {

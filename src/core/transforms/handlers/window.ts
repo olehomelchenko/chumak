@@ -2,10 +2,9 @@ import * as aq from 'arquero';
 import type { FullTransformStep, TransformContext } from '../types';
 
 /**
- * Allowed window functions that can be used in window transforms.
- * These are Arquero's op functions that operate on ordered/grouped data.
+ * Pure window functions: operate on row position/order within the frame.
  */
-const ALLOWED_WINDOW_FUNCTIONS = [
+const WINDOW_FUNCTIONS = [
   'lag',
   'lead',
   'row_number',
@@ -21,6 +20,26 @@ const ALLOWED_WINDOW_FUNCTIONS = [
   'fill_down',
   'fill_up',
 ];
+
+/**
+ * Aggregate functions: when used in a window context with aq.rolling(),
+ * these compute cumulative or rolling aggregates over the window frame.
+ * Default frame is [-Infinity, 0] (cumulative), matching SQL behavior.
+ */
+const AGGREGATE_FUNCTIONS = [
+  'sum',
+  'mean',
+  'min',
+  'max',
+  'count',
+  'product',
+  'median',
+  'mode',
+  'stdev',
+  'variance',
+];
+
+const ALLOWED_WINDOW_FUNCTIONS = [...WINDOW_FUNCTIONS, ...AGGREGATE_FUNCTIONS];
 
 /**
  * Parse a window function expression like "op.lag('value', 1)" or "op.row_number()"
@@ -87,10 +106,31 @@ function parseWindowExpression(exprString: string): {
 }
 
 /**
+ * Resolve a frame spec from the transform's frames map.
+ * null values in the spec map to -Infinity/Infinity (unbounded).
+ * Returns undefined for window functions that don't use frames.
+ */
+function resolveFrame(
+  outCol: string,
+  funcName: string,
+  frames?: Record<string, [number | null, number | null]>
+): [number, number] | undefined {
+  if (!AGGREGATE_FUNCTIONS.includes(funcName)) return undefined;
+
+  const raw = frames?.[outCol];
+  if (raw) {
+    return [raw[0] ?? -Infinity, raw[1] ?? Infinity];
+  }
+  // Default for aggregates: cumulative (SQL-consistent)
+  return [-Infinity, 0];
+}
+
+/**
  * Handle window transform: apply window functions with ordering and optional partitioning.
  *
  * Window functions operate on ordered data and can compute values based on
  * relative row positions (lag, lead) or rankings (row_number, rank, etc.).
+ * Aggregate functions are wrapped with aq.rolling() for cumulative/rolling behavior.
  */
 export function handleWindow(
   table: any,
@@ -98,8 +138,9 @@ export function handleWindow(
   _schema: string[],
   _context: TransformContext | null
 ): any {
-  const { orderBy, partitionBy, derive } = transform.window!;
+  const { orderBy, partitionBy, derive, frames } = transform.window!;
   const op = (aq as any).op;
+  const rolling = (aq as any).rolling;
 
   // 1. Apply ordering if specified
   let workingTable = table;
@@ -125,8 +166,11 @@ export function handleWindow(
       throw new Error(`Unknown Arquero op function: ${funcName}`);
     }
 
-    // Call the op function with parsed arguments
-    deriveSpecs[outCol] = op[funcName](...args);
+    const opResult = op[funcName](...args);
+
+    // Wrap aggregate functions with aq.rolling() for cumulative/rolling behavior
+    const frame = resolveFrame(outCol, funcName, frames);
+    deriveSpecs[outCol] = frame ? rolling(opResult, frame) : opResult;
   }
 
   // 4. Apply derive with window functions

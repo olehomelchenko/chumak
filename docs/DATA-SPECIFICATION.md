@@ -383,6 +383,7 @@ interface TransformStep {
     orderBy: Array<{ field: string; order: 'asc' | 'desc' }>;
     partitionBy?: string[];
     derive: Record<string, string>;  // column -> op.func() expression
+    frames?: Record<string, [number | null, number | null]>;  // per-column window frame
   };
 }
 ```
@@ -470,6 +471,39 @@ With regex pattern (e.g., format phone numbers):
 }
 ```
 
+Cumulative aggregate example (running sum per category):
+
+```json
+{
+  "window": {
+    "orderBy": [{ "field": "date", "order": "asc" }],
+    "partitionBy": ["category"],
+    "derive": {
+      "cumulative_revenue": "op.sum('revenue')",
+      "running_avg_price": "op.mean('price')"
+    }
+  }
+}
+```
+
+Rolling window example (3-row moving average):
+
+```json
+{
+  "window": {
+    "orderBy": [{ "field": "date", "order": "asc" }],
+    "derive": {
+      "moving_avg": "op.mean('price')"
+    },
+    "frames": {
+      "moving_avg": [-2, 0]
+    }
+  }
+}
+```
+
+The `frames` field specifies per-column window frame bounds as `[start, end]` relative to the current row. `null` means unbounded. Omitting `frames` defaults aggregate functions to cumulative (`[null, 0]`), matching SQL's `ROWS BETWEEN UNBOUNDED PRECEDING AND CURRENT ROW`.
+
 Available window functions:
 
 - `op.lag('column', offset)` — Previous row value
@@ -483,6 +517,21 @@ Available window functions:
 - `op.last_value('column')` — Last value in partition
 - `op.fill_down('column')` — Fill nulls with preceding value
 - `op.fill_up('column')` — Fill nulls with following value
+
+Available aggregate functions (cumulative/rolling):
+
+- `op.sum('column')` — Running sum
+- `op.mean('column')` — Running average
+- `op.min('column')` — Running minimum
+- `op.max('column')` — Running maximum
+- `op.count()` — Running count
+- `op.median('column')` — Running median
+- `op.mode('column')` — Running mode (most frequent value)
+- `op.product('column')` — Running product
+- `op.stdev('column')` — Running standard deviation
+- `op.variance('column')` — Running variance
+
+**Compound expressions**: To compute expressions that combine window results (e.g., `value - lag(value)`), use a window step followed by a derive step that references the window output columns.
 
 **Join** — Combine with another model:
 

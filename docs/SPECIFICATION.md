@@ -587,7 +587,7 @@ Key handler test files:
 
 ## 8. Roadmap
 
-- **Window Functions**: Support for `cumsum`, `lag`, `rank`, and other window-based transformations.
+- **~~Window Functions~~**: ✅ Implemented — ranking (`rank`, `dense_rank`, `row_number`), positional (`lag`, `lead`, `first_value`, `last_value`), fill (`fill_down`, `fill_up`), and cumulative/rolling aggregates (`sum`, `mean`, `min`, `max`, `count`, `median`, `mode`, `product`, `stdev`, `variance`) with per-column frame specification.
 
 ---
 

@@ -19,6 +19,15 @@ const COLUMN_REQUIRED_FUNCTIONS = [
   'nth_value',
   'fill_down',
   'fill_up',
+  'sum',
+  'mean',
+  'min',
+  'max',
+  'product',
+  'median',
+  'mode',
+  'stdev',
+  'variance',
 ];
 
 /** Window functions that use the offset parameter */
@@ -27,66 +36,52 @@ const OFFSET_FUNCTIONS = ['lag', 'lead', 'ntile', 'nth_value'];
 /** Window functions that can have a default value */
 const DEFAULT_VALUE_FUNCTIONS = ['lag', 'lead'];
 
+/** Aggregate functions that support frame specification */
+const AGGREGATE_FUNCTIONS = [
+  'sum',
+  'mean',
+  'min',
+  'max',
+  'count',
+  'product',
+  'median',
+  'mode',
+  'stdev',
+  'variance',
+];
+
 export function WindowDialog() {
   const { t } = useTranslation('dialogs');
   const { orderBy, partitionBy, windowFunctions, isPreviewing } = DialogStore.windowState;
   const columns = AppStore.columns.value;
 
-  const windowFunctionsList = [
+  const functionCategories = [
     {
-      value: 'row_number',
-      label: t('window.functions.row_number'),
-      description: t('window.functionDescriptions.row_number'),
+      label: t('window.functionCategories.ranking'),
+      functions: ['row_number', 'rank', 'dense_rank', 'percent_rank', 'ntile'],
     },
     {
-      value: 'rank',
-      label: t('window.functions.rank'),
-      description: t('window.functionDescriptions.rank'),
+      label: t('window.functionCategories.positional'),
+      functions: ['lag', 'lead', 'first_value', 'last_value'],
     },
     {
-      value: 'dense_rank',
-      label: t('window.functions.dense_rank'),
-      description: t('window.functionDescriptions.dense_rank'),
+      label: t('window.functionCategories.fill'),
+      functions: ['fill_down', 'fill_up'],
     },
     {
-      value: 'lag',
-      label: t('window.functions.lag'),
-      description: t('window.functionDescriptions.lag'),
-    },
-    {
-      value: 'lead',
-      label: t('window.functions.lead'),
-      description: t('window.functionDescriptions.lead'),
-    },
-    {
-      value: 'first_value',
-      label: t('window.functions.first_value'),
-      description: t('window.functionDescriptions.first_value'),
-    },
-    {
-      value: 'last_value',
-      label: t('window.functions.last_value'),
-      description: t('window.functionDescriptions.last_value'),
-    },
-    {
-      value: 'percent_rank',
-      label: t('window.functions.percent_rank'),
-      description: t('window.functionDescriptions.percent_rank'),
-    },
-    {
-      value: 'ntile',
-      label: t('window.functions.ntile'),
-      description: t('window.functionDescriptions.ntile'),
-    },
-    {
-      value: 'fill_down',
-      label: t('window.functions.fill_down'),
-      description: t('window.functionDescriptions.fill_down'),
-    },
-    {
-      value: 'fill_up',
-      label: t('window.functions.fill_up'),
-      description: t('window.functionDescriptions.fill_up'),
+      label: t('window.functionCategories.runningAggregate'),
+      functions: [
+        'sum',
+        'mean',
+        'min',
+        'max',
+        'count',
+        'median',
+        'mode',
+        'product',
+        'stdev',
+        'variance',
+      ],
     },
   ];
 
@@ -118,6 +113,12 @@ export function WindowDialog() {
       }
     }
 
+    // Reset frame to cumulative default when switching to an aggregate function
+    if (field === 'func' && AGGREGATE_FUNCTIONS.includes(value as string)) {
+      newFuncs[index].frameStart = null;
+      newFuncs[index].frameEnd = 0;
+    }
+
     windowFunctions.value = newFuncs;
   };
 
@@ -128,7 +129,15 @@ export function WindowDialog() {
   const addWindowFunction = () => {
     windowFunctions.value = [
       ...windowFunctions.value,
-      { func: 'row_number', sourceCol: '', offset: 1, defaultValue: '', output: '' },
+      {
+        func: 'row_number',
+        sourceCol: '',
+        offset: 1,
+        defaultValue: '',
+        output: '',
+        frameStart: null,
+        frameEnd: 0,
+      },
     ];
   };
 
@@ -206,10 +215,10 @@ export function WindowDialog() {
 
         <div style={{ marginBottom: '0.5rem' }}>
           {windowFunctions.value.map((wf, index) => {
-            const funcInfo = windowFunctionsList.find((f) => f.value === wf.func);
             const needsColumn = COLUMN_REQUIRED_FUNCTIONS.includes(wf.func);
             const needsOffset = OFFSET_FUNCTIONS.includes(wf.func);
             const needsDefault = DEFAULT_VALUE_FUNCTIONS.includes(wf.func);
+            const isAggregate = AGGREGATE_FUNCTIONS.includes(wf.func);
 
             return (
               <div key={index} class={styles.windowRow}>
@@ -217,17 +226,21 @@ export function WindowDialog() {
                   {/* Function */}
                   <select
                     class={styles.input}
-                    style={{ width: '140px' }}
+                    style={{ width: '160px' }}
                     value={wf.func}
                     onChange={(e) =>
                       updateWindowFunction(index, 'func', (e.target as HTMLSelectElement).value)
                     }
-                    title={funcInfo?.description}
+                    title={t(`window.functionDescriptions.${wf.func}`)}
                   >
-                    {windowFunctionsList.map((f) => (
-                      <option key={f.value} value={f.value} title={f.description}>
-                        {f.label}
-                      </option>
+                    {functionCategories.map((cat) => (
+                      <optgroup key={cat.label} label={cat.label}>
+                        {cat.functions.map((f) => (
+                          <option key={f} value={f} title={t(`window.functionDescriptions.${f}`)}>
+                            {t(`window.functions.${f}`)}
+                          </option>
+                        ))}
+                      </optgroup>
                     ))}
                   </select>
 
@@ -325,6 +338,64 @@ export function WindowDialog() {
                     />
                   </div>
                 )}
+
+                {/* Frame row (for aggregate functions only) */}
+                {isAggregate && (
+                  <div class={styles.windowRowExtra}>
+                    <label class={styles.smallLabel}>{t('window.frame.label')}:</label>
+                    <select
+                      class={styles.input}
+                      style={{ width: '200px' }}
+                      value={wf.frameStart === null && wf.frameEnd === 0 ? 'cumulative' : 'rolling'}
+                      onChange={(e) => {
+                        const mode = (e.target as HTMLSelectElement).value;
+                        const newFuncs = [...windowFunctions.value];
+                        newFuncs[index] =
+                          mode === 'cumulative'
+                            ? { ...newFuncs[index], frameStart: null, frameEnd: 0 }
+                            : { ...newFuncs[index], frameStart: -2, frameEnd: 0 };
+                        windowFunctions.value = newFuncs;
+                      }}
+                    >
+                      <option value="cumulative">{t('window.frame.cumulative')}</option>
+                      <option value="rolling">{t('window.frame.rolling')}</option>
+                    </select>
+
+                    {/* Rolling frame inputs */}
+                    {!(wf.frameStart === null && wf.frameEnd === 0) && (
+                      <>
+                        <input
+                          type="number"
+                          class={styles.input}
+                          style={{ width: '50px' }}
+                          value={Math.abs(wf.frameStart ?? 0)}
+                          min={0}
+                          onInput={(e) => {
+                            const val = parseInt((e.target as HTMLInputElement).value) || 0;
+                            const newFuncs = [...windowFunctions.value];
+                            newFuncs[index] = { ...newFuncs[index], frameStart: -val };
+                            windowFunctions.value = newFuncs;
+                          }}
+                        />
+                        <span style={{ fontSize: '0.75rem' }}>{t('window.frame.rowsBefore')}</span>
+                        <input
+                          type="number"
+                          class={styles.input}
+                          style={{ width: '50px' }}
+                          value={wf.frameEnd ?? 0}
+                          min={0}
+                          onInput={(e) => {
+                            const val = parseInt((e.target as HTMLInputElement).value) || 0;
+                            const newFuncs = [...windowFunctions.value];
+                            newFuncs[index] = { ...newFuncs[index], frameEnd: val };
+                            windowFunctions.value = newFuncs;
+                          }}
+                        />
+                        <span style={{ fontSize: '0.75rem' }}>{t('window.frame.rowsAfter')}</span>
+                      </>
+                    )}
+                  </div>
+                )}
               </div>
             );
           })}
@@ -359,6 +430,14 @@ export function WindowDialog() {
               <code class={styles.exampleCode}>fill_down</code>
             </div>
             <div class={styles.exampleDescription}>{t('window.help.fill_down')}</div>
+            <div>
+              <code class={styles.exampleCode}>sum</code>
+            </div>
+            <div class={styles.exampleDescription}>{t('window.help.runningSum')}</div>
+            <div>
+              <code class={styles.exampleCode}>mean</code>
+            </div>
+            <div class={styles.exampleDescription}>{t('window.help.rollingMean')}</div>
           </div>
           <p
             style={{ margin: '0.5rem 0 0', fontStyle: 'italic' }}
