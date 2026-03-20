@@ -554,6 +554,7 @@
   },
   "dataTable": {
     "typeMenuTooltip": "Click to change type",
+    "columnMenuTooltip": "Column actions",
     "ariaLabel": "Data table",
     "noRowsTitle": "No rows match the current filter",
     "noRowsSubtitle": "Try adjusting the expression."

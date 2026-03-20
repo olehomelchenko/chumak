@@ -564,6 +564,7 @@
   },
   "dataTable": {
     "typeMenuTooltip": "Натисніть, щоб змінити тип",
+    "columnMenuTooltip": "Дії зі стовпцем",
     "ariaLabel": "Таблиця даних",
     "noRowsTitle": "Жоден рядок не відповідає поточному фільтру",
     "noRowsSubtitle": "Спробуйте змінити вираз."

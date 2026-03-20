@@ -1168,6 +1168,13 @@ When adding a new color, check `variables.css` for an existing semantic token be
 
 For button-specific tokens (`--btn-hover-bg`, `--btn-disabled-opacity`, etc.) and variant conventions, see [UX-SPECIFICATION.md §5.5](UX-SPECIFICATION.md).
 
+### 8.10 Spacing Around Global Classes in CSS Modules
+
+`.iconify` is a global class, so `.menuItem .iconify { margin-right: 12px }` in a CSS Module won't match — `.menuItem` gets hashed but `.iconify` stays literal, breaking the compound selector. Options:
+
+- **Prefer `gap`**: Use `gap` on the flex parent instead of margins on children. Works regardless of child class origin and avoids the global-vs-module mismatch entirely.
+- **`:global()` escape hatch**: If you must target `.iconify` specifically (e.g. for sizing or color), use `:global(.iconify) { ... }` nested inside the module class. `FloatingToolbar.module.css` uses this pattern for icon sizing.
+
 ---
 
 ## 9. Internationalization (i18n)

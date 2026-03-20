@@ -302,18 +302,18 @@ describe('App UX Interactions', () => {
       });
     });
 
-    it('should open impute dialog when column toolbar impute button is clicked', async () => {
-      AppStore.selectedColumn.value = 'sales';
+    it('should open impute dialog when column menu impute item is clicked', async () => {
+      // Open the column context menu via store
+      AppStore.columnMenuOpen.value = 'sales';
 
       renderWithI18n(<App />);
 
       await waitFor(() => {
-        const toolbar = document.querySelector('[class*="floatingToolbar"]');
-        expect(toolbar).toBeDefined();
+        const menu = document.querySelector('[role="menu"]');
+        expect(menu).toBeDefined();
       });
 
-      // Find impute button (material-symbols-light:edit-arrow-down-outline-rounded icon)
-      // Note: ColumnToolbar uses data-icon based on what we set in implementation
+      // Find impute button in the column menu
       const imputeButton = document
         .querySelector('[data-icon="material-symbols-light:edit-arrow-down-outline-rounded"]')
         ?.closest('button');
@@ -327,14 +327,16 @@ describe('App UX Interactions', () => {
       });
     });
 
-    it('should open sort dialog when column toolbar sort button is clicked', async () => {
+    it('should open sort dialog when column menu sort item is clicked', async () => {
+      // Open the column context menu via store (also select column for quick actions)
       AppStore.selectedColumn.value = 'sales';
+      AppStore.columnMenuOpen.value = 'sales';
 
       renderWithI18n(<App />);
 
       await waitFor(() => {
-        const toolbar = document.querySelector('[class*="floatingToolbar"]');
-        expect(toolbar).toBeDefined();
+        const menu = document.querySelector('[role="menu"]');
+        expect(menu).toBeDefined();
       });
 
       // Find sort ascending button (carbon:arrow-up icon)

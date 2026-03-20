@@ -72,6 +72,7 @@ export function MainContent(props: MainContentProps) {
             onSelectCell={props.onSelectCell}
             onSelectRow={props.onSelectRow}
             onOpenTypeMenu={props.onOpenTypeMenu}
+            onOpenColumnMenu={props.onOpenColumnMenu}
             onScroll={props.onScroll}
             onErrorCellClick={props.onErrorCellClick}
           />

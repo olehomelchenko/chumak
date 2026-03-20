@@ -20,7 +20,10 @@
       "Bash(npx tsx:*)",
       "WebFetch(domain:icon-sets.iconify.design)",
       "WebFetch(domain:api.iconify.design)",
-      "Bash(echo:*)"
+      "Bash(echo:*)",
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:v10.carbondesignsystem.com)"
     ]
   }
 }

@@ -123,7 +123,7 @@ import {
   updatePageSize,
 } from '../handlers/core/pagination-handlers';
 import { alert } from '../handlers/core/notification-handlers';
-import { openTypeMenu, selectCell } from '../handlers/core/interaction-handlers';
+import { openColumnMenu, openTypeMenu, selectCell } from '../handlers/core/interaction-handlers';
 import { AppController } from '../orchestration/AppController';
 import styles from './App.module.css';
 
@@ -215,6 +215,10 @@ export function App() {
     onSelectRow: (absoluteIdx: number, e: MouseEvent) => {
       e.stopPropagation();
       AppController.selectRow(absoluteIdx, { shift: e.shiftKey, meta: e.metaKey || e.ctrlKey });
+    },
+    onOpenColumnMenu: (c: string, e: MouseEvent) => {
+      e.stopPropagation();
+      openColumnMenu(c, e);
     },
     onOpenTypeMenu: (c: string, pos: { x: number; y: number }) => openTypeMenu(c, pos),
     onScroll: () => {}, // Table scroll handler removed - not needed

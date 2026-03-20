@@ -49,7 +49,6 @@ export class AppStore {
   static isTransforming = signal(false);
   static transformMessage = signal('');
   static columnToolbarPos = signal({ x: 0, y: 0, arrowOffset: 0 });
-  static columnToolbarFocusRequested = signal(false);
   static selectedCell = signal<any>(null);
   static cellToolbarPos = signal({ x: 0, y: 0, arrowOffset: 0 });
   static rowToolbarPos = signal({ x: 0, y: 0, arrowOffset: 0 });
@@ -135,6 +134,10 @@ export class AppStore {
     language: 'en',
   });
 
+  // Column Menu State (dropdown menu on column header)
+  static columnMenuOpen = signal<string | null>(null);
+  static columnMenuPos = signal({ x: 0, y: 0 });
+
   // Type Menu State
   static typeMenuOpen = signal(false);
   static typeMenuPos = signal({ x: 0, y: 0 });
@@ -201,6 +204,7 @@ export class AppStore {
       resolve: null,
     };
     this.viewingSchema.value = null;
+    this.columnMenuOpen.value = null;
     this.typeMenuOpen.value = false;
     this.typeMenuCol.value = null;
     this.history.value = new Map();

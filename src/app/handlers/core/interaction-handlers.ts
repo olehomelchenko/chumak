@@ -43,6 +43,28 @@ export function handleBodyClick(event: any) {
   }
 }
 
+export function openColumnMenu(col: string, _event?: Event) {
+  // Select the column so quick actions (quickSort, quickFilter, etc.) can read it
+  AppStore.selectedColumn.value = col;
+  AppStore.selectedColumns.value = [col];
+  AppStore.columnSelectionAnchor.value = col;
+  AppStore.selectedRows.value = [];
+  AppStore.rowSelectionAnchor.value = null;
+  AppStore.typeMenuOpen.value = false;
+  AppStore.selectedCell.value = null;
+
+  // Position menu below the column header
+  const header = document.querySelector(`th[data-col="${col}"]`);
+  if (!header) return;
+  const rect = header.getBoundingClientRect();
+  const menuWidth = 180;
+  const margin = 8;
+  const windowWidth = window.innerWidth;
+  const x = Math.min(rect.left, windowWidth - menuWidth - margin);
+  AppStore.columnMenuOpen.value = col;
+  AppStore.columnMenuPos.value = { x, y: rect.bottom + 4 };
+}
+
 export function openTypeMenu(col: string, event: any) {
   AppStore.typeMenuCol.value = col;
   AppStore.typeMenuOpen.value = true;
@@ -194,6 +216,7 @@ export function clearColumnSelection() {
   AppStore.rowSelectionAnchor.value = null;
   AppStore.edaStats.value = null;
   AppStore.edaBrushSelection.value = null;
+  AppStore.columnMenuOpen.value = null;
 }
 
 export function calculateToolbarPosition(rect: DOMRect, toolbarWidth: number) {

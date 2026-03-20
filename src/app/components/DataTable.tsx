@@ -14,6 +14,7 @@ export interface DataTableProps {
   onSelectColumn: (column: string, event: MouseEvent) => void;
   onSelectCell: (column: string, value: any, rowIndex: number, event: MouseEvent) => void;
   onOpenTypeMenu: (column: string, event: MouseEvent) => void;
+  onOpenColumnMenu: (column: string, event: MouseEvent) => void;
   onSelectRow: (absoluteRowIndex: number, event: MouseEvent) => void;
   onScroll: () => void;
   onErrorCellClick?: (message: string) => void;
@@ -28,6 +29,7 @@ export function DataTable({
   onSelectColumn,
   onSelectCell,
   onOpenTypeMenu,
+  onOpenColumnMenu,
   onSelectRow,
   onScroll,
   onErrorCellClick,
@@ -74,8 +76,7 @@ export function DataTable({
   const handleHeaderKeyDown = (column: string, e: KeyboardEvent) => {
     if (e.key === 'Enter' || e.key === ' ') {
       e.preventDefault();
-      AppStore.columnToolbarFocusRequested.value = true;
-      onSelectColumn(column, e as unknown as MouseEvent);
+      onOpenColumnMenu(column, e as unknown as MouseEvent);
       return;
     }
 
@@ -234,17 +235,31 @@ export function DataTable({
                 onKeyDown={(e) => handleHeaderKeyDown(column, e)}
                 title={`Column: ${column}`}
               >
-                <span
-                  class={`${styles.typeIndicator} ${styles[getColumnType(column)] || ''}`}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    onOpenTypeMenu(column, e as unknown as MouseEvent);
-                  }}
-                  title={t('dataTable.typeMenuTooltip')}
-                >
-                  <span class="iconify" aria-hidden="true" data-icon={getTypeIcon(column)}></span>
-                </span>
-                <span>{column}</span>
+                <div class={styles.headerContent}>
+                  <span
+                    class={`${styles.typeIndicator} ${styles[getColumnType(column)] || ''}`}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onOpenTypeMenu(column, e as unknown as MouseEvent);
+                    }}
+                    title={t('dataTable.typeMenuTooltip')}
+                  >
+                    <span class="iconify" aria-hidden="true" data-icon={getTypeIcon(column)}></span>
+                  </span>
+                  <span class={styles.headerLabel}>{column}</span>
+                  <button
+                    class={styles.columnMenuTrigger}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      onOpenColumnMenu(column, e as unknown as MouseEvent);
+                    }}
+                    title={t('dataTable.columnMenuTooltip')}
+                    aria-label={t('dataTable.columnMenuTooltip')}
+                    tabIndex={-1}
+                  >
+                    <span class="iconify" aria-hidden="true" data-icon="carbon:chevron-down"></span>
+                  </button>
+                </div>
               </th>
             ))}
           </tr>

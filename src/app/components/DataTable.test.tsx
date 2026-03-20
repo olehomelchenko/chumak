@@ -22,6 +22,7 @@ describe('DataTable - header keyboard navigation', () => {
     onSelectColumn: vi.fn(),
     onSelectCell: vi.fn(),
     onOpenTypeMenu: vi.fn(),
+    onOpenColumnMenu: vi.fn(),
     onSelectRow: vi.fn(),
     onScroll: vi.fn(),
   };
@@ -57,24 +58,24 @@ describe('DataTable - header keyboard navigation', () => {
     expect(headers[2].getAttribute('tabindex')).toBe('-1');
   });
 
-  it('should select column on Enter', () => {
+  it('should open column menu on Enter', () => {
     render(<DataTable {...mockProps} />);
     const headers = getHeaders();
 
     headers[0].focus();
     fireEvent.keyDown(headers[0], { key: 'Enter' });
 
-    expect(mockProps.onSelectColumn).toHaveBeenCalledWith('name', expect.any(Object));
+    expect(mockProps.onOpenColumnMenu).toHaveBeenCalledWith('name', expect.any(Object));
   });
 
-  it('should select column on Space', () => {
+  it('should open column menu on Space', () => {
     render(<DataTable {...mockProps} />);
     const headers = getHeaders();
 
     headers[1].focus();
     fireEvent.keyDown(headers[1], { key: ' ' });
 
-    expect(mockProps.onSelectColumn).toHaveBeenCalledWith('age', expect.any(Object));
+    expect(mockProps.onOpenColumnMenu).toHaveBeenCalledWith('age', expect.any(Object));
   });
 
   it('should move focus right on ArrowRight', () => {
@@ -155,6 +156,7 @@ describe('DataTable - empty state', () => {
     onSelectColumn: vi.fn(),
     onSelectCell: vi.fn(),
     onOpenTypeMenu: vi.fn(),
+    onOpenColumnMenu: vi.fn(),
     onSelectRow: vi.fn(),
     onScroll: vi.fn(),
   };

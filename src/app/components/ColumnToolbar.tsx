@@ -2,6 +2,7 @@ import { useRef, useEffect } from 'preact/hooks';
 import { useTranslation } from 'preact-i18next';
 import { AppStore } from '../stores/AppStore';
 import styles from './FloatingToolbar.module.css';
+import menuStyles from './ColumnToolbar.module.css';
 
 interface ColumnToolbarProps {
   onSort: (order: 'asc' | 'desc') => void;
@@ -31,37 +32,86 @@ export function ColumnToolbar({
   getColumnType,
 }: ColumnToolbarProps) {
   const { t } = useTranslation('ui');
-  const selectedColumn = AppStore.selectedColumn.value;
   const selectedColumns = AppStore.selectedColumns.value;
   const pos = AppStore.columnToolbarPos.value;
   const toolbarRef = useRef<HTMLDivElement>(null);
   const isMulti = selectedColumns.length > 1;
 
-  // Auto-focus first button when opened via keyboard
+  // Column menu state (dropdown from header chevron)
+  const menuColumn = AppStore.columnMenuOpen.value;
+  const menuPos = AppStore.columnMenuPos.value;
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Focus first menu item when column menu opens
   useEffect(() => {
-    if (!selectedColumn || !AppStore.columnToolbarFocusRequested.value) return;
-    AppStore.columnToolbarFocusRequested.value = false;
-    // Wait for toolbar positioning (happens in requestAnimationFrame)
+    if (!menuColumn) return;
     requestAnimationFrame(() => {
-      const toolbar = toolbarRef.current;
-      if (!toolbar) return;
-      const firstButton = toolbar.querySelector<HTMLElement>('button');
-      if (firstButton) firstButton.focus();
+      const menu = menuRef.current;
+      if (!menu) return;
+      const firstItem = menu.querySelector<HTMLElement>('button[role="menuitem"]');
+      if (firstItem) firstItem.focus();
     });
-  }, [selectedColumn]);
+  }, [menuColumn]);
 
-  if (!selectedColumn && selectedColumns.length === 0) return null;
+  const closeMenu = (restoreFocus = false) => {
+    const col = AppStore.columnMenuOpen.value;
+    AppStore.columnMenuOpen.value = null;
+    if (restoreFocus && col) {
+      const header = document.querySelector<HTMLElement>(`th[data-col="${col}"]`);
+      if (header) header.focus();
+    }
+  };
 
-  const handleKeyDown = (e: KeyboardEvent) => {
+  const handleMenuAction = (action: () => void) => {
+    closeMenu();
+    action();
+  };
+
+  const handleMenuKeyDown = (e: KeyboardEvent) => {
+    const menu = menuRef.current;
+    if (!menu) return;
+
+    if (e.key === 'Escape') {
+      e.preventDefault();
+      e.stopPropagation();
+      closeMenu(true);
+      return;
+    }
+
+    const items = Array.from(menu.querySelectorAll<HTMLElement>('button[role="menuitem"]'));
+    if (items.length === 0) return;
+
+    const currentIndex = items.indexOf(document.activeElement as HTMLElement);
+
+    switch (e.key) {
+      case 'ArrowDown': {
+        e.preventDefault();
+        const next = currentIndex < items.length - 1 ? currentIndex + 1 : 0;
+        items[next].focus();
+        break;
+      }
+      case 'ArrowUp': {
+        e.preventDefault();
+        const prev = currentIndex > 0 ? currentIndex - 1 : items.length - 1;
+        items[prev].focus();
+        break;
+      }
+      case 'Home':
+        e.preventDefault();
+        items[0].focus();
+        break;
+      case 'End':
+        e.preventDefault();
+        items[items.length - 1].focus();
+        break;
+    }
+  };
+
+  const handleToolbarKeyDown = (e: KeyboardEvent) => {
     const toolbar = toolbarRef.current;
     if (!toolbar) return;
 
-    if (e.key === 'Escape') {
-      // Return focus to the column header
-      const header = document.querySelector<HTMLElement>(`th[data-col="${selectedColumn}"]`);
-      if (header) header.focus();
-      return; // Let global handler clear the selection
-    }
+    if (e.key === 'Escape') return; // Let global handler clear selection
 
     if (!['ArrowLeft', 'ArrowRight', 'Home', 'End'].includes(e.key)) return;
     e.preventDefault();
@@ -91,200 +141,155 @@ export function ColumnToolbar({
     buttons[nextIdx].focus();
   };
 
-  // Multi-column toolbar: show count + remove only
-  if (isMulti) {
-    return (
-      <div
-        key="multi"
-        ref={toolbarRef}
-        role="toolbar"
-        aria-label={t('toolbars.column.ariaLabelMulti')}
-        class={styles.floatingToolbar}
-        style={
-          {
-            left: `${pos.x}px`,
-            top: `${pos.y}px`,
-            '--arrow-offset': `${pos.arrowOffset}px`,
-          } as any
-        }
-        onClick={(e) => e.stopPropagation()}
-        onKeyDown={handleKeyDown}
-      >
-        <span class={styles.floatingToolbar__label}>
-          {t('toolbars.column.multiLabel', { count: selectedColumns.length })}
-        </span>
-        <div class={styles.floatingToolbar__divider}></div>
-        <button
-          class={`${styles.floatingToolbar__button} ${styles.danger}`}
-          onClick={onRemoveMultiple}
-          title={t('toolbars.column.multiRemoveTitle', { count: selectedColumns.length })}
-          aria-label={t('toolbars.column.multiRemoveTitle', { count: selectedColumns.length })}
-        >
-          <span
-            class="iconify"
-            aria-hidden="true"
-            data-icon="carbon:trash-can"
-            style="width: 24px; height: 24px;"
-          ></span>
-        </button>
-      </div>
-    );
-  }
-
-  // Single-column toolbar
-  const type = getColumnType(selectedColumn!);
+  // Determine column type for menu (conditional items)
+  const type = menuColumn ? getColumnType(menuColumn) : '';
   const isDate = ['date', 'datetime'].includes(type);
 
   return (
-    <div
-      key="single"
-      ref={toolbarRef}
-      role="toolbar"
-      aria-label={t('toolbars.column.ariaLabel')}
-      class={styles.floatingToolbar}
-      style={
-        {
-          left: `${pos.x}px`,
-          top: `${pos.y}px`,
-          '--arrow-offset': `${pos.arrowOffset}px`,
-        } as any
-      }
-      onClick={(e) => e.stopPropagation()}
-      onKeyDown={handleKeyDown}
-    >
-      <button
-        class={styles.floatingToolbar__button}
-        onClick={() => onSort('asc')}
-        title={t('toolbars.column.sortAsc')}
-        aria-label={t('toolbars.column.sortAsc')}
-      >
-        <span
-          class="iconify"
-          aria-hidden="true"
-          data-icon="carbon:arrow-up"
-          style="width: 24px; height: 24px;"
-        ></span>
-      </button>
-      <button
-        class={styles.floatingToolbar__button}
-        onClick={() => onSort('desc')}
-        title={t('toolbars.column.sortDesc')}
-        aria-label={t('toolbars.column.sortDesc')}
-      >
-        <span
-          class="iconify"
-          aria-hidden="true"
-          data-icon="carbon:arrow-down"
-          style="width: 24px; height: 24px;"
-        ></span>
-      </button>
-      <div class={styles.floatingToolbar__divider}></div>
-      <button
-        class={styles.floatingToolbar__button}
-        onClick={onFilter}
-        title={t('toolbars.column.filter')}
-        aria-label={t('toolbars.column.filter')}
-      >
-        <span
-          class="iconify"
-          aria-hidden="true"
-          data-icon="carbon:filter"
-          style="width: 24px; height: 24px;"
-        ></span>
-      </button>
-      <button
-        class={styles.floatingToolbar__button}
-        onClick={onRename}
-        title={t('toolbars.column.rename')}
-        aria-label={t('toolbars.column.rename')}
-      >
-        <span
-          class="iconify"
-          aria-hidden="true"
-          data-icon="carbon:edit"
-          style="width: 24px; height: 24px;"
-        ></span>
-      </button>
-      <button
-        class={styles.floatingToolbar__button}
-        onClick={onSplit}
-        title={t('toolbars.column.split')}
-        aria-label={t('toolbars.column.split')}
-      >
-        <span
-          class="iconify"
-          aria-hidden="true"
-          data-icon="carbon:split-screen"
-          style="width: 24px; height: 24px;"
-        ></span>
-      </button>
-      {isDate && (
-        <button
-          class={styles.floatingToolbar__button}
-          onClick={onDate}
-          title={t('toolbars.column.date')}
-          aria-label={t('toolbars.column.date')}
+    <>
+      {/* Multi-column floating toolbar */}
+      {isMulti && (
+        <div
+          key="multi"
+          ref={toolbarRef}
+          role="toolbar"
+          aria-label={t('toolbars.column.ariaLabelMulti')}
+          class={styles.floatingToolbar}
+          style={
+            {
+              left: `${pos.x}px`,
+              top: `${pos.y}px`,
+              '--arrow-offset': `${pos.arrowOffset}px`,
+            } as any
+          }
+          onClick={(e) => e.stopPropagation()}
+          onKeyDown={handleToolbarKeyDown}
         >
-          <span
-            class="iconify"
-            aria-hidden="true"
-            data-icon="carbon:calendar"
-            style="width: 24px; height: 24px;"
-          ></span>
-        </button>
+          <span class={styles.floatingToolbar__label}>
+            {t('toolbars.column.multiLabel', { count: selectedColumns.length })}
+          </span>
+          <div class={styles.floatingToolbar__divider}></div>
+          <button
+            class={`${styles.floatingToolbar__button} ${styles.danger}`}
+            onClick={onRemoveMultiple}
+            title={t('toolbars.column.multiRemoveTitle', { count: selectedColumns.length })}
+            aria-label={t('toolbars.column.multiRemoveTitle', { count: selectedColumns.length })}
+          >
+            <span
+              class="iconify"
+              aria-hidden="true"
+              data-icon="carbon:trash-can"
+              style="width: 24px; height: 24px;"
+            ></span>
+          </button>
+        </div>
       )}
-      <button
-        class={styles.floatingToolbar__button}
-        onClick={onDedupe}
-        title={t('toolbars.column.dedupe')}
-        aria-label={t('toolbars.column.dedupe')}
-      >
-        <span
-          class="iconify"
-          aria-hidden="true"
-          data-icon="carbon:replicate"
-          style="width: 24px; height: 24px;"
-        ></span>
-      </button>
-      <button
-        class={styles.floatingToolbar__button}
-        onClick={onImpute}
-        title={t('toolbars.column.impute')}
-        aria-label={t('toolbars.column.impute')}
-      >
-        <span
-          class="iconify"
-          aria-hidden="true"
-          data-icon="material-symbols-light:edit-arrow-down-outline-rounded"
-          style="width: 24px; height: 24px;"
-        ></span>
-      </button>
-      <button
-        class={styles.floatingToolbar__button}
-        onClick={onDuplicate}
-        title={t('toolbars.column.duplicate')}
-        aria-label={t('toolbars.column.duplicate')}
-      >
-        <span
-          class="iconify"
-          aria-hidden="true"
-          data-icon="carbon:copy"
-          style="width: 24px; height: 24px;"
-        ></span>
-      </button>
-      <button
-        class={`${styles.floatingToolbar__button} ${styles.danger}`}
-        onClick={onRemove}
-        title={t('toolbars.column.remove')}
-        aria-label={t('toolbars.column.remove')}
-      >
-        <span
-          class="iconify"
-          aria-hidden="true"
-          data-icon="carbon:trash-can"
-          style="width: 24px; height: 24px;"
-        ></span>
-      </button>
-    </div>
+
+      {/* Column context menu (dropdown from header chevron) */}
+      {menuColumn && (
+        <>
+          <div class={menuStyles.overlay} onClick={() => closeMenu()} />
+          <div
+            ref={menuRef}
+            class={menuStyles.columnMenu}
+            role="menu"
+            aria-label={t('toolbars.column.ariaLabel')}
+            style={{ top: `${menuPos.y}px`, left: `${menuPos.x}px` }}
+            onKeyDown={handleMenuKeyDown}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              class={menuStyles.menuItem}
+              role="menuitem"
+              onClick={() => handleMenuAction(() => onSort('asc'))}
+            >
+              <span class="iconify" aria-hidden="true" data-icon="carbon:arrow-up"></span>
+              {t('toolbars.column.sortAsc')}
+            </button>
+            <button
+              class={menuStyles.menuItem}
+              role="menuitem"
+              onClick={() => handleMenuAction(() => onSort('desc'))}
+            >
+              <span class="iconify" aria-hidden="true" data-icon="carbon:arrow-down"></span>
+              {t('toolbars.column.sortDesc')}
+            </button>
+            <div class={menuStyles.menuDivider}></div>
+            <button
+              class={menuStyles.menuItem}
+              role="menuitem"
+              onClick={() => handleMenuAction(onFilter)}
+            >
+              <span class="iconify" aria-hidden="true" data-icon="carbon:filter"></span>
+              {t('toolbars.column.filter')}
+            </button>
+            <button
+              class={menuStyles.menuItem}
+              role="menuitem"
+              onClick={() => handleMenuAction(onRename)}
+            >
+              <span class="iconify" aria-hidden="true" data-icon="carbon:edit"></span>
+              {t('toolbars.column.rename')}
+            </button>
+            <button
+              class={menuStyles.menuItem}
+              role="menuitem"
+              onClick={() => handleMenuAction(onSplit)}
+            >
+              <span class="iconify" aria-hidden="true" data-icon="carbon:split-screen"></span>
+              {t('toolbars.column.split')}
+            </button>
+            <button
+              class={menuStyles.menuItem}
+              role="menuitem"
+              onClick={() => handleMenuAction(onDuplicate)}
+            >
+              <span class="iconify" aria-hidden="true" data-icon="carbon:copy"></span>
+              {t('toolbars.column.duplicate')}
+            </button>
+            <div class={menuStyles.menuDivider}></div>
+            {isDate && (
+              <button
+                class={menuStyles.menuItem}
+                role="menuitem"
+                onClick={() => handleMenuAction(onDate)}
+              >
+                <span class="iconify" aria-hidden="true" data-icon="carbon:calendar"></span>
+                {t('toolbars.column.date')}
+              </button>
+            )}
+            <button
+              class={menuStyles.menuItem}
+              role="menuitem"
+              onClick={() => handleMenuAction(onDedupe)}
+            >
+              <span class="iconify" aria-hidden="true" data-icon="carbon:replicate"></span>
+              {t('toolbars.column.dedupe')}
+            </button>
+            <button
+              class={menuStyles.menuItem}
+              role="menuitem"
+              onClick={() => handleMenuAction(onImpute)}
+            >
+              <span
+                class="iconify"
+                aria-hidden="true"
+                data-icon="material-symbols-light:edit-arrow-down-outline-rounded"
+              ></span>
+              {t('toolbars.column.impute')}
+            </button>
+            <div class={menuStyles.menuDivider}></div>
+            <button
+              class={`${menuStyles.menuItem} ${menuStyles.danger}`}
+              role="menuitem"
+              onClick={() => handleMenuAction(onRemove)}
+            >
+              <span class="iconify" aria-hidden="true" data-icon="carbon:trash-can"></span>
+              {t('toolbars.column.remove')}
+            </button>
+          </div>
+        </>
+      )}
+    </>
   );
 }

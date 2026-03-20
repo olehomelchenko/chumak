@@ -27,6 +27,7 @@
     white-space: nowrap;
     transition: background var(--transition-fast);
     cursor: pointer;
+    min-width: 180px;
     max-width: 250px;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -42,6 +43,16 @@
         background: rgba(var(--color-white-rgb), 0.2);
         color: white;
       }
+
+      .columnMenuTrigger {
+        color: var(--color-white);
+        opacity: 0.8;
+
+        &:hover {
+          opacity: 1;
+          background: rgba(var(--color-white-rgb), 0.2);
+        }
+      }
     }
 
     &:hover:not(.selected) {
@@ -51,6 +62,10 @@
         border-color: var(--color-cyan);
         background: var(--color-white);
         color: var(--color-cyan);
+      }
+
+      .columnMenuTrigger {
+        opacity: 1;
       }
     }
   }
@@ -284,5 +299,48 @@
   }
   &.json {
     color: var(--color-type-json);
+  }
+}
+
+.headerContent {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.headerLabel {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.columnMenuTrigger {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: auto;
+  padding: 2px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  color: var(--color-dark-gray);
+  opacity: 0.5;
+  transition:
+    opacity var(--transition-fast),
+    color var(--transition-fast),
+    background var(--transition-fast);
+  border-radius: var(--border-radius);
+
+  :global(.iconify) {
+    width: var(--icon-sm);
+    height: var(--icon-sm);
+  }
+
+  &:hover {
+    opacity: 1;
+    color: var(--color-cyan);
+    background: rgba(var(--color-midnight-blue-rgb), 0.08);
   }
 }
