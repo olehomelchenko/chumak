@@ -177,8 +177,7 @@ Verify refactoring aligns with:
 | Document                                                          | Purpose                                         |
 | ----------------------------------------------------------------- | ----------------------------------------------- |
 | [SOUL.md](SOUL.md)                                                | Project philosophy and core values              |
-| [CLAUDE.md](CLAUDE.md)                                            | AI onboarding and documentation index           |
-| [CLAUDE.md](CLAUDE.md)                                            | Documentation index and AI onboarding           |
+| [AGENTS.md](AGENTS.md)                                            | AI onboarding and project context               |
 | [SPECIFICATION.md](docs/SPECIFICATION.md)                         | Technical architecture                          |
 | [DATA-SPECIFICATION.md](docs/DATA-SPECIFICATION.md)               | Data structures and persistence                 |
 | [UX-SPECIFICATION.md](docs/UX-SPECIFICATION.md)                   | UI/UX guidelines                                |
