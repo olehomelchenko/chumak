@@ -968,5 +968,14 @@
       "topDesc": "Most frequent value",
       "freqDesc": "Count of the most frequent value"
     }
+  },
+  "download": {
+    "prompt": "Select what you would like to download:",
+    "csvTitle": "Recent Model (CSV)",
+    "csvDesc": "Export current model data as a CSV file",
+    "jsonTitle": "Recent Model (JSON)",
+    "jsonDesc": "Export current model data as a JSON file",
+    "workflowTitle": "Workflow (JSON)",
+    "workflowDesc": "Export transformation steps as a JSON workflow"
   }
 }
