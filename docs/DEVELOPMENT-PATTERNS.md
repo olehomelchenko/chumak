@@ -1265,6 +1265,15 @@ Simplified semver during pre-1.0: **minor** = features/behavior changes, **patch
 
 Use the `/release` skill to walk through: changelog update, `package.json` bump, git tag suggestion. The `/alignment` skill reminds about version bumps when reviewing user-visible changes.
 
+### Changelogs
+
+Two changelogs serve different audiences:
+
+- **`docs/CHANGELOG.md`** — internal dev log, implementation-oriented, every change. Updated during `/release`.
+- **GitHub Releases** — user-facing release notes per tag. Written for users of the tool, not maintainers.
+
+`src/content/whats-new.md` (shown in the Reference dialog) links to GitHub Releases — do not maintain feature highlights there manually.
+
 ---
 
 **End of Development Patterns**
