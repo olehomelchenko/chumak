@@ -385,14 +385,17 @@
       "ariaLabelMulti": "Multi-column actions",
       "sortAsc": "Sort ascending",
       "sortDesc": "Sort descending",
-      "filter": "Filter by this column",
-      "rename": "Rename this column",
-      "split": "Split this column",
+      "filter": "Filter",
+      "rename": "Rename",
+      "split": "Split",
       "date": "Date transformation",
-      "dedupe": "Dedupe by this column",
+      "replace": "Find & replace",
+      "spread": "Spread to columns",
+      "dedupe": "Deduplicate",
       "impute": "Impute missing values",
-      "duplicate": "Duplicate this column",
-      "remove": "Remove this column"
+      "duplicate": "Duplicate",
+      "convertType": "Convert type",
+      "remove": "Remove"
     },
     "row": {
       "ariaLabel": "Row actions",

@@ -82,7 +82,23 @@ For ribbon popover chips that pre-configure a dialog rather than applying instan
 
 This is distinct from §1.2 shortcuts (which apply immediately). Use this pattern when the transform needs user review before applying.
 
-### 1.2.2 Adding a New Window Function
+### 1.2.2 Adding a Column Menu Quick Action
+
+Column menu items are **data-driven** — defined as a `MenuEntry[]` array in `ColumnToolbar.tsx`. Each entry can specify `showFor` (whitelist) or `hideFor` (blacklist) column types. Adding or removing an item per type is a one-line config change.
+
+**Flow**: `ColumnToolbar.tsx` (menu entry + prop) → `App.tsx` (callback wiring) → `AppController` (delegation) → `interaction-handlers.ts` (pre-fill `DialogStore` + `onOpenDialog`)
+
+To add a new column menu item:
+
+1. Add a `MenuEntry` object in the `menuEntries` array in `ColumnToolbar.tsx` with `showFor`/`hideFor` as needed
+2. Add the callback prop to `ColumnToolbarProps` and wire it in `App.tsx`
+3. Add a `quick*` function in `interaction-handlers.ts` that pre-fills `DialogStore.*State` and calls `onOpenDialog`
+4. Add a pass-through method in `AppController.ts`
+5. Add i18n keys under `toolbars.column.*` in both locale files
+
+For actions that don't open a dialog (e.g., Sort, Remove), step 3 calls `StepService` directly instead.
+
+### 1.2.3 Adding a New Window Function
 
 Window functions are a sub-system of the `window` transform. Adding a new function touches fewer files than a full transform but requires registration in multiple layers:
 

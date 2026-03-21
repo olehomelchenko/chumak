@@ -1,21 +1,72 @@
-import { useRef, useEffect } from 'preact/hooks';
+import { useRef, useEffect, useMemo } from 'preact/hooks';
 import { useTranslation } from 'preact-i18next';
 import { AppStore } from '../stores/AppStore';
 import styles from './FloatingToolbar.module.css';
 import menuStyles from './ColumnToolbar.module.css';
+
+/**
+ * A single menu entry: either an action item or a visual divider.
+ *
+ * - `showFor`: if present, item only appears for these column types
+ * - `hideFor`: if present, item is hidden for these column types
+ * - When neither is set, the item appears for all types.
+ */
+type MenuEntry =
+  | {
+      type: 'item';
+      id: string;
+      icon: string;
+      i18nKey: string;
+      action: () => void;
+      showFor?: string[];
+      hideFor?: string[];
+      danger?: boolean;
+    }
+  | { type: 'divider' };
 
 interface ColumnToolbarProps {
   onSort: (order: 'asc' | 'desc') => void;
   onFilter: () => void;
   onRename: () => void;
   onSplit: () => void;
+  onReplace: () => void;
   onDate: () => void;
+  onSpread: () => void;
   onDedupe: () => void;
   onImpute: () => void;
   onDuplicate: () => void;
+  onConvertType: () => void;
   onRemove: () => void;
   onRemoveMultiple: () => void;
   getColumnType: (col: string) => string;
+}
+
+function isItemVisible(entry: MenuEntry, columnType: string): boolean {
+  if (entry.type === 'divider') return true;
+  if (entry.showFor && !entry.showFor.includes(columnType)) return false;
+  if (entry.hideFor && entry.hideFor.includes(columnType)) return false;
+  return true;
+}
+
+/**
+ * Filters menu entries by column type and collapses adjacent/trailing dividers.
+ */
+function getVisibleEntries(entries: MenuEntry[], columnType: string): MenuEntry[] {
+  const filtered = entries.filter((entry) => isItemVisible(entry, columnType));
+  // Remove leading dividers, trailing dividers, and consecutive dividers
+  const result: MenuEntry[] = [];
+  for (const entry of filtered) {
+    if (entry.type === 'divider') {
+      // Skip if first or if previous was also a divider
+      if (result.length === 0 || result[result.length - 1].type === 'divider') continue;
+    }
+    result.push(entry);
+  }
+  // Remove trailing divider
+  if (result.length > 0 && result[result.length - 1].type === 'divider') {
+    result.pop();
+  }
+  return result;
 }
 
 export function ColumnToolbar({
@@ -23,10 +74,13 @@ export function ColumnToolbar({
   onFilter,
   onRename,
   onSplit,
+  onReplace,
   onDate,
+  onSpread,
   onDedupe,
   onImpute,
   onDuplicate,
+  onConvertType,
   onRemove,
   onRemoveMultiple,
   getColumnType,
@@ -143,7 +197,142 @@ export function ColumnToolbar({
 
   // Determine column type for menu (conditional items)
   const type = menuColumn ? getColumnType(menuColumn) : '';
-  const isDate = ['date', 'datetime'].includes(type);
+
+  /**
+   * Menu item definitions. Each entry is either an action item or a divider.
+   * Type filtering:
+   *   showFor — only these types see the item
+   *   hideFor — these types don't see the item
+   *   (neither) — visible for all types
+   */
+  const menuEntries: MenuEntry[] = useMemo(
+    () => [
+      // --- Sort ---
+      {
+        type: 'item',
+        id: 'sortAsc',
+        icon: 'carbon:arrow-up',
+        i18nKey: 'toolbars.column.sortAsc',
+        action: () => onSort('asc'),
+        hideFor: ['json'],
+      },
+      {
+        type: 'item',
+        id: 'sortDesc',
+        icon: 'carbon:arrow-down',
+        i18nKey: 'toolbars.column.sortDesc',
+        action: () => onSort('desc'),
+        hideFor: ['json'],
+      },
+      { type: 'divider' },
+      // --- Core column actions ---
+      {
+        type: 'item',
+        id: 'filter',
+        icon: 'carbon:filter',
+        i18nKey: 'toolbars.column.filter',
+        action: onFilter,
+      },
+      {
+        type: 'item',
+        id: 'rename',
+        icon: 'carbon:edit',
+        i18nKey: 'toolbars.column.rename',
+        action: onRename,
+      },
+      {
+        type: 'item',
+        id: 'split',
+        icon: 'carbon:split-screen',
+        i18nKey: 'toolbars.column.split',
+        action: onSplit,
+        showFor: ['string'],
+      },
+      {
+        type: 'item',
+        id: 'replace',
+        icon: 'carbon:find-and-replace',
+        i18nKey: 'toolbars.column.replace',
+        action: onReplace,
+        showFor: ['string'],
+      },
+      {
+        type: 'item',
+        id: 'spread',
+        icon: 'carbon:data-table',
+        i18nKey: 'toolbars.column.spread',
+        action: onSpread,
+        showFor: ['json'],
+      },
+      {
+        type: 'item',
+        id: 'duplicate',
+        icon: 'carbon:copy',
+        i18nKey: 'toolbars.column.duplicate',
+        action: onDuplicate,
+      },
+      { type: 'divider' },
+      // --- Type-specific transforms ---
+      {
+        type: 'item',
+        id: 'date',
+        icon: 'carbon:calendar',
+        i18nKey: 'toolbars.column.date',
+        action: onDate,
+        showFor: ['date', 'datetime'],
+      },
+      {
+        type: 'item',
+        id: 'dedupe',
+        icon: 'carbon:replicate',
+        i18nKey: 'toolbars.column.dedupe',
+        action: onDedupe,
+        hideFor: ['boolean', 'json'],
+      },
+      {
+        type: 'item',
+        id: 'impute',
+        icon: 'material-symbols-light:edit-arrow-down-outline-rounded',
+        i18nKey: 'toolbars.column.impute',
+        action: onImpute,
+        hideFor: ['boolean', 'json'],
+      },
+      { type: 'divider' },
+      // --- Convert & Remove ---
+      {
+        type: 'item',
+        id: 'convertType',
+        icon: 'carbon:data-format',
+        i18nKey: 'toolbars.column.convertType',
+        action: onConvertType,
+      },
+      { type: 'divider' },
+      {
+        type: 'item',
+        id: 'remove',
+        icon: 'carbon:trash-can',
+        i18nKey: 'toolbars.column.remove',
+        action: onRemove,
+        danger: true,
+      },
+    ],
+    [
+      onSort,
+      onFilter,
+      onRename,
+      onSplit,
+      onReplace,
+      onDate,
+      onSpread,
+      onDedupe,
+      onImpute,
+      onDuplicate,
+      onConvertType,
+      onRemove,
+    ]
+  );
+
+  const visibleEntries = useMemo(() => getVisibleEntries(menuEntries, type), [menuEntries, type]);
 
   return (
     <>
@@ -198,95 +387,21 @@ export function ColumnToolbar({
             onKeyDown={handleMenuKeyDown}
             onClick={(e) => e.stopPropagation()}
           >
-            <button
-              class={menuStyles.menuItem}
-              role="menuitem"
-              onClick={() => handleMenuAction(() => onSort('asc'))}
-            >
-              <span class="iconify" aria-hidden="true" data-icon="carbon:arrow-up"></span>
-              {t('toolbars.column.sortAsc')}
-            </button>
-            <button
-              class={menuStyles.menuItem}
-              role="menuitem"
-              onClick={() => handleMenuAction(() => onSort('desc'))}
-            >
-              <span class="iconify" aria-hidden="true" data-icon="carbon:arrow-down"></span>
-              {t('toolbars.column.sortDesc')}
-            </button>
-            <div class={menuStyles.menuDivider}></div>
-            <button
-              class={menuStyles.menuItem}
-              role="menuitem"
-              onClick={() => handleMenuAction(onFilter)}
-            >
-              <span class="iconify" aria-hidden="true" data-icon="carbon:filter"></span>
-              {t('toolbars.column.filter')}
-            </button>
-            <button
-              class={menuStyles.menuItem}
-              role="menuitem"
-              onClick={() => handleMenuAction(onRename)}
-            >
-              <span class="iconify" aria-hidden="true" data-icon="carbon:edit"></span>
-              {t('toolbars.column.rename')}
-            </button>
-            <button
-              class={menuStyles.menuItem}
-              role="menuitem"
-              onClick={() => handleMenuAction(onSplit)}
-            >
-              <span class="iconify" aria-hidden="true" data-icon="carbon:split-screen"></span>
-              {t('toolbars.column.split')}
-            </button>
-            <button
-              class={menuStyles.menuItem}
-              role="menuitem"
-              onClick={() => handleMenuAction(onDuplicate)}
-            >
-              <span class="iconify" aria-hidden="true" data-icon="carbon:copy"></span>
-              {t('toolbars.column.duplicate')}
-            </button>
-            <div class={menuStyles.menuDivider}></div>
-            {isDate && (
-              <button
-                class={menuStyles.menuItem}
-                role="menuitem"
-                onClick={() => handleMenuAction(onDate)}
-              >
-                <span class="iconify" aria-hidden="true" data-icon="carbon:calendar"></span>
-                {t('toolbars.column.date')}
-              </button>
+            {visibleEntries.map((entry, i) =>
+              entry.type === 'divider' ? (
+                <div key={`div-${i}`} class={menuStyles.menuDivider}></div>
+              ) : (
+                <button
+                  key={entry.id}
+                  class={`${menuStyles.menuItem}${entry.danger ? ` ${menuStyles.danger}` : ''}`}
+                  role="menuitem"
+                  onClick={() => handleMenuAction(entry.action)}
+                >
+                  <span class="iconify" aria-hidden="true" data-icon={entry.icon}></span>
+                  {t(entry.i18nKey)}
+                </button>
+              )
             )}
-            <button
-              class={menuStyles.menuItem}
-              role="menuitem"
-              onClick={() => handleMenuAction(onDedupe)}
-            >
-              <span class="iconify" aria-hidden="true" data-icon="carbon:replicate"></span>
-              {t('toolbars.column.dedupe')}
-            </button>
-            <button
-              class={menuStyles.menuItem}
-              role="menuitem"
-              onClick={() => handleMenuAction(onImpute)}
-            >
-              <span
-                class="iconify"
-                aria-hidden="true"
-                data-icon="material-symbols-light:edit-arrow-down-outline-rounded"
-              ></span>
-              {t('toolbars.column.impute')}
-            </button>
-            <div class={menuStyles.menuDivider}></div>
-            <button
-              class={`${menuStyles.menuItem} ${menuStyles.danger}`}
-              role="menuitem"
-              onClick={() => handleMenuAction(onRemove)}
-            >
-              <span class="iconify" aria-hidden="true" data-icon="carbon:trash-can"></span>
-              {t('toolbars.column.remove')}
-            </button>
           </div>
         </>
       )}

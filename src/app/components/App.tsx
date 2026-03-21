@@ -545,10 +545,16 @@ export function App() {
         onFilter={() => AppController.quickFilter()}
         onRename={() => AppController.quickRename()}
         onSplit={() => AppController.quickSplit()}
+        onReplace={() => AppController.quickReplaceColumn()}
         onDate={() => AppController.quickDate()}
+        onSpread={() => AppController.quickSpread()}
         onDedupe={() => AppController.quickDedupe()}
         onImpute={() => openDialog('impute')}
         onDuplicate={() => AppController.executeShortcut('duplicate')}
+        onConvertType={() => {
+          const col = AppStore.selectedColumn.value;
+          if (col) AppController.openTypeMenuForColumn(col);
+        }}
         onRemove={() => AppController.quickRemove()}
         onRemoveMultiple={() => AppController.quickRemoveMultiple()}
         getColumnType={(col: string) => getColumnType(col)}

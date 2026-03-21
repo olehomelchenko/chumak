@@ -473,6 +473,43 @@ export function quickDate(onOpenDialog: (name: string) => void) {
   onOpenDialog('date');
 }
 
+export function quickReplaceColumn(onOpenDialog: (name: string) => void) {
+  const col = AppStore.selectedColumn.value;
+  if (!col) return;
+
+  const state = DialogStore.replaceState;
+  state.column.value = col;
+  state.findValue.value = '';
+  state.replaceValue.value = '';
+  state.isRegex.value = false;
+
+  onOpenDialog('replace');
+}
+
+export function quickSpread(onOpenDialog: (name: string) => void) {
+  const col = AppStore.selectedColumn.value;
+  if (!col) return;
+
+  DialogStore.spreadState.column.value = col;
+  onOpenDialog('spread');
+}
+
+export function openTypeMenuForColumn(col: string) {
+  AppStore.typeMenuCol.value = col;
+  AppStore.typeMenuOpen.value = true;
+  // Position below the column header's type indicator (or header itself)
+  const header = document.querySelector(`th[data-col="${col}"]`);
+  if (!header) return;
+  const indicator = header.querySelector('.type-indicator');
+  const el = indicator || header;
+  const rect = el.getBoundingClientRect();
+  const menuWidth = 140;
+  const margin = 8;
+  const windowWidth = window.innerWidth;
+  const x = Math.min(rect.left, windowWidth - menuWidth - margin);
+  AppStore.typeMenuPos.value = { x, y: rect.bottom + 4 };
+}
+
 export function quickSplit(onOpenDialog: (name: string) => void) {
   const col = AppStore.selectedColumn.value;
   if (!col) return;

@@ -366,8 +366,20 @@ export const AppController = {
     return InteractionHandlers.quickReplace((name) => DialogHandlers.openDialog(name));
   },
 
+  quickReplaceColumn(): void {
+    return InteractionHandlers.quickReplaceColumn((name) => DialogHandlers.openDialog(name));
+  },
+
+  quickSpread(): void {
+    return InteractionHandlers.quickSpread((name) => DialogHandlers.openDialog(name));
+  },
+
   quickDedupe(): void {
     return InteractionHandlers.quickDedupe((name) => DialogHandlers.openDialog(name));
+  },
+
+  openTypeMenuForColumn(col: string): void {
+    return InteractionHandlers.openTypeMenuForColumn(col);
   },
 
   // ============================================================
