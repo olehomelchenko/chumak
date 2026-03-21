@@ -42,7 +42,8 @@
     "reference": "Довідник",
     "dependencyGraph": "Граф залежностей",
     "promoteHeader": "Підвищити рядок до заголовка",
-    "describe": "Зведена статистика"
+    "describe": "Зведена статистика",
+    "workflowImport": "Імпорт робочого процесу"
   },
   "common": {
     "labels": {
@@ -939,6 +940,15 @@
       "willUse": "Рядок {{row}} стане новими заголовками стовпців",
       "notEnoughRows": "Недостатньо рядків у даних"
     }
+  },
+  "workflowImport": {
+    "version": "Версія",
+    "exported": "Експортовано",
+    "modelCount_one": "{{count}} модель",
+    "modelCount_few": "{{count}} моделі",
+    "modelCount_many": "{{count}} моделей",
+    "sourcesTitle": "Прив'язати файли до джерел",
+    "columnMismatch": "Увага: відсутні {{count}} очікуваних стовпців: {{columns}}"
   },
   "describe": {
     "columnsLabel": "Стовпці для опису",

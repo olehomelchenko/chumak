@@ -596,6 +596,13 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     type: 'centered-modal',
     isUrlNavigable: false,
   },
+
+  'workflow-import': {
+    name: 'workflow-import',
+    title: 'Import Workflow',
+    type: 'centered-modal',
+    // No getState — file bindings are ephemeral, no meaningful state to snapshot
+  },
 };
 
 /**
@@ -645,6 +652,7 @@ export function getDialogTitle(dialogName: DialogName): string {
     'import-text': 'importText',
     'type-conversion': 'typeConversion',
     'dependency-graph': 'dependencyGraph',
+    'workflow-import': 'workflowImport',
   };
 
   const key = keyMap[dialogName] || dialogName;

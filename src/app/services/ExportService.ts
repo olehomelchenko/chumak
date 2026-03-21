@@ -66,57 +66,6 @@ export class ExportService {
   }
 
   /**
-   * Exports the current model workflow as JSON
-   */
-  static async exportWorkflowJSON(alert: (msg: string) => Promise<any>) {
-    const activeModel = AppStore.activeModel.value;
-    if (!activeModel) {
-      await alert(i18n.t('export.noWorkflow', { ns: 'errors' }));
-      return;
-    }
-
-    try {
-      const source = AppStore.sources.value.find((s) => s.id === activeModel.sourceId);
-      const workflow = {
-        formatVersion: 1,
-        sytoVersion: __APP_VERSION__,
-        name: activeModel.name,
-        exportedAt: new Date().toISOString(),
-        source: {
-          id: source?.id,
-          name: source?.name,
-          columns: source?.columns,
-        },
-        model: {
-          id: activeModel.id,
-          name: activeModel.name,
-          steps: activeModel.steps,
-        },
-      };
-
-      const json = JSON.stringify(workflow, null, 2);
-      const blob = new Blob([json], { type: 'application/json;charset=utf-8;' });
-      const url = URL.createObjectURL(blob);
-      const link = document.createElement('a');
-      const timestamp = new Date().toISOString().slice(0, 10);
-      const filename = `${activeModel.name}_workflow_${timestamp}.json`;
-
-      link.setAttribute('href', url);
-      link.setAttribute('download', filename);
-      link.style.visibility = 'hidden';
-      document.body.appendChild(link);
-      link.click();
-      document.body.removeChild(link);
-
-      console.log('Exported workflow JSON:', filename);
-      showSuccess(i18n.t('notifications.exportedWorkflow', { ns: 'common', filename }));
-    } catch (error: any) {
-      console.error('Workflow export error:', error);
-      await alert(i18n.t('export.workflowFailed', { ns: 'errors', message: error.message }));
-    }
-  }
-
-  /**
    * Exports the current data as a JSON file
    */
   static async exportDataJSON(alert: (msg: string) => Promise<any>) {
@@ -306,7 +255,7 @@ export class ExportService {
       const url = URL.createObjectURL(blob);
       const link = document.createElement('a');
       const timestamp = new Date().toISOString().slice(0, 10);
-      const filename = `${activeModel.name}_workflow-v2_${timestamp}.json`;
+      const filename = `${activeModel.name}_workflow_${timestamp}.json`;
 
       link.setAttribute('href', url);
       link.setAttribute('download', filename);

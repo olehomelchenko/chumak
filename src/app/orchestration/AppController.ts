@@ -228,8 +228,8 @@ export const AppController = {
     await ExportService.exportCSV(NotificationHandlers.alert);
   },
 
-  async exportWorkflowJSON(): Promise<void> {
-    return ExportService.exportWorkflowJSON(NotificationHandlers.alert);
+  async exportWorkflow(): Promise<void> {
+    return ExportService.exportWorkflowV2(NotificationHandlers.alert);
   },
 
   async exportDataJSON(): Promise<void> {

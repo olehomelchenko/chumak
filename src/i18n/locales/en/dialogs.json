@@ -42,7 +42,8 @@
     "reference": "Reference",
     "dependencyGraph": "Dependency graph",
     "promoteHeader": "Promote row to header",
-    "describe": "Summary statistics"
+    "describe": "Summary statistics",
+    "workflowImport": "Import workflow"
   },
   "common": {
     "labels": {
@@ -938,6 +939,14 @@
       "willUse": "Row {{row}} will become the new column headers",
       "notEnoughRows": "Not enough rows in the data"
     }
+  },
+  "workflowImport": {
+    "version": "Version",
+    "exported": "Exported",
+    "modelCount_one": "{{count}} model",
+    "modelCount_other": "{{count}} models",
+    "sourcesTitle": "Bind data files to sources",
+    "columnMismatch": "Warning: missing {{count}} expected column(s): {{columns}}"
   },
   "describe": {
     "columnsLabel": "Columns to describe",

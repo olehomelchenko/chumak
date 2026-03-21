@@ -82,31 +82,6 @@ describe('ExportService', () => {
     });
   });
 
-  describe('exportWorkflowJSON', () => {
-    it('alerts when no active model', async () => {
-      AppStore.activeModel.value = null;
-
-      await ExportService.exportWorkflowJSON(alert);
-
-      expect(alert).toHaveBeenCalledWith('No workflow to export. Add transform steps first.');
-    });
-
-    it('exports workflow with correct structure', async () => {
-      const source = createTestSource({ name: 'Sales' });
-      const model = createTestModel({
-        name: 'Clean',
-        steps: [{ filter: 'x > 0' }],
-      });
-      AppStore.sources.value = [source];
-      AppStore.activeModel.value = model;
-
-      await ExportService.exportWorkflowJSON(alert);
-
-      expect(showSuccess).toHaveBeenCalled();
-      expect(alert).not.toHaveBeenCalled();
-    });
-  });
-
   describe('exportDataJSON', () => {
     it('alerts when no data', async () => {
       AppStore.currentData.value = null;

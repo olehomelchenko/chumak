@@ -6,13 +6,7 @@
 
 import fs from 'fs';
 import path from 'path';
-import {
-  detectVersion,
-  upgradeV1toV2,
-  validateV2Workflow,
-  V2Workflow,
-  ValidationError,
-} from '../core/workflow-v2';
+import { validateV2Workflow, V2Workflow, ValidationError } from '../core/workflow-v2';
 import { readFileAsString, parseCSV } from './file-loader';
 import { SchemaEngine } from '../core/schema-engine';
 import type { ColumnSchema } from '../core/schema-engine';
@@ -35,13 +29,18 @@ export function runValidateCommand(options: ValidateOptions): number {
     return 2;
   }
 
-  // Detect version and upgrade if needed
-  let workflow: V2Workflow;
-  if (detectVersion(rawJson) === 1) {
-    workflow = upgradeV1toV2(rawJson);
-  } else {
-    workflow = rawJson as V2Workflow;
+  // Validate format version
+  if (rawJson.formatVersion !== 2) {
+    const errors = [
+      {
+        type: 'invalid_version',
+        message: 'Unsupported workflow format. Expected formatVersion 2.',
+      },
+    ];
+    outputErrors(errors, options.json);
+    return 2;
   }
+  const workflow: V2Workflow = rawJson as V2Workflow;
 
   // Structural validation
   const structuralResult = validateV2Workflow(workflow);

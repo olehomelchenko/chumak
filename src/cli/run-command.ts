@@ -7,8 +7,12 @@
 import * as aq from 'arquero';
 import fs from 'fs';
 import path from 'path';
-import { detectVersion, upgradeV1toV2, validateV2Workflow, V2Workflow } from '../core/workflow-v2';
-import { MULTI_MODEL_REFERENCE_PATHS } from '../core/transforms/types';
+import {
+  validateV2Workflow,
+  V2Workflow,
+  getReachableModels,
+  topologicalSortV2,
+} from '../core/workflow-v2';
 import { applyTransform } from '../core/transforms';
 import { TransformResult } from '../core/transform-result';
 import { SchemaEngine, ColumnSchema } from '../core/schema-engine';
@@ -43,13 +47,12 @@ export async function runRunCommand(options: RunOptions): Promise<number> {
     return 1;
   }
 
-  // 2. Detect version, upgrade if needed
-  let workflow: V2Workflow;
-  if (detectVersion(rawJson) === 1) {
-    workflow = upgradeV1toV2(rawJson);
-  } else {
-    workflow = rawJson as V2Workflow;
+  // 2. Validate format version
+  if (rawJson.formatVersion !== 2) {
+    console.error('Error: Unsupported workflow format. Expected formatVersion 2.');
+    return 2;
   }
+  const workflow: V2Workflow = rawJson as V2Workflow;
 
   // 3. Validate structure
   const validation = validateV2Workflow(workflow);
@@ -144,7 +147,7 @@ export async function runRunCommand(options: RunOptions): Promise<number> {
 
   // 7. Topological sort: determine execution order for models reachable from outputs
   const reachable = getReachableModels(workflow, workflow.outputs);
-  const executionOrder = topologicalSort(workflow, reachable);
+  const executionOrder = topologicalSortV2(workflow, reachable);
 
   // 8. Execute models in order
   for (const modelName of executionOrder) {
@@ -231,77 +234,6 @@ export async function runRunCommand(options: RunOptions): Promise<number> {
   }
 
   return 0;
-}
-
-/**
- * Gets all model names reachable from the output set (upstream walk).
- */
-function getReachableModels(workflow: V2Workflow, outputs: string[]): Set<string> {
-  const visited = new Set<string>();
-  const queue = [...outputs];
-
-  while (queue.length > 0) {
-    const name = queue.shift()!;
-    if (visited.has(name)) continue;
-    if (!workflow.models[name]) continue;
-    visited.add(name);
-
-    const model = workflow.models[name];
-    // Source might be another model
-    if (workflow.models[model.source]) {
-      queue.push(model.source);
-    }
-    // Multi-model references in steps
-    for (const step of model.steps || []) {
-      for (const { key, field } of MULTI_MODEL_REFERENCE_PATHS) {
-        const stepValue = (step as any)[key];
-        if (stepValue && stepValue[field] && workflow.models[stepValue[field]]) {
-          queue.push(stepValue[field]);
-        }
-      }
-    }
-  }
-
-  return visited;
-}
-
-/**
- * Returns a topological ordering of the reachable models.
- */
-function topologicalSort(workflow: V2Workflow, reachable: Set<string>): string[] {
-  const visited = new Set<string>();
-  const result: string[] = [];
-  const modelNames = new Set(Object.keys(workflow.models));
-
-  const visit = (name: string) => {
-    if (visited.has(name) || !reachable.has(name)) return;
-    visited.add(name);
-
-    const model = workflow.models[name];
-    if (!model) return;
-
-    // Visit source dependency first (if it's a model)
-    if (modelNames.has(model.source)) {
-      visit(model.source);
-    }
-    // Visit multi-model step dependencies
-    for (const step of model.steps || []) {
-      for (const { key, field } of MULTI_MODEL_REFERENCE_PATHS) {
-        const stepValue = (step as any)[key];
-        if (stepValue && stepValue[field] && modelNames.has(stepValue[field])) {
-          visit(stepValue[field]);
-        }
-      }
-    }
-
-    result.push(name);
-  };
-
-  for (const name of reachable) {
-    visit(name);
-  }
-
-  return result;
 }
 
 /**

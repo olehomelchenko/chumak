@@ -260,7 +260,7 @@ The core engine is fully portable — no browser APIs, no Preact dependency. Use
 | `eda-engine.ts`                 | Statistical profiling and column analysis                                                   |
 | `charts.ts`                     | Vega-Lite specification generator                                                           |
 | `vega-themes.ts`                | Theme configurations for visualizations                                                     |
-| `workflow-v2.ts`                | Portable workflow format: types, validation, version detection, name translation            |
+| `workflow-v2.ts`                | Portable workflow format: types, validation, name translation, topological sort             |
 
 **Transforms Module** (`transforms/`):
 
@@ -315,7 +315,8 @@ functions/
 - `StepService.ts` — Pipeline execution, transform application, undo/redo history
 - `ImportService.ts` — CSV/URL/clipboard import logic
 - `ReplaceSourceService.ts` — Data replacement and backup restoration
-- `ExportService.ts` — CSV/JSON/workflow export (v1 and v2 formats)
+- `ExportService.ts` — CSV/JSON/workflow export (v2 format)
+- `WorkflowImportService.ts` — v2 workflow import (creates sources/models from workflow + bound data)
 - `PersistenceService.ts` — Persistence coordination (wraps infrastructure/storage)
 - `NameService.ts` — Global name uniqueness enforcement for sources and models
 - `DependencyService.ts` — Dependency graph, staleness tracking, topological sort, model chaining helpers
@@ -369,6 +370,16 @@ Headless workflow execution for Node.js. Reuses `src/core/` (transforms, schema,
 - `cli/output-writer.ts` — CSV/JSON output to file or stdout
 
 **Build**: `npm run build:cli` (esbuild, outputs `dist-cli/cli.mjs`). See `cli.tsconfig.json` for included paths.
+
+#### Workflow Export/Import Flow
+
+**Export** (browser → JSON file): `keyboard-handlers.ts` or `DownloadDialog.tsx` → `ExportService.exportWorkflowV2()` → `DependencyService` (upstream walk) → `translateIdsToNames()` → download v2 JSON.
+
+**Import** (JSON file → browser): Drop/paste JSON → `import-handlers.ts:handleJsonPreview()` detects `formatVersion: 2` → `routeToWorkflowImport()` validates + opens `WorkflowImportDialog` → user binds CSV files to sources → `WorkflowImportService.importWorkflow()` creates sources/models in topological order via `topologicalSortV2()`.
+
+**CLI execution**: `run-command.ts` → validates v2 → resolves bindings → `getReachableModels()` + `topologicalSortV2()` (from `workflow-v2.ts`) → executes pipeline → writes output.
+
+Shared core utilities in `workflow-v2.ts`: `validateV2Workflow()`, `translateIdsToNames()` / `translateNamesToIds()`, `getReachableModels()`, `topologicalSortV2()`. Used by both browser and CLI.
 
 ---
 

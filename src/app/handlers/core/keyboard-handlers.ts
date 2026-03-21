@@ -42,7 +42,7 @@ async function handleSave(event: KeyboardEvent) {
     return;
   }
 
-  await ExportService.exportWorkflowJSON(async (msg: string) => {
+  await ExportService.exportWorkflowV2(async (msg: string) => {
     await alert(msg);
   });
 }

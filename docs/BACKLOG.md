@@ -66,6 +66,27 @@ Import multiple files at once via multi-select file picker (`<input multiple>`) 
 
 Add designed empty states for scenarios currently showing blank space. See [UX-SPECIFICATION.md](UX-SPECIFICATION.md) §3.8 for the inventory: zero rows after filter, no steps in pipeline, empty EDA panel, no columns selected in dialog.
 
+### WorkflowImportDialog CSS Modules
+
+**Status**: Planned
+**Effort**: Small
+
+`WorkflowImportDialog.tsx` uses inline `style={{...}}` instead of CSS Modules. Every other dialog uses CSS Modules. Extract styles to `WorkflowImportDialog.module.css`.
+
+### WorkflowImportService Tests
+
+**Status**: Planned
+**Effort**: Small-Medium
+
+No tests for `WorkflowImportService` (source creation, model building, pipeline computation, state updates) or `routeToWorkflowImport` in import-handlers. Core graph utilities are tested; the integration wiring is not.
+
+### DownloadDialog i18n
+
+**Status**: Planned
+**Effort**: Small
+
+Hardcoded English strings in `DownloadDialog.tsx`: "Select what you would like to download", "Workflow (JSON)", "Export transformation steps as a JSON workflow", and other button labels. Extract to `dialogs` i18n namespace with Ukrainian translations.
+
 ---
 
 ---
@@ -194,7 +215,8 @@ Completed features are documented here for posterity:
 - **i18n hardcoded import messages** — March 2026. Extracted hardcoded English strings (`'Excel file is empty'`, `'CSV file is empty'`) in `confirmImport()` to i18n keys (`import.emptyExcelFile`, `import.emptyCsvFile`) with Ukrainian translations.
 - **Test mock deduplication** — March 2026. Added `MockFactories` to `test-utils.ts` with shared factories for `StepService`, `notification-handlers`, `preview-engine`, and `validation-engine`. Updated 11 handler test files to use centralized factories via async `vi.mock` with dynamic import, so interface changes require updating one file instead of 11+.
 - **Model chaining & name uniqueness** — March 2026. `sourceId` can reference another model (pipeline chaining). Source names globally unique, model names unique per-source, enforced via `NameService`. Auto-dedup on import. `DependencyService.getRootSourceId()` / `getUpstreamDependencies()`. `MULTI_MODEL_REFERENCE_PATHS` extracted to shared constant.
-- **CLI & Workflow v2** — March 2026. Headless workflow execution via `syto run/validate/schema` commands. Portable v2 workflow format with named references, multi-source/model DAGs, parsing hints. Browser export via `ExportService.exportWorkflowV2()`. v1 backward compatibility via `upgradeV1toV2()`.
+- **CLI & Workflow v2** — March 2026. Headless workflow execution via `syto run/validate/schema` commands. Portable v2 workflow format with named references, multi-source/model DAGs, parsing hints. Browser export via `ExportService.exportWorkflowV2()`. v1 removed entirely (no users).
+- **V2 Workflow Cutover** — March 2026. v1 format deleted, v2 is sole format. Browser import via drag-and-drop detection + `WorkflowImportDialog` + `WorkflowImportService`. Topological sort (`getReachableModels` / `topologicalSortV2`) extracted to shared `workflow-v2.ts`. CLI rejects non-v2 with clear error.
 
 ---
 

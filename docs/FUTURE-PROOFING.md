@@ -10,12 +10,12 @@ This is not a theoretical "what if we rename everything" document. It focuses on
 
 ## How Data is Persisted
 
-| Location               | What's Stored                          | Format                                          |
-| ---------------------- | -------------------------------------- | ----------------------------------------------- |
-| IndexedDB `sources`    | Raw imported data + metadata           | `Source` objects                                |
-| IndexedDB `models`     | Transform pipelines + computed results | `Model` objects with `TransformStep[]`          |
-| Exported workflow JSON | Portable pipeline definition           | `{ formatVersion, sytoVersion, source, model }` |
-| URL hash               | Current view state                     | `/#/sourceId/modelId`                           |
+| Location               | What's Stored                          | Format                                           |
+| ---------------------- | -------------------------------------- | ------------------------------------------------ |
+| IndexedDB `sources`    | Raw imported data + metadata           | `Source` objects                                 |
+| IndexedDB `models`     | Transform pipelines + computed results | `Model` objects with `TransformStep[]`           |
+| Exported workflow JSON | Portable pipeline definition (v2 only) | `{ formatVersion: 2, sources, models, outputs }` |
+| URL hash               | Current view state                     | `/#/sourceId/modelId`                            |
 
 **Key insight:** IndexedDB stores the full objects, including computed `data` arrays. Workflow JSON stores just the pipeline definition.
 

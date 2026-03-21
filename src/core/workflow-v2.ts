@@ -40,22 +40,6 @@ export interface V2Workflow {
   bindings?: Record<string, string>;
 }
 
-export interface V1Workflow {
-  formatVersion?: 1;
-  sytoVersion: string;
-  exportedAt: string;
-  source: {
-    id?: string;
-    name: string;
-    columns: ColumnSchema[];
-  };
-  model: {
-    id?: string;
-    name: string;
-    steps: TransformStep[];
-  };
-}
-
 export interface ValidationError {
   type: string;
   message: string;
@@ -65,32 +49,6 @@ export interface ValidationError {
 export interface ValidationResult {
   valid: boolean;
   errors: ValidationError[];
-}
-
-// ── Detection & Upgrade ────────────────────────────────────
-
-export function detectVersion(json: any): 1 | 2 {
-  return json.formatVersion === 2 ? 2 : 1;
-}
-
-export function upgradeV1toV2(v1: V1Workflow): V2Workflow {
-  return {
-    formatVersion: 2,
-    sytoVersion: v1.sytoVersion,
-    exportedAt: v1.exportedAt,
-    sources: {
-      [v1.source.name]: {
-        columns: v1.source.columns,
-      },
-    },
-    models: {
-      [v1.model.name]: {
-        source: v1.source.name,
-        steps: v1.model.steps,
-      },
-    },
-    outputs: [v1.model.name],
-  };
 }
 
 // ── Validation ─────────────────────────────────────────────
@@ -302,4 +260,73 @@ export function translateNamesToIds(
 
     return cloned as TransformStep;
   });
+}
+
+// ── Topological Sort ──────────────────────────────────────
+
+/**
+ * Gets all model names reachable from the output set (upstream walk).
+ */
+export function getReachableModels(workflow: V2Workflow, outputs: string[]): Set<string> {
+  const visited = new Set<string>();
+  const queue = [...outputs];
+
+  while (queue.length > 0) {
+    const name = queue.shift()!;
+    if (visited.has(name)) continue;
+    if (!workflow.models[name]) continue;
+    visited.add(name);
+
+    const model = workflow.models[name];
+    if (workflow.models[model.source]) {
+      queue.push(model.source);
+    }
+    for (const step of model.steps || []) {
+      for (const { key, field } of MULTI_MODEL_REFERENCE_PATHS) {
+        const stepValue = (step as any)[key];
+        if (stepValue && stepValue[field] && workflow.models[stepValue[field]]) {
+          queue.push(stepValue[field]);
+        }
+      }
+    }
+  }
+
+  return visited;
+}
+
+/**
+ * Returns a topological ordering of the reachable models (dependency-first).
+ */
+export function topologicalSortV2(workflow: V2Workflow, reachable: Set<string>): string[] {
+  const visited = new Set<string>();
+  const result: string[] = [];
+  const modelNames = new Set(Object.keys(workflow.models));
+
+  const visit = (name: string) => {
+    if (visited.has(name) || !reachable.has(name)) return;
+    visited.add(name);
+
+    const model = workflow.models[name];
+    if (!model) return;
+
+    if (modelNames.has(model.source)) {
+      visit(model.source);
+    }
+    for (const step of model.steps || []) {
+      for (const { key, field } of MULTI_MODEL_REFERENCE_PATHS) {
+        const stepValue = (step as any)[key];
+        if (stepValue && stepValue[field] && modelNames.has(stepValue[field])) {
+          visit(stepValue[field]);
+        }
+      }
+    }
+
+    result.push(name);
+  };
+
+  for (const name of reachable) {
+    visit(name);
+  }
+
+  return result;
 }

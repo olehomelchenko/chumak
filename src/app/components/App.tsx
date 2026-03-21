@@ -52,6 +52,7 @@ import {
   DependencyGraphDialog,
   FunctionReferenceDialog,
   DependencyImpactDialog,
+  WorkflowImportDialog,
   PromoteHeaderDialog,
   SelectPatternDialog,
   RemovePatternDialog,
@@ -513,10 +514,16 @@ export function App() {
                     <FunctionReferenceDialog />
                   )}
                   {activeDialog === 'dependency-graph' && <DependencyGraphDialog />}
+                  {activeDialog === 'workflow-import' && <WorkflowImportDialog />}
                 </div>
-                {!['expressions', 'reference', 'download', 'settings', 'dependency-graph'].includes(
-                  activeDialog || ''
-                ) && (
+                {![
+                  'expressions',
+                  'reference',
+                  'download',
+                  'settings',
+                  'dependency-graph',
+                  'workflow-import',
+                ].includes(activeDialog || '') && (
                   <div class={styles.centeredModalFooter}>
                     <button class="button button--secondary" onClick={() => closeDialog()}>
                       Cancel

@@ -121,6 +121,8 @@
     "copiedCsv": "Copied {{count}} rows (CSV)",
     "copiedJson": "Copied {{count}} rows (JSON)",
     "imported": "Imported \"{{name}}\" ({{count}} rows)",
+    "workflowImported_one": "Imported workflow ({{count}} model)",
+    "workflowImported_other": "Imported workflow ({{count}} models)",
     "jsonApplied": "JSON configuration applied successfully",
     "dataCleared": "All data has been cleared.",
     "workflowValidationTitle": "Workflow validation",

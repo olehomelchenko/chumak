@@ -1,80 +1,14 @@
 import { describe, it, expect } from 'vitest';
 import {
-  detectVersion,
-  upgradeV1toV2,
   validateV2Workflow,
   translateIdsToNames,
   translateNamesToIds,
+  getReachableModels,
+  topologicalSortV2,
   V2Workflow,
-  V1Workflow,
 } from './workflow-v2';
 
 describe('workflow-v2', () => {
-  describe('detectVersion', () => {
-    it('returns 2 for formatVersion 2', () => {
-      expect(detectVersion({ formatVersion: 2 })).toBe(2);
-    });
-
-    it('returns 1 for formatVersion 1', () => {
-      expect(detectVersion({ formatVersion: 1 })).toBe(1);
-    });
-
-    it('returns 1 when formatVersion is missing', () => {
-      expect(detectVersion({})).toBe(1);
-    });
-
-    it('returns 1 for other values', () => {
-      expect(detectVersion({ formatVersion: 3 })).toBe(1);
-    });
-  });
-
-  describe('upgradeV1toV2', () => {
-    it('converts a v1 workflow to v2 format', () => {
-      const v1: V1Workflow = {
-        formatVersion: 1,
-        sytoVersion: '0.1.0',
-        exportedAt: '2026-03-21T00:00:00.000Z',
-        source: {
-          id: 'src_1',
-          name: 'orders',
-          columns: [
-            { name: 'id', type: 'integer' },
-            { name: 'amount', type: 'float' },
-          ],
-        },
-        model: {
-          id: 'mdl_1',
-          name: 'clean-orders',
-          steps: [{ filter: { expr: 'amount > 0' } }],
-        },
-      };
-
-      const v2 = upgradeV1toV2(v1);
-
-      expect(v2.formatVersion).toBe(2);
-      expect(v2.sytoVersion).toBe('0.1.0');
-      expect(v2.exportedAt).toBe('2026-03-21T00:00:00.000Z');
-      expect(Object.keys(v2.sources)).toEqual(['orders']);
-      expect(v2.sources['orders'].columns).toHaveLength(2);
-      expect(Object.keys(v2.models)).toEqual(['clean-orders']);
-      expect(v2.models['clean-orders'].source).toBe('orders');
-      expect(v2.models['clean-orders'].steps).toHaveLength(1);
-      expect(v2.outputs).toEqual(['clean-orders']);
-    });
-
-    it('preserves no parsing hints from v1', () => {
-      const v1: V1Workflow = {
-        sytoVersion: '0.1.0',
-        exportedAt: '2026-03-21T00:00:00.000Z',
-        source: { name: 'data', columns: [] },
-        model: { name: 'main', steps: [] },
-      };
-
-      const v2 = upgradeV1toV2(v1);
-      expect(v2.sources['data'].parsing).toBeUndefined();
-    });
-  });
-
   describe('validateV2Workflow', () => {
     function createValidWorkflow(): V2Workflow {
       return {
@@ -258,6 +192,128 @@ describe('workflow-v2', () => {
       expect(restored[0].join?.right).toBe('mdl_1');
       expect((restored[1] as any).concat.with).toBe('mdl_2');
       expect(restored[2]).toEqual({ filter: { expr: 'x > 0' } });
+    });
+  });
+
+  describe('getReachableModels', () => {
+    it('returns single model from outputs', () => {
+      const wf: V2Workflow = {
+        formatVersion: 2,
+        sytoVersion: '0.1.0',
+        exportedAt: '',
+        sources: { data: { columns: [] } },
+        models: { main: { source: 'data', steps: [] } },
+        outputs: ['main'],
+      };
+      expect(getReachableModels(wf, wf.outputs)).toEqual(new Set(['main']));
+    });
+
+    it('walks upstream through model chain', () => {
+      const wf: V2Workflow = {
+        formatVersion: 2,
+        sytoVersion: '0.1.0',
+        exportedAt: '',
+        sources: { data: { columns: [] } },
+        models: {
+          clean: { source: 'data', steps: [] },
+          enriched: { source: 'clean', steps: [] },
+        },
+        outputs: ['enriched'],
+      };
+      expect(getReachableModels(wf, wf.outputs)).toEqual(new Set(['enriched', 'clean']));
+    });
+
+    it('walks diamond dependencies', () => {
+      const wf: V2Workflow = {
+        formatVersion: 2,
+        sytoVersion: '0.1.0',
+        exportedAt: '',
+        sources: { data: { columns: [] } },
+        models: {
+          base: { source: 'data', steps: [] },
+          left: { source: 'base', steps: [] },
+          right: { source: 'base', steps: [] },
+          merged: {
+            source: 'left',
+            steps: [{ join: { right: 'right', on: [['id', 'id']], how: 'inner' } }],
+          },
+        },
+        outputs: ['merged'],
+      };
+      const reachable = getReachableModels(wf, wf.outputs);
+      expect(reachable).toEqual(new Set(['merged', 'left', 'right', 'base']));
+    });
+
+    it('respects outputs subset', () => {
+      const wf: V2Workflow = {
+        formatVersion: 2,
+        sytoVersion: '0.1.0',
+        exportedAt: '',
+        sources: { data: { columns: [] } },
+        models: {
+          a: { source: 'data', steps: [] },
+          b: { source: 'data', steps: [] },
+        },
+        outputs: ['a', 'b'],
+      };
+      expect(getReachableModels(wf, ['a'])).toEqual(new Set(['a']));
+    });
+  });
+
+  describe('topologicalSortV2', () => {
+    it('returns single model', () => {
+      const wf: V2Workflow = {
+        formatVersion: 2,
+        sytoVersion: '0.1.0',
+        exportedAt: '',
+        sources: { data: { columns: [] } },
+        models: { main: { source: 'data', steps: [] } },
+        outputs: ['main'],
+      };
+      const reachable = getReachableModels(wf, wf.outputs);
+      expect(topologicalSortV2(wf, reachable)).toEqual(['main']);
+    });
+
+    it('sorts chain in dependency order', () => {
+      const wf: V2Workflow = {
+        formatVersion: 2,
+        sytoVersion: '0.1.0',
+        exportedAt: '',
+        sources: { data: { columns: [] } },
+        models: {
+          clean: { source: 'data', steps: [] },
+          enriched: { source: 'clean', steps: [] },
+        },
+        outputs: ['enriched'],
+      };
+      const reachable = getReachableModels(wf, wf.outputs);
+      const order = topologicalSortV2(wf, reachable);
+      expect(order.indexOf('clean')).toBeLessThan(order.indexOf('enriched'));
+    });
+
+    it('sorts diamond dependency correctly', () => {
+      const wf: V2Workflow = {
+        formatVersion: 2,
+        sytoVersion: '0.1.0',
+        exportedAt: '',
+        sources: { data: { columns: [] } },
+        models: {
+          base: { source: 'data', steps: [] },
+          left: { source: 'base', steps: [] },
+          right: { source: 'base', steps: [] },
+          merged: {
+            source: 'left',
+            steps: [{ join: { right: 'right', on: [['id', 'id']], how: 'inner' } }],
+          },
+        },
+        outputs: ['merged'],
+      };
+      const reachable = getReachableModels(wf, wf.outputs);
+      const order = topologicalSortV2(wf, reachable);
+      expect(order.indexOf('base')).toBeLessThan(order.indexOf('left'));
+      expect(order.indexOf('base')).toBeLessThan(order.indexOf('right'));
+      expect(order.indexOf('left')).toBeLessThan(order.indexOf('merged'));
+      expect(order.indexOf('right')).toBeLessThan(order.indexOf('merged'));
     });
   });
 });

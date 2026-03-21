@@ -58,7 +58,7 @@ export function DownloadDialog() {
       <button
         class={`button button--secondary ${styles.downloadOption}`}
         onClick={() => {
-          ExportService.exportWorkflowJSON(showAlert);
+          ExportService.exportWorkflowV2(showAlert);
           close();
         }}
       >

@@ -979,6 +979,8 @@ Syto uses a centralized dialog registry ([`dialog-registry.ts`](../src/app/dialo
 
 The registry eliminates the need to update `isSlidePanel()`, `getDialogTitle()`, etc. - these are auto-generated from metadata.
 
+**Centered-modal dialogs with custom buttons**: If the dialog manages its own action buttons (e.g., `workflow-import`, `download`), add its name to the footer exclusion list in `App.tsx` so the generic Apply/Cancel footer is suppressed. Also add the i18n key mapping in `dialog-registry.ts` `getDialogTitle()`.
+
 #### Step 8: Wiring Transform Apply Button
 
 For transform dialogs, register the `applyHandler` directly in the dialog registry. This requires updates in **2 files**:

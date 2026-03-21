@@ -46,6 +46,7 @@ export type DialogName =
   | 'unroll'
   | 'promoteHeader'
   | 'describe'
+  | 'workflow-import'
   | null;
 
 export interface Source {

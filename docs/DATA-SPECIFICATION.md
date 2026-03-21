@@ -861,51 +861,28 @@ Examples:
 
 ---
 
-## 7. Workflow Export Format
+## 7. Workflow Format (v2)
 
-Exported workflow JSON for sharing and replay:
-
-```json
-{
-  "formatVersion": 1,
-  "sytoVersion": "0.1.0",
-  "name": "Sales Analysis",
-  "exportedAt": "2024-01-15T10:30:00.000Z",
-  "source": {
-    "id": "src_abc123",
-    "name": "sales_data.csv",
-    "columns": [
-      { "name": "region", "type": "string" },
-      { "name": "sales", "type": "integer" },
-      { "name": "date", "type": "date" }
-    ]
-  },
-  "model": {
-    "id": "mdl_xyz789",
-    "name": "Filtered Sales",
-    "steps": [
-      { "filter": "sales > 1000" },
-      { "derive": { "year": "year([date])" } },
-      { "select": ["region", "year", "sales"] }
-    ]
-  }
-}
-```
+Workflow JSON uses the v2 portable format — name-based references, multi-source/model DAGs, parsing hints, and declared outputs. Exported from the browser via `ExportService.exportWorkflowV2()`, importable in the browser via drag-and-drop, and executable by the CLI.
 
 **Note:** Workflow JSON contains only the pipeline definition, not the data. Data must be re-imported and pipeline replayed.
 
 ### 7.2 Workflow Format v2 (Portable)
 
-v2 is the portable workflow format designed for CLI execution and cross-environment sharing. Key differences from v1: uses **names** instead of IDs, supports **multiple sources/models**, includes **parsing hints**, and declares **outputs**.
+v2 is the sole workflow format, designed for CLI execution and cross-environment sharing. Uses **names** instead of IDs, supports **multiple sources/models**, includes **parsing hints**, and declares **outputs**.
 
 - **Implementation**: `src/core/workflow-v2.ts` (types, validation, translation functions)
 - **Spec**: `docs/future/WORKFLOW-FORMAT-V2.md` (full field reference, CLI usage, edge cases)
 - **Browser export**: `ExportService.exportWorkflowV2()` — walks upstream from active model, collects all dependencies, translates IDs to names
 - **CLI execution**: `src/cli/run-command.ts` — parses workflow, binds data files, topological-sorts models, executes pipeline
 
-v1 export (`exportWorkflowJSON`) is preserved for backward compatibility. The CLI accepts both formats via `detectVersion()` + `upgradeV1toV2()`.
+v2 is the **sole** workflow format. v1 has been removed — there is no migration path (no users existed on v1).
 
 **Name translation**: At export, `translateIdsToNames()` rewrites multi-model references (`join.right`, `concat.with`, etc.) from internal IDs to portable names. At import, `translateNamesToIds()` reverses this. Both use `MULTI_MODEL_REFERENCE_PATHS` as the single source of truth for which fields contain references.
+
+**Browser import**: Dropping a v2 workflow JSON file triggers automatic detection in `handleJsonPreview()`, which routes to the workflow import dialog. Users bind CSV files to each source, then `WorkflowImportService.importWorkflow()` creates sources/models in topological order.
+
+**Shared graph utilities**: `getReachableModels()` and `topologicalSortV2()` in `workflow-v2.ts` are used by both the CLI runner and the browser import service.
 
 ---
 

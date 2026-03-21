@@ -108,3 +108,4 @@ export { TypeConversionDialog } from './TypeConversionDialog';
 export { DependencyGraphDialog } from './DependencyGraphDialog';
 export { FunctionReferenceDialog } from './FunctionReferenceDialog';
 export { DependencyImpactDialog } from './DependencyImpactDialog';
+export { WorkflowImportDialog } from './WorkflowImportDialog';

@@ -7,6 +7,7 @@ import { SchemaEngine, ColumnSchema } from '../../../core/schema-engine';
 import { ReplaceSourceService } from '../../services/ReplaceSourceService';
 import { alert, confirm } from '../core/notification-handlers';
 import i18n from '../../../i18n';
+import { validateV2Workflow, V2Workflow } from '../../../core/workflow-v2';
 
 /**
  * Callbacks for import operations
@@ -232,7 +233,38 @@ export function showImportDialog(file: File): void {
   }
 }
 
+/**
+ * Routes a detected v2 workflow JSON to the workflow import dialog.
+ */
+function routeToWorkflowImport(data: any): void {
+  const workflow = data as V2Workflow;
+  const validation = validateV2Workflow(workflow);
+
+  if (!validation.valid) {
+    const messages = validation.errors.map((e) => e.message);
+    alert(messages.join('\n'), i18n.t('notifications.workflowValidationTitle', { ns: 'common' }));
+    return;
+  }
+
+  const sourceNames = Object.keys(workflow.sources);
+
+  const wfState = DialogStore.workflowImportState;
+  wfState.workflow.value = workflow;
+  wfState.sourceNames.value = sourceNames;
+  wfState.bindings.value = new Map();
+  wfState.validationErrors.value = [];
+  wfState.isProcessing.value = false;
+
+  callbacks?.openDialog('workflow-import');
+}
+
 export function handleJsonPreview(file: File, data: any, path = ''): void {
+  // Detect v2 workflow format → route to workflow import dialog
+  if (!path && data?.formatVersion === 2 && data.sources && data.models) {
+    routeToWorkflowImport(data);
+    return;
+  }
+
   const defaultName = file.name.replace(/\.json$/i, '');
   let resolvedData = data;
 
