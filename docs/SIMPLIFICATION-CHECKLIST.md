@@ -36,11 +36,11 @@ The pattern `const source = sources.find(...); const parentModel = source ? null
 
 The Blob → createObjectURL → click → cleanup pattern is repeated 3x in ExportService and 1x in tools.
 
-- [ ] `ExportService.ts:45–56` — CSV download
-- [ ] `ExportService.ts:86–97` — JSON download
-- [ ] `ExportService.ts:255–266` — Workflow download
-- [ ] `tools/json-to-csv/state.ts:130–135` — separate tool (may keep independent)
-- [ ] Extract: `downloadBlob(blob: Blob, filename: string): void` in ExportService or a shared utility
+- [x] `ExportService.ts` — CSV download (uses `downloadBlob()`)
+- [x] `ExportService.ts` — JSON download (uses `downloadBlob()`)
+- [x] `ExportService.ts` — Workflow download (uses `downloadBlob()`)
+- [ ] `tools/json-to-csv/state.ts:130–135` — separate tool (kept independent)
+- [x] Extracted `ExportService.downloadBlob(blob, filename)` private helper (also adds `URL.revokeObjectURL`)
 
 ### 1.5 CLI workflow loading
 
@@ -70,8 +70,8 @@ Inline `models.find(m => m.sourceId === ... && m.name.toLowerCase() === ...)` re
 
 **Unsafe (data may contain errors):**
 
-- [ ] `ModelService.ts:162` — `JSON.parse(JSON.stringify(source.data))` in `addModel()`
-- [ ] `join-handlers.ts:592` — `JSON.parse(JSON.stringify(resultData))` in join result
+- [x] `ModelService.ts` — replaced with `cloneData(source.data)` in `createNewModel()`
+- [x] `join-handlers.ts` — replaced with `cloneData(resultData)` in join result
 
 **Safe (steps/schema/config — no error objects):**
 
@@ -123,9 +123,9 @@ Files over 300 lines that are imported in render paths — review for lazy-loada
 
 ## 4. Architecture — Structural Improvements
 
-### 4.1 ExportService download consolidation
+### 4.1 ExportService download consolidation ✓
 
-Three export methods (CSV, JSON, workflow) share identical download boilerplate. See 1.4.
+Three export methods (CSV, JSON, workflow) now use `ExportService.downloadBlob()`. See 1.4.
 
 ### 4.2 Dialog rendering in App.tsx
 
@@ -157,11 +157,11 @@ No circular dependencies detected. Import chains are clean. No action needed.
 
 | Category        | Total Items | Done   | Remaining |
 | --------------- | ----------- | ------ | --------- |
-| 1. Code Reuse   | 19          | 14     | 5         |
-| 2. Code Quality | 14          | 12     | 2         |
+| 1. Code Reuse   | 19          | 18     | 1         |
+| 2. Code Quality | 14          | 14     | 0         |
 | 3. Efficiency   | 11          | 3      | 8         |
 | 4. Architecture | 9           | 3      | 6         |
-| **Total**       | **53**      | **32** | **21**    |
+| **Total**       | **53**      | **38** | **15**    |
 
 ---
 
@@ -170,4 +170,4 @@ No circular dependencies detected. Import chains are clean. No action needed.
 | Date       | Session       | Items Addressed                                                               |
 | ---------- | ------------- | ----------------------------------------------------------------------------- |
 | 2026-03-21 | Initial sweep | 1.1, 1.2, 1.5, 1.6 (reuse); 2.2 batch fix (quality); 3.1 partial (efficiency) |
-|            |               |                                                                               |
+| 2026-03-21 | Session 2     | 1.4 downloadBlob (reuse); 2.1 cloneData fixes (quality)                       |

@@ -6,6 +6,7 @@ import { StepService } from '../../services/StepService';
 import { DependencyService } from '../../services/DependencyService';
 import { NameService } from '../../services/NameService';
 import { prompt } from '../core/notification-handlers';
+import { cloneData } from '../../../core/type-converter';
 import i18n from '../../../i18n';
 
 export function initializeJoinDialog() {
@@ -589,7 +590,7 @@ export async function applyJoinTransform(callbacks: any) {
         sourceId: leftSource.id,
         steps: [importStep, typesStep, transform],
         schema: schema,
-        data: JSON.parse(JSON.stringify(resultData)),
+        data: cloneData(resultData),
         __v: 1,
       };
 

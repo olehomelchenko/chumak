@@ -6,6 +6,7 @@ import { DependencyService } from './DependencyService';
 import { StepService } from './StepService';
 import { NameService } from './NameService';
 import { showSuccess, showWarning } from '../handlers/core/notification-handlers';
+import { cloneData } from '../../core/type-converter';
 import i18n from '../../i18n';
 
 /**
@@ -159,7 +160,7 @@ export class ModelService {
       sourceId: source.id,
       steps: [],
       schema: JSON.parse(JSON.stringify(source.columns)),
-      data: JSON.parse(JSON.stringify(source.data)),
+      data: cloneData(source.data),
       __v: 1,
     };
 
