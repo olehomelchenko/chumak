@@ -4,7 +4,7 @@ This directory contains background research conducted to inform Syto's expressio
 
 ## Purpose
 
-Before implementing the parser, we analyzed 8 production systems to understand different approaches, their trade-offs, and lessons learned. This research directly informed the decisions documented in [PARSER-DESIGN-DECISION.md](../PARSER-DESIGN-DECISION.md).
+Before implementing the parser, we analyzed 8 production systems to understand different approaches, their trade-offs, and lessons learned. This research directly informed the decisions documented in [DECISIONS.md](../docs/archive/DECISIONS.md) §1.
 
 ## Contents
 
@@ -50,7 +50,7 @@ See [RESEARCH-GUIDE.md](RESEARCH-GUIDE.md) for the complete protocol.
 ## Status
 
 ✅ Research completed (2025-01-23)
-✅ Decision documented in [PARSER-DESIGN-DECISION.md](../PARSER-DESIGN-DECISION.md)
+✅ Decision documented in [DECISIONS.md](../docs/archive/DECISIONS.md) §1
 ⏭️ Next: Implementation
 
 ## Integration with Main Docs
@@ -58,4 +58,4 @@ See [RESEARCH-GUIDE.md](RESEARCH-GUIDE.md) for the complete protocol.
 The findings from this research are integrated into:
 
 - [SPECIFICATION.md](../SPECIFICATION.md) - Updated Section 11 (Expression Syntax)
-- [PARSER-DESIGN-DECISION.md](../PARSER-DESIGN-DECISION.md) - Comprehensive design document
+- [DECISIONS.md](../docs/archive/DECISIONS.md) §1 - Comprehensive design document

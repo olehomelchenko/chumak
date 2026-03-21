@@ -20,7 +20,7 @@ Documentation serves two purposes — know **where to look** and know **what to 
 
 **Navigation maps** use file/module names (stable) to show flow direction. **Decision rules** capture "when/why" constraints. **Code walkthroughs** restate implementation details — that's what reading the code is for.
 
-For documentation organization standards and the "When to Update Which Doc" table, see **[DOCUMENTATION-GUIDE.md](docs/DOCUMENTATION-GUIDE.md)**.
+For documentation organization, see **[CLAUDE.md](CLAUDE.md)** — the Documentation Index and Quick Reference table.
 
 ## Process
 

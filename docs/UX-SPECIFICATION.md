@@ -31,7 +31,7 @@ Syto supports high-fidelity theme switching, accessible via the **Settings** dia
 
 ### 1.3 Design Principles
 
-Principles guiding Syto's UX decisions, adapted from established design systems. See [DESIGN-SYSTEM-EVALUATION.md](archive/DESIGN-SYSTEM-EVALUATION.md) for the evaluation rationale.
+Principles guiding Syto's UX decisions, adapted from established design systems. See [DECISIONS.md](archive/DECISIONS.md) §3 for the evaluation rationale.
 
 | Principle                        | Meaning                                                                                                 | Example                                                                                                                                                                                   |
 | -------------------------------- | ------------------------------------------------------------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |

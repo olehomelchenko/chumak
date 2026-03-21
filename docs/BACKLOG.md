@@ -94,7 +94,7 @@ Hardcoded English strings in `DownloadDialog.tsx`: "Select what you would like t
 ## Non-Destructive Pillar Strengthening
 
 **Status**: Analysis Complete — No Remaining Gaps
-**Reference**: [NON-DESTRUCTIVE-ANALYSIS.md](NON-DESTRUCTIVE-ANALYSIS.md)
+**Reference**: [DECISIONS.md](archive/DECISIONS.md) §4
 
 A comprehensive analysis of Syto's adherence to non-destructive principles was conducted in January 2026. The original analysis identified 4 gaps; all have been resolved:
 
@@ -141,7 +141,7 @@ These have been considered and explicitly excluded:
 - **SQL query mode**: Expressions cover this; SQL adds learning curve
 - **Plugin/extension system**: Premature; focus on core features first
 - **Real-time collaboration**: Requires server infrastructure, conflicts with local-only principle
-- **Native app** (Electron/DuckDB): Documented in [NATIVE-APP-SPEC.md](NATIVE-APP-SPEC.md) as potential future direction, not current roadmap
+- **Native app** (Electron/DuckDB): Documented in [NATIVE-APP-SPEC.md](future/NATIVE-APP-SPEC.md) as potential future direction, not current roadmap
 
 ---
 
@@ -159,7 +159,12 @@ These have been considered and explicitly excluded:
 
 ### Future Ideas (not on active backlog)
 
-See [future/FUTURE-IDEAS.md](future/FUTURE-IDEAS.md) for ideas worth revisiting when the app has traction: custom icon library, performance/Web Workers, workflow format stability, i18n landing page templating.
+Ideas worth revisiting if the app gains traction — not currently prioritized:
+
+- **Custom Icon Library** (Medium-Large) — Migrate from Iconify CDN to custom hand-drawn SVGs. Value is brand consistency and offline support. Revisit when branding becomes a priority.
+- **Performance Profiling & Web Workers** (Investigation + Medium) — Systematic benchmarking and Web Workers for heavy Arquero transforms. Current soft limit ~100K rows. Revisit when users report real performance issues.
+- **Workflow Format Stability** (Documentation + validation) — Formalize the transform JSON format for cross-version and cross-backend compatibility. Revisit when there's a user base depending on saved workflows or a second execution backend.
+- **Template Landing Page for i18n** (Small) — Replace ~15 positional string replacements in UK landing page with `{{placeholder}}` tokens. Worth doing before adding a 3rd language.
 
 ---
 
@@ -207,9 +212,9 @@ Completed features are documented here for posterity:
 - **Summary Statistics (Describe) transform** — March 2026. One-click `describe` transform that auto-generates summary statistics for selected columns: count, unique, mean, median, stdev, min, max for numeric; count, unique, top, freq for categorical. Output is a transposed summary table (rows = statistics, columns = source columns). Analogous to Pandas `df.describe()`.
 - **Duplicate Column quick action** — March 2026. One-click "Duplicate" button in the column toolbar that creates a copy of the selected column via a `derive` step (`{ "column_copy": "[column]" }`). No dialog needed.
 - **Transform linter deduplication** — March 2026. Extracted `validateStepExpressions()` generator from `transform-linter.ts` to share expression validation logic across `lintTransformJson`, `validateSteps`, and `getTransformJsonError`. Net reduction: 101 LoC (377 → 276).
-- **Code reduction refactors** — March 2026. Three completed refactors (~543 LoC net reduction): declarative `SHORTCUT_REGISTRY` replacing 25 handler functions, `inferSchemaFromSample()` deduplicating 5 schema blocks, AppController pass-through elimination (712 → 430 LoC). See [archive/CODE-REDUCTION-ANALYSIS.md](archive/CODE-REDUCTION-ANALYSIS.md).
+- **Code reduction refactors** — March 2026. Three completed refactors (~543 LoC net reduction): declarative `SHORTCUT_REGISTRY` replacing 25 handler functions, `inferSchemaFromSample()` deduplicating 5 schema blocks, AppController pass-through elimination (712 → 430 LoC). See git history (original `CODE-REDUCTION-ANALYSIS.md`).
 - **Keyboard accessibility** — February 2026. Global `:focus-visible` outlines, focus trapping in dialogs, Enter-to-submit in slide panels, arrow key navigation in TypeMenu with ARIA roles.
-- **TransformDialog.module.css decomposition** — March 2026. Split the 846-line monolithic CSS file into 11 purpose-specific modules: `form-controls.module.css` (universal form elements), `expression-help.module.css` (expression docs UI), `column-editor.module.css` (drag/drop column lists), plus 8 dialog-specific modules (Settings, Download, Date, ImportCsv, preview-table, Window, Aggregate, Generate). Updated 47 consumer file imports. See [archive/CODE-REDUCTION-ANALYSIS.md](archive/CODE-REDUCTION-ANALYSIS.md) §4.
+- **TransformDialog.module.css decomposition** — March 2026. Split the 846-line monolithic CSS file into 11 purpose-specific modules: `form-controls.module.css` (universal form elements), `expression-help.module.css` (expression docs UI), `column-editor.module.css` (drag/drop column lists), plus 8 dialog-specific modules (Settings, Download, Date, ImportCsv, preview-table, Window, Aggregate, Generate). Updated 47 consumer file imports. See git history (original `CODE-REDUCTION-ANALYSIS.md`) §4.
 - **Content guidelines audit** — March 2026. Removed "Please" from ~40 validation messages across handlers/services (imperative form: "Enter a column name"). Updated `dialog-registry.ts` `buttonText` entries to task-specific verbs (Filter, Sort, Add column, etc.) instead of generic "Apply". Added action-specific confirm labels (Delete, Remove, Overwrite, Discard, Replace, Clear all) to all confirmation dialogs. Replaced remaining hardcoded English strings in `dialog-handlers.ts` and `date-handlers.ts` with i18n calls.
 - **Reduced motion support** — March 2026. Added `prefers-reduced-motion: reduce` media query to `styles/base.css` covering all animations and transitions.
 - **i18n hardcoded import messages** — March 2026. Extracted hardcoded English strings (`'Excel file is empty'`, `'CSV file is empty'`) in `confirmImport()` to i18n keys (`import.emptyExcelFile`, `import.emptyCsvFile`) with Ukrainian translations.

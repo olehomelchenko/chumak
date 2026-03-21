@@ -20,7 +20,6 @@
 
 ### Development Guides
 
-- **[DOCUMENTATION-GUIDE.md](docs/DOCUMENTATION-GUIDE.md)**: Documentation organization, user vs. internal docs, maintenance practices
 - **[DEVELOPMENT-PATTERNS.md](docs/DEVELOPMENT-PATTERNS.md)**: How to add transforms, testing patterns, state management conventions
 - **[I18N-GUIDE.md](docs/I18N-GUIDE.md)**: Internationalization setup — adding languages, namespaces, plural rules, common patterns
 - **[FUNCTION-DOCS-SYSTEM.md](docs/FUNCTION-DOCS-SYSTEM.md)**: Auto-generated function documentation system (JSDoc → markdown/JSON)
@@ -33,8 +32,8 @@
 ### Reference
 
 - **[docs/arquero/](docs/arquero/)**: Arquero library documentation (verbs, expressions, operators)
-- **[docs/archive/](docs/archive/)**: Architecture Decision Records (ADRs), completed refactor analyses, and key architectural choices
-- **[docs/future/](docs/future/)**: Future roadmap documents (native app spec, custom icons, example workflows)
+- **[docs/archive/](docs/archive/)**: Architecture Decision Records — key design choices and their rationale
+- **[docs/future/](docs/future/)**: Future roadmap documents (DuckDB integration, CLI, monetization, example workflows)
 
 ---
 
@@ -157,7 +156,7 @@ npm run format   # Prettier
 | Adding tool pages      | [DEVELOPMENT-PATTERNS.md](docs/DEVELOPMENT-PATTERNS.md) §10                                              |
 | Site structure         | [SPECIFICATION.md](docs/SPECIFICATION.md) §3.5                                                           |
 | CSS debugging          | [DEBUGGING.md](docs/DEBUGGING.md)                                                                        |
-| Completed refactors    | [docs/archive/](docs/archive/)                                                                           |
+| Architecture decisions | [docs/archive/DECISIONS.md](docs/archive/DECISIONS.md)                                                   |
 | CLI & workflow v2      | [SPECIFICATION.md](docs/SPECIFICATION.md) §3.6, [DATA-SPECIFICATION.md](docs/DATA-SPECIFICATION.md) §7.2 |
 | Multi-model & chaining | [MULTI-MODEL-ARCHITECTURE.md](docs/MULTI-MODEL-ARCHITECTURE.md)                                          |
 | Project philosophy     | [SOUL.md](SOUL.md)                                                                                       |

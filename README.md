@@ -40,11 +40,11 @@
 
 ### Design Decisions
 
-- **[PARSER-DESIGN-DECISION.md](docs/archive/PARSER-DESIGN-DECISION.md)** - Expression parser design
-  - Comprehensive analysis of parser options
-  - Architecture (jsep + AST validation + interpretation)
-  - Security model and validation strategy
-  - Based on research of 8 production systems
+- **[DECISIONS.md](docs/archive/DECISIONS.md)** - Key architecture decisions and rationale
+  - Expression parser: jsep + AST validation + interpretation (§1)
+  - Data engine: custom AST + Arquero delegation (§2)
+  - Design system: custom CSS over frameworks (§3)
+  - Non-destructive architecture decisions (§4)
 
 ### Research
 
@@ -59,7 +59,7 @@
 **For Contributors:**
 
 1. Read [SPECIFICATION.md](docs/SPECIFICATION.md) for product vision and architecture
-2. Read [PARSER-DESIGN-DECISION.md](docs/PARSER-DESIGN-DECISION.md) for parser implementation approach
+2. Read [DECISIONS.md](docs/archive/DECISIONS.md) for architecture decisions
 3. Read [CLAUDE.md](CLAUDE.md) for development context and current status
 
 **For Researchers:**

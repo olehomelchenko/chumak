@@ -304,8 +304,7 @@ This is validated by both Weaverbird's architecture and SOUL.md's stated vision:
 - [SPECIFICATION.md](SPECIFICATION.md) -- Core engine portability note (section 3.6)
 - [FUTURE-PROOFING.md](FUTURE-PROOFING.md) -- Schema evolution constraints
 - [WEAVERBIRD-COMPARISON.md](WEAVERBIRD-COMPARISON.md) -- Detailed comparison to architecturally similar project
-- [ARQUERO-LEVERAGE-ANALYSIS.md](archive/ARQUERO-LEVERAGE-ANALYSIS.md) -- Transform implementation patterns
-- [PARSER-DESIGN-DECISION.md](archive/PARSER-DESIGN-DECISION.md) -- Expression engine research (8 systems analyzed)
+- [DECISIONS.md](archive/DECISIONS.md) -- Architecture decisions (parser, data engine, design system)
 
 ---
 

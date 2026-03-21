@@ -1136,7 +1136,7 @@ When adding or removing dialog names from the `DialogName` union:
 
 ### 8.6 Known Repetitive Patterns (Tech Debt)
 
-> **Full analysis**: [archive/CODE-REDUCTION-ANALYSIS.md](archive/CODE-REDUCTION-ANALYSIS.md)
+> **Full analysis**: See git history (original `CODE-REDUCTION-ANALYSIS.md`)
 
 Several patterns that were reasonable at small scale have become burdensome. Follow these rules to avoid making them worse while they await refactoring:
 

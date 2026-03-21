@@ -46,7 +46,7 @@ If adding expression functions:
 - Run `npm run docs:generate` to update user-facing function docs
 - Verify with `npm test -- function-docs-validation.test.ts`
 
-For documentation guidance, see **[DOCUMENTATION-GUIDE.md](docs/DOCUMENTATION-GUIDE.md)** - especially the "When to Update Which Doc" table.
+For documentation guidance, see **[CLAUDE.md](CLAUDE.md)** — the Documentation Index and Quick Reference table.
 
 The list is not exclusive - if you think another document needs update, proceed with it.
 
@@ -132,17 +132,17 @@ Verify refactoring aligns with:
 
 ## Reference Documents
 
-| Document                                                        | Purpose                                          |
-| --------------------------------------------------------------- | ------------------------------------------------ |
-| [SOUL.md](SOUL.md)                                              | Project philosophy and core values               |
-| [CLAUDE.md](CLAUDE.md)                                          | AI onboarding and documentation index            |
-| [DOCUMENTATION-GUIDE.md](docs/DOCUMENTATION-GUIDE.md)           | Documentation organization and maintenance guide |
-| [SPECIFICATION.md](docs/SPECIFICATION.md)                       | Technical architecture                           |
-| [DATA-SPECIFICATION.md](docs/DATA-SPECIFICATION.md)             | Data structures and persistence                  |
-| [UX-SPECIFICATION.md](docs/UX-SPECIFICATION.md)                 | UI/UX guidelines                                 |
-| [FUTURE-PROOFING.md](docs/FUTURE-PROOFING.md)                   | Schema evolution constraints                     |
-| [DEVELOPMENT-PATTERNS.md](docs/DEVELOPMENT-PATTERNS.md)         | Coding conventions                               |
-| [MULTI-MODEL-ARCHITECTURE.md](docs/MULTI-MODEL-ARCHITECTURE.md) | Dependency graph and multi-model system          |
-| [FUNCTION-DOCS-SYSTEM.md](docs/FUNCTION-DOCS-SYSTEM.md)         | Auto-generated function documentation            |
-| [DEBUGGING.md](docs/DEBUGGING.md)                               | CSS Module debugging                             |
-| [BACKLOG.md](docs/BACKLOG.md)                                   | Feature backlog                                  |
+| Document                                                        | Purpose                                 |
+| --------------------------------------------------------------- | --------------------------------------- |
+| [SOUL.md](SOUL.md)                                              | Project philosophy and core values      |
+| [CLAUDE.md](CLAUDE.md)                                          | AI onboarding and documentation index   |
+| [CLAUDE.md](CLAUDE.md)                                          | Documentation index and AI onboarding   |
+| [SPECIFICATION.md](docs/SPECIFICATION.md)                       | Technical architecture                  |
+| [DATA-SPECIFICATION.md](docs/DATA-SPECIFICATION.md)             | Data structures and persistence         |
+| [UX-SPECIFICATION.md](docs/UX-SPECIFICATION.md)                 | UI/UX guidelines                        |
+| [FUTURE-PROOFING.md](docs/FUTURE-PROOFING.md)                   | Schema evolution constraints            |
+| [DEVELOPMENT-PATTERNS.md](docs/DEVELOPMENT-PATTERNS.md)         | Coding conventions                      |
+| [MULTI-MODEL-ARCHITECTURE.md](docs/MULTI-MODEL-ARCHITECTURE.md) | Dependency graph and multi-model system |
+| [FUNCTION-DOCS-SYSTEM.md](docs/FUNCTION-DOCS-SYSTEM.md)         | Auto-generated function documentation   |
+| [DEBUGGING.md](docs/DEBUGGING.md)                               | CSS Module debugging                    |
+| [BACKLOG.md](docs/BACKLOG.md)                                   | Feature backlog                         |
