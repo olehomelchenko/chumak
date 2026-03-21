@@ -228,6 +228,19 @@ export function SettingsDialog({
           </button>
         </div>
       )}
+
+      {/* Version */}
+      <div
+        style={{
+          marginTop: '2rem',
+          paddingTop: '1rem',
+          borderTop: '1px solid var(--border-color)',
+          fontSize: '0.8rem',
+          color: 'var(--color-dark-gray)',
+        }}
+      >
+        {t('version')} {__APP_VERSION__}
+      </div>
     </div>
   );
 }

@@ -96,6 +96,23 @@ npm run format   # Prettier
 - **Flag Entropy**: If you notice growing complexity, duplication, or structural drift during a task, proactively suggest refactoring — don't wait to be asked.
 - **Explain Stack Choices**: When introducing stack-specific patterns, configs, or dependencies, explain what problem they solve in plain terms — not just what they do.
 
+### Versioning
+
+The project uses **simplified semver during pre-1.0** (`0.x.y`):
+
+| Bump                | When                                       | Example           |
+| ------------------- | ------------------------------------------ | ----------------- |
+| **Minor** (`0.x.0`) | New features, UI changes, behavior changes | `0.2.0` → `0.3.0` |
+| **Patch** (`0.x.y`) | Bug fixes, polish, performance             | `0.2.0` → `0.2.1` |
+
+- **Single source of truth**: `version` in `package.json` — Vite injects it as `__APP_VERSION__` at build time
+- **Every deploy gets a version bump** — no unversioned releases
+- **Version is displayed in**: Settings dialog, exported workflow JSON (`sytoVersion` field)
+- **Git tags**: Each release is tagged `v{version}` (e.g., `v0.2.0`)
+- **Workflow `formatVersion`** is independent of the app version — only bump it when the workflow schema changes
+- **CHANGELOG**: `docs/CHANGELOG.md` is updated with each version bump
+- Use the `/release` skill to walk through the version bump process
+
 ### Testing Philosophy
 
 - High coverage on core logic (parsing, transforms, schema)

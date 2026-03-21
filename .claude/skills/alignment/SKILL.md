@@ -34,9 +34,13 @@ Determine the review scope using `git diff` (unstaged) and `git diff --staged` (
 
 8. **Internationalization (i18n)**: All user-facing strings must use i18n. Flag any new hardcoded English strings in UI components (use `useTranslation()` hook), handlers, or services (use `i18n.t()` with namespace option). New keys must be added to both `src/i18n/locales/en/` and `src/i18n/locales/uk/` JSON files. Run `npm run i18n:check` to verify key parity across locales. See [DEVELOPMENT-PATTERNS.md §9](docs/DEVELOPMENT-PATTERNS.md) for patterns.
 
+### Versioning
+
+9. **Version bump reminder**: If the reviewed changes include new features, bug fixes, or behavior changes visible to users, remind the user to run `/release` before deploying. Don't block on this — it's a reminder, not a gate.
+
 ### Output
 
-9. **Summary**: After performing the instructions, respond with a summary of changes: choices made due to these instructions, choices where multiple approaches existed, and any non-obvious architectural choices or assumptions the user should know about but might not notice from the diff alone.
+10. **Summary**: After performing the instructions, respond with a summary of changes: choices made due to these instructions, choices where multiple approaches existed, and any non-obvious architectural choices or assumptions the user should know about but might not notice from the diff alone.
 
 ---
 

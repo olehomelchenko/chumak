@@ -1251,6 +1251,20 @@ Tool pages load `styles/content.css` for the shared site chrome (header, footer,
 
 The `content.css` file includes a `.tool-page` section with layout rules for tool pages.
 
+## 11. Versioning & Release
+
+### Version injection flow
+
+`package.json` `version` → `vite.config.ts` `define` → `__APP_VERSION__` global → consumed at runtime by `ExportService` (workflow JSON `sytoVersion`), `AppHeader` (alpha badge), `SettingsDialog` (footer).
+
+### Scheme
+
+Simplified semver during pre-1.0: **minor** = features/behavior changes, **patch** = fixes/polish. Every deploy gets a version bump. Workflow `formatVersion` is independent — only bump it when the workflow schema changes.
+
+### Process
+
+Use the `/release` skill to walk through: changelog update, `package.json` bump, git tag suggestion. The `/alignment` skill reminds about version bumps when reviewing user-visible changes.
+
 ---
 
 **End of Development Patterns**

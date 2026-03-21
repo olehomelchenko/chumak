@@ -6,6 +6,8 @@ Historical record of completed features and improvements, organized chronologica
 
 ## March 2026
 
+### v0.1.0
+
 - **V2 Workflow Cutover** — v1 format deleted, v2 is sole format. Browser import via drag-and-drop detection + `WorkflowImportDialog` + `WorkflowImportService`. Topological sort (`getReachableModels` / `topologicalSortV2`) extracted to shared `workflow-v2.ts`. CLI rejects non-v2 with clear error.
 - **CLI & Workflow v2** — Headless workflow execution via `syto run/validate/schema` commands. Portable v2 workflow format with named references, multi-source/model DAGs, parsing hints. Browser export via `ExportService.exportWorkflowV2()`. v1 removed entirely (no users).
 - **Model chaining & name uniqueness** — `sourceId` can reference another model (pipeline chaining). Source names globally unique, model names unique per-source, enforced via `NameService`. Auto-dedup on import. `DependencyService.getRootSourceId()` / `getUpstreamDependencies()`. `MULTI_MODEL_REFERENCE_PATHS` extracted to shared constant.

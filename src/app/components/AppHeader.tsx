@@ -36,6 +36,9 @@ export function AppHeader({ onOpenDialog, onLogoClick }: AppHeaderProps) {
         <button class={styles.logo} onClick={onLogoClick}>
           <img src={`${import.meta.env.BASE_URL}logo.svg`} alt="Syto" class={styles.logoImage} />
           <span class={styles.logoText}>Syto</span>
+          <span class={styles.versionBadge}>
+            {t('header.versionBadge', { version: __APP_VERSION__ })}
+          </span>
         </button>
 
         {/* Ribbon Tabs */}

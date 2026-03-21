@@ -81,7 +81,8 @@
       "rows": "Рядки",
       "columns": "Стовпці",
       "table": "Таблиця"
-    }
+    },
+    "versionBadge": "альфа {{version}}"
   },
   "sidebar": {
     "title": "Джерела та моделі",

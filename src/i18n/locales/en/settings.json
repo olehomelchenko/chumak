@@ -23,6 +23,7 @@
     "description": "Syto uses GoatCounter, a privacy-respecting analytics service (no cookies, GDPR-compliant). You can opt out at any time. Your preference is stored locally in your browser."
   },
   "note": "Some interface elements use the primary theme color. The \"Syto\" theme also uses custom typography and removes border radiuses for a sharper look.",
+  "version": "Version",
   "dangerZone": {
     "title": "Danger zone",
     "description": "This will permanently delete all sources, models, and steps from your browser's storage. This action cannot be undone.",

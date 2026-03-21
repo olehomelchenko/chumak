@@ -81,7 +81,8 @@
       "rows": "Rows",
       "columns": "Columns",
       "table": "Table"
-    }
+    },
+    "versionBadge": "alpha {{version}}"
   },
   "sidebar": {
     "title": "Sources & models",
