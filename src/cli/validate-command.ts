@@ -6,8 +6,9 @@
 
 import fs from 'fs';
 import path from 'path';
-import { validateV2Workflow, V2Workflow, ValidationError } from '../core/workflow-v2';
+import { ValidationError } from '../core/workflow-v2';
 import { readFileAsString, parseCSV } from './file-loader';
+import { loadWorkflow } from './workflow-loader';
 import { SchemaEngine } from '../core/schema-engine';
 import type { ColumnSchema } from '../core/schema-engine';
 
@@ -18,34 +19,10 @@ export interface ValidateOptions {
 }
 
 export function runValidateCommand(options: ValidateOptions): number {
-  // Read and parse workflow
-  let rawJson: any;
-  try {
-    const content = readFileAsString(options.workflowFile);
-    rawJson = JSON.parse(content);
-  } catch (error: any) {
-    const errors = [{ type: 'parse_error', message: `Failed to parse workflow: ${error.message}` }];
-    outputErrors(errors, options.json);
-    return 2;
-  }
-
-  // Validate format version
-  if (rawJson.formatVersion !== 2) {
-    const errors = [
-      {
-        type: 'invalid_version',
-        message: 'Unsupported workflow format. Expected formatVersion 2.',
-      },
-    ];
-    outputErrors(errors, options.json);
-    return 2;
-  }
-  const workflow: V2Workflow = rawJson as V2Workflow;
-
-  // Structural validation
-  const structuralResult = validateV2Workflow(workflow);
-  if (!structuralResult.valid) {
-    outputErrors(structuralResult.errors, options.json);
+  // Load and validate workflow (parse + format version + structural validation)
+  const { workflow, errors: loadErrors } = loadWorkflow(options.workflowFile);
+  if (!workflow) {
+    outputErrors(loadErrors, options.json);
     return 2;
   }
 

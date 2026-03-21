@@ -51,6 +51,47 @@ export interface ValidationResult {
   errors: ValidationError[];
 }
 
+// ── Helpers ────────────────────────────────────────────────
+
+/**
+ * Extracts all multi-model reference values from a step.
+ * Returns the referenced IDs/names (e.g., join.right, concat.with).
+ */
+function getStepReferences(step: TransformStep): string[] {
+  const refs: string[] = [];
+  for (const { key, field } of MULTI_MODEL_REFERENCE_PATHS) {
+    const stepValue = (step as any)[key];
+    if (stepValue && stepValue[field]) {
+      refs.push(stepValue[field]);
+    }
+  }
+  return refs;
+}
+
+/**
+ * Rewrites multi-model references in steps using a lookup function.
+ * Clones each step to avoid mutation.
+ */
+function translateReferences(
+  steps: TransformStep[],
+  lookup: (value: string) => string | undefined
+): TransformStep[] {
+  return steps.map((step) => {
+    const cloned = JSON.parse(JSON.stringify(step)) as any;
+
+    for (const { key, field } of MULTI_MODEL_REFERENCE_PATHS) {
+      if (cloned[key] && cloned[key][field]) {
+        const translated = lookup(cloned[key][field]);
+        if (translated) {
+          cloned[key][field] = translated;
+        }
+      }
+    }
+
+    return cloned as TransformStep;
+  });
+}
+
 // ── Validation ─────────────────────────────────────────────
 
 export function validateV2Workflow(workflow: V2Workflow): ValidationResult {
@@ -114,19 +155,14 @@ export function validateV2Workflow(workflow: V2Workflow): ValidationResult {
 
     // Check multi-model references in steps
     for (const step of modelDef.steps || []) {
-      for (const { key, field } of MULTI_MODEL_REFERENCE_PATHS) {
-        const stepValue = (step as any)[key];
-        if (stepValue && stepValue[field]) {
-          const ref = stepValue[field];
-          if (!allNames.has(ref)) {
-            errors.push({
-              type: 'missing_reference',
-              model: modelName,
-              transform: key,
-              reference: ref,
-              message: `Model "${modelName}" step "${key}" references non-existent "${ref}"`,
-            });
-          }
+      for (const ref of getStepReferences(step)) {
+        if (!allNames.has(ref)) {
+          errors.push({
+            type: 'missing_reference',
+            model: modelName,
+            reference: ref,
+            message: `Model "${modelName}" step references non-existent "${ref}"`,
+          });
         }
       }
 
@@ -183,10 +219,9 @@ function hasCycle(workflow: V2Workflow): boolean {
     }
     // Step references
     for (const step of model.steps || []) {
-      for (const { key, field } of MULTI_MODEL_REFERENCE_PATHS) {
-        const stepValue = (step as any)[key];
-        if (stepValue && stepValue[field] && modelNames.includes(stepValue[field])) {
-          deps.push(stepValue[field]);
+      for (const ref of getStepReferences(step)) {
+        if (modelNames.includes(ref)) {
+          deps.push(ref);
         }
       }
     }
@@ -217,26 +252,12 @@ function hasCycle(workflow: V2Workflow): boolean {
 
 /**
  * Rewrites multi-model references in steps from IDs to names.
- * Also handles the model's source field outside of steps.
  */
 export function translateIdsToNames(
   steps: TransformStep[],
   idToName: Map<string, string>
 ): TransformStep[] {
-  return steps.map((step) => {
-    const cloned = JSON.parse(JSON.stringify(step)) as any;
-
-    for (const { key, field } of MULTI_MODEL_REFERENCE_PATHS) {
-      if (cloned[key] && cloned[key][field]) {
-        const name = idToName.get(cloned[key][field]);
-        if (name) {
-          cloned[key][field] = name;
-        }
-      }
-    }
-
-    return cloned as TransformStep;
-  });
+  return translateReferences(steps, (v) => idToName.get(v));
 }
 
 /**
@@ -246,20 +267,7 @@ export function translateNamesToIds(
   steps: TransformStep[],
   nameToId: Map<string, string>
 ): TransformStep[] {
-  return steps.map((step) => {
-    const cloned = JSON.parse(JSON.stringify(step)) as any;
-
-    for (const { key, field } of MULTI_MODEL_REFERENCE_PATHS) {
-      if (cloned[key] && cloned[key][field]) {
-        const id = nameToId.get(cloned[key][field]);
-        if (id) {
-          cloned[key][field] = id;
-        }
-      }
-    }
-
-    return cloned as TransformStep;
-  });
+  return translateReferences(steps, (v) => nameToId.get(v));
 }
 
 // ── Topological Sort ──────────────────────────────────────
@@ -282,10 +290,9 @@ export function getReachableModels(workflow: V2Workflow, outputs: string[]): Set
       queue.push(model.source);
     }
     for (const step of model.steps || []) {
-      for (const { key, field } of MULTI_MODEL_REFERENCE_PATHS) {
-        const stepValue = (step as any)[key];
-        if (stepValue && stepValue[field] && workflow.models[stepValue[field]]) {
-          queue.push(stepValue[field]);
+      for (const ref of getStepReferences(step)) {
+        if (workflow.models[ref]) {
+          queue.push(ref);
         }
       }
     }
@@ -313,10 +320,9 @@ export function topologicalSortV2(workflow: V2Workflow, reachable: Set<string>):
       visit(model.source);
     }
     for (const step of model.steps || []) {
-      for (const { key, field } of MULTI_MODEL_REFERENCE_PATHS) {
-        const stepValue = (step as any)[key];
-        if (stepValue && stepValue[field] && modelNames.has(stepValue[field])) {
-          visit(stepValue[field]);
+      for (const ref of getStepReferences(step)) {
+        if (modelNames.has(ref)) {
+          visit(ref);
         }
       }
     }

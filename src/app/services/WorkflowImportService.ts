@@ -41,7 +41,8 @@ export class WorkflowImportService {
     const now = Date.now();
     let idOffset = 0;
 
-    // 1. Create sources
+    // 1. Create sources (batched — single signal assignment)
+    const newSources: Source[] = [];
     for (const [sourceName, sourceDef] of Object.entries(workflow.sources)) {
       const id = `src_${now + idOffset++}`;
       const data = sourceData.get(sourceName) || [];
@@ -51,7 +52,7 @@ export class WorkflowImportService {
         NameService.isSourceNameTaken(name)
       );
 
-      const source: Source = {
+      newSources.push({
         id,
         name: uniqueName,
         columns: physicalSchema,
@@ -62,13 +63,13 @@ export class WorkflowImportService {
         origin: 'workflow-import',
         rowCount: data.length,
         createdAt: new Date().toISOString(),
-      };
-
-      AppStore.sources.value = [...AppStore.sources.value, source];
+      });
       nameToId.set(sourceName, id);
     }
+    AppStore.sources.value = [...AppStore.sources.value, ...newSources];
 
-    // 2. Create models in topological order
+    // 2. Create models in topological order (batched — single signal assignment)
+    const newModels: Model[] = [];
     for (const modelName of executionOrder) {
       const modelDef = workflow.models[modelName];
       if (!modelDef) continue;
@@ -111,19 +112,20 @@ export class WorkflowImportService {
         data: [],
       };
 
-      // Compute pipeline
+      // Compute pipeline (needs current store state including previously added models)
       const context = {
         sources: AppStore.sources.value,
-        models: AppStore.models.value,
+        models: [...AppStore.models.value, ...newModels],
       };
 
       const result = StepService.computeModelUpToStep(model, model.steps.length - 1, context);
       model.data = result.data;
       model.schema = result.schema;
 
-      AppStore.models.value = [...AppStore.models.value, model];
+      newModels.push(model);
       nameToId.set(modelName, id);
     }
+    AppStore.models.value = [...AppStore.models.value, ...newModels];
 
     // 3. Activate first output model
     const firstOutputName = workflow.outputs[0];

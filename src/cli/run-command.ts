@@ -7,17 +7,13 @@
 import * as aq from 'arquero';
 import fs from 'fs';
 import path from 'path';
-import {
-  validateV2Workflow,
-  V2Workflow,
-  getReachableModels,
-  topologicalSortV2,
-} from '../core/workflow-v2';
+import { getReachableModels, topologicalSortV2 } from '../core/workflow-v2';
 import { applyTransform } from '../core/transforms';
 import { TransformResult } from '../core/transform-result';
 import { SchemaEngine, ColumnSchema } from '../core/schema-engine';
 import { readFileAsString, parseCSV, resolvePath, readFromStdin } from './file-loader';
 import { writeCSV, writeJSON } from './output-writer';
+import { loadWorkflow } from './workflow-loader';
 
 export interface RunOptions {
   workflowFile: string;
@@ -37,33 +33,16 @@ interface ExecutionContext {
 }
 
 export async function runRunCommand(options: RunOptions): Promise<number> {
-  // 1. Read and parse workflow
-  let rawJson: any;
-  try {
-    const content = readFileAsString(options.workflowFile);
-    rawJson = JSON.parse(content);
-  } catch (error: any) {
-    console.error(`Error: Failed to parse workflow: ${error.message}`);
-    return 1;
-  }
-
-  // 2. Validate format version
-  if (rawJson.formatVersion !== 2) {
-    console.error('Error: Unsupported workflow format. Expected formatVersion 2.');
-    return 2;
-  }
-  const workflow: V2Workflow = rawJson as V2Workflow;
-
-  // 3. Validate structure
-  const validation = validateV2Workflow(workflow);
-  if (!validation.valid) {
-    for (const error of validation.errors) {
-      console.error(`Validation error: ${error.message}`);
+  // 1. Load and validate workflow
+  const { workflow, errors } = loadWorkflow(options.workflowFile);
+  if (!workflow) {
+    for (const error of errors) {
+      console.error(`Error: ${error.message}`);
     }
-    return 2;
+    return errors.some((e) => e.type === 'parse_error') ? 1 : 2;
   }
 
-  // 4. Resolve bindings
+  // 2. Resolve bindings
   const workflowDir = path.dirname(path.resolve(options.workflowFile));
   const sourceNames = Object.keys(workflow.sources);
   const resolvedBindings = new Map<string, string>();

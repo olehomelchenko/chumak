@@ -449,6 +449,17 @@ export class DependencyService {
   }
 
   /**
+   * Returns models that belong under a given source in the tree view.
+   * Includes direct children and chained models whose root source matches.
+   */
+  static getModelsForSource(models: Model[], sources: Source[], sourceId: string): Model[] {
+    return models.filter((m) => {
+      if (m.sourceId === sourceId) return true;
+      return DependencyService.getRootSourceId(models, sources, m.id) === sourceId;
+    });
+  }
+
+  /**
    * Gets list of dependent models with names for UI display
    */
   static getDependentModelsForUI(

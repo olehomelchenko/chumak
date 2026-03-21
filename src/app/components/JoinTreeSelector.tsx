@@ -68,37 +68,31 @@ export function JoinTreeSelector({
           </div>
 
           {/* Models for this source (including chained models) */}
-          {models
-            .filter((m) => {
-              if (m.sourceId === source.id) return true;
-              const rootSourceId = DependencyService.getRootSourceId(models, sources, m.id);
-              return rootSourceId === source.id;
-            })
-            .map((model) => (
-              <div
-                key={model.id}
-                class={`${styles.treeItem} ${styles.model} ${selectedId === model.id ? styles.active : ''} ${model.id === excludeId ? styles.disabled : ''}`}
-                onClick={() => handleModelClick(model)}
-              >
-                <span class={styles.indent}></span>
-                <span class={styles.icon}>📊</span>
-                <span class={styles.name}>{model.name}</span>
-                {onPreview && (
-                  <button
-                    class={styles.previewButton}
-                    onClick={(e) => handlePreviewClick(e, model.id)}
-                    title={t('joinTreeSelector.previewTable')}
-                  >
-                    <span
-                      class="iconify"
-                      aria-hidden="true"
-                      data-icon="carbon:view"
-                      style={{ fontSize: '14px' }}
-                    ></span>
-                  </button>
-                )}
-              </div>
-            ))}
+          {DependencyService.getModelsForSource(models, sources, source.id).map((model) => (
+            <div
+              key={model.id}
+              class={`${styles.treeItem} ${styles.model} ${selectedId === model.id ? styles.active : ''} ${model.id === excludeId ? styles.disabled : ''}`}
+              onClick={() => handleModelClick(model)}
+            >
+              <span class={styles.indent}></span>
+              <span class={styles.icon}>📊</span>
+              <span class={styles.name}>{model.name}</span>
+              {onPreview && (
+                <button
+                  class={styles.previewButton}
+                  onClick={(e) => handlePreviewClick(e, model.id)}
+                  title={t('joinTreeSelector.previewTable')}
+                >
+                  <span
+                    class="iconify"
+                    aria-hidden="true"
+                    data-icon="carbon:view"
+                    style={{ fontSize: '14px' }}
+                  ></span>
+                </button>
+              )}
+            </div>
+          ))}
         </div>
       ))}
 

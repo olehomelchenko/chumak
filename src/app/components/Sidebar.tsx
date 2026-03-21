@@ -144,18 +144,8 @@ export function Sidebar({
               </div>
 
               {/* Models for this source (including chained models whose root source is this one) */}
-              {models.value
-                .filter((m) => {
-                  if (m.sourceId === source.id) return true;
-                  // Chained model: resolve root source
-                  const rootSourceId = DependencyService.getRootSourceId(
-                    models.value,
-                    sources.value,
-                    m.id
-                  );
-                  return rootSourceId === source.id;
-                })
-                .map((model) => (
+              {DependencyService.getModelsForSource(models.value, sources.value, source.id).map(
+                (model) => (
                   <div
                     key={model.id}
                     class={`${styles.treeItem} ${styles.model} ${activeModel.value?.id === model.id ? styles.active : ''} ${model.isStale ? styles.stale : ''}`}
@@ -173,7 +163,8 @@ export function Sidebar({
                     )}
                     <span class={styles.meta}>{getModelMeta(model)}</span>
                   </div>
-                ))}
+                )
+              )}
             </div>
           ))}
 
