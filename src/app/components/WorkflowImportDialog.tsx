@@ -5,6 +5,7 @@ import { WorkflowImportService } from '../services/WorkflowImportService';
 import { updatePagination } from '../handlers/core/pagination-handlers';
 import { closeDialog } from '../handlers/dialog/dialog-handlers';
 import formStyles from './form-controls.module.css';
+import styles from './WorkflowImportDialog.module.css';
 
 export function WorkflowImportDialog() {
   const state = DialogStore.workflowImportState;
@@ -78,7 +79,7 @@ export function WorkflowImportDialog() {
   };
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 'var(--space-md)' }}>
+    <div class={styles.container}>
       {/* Workflow info */}
       <div class={formStyles.helpText}>
         <div>
@@ -97,33 +98,22 @@ export function WorkflowImportDialog() {
 
       {/* Source bindings */}
       <div>
-        <h4 style={{ marginBottom: 'var(--space-sm)' }}>
-          {i18n.t('dialogs:workflowImport.sourcesTitle')}
-        </h4>
+        <h4 class={styles.sourcesHeading}>{i18n.t('dialogs:workflowImport.sourcesTitle')}</h4>
         {sourceNames.map((name) => {
           const binding = bindings.get(name);
           const sourceDef = workflow.sources[name];
           const expectedCols = sourceDef.columns.length;
 
           return (
-            <div
-              key={name}
-              style={{
-                display: 'flex',
-                alignItems: 'center',
-                gap: 'var(--space-sm)',
-                padding: 'var(--space-sm) 0',
-                borderBottom: '1px solid var(--color-border)',
-              }}
-            >
-              <div style={{ flex: 1 }}>
+            <div key={name} class={styles.sourceRow}>
+              <div class={styles.sourceName}>
                 <strong>{name}</strong>
                 <div class={formStyles.helpText}>
                   {expectedCols} {i18n.t('common:labels.columns').toLowerCase()}
                 </div>
               </div>
 
-              <div style={{ flex: 2 }}>
+              <div class={styles.sourceFile}>
                 <input
                   type="file"
                   accept=".csv,.tsv,.txt"
@@ -133,21 +123,11 @@ export function WorkflowImportDialog() {
                   }}
                 />
                 {binding?.data && !binding.error && (
-                  <span style={{ color: 'var(--color-success)', marginLeft: 'var(--space-xs)' }}>
+                  <span class={styles.successText}>
                     {binding.data.length} {i18n.t('common:labels.rows').toLowerCase()}
                   </span>
                 )}
-                {binding?.error && (
-                  <div
-                    style={{
-                      color: 'var(--color-error)',
-                      fontSize: 'var(--font-sm)',
-                      marginTop: 'var(--space-xs)',
-                    }}
-                  >
-                    {binding.error}
-                  </div>
-                )}
+                {binding?.error && <div class={styles.errorText}>{binding.error}</div>}
               </div>
             </div>
           );
@@ -156,7 +136,7 @@ export function WorkflowImportDialog() {
 
       {/* Validation errors */}
       {validationErrors.length > 0 && (
-        <div style={{ color: 'var(--color-error)', fontSize: 'var(--font-sm)' }}>
+        <div class={styles.validationErrors}>
           {validationErrors.map((err, i) => (
             <div key={i}>{err}</div>
           ))}
@@ -164,7 +144,7 @@ export function WorkflowImportDialog() {
       )}
 
       {/* Actions */}
-      <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 'var(--space-sm)' }}>
+      <div class={styles.actions}>
         <button class="button button--secondary" onClick={() => closeDialog(true)}>
           {i18n.t('common:buttons.cancel')}
         </button>

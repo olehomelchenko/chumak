@@ -1,0 +1,47 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.sourcesHeading {
+  margin-bottom: var(--space-sm);
+}
+
+.sourceRow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) 0;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.sourceName {
+  flex: 1;
+}
+
+.sourceFile {
+  flex: 2;
+}
+
+.successText {
+  color: var(--color-text-success);
+  margin-left: var(--space-xs);
+}
+
+.errorText {
+  color: var(--color-red);
+  font-size: var(--font-size-sm);
+  margin-top: var(--space-xs);
+}
+
+.validationErrors {
+  color: var(--color-red);
+  font-size: var(--font-size-sm);
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-sm);
+}
