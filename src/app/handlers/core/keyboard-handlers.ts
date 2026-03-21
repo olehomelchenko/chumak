@@ -2,27 +2,7 @@ import { AppStore } from '../../stores/AppStore';
 import { ExportService } from '../../services/ExportService';
 import { alert } from './notification-handlers';
 import * as StepHandlers from './step-handlers';
-
-/**
- * Keyboard Shortcuts Handler
- *
- * Handles global keyboard shortcuts for the application.
- * Shortcuts are only active when no dialog is open and user is not typing in an input field.
- */
-
-/**
- * Check if the user is currently typing in an input/textarea element
- */
-function isTypingInField(event: KeyboardEvent): boolean {
-  const target = event.target as HTMLElement;
-  if (!target) return false;
-
-  const tagName = target.tagName.toUpperCase();
-  if (tagName === 'INPUT' || tagName === 'TEXTAREA') return true;
-  if (target.isContentEditable) return true;
-
-  return false;
-}
+import { isInInteractiveContext } from '../../orchestration/focus-utils';
 
 /**
  * Check if a dialog or modal is currently open
@@ -106,8 +86,8 @@ function handleNavigateDown(event: KeyboardEvent) {
  * Called by EventRouter for non-Escape, non-Enter keyboard shortcuts
  */
 export function handleKeyDown(event: KeyboardEvent) {
-  // Don't handle shortcuts if user is typing
-  if (isTypingInField(event)) {
+  // Don't handle shortcuts if user is typing in an input/editor
+  if (isInInteractiveContext()) {
     return;
   }
 

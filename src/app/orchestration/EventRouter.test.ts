@@ -79,6 +79,24 @@ describe('EventRouter', () => {
 
       expect(isInInteractiveContext()).toBe(false);
     });
+
+    it('returns true for element inside CodeMirror editor', () => {
+      const cmEditor = document.createElement('div');
+      cmEditor.classList.add('cm-editor');
+      const cmContent = document.createElement('div');
+      cmContent.classList.add('cm-content');
+      cmEditor.appendChild(cmContent);
+      document.body.appendChild(cmEditor);
+
+      Object.defineProperty(document, 'activeElement', {
+        value: cmContent,
+        writable: true,
+        configurable: true,
+      });
+
+      expect(isInInteractiveContext()).toBe(true);
+      document.body.removeChild(cmEditor);
+    });
   });
 
   describe('hasModifier', () => {

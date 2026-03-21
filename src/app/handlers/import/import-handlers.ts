@@ -8,6 +8,7 @@ import { ReplaceSourceService } from '../../services/ReplaceSourceService';
 import { alert, confirm } from '../core/notification-handlers';
 import i18n from '../../../i18n';
 import { validateV2Workflow, V2Workflow } from '../../../core/workflow-v2';
+import { isInInteractiveContext } from '../../orchestration/focus-utils';
 
 /**
  * Callbacks for import operations
@@ -139,9 +140,7 @@ export async function handleFileDrop(event: DragEvent): Promise<void> {
 }
 
 export async function handlePaste(event: ClipboardEvent): Promise<void> {
-  const target = event.target as HTMLElement;
-  if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable)
-    return;
+  if (isInInteractiveContext()) return;
   const clipboardData = event.clipboardData;
   if (!clipboardData) return;
   if (clipboardData.files && clipboardData.files.length > 0) {

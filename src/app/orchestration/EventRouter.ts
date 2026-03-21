@@ -117,22 +117,8 @@ function handleClick(e: MouseEvent): void {
   handleBodyClick(e);
 }
 
-/**
- * Check if we're in an interactive context where shortcuts should be suppressed
- */
-export function isInInteractiveContext(): boolean {
-  const activeElement = document.activeElement;
-  if (!activeElement) return false;
-
-  const tagName = activeElement.tagName.toLowerCase();
-  const isEditable =
-    activeElement.getAttribute('contenteditable') === 'true' ||
-    tagName === 'input' ||
-    tagName === 'textarea' ||
-    tagName === 'select';
-
-  return isEditable;
-}
+// Re-export focus utilities for backward compatibility
+export { isInInteractiveContext } from './focus-utils';
 
 /**
  * Check if a modifier key is pressed
