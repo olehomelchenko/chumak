@@ -1,10 +1,10 @@
 /**
- * ExpressionEditor - CodeMirror 6 based single-line expression input
+ * ExpressionEditor - CodeMirror 6 based multi-line expression input
  * with syntax highlighting for the Syto expression language.
  */
 
 import { useRef, useEffect, useMemo } from 'preact/hooks';
-import { EditorView, keymap, ViewUpdate, placeholder as cmPlaceholder } from '@codemirror/view';
+import { EditorView, ViewUpdate, placeholder as cmPlaceholder } from '@codemirror/view';
 import { EditorState, Extension, Compartment } from '@codemirror/state';
 import { minimalSetup } from 'codemirror';
 import { syntaxHighlighting, HighlightStyle } from '@codemirror/language';
@@ -36,7 +36,7 @@ const highlightStyle = HighlightStyle.define([
   { tag: tags.punctuation, color: '#666666' },
 ]);
 
-/** Theme: compact single-line input with border, focus ring, and autocomplete styling */
+/** Theme: compact multi-line editor with border, focus ring, and autocomplete styling */
 const editorTheme = EditorView.theme({
   // Wrapper — matches .input class from form-controls.module.css
   '&': {
@@ -55,9 +55,9 @@ const editorTheme = EditorView.theme({
     borderColor: 'var(--color-cyan)',
     boxShadow: '0 0 0 3px rgba(var(--color-cyan-rgb), 0.1)',
   },
-  // Content — single-line, no wrapping
-  '.cm-scroller': { overflow: 'hidden', lineHeight: '1.4' },
-  '.cm-content': { padding: '0', whiteSpace: 'nowrap' },
+  // Content — multi-line with vertical scroll (3 lines default, scrolls beyond ~5)
+  '.cm-scroller': { overflow: 'auto', lineHeight: '1.4', minHeight: '3.6em', maxHeight: '120px' },
+  '.cm-content': { padding: '0' },
   '.cm-line': { padding: '0' },
   '.cm-cursor': { borderLeftColor: 'var(--color-midnight-blue)' },
   '&.cm-focused .cm-selectionBackground, .cm-selectionBackground': {
@@ -109,6 +109,7 @@ export function ExpressionEditor({
 }: ExpressionEditorProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const viewRef = useRef<EditorView | null>(null);
+  const isSyncing = useRef(false);
   const langCompartment = useRef(new Compartment());
   const completionCompartment = useRef(new Compartment());
 
@@ -133,30 +134,9 @@ export function ExpressionEditor({
         })
       ),
       EditorView.updateListener.of((update: ViewUpdate) => {
-        if (update.docChanged) {
+        if (update.docChanged && !isSyncing.current) {
           onChange(update.state.doc.toString());
         }
-      }),
-      // Prevent newline on Enter
-      keymap.of([
-        {
-          key: 'Enter',
-          run: () => true, // consume the event
-        },
-      ]),
-      // Collapse multi-line paste to single line
-      EditorState.transactionFilter.of((tr) => {
-        if (!tr.docChanged) return tr;
-        let hasNewline = false;
-        tr.changes.iterChanges((_fromA, _toA, _fromB, _toB, inserted) => {
-          if (inserted.toString().includes('\n')) hasNewline = true;
-        });
-        if (!hasNewline) return tr;
-        const changes: { from: number; to: number; insert: string }[] = [];
-        tr.changes.iterChanges((fromA, toA, _fromB, _toB, inserted) => {
-          changes.push({ from: fromA, to: toA, insert: inserted.toString().replace(/\n/g, ' ') });
-        });
-        return { changes };
       }),
     ];
 
@@ -182,13 +162,15 @@ export function ExpressionEditor({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  // Sync external value changes
+  // Sync external value changes (skip onChange to prevent loops)
   useEffect(() => {
     const view = viewRef.current;
     if (view && value !== view.state.doc.toString()) {
+      isSyncing.current = true;
       view.dispatch({
         changes: { from: 0, to: view.state.doc.length, insert: value },
       });
+      isSyncing.current = false;
     }
   }, [value]);
 

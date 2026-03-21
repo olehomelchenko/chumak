@@ -638,7 +638,7 @@ Complex dialogs are split into focused sub-components organized in directories:
 | `CellToolbar.tsx`      | Floating actions on cell click                                       |
 | `RowToolbar.tsx`       | Floating actions on row selection                                    |
 | `TypeIndicator.tsx`    | Column type indicator with icon                                      |
-| `ExpressionEditor.tsx` | CM6 single-line input with syntax highlighting                       |
+| `ExpressionEditor.tsx` | CM6 multi-line editor with syntax highlighting                       |
 | `ExpressionDocs.tsx`   | Context-aware inline docs for expression dialogs                     |
 | `InlineBanner.tsx`     | Typed banner (info/warning/error/success) for dialog inline feedback |
 | `GlobalUI.tsx`         | Toast notifications (see §3.6) and global modals                     |

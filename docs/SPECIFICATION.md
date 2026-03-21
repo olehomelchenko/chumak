@@ -137,10 +137,11 @@ Key characteristics:
 
 #### Expression Editor (UI)
 
-The `ExpressionEditor` component (`src/app/components/ExpressionEditor.tsx`) provides a CodeMirror 6-based single-line input for formulas used by Derive, Filter, and Conditional dialogs.
+The `ExpressionEditor` component (`src/app/components/ExpressionEditor.tsx`) provides a CodeMirror 6-based multi-line editor for formulas used by Derive, Filter, and Conditional dialogs. Grows with content up to a max height, then scrolls.
 
 - **Syntax highlighting**: `src/core/expression-language.ts` — StreamLanguage tokenizer that recognizes functions, column names, bracket notation, strings, numbers, operators, and keywords
 - **Autocomplete**: Column names (highest priority), function names with signatures from `src/schemas/functions.json`, and keywords (`true`, `false`, `null`, `and`, `or`, `not`)
+- **Controlled component**: Bidirectional sync between CodeMirror and Preact signals, with an `isSyncing` guard to prevent infinite update loops. See DEVELOPMENT-PATTERNS.md §2.3 for details.
 - **Validation**: Real-time via `useSignalEffect` — parses, validates, and updates error signals with debounced preview computation (150ms)
 - **Error display**: `src/core/error-formatter.ts` produces multi-line messages with position pointers and suggestions
 
@@ -335,7 +336,8 @@ Browser-specific adapters, isolated from core logic:
 
 - `AppOrchestrator.ts` — Application initialization entry point: callback wiring, persisted state loading, subsystem init, URL restore
 - `AppController.ts` — Orchestration methods that compose multiple handler/service calls (model lifecycle, exports, interaction callbacks). Consumers import handler functions directly for non-orchestration actions.
-- `EventRouter.ts` — Global event listeners (keyboard, paste, click). Owns Escape (priority: message box → dialog → type menu → selection) and Enter-to-submit for slide panels (skips textarea, select, CodeMirror, error state). Delegates other keyboard shortcuts to `KeyboardHandlers` (Ctrl+S save, Delete step, arrow navigation)
+- `EventRouter.ts` — Global event listeners (keyboard, paste, click). Owns Escape (priority: message box → dialog → type menu → selection) and Enter-to-submit for slide panels (skips textarea, select, CodeMirror, error state). Delegates other keyboard shortcuts to `KeyboardHandlers` (Ctrl+S save, Delete step, arrow navigation). Paste events are suppressed in interactive contexts via `focus-utils`.
+- `focus-utils.ts` — Single source of truth for `isInInteractiveContext()`: detects input, textarea, select, contenteditable, and CodeMirror (`.cm-editor`). Used by EventRouter (paste guard), keyboard-handlers (shortcut guard), and import-handlers. **Never inline element-type checks** — always call this function.
 - `UrlStateSync.ts` — URL hash synchronization for navigation state
 - `DialogCoordinator.ts` — Dialog lifecycle, snapshots, and state management
 

@@ -15,18 +15,18 @@
 
 ### What Syto Has
 
-| Syto Term                  | Component / CSS                              | Description                                                                                                                                         |
-| -------------------------- | -------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Text input**             | `<input type="text">` / `.input`             | Standard single-line text field. Used for names, search, output columns                                                                             |
-| **Number input**           | `<input type="number">`                      | Native browser number field with built-in arrows. Used for row limits, sample sizes, index parameters                                               |
-| **Expression editor**      | `ExpressionEditor.tsx` (CodeMirror)          | Single-line code input with syntax highlighting, autocomplete, and inline docs. Used in filter, derive, conditional, date operations                |
-| **Checkbox**               | `<input type="checkbox">` / `.checkboxLabel` | Native checkbox. Used sparingly (analytics opt-out)                                                                                                 |
-| **Custom radio buttons**   | `.radioCircle` + `.radioDot`                 | Clickable div-based radio pattern with visual dot. Used for theme/language in Settings, delimiter/header mode in import                             |
-| **Chip selector (single)** | `ColumnSelector.tsx` chip grid               | Grid of clickable column chips with type icons. Clicking one selects it exclusively. Used for source column picking in sort, replace, regexp        |
-| **Chip selector (multi)**  | `ColumnSelector.tsx` chip grid               | Same grid, but Cmd/Ctrl+click toggles multiple selections. Used for bulk operations (remove, unpivot, fold)                                         |
-| **Column list**            | `ColumnSelector.tsx` list mode               | Rows with checkboxes, drag handles, and inline rename inputs. Used for detailed column management (edit columns, reorder, select)                   |
-| **Native `<select>`**      | `<select>` / `.input`                        | Standard dropdown. Used for column/function pickers inside some dialogs (sort, aggregate, pivot). Avoided in favor of radio or chips where possible |
-| **Textarea**               | `<textarea>`                                 | Multi-line text. Used for comments in dataset/model info views                                                                                      |
+| Syto Term                  | Component / CSS                              | Description                                                                                                                                                                     |
+| -------------------------- | -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Text input**             | `<input type="text">` / `.input`             | Standard single-line text field. Used for names, search, output columns                                                                                                         |
+| **Number input**           | `<input type="number">`                      | Native browser number field with built-in arrows. Used for row limits, sample sizes, index parameters                                                                           |
+| **Expression editor**      | `ExpressionEditor.tsx` (CodeMirror)          | Multi-line code editor with syntax highlighting, autocomplete, and inline docs. Grows with content, scrolls at max height. Used in filter, derive, conditional, date operations |
+| **Checkbox**               | `<input type="checkbox">` / `.checkboxLabel` | Native checkbox. Used sparingly (analytics opt-out)                                                                                                                             |
+| **Custom radio buttons**   | `.radioCircle` + `.radioDot`                 | Clickable div-based radio pattern with visual dot. Used for theme/language in Settings, delimiter/header mode in import                                                         |
+| **Chip selector (single)** | `ColumnSelector.tsx` chip grid               | Grid of clickable column chips with type icons. Clicking one selects it exclusively. Used for source column picking in sort, replace, regexp                                    |
+| **Chip selector (multi)**  | `ColumnSelector.tsx` chip grid               | Same grid, but Cmd/Ctrl+click toggles multiple selections. Used for bulk operations (remove, unpivot, fold)                                                                     |
+| **Column list**            | `ColumnSelector.tsx` list mode               | Rows with checkboxes, drag handles, and inline rename inputs. Used for detailed column management (edit columns, reorder, select)                                               |
+| **Native `<select>`**      | `<select>` / `.input`                        | Standard dropdown. Used for column/function pickers inside some dialogs (sort, aggregate, pivot). Avoided in favor of radio or chips where possible                             |
+| **Textarea**               | `<textarea>`                                 | Multi-line text. Used for comments in dataset/model info views                                                                                                                  |
 
 ### Recommended Additions
 

@@ -397,6 +397,16 @@ useSignalEffect(() => {
 });
 ```
 
+**ExpressionEditor sync-back loop (critical)**: `ExpressionEditor` is a controlled CodeMirror component with a bidirectional data flow that can freeze the browser if broken:
+
+```
+User types → CM updateListener → onChange(doc) → signal.value = doc
+                                                        ↓
+CM ← dispatch(value) ← useEffect([value]) ← re-render ← signal change
+```
+
+The `isSyncing` ref flag in `ExpressionEditor.tsx` breaks this cycle: when the sync-back `useEffect` dispatches a programmatic change, the `updateListener` skips calling `onChange`. **Do not remove this guard** — without it, any edge case where the round-trip produces a slightly different string (whitespace normalization, IME composition, etc.) causes an infinite synchronous loop that freezes the browser tab. The string equality check (`value !== doc.toString()`) alone is not sufficient.
+
 ---
 
 ## 3. Testing Patterns

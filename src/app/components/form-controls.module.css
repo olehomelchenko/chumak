@@ -24,6 +24,11 @@
   }
 }
 
+.inputError {
+  border-color: var(--color-red) !important;
+  box-shadow: 0 0 0 3px rgba(var(--color-red-rgb), 0.1) !important;
+}
+
 .helpText {
   font-size: var(--font-size-sm);
   color: var(--color-dark-gray);
