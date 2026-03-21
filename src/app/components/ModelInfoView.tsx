@@ -2,6 +2,7 @@ import { useState, useEffect } from 'preact/hooks';
 import { useTranslation } from 'preact-i18next';
 import { AppStore } from '../stores/AppStore';
 import { PersistenceService } from '../services/PersistenceService';
+import { DependencyService } from '../services/DependencyService';
 import { TypeIndicator } from './TypeIndicator';
 import styles from './DatasetInfoView.module.css';
 
@@ -19,8 +20,11 @@ export function ModelInfoView({ onRenameModel, onDeleteModel }: ModelInfoViewPro
   const model = activeModel.value;
   if (!model) return null;
 
-  const source = sources.value.find((s) => s.id === model.sourceId);
-  const parentModel = source ? null : models.value.find((m) => m.id === model.sourceId);
+  const { source, parentModel } = DependencyService.resolveModelInput(
+    models.value,
+    sources.value,
+    model.sourceId
+  );
   const [comment, setComment] = useState(model.comment || '');
   const [isEditingComment, setIsEditingComment] = useState(false);
 

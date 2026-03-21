@@ -245,8 +245,11 @@ export class StepService {
     const start = performance.now();
     if (!model) throw new Error('No model provided');
 
-    const source = context.sources.find((s) => s.id === model.sourceId);
-    const parentModel = source ? null : context.models.find((m) => m.id === model.sourceId);
+    const { source, parentModel } = DependencyService.resolveModelInput(
+      context.models,
+      context.sources,
+      model.sourceId
+    );
     if (!source && !parentModel) throw new Error('Input not found for model');
 
     let table = source ? aq.from(source.data) : aq.from(parentModel!.data);

@@ -460,6 +460,20 @@ export class DependencyService {
   }
 
   /**
+   * Resolves the input for a model — either the source it was created from,
+   * or the parent model it's chained to.
+   */
+  static resolveModelInput(
+    models: Model[],
+    sources: Source[],
+    sourceId: string
+  ): { source?: Source; parentModel?: Model } {
+    const source = sources.find((s) => s.id === sourceId);
+    const parentModel = source ? undefined : models.find((m) => m.id === sourceId);
+    return { source, parentModel };
+  }
+
+  /**
    * Gets list of dependent models with names for UI display
    */
   static getDependentModelsForUI(
@@ -473,8 +487,11 @@ export class DependencyService {
       .map((id) => {
         const model = models.find((m) => m.id === id);
         if (!model) return null;
-        const source = sources.find((s) => s.id === model.sourceId);
-        const parentModel = source ? null : models.find((m) => m.id === model.sourceId);
+        const { source, parentModel } = DependencyService.resolveModelInput(
+          models,
+          sources,
+          model.sourceId
+        );
         return {
           id: model.id,
           name: model.name,
