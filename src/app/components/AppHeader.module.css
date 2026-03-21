@@ -39,8 +39,8 @@
 }
 
 .versionBadge {
-  font-size: 10px;
-  font-weight: 500;
+  font-size: var(--font-size-xxs);
+  font-weight: var(--font-weight-medium);
   color: var(--color-dark-gray);
   background: var(--color-light-gray);
   padding: 1px 6px;
