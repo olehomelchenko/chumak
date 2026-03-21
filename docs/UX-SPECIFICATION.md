@@ -29,7 +29,11 @@ Syto supports high-fidelity theme switching, accessible via the **Settings** dia
 
 **Integration**: Vega-Lite charts automatically inherit the active theme's color palette, axis styling, and typography for a seamless visual experience.
 
-### 1.3 Design Principles
+### 1.3 Brand & Visual Identity
+
+See [style-guide.md](style-guide.md) for brand colors, data visualization palette, and typography definitions.
+
+### 1.4 Design Principles
 
 Principles guiding Syto's UX decisions, adapted from established design systems. See [DECISIONS.md](archive/DECISIONS.md) §3 for the evaluation rationale.
 

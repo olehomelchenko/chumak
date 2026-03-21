@@ -32,8 +32,9 @@ See @AGENTS.md for project overview, security requirements, codebase orientation
 ### Reference
 
 - **[docs/arquero/](docs/arquero/)**: Arquero library documentation (verbs, expressions, operators)
-- **[docs/archive/](docs/archive/)**: Architecture Decision Records — key design choices and their rationale
-- **[docs/future/](docs/future/)**: Future roadmap documents (DuckDB integration, CLI, monetization, example workflows)
+- **[docs/archive/](docs/archive/)**: Architecture Decision Records, completed specs, and research archives
+- **[docs/future/](docs/future/)**: Future roadmap documents (CLI, native app, monetization, example workflows)
+- **[CHANGELOG.md](docs/CHANGELOG.md)**: Historical record of completed features and improvements
 
 ---
 

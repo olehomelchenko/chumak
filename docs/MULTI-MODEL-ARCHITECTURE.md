@@ -268,17 +268,6 @@ describe('Cascading updates', () => {
 
 ---
 
-## References
-
-Additional analysis documents were created during design exploration:
-
-- `research/multi-model-architecture-v1.md` — Initial proposal with DependencyService concept
-- `.cursor/plans/multi-model_dag_architecture_assessment_*.md` — Comparative analysis of three DAG granularity options
-
-These informed the consolidated design above but are not canonical documentation.
-
----
-
 ## Implementation Status
 
 **Phase 1: Dependency Tracking** — ✅ Complete (January 2025)
