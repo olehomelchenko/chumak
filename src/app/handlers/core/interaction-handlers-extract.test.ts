@@ -20,6 +20,13 @@ vi.mock('./notification-handlers', () => ({
 
 vi.mock('../../services/DependencyService', () => ({
   DependencyService: {
+    resolveModelInput: vi
+      .fn()
+      .mockImplementation((models: any[], sources: any[], sourceId: string) => {
+        const source = sources.find((s: any) => s.id === sourceId);
+        const parentModel = source ? undefined : models.find((m: any) => m.id === sourceId);
+        return { source, parentModel };
+      }),
     getDependentModelsForUI: vi.fn().mockReturnValue([]),
     markDependentsStale: vi.fn().mockReturnValue([]),
   },
