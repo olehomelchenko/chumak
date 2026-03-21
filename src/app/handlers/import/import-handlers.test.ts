@@ -533,4 +533,134 @@ describe('import-handlers', () => {
       expect(mockInput.click).toHaveBeenCalled();
     });
   });
+
+  // ── routeToWorkflowImport (tested via handleJsonPreview) ──
+
+  describe('handleJsonPreview → workflow routing', () => {
+    const validWorkflow = {
+      formatVersion: 2,
+      sytoVersion: '0.5.0',
+      exportedAt: '2025-01-01T00:00:00.000Z',
+      sources: {
+        'data.csv': {
+          columns: [{ name: 'x', type: 'string' }],
+        },
+      },
+      models: {
+        'data.csv/Main': {
+          source: 'data.csv',
+          steps: [{ types: { x: 'string' } }],
+        },
+      },
+      outputs: ['data.csv/Main'],
+    };
+
+    let openDialogSpy: ReturnType<typeof vi.fn>;
+
+    beforeEach(() => {
+      openDialogSpy = vi.fn();
+      ImportHandlers.setImportCallbacks({
+        openDialog: openDialogSpy,
+        closeDialog: vi.fn(),
+        createSource: vi.fn(),
+      });
+    });
+
+    const jsonFile = (name = 'workflow.json') =>
+      new File(['{}'], name, { type: 'application/json' });
+
+    it('routes v2 workflow JSON to the workflow-import dialog', () => {
+      ImportHandlers.handleJsonPreview(jsonFile(), validWorkflow);
+
+      expect(openDialogSpy).toHaveBeenCalledWith('workflow-import');
+    });
+
+    it('populates workflow import state with workflow data', () => {
+      ImportHandlers.handleJsonPreview(jsonFile(), validWorkflow);
+
+      const wfState = DialogStore.workflowImportState;
+      expect(wfState.workflow.value).toBe(validWorkflow);
+      expect(wfState.sourceNames.value).toEqual(['data.csv']);
+      expect(wfState.bindings.value).toEqual(new Map());
+      expect(wfState.validationErrors.value).toEqual([]);
+      expect(wfState.isProcessing.value).toBe(false);
+    });
+
+    it('populates multiple source names from workflow', () => {
+      const multiSourceWorkflow = {
+        ...validWorkflow,
+        sources: {
+          'alpha.csv': { columns: [{ name: 'a', type: 'string' }] },
+          'beta.csv': { columns: [{ name: 'b', type: 'integer' }] },
+        },
+        models: {
+          'alpha.csv/Main': {
+            source: 'alpha.csv',
+            steps: [{ types: { a: 'string' } }],
+          },
+          'beta.csv/Main': {
+            source: 'beta.csv',
+            steps: [{ types: { b: 'integer' } }],
+          },
+        },
+        outputs: ['alpha.csv/Main', 'beta.csv/Main'],
+      };
+
+      ImportHandlers.handleJsonPreview(jsonFile(), multiSourceWorkflow);
+
+      expect(DialogStore.workflowImportState.sourceNames.value).toEqual(['alpha.csv', 'beta.csv']);
+    });
+
+    it('does not route to workflow-import when path is set', () => {
+      ImportHandlers.handleJsonPreview(jsonFile(), validWorkflow, 'sources');
+
+      expect(openDialogSpy).toHaveBeenCalledWith('import-csv');
+    });
+
+    it('does not route plain JSON arrays to workflow-import', () => {
+      const plainData = [
+        { name: 'Alice', age: 30 },
+        { name: 'Bob', age: 25 },
+      ];
+
+      ImportHandlers.handleJsonPreview(jsonFile('data.json'), plainData);
+
+      expect(openDialogSpy).toHaveBeenCalledWith('import-csv');
+    });
+
+    it('shows alert for invalid workflow and does not open dialog', () => {
+      const invalidWorkflow = {
+        formatVersion: 2,
+        sources: {},
+        models: {},
+      };
+
+      ImportHandlers.handleJsonPreview(jsonFile('bad.json'), invalidWorkflow);
+
+      expect(openDialogSpy).not.toHaveBeenCalledWith('workflow-import');
+    });
+
+    it('does not route JSON with formatVersion !== 2', () => {
+      const v1Data = {
+        formatVersion: 1,
+        sources: {},
+        models: {},
+      };
+
+      ImportHandlers.handleJsonPreview(jsonFile('old.json'), v1Data);
+
+      expect(openDialogSpy).not.toHaveBeenCalledWith('workflow-import');
+    });
+
+    it('does not route JSON missing sources or models keys', () => {
+      const partialData = {
+        formatVersion: 2,
+        sources: { 'a.csv': { columns: [] } },
+      };
+
+      ImportHandlers.handleJsonPreview(jsonFile('partial.json'), partialData);
+
+      expect(openDialogSpy).not.toHaveBeenCalledWith('workflow-import');
+    });
+  });
 });
