@@ -101,7 +101,15 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
       const s = DialogStore.deriveState;
       return !!s.error.value || !s.columnName.value?.trim() || !s.expression.value?.trim();
     },
-    getError: () => DialogStore.deriveState.error.value,
+    getError: () => {
+      const s = DialogStore.deriveState;
+      if (s.error.value) return s.error.value;
+      if (!s.columnName.value?.trim())
+        return i18n.t('validation.required.columnName', { ns: 'errors' });
+      if (!s.expression.value?.trim())
+        return i18n.t('validation.required.expression', { ns: 'errors' });
+      return null;
+    },
   },
 
   sort: {

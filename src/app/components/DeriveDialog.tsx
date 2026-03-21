@@ -1,4 +1,4 @@
-import { useSignal, useSignalEffect } from '@preact/signals';
+import { useSignal, useSignalEffect, useComputed } from '@preact/signals';
 import { useTranslation } from 'preact-i18next';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
@@ -29,6 +29,10 @@ export function DeriveDialog() {
     tokens.value = computeTokens(expr, AppStore.columns.value);
   });
 
+  const columnNameMissing = useComputed(
+    () => !!expression.value.trim() && !columnName.value.trim()
+  );
+
   const openRef = (section?: string) => {
     openDialog('reference', section);
   };
@@ -39,7 +43,7 @@ export function DeriveDialog() {
         <label class={styles.label}>{t('derive.columnName')}</label>
         <input
           type="text"
-          class={styles.input}
+          class={`${styles.input} ${columnNameMissing.value ? styles.inputError : ''}`}
           value={columnName.value}
           onInput={(e) => (columnName.value = (e.target as HTMLInputElement).value)}
           placeholder={t('derive.columnNamePlaceholder')}
