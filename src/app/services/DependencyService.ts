@@ -1,5 +1,6 @@
 import { Model, Source } from '../types';
 import { TransformStep } from '../../core/schema-engine';
+import { MULTI_MODEL_REFERENCE_PATHS } from '../../core/transforms/types';
 
 /**
  * DependencyService
@@ -31,39 +32,16 @@ export interface DependencyCheckResult {
 
 /**
  * Extracts all model/source IDs referenced by a transform step.
- * Checks: join.right, concat.with, union.with
+ * Uses MULTI_MODEL_REFERENCE_PATHS as the single source of truth.
  */
 function extractReferencedIds(step: TransformStep): string[] {
   const ids: string[] = [];
 
-  // Join transform references another model/source
-  if (step.join?.right) {
-    ids.push(step.join.right);
-  }
-
-  // Concat transform references another model/source
-  if (step.concat?.with) {
-    ids.push(step.concat.with);
-  }
-
-  // Union transform references another model/source
-  if (step.union?.with) {
-    ids.push(step.union.with);
-  }
-
-  // Semijoin transform references another model/source
-  if (step.semijoin?.right) {
-    ids.push(step.semijoin.right);
-  }
-
-  // Antijoin transform references another model/source
-  if (step.antijoin?.right) {
-    ids.push(step.antijoin.right);
-  }
-
-  // Lookup transform references another model/source
-  if (step.lookup?.right) {
-    ids.push(step.lookup.right);
+  for (const { key, field } of MULTI_MODEL_REFERENCE_PATHS) {
+    const stepValue = (step as any)[key];
+    if (stepValue && stepValue[field]) {
+      ids.push(stepValue[field]);
+    }
   }
 
   return ids;
@@ -421,6 +399,56 @@ export class DependencyService {
   }
 
   /**
+   * Walks the sourceId chain upward until it hits a source (src_* prefix).
+   * Needed for grouping chained models under their root source in the Sidebar.
+   */
+  static getRootSourceId(models: Model[], sources: Source[], modelId: string): string | null {
+    const visited = new Set<string>();
+    let currentId = modelId;
+
+    while (true) {
+      if (visited.has(currentId)) return null; // Cycle guard
+      visited.add(currentId);
+
+      const model = models.find((m) => m.id === currentId);
+      if (!model) return null;
+
+      // Check if sourceId points to a source
+      const isSource = sources.some((s) => s.id === model.sourceId);
+      if (isSource) return model.sourceId;
+
+      // sourceId points to another model — follow the chain
+      currentId = model.sourceId;
+    }
+  }
+
+  /**
+   * Returns all upstream dependencies (transitive) for a set of target IDs.
+   * Includes the target IDs themselves. Used for v2 export to collect the full subgraph.
+   */
+  static getUpstreamDependencies(graph: DependencyGraph, targetIds: string[]): Set<string> {
+    const visited = new Set<string>();
+    const queue = [...targetIds];
+
+    while (queue.length > 0) {
+      const current = queue.shift()!;
+      if (visited.has(current)) continue;
+      visited.add(current);
+
+      const node = graph.nodes.get(current);
+      if (!node) continue;
+
+      for (const depId of node.dependencies) {
+        if (!visited.has(depId)) {
+          queue.push(depId);
+        }
+      }
+    }
+
+    return visited;
+  }
+
+  /**
    * Gets list of dependent models with names for UI display
    */
   static getDependentModelsForUI(
@@ -435,10 +463,11 @@ export class DependencyService {
         const model = models.find((m) => m.id === id);
         if (!model) return null;
         const source = sources.find((s) => s.id === model.sourceId);
+        const parentModel = source ? null : models.find((m) => m.id === model.sourceId);
         return {
           id: model.id,
           name: model.name,
-          sourceName: source?.name || 'Unknown Source',
+          sourceName: source?.name || parentModel?.name || 'Unknown Source',
         };
       })
       .filter((m): m is { id: string; name: string; sourceName: string } => m !== null);

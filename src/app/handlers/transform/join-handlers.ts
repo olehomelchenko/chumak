@@ -4,6 +4,7 @@ import { DialogStore } from '../../stores/DialogStore';
 import { AppStore } from '../../stores/AppStore';
 import { StepService } from '../../services/StepService';
 import { DependencyService } from '../../services/DependencyService';
+import { NameService } from '../../services/NameService';
 import { prompt } from '../core/notification-handlers';
 import i18n from '../../../i18n';
 
@@ -552,26 +553,25 @@ export async function applyJoinTransform(callbacks: any) {
     const resultData = resultTable.objects();
 
     if (saveAsNewModel) {
-      // Create a new model from the join result
-      const leftSource = leftModel
-        ? sources.find((s) => s.id === leftModel.sourceId)
-        : sources.find((s) => s.id === leftModelId);
+      // Create a new model from the join result — resolve root source for chained models
+      const resolveSourceId = leftModel ? leftModel.sourceId : leftModelId;
+      let leftSource = sources.find((s) => s.id === resolveSourceId);
+      if (!leftSource && leftModel) {
+        const rootId = DependencyService.getRootSourceId(models, sources, leftModel.id);
+        if (rootId) leftSource = sources.find((s) => s.id === rootId);
+      }
 
       if (!leftSource) {
         await callbacks.onError?.(i18n.t('system.sourceNotFoundForNewModel', { ns: 'errors' }));
         return;
       }
 
-      const defaultName = `join_${AppStore.models.value.filter((m) => m.sourceId === leftSource.id).length + 1}`;
+      const defaultName = `join_${AppStore.models.value.filter((m) => m.sourceId === leftSource!.id).length + 1}`;
       const modelName = await prompt(i18n.t('prompts.newModel', { ns: 'common' }), defaultName);
       if (!modelName || modelName.trim() === '') return;
 
       const name = modelName.trim();
-      const existingModel = AppStore.models.value.find(
-        (m) => m.sourceId === leftSource.id && m.name.toLowerCase() === name.toLowerCase()
-      );
-
-      if (existingModel) {
+      if (NameService.isModelNameTaken(name, leftSource.id)) {
         await callbacks.onError?.(i18n.t('validation.duplicate.modelExists', { ns: 'errors' }));
         return;
       }

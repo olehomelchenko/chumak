@@ -161,7 +161,11 @@ export const AppController = {
   },
 
   async renameSource(source: Source): Promise<void> {
-    return ModelService.renameSource(source, NotificationHandlers.prompt);
+    return ModelService.renameSource(
+      source,
+      NotificationHandlers.prompt,
+      NotificationHandlers.alert
+    );
   },
 
   async deleteSource(source: Source): Promise<void> {

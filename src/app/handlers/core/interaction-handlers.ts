@@ -11,6 +11,7 @@ import * as DedupeHandlers from '../transform/dedupe-handlers';
 import { StepService } from '../../services/StepService';
 import { PersistenceService } from '../../services/PersistenceService';
 import { convertType } from '../../../core/type-converter';
+import { NameService } from '../../services/NameService';
 import i18n from '../../../i18n';
 
 export function handleBodyClick(event: any) {
@@ -610,8 +611,11 @@ export async function extractSelectedRows(switchToModel: (model: any) => void): 
   const activeModel = AppStore.activeModel.value;
   if (!activeModel) return;
 
-  const source = AppStore.sources.value.find((s) => s.id === activeModel.sourceId);
-  if (!source) return;
+  // Verify the model's input exists (source or parent model)
+  const hasInput =
+    AppStore.sources.value.some((s) => s.id === activeModel.sourceId) ||
+    AppStore.models.value.some((m) => m.id === activeModel.sourceId);
+  if (!hasInput) return;
 
   const defaultName = `${activeModel.name}_extract`;
   const modelName = await NotificationHandlers.prompt(
@@ -621,10 +625,7 @@ export async function extractSelectedRows(switchToModel: (model: any) => void): 
   if (!modelName || modelName.trim() === '') return;
   const name = modelName.trim();
 
-  const existing = AppStore.models.value.find(
-    (m) => m.sourceId === source.id && m.name.toLowerCase() === name.toLowerCase()
-  );
-  if (existing) {
+  if (NameService.isModelNameTaken(name, activeModel.sourceId)) {
     await NotificationHandlers.alert(i18n.t('validation.duplicate.modelExists', { ns: 'errors' }));
     return;
   }

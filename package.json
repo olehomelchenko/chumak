@@ -4,9 +4,13 @@
   "private": true,
   "description": "Browser-based data wrangling tool",
   "type": "module",
+  "bin": {
+    "syto": "./dist-cli/cli.mjs"
+  },
   "scripts": {
     "dev": "vite",
     "build": "npm run docs:generate && tsc && vite build && tsx scripts/build-content-pages.ts",
+    "build:cli": "esbuild src/cli.ts --bundle --platform=node --format=esm --outfile=dist-cli/cli.mjs --external:papaparse --external:arquero --external:i18next --external:jsep --banner:js='import { createRequire } from \"module\"; const require = createRequire(import.meta.url);'",
     "preview": "vite preview",
     "test": "vitest --run",
     "typecheck": "tsc --noEmit",

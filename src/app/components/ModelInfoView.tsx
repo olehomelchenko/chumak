@@ -14,11 +14,13 @@ export function ModelInfoView({ onRenameModel, onDeleteModel }: ModelInfoViewPro
   const { t } = useTranslation('ui');
   const activeModel = AppStore.activeModel;
   const sources = AppStore.sources;
+  const models = AppStore.models;
 
   const model = activeModel.value;
   if (!model) return null;
 
   const source = sources.value.find((s) => s.id === model.sourceId);
+  const parentModel = source ? null : models.value.find((m) => m.id === model.sourceId);
   const [comment, setComment] = useState(model.comment || '');
   const [isEditingComment, setIsEditingComment] = useState(false);
 
@@ -76,7 +78,9 @@ export function ModelInfoView({ onRenameModel, onDeleteModel }: ModelInfoViewPro
             </div>
             <div class={styles.infoList__item}>
               <dt class={styles.infoList__label}>{t('modelInfo.labels.source')}</dt>
-              <dd class={styles.infoList__value}>{source?.name || t('modelInfo.unknown')}</dd>
+              <dd class={styles.infoList__value}>
+                {source?.name || parentModel?.name || t('modelInfo.unknown')}
+              </dd>
             </div>
             <div class={styles.infoList__item}>
               <dt class={styles.infoList__label}>{t('modelInfo.labels.rows')}</dt>

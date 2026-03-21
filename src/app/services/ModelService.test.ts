@@ -674,28 +674,42 @@ describe('ModelService', () => {
   describe('renameSource', () => {
     it('does nothing when prompt returns null', async () => {
       const prompt = vi.fn().mockResolvedValue(null);
+      const alert = vi.fn().mockResolvedValue(undefined);
 
-      await ModelService.renameSource(source, prompt);
+      await ModelService.renameSource(source, prompt, alert);
 
       expect(source.name).toBe('Test Source');
     });
 
     it('does nothing when name unchanged', async () => {
       const prompt = vi.fn().mockResolvedValue('Test Source');
+      const alert = vi.fn().mockResolvedValue(undefined);
 
-      await ModelService.renameSource(source, prompt);
+      await ModelService.renameSource(source, prompt, alert);
 
       expect(PersistenceService.autoSave).not.toHaveBeenCalled();
     });
 
     it('renames source and saves', async () => {
       const prompt = vi.fn().mockResolvedValue('Renamed Source');
+      const alert = vi.fn().mockResolvedValue(undefined);
 
-      await ModelService.renameSource(source, prompt);
+      await ModelService.renameSource(source, prompt, alert);
 
       expect(source.name).toBe('Renamed Source');
       expect(PersistenceService.autoSave).toHaveBeenCalled();
       expect(showSuccess).toHaveBeenCalledWith('Source renamed to "Renamed Source"');
+    });
+
+    it('alerts on duplicate source name', async () => {
+      AppStore.sources.value = [source, createTestSource({ id: 'src_other', name: 'Existing' })];
+      const prompt = vi.fn().mockResolvedValue('Existing');
+      const alert = vi.fn().mockResolvedValue(undefined);
+
+      await ModelService.renameSource(source, prompt, alert);
+
+      expect(alert).toHaveBeenCalledWith('A source with this name already exists.');
+      expect(source.name).toBe('Test Source');
     });
   });
 

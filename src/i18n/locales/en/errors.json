@@ -50,7 +50,8 @@
     },
     "duplicate": {
       "columnExists": "Column \"{{name}}\" already exists",
-      "modelExists": "A model with this name already exists for this source."
+      "modelExists": "A model with this name already exists for this source.",
+      "sourceExists": "A source with this name already exists."
     },
     "notFound": {
       "columnsNotFound": "Columns not found: {{columns}}"

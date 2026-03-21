@@ -232,6 +232,8 @@ src/
 ├── content/                 # Markdown content (about, docs, functions)
 │   ├── functions/           # Auto-generated function reference docs
 │   └── templates/           # HTML shell template for content pages
+├── cli/                     # CLI command implementations (Node.js only)
+├── cli.ts                   # CLI entry point
 ├── tools/                   # Standalone tool mini-apps (Preact + signals)
 │   └── <name>/              # Tool app (main.tsx, state.ts, components/)
 app/                         # SPA entry point (app/index.html)
@@ -243,7 +245,7 @@ docs/                        # Project documentation (internal)
 
 #### Core Engine (`src/core/`)
 
-The core engine is fully portable — no browser APIs, no Preact dependency. It can be used standalone in Node.js (e.g., for a CLI tool). It imports only from `src/i18n/core.ts` (portable i18n registry) and third-party libraries (Arquero, jsep).
+The core engine is fully portable — no browser APIs, no Preact dependency. Used by both the browser app and the CLI (`src/cli/`). Imports only from `src/i18n/core.ts` (portable i18n registry) and third-party libraries (Arquero, jsep).
 
 | File/Directory                  | Purpose                                                                                     |
 | ------------------------------- | ------------------------------------------------------------------------------------------- |
@@ -258,6 +260,7 @@ The core engine is fully portable — no browser APIs, no Preact dependency. It 
 | `eda-engine.ts`                 | Statistical profiling and column analysis                                                   |
 | `charts.ts`                     | Vega-Lite specification generator                                                           |
 | `vega-themes.ts`                | Theme configurations for visualizations                                                     |
+| `workflow-v2.ts`                | Portable workflow format: types, validation, version detection, name translation            |
 
 **Transforms Module** (`transforms/`):
 
@@ -312,8 +315,10 @@ functions/
 - `StepService.ts` — Pipeline execution, transform application, undo/redo history
 - `ImportService.ts` — CSV/URL/clipboard import logic
 - `ReplaceSourceService.ts` — Data replacement and backup restoration
-- `ExportService.ts` — CSV/JSON/workflow export
+- `ExportService.ts` — CSV/JSON/workflow export (v1 and v2 formats)
 - `PersistenceService.ts` — Persistence coordination (wraps infrastructure/storage)
+- `NameService.ts` — Global name uniqueness enforcement for sources and models
+- `DependencyService.ts` — Dependency graph, staleness tracking, topological sort, model chaining helpers
 
 **Infrastructure** (`infrastructure/`):
 
@@ -351,6 +356,19 @@ Shared utilities at root level:
 
 - Core interfaces: `Source`, `Model`, `DataRow`
 - Dialog states: `AggregateDialogState`, `PivotDialogState`, etc.
+
+#### CLI Layer (`src/cli/`, `src/cli.ts`)
+
+Headless workflow execution for Node.js. Reuses `src/core/` (transforms, schema, expressions) and `src/i18n/core.ts` (English only). No browser APIs, no Preact.
+
+- `cli.ts` — Entry point, argument parsing, command dispatch
+- `cli/run-command.ts` — Execute workflow: parse files, topological sort models, apply transforms, output CSV/JSON
+- `cli/validate-command.ts` — Structural + binding + schema validation without execution
+- `cli/schema-command.ts` — Inspect a data file's inferred schema
+- `cli/file-loader.ts` — Node.js file I/O, PapaParse wrapper with parsing hints, stdin
+- `cli/output-writer.ts` — CSV/JSON output to file or stdout
+
+**Build**: `npm run build:cli` (esbuild, outputs `dist-cli/cli.mjs`). See `cli.tsconfig.json` for included paths.
 
 ---
 

@@ -4,6 +4,7 @@ import { useState } from 'preact/hooks';
 import { AppStore } from '../stores/AppStore';
 import { describeTransform } from '../../core/transforms';
 import { getDependencyTooltip } from '../handlers/core/helper-handlers';
+import { DependencyService } from '../services/DependencyService';
 import type { Source, Model } from '../types';
 import styles from './Sidebar.module.css';
 import { useTranslation } from 'preact-i18next';
@@ -142,9 +143,18 @@ export function Sidebar({
                 <span class={styles.name}>{source.name}</span>
               </div>
 
-              {/* Models for this source */}
+              {/* Models for this source (including chained models whose root source is this one) */}
               {models.value
-                .filter((m) => m.sourceId === source.id)
+                .filter((m) => {
+                  if (m.sourceId === source.id) return true;
+                  // Chained model: resolve root source
+                  const rootSourceId = DependencyService.getRootSourceId(
+                    models.value,
+                    sources.value,
+                    m.id
+                  );
+                  return rootSourceId === source.id;
+                })
                 .map((model) => (
                   <div
                     key={model.id}

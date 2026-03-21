@@ -1,5 +1,6 @@
 import { useTranslation } from 'preact-i18next';
 import { AppStore } from '../stores/AppStore';
+import { DependencyService } from '../services/DependencyService';
 import type { Source, Model } from '../types';
 import styles from './JoinTreeSelector.module.css';
 
@@ -66,9 +67,13 @@ export function JoinTreeSelector({
             )}
           </div>
 
-          {/* Models for this source */}
+          {/* Models for this source (including chained models) */}
           {models
-            .filter((m) => m.sourceId === source.id)
+            .filter((m) => {
+              if (m.sourceId === source.id) return true;
+              const rootSourceId = DependencyService.getRootSourceId(models, sources, m.id);
+              return rootSourceId === source.id;
+            })
             .map((model) => (
               <div
                 key={model.id}

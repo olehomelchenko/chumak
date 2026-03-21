@@ -4,6 +4,7 @@ import { SchemaEngine } from '../../core/schema-engine';
 import { PersistenceService } from './PersistenceService';
 import { DependencyService } from './DependencyService';
 import { StepService } from './StepService';
+import { NameService } from './NameService';
 import { showSuccess, showWarning } from '../handlers/core/notification-handlers';
 import i18n from '../../i18n';
 
@@ -147,11 +148,7 @@ export class ModelService {
     if (!modelName || modelName.trim() === '') return;
 
     const name = modelName.trim();
-    const existingModel = AppStore.models.value.find(
-      (m) => m.sourceId === source.id && m.name.toLowerCase() === name.toLowerCase()
-    );
-
-    if (existingModel) {
+    if (NameService.isModelNameTaken(name, source.id)) {
       await alert(i18n.t('validation.duplicate.modelExists', { ns: 'errors' }));
       return;
     }
@@ -248,11 +245,7 @@ export class ModelService {
     if (!newName || newName.trim() === '') return;
     const name = newName.trim();
 
-    const existingModel = AppStore.models.value.find(
-      (m) => m.sourceId === activeModel.sourceId && m.name.toLowerCase() === name.toLowerCase()
-    );
-
-    if (existingModel) {
+    if (NameService.isModelNameTaken(name, activeModel.sourceId)) {
       await alert(i18n.t('validation.duplicate.modelExists', { ns: 'errors' }));
       return;
     }
@@ -302,11 +295,7 @@ export class ModelService {
     const name = newName.trim();
     if (name === activeModel.name) return;
 
-    const existingModel = AppStore.models.value.find(
-      (m) => m.sourceId === activeModel.sourceId && m.name.toLowerCase() === name.toLowerCase()
-    );
-
-    if (existingModel) {
+    if (NameService.isModelNameTaken(name, activeModel.sourceId, activeModel.id)) {
       await alert(i18n.t('validation.duplicate.modelExists', { ns: 'errors' }));
       return;
     }
@@ -383,12 +372,18 @@ export class ModelService {
    */
   static async renameSource(
     source: Source,
-    prompt: (msg: string, def?: string) => Promise<string | null>
+    prompt: (msg: string, def?: string) => Promise<string | null>,
+    alert: (msg: string) => Promise<any>
   ) {
     const newName = await prompt(i18n.t('prompts.renameSource', { ns: 'common' }), source.name);
     if (!newName || newName.trim() === '') return;
     const name = newName.trim();
     if (name === source.name) return;
+
+    if (NameService.isSourceNameTaken(name, source.id)) {
+      await alert(i18n.t('validation.duplicate.sourceExists', { ns: 'errors' }));
+      return;
+    }
 
     source.name = name;
     AppStore.sources.value = [...AppStore.sources.value]; // Trigger reactivity

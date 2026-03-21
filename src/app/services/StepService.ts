@@ -246,10 +246,13 @@ export class StepService {
     if (!model) throw new Error('No model provided');
 
     const source = context.sources.find((s) => s.id === model.sourceId);
-    if (!source) throw new Error('Source not found for model');
+    const parentModel = source ? null : context.models.find((m) => m.id === model.sourceId);
+    if (!source && !parentModel) throw new Error('Input not found for model');
 
-    let table = aq.from(source.data);
-    let schema = JSON.parse(JSON.stringify(source.columns)) as ColumnSchema[];
+    let table = source ? aq.from(source.data) : aq.from(parentModel!.data);
+    let schema: ColumnSchema[] = JSON.parse(
+      JSON.stringify(source ? source.columns : parentModel!.schema)
+    );
     let columns = schema.map((c: ColumnSchema) => c.name);
 
     for (let i = 0; i <= stepIndex; i++) {
@@ -322,7 +325,8 @@ export class StepService {
     }
 
     const duration = performance.now() - start;
-    const inputShape = getDataShape(source.data);
+    const inputData = source ? source.data : parentModel!.data;
+    const inputShape = getDataShape(inputData);
     const outputShape = getDataShape(result.data);
 
     // Record metrics for the pipeline computation

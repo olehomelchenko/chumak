@@ -3,6 +3,7 @@ import { Source, Model } from '../types';
 import { SchemaEngine } from '../../core/schema-engine';
 import { PersistenceService } from './PersistenceService';
 import { StepService } from './StepService';
+import { NameService } from './NameService';
 import { showSuccess } from '../handlers/core/notification-handlers';
 import i18n from '../../i18n';
 
@@ -37,11 +38,16 @@ export class ImportService {
 
     const cleanData = JSON.parse(JSON.stringify(data));
 
+    // Ensure unique source name across all sources
+    const uniqueSourceName = NameService.suggestUniqueName(sourceName, (n) =>
+      NameService.isSourceNameTaken(n)
+    );
+
     // Use physical types for the dataset (what PapaParse gives us after dynamicTyping)
     // Logical type inference happens in the model's first types step
     const source: Source = {
       id: `src_${Date.now()}`,
-      name: sourceName,
+      name: uniqueSourceName,
       fileName: file.name,
       origin: origin,
       delimiter: delimiter,
@@ -57,9 +63,13 @@ export class ImportService {
 
     AppStore.sources.value = [...AppStore.sources.value, source];
 
+    const uniqueModelName = NameService.suggestUniqueName('main', (n) =>
+      NameService.isModelNameTaken(n, source.id)
+    );
+
     const mainModel: Model = {
       id: `mdl_${Date.now()}`,
-      name: 'main',
+      name: uniqueModelName,
       sourceId: source.id,
       steps: [],
       schema: JSON.parse(JSON.stringify(source.columns)),

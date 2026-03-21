@@ -28,14 +28,14 @@ Adding a transform requires changes across multiple files. All transform logic m
 
 **Core layer** (portable, no browser APIs):
 
-| Step | File                                           | What to Add                                           |
-| ---- | ---------------------------------------------- | ----------------------------------------------------- |
-| 1    | `src/core/transforms/types.ts`                 | Add to `FullTransformStep` + `KNOWN_TRANSFORM_KEYS`   |
-| 2    | `src/core/schema-engine.ts`                    | Add to `TransformStep` interface + schema propagation |
-| 3    | `src/core/transforms/handlers/<category>.ts`   | Transform implementation                              |
-| 4    | `src/core/transforms/handlers/index.ts`        | Register handler in `TRANSFORM_HANDLERS`              |
-| 5    | `src/core/transforms/describers/<category>.ts` | Human-readable description                            |
-| 6    | `src/core/transforms/describers/index.ts`      | Register describer in `TRANSFORM_DESCRIBERS`          |
+| Step | File                                           | What to Add                                                                                                                                                           |
+| ---- | ---------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| 1    | `src/core/transforms/types.ts`                 | Add to `FullTransformStep` + `KNOWN_TRANSFORM_KEYS`. If the transform references another model/source (like join, concat), also add to `MULTI_MODEL_REFERENCE_PATHS`. |
+| 2    | `src/core/schema-engine.ts`                    | Add to `TransformStep` interface + schema propagation                                                                                                                 |
+| 3    | `src/core/transforms/handlers/<category>.ts`   | Transform implementation                                                                                                                                              |
+| 4    | `src/core/transforms/handlers/index.ts`        | Register handler in `TRANSFORM_HANDLERS`                                                                                                                              |
+| 5    | `src/core/transforms/describers/<category>.ts` | Human-readable description                                                                                                                                            |
+| 6    | `src/core/transforms/describers/index.ts`      | Register describer in `TRANSFORM_DESCRIBERS`                                                                                                                          |
 
 **App layer** (dialog, state, UI):
 

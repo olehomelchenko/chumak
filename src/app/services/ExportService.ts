@@ -3,6 +3,8 @@ import Papa from 'papaparse';
 import { showSuccess } from '../handlers/core/notification-handlers';
 import i18n from '../../i18n';
 import { isConversionError } from '../../core/type-converter';
+import { DependencyService } from './DependencyService';
+import { V2Workflow, V2SourceDef, V2ModelDef, translateIdsToNames } from '../../core/workflow-v2';
 
 /**
  * ExportService
@@ -211,6 +213,113 @@ export class ExportService {
     } catch (error: any) {
       console.error('Copy to clipboard error:', error);
       await alert(i18n.t('export.clipboardFailed', { ns: 'errors', message: error.message }));
+    }
+  }
+
+  /**
+   * Exports a workflow in v2 format (portable, name-based references).
+   * Walks upstream from the active model to collect all referenced models and sources.
+   */
+  static async exportWorkflowV2(alert: (msg: string) => Promise<any>) {
+    const activeModel = AppStore.activeModel.value;
+    if (!activeModel) {
+      await alert(i18n.t('export.noWorkflow', { ns: 'errors' }));
+      return;
+    }
+
+    try {
+      const sources = AppStore.sources.value;
+      const models = AppStore.models.value;
+
+      // Build dependency graph and walk upstream from active model
+      const graph = DependencyService.buildGraph(sources, models);
+      const upstream = DependencyService.getUpstreamDependencies(graph, [activeModel.id]);
+
+      // Build ID → name maps
+      // Sources: plain name. Models: sourceName/modelName composite key.
+      const idToName = new Map<string, string>();
+      for (const src of sources) {
+        if (upstream.has(src.id)) {
+          idToName.set(src.id, src.name);
+        }
+      }
+      for (const mdl of models) {
+        if (upstream.has(mdl.id)) {
+          const rootSourceId = DependencyService.getRootSourceId(models, sources, mdl.id);
+          const rootSource = rootSourceId ? sources.find((s) => s.id === rootSourceId) : null;
+          const prefix = rootSource ? rootSource.name : idToName.get(mdl.sourceId) || mdl.sourceId;
+          idToName.set(mdl.id, `${prefix}/${mdl.name}`);
+        }
+      }
+
+      // Build v2 sources
+      const v2Sources: Record<string, V2SourceDef> = {};
+      for (const src of sources) {
+        if (!upstream.has(src.id)) continue;
+        const name = idToName.get(src.id)!;
+        const def: V2SourceDef = {
+          columns: JSON.parse(JSON.stringify(src.columns)),
+        };
+        // Add parsing hints if available
+        if (src.delimiter || src.headerMode) {
+          def.parsing = {
+            format: 'csv',
+            delimiter: src.delimiter || ',',
+            headerMode: src.headerMode || 'first-row',
+            encoding: 'utf-8',
+          };
+          if (src.customHeaders) {
+            def.parsing.customHeaders = src.customHeaders;
+          }
+        }
+        v2Sources[name] = def;
+      }
+
+      // Build v2 models
+      const v2Models: Record<string, V2ModelDef> = {};
+      for (const mdl of models) {
+        if (!upstream.has(mdl.id)) continue;
+        const name = idToName.get(mdl.id)!;
+        const sourceName = idToName.get(mdl.sourceId) || mdl.sourceId;
+
+        // Clone steps, strip import steps, translate IDs to names
+        const cleanedSteps = mdl.steps.filter((s) => !s.import);
+        const translatedSteps = translateIdsToNames(cleanedSteps, idToName);
+
+        v2Models[name] = {
+          source: sourceName,
+          steps: translatedSteps,
+        };
+      }
+
+      const workflow: V2Workflow = {
+        formatVersion: 2,
+        sytoVersion: __APP_VERSION__,
+        exportedAt: new Date().toISOString(),
+        sources: v2Sources,
+        models: v2Models,
+        outputs: [idToName.get(activeModel.id)!],
+      };
+
+      const json = JSON.stringify(workflow, null, 2);
+      const blob = new Blob([json], { type: 'application/json;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      const timestamp = new Date().toISOString().slice(0, 10);
+      const filename = `${activeModel.name}_workflow-v2_${timestamp}.json`;
+
+      link.setAttribute('href', url);
+      link.setAttribute('download', filename);
+      link.style.visibility = 'hidden';
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+
+      console.log('Exported workflow v2 JSON:', filename);
+      showSuccess(i18n.t('notifications.exportedWorkflow', { ns: 'common', filename }));
+    } catch (error: any) {
+      console.error('Workflow v2 export error:', error);
+      await alert(i18n.t('export.workflowFailed', { ns: 'errors', message: error.message }));
     }
   }
 }

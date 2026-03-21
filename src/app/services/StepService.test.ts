@@ -131,11 +131,11 @@ describe('StepService', () => {
       expect(() => StepService.computeModelUpToStep(model, 1, context)).toThrow(/Step 2 failed/);
     });
 
-    it('throws when source not found', () => {
+    it('throws when input not found', () => {
       model.sourceId = 'nonexistent';
       const context = { sources: [source], models: [model] };
 
-      expect(() => StepService.computeModelUpToStep(model, 0, context)).toThrow('Source not found');
+      expect(() => StepService.computeModelUpToStep(model, 0, context)).toThrow('Input not found');
     });
 
     it('throws when model is null', () => {

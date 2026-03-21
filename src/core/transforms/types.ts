@@ -83,6 +83,19 @@ export interface FullTransformStep extends TransformStep {
 }
 
 /**
+ * Multi-model reference paths: transform keys and fields that reference other models/sources.
+ * Used by DependencyService.extractReferencedIds() and v2 export/import name translation.
+ */
+export const MULTI_MODEL_REFERENCE_PATHS = [
+  { key: 'join', field: 'right' },
+  { key: 'concat', field: 'with' },
+  { key: 'union', field: 'with' },
+  { key: 'semijoin', field: 'right' },
+  { key: 'antijoin', field: 'right' },
+  { key: 'lookup', field: 'right' },
+] as const;
+
+/**
  * List of known transform keys (future-proofing: unknown transforms are skipped with warning)
  */
 export const KNOWN_TRANSFORM_KEYS: readonly string[] = [

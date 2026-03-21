@@ -303,6 +303,57 @@ These informed the consolidated design above but are not canonical documentation
 - Stale model indicators in Sidebar and DatasetInfoView
 - Dependency tooltips showing relationship counts
 
+**Phase 4: Model Chaining** — ✅ Complete (March 2026)
+
+- `sourceId` can reference another model, enabling pipeline chains
+- `StepService` resolves input from source or parent model
+- Sidebar/JoinTreeSelector group chained models under root source
+- `getRootSourceId()` and `getUpstreamDependencies()` added to DependencyService
+
+**Phase 5: Name Uniqueness** — ✅ Complete (March 2026)
+
+- Model names unique per-source, source names globally unique
+- `NameService` provides centralized uniqueness checking
+- Auto-dedup on import via `suggestUniqueName()`
+- v2 export uses `sourceName/modelName` composite keys for global uniqueness
+
+---
+
+## Model Chaining
+
+A model's `sourceId` can reference another **model** (not just a source), creating pipeline chains where one model's output feeds the next. This enables the v2 workflow format's `source: "clean-orders"` pattern.
+
+### sourceId Resolution Points
+
+When `sourceId` is resolved, the lookup **must** check sources first, then fall back to models:
+
+- **`StepService.computeModelUpToStep()`** — primary pipeline execution: resolves input data + schema from source or parent model
+- **`Sidebar.tsx`** / **`JoinTreeSelector.tsx`** — UI grouping: uses `DependencyService.getRootSourceId()` to group chained models under their root source
+- **`ModelInfoView.tsx`** — displays parent model name when source lookup fails
+- **`interaction-handlers.ts`** (`extractSelectedRows`) — validates model input exists (source or parent model)
+- **`join-handlers.ts`** (`saveAsNewModel`) — resolves root source via `getRootSourceId()` for creating initial steps
+
+### Key Helpers
+
+- **`DependencyService.getRootSourceId(models, sources, modelId)`** — walks `sourceId` chain upward to the first `src_*` ID. Used for Sidebar grouping.
+- **`DependencyService.getUpstreamDependencies(graph, targetIds)`** — transitive upstream walk collecting all dependencies. Used for v2 export.
+
+### Cycle Detection
+
+Already handled — `DependencyService.checkCircularDependency()` and `hasCycle()` operate on the full graph which includes `sourceId` edges.
+
+---
+
+## Name Uniqueness
+
+Source names are **globally unique**. Model names are **unique per-source** (two different sources can each have a model named "main"). All checks are case-insensitive.
+
+For the v2 workflow format, globally-unique model keys are constructed as `sourceName/modelName` at export time. This composite key is only used in the portable format — the browser UI shows just the model name.
+
+**Enforcement**: `NameService.isModelNameTaken(name, sourceId, excludeId?)` and `isSourceNameTaken(name, excludeId?)` in `src/app/services/NameService.ts`.
+
+**Where enforced**: `ModelService` (create, copy, fork, rename), `ImportService` (auto-dedup on import via `suggestUniqueName`), `join-handlers.ts` (save join as new model), `interaction-handlers.ts` (extract rows to new model).
+
 ---
 
 ## Implementation Rules

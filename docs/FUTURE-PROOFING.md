@@ -237,7 +237,7 @@ export interface Model {
 - ✅ Graceful unknown type handling (`normalizeSchema()`) - converts unknown types to `string`
 - ✅ Graceful unknown transform handling - skips unknown transforms with warnings
 - ✅ Workflow format versioning (`formatVersion`, `sytoVersion`) - enables format detection
-- ✅ Join references use ID only (not names) - prevents breaks when names change
+- ✅ Join references use ID internally (IndexedDB) — v2 export format translates to names for portability
 
 **You should use these patterns when adding new features.**
 

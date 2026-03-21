@@ -116,6 +116,7 @@ For detailed codebase map, see [SPECIFICATION.md](docs/SPECIFICATION.md) §3.
 ```bash
 npm run dev      # Start dev server
 npm run build    # Type-check and build
+npm run build:cli # Build CLI (esbuild → dist-cli/cli.mjs)
 npm test         # Run Vitest
 npm run format   # Prettier
 ```
@@ -139,25 +140,27 @@ npm run format   # Prettier
 
 ## Quick Reference
 
-| Topic                 | Where to Look                                                     |
-| --------------------- | ----------------------------------------------------------------- |
-| Data structures       | [DATA-SPECIFICATION.md](docs/DATA-SPECIFICATION.md) §1-3          |
-| Expression syntax     | [DATA-SPECIFICATION.md](docs/DATA-SPECIFICATION.md) §4            |
-| Expression functions  | [FUNCTION-DOCS-SYSTEM.md](docs/FUNCTION-DOCS-SYSTEM.md)           |
-| How transforms work   | [SPECIFICATION.md](docs/SPECIFICATION.md) §3, §5                  |
-| Adding new transforms | [DEVELOPMENT-PATTERNS.md](docs/DEVELOPMENT-PATTERNS.md) §1        |
-| Testing patterns      | [DEVELOPMENT-PATTERNS.md](docs/DEVELOPMENT-PATTERNS.md) §3        |
-| State management      | [DEVELOPMENT-PATTERNS.md](docs/DEVELOPMENT-PATTERNS.md) §2        |
-| UI component patterns | [UX-SPECIFICATION.md](docs/UX-SPECIFICATION.md) §3                |
-| UI vocabulary & terms | [UI-VOCAB.md](docs/UI-VOCAB.md)                                   |
-| Content & writing     | [CONTENT-GUIDELINES.md](docs/CONTENT-GUIDELINES.md)               |
-| What's safe to change | [FUTURE-PROOFING.md](docs/FUTURE-PROOFING.md)                     |
-| Date handling rules   | [DATE-STORAGE-ARCHITECTURE.md](docs/DATE-STORAGE-ARCHITECTURE.md) |
-| Adding tool pages     | [DEVELOPMENT-PATTERNS.md](docs/DEVELOPMENT-PATTERNS.md) §10       |
-| Site structure        | [SPECIFICATION.md](docs/SPECIFICATION.md) §3.5                    |
-| CSS debugging         | [DEBUGGING.md](docs/DEBUGGING.md)                                 |
-| Completed refactors   | [docs/archive/](docs/archive/)                                    |
-| Project philosophy    | [SOUL.md](SOUL.md)                                                |
+| Topic                  | Where to Look                                                                                            |
+| ---------------------- | -------------------------------------------------------------------------------------------------------- |
+| Data structures        | [DATA-SPECIFICATION.md](docs/DATA-SPECIFICATION.md) §1-3                                                 |
+| Expression syntax      | [DATA-SPECIFICATION.md](docs/DATA-SPECIFICATION.md) §4                                                   |
+| Expression functions   | [FUNCTION-DOCS-SYSTEM.md](docs/FUNCTION-DOCS-SYSTEM.md)                                                  |
+| How transforms work    | [SPECIFICATION.md](docs/SPECIFICATION.md) §3, §5                                                         |
+| Adding new transforms  | [DEVELOPMENT-PATTERNS.md](docs/DEVELOPMENT-PATTERNS.md) §1                                               |
+| Testing patterns       | [DEVELOPMENT-PATTERNS.md](docs/DEVELOPMENT-PATTERNS.md) §3                                               |
+| State management       | [DEVELOPMENT-PATTERNS.md](docs/DEVELOPMENT-PATTERNS.md) §2                                               |
+| UI component patterns  | [UX-SPECIFICATION.md](docs/UX-SPECIFICATION.md) §3                                                       |
+| UI vocabulary & terms  | [UI-VOCAB.md](docs/UI-VOCAB.md)                                                                          |
+| Content & writing      | [CONTENT-GUIDELINES.md](docs/CONTENT-GUIDELINES.md)                                                      |
+| What's safe to change  | [FUTURE-PROOFING.md](docs/FUTURE-PROOFING.md)                                                            |
+| Date handling rules    | [DATE-STORAGE-ARCHITECTURE.md](docs/DATE-STORAGE-ARCHITECTURE.md)                                        |
+| Adding tool pages      | [DEVELOPMENT-PATTERNS.md](docs/DEVELOPMENT-PATTERNS.md) §10                                              |
+| Site structure         | [SPECIFICATION.md](docs/SPECIFICATION.md) §3.5                                                           |
+| CSS debugging          | [DEBUGGING.md](docs/DEBUGGING.md)                                                                        |
+| Completed refactors    | [docs/archive/](docs/archive/)                                                                           |
+| CLI & workflow v2      | [SPECIFICATION.md](docs/SPECIFICATION.md) §3.6, [DATA-SPECIFICATION.md](docs/DATA-SPECIFICATION.md) §7.2 |
+| Multi-model & chaining | [MULTI-MODEL-ARCHITECTURE.md](docs/MULTI-MODEL-ARCHITECTURE.md)                                          |
+| Project philosophy     | [SOUL.md](SOUL.md)                                                                                       |
 
 ---
 

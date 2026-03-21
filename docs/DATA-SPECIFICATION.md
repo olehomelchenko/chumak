@@ -47,7 +47,7 @@ A **Model** represents a transformation pipeline applied to a Source.
 interface Model {
   id: string; // Unique identifier (e.g., "mdl_xyz789")
   name: string; // Display name
-  sourceId: string; // Reference to parent Source.id
+  sourceId: string; // Reference to parent Source.id or Model.id (model chaining)
   steps: TransformStep[]; // Ordered transformation pipeline
   schema: ColumnSchema[]; // Current column definitions (after transforms)
   data: DataRow[]; // Computed result data
@@ -893,6 +893,19 @@ Exported workflow JSON for sharing and replay:
 ```
 
 **Note:** Workflow JSON contains only the pipeline definition, not the data. Data must be re-imported and pipeline replayed.
+
+### 7.2 Workflow Format v2 (Portable)
+
+v2 is the portable workflow format designed for CLI execution and cross-environment sharing. Key differences from v1: uses **names** instead of IDs, supports **multiple sources/models**, includes **parsing hints**, and declares **outputs**.
+
+- **Implementation**: `src/core/workflow-v2.ts` (types, validation, translation functions)
+- **Spec**: `docs/future/WORKFLOW-FORMAT-V2.md` (full field reference, CLI usage, edge cases)
+- **Browser export**: `ExportService.exportWorkflowV2()` — walks upstream from active model, collects all dependencies, translates IDs to names
+- **CLI execution**: `src/cli/run-command.ts` — parses workflow, binds data files, topological-sorts models, executes pipeline
+
+v1 export (`exportWorkflowJSON`) is preserved for backward compatibility. The CLI accepts both formats via `detectVersion()` + `upgradeV1toV2()`.
+
+**Name translation**: At export, `translateIdsToNames()` rewrites multi-model references (`join.right`, `concat.with`, etc.) from internal IDs to portable names. At import, `translateNamesToIds()` reverses this. Both use `MULTI_MODEL_REFERENCE_PATHS` as the single source of truth for which fields contain references.
 
 ---
 
