@@ -8,6 +8,30 @@ import { NameService } from '../../services/NameService';
 import { prompt } from '../core/notification-handlers';
 import { cloneData } from '../../../core/type-converter';
 import i18n from '../../../i18n';
+import { TransformStep } from '../../../core/schema-engine';
+
+/**
+ * Builds a join/semijoin/antijoin/lookup transform step from dialog state.
+ */
+function buildJoinTransform(
+  joinType: string,
+  rightModel: string,
+  keyPairs: (string | null)[][],
+  suffixes: [string, string],
+  selectedRightColumns: string[]
+): TransformStep {
+  const completePairs = keyPairs.filter((pair) => pair[0] && pair[1]) as [string, string][];
+  if (joinType === 'semi') {
+    return { semijoin: { right: rightModel, on: completePairs } };
+  }
+  if (joinType === 'anti') {
+    return { antijoin: { right: rightModel, on: completePairs } };
+  }
+  if (joinType === 'lookup') {
+    return { lookup: { right: rightModel, on: completePairs, values: selectedRightColumns } };
+  }
+  return { join: { right: rightModel, on: completePairs, how: joinType, suffixes } };
+}
 
 export function initializeJoinDialog() {
   const models = AppStore.models.value;
@@ -358,33 +382,6 @@ export async function previewJoin() {
   state.previewError.value = null;
   state.previewData.value = null;
 
-  const getTransform = () => {
-    const completePairs = keyPairs.filter((pair: any) => pair[0] && pair[1]) as [string, string][];
-    if (joinType === 'semi') {
-      return { semijoin: { right: rightModel, on: completePairs } };
-    }
-    if (joinType === 'anti') {
-      return { antijoin: { right: rightModel, on: completePairs } };
-    }
-    if (joinType === 'lookup') {
-      return {
-        lookup: {
-          right: rightModel,
-          on: completePairs,
-          values: selectedRightColumns,
-        },
-      };
-    }
-    return {
-      join: {
-        right: rightModel,
-        on: completePairs,
-        how: joinType,
-        suffixes: suffixes,
-      },
-    };
-  };
-
   try {
     // Get left table data and columns
     const { data: leftData, columns: leftColumns } = getTableDataForTarget(leftModelId);
@@ -399,7 +396,13 @@ export async function previewJoin() {
       targetModel.data = result.data;
     }
 
-    const transform = getTransform();
+    const transform = buildJoinTransform(
+      joinType,
+      rightModel,
+      keyPairs,
+      suffixes as [string, string],
+      selectedRightColumns
+    );
     const table = aq.from(leftData);
     const context = { sources, models };
     let result = applyTransform(table, transform, leftColumns, context);
@@ -504,37 +507,13 @@ export async function applyJoinTransform(callbacks: any) {
       targetModel.data = result.data;
     }
 
-    const getTransform = () => {
-      const completePairs = keyPairs.filter((pair: any) => pair[0] && pair[1]) as [
-        string,
-        string,
-      ][];
-      if (joinType === 'semi') {
-        return { semijoin: { right: rightModel, on: completePairs } };
-      }
-      if (joinType === 'anti') {
-        return { antijoin: { right: rightModel, on: completePairs } };
-      }
-      if (joinType === 'lookup') {
-        return {
-          lookup: {
-            right: rightModel,
-            on: completePairs,
-            values: selectedRightColumns,
-          },
-        };
-      }
-      return {
-        join: {
-          right: rightModel,
-          on: completePairs,
-          how: joinType,
-          suffixes: suffixes as [string, string],
-        },
-      };
-    };
-
-    const transform = getTransform();
+    const transform = buildJoinTransform(
+      joinType,
+      rightModel,
+      keyPairs,
+      suffixes as [string, string],
+      selectedRightColumns
+    );
 
     // Apply join transform
     const table = aq.from(leftData);

@@ -21,7 +21,7 @@ The pattern "filter models belonging to a source, including chained models" was 
 - [x] Extracted `DependencyService.getModelsForSource()` helper
 - [x] `Sidebar.tsx` — uses `getModelsForSource()`
 - [x] `JoinTreeSelector.tsx` — uses `getModelsForSource()`
-- [ ] `ExportService.ts:195–202` — similar loop iterates models checking `getRootSourceId`; could use `getModelsForSource()` if applicable
+- [x] `ExportService.ts:195–202` — reviewed: builds composite name keys for workflow export, different purpose than `getModelsForSource()`; no change needed
 
 ### 1.3 "Resolve model input" pattern
 
@@ -109,15 +109,15 @@ Functions called during render that do O(N^2) work or trigger unnecessary recalc
 
 Files over 300 lines that are imported in render paths — review for lazy-loadable sections.
 
-- [ ] `schema-engine.ts` (1,118 lines) — core, not render-path; no action needed
-- [ ] `import-handlers.ts` (986 lines) — event-driven; review for dead branches
-- [ ] `RibbonToolbar.tsx` (751 lines) — renders many buttons; consider splitting toolbar sections
-- [ ] `StepService.ts` (699 lines) — computation service; not render path
-- [ ] `dialog-registry.ts` (695 lines) — declarative config; review for stale entries
-- [ ] `interaction-handlers.ts` (668 lines) — event handlers; review for extractable sub-handlers
-- [ ] `step-handlers.ts` (651 lines) — step CRUD; review for extractable logic
-- [ ] `join-handlers.ts` (637 lines) — complex join logic; review for dead code
-- [ ] `App.tsx` (585 lines) — root component; review dialog rendering pattern
+- [x] `schema-engine.ts` (1,118 lines) — core, not render-path; no action needed
+- [x] `import-handlers.ts` (987 lines) — no dead code; source-replacement duplication could be extracted (medium priority)
+- [x] `RibbonToolbar.tsx` (752 lines) — no dead code; popover content could be data-driven (low priority)
+- [x] `StepService.ts` (699 lines) — computation service; not render path; no action needed
+- [x] `dialog-registry.ts` (696 lines) — all 48 entries active, no stale entries
+- [x] `interaction-handlers.ts` (669 lines) — no dead code; all 27 exports used
+- [x] `step-handlers.ts` (651 lines) — `editStep()` has 317-line switch; could use handler map (high-impact extraction candidate)
+- [x] `join-handlers.ts` (639 lines) — extracted `buildJoinTransform()` helper; no dead code
+- [x] `App.tsx` (585 lines) — 45 dialog blocks + 6-item no-footer list; acceptable at current scale
 
 ---
 
@@ -131,17 +131,17 @@ Three export methods (CSV, JSON, workflow) now use `ExportService.downloadBlob()
 
 App.tsx has a growing list of `{activeDialog === 'x' && <XDialog />}` blocks and a growing "no footer" exclusion list. Consider a data-driven pattern.
 
-- [ ] Review: could `DIALOG_REGISTRY` drive rendering (map dialog name → lazy component)?
-- [ ] Review: "no footer" exclusion list — could be a `hasFooter` flag in `DIALOG_REGISTRY`
+- [x] Review: could `DIALOG_REGISTRY` drive rendering? — Yes, viable; 45 dialog blocks could be a component map. Low urgency at current scale.
+- [x] Review: "no footer" exclusion list — 6 entries (expressions, reference, download, settings, dependency-graph, workflow-import). Could be `hasFooter` flag in registry. Low urgency.
 
 ### 4.3 Handler file sizes
 
 Several handler files exceed 600 lines. Review for extractable sub-modules.
 
-- [ ] `import-handlers.ts` (986 lines) — CSV/Excel/JSON/URL import; could split by format
-- [ ] `interaction-handlers.ts` (668 lines) — column operations; could split column-rename/delete/reorder
-- [ ] `step-handlers.ts` (651 lines) — step CRUD + apply; could separate apply logic
-- [ ] `join-handlers.ts` (637 lines) — join setup + preview + apply; could separate preview
+- [x] `import-handlers.ts` (987 lines) — reviewed: no dead code, all 25 exports used. Source-replacement duplication is the only extraction candidate.
+- [x] `interaction-handlers.ts` (669 lines) — reviewed: clean, all 27 exports used. No extraction needed.
+- [x] `step-handlers.ts` (651 lines) — reviewed: `editStep()` 317-line switch is the main candidate for data-driven refactor.
+- [x] `join-handlers.ts` (639 lines) — `buildJoinTransform()` extracted. Remaining duplication: prepare-join-inputs pattern (minor, ~30 LoC).
 
 ### 4.4 Import health
 
@@ -155,19 +155,20 @@ No circular dependencies detected. Import chains are clean. No action needed.
 
 ## Progress Summary
 
-| Category        | Total Items | Done   | Remaining |
-| --------------- | ----------- | ------ | --------- |
-| 1. Code Reuse   | 19          | 18     | 1         |
-| 2. Code Quality | 14          | 14     | 0         |
-| 3. Efficiency   | 11          | 3      | 8         |
-| 4. Architecture | 9           | 3      | 6         |
-| **Total**       | **53**      | **38** | **15**    |
+| Category        | Done   | Remaining | Notes                                        |
+| --------------- | ------ | --------- | -------------------------------------------- |
+| 1. Code Reuse   | 19     | 5         | 1.3 low-priority (4), 1.4 tools (1)          |
+| 2. Code Quality | 13     | 1         | 2.2 batch signals (minor)                    |
+| 3. Efficiency   | 11     | 1         | 3.1 memoize (optional)                       |
+| 4. Architecture | 9      | 0         | All reviewed; extraction candidates flagged  |
+| **Total**       | **52** | **7**     | Remaining items are low-priority or optional |
 
 ---
 
 ## Session Log
 
-| Date       | Session       | Items Addressed                                                               |
-| ---------- | ------------- | ----------------------------------------------------------------------------- |
-| 2026-03-21 | Initial sweep | 1.1, 1.2, 1.5, 1.6 (reuse); 2.2 batch fix (quality); 3.1 partial (efficiency) |
-| 2026-03-21 | Session 2     | 1.4 downloadBlob (reuse); 2.1 cloneData fixes (quality)                       |
+| Date       | Session       | Items Addressed                                                                                                             |
+| ---------- | ------------- | --------------------------------------------------------------------------------------------------------------------------- |
+| 2026-03-21 | Initial sweep | 1.1, 1.2, 1.5, 1.6 (reuse); 2.2 batch fix (quality); 3.1 partial (efficiency)                                               |
+| 2026-03-21 | Session 2     | 1.4 downloadBlob (reuse); 2.1 cloneData fixes (quality)                                                                     |
+| 2026-03-21 | Session 3     | 1.2 ExportService reviewed; 3.2 full audit (no dead code); 4.2+4.3 reviewed; join-handlers `buildJoinTransform()` extracted |
