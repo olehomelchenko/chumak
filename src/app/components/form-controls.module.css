@@ -12,7 +12,7 @@
   font-family: var(--font-family);
   font-size: var(--font-size-base);
   color: var(--color-midnight-blue);
-  background: var(--color-white);
+  background: var(--color-input-bg);
   border: var(--border-width) solid var(--border-color);
   border-radius: var(--border-radius);
   transition: border-color var(--transition-fast);

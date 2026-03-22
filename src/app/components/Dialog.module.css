@@ -104,7 +104,7 @@
   width: 100%;
   padding: 10px 12px;
   border: 1px solid var(--border-color);
-  background: var(--color-white);
+  background: var(--color-input-bg);
   border-radius: var(--border-radius);
   font-family: var(--font-family);
   font-size: var(--font-size-base);

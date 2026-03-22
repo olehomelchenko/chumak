@@ -97,7 +97,7 @@
   padding: var(--space-sm);
   border: 1px solid var(--border-color);
   border-radius: var(--border-radius);
-  background: var(--color-white);
+  background: var(--color-input-bg);
   color: var(--color-midnight-blue);
   resize: vertical;
   line-height: var(--line-height-relaxed);

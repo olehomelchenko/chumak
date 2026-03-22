@@ -108,6 +108,9 @@
   --color-backdrop: rgba(0, 0, 0, 0.5);
   --color-backdrop-blur: rgba(var(--color-midnight-blue-rgb), 0.6);
 
+  /* Input backgrounds */
+  --color-input-bg: var(--palette-kse-white);
+
   /* Component Specific */
   --color-bg-success: #f1f8f3;
   --color-text-success: #0d652d;
@@ -192,6 +195,8 @@
   --border-color: var(--palette-syto-gray-200);
   --border-radius: 0;
   --border-radius-lg: 0;
+
+  --color-input-bg: var(--palette-syto-white);
 
   /* Subtle background tint */
   --color-soft-bg: rgba(45, 42, 38, 0.04);
