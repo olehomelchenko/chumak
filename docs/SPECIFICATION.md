@@ -528,7 +528,7 @@ Utility functions (`isSlidePanel()`, `isCenteredModal()`, `getDialogTitle()`, `g
 
 Manages dialog lifecycle:
 
-1. **Open**: `openDialog(name, section?)` → sets `AppStore.activeDialog`, calls `initDialogState()`, takes a state snapshot for change detection, syncs URL
+1. **Open**: `openDialog(name, section?)` → sets `AppStore.activeDialog`, calls `initDialogState()`, clears column selection, takes a state snapshot for change detection, syncs URL. **Ordering constraint**: `initDialogState()` runs _before_ `clearColumnSelection()` so that dialogs can read `selectedColumn`/`selectedColumns` and pre-populate their column pickers. Single-column dialogs use `selectedColumn`; multi-column dialogs (sort, merge, fold, aggregate) use `selectedColumns`.
 2. **Close**: `closeDialog(force?)` → checks for unsaved changes (comparing current state to snapshot), clears preview, resets `DialogStore`, clears URL. Dialogs that apply changes immediately (e.g., settings) omit `getState` so the unsaved-changes check is skipped.
 3. **Preview**: `hasPreviewData()` checks whether preview data exists. For `import-csv` it reads `importCsvState.previewHeaders/previewDataRows`; for transforms it reads `previewState.rows`. Helper functions (`getPreviewTitle`, `getPreviewStats`, `getPreviewColumns`, `getPreviewRows`) abstract over both sources. Cell formatting uses the shared `formatCellValue()` from `helper-handlers.ts`.
 4. **Error**: `activeDialogHasError()` delegates to the registry's `hasError` function

@@ -89,6 +89,29 @@ Hardcoded English strings in `DownloadDialog.tsx`: "Select what you would like t
 
 ---
 
+## Refactoring
+
+### DialogCoordinator: Migrate initDialogState to Registry
+
+**Status**: Planned
+**Effort**: Medium
+
+Move the ~250-line switch statement in `DialogCoordinator.initDialogState()` into per-dialog `initState` entries in `DIALOG_REGISTRY`. Each dialog becomes self-contained; the coordinator shrinks to ~10 lines of delegation. The `callbacks` pattern also becomes unnecessary since registry entries can import their handlers directly.
+
+### DialogCoordinator: Unify Import-CSV Preview
+
+**Status**: Planned
+**Effort**: Small-Medium
+
+Five preview getters (`hasPreviewData`, `getPreviewTitle`, `getPreviewStats`, `getPreviewColumns`, `getPreviewRows`) all special-case `import-csv` because it uses a different data shape. Either normalize import-csv to populate the standard `previewState`, or add a `getPreview()` method to `DialogConfig` so each dialog provides its own preview interface.
+
+### Dialog-Handlers / DialogCoordinator Consolidation
+
+**Status**: Planned
+**Effort**: Small-Medium
+
+`dialog-handlers.ts` has a duplicate `hasUnsavedChanges()` and its own `closeDialog()` that parallel `DialogCoordinator`'s versions. Consolidate into a single layer.
+
 ---
 
 ## Non-Destructive Pillar Strengthening

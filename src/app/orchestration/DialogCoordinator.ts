@@ -72,10 +72,12 @@ export function hasUnsavedChanges(): boolean {
 export function initDialogState(dialogName: string, section?: string): void {
   const columns = AppStore.columns.value;
   const selectedColumn = AppStore.selectedColumn.value;
+  const selectedColumns = AppStore.selectedColumns.value;
+  const effectiveColumn = selectedColumn || columns[0] || '';
 
   switch (dialogName) {
     case 'filter':
-      // State initialized by DialogStore or component
+    case 'derive':
       break;
 
     case 'join':
@@ -86,12 +88,11 @@ export function initDialogState(dialogName: string, section?: string): void {
       callbacks?.initializeAppendDialog?.();
       break;
 
-    case 'derive':
-      // State initialized by DialogStore
-      break;
-
     case 'sort':
-      DialogStore.sortState.fields.value = [{ field: columns[0] || '', order: 'asc' }];
+      DialogStore.sortState.fields.value =
+        selectedColumns.length > 0
+          ? selectedColumns.map((col) => ({ field: col, order: 'asc' as const }))
+          : [{ field: columns[0] || '', order: 'asc' as const }];
       break;
 
     case 'sliceRows':
@@ -105,12 +106,12 @@ export function initDialogState(dialogName: string, section?: string): void {
       break;
 
     case 'spread':
-      DialogStore.spreadState.column.value = '';
+      DialogStore.spreadState.column.value = selectedColumn || '';
       DialogStore.spreadState.limit.value = undefined;
       break;
 
     case 'unroll':
-      DialogStore.unrollState.column.value = '';
+      DialogStore.unrollState.column.value = selectedColumn || '';
       DialogStore.unrollState.indices.value = false;
       break;
 
@@ -120,14 +121,13 @@ export function initDialogState(dialogName: string, section?: string): void {
       break;
 
     case 'aggregate':
-      DialogStore.aggregateState.groupBy.value = [];
+      DialogStore.aggregateState.groupBy.value =
+        selectedColumns.length > 0 ? [...selectedColumns] : [];
       DialogStore.aggregateState.aggregations.value = [{ output: 'count', func: 'count', col: '' }];
       DialogStore.aggregateState.isPreviewing.value = false;
       break;
 
     case 'import-csv':
-      // Copy from importDialogState to signals (legacy pattern)
-      // This will be simplified when proxy pattern is removed
       break;
 
     case 'column-editor': {
@@ -167,7 +167,10 @@ export function initDialogState(dialogName: string, section?: string): void {
     case 'fold':
       DialogStore.foldState.keyName.value = 'key';
       DialogStore.foldState.valueName.value = 'value';
-      DialogStore.foldState.selectedColumns.value = columns.map(() => false);
+      DialogStore.foldState.selectedColumns.value =
+        selectedColumns.length > 0
+          ? columns.map((col) => selectedColumns.includes(col))
+          : columns.map(() => false);
       DialogStore.foldState.mode.value = 'keep';
       break;
 
@@ -178,11 +181,11 @@ export function initDialogState(dialogName: string, section?: string): void {
     case 'replace': {
       const state = DialogStore.replaceState;
       if (!state.findValue.value) {
-        state.column.value = columns[0] || '';
+        state.column.value = effectiveColumn;
         state.findValue.value = '';
         state.replaceValue.value = '';
       } else if (!state.column.value) {
-        state.column.value = columns[0] || '';
+        state.column.value = effectiveColumn;
       }
       break;
     }
@@ -190,7 +193,7 @@ export function initDialogState(dialogName: string, section?: string): void {
     case 'split': {
       const state = DialogStore.splitState;
       if (!state.column.value) {
-        const initialColumn = columns[0] || '';
+        const initialColumn = effectiveColumn;
         state.column.value = initialColumn;
         state.delimiter.value = ',';
         state.autoDetectedDelimiter.value = null;
@@ -215,7 +218,7 @@ export function initDialogState(dialogName: string, section?: string): void {
 
     case 'merge': {
       const state = DialogStore.mergeState;
-      state.columns.value = [];
+      state.columns.value = selectedColumns.length > 0 ? [...selectedColumns] : [];
       state.separator.value = ' ';
       state.columnName.value = '';
       state.removeOriginal.value = false;
@@ -225,7 +228,7 @@ export function initDialogState(dialogName: string, section?: string): void {
 
     case 'regexpMatch': {
       const state = DialogStore.regexpMatchState;
-      state.sourceColumn.value = columns[0] || '';
+      state.sourceColumn.value = effectiveColumn;
       state.pattern.value = '';
       state.columnName.value = '';
       state.error.value = null;
@@ -234,7 +237,7 @@ export function initDialogState(dialogName: string, section?: string): void {
 
     case 'regexpExtract': {
       const state = DialogStore.regexpExtractState;
-      state.sourceColumn.value = columns[0] || '';
+      state.sourceColumn.value = effectiveColumn;
       state.pattern.value = '';
       state.columnName.value = '';
       state.group.value = 0;
@@ -275,6 +278,16 @@ export function initDialogState(dialogName: string, section?: string): void {
       break;
     }
 
+    case 'text': {
+      const state = DialogStore.textState;
+      state.column.value = selectedColumn || '';
+      state.operations.value = [];
+      state.removeOrigin.value = false;
+      state.error.value = null;
+      state.previewData.value = [];
+      break;
+    }
+
     case 'dedupe': {
       const state = DialogStore.dedupeState;
       const hasSelection = state.selectedColumns.value.some((selected) => selected);
@@ -290,7 +303,7 @@ export function initDialogState(dialogName: string, section?: string): void {
 
     case 'impute': {
       const state = DialogStore.imputeState;
-      state.column.value = selectedColumn || columns[0] || '';
+      state.column.value = effectiveColumn;
       state.strategy.value = 'constant';
       state.value.value = '';
       state.includeEmptyString.value = false;

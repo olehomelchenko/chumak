@@ -377,60 +377,66 @@ export function App() {
         )}
 
         {/* Preview Panel Shell */}
-        {hasPreview.value && isSlidePanel(activeDialog) && (
-          <div
-            class={`${styles.previewPanelShell} ${activeDialog === 'join' ? styles.joinDialog : ''}`}
-          >
-            <div class={styles.previewPanel}>
-              <div class={styles.previewPanelHeader}>
-                <h4>{previewTitle.value || 'Preview'}</h4>
-                <div dangerouslySetInnerHTML={{ __html: previewStats.value }}></div>
-              </div>
-              <div class={styles.previewPanelContent}>
-                <div class={tableStyles.tableContainer}>
-                  <table class={tableStyles.dataTable}>
-                    <thead>
-                      <tr>
-                        {getPreviewColumns().map((col: string) => (
-                          <th
-                            key={col}
-                            class={`${tableStyles.dataTable__header} ${isNewPreviewColumn(col) ? styles.previewNewCol : ''}`}
-                          >
-                            {col}
-                          </th>
-                        ))}
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {getPreviewRows().map((row: any, i: number) => (
-                        <tr
-                          key={i}
-                          class={`${tableStyles.dataTable__row} ${row._removed ? tableStyles.removed : ''} ${row._hasError ? tableStyles.error : ''}`}
-                        >
-                          {getPreviewColumns().map((col: string) => {
-                            const isRemovedColumn =
-                              row._removedColumns && row._removedColumns.includes(col);
-                            const cellValue = row[col];
-                            const isError = isConversionError(cellValue);
-                            return (
-                              <td
+        {hasPreview.value &&
+          isSlidePanel(activeDialog) &&
+          (() => {
+            const previewCols = getPreviewColumns();
+            const previewRows = getPreviewRows();
+            return (
+              <div
+                class={`${styles.previewPanelShell} ${activeDialog === 'join' ? styles.joinDialog : ''}`}
+              >
+                <div class={styles.previewPanel}>
+                  <div class={styles.previewPanelHeader}>
+                    <h4>{previewTitle.value || 'Preview'}</h4>
+                    <div dangerouslySetInnerHTML={{ __html: previewStats.value }}></div>
+                  </div>
+                  <div class={styles.previewPanelContent}>
+                    <div class={tableStyles.tableContainer}>
+                      <table class={tableStyles.dataTable}>
+                        <thead>
+                          <tr>
+                            {previewCols.map((col: string) => (
+                              <th
                                 key={col}
-                                class={`${tableStyles.cell} ${row._removed || isRemovedColumn ? tableStyles.removed : ''} ${isNewPreviewColumn(col) ? styles.previewNewCol : ''} ${isError ? tableStyles.error : ''} ${cellValue === null || cellValue === undefined || cellValue === '' ? tableStyles.empty : ''}`}
-                                title={isError ? cellValue.message : undefined}
+                                class={`${tableStyles.dataTable__header} ${isNewPreviewColumn(col) ? styles.previewNewCol : ''}`}
                               >
-                                {formatCellValue(cellValue)}
-                              </td>
-                            );
-                          })}
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                                {col}
+                              </th>
+                            ))}
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {previewRows.map((row: any, i: number) => (
+                            <tr
+                              key={i}
+                              class={`${tableStyles.dataTable__row} ${row._removed ? tableStyles.removed : ''} ${row._hasError ? tableStyles.error : ''}`}
+                            >
+                              {previewCols.map((col: string) => {
+                                const isRemovedColumn =
+                                  row._removedColumns && row._removedColumns.includes(col);
+                                const cellValue = row[col];
+                                const isError = isConversionError(cellValue);
+                                return (
+                                  <td
+                                    key={col}
+                                    class={`${tableStyles.cell} ${row._removed || isRemovedColumn ? tableStyles.removed : ''} ${isNewPreviewColumn(col) ? styles.previewNewCol : ''} ${isError ? tableStyles.error : ''} ${cellValue === null || cellValue === undefined || cellValue === '' ? tableStyles.empty : ''}`}
+                                    title={isError ? cellValue.message : undefined}
+                                  >
+                                    {formatCellValue(cellValue)}
+                                  </td>
+                                );
+                              })}
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
-        )}
+            );
+          })()}
       </div>
 
       {/* Centered Modal Shell */}

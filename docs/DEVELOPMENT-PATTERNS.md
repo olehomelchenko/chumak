@@ -313,6 +313,8 @@ export function handleAction() {
 
 ## 2. State Management
 
+**General principle — state-aware operations**: When one part of the app acts on data, it should respect the context established by other parts. For example, if the user has selected columns in the table and then opens a dialog, the dialog should pre-populate with those columns rather than starting from scratch. Prefer reading existing app state over hardcoded defaults. This makes the tool feel cohesive — every interaction builds on prior context rather than resetting it.
+
 ### 2.1 Two-Store Architecture
 
 Syto uses two signal-based stores with distinct responsibilities:
