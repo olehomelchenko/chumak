@@ -905,7 +905,8 @@ confirmImport()
 | `stores/dialogs/import/import-url-state.ts`  | Signal state for the URL import dialog                    |
 | `stores/dialogs/import/import-text-state.ts` | Signal state for the text entry dialog                    |
 | `components/ImportCsvDialog.tsx`             | Import settings UI (delimiter, headers, JSON path)        |
-| `components/ImportUrlDialog.tsx`             | URL input and dataset link list                           |
+| `components/ImportUrlDialog.tsx`             | URL input and sample dataset list (with metadata)         |
+| `public/datasets/`                           | Bundled sample datasets (served as static assets)         |
 | `components/ImportTextDialog.tsx`            | Textarea for manual data entry                            |
 | `services/ImportService.ts`                  | Source and model creation                                 |
 | `orchestration/DialogCoordinator.ts`         | Preview data routing (`hasPreviewData`, `getPreviewRows`) |

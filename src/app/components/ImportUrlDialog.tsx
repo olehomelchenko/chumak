@@ -6,22 +6,86 @@ interface ImportUrlDialogProps {
   onImport: () => void;
 }
 
-const POPULAR_DATASETS = [
-  'cars.json',
-  'movies.json',
-  'iris.json',
-  'unemployment.json',
-  'weather.csv',
-  'barley.json',
-  'stocks.json',
-  'anscombe.json',
-  'airports.csv',
-  'jobs.json',
-  'population.json',
-  'sp500.csv',
-];
+interface SampleDataset {
+  filename: string;
+  label: string;
+  size: string;
+  sourceUrl: string;
+  license: string;
+}
 
-const CDN_BASE_URL = 'https://cdn.jsdelivr.net/npm/vega-datasets@latest/data';
+const SAMPLE_DATASETS: SampleDataset[] = [
+  {
+    filename: 'cars.json',
+    label: 'Cars (Auto MPG)',
+    size: '406 × 9',
+    sourceUrl: 'https://archive.ics.uci.edu/dataset/9/auto-mpg',
+    license: 'CC BY 4.0',
+  },
+  {
+    filename: 'iris.json',
+    label: 'Iris',
+    size: '150 × 5',
+    sourceUrl: 'https://archive.ics.uci.edu/dataset/53/iris',
+    license: 'CC BY 4.0',
+  },
+  {
+    filename: 'superstore.csv',
+    label: 'Superstore',
+    size: '10,194 × 21',
+    sourceUrl: 'https://public.tableau.com/app/learn/sample-data',
+    license: 'Tableau Public',
+  },
+  {
+    filename: 'weather.csv',
+    label: 'Weather',
+    size: '2,922 × 7',
+    sourceUrl: 'https://www.ncdc.noaa.gov/',
+    license: 'Public domain',
+  },
+  {
+    filename: 'airports.csv',
+    label: 'US Airports',
+    size: '3,376 × 7',
+    sourceUrl: 'https://www.faa.gov/airports',
+    license: 'Public domain',
+  },
+  {
+    filename: 'unemployment-across-industries.json',
+    label: 'Unemployment',
+    size: '1,708 × 6',
+    sourceUrl: 'https://www.bls.gov/',
+    license: 'Public domain',
+  },
+  {
+    filename: 'sp500.csv',
+    label: 'S&P 500',
+    size: '123 × 2',
+    sourceUrl: 'https://github.com/datasets/s-and-p-500',
+    license: 'PDDL',
+  },
+  {
+    filename: 'stocks.csv',
+    label: 'Stock Prices',
+    size: '559 × 3',
+    sourceUrl: 'https://github.com/vega/vega-datasets',
+    license: 'BSD-3',
+  },
+  {
+    filename: 'barley.json',
+    label: 'Barley Yields',
+    size: '120 × 4',
+    sourceUrl: 'https://github.com/vega/vega-datasets',
+    license: 'BSD-3',
+  },
+  {
+    filename: 'anscombe.json',
+    label: "Anscombe's Quartet",
+    size: '44 × 3',
+    sourceUrl: 'https://en.wikipedia.org/wiki/Anscombe%27s_quartet',
+    license: 'Public domain',
+  },
+];
 
 export function ImportUrlDialog({ onImport }: ImportUrlDialogProps) {
   const { t } = useTranslation('dialogs');
@@ -29,7 +93,7 @@ export function ImportUrlDialog({ onImport }: ImportUrlDialogProps) {
 
   const handleDatasetClick = (filename: string, e: Event) => {
     e.preventDefault();
-    DialogStore.importUrlState.url.value = `${CDN_BASE_URL}/${filename}`;
+    DialogStore.importUrlState.url.value = `${window.location.origin}/datasets/${filename}`;
     DialogStore.importUrlState.error.value = null;
     onImport();
   };
@@ -62,26 +126,44 @@ export function ImportUrlDialog({ onImport }: ImportUrlDialogProps) {
           {t('importUrl.sampleDatasets')}
         </p>
         <div>
-          {POPULAR_DATASETS.map((filename) => (
-            <div key={filename} style={{ marginBottom: '0.25rem' }}>
+          {SAMPLE_DATASETS.map((dataset) => (
+            <div
+              key={dataset.filename}
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.25rem',
+                marginBottom: '0.25rem',
+              }}
+            >
               <a
-                href={`${CDN_BASE_URL}/${filename}`}
-                onClick={(e) => handleDatasetClick(filename, e)}
+                href={`/datasets/${dataset.filename}`}
+                onClick={(e) => handleDatasetClick(dataset.filename, e)}
+                class={styles.link}
+              >
+                {dataset.label}
+              </a>
+              <span
                 style={{
-                  color: 'var(--color-cyan)',
-                  textDecoration: 'none',
-                  fontSize: 'var(--font-size-sm)',
-                  cursor: 'pointer',
-                  display: 'inline-block',
-                }}
-                onMouseEnter={(e) => {
-                  (e.target as HTMLAnchorElement).style.textDecoration = 'underline';
-                }}
-                onMouseLeave={(e) => {
-                  (e.target as HTMLAnchorElement).style.textDecoration = 'none';
+                  color: 'var(--color-text-muted)',
+                  fontSize: 'var(--font-size-xs)',
                 }}
               >
-                {filename}
+                ({dataset.size})
+              </span>
+              <a
+                href={dataset.sourceUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                title={`${dataset.license} — ${dataset.sourceUrl}`}
+                style={{
+                  color: 'var(--color-text-muted)',
+                  fontSize: 'var(--font-size-xs)',
+                  lineHeight: 1,
+                  opacity: 0.6,
+                }}
+              >
+                <span class="iconify" aria-hidden="true" data-icon="carbon:information" />
               </a>
             </div>
           ))}
