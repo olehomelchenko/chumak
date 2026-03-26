@@ -1,7 +1,7 @@
 ---
 name: release
 description: Bump the app version, update CHANGELOG, and prepare a git tag for release
-disable-model-invocation: true
+disable-model-invocation: false
 ---
 
 # Release

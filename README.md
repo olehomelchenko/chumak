@@ -1,141 +1,74 @@
-# Syto - Data Wrangling in the Browser
+# Syto — Data Wrangling in the Browser
 
-> Named after Ukrainian star-navigating traders, Syto transforms raw data into insights—guided by clarity and precision.
+Syto is a browser-based tool for cleaning and transforming tabular data. Think Power Query, but runs anywhere — no installation, no accounts, no data leaving your machine.
 
-**Status**: ✅ Production-Ready Data Wrangling Application
+**Who it's for**: students, analysts, and anyone who needs to clean and perform EDA on tabular data without writing code or installing software.
 
-## Documentation
+![Syto screenshot](docs/assets/syto-main.png)
 
-### For AI Sessions
+## What it does
 
-- **[CLAUDE.md](CLAUDE.md)** - Onboarding document for Claude AI sessions
-  - Project context and current status
-  - Key design decisions and rationale
-  - Implementation roadmap and next steps
-  - Common pitfalls and best practices
-  - Quick reference for all docs
+- **Import** CSV, JSON, Excel, or paste from clipboard
+- **Transform** with a visual pipeline builder — filter, derive, aggregate, join, reshape, replace, and more
+- **Export** cleaned data as CSV/JSON, or save the workflow as a replayable JSON spec
+- **Run headlessly** via CLI (`syto run workflow.json`)
 
-### Core Specification
+Workflows are plain JSON, so you can inspect, diff, and version them like any other file.
 
-- **[SPECIFICATION.md](docs/SPECIFICATION.md)** - Complete product specification
-  - What Syto is and who it's for
-  - Technical architecture and constraints
-  - Data model and transform operations
-  - UI design and user workflows
-  - Implementation roadmap
-  - Testing strategy
+## Quick start
 
-- **[UX-SPECIFICATION.md](docs/UX-SPECIFICATION.md)** - UI/UX design guidelines
-  - Layout structure and grid system
-  - Component patterns and interaction design
-  - Theme system and CSS architecture
-  - Typography and visual standards
+```bash
+npm install
+npm run dev
+```
 
-### Development Guides
+Open `http://localhost:5173` and drop a CSV file onto the page.
 
-- **[DEBUGGING.md](docs/DEBUGGING.md)** - Debugging and development tools
-  - CSS Module debugging techniques
-  - Component identification helpers
-  - DevTools tips and tricks
+### CLI
 
-### Design Decisions
+```bash
+npm run build:cli
+node dist-cli/cli.mjs run workflow.json --input data.csv
+```
 
-- **[DECISIONS.md](docs/archive/DECISIONS.md)** - Key architecture decisions and rationale
-  - Expression parser: jsep + AST validation + interpretation (§1)
-  - Data engine: custom AST + Arquero delegation (§2)
-  - Design system: custom CSS over frameworks (§3)
-  - Non-destructive architecture decisions (§4)
+## Design principles
 
-### Research
+| Principle                 | In practice                                                                  |
+| ------------------------- | ---------------------------------------------------------------------------- |
+| **Local-first**           | All data stays in your browser. No uploads, no servers.                      |
+| **Declarative pipelines** | Transformations are data (JSON), not code.                                   |
+| **Beginner-friendly**     | Sensible defaults, no jargon. Advanced options are there when you need them. |
 
-- **[research/](research/)** - Background research on expression parser design
-  - Analysis of Vega-Lite, Arquero, OpenRefine, ag-Grid, and others
-  - Comparison table of approaches
-  - Detailed findings that informed design decisions
-  - See [research/README.md](research/README.md) for details
+## Tech stack
 
-## Quick Start
-
-**For Contributors:**
-
-1. Read [SPECIFICATION.md](docs/SPECIFICATION.md) for product vision and architecture
-2. Read [DECISIONS.md](docs/archive/DECISIONS.md) for architecture decisions
-3. Read [CLAUDE.md](CLAUDE.md) for development context and current status
-
-**For Researchers:**
-
-- See [research/](research/) for detailed analysis of existing systems
-
-## Design Principles
-
-| Principle                     | Implication                                         |
-| ----------------------------- | --------------------------------------------------- |
-| **Local-first**               | All data stays in browser. No uploads, no accounts. |
-| **Progressive disclosure**    | Simple defaults, optional advanced configuration.   |
-| **Declarative specification** | Transformations are data (JSON), not code.          |
-| **Reproducibility**           | Workflows can be exported, shared, and replayed.    |
-| **Security-first**            | Untrusted expressions sandboxed, no code injection. |
-
-## Technology Stack
-
-- **PapaParse** - CSV parsing
-- **Arquero** - Data transformation engine
-- **jsep** - Expression parser
-- **Alpine.js** - Reactive UI
-- **No build system** - CDN-loaded libraries, runs in any browser
-
-## Features
-
-**Data Import/Export**:
-
-- ✅ CSV file upload with drag-drop
-- ✅ Clipboard paste (Ctrl+V)
-- ✅ CSV/JSON export with clipboard copy
-- ✅ Workflow JSON export/import
-
-**Transformations** (10 implemented):
-
-- ✅ Filter, Select, Remove, Rename, Sort
-- ✅ Derive (calculated columns)
-- ✅ Types (explicit type assignment)
-- ✅ Aggregate (group by + rollup)
-- ✅ Join (multi-table operations)
-- ✅ Fold (unpivot/wide to long)
-
-**Advanced Features**:
-
-- ✅ Schema engine with granular type inference
-- ✅ Statistical profiling (EDA)
-- ✅ Vega-Lite visualizations
-- ✅ URL-based state & shareable links
-- ✅ Multi-model pipelines
-- ✅ IndexedDB auto-save
-- ✅ Step editing
-
-**Security**:
-
-- ✅ Expression sandboxing (no `Function()` constructor)
-- ✅ AST validation for user expressions
-- ✅ Operator whitelisting
-
-**Testing**:
-
-- ✅ Comprehensive automated test suite (6 test files)
-- ✅ Browser-based test runner
-- ✅ High coverage on core transform logic
-
-## Target Audience
-
-- Students learning data wrangling
-- Analysts needing quick CSV cleaning
-- Users on restricted machines (no Python/R/Excel installation)
+| Layer         | Technology                             |
+| ------------- | -------------------------------------- |
+| Build         | Vite, TypeScript, Vitest               |
+| UI            | Preact, Signals, CSS Modules           |
+| Data          | Arquero (transforms), PapaParse (CSV)  |
+| Expressions   | jsep (parsing), custom AST interpreter |
+| Visualization | Vega-Lite                              |
+| Storage       | IndexedDB, localStorage                |
 
 ## Development
 
-This project is production-ready with comprehensive features for data wrangling. Future development focuses on additional transforms (dedupe, impute, pivot) and expression functions (string, date, math operations).
+```bash
+npm run dev        # Dev server
+npm run build      # Type-check + production build
+npm test           # Run test suite
+npm run typecheck  # Type-check only
+```
 
-See [docs/SPECIFICATION.md](docs/SPECIFICATION.md) for complete specification and [CLAUDE.md](CLAUDE.md) for development context.
+See [AGENTS.md](AGENTS.md) for project overview and contributor onboarding, or [docs/SPECIFICATION.md](docs/SPECIFICATION.md) for full technical architecture.
 
----
+## Feedback
 
-**License**: TBD
+Found a bug or have a feature idea? [Open an issue](https://github.com/ptrvtch/syto/issues). Pull requests are not accepted — describe what you'd like and I'll take it from there.
+
+## How it's made
+
+Built by a data analyst with [Claude Code](https://claude.ai/claude-code) doing most of the heavy lifting — expect solid data transformations and some rough edges on the UI.
+
+## License
+
+[MIT](LICENSE)

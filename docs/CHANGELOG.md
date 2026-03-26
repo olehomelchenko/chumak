@@ -6,6 +6,11 @@ Historical record of completed features and improvements, organized chronologica
 
 ## March 2026
 
+### v0.2.1
+
+- **README rewrite** — Replaced the old sprawling README with a concise version covering what the tool does, how to run it, and how to contribute. Added screenshot.
+- **MIT license** — Added LICENSE file.
+
 ### v0.2.0
 
 - **ConversionError filter fix** — ConversionError objects (truthy in JS) no longer pass filter expressions or inflate match/success counts in filter and parse-date previews.
