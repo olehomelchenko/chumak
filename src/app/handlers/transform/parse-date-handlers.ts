@@ -2,6 +2,7 @@ import { DialogStore } from '../../stores/DialogStore';
 import { AppStore } from '../../stores/AppStore';
 import { parseExpression } from '../../../core/expression-parser';
 import { interpretAST } from '../../../core/ast-interpreter';
+import { isConversionError } from '../../../core/type-converter';
 import * as HelperHandlers from '../core/helper-handlers';
 import { StepService } from '../../services/StepService';
 import { createDebouncedPreview, clearPreview, PreviewResult } from '../preview-engine';
@@ -62,8 +63,9 @@ const parseDatePreview = createDebouncedPreview({
       try {
         const ast = parseExpression(expression);
         const result = interpretAST(ast, row);
-        previewRow[outputColName] = result != null ? String(result) : '(null)';
-        if (result != null) successCount++;
+        const isError = isConversionError(result);
+        previewRow[outputColName] = result != null && !isError ? String(result) : '(null)';
+        if (result != null && !isError) successCount++;
       } catch {
         previewRow[outputColName] = '(error)';
       }

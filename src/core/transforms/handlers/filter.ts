@@ -2,6 +2,7 @@ import * as aq from 'arquero';
 import { parseExpression } from '../../expression-parser';
 import { validateAST } from '../../ast-validator';
 import { interpretAST } from '../../ast-interpreter';
+import { isConversionError } from '../../type-converter';
 import type { FullTransformStep } from '../types';
 
 export function handleFilter(table: any, transform: FullTransformStep, schema: string[]): any {
@@ -15,7 +16,9 @@ export function handleFilter(table: any, transform: FullTransformStep, schema: s
   const rows = table.objects();
   const filteredRows = rows.filter((row: any) => {
     try {
-      return interpretAST(ast, row);
+      const result = interpretAST(ast, row);
+      // ConversionError objects are truthy in JS but should not pass filters
+      return !!result && !isConversionError(result);
     } catch (error) {
       return false;
     }

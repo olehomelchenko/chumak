@@ -1,5 +1,6 @@
 import { parseExpression } from '../../../core/expression-parser';
 import { interpretAST } from '../../../core/ast-interpreter';
+import { isConversionError } from '../../../core/type-converter';
 import { DialogStore } from '../../stores/DialogStore';
 import { AppStore } from '../../stores/AppStore';
 import * as HelperHandlers from '../core/helper-handlers';
@@ -38,7 +39,7 @@ const filterPreview = createDebouncedPreview({
     for (const row of sampleData) {
       try {
         const matches = interpretAST(ast, row);
-        if (matches) {
+        if (matches && !isConversionError(matches)) {
           matchCount++;
           if (previewMode === 'matching') {
             if (previewRows.length < 50) previewRows.push(row);
@@ -61,7 +62,8 @@ const filterPreview = createDebouncedPreview({
       totalMatchCount = 0;
       for (const row of data) {
         try {
-          if (interpretAST(ast, row)) totalMatchCount++;
+          const result = interpretAST(ast, row);
+          if (result && !isConversionError(result)) totalMatchCount++;
         } catch {
           // Skip
         }

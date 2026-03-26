@@ -119,6 +119,41 @@ describe('Transform Engine - Basic Operations', () => {
       expect(rows[0].code).toBe('AB123');
       expect(rows[1].code).toBe('XY789');
     });
+
+    it('should exclude rows where expression evaluates to ConversionError', () => {
+      const table = (aq as any).from([
+        { value: 10 },
+        { value: { type: 'error', message: 'conversion failed' } },
+        { value: null },
+        { value: 20 },
+      ]);
+      const transform = { filter: 'not is_error(value) or value != null' };
+      const result = applyTransform(table, transform, ['value']);
+
+      const rows = result.objects();
+      // ConversionError rows should be excluded (not treated as truthy)
+      // null passes because `not is_error(null)` is true (short-circuits the `or`)
+      expect(rows.length).toBe(3);
+      expect(rows[0].value).toBe(10);
+      expect(rows[1].value).toBe(null);
+      expect(rows[2].value).toBe(20);
+    });
+
+    it('should filter with compound logical expressions on error values', () => {
+      const table = (aq as any).from([
+        { value: 10 },
+        { value: { type: 'error', message: 'bad' } },
+        { value: null },
+        { value: 30 },
+      ]);
+      const transform = { filter: 'not is_error(value) and value != null' };
+      const result = applyTransform(table, transform, ['value']);
+
+      const rows = result.objects();
+      expect(rows.length).toBe(2);
+      expect(rows[0].value).toBe(10);
+      expect(rows[1].value).toBe(30);
+    });
   });
 
   describe('applyTransform() - DERIVE', () => {

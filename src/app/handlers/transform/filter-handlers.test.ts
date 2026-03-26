@@ -135,5 +135,34 @@ describe('filter-handlers', () => {
       expect(DialogStore.previewState.title.value).toBe('Filter Preview');
       expect(DialogStore.previewState.rows.value.length).toBeGreaterThan(0);
     });
+
+    it('does not count ConversionError values as matches', () => {
+      const dataWithErrors = {
+        columns: ['value'],
+        rows: [
+          { value: 10 },
+          { value: { type: 'error', message: 'conversion failed' } },
+          { value: 20 },
+        ],
+      };
+      setTestData(dataWithErrors);
+      AppStore.activeModel.value = createTestModel({
+        name: 'Test',
+        steps: [],
+        schema: createTestSchema(['value', 'integer']),
+        data: dataWithErrors.rows,
+      });
+
+      DialogStore.filterState.expression.value = 'value != null';
+      DialogStore.filterState.error.value = null;
+      DialogStore.filterState.previewMode.value = 'matching';
+
+      FilterHandlers.updateFilterPreview();
+
+      expect(DialogStore.previewState.title.value).toBe('Filter Preview');
+      // ConversionError row should NOT be counted as a match
+      expect(DialogStore.previewState.stats.value).toContain('<strong>2</strong>');
+      expect(DialogStore.previewState.rows.value.length).toBe(2);
+    });
   });
 });
