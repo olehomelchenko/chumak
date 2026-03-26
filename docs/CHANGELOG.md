@@ -6,6 +6,17 @@ Historical record of completed features and improvements, organized chronologica
 
 ## March 2026
 
+### v0.2.0
+
+- **ConversionError filter fix** — ConversionError objects (truthy in JS) no longer pass filter expressions or inflate match/success counts in filter and parse-date previews.
+- **Multi-line ExpressionEditor** — Expression inputs in dialogs now support multi-line editing.
+- **DeriveDialog empty-field validation** — Added validation for empty expression fields in the Derive dialog.
+- **Dialog column pre-population** — Dialogs auto-populate the selected column when opened from column context.
+- **Modal input styling fix** — Fixed inputs appearing white in modal dialogs.
+- **Sample datasets** — Added bundled sample datasets (airports, Anscombe's quartet, barley, cars, iris, S&P 500, stocks, superstore, unemployment, weather) for local analysis.
+- **Focus utility refactor** — Extracted `isInInteractiveContext` to shared `focus-utils.ts`.
+- **Removed GitHub deploy workflow** — Cleaned up unused `.github/workflows/deploy.yml`.
+
 ### v0.1.0
 
 - **V2 Workflow Cutover** — v1 format deleted, v2 is sole format. Browser import via drag-and-drop detection + `WorkflowImportDialog` + `WorkflowImportService`. Topological sort (`getReachableModels` / `topologicalSortV2`) extracted to shared `workflow-v2.ts`. CLI rejects non-v2 with clear error.
