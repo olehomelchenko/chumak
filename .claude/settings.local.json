@@ -24,7 +24,8 @@
       "WebSearch",
       "WebFetch(domain:github.com)",
       "WebFetch(domain:v10.carbondesignsystem.com)",
-      "Bash(head:*)"
+      "Bash(head:*)",
+      "WebFetch(domain:duckdb.org)"
     ]
   }
 }

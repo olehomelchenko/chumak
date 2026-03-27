@@ -133,6 +133,7 @@ export class AppStore {
     theme: 'syto',
     analyticsOptOut: false,
     language: 'en',
+    experimental: { engine: 'arquero' },
   });
 
   // Column Menu State (dropdown menu on column header)

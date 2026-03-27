@@ -10,6 +10,7 @@ export interface SettingsDialogProps {
   onRowLimitChange?: (limit: number) => void;
   onAnalyticsOptOutChange?: (optOut: boolean) => void;
   onLanguageChange?: (language: 'en' | 'uk') => void;
+  onEngineChange?: (engine: 'arquero' | 'duckdb') => void;
   onClearAllData?: () => void;
 }
 
@@ -18,10 +19,11 @@ export function SettingsDialog({
   onRowLimitChange,
   onAnalyticsOptOutChange,
   onLanguageChange,
+  onEngineChange,
   onClearAllData,
 }: SettingsDialogProps = {}) {
   const { t } = useTranslation('settings');
-  const { theme, rowLimit, analyticsOptOut, language } = DialogStore.settingsState;
+  const { theme, rowLimit, analyticsOptOut, language, engine } = DialogStore.settingsState;
 
   const handleThemeChange = (newTheme: 'syto' | 'blues') => {
     theme.value = newTheme;
@@ -52,6 +54,13 @@ export function SettingsDialog({
     language.value = newLang;
     if (onLanguageChange) {
       onLanguageChange(newLang);
+    }
+  };
+
+  const handleEngineChange = (newEngine: 'arquero' | 'duckdb') => {
+    engine.value = newEngine;
+    if (onEngineChange) {
+      onEngineChange(newEngine);
     }
   };
 
@@ -191,6 +200,43 @@ export function SettingsDialog({
             </div>
           </div>
         </label>
+      </div>
+
+      {/* Experimental: Transform Engine */}
+      <div style={{ marginBottom: '2rem' }}>
+        <label class={styles.label} style={{ marginBottom: '0.5rem', display: 'block' }}>
+          {t('experimental.label')}
+        </label>
+        <div class={styles.helpText} style={{ marginBottom: '0.75rem' }}>
+          {t('experimental.description')}
+        </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div
+            onClick={() => handleEngineChange('arquero')}
+            class={`${styles.themeOption} ${engine.value === 'arquero' ? styles.active : ''}`}
+          >
+            <div class={styles.radioCircle}>
+              {engine.value === 'arquero' && <div class={styles.radioDot} />}
+            </div>
+            <div>
+              <div class={styles.themeName}>{t('experimental.arquero.name')}</div>
+              <div class={styles.themeDesc}>{t('experimental.arquero.description')}</div>
+            </div>
+          </div>
+
+          <div
+            onClick={() => handleEngineChange('duckdb')}
+            class={`${styles.themeOption} ${engine.value === 'duckdb' ? styles.active : ''}`}
+          >
+            <div class={styles.radioCircle}>
+              {engine.value === 'duckdb' && <div class={styles.radioDot} />}
+            </div>
+            <div>
+              <div class={styles.themeName}>{t('experimental.duckdb.name')}</div>
+              <div class={styles.themeDesc}>{t('experimental.duckdb.description')}</div>
+            </div>
+          </div>
+        </div>
       </div>
 
       <div class={styles.noteBox}>

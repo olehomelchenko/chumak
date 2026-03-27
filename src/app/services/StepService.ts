@@ -10,6 +10,9 @@ import { cloneData } from '../../core/type-converter';
 import { AppStore, HistoryStack } from '../stores/AppStore';
 import { showSuccess } from '../handlers/core/notification-handlers';
 import i18n from '../../i18n';
+import { DuckDBService } from './DuckDBService';
+import { DUCKDB_TRANSLATORS } from './duckdb-transforms';
+import type { FullTransformStep } from '../../core/transforms/types';
 
 const MAX_HISTORY_SIZE = 50;
 
@@ -103,6 +106,14 @@ export class StepService {
     callbacks.onTransformStart?.(label);
 
     try {
+      // Try DuckDB engine (experimental)
+      const duckResult = await StepService.tryDuckDB(currentData, transform, columns);
+      if (duckResult) {
+        await StepService.applyStepResult(transform, duckResult, callbacks, closeDialog);
+        return true;
+      }
+
+      // Arquero path (default)
       const table = aq.from(currentData);
       const context = StepService.getContext();
       const resultTable = applyTransform(table, transform, columns, context);
@@ -364,8 +375,37 @@ export class StepService {
   }
 
   /**
-   * Creates a compute context from AppStore
+   * Attempt to run a transform via DuckDB-WASM.
+   * Returns the result data array on success, or null to fall back to Arquero.
    */
+  private static async tryDuckDB(
+    data: any[],
+    transform: TransformStep,
+    columns: string[]
+  ): Promise<any[] | null> {
+    const settings = AppStore.uxSettings.value;
+    if (settings.experimental?.engine !== 'duckdb') return null;
+    if (!DuckDBService.isAvailable()) return null;
+
+    const transformType = getTransformType(transform);
+    const translator = DUCKDB_TRANSLATORS[transformType];
+    if (!translator) return null;
+
+    const sql = translator(transform as FullTransformStep, columns);
+    if (!sql) return null; // unsupported variant (e.g., dedupe mode 'keep')
+
+    if (import.meta.env.DEV) {
+      console.log(`[DuckDB] Running ${transformType}:`, sql);
+    }
+    const result = await DuckDBService.execute(data, sql);
+    if (!result) return null; // query failed, fall back
+
+    if (import.meta.env.DEV) {
+      console.log(`[DuckDB] Success: ${result.data.length} rows, ${result.columns.length} columns`);
+    }
+    return result.data;
+  }
+
   static getContext(): ComputeContext {
     return {
       sources: AppStore.sources.value,

@@ -161,6 +161,7 @@ export function initDialogState(dialogName: string, section?: string): void {
       state.rowLimit.value = AppStore.uxSettings.value.preview?.rowLimit || 100;
       state.analyticsOptOut.value = AppStore.uxSettings.value.analyticsOptOut ?? false;
       state.language.value = AppStore.uxSettings.value.language || 'en';
+      state.engine.value = AppStore.uxSettings.value.experimental?.engine || 'arquero';
       break;
     }
 

@@ -101,6 +101,7 @@ export const defaultUxSettings = {
   },
   analyticsOptOut: false,
   language: 'en' as const,
+  experimental: { engine: 'arquero' as const },
 };
 
 /**

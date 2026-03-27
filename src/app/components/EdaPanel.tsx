@@ -4,8 +4,9 @@ import { useTranslation } from 'preact-i18next';
 import { AppStore } from '../stores/AppStore';
 import { DialogStore } from '../stores/DialogStore';
 import { ChartsEngine } from '../../core/charts';
-import { EDAEngine, CategoricalStat } from '../../core/eda-engine';
+import { CategoricalStat } from '../../core/eda-engine';
 import { SchemaEngine } from '../../core/schema-engine';
+import { computeEdaStats, computeCategoricalOverlay } from '../services/eda-compute';
 import { TypeIndicator } from './TypeIndicator';
 import { EdaOverview, EdaNumericSection, EdaCategoricalSection } from './eda';
 import * as FilterHandlers from '../handlers/transform/filter-handlers';
@@ -29,6 +30,8 @@ export function EdaPanel() {
   const brushSelection = AppStore.edaBrushSelection.value;
 
   const categoricalOverlay = useSignal<{ topValues: CategoricalStat[] } | null>(null);
+  const statsRequestId = useRef(0);
+  const overlayRequestId = useRef(0);
 
   const isNumeric = edaStats && ['number', 'integer', 'float'].includes(edaStats.type);
   const isDate = edaStats && ['date', 'datetime'].includes(edaStats.type);
@@ -49,11 +52,16 @@ export function EdaPanel() {
         ? colSchema.type
         : SchemaEngine.inferType(currentData.slice(0, 20).map((r) => r[selectedColumn]));
 
-      const stats = EDAEngine.calculateStats(currentData, selectedColumn, type);
-      AppStore.edaStats.value = stats;
       AppStore.edaBrushSelection.value = null;
       AppStore.edaNumericTreatment.value = 'numeric';
       categoricalOverlay.value = null;
+
+      const requestId = ++statsRequestId.current;
+      computeEdaStats(currentData, selectedColumn, type).then((stats) => {
+        if (requestId === statsRequestId.current) {
+          AppStore.edaStats.value = stats;
+        }
+      });
     } else {
       AppStore.edaStats.value = null;
       AppStore.edaBrushSelection.value = null;
@@ -64,8 +72,12 @@ export function EdaPanel() {
 
   useEffect(() => {
     if (showNumericAsCategorical && selectedColumn && currentData) {
-      const overlay = EDAEngine.calculateCategoricalOverlay(currentData, selectedColumn);
-      categoricalOverlay.value = overlay;
+      const requestId = ++overlayRequestId.current;
+      computeCategoricalOverlay(currentData, selectedColumn).then((overlay) => {
+        if (requestId === overlayRequestId.current) {
+          categoricalOverlay.value = overlay;
+        }
+      });
     } else {
       categoricalOverlay.value = null;
     }

@@ -505,6 +505,7 @@ export function App() {
                         AppController.updateAnalyticsOptOut(optOut)
                       }
                       onLanguageChange={(language) => AppController.switchLanguage(language)}
+                      onEngineChange={(engine) => AppController.switchEngine(engine)}
                       onClearAllData={() => AppController.clearAllData()}
                     />
                   </div>

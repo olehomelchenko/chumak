@@ -22,6 +22,18 @@
     "label": "Opt out of analytics",
     "description": "Syto uses GoatCounter, a privacy-respecting analytics service (no cookies, GDPR-compliant). You can opt out at any time. Your preference is stored locally in your browser."
   },
+  "experimental": {
+    "label": "Experimental",
+    "description": "Transform engine — DuckDB runs supported transforms via SQL in a Web Worker. Unsupported transforms automatically fall back to Arquero.",
+    "arquero": {
+      "name": "Arquero",
+      "description": "Default JavaScript engine"
+    },
+    "duckdb": {
+      "name": "DuckDB",
+      "description": "SQL engine via WebAssembly (experimental)"
+    }
+  },
   "note": "Some interface elements use the primary theme color. The \"Syto\" theme also uses custom typography and removes border radiuses for a sharper look.",
   "version": "Version",
   "dangerZone": {

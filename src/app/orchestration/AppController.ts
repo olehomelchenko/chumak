@@ -446,6 +446,14 @@ export const AppController = {
     updateUXSetting('language', '', language);
   },
 
+  switchEngine(engine: 'arquero' | 'duckdb'): void {
+    AppStore.uxSettings.value = {
+      ...AppStore.uxSettings.value,
+      experimental: { ...AppStore.uxSettings.value.experimental, engine },
+    };
+    updateUXSetting('experimental', 'engine', engine);
+  },
+
   // ============================================================
   // Transformation state
   // ============================================================

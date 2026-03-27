@@ -7,6 +7,7 @@ export const settingsState = {
   rowLimit: signal(100),
   analyticsOptOut: signal(false),
   language: signal<'en' | 'uk'>('en'),
+  engine: signal<'arquero' | 'duckdb'>('arquero'),
 };
 
 export function resetSettingsState() {

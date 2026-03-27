@@ -53,15 +53,44 @@ export interface BaseStats {
 
 export type EDAStats = BaseStats & (NumericStats | { topValues: CategoricalStat[] });
 
-function extractColumnValues(data: any[], column: string) {
-  const values = data.map((row) => row[column]);
-  const totalCount = values.length;
-  const errorCount = values.filter((v) => isConversionError(v)).length;
-  const nullCount = values.filter((v) => v === null || v === undefined || v === '').length;
-  const nonNullValues = values.filter(
-    (v) => v !== null && v !== undefined && v !== '' && !isConversionError(v)
-  );
-  return { values, totalCount, errorCount, nullCount, nonNullValues };
+export function extractColumnValues(data: any[], column: string) {
+  const nonNullValues: any[] = [];
+  let errorCount = 0;
+  let nullCount = 0;
+
+  for (const row of data) {
+    const v = row[column];
+    if (isConversionError(v)) {
+      errorCount++;
+    } else if (v === null || v === undefined || v === '') {
+      nullCount++;
+    } else {
+      nonNullValues.push(v);
+    }
+  }
+
+  return { totalCount: data.length, errorCount, nullCount, nonNullValues };
+}
+
+export function createBaseStats(
+  column: string,
+  type: string,
+  totalCount: number,
+  nullCount: number,
+  errorCount: number,
+  uniqueCount: number
+): BaseStats {
+  return {
+    column,
+    type,
+    totalCount,
+    nullCount,
+    nullPercentage: ((nullCount / totalCount) * 100).toFixed(1),
+    errorCount,
+    errorPercentage: ((errorCount / totalCount) * 100).toFixed(1),
+    uniqueCount,
+    uniquePercentage: ((uniqueCount / totalCount) * 100).toFixed(1),
+  };
 }
 
 export const EDAEngine = {
@@ -77,17 +106,14 @@ export const EDAEngine = {
     // Normalize numeric types: 'float' and 'integer' -> 'number' for EDA stats
     const normalizedType = type === 'float' || type === 'integer' ? 'number' : type;
 
-    const baseStats: BaseStats = {
+    const baseStats = createBaseStats(
       column,
-      type: normalizedType,
+      normalizedType,
       totalCount,
       nullCount,
-      nullPercentage: ((nullCount / totalCount) * 100).toFixed(1),
       errorCount,
-      errorPercentage: ((errorCount / totalCount) * 100).toFixed(1),
-      uniqueCount: uniqueValues.size,
-      uniquePercentage: ((uniqueValues.size / totalCount) * 100).toFixed(1),
-    };
+      uniqueValues.size
+    );
 
     if (type === 'number' || type === 'integer' || type === 'float') {
       return { ...baseStats, ...this.calculateNumericStats(nonNullValues) } as EDAStats;

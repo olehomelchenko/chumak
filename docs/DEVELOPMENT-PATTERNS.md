@@ -409,6 +409,26 @@ CM ← dispatch(value) ← useEffect([value]) ← re-render ← signal change
 
 The `isSyncing` ref flag in `ExpressionEditor.tsx` breaks this cycle: when the sync-back `useEffect` dispatches a programmatic change, the `updateListener` skips calling `onChange`. **Do not remove this guard** — without it, any edge case where the round-trip produces a slightly different string (whitespace normalization, IME composition, etc.) causes an infinite synchronous loop that freezes the browser tab. The string equality check (`value !== doc.toString()`) alone is not sufficient.
 
+### 2.3 Settings Wiring Flow
+
+Adding a new user setting touches 6 files in a specific chain:
+
+```
+ux-settings.ts          — UXSettings interface + DEFAULT_SETTINGS + loadUXSettings() merge
+    ↓
+settings-state.ts       — Dialog signal (e.g., signal<'a' | 'b'>('a'))
+    ↓
+DialogCoordinator.ts    — Init: reads from AppStore.uxSettings → writes to dialog signal
+    ↓
+SettingsDialog.tsx       — UI control + local handler that updates the signal
+    ↓
+App.tsx                  — Wires onXxxChange callback to AppController method
+    ↓
+AppController.ts         — Persists: updates AppStore.uxSettings + calls updateUXSetting()
+```
+
+Settings are **immediate-apply** — changes take effect on click, persisted to localStorage, no "unsaved changes" confirmation. Also update the default in `AppStore.uxSettings` initial value and `test-utils.ts` `defaultUxSettings`.
+
 ---
 
 ## 3. Testing Patterns
@@ -1286,6 +1306,41 @@ Two changelogs serve different audiences:
 - **GitHub Releases** — user-facing release notes per tag. Written for users of the tool, not maintainers.
 
 `src/content/whats-new.md` (shown in the Reference dialog) links to GitHub Releases — do not maintain feature highlights there manually.
+
+---
+
+## 12. DuckDB-WASM Experimental Engine
+
+Syto supports an opt-in DuckDB-WASM engine alongside Arquero. When enabled in Settings → Experimental, supported transforms and EDA stats run via SQL in a Web Worker instead of the main-thread Arquero path. Unsupported transforms silently fall back to Arquero.
+
+### Architecture
+
+```
+UXSettings.experimental.engine ('arquero' | 'duckdb')
+    ↓
+StepService.tryDuckDB()         — checks setting + translator registry
+    ↓
+duckdb-transforms.ts            — pure functions: TransformStep → SQL string
+    ↓
+DuckDBService.execute()         — registers data as JSON, runs SQL, returns plain objects
+    ↓
+applyStepResult()               — same path as Arquero (createFromData branch)
+```
+
+EDA panel: `eda-compute.ts` dispatches to `DuckDBEdaEngine` (numeric stats via `QUANTILE_CONT`/`STDDEV_POP`, categorical via `GROUP BY`) or falls back to the JS `EDAEngine`.
+
+### Key constraints
+
+- **WASM + Worker must be self-hosted** — cross-origin Workers are blocked by same-origin policy. Use Vite `?url` imports (`import wasmUrl from '...duckdb-eh.wasm?url'`), never CDN URLs for Worker scripts.
+- **Lazy-loaded** — `DuckDBService` dynamically imports `@duckdb/duckdb-wasm` on first use. The ~3.5 MB WASM binary is isolated in its own chunk via `manualChunks` in `vite.config.ts`.
+- **Async-only** — DuckDB runs in a Worker, so all operations return Promises. `computeModelUpToStep()` (sync) remains Arquero-only; only `runTransform()` and EDA use DuckDB.
+- **Dev-only logging** — all `[DuckDB]` console messages are gated behind `import.meta.env.DEV`.
+
+### Adding a new DuckDB-supported transform
+
+1. Write a translator function in `duckdb-transforms.ts`: `(transform, columns) → SQL string` referencing table `input`
+2. Register it in the `DUCKDB_TRANSLATORS` map
+3. Add unit tests for the SQL generation (no WASM needed)
 
 ---
 

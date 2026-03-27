@@ -31,6 +31,7 @@
     "@codemirror/lint": "^6.9.3",
     "@codemirror/state": "^6.5.4",
     "@codemirror/view": "^6.39.12",
+    "@duckdb/duckdb-wasm": "^1.33.1-dev20.0",
     "@preact/signals": "^2.5.1",
     "@types/dagre": "^0.7.53",
     "arquero": "^6.0.1",

@@ -61,6 +61,8 @@ See @AGENTS.md for project overview, security requirements, codebase orientation
 | CLI & workflow v2      | [SPECIFICATION.md](docs/SPECIFICATION.md) §3.6, [DATA-SPECIFICATION.md](docs/DATA-SPECIFICATION.md) §7.2 |
 | Multi-model & chaining | [MULTI-MODEL-ARCHITECTURE.md](docs/MULTI-MODEL-ARCHITECTURE.md)                                          |
 | Versioning & release   | [DEVELOPMENT-PATTERNS.md](docs/DEVELOPMENT-PATTERNS.md) §11, [AGENTS.md](AGENTS.md) §Versioning          |
+| DuckDB experimental    | [DEVELOPMENT-PATTERNS.md](docs/DEVELOPMENT-PATTERNS.md) §12                                              |
+| Adding a setting       | [DEVELOPMENT-PATTERNS.md](docs/DEVELOPMENT-PATTERNS.md) §2.3                                             |
 | Project philosophy     | [SOUL.md](SOUL.md)                                                                                       |
 
 ---

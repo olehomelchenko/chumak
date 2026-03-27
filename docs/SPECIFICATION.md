@@ -78,6 +78,7 @@ Syto is a browser-based data wrangling tool for cleaning and transforming tabula
 | **Iconify**        | Unified vector icon framework                      |
 | **PapaParse**      | High-performance CSV parsing and export            |
 | **Arquero**        | Data transformation engine (inspired by dplyr)     |
+| **DuckDB-WASM**    | Experimental SQL engine via WebAssembly (opt-in)   |
 | **jsep**           | Lightweight Javascript Expression Parser           |
 | **Preact**         | Lightweight framework for all UI components        |
 | **Signals**        | High-performance reactive state management         |

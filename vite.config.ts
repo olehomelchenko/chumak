@@ -103,6 +103,10 @@ export default defineConfig(({ mode }) => {
         },
       }),
     ],
+    // Prevent Vite from pre-bundling DuckDB WASM files
+    optimizeDeps: {
+      exclude: ['@duckdb/duckdb-wasm'],
+    },
     css: {
       modules: {
         // Enhanced class names in dev for better debugging
@@ -175,6 +179,10 @@ export default defineConfig(({ mode }) => {
             // Split CodeMirror (editor library)
             if (id.includes('@codemirror') || id.includes('codemirror')) {
               return 'codemirror';
+            }
+            // Split DuckDB-WASM (lazy-loaded experimental engine)
+            if (id.includes('duckdb') || id.includes('apache-arrow')) {
+              return 'duckdb';
             }
             // Split SheetJS Excel parser (lazy-loaded)
             if (id.includes('node_modules/xlsx')) {
