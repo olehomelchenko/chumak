@@ -6,6 +6,11 @@ Historical record of completed features and improvements, organized chronologica
 
 ## March 2026
 
+### v0.3.0
+
+- **Interactive error cells** — Error cells now behave like regular cells: clicking selects them, hovering shows the error message in a tooltip. Cell toolbar offers filter (keep/exclude errors) and replace actions. Comparison operators are hidden since errors are not comparable.
+- **Replace errors & nulls** — Replace dialog gains "Errors" and "Null" find modes, allowing bulk replacement of conversion errors or missing values in a column without writing expressions.
+
 ### v0.2.1
 
 - **README rewrite** — Replaced the old sprawling README with a concise version covering what the tool does, how to run it, and how to contribute. Added screenshot.
