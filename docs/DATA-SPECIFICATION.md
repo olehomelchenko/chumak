@@ -990,6 +990,8 @@ interface CategoricalStats extends BaseStats {
 }
 ```
 
+**Categorical overlay**: `EDAEngine.calculateCategoricalOverlay(data, column)` computes `topValues` for any column type, including numeric. This is used when the user toggles a numeric column to categorical treatment in the EDA panel. The overlay is computed lazily (only on toggle) and stored separately from the main `edaStats`.
+
 ---
 
 ## 10. ID Generation

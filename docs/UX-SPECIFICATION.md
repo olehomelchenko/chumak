@@ -589,12 +589,16 @@ All UI components are Preact/TSX with co-located CSS Modules in `src/app/compone
 
 Located in `src/app/components/eda/`:
 
-| Component                       | Purpose                                |
-| ------------------------------- | -------------------------------------- |
-| `EdaPanel.tsx`                  | Main panel orchestrating EDA sections  |
-| `eda/EdaOverview.tsx`           | Stats summary (rows, missing, unique)  |
-| `eda/EdaNumericSection.tsx`     | Numeric column statistics and boxplots |
-| `eda/EdaCategoricalSection.tsx` | Categorical distribution charts        |
+| Component                       | Purpose                                                   |
+| ------------------------------- | --------------------------------------------------------- |
+| `EdaPanel.tsx`                  | Main panel orchestrating EDA sections and chart rendering |
+| `eda/EdaOverview.tsx`           | Stats summary (rows, missing, unique, errors)             |
+| `eda/EdaNumericSection.tsx`     | Numeric column statistics, boxplots, histograms           |
+| `eda/EdaCategoricalSection.tsx` | Categorical/frequency distribution (bar chart + list)     |
+
+**Data flow**: Column click → `eda-handlers.ts` → `EDAEngine.calculateStats()` → `AppStore.edaStats` signal → `EdaPanel` renders the appropriate section. Chart rendering uses `ChartsEngine` (Vega-Lite) via refs in `EdaPanel`'s useEffect.
+
+**Treatment toggles**: Date and numeric columns support a "treatment toggle" in the panel header that switches between their native view and a categorical view. Each toggle is backed by a signal (`edaDateTreatment`, `edaNumericTreatment`). When categorical is selected for numeric columns, `EDAEngine.calculateCategoricalOverlay()` computes frequency stats lazily. Both sections share the same `edaChartGrid` layout (chart left, detail panel right).
 
 ### 7.4 Pipeline Components
 

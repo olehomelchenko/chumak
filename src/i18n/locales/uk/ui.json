@@ -489,6 +489,10 @@
     "categorical": {
       "title": "Розподіл частот",
       "emptyValue": "(порожньо)"
+    },
+    "numericTreatment": {
+      "numeric": "Числовий",
+      "categorical": "Категоріальний"
     }
   },
   "typeMenu": {

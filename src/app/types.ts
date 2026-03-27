@@ -221,6 +221,7 @@ export interface AppState {
   edaChartView: 'boxplot' | 'histogram';
   edaBrushSelection: { min: number; max: number } | null;
   edaDateTreatment: 'temporal' | 'categorical';
+  edaNumericTreatment: 'numeric' | 'categorical';
   theme: 'syto' | 'blues';
 
   // Transformation status

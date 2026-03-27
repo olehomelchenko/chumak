@@ -7,7 +7,7 @@ interface EdaCategoricalSectionProps {
     topValues: Array<{
       value: string;
       count: number;
-      percentage: number;
+      percentage: string;
       isOther?: boolean;
       isNull?: boolean;
     }>;
@@ -19,11 +19,15 @@ export function EdaCategoricalSection({ edaStats, categoricalBarRef }: EdaCatego
   const { t } = useTranslation('ui');
 
   return (
-    <div class={`${styles.edaSection} ${styles['edaSection--wide']}`}>
-      <div class={styles.edaSection__title}>{t('eda.categorical.title')}</div>
-      <div class={styles.categoricalLayout}>
-        <div ref={categoricalBarRef} style={{ flex: 1, minWidth: 0, minHeight: '80px' }}></div>
+    <div class={styles.edaChartGrid}>
+      <div class={styles.edaChartSection}>
+        <div class={styles.edaSection__title}>{t('eda.categorical.title')}</div>
+        <div class={styles.chartContainer}>
+          <div ref={categoricalBarRef} class={styles.chart} />
+        </div>
+      </div>
 
+      <div class={styles.edaStatsSection}>
         <div class={styles.edaFrequencies}>
           {edaStats.topValues?.map((item: any) => (
             <div

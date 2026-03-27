@@ -56,6 +56,7 @@ export class AppStore {
   static edaChartView = signal<'boxplot' | 'histogram'>('boxplot');
   static edaBrushSelection = signal<{ min: number; max: number } | null>(null);
   static edaDateTreatment = signal<'temporal' | 'categorical'>('temporal');
+  static edaNumericTreatment = signal<'numeric' | 'categorical'>('numeric');
   static currentPage = signal(1);
   static pageSize = signal(500);
   static totalPages = signal(1);

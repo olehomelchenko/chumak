@@ -480,6 +480,10 @@
     "categorical": {
       "title": "Frequency distribution",
       "emptyValue": "(empty)"
+    },
+    "numericTreatment": {
+      "numeric": "Numeric",
+      "categorical": "Categorical"
     }
   },
   "typeMenu": {

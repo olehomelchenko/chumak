@@ -243,4 +243,32 @@ describe('EDA Engine', () => {
       }
     });
   });
+
+  describe('calculateCategoricalOverlay', () => {
+    it('should compute frequency stats for numeric data', () => {
+      const data = [{ x: 1 }, { x: 2 }, { x: 1 }, { x: 3 }, { x: 1 }];
+      const result = EDAEngine.calculateCategoricalOverlay(data, 'x');
+
+      expect(result.topValues).toBeDefined();
+      expect(result.topValues.length).toBeGreaterThan(0);
+
+      const item1 = result.topValues.find((v) => v.value === '1');
+      expect(item1).toBeDefined();
+      expect(item1?.count).toBe(3);
+    });
+
+    it('should handle nulls and errors', () => {
+      const errorObj = { type: 'error', message: 'bad' };
+      const data = [{ x: 'a' }, { x: null }, { x: errorObj }, { x: 'a' }];
+      const result = EDAEngine.calculateCategoricalOverlay(data, 'x');
+
+      const nullItem = result.topValues.find((v) => v.isNull);
+      expect(nullItem).toBeDefined();
+      expect(nullItem?.count).toBe(1);
+
+      const errorItem = result.topValues.find((v) => v.isError);
+      expect(errorItem).toBeDefined();
+      expect(errorItem?.count).toBe(1);
+    });
+  });
 });

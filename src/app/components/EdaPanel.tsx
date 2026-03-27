@@ -1,9 +1,10 @@
 import { useEffect, useRef } from 'preact/hooks';
+import { useSignal } from '@preact/signals';
 import { useTranslation } from 'preact-i18next';
 import { AppStore } from '../stores/AppStore';
 import { DialogStore } from '../stores/DialogStore';
 import { ChartsEngine } from '../../core/charts';
-import { EDAEngine } from '../../core/eda-engine';
+import { EDAEngine, CategoricalStat } from '../../core/eda-engine';
 import { SchemaEngine } from '../../core/schema-engine';
 import { TypeIndicator } from './TypeIndicator';
 import { EdaOverview, EdaNumericSection, EdaCategoricalSection } from './eda';
@@ -24,14 +25,17 @@ export function EdaPanel() {
   const theme = AppStore.theme.value;
   const view = AppStore.edaChartView.value;
   const dateTreatment = AppStore.edaDateTreatment.value;
+  const numericTreatment = AppStore.edaNumericTreatment.value;
   const brushSelection = AppStore.edaBrushSelection.value;
 
-  // Computed helpers
+  const categoricalOverlay = useSignal<{ topValues: CategoricalStat[] } | null>(null);
+
   const isNumeric = edaStats && ['number', 'integer', 'float'].includes(edaStats.type);
   const isDate = edaStats && ['date', 'datetime'].includes(edaStats.type);
   const isCategorical = edaStats && !isNumeric && !(isDate && dateTreatment === 'temporal');
+  const showNumericAsCategorical = isNumeric && numericTreatment === 'categorical';
 
-  // Effect to calculate stats when selection changes
+  // Reset state when column selection changes
   useEffect(() => {
     if (selectedColumn && currentData) {
       let colSchema = null;
@@ -47,14 +51,26 @@ export function EdaPanel() {
 
       const stats = EDAEngine.calculateStats(currentData, selectedColumn, type);
       AppStore.edaStats.value = stats;
-      AppStore.edaBrushSelection.value = null; // Reset brush
+      AppStore.edaBrushSelection.value = null;
+      AppStore.edaNumericTreatment.value = 'numeric';
+      categoricalOverlay.value = null;
     } else {
       AppStore.edaStats.value = null;
       AppStore.edaBrushSelection.value = null;
+      AppStore.edaNumericTreatment.value = 'numeric';
+      categoricalOverlay.value = null;
     }
   }, [selectedColumn, currentData]);
 
-  // Effect to render charts
+  useEffect(() => {
+    if (showNumericAsCategorical && selectedColumn && currentData) {
+      const overlay = EDAEngine.calculateCategoricalOverlay(currentData, selectedColumn);
+      categoricalOverlay.value = overlay;
+    } else {
+      categoricalOverlay.value = null;
+    }
+  }, [showNumericAsCategorical, selectedColumn, currentData]);
+
   useEffect(() => {
     if (!selectedColumn || !currentData || !edaStats) return;
 
@@ -65,7 +81,12 @@ export function EdaPanel() {
         return el !== null && document.body.contains(el);
       };
 
-      if (isNumeric && view === 'boxplot' && isInDOM(boxPlotRef.current)) {
+      if (
+        isNumeric &&
+        numericTreatment === 'numeric' &&
+        view === 'boxplot' &&
+        isInDOM(boxPlotRef.current)
+      ) {
         try {
           await ChartsEngine.renderBoxPlot(boxPlotRef.current, currentData, selectedColumn, theme);
         } catch (error) {
@@ -73,7 +94,12 @@ export function EdaPanel() {
         }
       }
 
-      if (isNumeric && view === 'histogram' && isInDOM(histogramRef.current)) {
+      if (
+        isNumeric &&
+        numericTreatment === 'numeric' &&
+        view === 'histogram' &&
+        isInDOM(histogramRef.current)
+      ) {
         try {
           await ChartsEngine.renderHistogram(
             histogramRef.current,
@@ -100,15 +126,20 @@ export function EdaPanel() {
         }
       }
 
-      if (isCategorical && isInDOM(categoricalBarRef.current) && edaStats.topValues) {
-        try {
-          await ChartsEngine.renderCategoricalBar(
-            categoricalBarRef.current,
-            edaStats.topValues,
-            theme
-          );
-        } catch (error) {
-          console.error('Error rendering categorical bar:', error);
+      // Categorical bar: either natural categorical, date-as-categorical, or numeric-as-categorical
+      if (isInDOM(categoricalBarRef.current)) {
+        const topValues = showNumericAsCategorical
+          ? categoricalOverlay.value?.topValues
+          : isCategorical && edaStats.topValues
+            ? edaStats.topValues
+            : null;
+
+        if (topValues) {
+          try {
+            await ChartsEngine.renderCategoricalBar(categoricalBarRef.current, topValues, theme);
+          } catch (error) {
+            console.error('Error rendering categorical bar:', error);
+          }
         }
       }
     };
@@ -120,10 +151,13 @@ export function EdaPanel() {
     edaStats,
     view,
     dateTreatment,
+    numericTreatment,
     theme,
     isNumeric,
     isDate,
     isCategorical,
+    showNumericAsCategorical,
+    categoricalOverlay.value,
   ]);
 
   if (!selectedColumn || !edaStats || AppStore.selectedColumns.value.length > 1) return null;
@@ -138,6 +172,13 @@ export function EdaPanel() {
 
   const setDateTreatment = (t: 'temporal' | 'categorical') => {
     AppStore.edaDateTreatment.value = t;
+  };
+
+  const setNumericTreatment = (t: 'numeric' | 'categorical') => {
+    AppStore.edaNumericTreatment.value = t;
+    if (t === 'numeric') {
+      AppStore.edaBrushSelection.value = null;
+    }
   };
 
   const applyBrush = async () => {
@@ -157,6 +198,7 @@ export function EdaPanel() {
 
   const selectStat = (label: string, value: any, e: MouseEvent) => {
     e.stopPropagation();
+
     AppStore.selectedCell.value = null;
 
     const el = e.currentTarget as HTMLElement;
@@ -214,6 +256,22 @@ export function EdaPanel() {
               </button>
             </div>
           )}
+          {isNumeric && (
+            <div class={styles.edaTreatmentToggle}>
+              <button
+                class={`${styles.edaTreatmentToggle__btn} ${numericTreatment === 'numeric' ? styles['edaTreatmentToggle__btn--active'] : ''}`}
+                onClick={() => setNumericTreatment('numeric')}
+              >
+                {t('eda.numericTreatment.numeric')}
+              </button>
+              <button
+                class={`${styles.edaTreatmentToggle__btn} ${numericTreatment === 'categorical' ? styles['edaTreatmentToggle__btn--active'] : ''}`}
+                onClick={() => setNumericTreatment('categorical')}
+              >
+                {t('eda.numericTreatment.categorical')}
+              </button>
+            </div>
+          )}
         </div>
         <button
           class={styles.edaPanel__close}
@@ -227,7 +285,7 @@ export function EdaPanel() {
       <div class={styles.edaPanel__content}>
         <EdaOverview edaStats={edaStats} />
 
-        {isNumeric && (
+        {isNumeric && numericTreatment === 'numeric' && (
           <EdaNumericSection
             edaStats={edaStats}
             view={view}
@@ -237,6 +295,13 @@ export function EdaPanel() {
             onViewChange={setView}
             onApplyBrush={applyBrush}
             onSelectStat={selectStat}
+          />
+        )}
+
+        {showNumericAsCategorical && categoricalOverlay.value && (
+          <EdaCategoricalSection
+            edaStats={categoricalOverlay.value}
+            categoricalBarRef={categoricalBarRef}
           />
         )}
 

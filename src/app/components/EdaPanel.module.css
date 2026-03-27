@@ -4,7 +4,7 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  max-height: 250px;
+  height: 250px;
   box-shadow: var(--shadow-up);
   z-index: var(--z-index-header);
 
@@ -51,6 +51,8 @@
     padding: var(--space-md);
     gap: var(--space-xl);
     overflow-x: auto;
+    flex: 1;
+    min-height: 0;
   }
 }
 
@@ -135,12 +137,6 @@
   height: 100px;
 }
 
-.categoricalLayout {
-  display: flex;
-  gap: var(--space-xl);
-  align-items: start;
-}
-
 .chartSwitcher {
   display: flex;
   background: var(--color-white);
@@ -217,7 +213,7 @@
   display: flex;
   flex-direction: column;
   gap: 4px;
-  min-width: 300px;
+  min-width: 180px;
 }
 
 .edaFreqItem {
@@ -246,7 +242,7 @@
     background: var(--color-light-gray);
     border-radius: 4px;
     overflow: hidden;
-    min-width: 100px;
+    min-width: 60px;
   }
 
   &__bar {

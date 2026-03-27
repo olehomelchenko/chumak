@@ -53,6 +53,17 @@ export interface BaseStats {
 
 export type EDAStats = BaseStats & (NumericStats | { topValues: CategoricalStat[] });
 
+function extractColumnValues(data: any[], column: string) {
+  const values = data.map((row) => row[column]);
+  const totalCount = values.length;
+  const errorCount = values.filter((v) => isConversionError(v)).length;
+  const nullCount = values.filter((v) => v === null || v === undefined || v === '').length;
+  const nonNullValues = values.filter(
+    (v) => v !== null && v !== undefined && v !== '' && !isConversionError(v)
+  );
+  return { values, totalCount, errorCount, nullCount, nonNullValues };
+}
+
 export const EDAEngine = {
   /**
    * Calculate summary statistics for a column
@@ -60,14 +71,7 @@ export const EDAEngine = {
   calculateStats(data: any[], column: string, type: string): EDAStats | null {
     if (!data || data.length === 0) return null;
 
-    const values = data.map((row) => row[column]);
-    const totalCount = values.length;
-    // Separate error objects from nulls
-    const errorCount = values.filter((v) => isConversionError(v)).length;
-    const nullCount = values.filter((v) => v === null || v === undefined || v === '').length;
-    const nonNullValues = values.filter(
-      (v) => v !== null && v !== undefined && v !== '' && !isConversionError(v)
-    );
+    const { totalCount, errorCount, nullCount, nonNullValues } = extractColumnValues(data, column);
     const uniqueValues = new Set(nonNullValues);
 
     // Normalize numeric types: 'float' and 'integer' -> 'number' for EDA stats
@@ -212,6 +216,14 @@ export const EDAEngine = {
     return {
       topValues: top5,
     };
+  },
+
+  /**
+   * Calculate categorical overlay for any column type (used when treating numeric as categorical)
+   */
+  calculateCategoricalOverlay(data: any[], column: string): { topValues: CategoricalStat[] } {
+    const { nonNullValues, totalCount, nullCount, errorCount } = extractColumnValues(data, column);
+    return this.calculateCategoricalStats(nonNullValues, totalCount, nullCount, errorCount);
   },
 
   /**
