@@ -493,6 +493,12 @@
     "numericTreatment": {
       "numeric": "Числовий",
       "categorical": "Категоріальний"
+    },
+    "quickActions": {
+      "removeMissing": "Видалити пропущені рядки",
+      "keepOnlyMissing": "Залишити лише пропущені",
+      "removeErrors": "Видалити рядки з помилками",
+      "keepOnlyErrors": "Залишити лише помилки"
     }
   },
   "typeMenu": {

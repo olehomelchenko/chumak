@@ -7,6 +7,8 @@ interface CellToolbarProps {
   onReplace: () => void;
 }
 
+// TODO: The floatingToolbar wrapper div (positioning + stopPropagation) is repeated
+// in each return branch. Extract a shared ToolbarWrapper to reduce duplication.
 export function CellToolbar({ onFilter, onReplace }: CellToolbarProps) {
   const { t } = useTranslation('ui');
   const selectedCell = AppStore.selectedCell.value;
@@ -18,8 +20,58 @@ export function CellToolbar({ onFilter, onReplace }: CellToolbarProps) {
   const isComparable =
     !isError && ['number', 'integer', 'float', 'date', 'datetime'].includes(type);
 
-  // For EDA stats, only show comparison operators (gt, gte, lt, lte)
   if (isEda) {
+    const { isEdaMissing } = selectedCell;
+
+    if (isEdaMissing || isError) {
+      return (
+        <div
+          class={styles.floatingToolbar}
+          style={
+            {
+              left: `${pos.x}px`,
+              top: `${pos.y}px`,
+              '--arrow-offset': `${pos.arrowOffset}px`,
+            } as any
+          }
+          onClick={(e) => e.stopPropagation()}
+        >
+          <button
+            class={`${styles.floatingToolbar__button} ${styles.danger}`}
+            onClick={() => onFilter('not')}
+            title={
+              isEdaMissing
+                ? t('eda.quickActions.removeMissing')
+                : t('eda.quickActions.removeErrors')
+            }
+          >
+            <span
+              class="iconify"
+              aria-hidden="true"
+              data-icon="carbon:filter-remove"
+              style="width: 24px; height: 24px;"
+            ></span>
+          </button>
+          <button
+            class={styles.floatingToolbar__button}
+            onClick={() => onFilter('exact')}
+            title={
+              isEdaMissing
+                ? t('eda.quickActions.keepOnlyMissing')
+                : t('eda.quickActions.keepOnlyErrors')
+            }
+          >
+            <span
+              class="iconify"
+              aria-hidden="true"
+              data-icon="carbon:filter"
+              style="width: 24px; height: 24px;"
+            ></span>
+          </button>
+        </div>
+      );
+    }
+
     if (!isComparable) return null;
 
     return (

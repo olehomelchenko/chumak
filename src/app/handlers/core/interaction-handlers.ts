@@ -372,11 +372,14 @@ export function selectCell(col: string, value: any, rowIdx: number) {
 export async function applyQuickCellFilter(op: string, callbacks: any) {
   const selectedCell = AppStore.selectedCell.value;
   if (!selectedCell) return;
-  const { col, value, type, isError } = selectedCell;
+  const { col, value, type, isError, isEdaMissing } = selectedCell;
   let expr = '';
-  if (isError) {
+  if (isEdaMissing) {
+    if (op === 'exact') expr = `[${col}] == null`;
+    else if (op === 'not') expr = `[${col}] != null`;
+  } else if (isError) {
     if (op === 'exact') expr = `is_error([${col}])`;
-    else if (op === 'not') expr = `!is_error([${col}])`;
+    else if (op === 'not') expr = `not is_error([${col}])`;
   } else {
     const formattedValue = HelperHandlers.formatLiteral.call(null as any, value, type);
     if (op === 'exact') expr = `[${col}] == ${formattedValue}`;

@@ -600,6 +600,8 @@ Located in `src/app/components/eda/`:
 
 **Treatment toggles**: Date and numeric columns support a "treatment toggle" in the panel header that switches between their native view and a categorical view. Each toggle is backed by a signal (`edaDateTreatment`, `edaNumericTreatment`). When categorical is selected for numeric columns, `EDAEngine.calculateCategoricalOverlay()` computes frequency stats lazily. Both sections share the same `edaChartGrid` layout (chart left, detail panel right).
 
+**Actionable data rule**: All interactive data elements in the EDA panel (stat values, missing/error counts) must use the shared `CellToolbar` via `AppStore.selectedCell` — not bespoke dropdowns. Set `selectedCell` with appropriate flags (`isEda`, `isEdaMissing`, `isError`) and position the toolbar via `cellToolbarPos`. This keeps the interaction pattern consistent with cell clicks in the data table. Visually, actionable data uses a faint background tint at rest + an icon hint on hover (see `edaStat--clickable` pattern).
+
 ### 7.4 Pipeline Components
 
 | Component             | Purpose                                      |

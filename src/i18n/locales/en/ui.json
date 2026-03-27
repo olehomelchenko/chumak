@@ -484,6 +484,12 @@
     "numericTreatment": {
       "numeric": "Numeric",
       "categorical": "Categorical"
+    },
+    "quickActions": {
+      "removeMissing": "Remove missing rows",
+      "keepOnlyMissing": "Keep only missing",
+      "removeErrors": "Remove error rows",
+      "keepOnlyErrors": "Keep only errors"
     }
   },
   "typeMenu": {

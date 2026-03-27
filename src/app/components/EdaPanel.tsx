@@ -199,7 +199,10 @@ export function EdaPanel() {
   const selectStat = (label: string, value: any, e: MouseEvent) => {
     e.stopPropagation();
 
+    // Null-then-set via setTimeout forces toolbar to remount (see EdaOverview.openToolbar)
     AppStore.selectedCell.value = null;
+
+    // TODO: Duplicated positioning logic — see EdaOverview.openToolbar TODO
 
     const el = e.currentTarget as HTMLElement;
     if (!el) return;

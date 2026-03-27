@@ -191,6 +191,34 @@
   display: flex;
   flex-direction: column;
 
+  padding: 4px 6px;
+  border-radius: var(--border-radius);
+
+  &--clickable {
+    cursor: pointer;
+    background: color-mix(in srgb, var(--color-red) 6%, transparent);
+    transition: background var(--transition-fast);
+    position: relative;
+
+    &:hover {
+      background: color-mix(in srgb, var(--color-red) 12%, transparent);
+    }
+
+    & .edaStat__actionHint {
+      position: absolute;
+      top: 4px;
+      right: 4px;
+      opacity: 0;
+      transition: opacity var(--transition-fast);
+      color: var(--color-red);
+      font-size: 12px;
+      line-height: 1;
+    }
+
+    &:hover .edaStat__actionHint {
+      opacity: 0.7;
+    }
+  }
   &__label {
     font-size: 11px;
     color: var(--color-dark-gray);

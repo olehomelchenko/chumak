@@ -215,6 +215,8 @@ export interface AppState {
     rowIdx?: number;
     isEda?: boolean;
     edaLabel?: string;
+    isEdaMissing?: boolean;
+    isError?: boolean;
   } | null;
   cellToolbarPos: { x: number; y: number; arrowOffset?: number };
   edaStats: EDAStats | null;
