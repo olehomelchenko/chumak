@@ -74,7 +74,6 @@ export function MainContent(props: MainContentProps) {
             onOpenTypeMenu={props.onOpenTypeMenu}
             onOpenColumnMenu={props.onOpenColumnMenu}
             onScroll={props.onScroll}
-            onErrorCellClick={props.onErrorCellClick}
           />
         </>
       )}

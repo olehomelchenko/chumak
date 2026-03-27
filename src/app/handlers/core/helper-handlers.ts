@@ -231,9 +231,9 @@ export function formatCellValue(value: any): string {
 export function formatCellValueForTooltip(value: any): string {
   if (value === null || value === undefined || value === '') return 'null';
 
-  // Handle error objects - return "Error" instead of "[Object object]"
+  // Handle error objects - show the error message in tooltip
   if (isConversionError(value)) {
-    return 'Error';
+    return value.message ? `Error: ${value.message}` : 'Error';
   }
 
   // Handle boolean values

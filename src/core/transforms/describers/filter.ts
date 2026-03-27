@@ -17,8 +17,15 @@ export function describeConditional(transform: any): string | null {
 
 export function describeReplace(transform: any): string | null {
   if (!transform.replace) return null;
-  const { column, find } = transform.replace;
-  const findDisplay = find === null ? '(null)' : String(find).substring(0, 20);
+  const { column, find, matchMode } = transform.replace;
+  const findDisplay =
+    matchMode === 'errors'
+      ? '(errors)'
+      : matchMode === 'null'
+        ? '(null)'
+        : find === null
+          ? '(null)'
+          : String(find).substring(0, 20);
   return i18n.t('transforms:filter.replace', { column, find: findDisplay });
 }
 

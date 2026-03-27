@@ -14,8 +14,9 @@ export function CellToolbar({ onFilter, onReplace }: CellToolbarProps) {
 
   if (!selectedCell || AppStore.selectedRows.value.length > 0) return null;
 
-  const { type, isEda } = selectedCell;
-  const isComparable = ['number', 'integer', 'float', 'date', 'datetime'].includes(type);
+  const { type, isEda, isError } = selectedCell;
+  const isComparable =
+    !isError && ['number', 'integer', 'float', 'date', 'datetime'].includes(type);
 
   // For EDA stats, only show comparison operators (gt, gte, lt, lte)
   if (isEda) {

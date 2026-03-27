@@ -220,6 +220,12 @@
   },
   "replace": {
     "columnLabel": "Column:",
+    "findLabel": "Find:",
+    "findModes": {
+      "value": "Value",
+      "errors": "Errors",
+      "null": "Null"
+    },
     "findPattern": "Find pattern:",
     "findValue": "Find value:",
     "patternPlaceholder": "Regular expression pattern",
@@ -227,6 +233,8 @@
     "useRegex": "Use regex pattern (e.g., \\d+ for numbers, (?i)hello for case-insensitive)",
     "regexHelp": "Regular expression pattern to match (automatically applies globally)",
     "valueHelp": "The exact value to find and replace",
+    "errorHelp": "All conversion error values in this column will be replaced.",
+    "nullHelp": "All null (empty) values in this column will be replaced.",
     "replaceWith": "Replace with:",
     "replacementPlaceholderRegex": "Replacement (supports $1, $2 for groups)",
     "replacementPlaceholder": "New value (leave empty for null)",

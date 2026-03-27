@@ -685,6 +685,72 @@ describe('Transform Engine - Basic Operations', () => {
     });
   });
 
+  describe('applyTransform() - REPLACE', () => {
+    it('should replace exact value', () => {
+      const table = (aq as any).from([
+        { name: 'Alice', city: 'London' },
+        { name: 'Bob', city: 'Paris' },
+        { name: 'Carol', city: 'London' },
+      ]);
+      const transform = {
+        replace: { column: 'city', find: 'London', replace: 'Berlin', isRegex: false },
+      };
+      const result = applyTransform(table, transform, ['name', 'city']);
+      const rows = result.objects();
+      expect(rows[0].city).toBe('Berlin');
+      expect(rows[1].city).toBe('Paris');
+      expect(rows[2].city).toBe('Berlin');
+    });
+
+    it('should replace conversion errors with matchMode "errors"', () => {
+      const table = (aq as any).from([
+        { value: 10 },
+        { value: { type: 'error', message: 'Cannot convert "abc"' } },
+        { value: 20 },
+        { value: { type: 'error', message: 'Cannot convert "xyz"' } },
+      ]);
+      const transform = {
+        replace: { column: 'value', find: null, replace: '0', matchMode: 'errors' },
+      };
+      const result = applyTransform(table, transform, ['value']);
+      const rows = result.objects();
+      expect(rows[0].value).toBe(10);
+      expect(rows[1].value).toBe('0');
+      expect(rows[2].value).toBe(20);
+      expect(rows[3].value).toBe('0');
+    });
+
+    it('should replace null values with matchMode "null"', () => {
+      const table = (aq as any).from([
+        { value: 'hello' },
+        { value: null },
+        { value: 'world' },
+        { value: undefined },
+      ]);
+      const transform = {
+        replace: { column: 'value', find: null, replace: 'N/A', matchMode: 'null' },
+      };
+      const result = applyTransform(table, transform, ['value']);
+      const rows = result.objects();
+      expect(rows[0].value).toBe('hello');
+      expect(rows[1].value).toBe('N/A');
+      expect(rows[2].value).toBe('world');
+      expect(rows[3].value).toBe('N/A');
+    });
+
+    it('should not replace non-error values in matchMode "errors"', () => {
+      const table = (aq as any).from([{ value: null }, { value: 'text' }, { value: 0 }]);
+      const transform = {
+        replace: { column: 'value', find: null, replace: 'replaced', matchMode: 'errors' },
+      };
+      const result = applyTransform(table, transform, ['value']);
+      const rows = result.objects();
+      expect(rows[0].value).toBe(null);
+      expect(rows[1].value).toBe('text');
+      expect(rows[2].value).toBe(0);
+    });
+  });
+
   describe('describeTransform() - SORT', () => {
     it('should describe single-field sort (object form)', () => {
       expect(describeTransform({ sort: { field: 'name', order: 'asc' } })).toBe(

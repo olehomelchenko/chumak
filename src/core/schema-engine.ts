@@ -42,7 +42,13 @@ export interface TransformStep {
   derive?: Record<string, string>;
   filter?: string;
   sort?: { field: string; order: 'asc' | 'desc' } | Array<{ field: string; order: 'asc' | 'desc' }>;
-  replace?: { column: string; find: any; replace: any; isRegex?: boolean };
+  replace?: {
+    column: string;
+    find: any;
+    replace: any;
+    isRegex?: boolean;
+    matchMode?: 'errors' | 'null';
+  };
   dedupe?: { columns?: string[]; mode?: 'remove' | 'keep' };
   join?: any;
   import?: {

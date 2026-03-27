@@ -94,8 +94,19 @@ export function handleConditional(table: any, transform: FullTransformStep, sche
 }
 
 export function handleReplace(table: any, transform: FullTransformStep): any {
-  const { column, find, replace, isRegex } = transform.replace!;
+  const { column, find, replace, isRegex, matchMode } = transform.replace!;
   const rows = table.objects();
+
+  if (matchMode) {
+    const shouldReplace =
+      matchMode === 'errors'
+        ? (v: any) => isConversionError(v)
+        : (v: any) => v === null || v === undefined;
+    return (aq as any).from(
+      rows.map((row: any) => (shouldReplace(row[column]) ? { ...row, [column]: replace } : row))
+    );
+  }
+
   const resultRows = rows.map((row: any) => {
     const currentValue = row[column];
 

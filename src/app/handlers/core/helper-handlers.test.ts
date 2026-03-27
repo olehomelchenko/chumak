@@ -65,8 +65,13 @@ describe('helper-handlers', () => {
   describe('formatCellValueForTooltip', () => {
     // Note: formatCellValueForTooltip no longer uses `this` context - it's now a pure function
 
-    it('should format error objects as "Error"', () => {
+    it('should format error objects with message', () => {
       const errorObj = { type: 'error', message: 'Cannot convert "abc" to integer' };
+      expect(formatCellValueForTooltip(errorObj)).toBe('Error: Cannot convert "abc" to integer');
+    });
+
+    it('should format error objects without message as "Error"', () => {
+      const errorObj = { type: 'error', message: '' };
       expect(formatCellValueForTooltip(errorObj)).toBe('Error');
     });
 

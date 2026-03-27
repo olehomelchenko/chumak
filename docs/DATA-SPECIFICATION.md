@@ -353,7 +353,7 @@ interface TransformStep {
 
   // Value operations
   derive?: Record<string, string>;    // column -> expression
-  replace?: { column: string; find: any; replace: any; isRegex?: boolean };
+  replace?: { column: string; find: any; replace: any; isRegex?: boolean; matchMode?: 'errors' | 'null' };
   types?: Record<string, ColumnType>;
   addIndex?: { columnName: string; startFrom?: number };
 
@@ -419,6 +419,13 @@ With regex pattern (e.g., format phone numbers):
     "isRegex": true
   }
 }
+```
+
+Replace conversion errors or null values (`matchMode` skips `find`/`isRegex`):
+
+```json
+{ "replace": { "column": "price", "replace": "0", "matchMode": "errors" } }
+{ "replace": { "column": "name", "replace": "Unknown", "matchMode": "null" } }
 ```
 
 **Remove Rows** — Remove specific rows by index:

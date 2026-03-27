@@ -364,22 +364,28 @@ export function selectCell(col: string, value: any, rowIdx: number) {
   } else {
     type = typeof value === 'number' ? 'number' : 'string';
   }
-  AppStore.selectedCell.value = { col, value, type, rowIdx };
+  const isError = isConversionError(value);
+  AppStore.selectedCell.value = { col, value, type, rowIdx, isError };
   requestAnimationFrame(() => updateToolbarPosition());
 }
 
 export async function applyQuickCellFilter(op: string, callbacks: any) {
   const selectedCell = AppStore.selectedCell.value;
   if (!selectedCell) return;
-  const { col, value, type } = selectedCell;
+  const { col, value, type, isError } = selectedCell;
   let expr = '';
-  const formattedValue = HelperHandlers.formatLiteral.call(null as any, value, type);
-  if (op === 'exact') expr = `[${col}] == ${formattedValue}`;
-  else if (op === 'not') expr = `[${col}] != ${formattedValue}`;
-  else if (op === 'gt') expr = `[${col}] > ${formattedValue}`;
-  else if (op === 'gte') expr = `[${col}] >= ${formattedValue}`;
-  else if (op === 'lt') expr = `[${col}] < ${formattedValue}`;
-  else if (op === 'lte') expr = `[${col}] <= ${formattedValue}`;
+  if (isError) {
+    if (op === 'exact') expr = `is_error([${col}])`;
+    else if (op === 'not') expr = `!is_error([${col}])`;
+  } else {
+    const formattedValue = HelperHandlers.formatLiteral.call(null as any, value, type);
+    if (op === 'exact') expr = `[${col}] == ${formattedValue}`;
+    else if (op === 'not') expr = `[${col}] != ${formattedValue}`;
+    else if (op === 'gt') expr = `[${col}] > ${formattedValue}`;
+    else if (op === 'gte') expr = `[${col}] >= ${formattedValue}`;
+    else if (op === 'lt') expr = `[${col}] < ${formattedValue}`;
+    else if (op === 'lte') expr = `[${col}] <= ${formattedValue}`;
+  }
   if (expr) {
     DialogStore.filterState.expression.value = expr;
     DialogStore.filterState.error.value = null;
@@ -534,11 +540,20 @@ export function quickSplit(onOpenDialog: (name: string) => void) {
 export function quickReplace(onOpenDialog: (name: string) => void) {
   const selectedCell = AppStore.selectedCell.value;
   if (!selectedCell) return;
-  const { col, value } = selectedCell;
+  const { col, value, isError } = selectedCell;
 
   const state = DialogStore.replaceState;
   state.column.value = col;
-  state.findValue.value = value;
+  if (isError) {
+    state.findMode.value = 'errors';
+    state.findValue.value = '';
+  } else if (value === null || value === undefined) {
+    state.findMode.value = 'null';
+    state.findValue.value = '';
+  } else {
+    state.findMode.value = 'value';
+    state.findValue.value = value;
+  }
   state.replaceValue.value = '';
 
   onOpenDialog('replace');

@@ -569,8 +569,8 @@ Manages dialog lifecycle:
 
 ### 6.5 Error Handling & Display
 
-- **Error Cells**: Type conversion failures produce error objects (Power Query-style) displayed as "Error" with a warning icon in table cells.
-- **Error Visibility**: Clicking an error cell shows the full error message in an alert dialog.
+- **Error Cells**: Type conversion failures produce error objects (Power Query-style) displayed as "Error" with a warning icon in table cells. Hovering shows the full error message in the tooltip.
+- **Error Interaction**: Error cells behave like regular cells — clicking selects the cell and shows the cell toolbar with filter (keep/exclude errors) and replace actions. Comparison operators are hidden since errors are not comparable.
 - **EDA Integration**: Errors are tracked separately from nulls in EDA statistics:
   - EDA panel displays error count and percentage in a 2x2 grid (Total Rows | Missing | Unique Values | Errors)
   - Categorical bar charts display errors as a separate category with dark red color (#8B0000) at the end of the stack

@@ -17,7 +17,6 @@ export interface DataTableProps {
   onOpenColumnMenu: (column: string, event: MouseEvent) => void;
   onSelectRow: (absoluteRowIndex: number, event: MouseEvent) => void;
   onScroll: () => void;
-  onErrorCellClick?: (message: string) => void;
 }
 
 export function DataTable({
@@ -32,7 +31,6 @@ export function DataTable({
   onOpenColumnMenu,
   onSelectRow,
   onScroll,
-  onErrorCellClick,
 }: DataTableProps) {
   const { t } = useTranslation('ui');
   const columns = AppStore.columns;
@@ -311,12 +309,7 @@ export function DataTable({
                         title={`${column}: ${formatCellValueForTooltip(cellValue)}`}
                         onClick={(e) => {
                           e.stopPropagation();
-                          // If it's an error cell and we have a click handler, show the error message
-                          if (isError && onErrorCellClick && cellValue.message) {
-                            onErrorCellClick(cellValue.message);
-                          } else {
-                            onSelectCell(column, cellValue, rowIndex, e as unknown as MouseEvent);
-                          }
+                          onSelectCell(column, cellValue, rowIndex, e as unknown as MouseEvent);
                         }}
                       >
                         {isError ? (

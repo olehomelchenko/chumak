@@ -123,7 +123,6 @@ import {
   goToLastPage,
   updatePageSize,
 } from '../handlers/core/pagination-handlers';
-import { alert } from '../handlers/core/notification-handlers';
 import { openColumnMenu, openTypeMenu, selectCell } from '../handlers/core/interaction-handlers';
 import { AppController } from '../orchestration/AppController';
 import styles from './App.module.css';
@@ -223,9 +222,6 @@ export function App() {
     },
     onOpenTypeMenu: (c: string, pos: { x: number; y: number }) => openTypeMenu(c, pos),
     onScroll: () => {}, // Table scroll handler removed - not needed
-    onErrorCellClick: (message: string) => {
-      alert(message, 'Conversion Error');
-    },
   };
 
   const typeMenuProps = {

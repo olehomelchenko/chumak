@@ -2,12 +2,15 @@ import { useTranslation } from 'preact-i18next';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 import { ColumnSelector } from './column-selector';
+import type { ReplaceFindMode } from '../stores/dialogs/transform/replace-state';
 import styles from './form-controls.module.css';
 
 export function ReplaceDialog() {
   const { t } = useTranslation('dialogs');
-  const { column, findValue, replaceValue, isRegex } = DialogStore.replaceState;
+  const { column, findMode, findValue, replaceValue, isRegex } = DialogStore.replaceState;
   const columns = AppStore.columns.value;
+  const mode = findMode.value;
+
   return (
     <div>
       <div class={styles.group}>
@@ -22,32 +25,54 @@ export function ReplaceDialog() {
       </div>
 
       <div class={styles.group}>
-        <label class={styles.label}>
-          {isRegex.value ? t('replace.findPattern') : t('replace.findValue')}
-        </label>
-        <input
-          type="text"
-          class={styles.input}
-          value={findValue.value}
-          onInput={(e) => (findValue.value = (e.target as HTMLInputElement).value)}
-          placeholder={
-            isRegex.value ? t('replace.patternPlaceholder') : t('replace.valuePlaceholder')
-          }
-        />
-        <div style={{ marginTop: '8px' }}>
-          <label class={styles.checkboxLabel}>
-            <input
-              type="checkbox"
-              checked={isRegex.value}
-              onChange={(e) => (isRegex.value = (e.target as HTMLInputElement).checked)}
-            />
-            <span style={{ fontSize: '13px' }}>{t('replace.useRegex')}</span>
-          </label>
+        <label class={styles.label}>{t('replace.findLabel')}</label>
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          {(['value', 'errors', 'null'] as ReplaceFindMode[]).map((m) => (
+            <button
+              key={m}
+              type="button"
+              class={`${styles.toggleButton} ${mode === m ? styles.active : ''}`}
+              onClick={() => (findMode.value = m)}
+            >
+              {t(`replace.findModes.${m}`)}
+            </button>
+          ))}
         </div>
-        <p class={styles.helpText}>
-          {isRegex.value ? t('replace.regexHelp') : t('replace.valueHelp')}
-        </p>
       </div>
+
+      {mode === 'value' && (
+        <div class={styles.group}>
+          <label class={styles.label}>
+            {isRegex.value ? t('replace.findPattern') : t('replace.findValue')}
+          </label>
+          <input
+            type="text"
+            class={styles.input}
+            value={findValue.value}
+            onInput={(e) => (findValue.value = (e.target as HTMLInputElement).value)}
+            placeholder={
+              isRegex.value ? t('replace.patternPlaceholder') : t('replace.valuePlaceholder')
+            }
+          />
+          <div style={{ marginTop: '8px' }}>
+            <label class={styles.checkboxLabel}>
+              <input
+                type="checkbox"
+                checked={isRegex.value}
+                onChange={(e) => (isRegex.value = (e.target as HTMLInputElement).checked)}
+              />
+              <span style={{ fontSize: '13px' }}>{t('replace.useRegex')}</span>
+            </label>
+          </div>
+          <p class={styles.helpText}>
+            {isRegex.value ? t('replace.regexHelp') : t('replace.valueHelp')}
+          </p>
+        </div>
+      )}
+
+      {mode === 'errors' && <p class={styles.helpText}>{t('replace.errorHelp')}</p>}
+
+      {mode === 'null' && <p class={styles.helpText}>{t('replace.nullHelp')}</p>}
 
       <div class={styles.group}>
         <label class={styles.label}>{t('replace.replaceWith')}</label>
@@ -57,17 +82,21 @@ export function ReplaceDialog() {
           value={replaceValue.value}
           onInput={(e) => (replaceValue.value = (e.target as HTMLInputElement).value)}
           placeholder={
-            isRegex.value
+            mode === 'value' && isRegex.value
               ? t('replace.replacementPlaceholderRegex')
               : t('replace.replacementPlaceholder')
           }
         />
         <p class={styles.helpText}>
-          {isRegex.value ? t('replace.replacementHelpRegex') : t('replace.replacementHelp')}
+          {mode === 'value' && isRegex.value
+            ? t('replace.replacementHelpRegex')
+            : t('replace.replacementHelp')}
         </p>
       </div>
 
-      {isRegex.value && <p class={styles.helpText}>{t('replace.numericTip')}</p>}
+      {mode === 'value' && isRegex.value && (
+        <p class={styles.helpText}>{t('replace.numericTip')}</p>
+      )}
     </div>
   );
 }

@@ -307,7 +307,8 @@ export function editStep(stepIndex: number): void {
     callbacks?.openDialog('replace');
     const state = DialogStore.replaceState;
     state.column.value = step.replace.column;
-    state.findValue.value = step.replace.find;
+    state.findMode.value = step.replace.matchMode ?? 'value';
+    state.findValue.value = step.replace.find ?? '';
     state.replaceValue.value = step.replace.replace;
   } else if (step.split) {
     callbacks?.openDialog('split');
