@@ -6,6 +6,15 @@ Historical record of completed features and improvements, organized chronologica
 
 ## March 2026
 
+### v0.4.0
+
+- **DuckDB-WASM experimental engine** — Optional SQL-based computation engine for EDA stats and transforms, selectable in Settings. Loads on demand (~3.5 MB WASM), falls back gracefully to the JS engine on failure.
+- **Clickable missing/error counts** — Missing and error counts in the EDA panel are now clickable, applying filter actions directly.
+- **Numeric/categorical treatment toggle** — EDA panel gains a toggle to view numeric columns as categorical (top values + frequency bars).
+- **Landing page rework** — Restyled main landing page.
+- **About page** — Added about page content.
+- **DuckDB race condition fixes** — Eliminated EDA panel flicker caused by dual sync/async computation paths; added execution queue to serialize DuckDB queries.
+
 ### v0.3.0
 
 - **Interactive error cells** — Error cells now behave like regular cells: clicking selects them, hovering shows the error message in a tooltip. Cell toolbar offers filter (keep/exclude errors) and replace actions. Comparison operators are hidden since errors are not comparable.
