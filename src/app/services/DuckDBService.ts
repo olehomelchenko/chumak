@@ -15,6 +15,8 @@ interface DuckDBInstance {
 let instance: DuckDBInstance | null = null;
 let initPromise: Promise<DuckDBInstance | null> | null = null;
 let available = true;
+// Serializes execute() calls so concurrent callers don't clobber the shared "input" table.
+let execQueue: Promise<unknown> = Promise.resolve();
 
 async function init(): Promise<DuckDBInstance | null> {
   try {
@@ -97,47 +99,58 @@ export const DuckDBService = {
     const inst = await ensureInstance();
     if (!inst) return null;
 
-    try {
-      // Register data as JSON buffer → temp table
-      const jsonStr = JSON.stringify(data);
-      const encoder = new TextEncoder();
-      const buffer = encoder.encode(jsonStr);
-      await inst.db.registerFileBuffer('_input.json', buffer);
-      await inst.conn.query(
-        `CREATE OR REPLACE TABLE input AS SELECT * FROM read_json_auto('_input.json')`
-      );
-
-      // Run the transform query
-      const result = await inst.conn.query(sql);
-
-      // Extract columns and rows
-      const columns = result.schema.fields.map((f: any) => f.name);
-      const rows: any[] = [];
-      for (let i = 0; i < result.numRows; i++) {
-        const row: any = {};
-        for (const col of columns) {
-          const val = result.getChild(col)?.get(i);
-          // Convert BigInt to Number for JSON compatibility
-          row[col] = typeof val === 'bigint' ? Number(val) : val;
-        }
-        rows.push(row);
-      }
-
-      return { data: rows, columns };
-    } catch (error) {
-      if (import.meta.env.DEV) {
-        console.warn('[DuckDB] Query failed, falling back to Arquero:', error);
-        console.warn('[DuckDB] SQL was:', sql);
-      }
-      return null;
-    } finally {
+    // Chain onto the queue so only one query uses the "input" table at a time.
+    const result = execQueue.then(async () => {
       try {
-        await inst.conn.query('DROP TABLE IF EXISTS input');
-        await inst.db.dropFile('_input.json');
-      } catch {
-        // cleanup errors are non-fatal
+        // Register data as JSON buffer → temp table
+        const jsonStr = JSON.stringify(data);
+        const encoder = new TextEncoder();
+        const buffer = encoder.encode(jsonStr);
+        await inst.db.registerFileBuffer('_input.json', buffer);
+        await inst.conn.query(
+          `CREATE OR REPLACE TABLE input AS SELECT * FROM read_json_auto('_input.json')`
+        );
+
+        // Run the transform query
+        const queryResult = await inst.conn.query(sql);
+
+        // Extract columns and rows
+        const columns = queryResult.schema.fields.map((f: any) => f.name);
+        const rows: any[] = [];
+        for (let i = 0; i < queryResult.numRows; i++) {
+          const row: any = {};
+          for (const col of columns) {
+            const val = queryResult.getChild(col)?.get(i);
+            // Convert BigInt to Number for JSON compatibility
+            row[col] = typeof val === 'bigint' ? Number(val) : val;
+          }
+          rows.push(row);
+        }
+
+        return { data: rows, columns };
+      } catch (error) {
+        if (import.meta.env.DEV) {
+          console.warn('[DuckDB] Query failed, falling back to Arquero:', error);
+          console.warn('[DuckDB] SQL was:', sql);
+        }
+        return null;
+      } finally {
+        try {
+          await inst.conn.query('DROP TABLE IF EXISTS input');
+          await inst.db.dropFile('_input.json');
+        } catch {
+          // cleanup errors are non-fatal
+        }
       }
-    }
+    });
+
+    // Keep the queue moving even if this query fails.
+    execQueue = result.then(
+      () => {},
+      () => {}
+    );
+
+    return result;
   },
 
   /**
@@ -153,6 +166,7 @@ export const DuckDBService = {
       }
       instance = null;
       initPromise = null;
+      execQueue = Promise.resolve();
     }
   },
 };

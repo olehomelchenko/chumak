@@ -1,6 +1,3 @@
-import { SchemaEngine } from '../../../core/schema-engine';
-import { EDAEngine } from '../../../core/eda-engine';
-import { ChartsEngine } from '../../../core/charts';
 import { AppStore } from '../../stores/AppStore';
 import { DialogStore } from '../../stores/DialogStore';
 import * as FilterHandlers from '../transform/filter-handlers';
@@ -86,65 +83,6 @@ export function selectColumn(col: string, modifiers?: { shift?: boolean; meta?: 
     AppStore.rowSelectionAnchor.value = null;
     requestAnimationFrame(() => callbacks?.updateToolbarPosition());
   }
-
-  const currentData = AppStore.currentData.value;
-  const selectedColumn = AppStore.selectedColumn.value;
-
-  if (selectedColumn && currentData) {
-    // Get column schema
-    let colSchema = null;
-    const activeModel = AppStore.activeModel.value;
-    const activeSource = AppStore.activeSource.value;
-
-    if (activeModel?.schema) {
-      colSchema = activeModel.schema.find((c: any) => c.name === selectedColumn);
-    } else if (activeSource?.columns) {
-      colSchema = activeSource.columns.find((c: any) => c.name === selectedColumn);
-    }
-
-    const type = colSchema
-      ? colSchema.type
-      : SchemaEngine.inferType(currentData.slice(0, 20).map((r: any) => r[selectedColumn]));
-
-    // Calculate EDA stats
-    AppStore.edaStats.value = EDAEngine.calculateStats(currentData, selectedColumn, type);
-    AppStore.edaBrushSelection.value = null;
-
-    const theme = AppStore.theme.value;
-    const edaChartView = AppStore.edaChartView.value;
-    const edaDateTreatment = AppStore.edaDateTreatment.value;
-    const edaStats = AppStore.edaStats.value;
-
-    // Render appropriate chart based on type
-    if (['integer', 'float', 'number'].includes(type)) {
-      requestAnimationFrame(() => {
-        if (edaChartView === 'boxplot') {
-          ChartsEngine.renderBoxPlot('#eda-boxplot', currentData, selectedColumn, theme);
-        } else {
-          ChartsEngine.renderHistogram(
-            '#eda-histogram',
-            currentData,
-            selectedColumn,
-            theme,
-            (sel: any) => handleBrushSelection(sel)
-          );
-        }
-      });
-    } else if (['date', 'datetime'].includes(type) && edaDateTreatment === 'temporal') {
-      requestAnimationFrame(() =>
-        ChartsEngine.renderTemporalChart('#eda-temporal-chart', currentData, selectedColumn, theme)
-      );
-    } else {
-      requestAnimationFrame(() => {
-        if (edaStats && 'topValues' in edaStats) {
-          ChartsEngine.renderCategoricalBar('#eda-categorical-bar', edaStats.topValues, theme);
-        }
-      });
-    }
-  } else {
-    AppStore.edaStats.value = null;
-    AppStore.edaBrushSelection.value = null;
-  }
 }
 
 /**
@@ -184,30 +122,6 @@ export function selectEdaStat(label: string, rawValue: any, event: any): void {
 export function setEdaChartView(view: 'boxplot' | 'histogram'): void {
   AppStore.edaChartView.value = view;
   AppStore.edaBrushSelection.value = null;
-
-  const selectedColumn = AppStore.selectedColumn.value;
-  const edaStats = AppStore.edaStats.value;
-  const currentData = AppStore.currentData.value;
-  const theme = AppStore.theme.value;
-
-  if (selectedColumn && edaStats && currentData) {
-    const type = edaStats.type;
-    if (['integer', 'float', 'number'].includes(type)) {
-      requestAnimationFrame(() => {
-        if (view === 'boxplot') {
-          ChartsEngine.renderBoxPlot('#eda-boxplot', currentData, selectedColumn, theme);
-        } else {
-          ChartsEngine.renderHistogram(
-            '#eda-histogram',
-            currentData,
-            selectedColumn,
-            theme,
-            (sel: any) => handleBrushSelection(sel)
-          );
-        }
-      });
-    }
-  }
 }
 
 /**
@@ -215,23 +129,6 @@ export function setEdaChartView(view: 'boxplot' | 'histogram'): void {
  */
 export function setEdaDateTreatment(treatment: 'temporal' | 'categorical'): void {
   AppStore.edaDateTreatment.value = treatment;
-
-  const selectedColumn = AppStore.selectedColumn.value;
-  const edaStats = AppStore.edaStats.value;
-  const currentData = AppStore.currentData.value;
-  const theme = AppStore.theme.value;
-
-  if (selectedColumn && edaStats && currentData && ['date', 'datetime'].includes(edaStats.type)) {
-    requestAnimationFrame(() => {
-      if (treatment === 'temporal') {
-        ChartsEngine.renderTemporalChart('#eda-temporal-chart', currentData, selectedColumn, theme);
-      } else {
-        if (edaStats && 'topValues' in edaStats) {
-          ChartsEngine.renderCategoricalBar('#eda-categorical-bar', edaStats.topValues, theme);
-        }
-      }
-    });
-  }
 }
 
 /**
