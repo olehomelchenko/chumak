@@ -3,7 +3,7 @@ import { useSignal } from '@preact/signals';
 import { useTranslation } from 'preact-i18next';
 import { AppStore } from '../stores/AppStore';
 import { DialogStore } from '../stores/DialogStore';
-import { ChartsEngine } from '../../core/charts';
+import { ChartsEngine, BoxPlotStats } from '../../core/charts';
 import { CategoricalStat } from '../../core/eda-engine';
 import { SchemaEngine } from '../../core/schema-engine';
 import { computeEdaStats, computeCategoricalOverlay } from '../services/eda-compute';
@@ -12,6 +12,22 @@ import { EdaOverview, EdaNumericSection, EdaCategoricalSection } from './eda';
 import * as FilterHandlers from '../handlers/transform/filter-handlers';
 import * as HelperHandlers from '../handlers/core/helper-handlers';
 import styles from './EdaPanel.module.css';
+
+/** Sample up to `n` rows with valid numeric values for `column`. Returns sampled rows and total valid count. */
+function sampleRows(data: any[], column: string, n: number): { rows: any[]; totalValid: number } {
+  const valid = data.filter((row) => {
+    const v = row[column];
+    return v !== null && v !== undefined && v !== '' && typeof v === 'number' && isFinite(v);
+  });
+  if (valid.length <= n) return { rows: valid, totalValid: valid.length };
+  // Partial Fisher-Yates shuffle to pick n random elements
+  const result = valid.slice();
+  for (let i = result.length - 1; i > 0 && i >= result.length - n; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [result[i], result[j]] = [result[j], result[i]];
+  }
+  return { rows: result.slice(result.length - n), totalValid: valid.length };
+}
 
 export function EdaPanel() {
   const { t } = useTranslation('ui');
@@ -30,6 +46,7 @@ export function EdaPanel() {
   const brushSelection = AppStore.edaBrushSelection.value;
 
   const categoricalOverlay = useSignal<{ topValues: CategoricalStat[] } | null>(null);
+  const boxPlotSampleSize = useSignal<{ sampled: number; total: number } | null>(null);
   const statsRequestId = useRef(0);
   const overlayRequestId = useRef(0);
 
@@ -97,10 +114,30 @@ export function EdaPanel() {
         isNumeric &&
         numericTreatment === 'numeric' &&
         view === 'boxplot' &&
-        isInDOM(boxPlotRef.current)
+        isInDOM(boxPlotRef.current) &&
+        edaStats.raw
       ) {
         try {
-          await ChartsEngine.renderBoxPlot(boxPlotRef.current, currentData, selectedColumn, theme);
+          const raw = edaStats.raw;
+          const stats: BoxPlotStats = {
+            min: raw.min,
+            max: raw.max,
+            p25: raw.p25,
+            median: raw.median,
+            p75: raw.p75,
+          };
+          const { rows: sampleData, totalValid } = sampleRows(currentData, selectedColumn, 1000);
+          boxPlotSampleSize.value =
+            sampleData.length < totalValid
+              ? { sampled: sampleData.length, total: totalValid }
+              : null;
+          await ChartsEngine.renderBoxPlot(
+            boxPlotRef.current,
+            sampleData,
+            selectedColumn,
+            stats,
+            theme
+          );
         } catch (error) {
           console.error('Error rendering box plot:', error);
         }
@@ -307,6 +344,7 @@ export function EdaPanel() {
             brushSelection={brushSelection}
             boxPlotRef={boxPlotRef}
             histogramRef={histogramRef}
+            sampleSize={boxPlotSampleSize.value}
             onViewChange={setView}
             onApplyBrush={applyBrush}
             onSelectStat={selectStat}

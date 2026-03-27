@@ -8,6 +8,7 @@ interface EdaNumericSectionProps {
   brushSelection: { min: number; max: number } | null;
   boxPlotRef: RefObject<HTMLDivElement>;
   histogramRef: RefObject<HTMLDivElement>;
+  sampleSize?: { sampled: number; total: number } | null;
   onViewChange: (v: 'boxplot' | 'histogram') => void;
   onApplyBrush: () => void;
   onSelectStat: (label: string, value: any, e: MouseEvent) => void;
@@ -19,6 +20,7 @@ export function EdaNumericSection({
   brushSelection,
   boxPlotRef,
   histogramRef,
+  sampleSize,
   onViewChange,
   onApplyBrush,
   onSelectStat,
@@ -30,7 +32,20 @@ export function EdaNumericSection({
       {/* Container 1: Title/Controls + Chart */}
       <div class={styles.edaChartSection}>
         <div class={styles.edaSection__title}>
-          <span>{t('eda.numeric.title')}</span>
+          <span>
+            {t('eda.numeric.title')}
+            {view === 'boxplot' && sampleSize && (
+              <span
+                class={styles.edaSampleIndicator}
+                title={t('eda.numeric.sampledTooltip', {
+                  sampled: sampleSize.sampled.toLocaleString(),
+                  total: sampleSize.total.toLocaleString(),
+                })}
+              >
+                <span class="iconify" aria-hidden="true" data-icon="carbon:information" />
+              </span>
+            )}
+          </span>
           <div class={styles.chartSwitcher}>
             <button
               class={`${styles.chartSwitcher__btn} ${view === 'boxplot' ? styles['chartSwitcher__btn--active'] : ''}`}

@@ -467,6 +467,7 @@
         "boxplot": "Боксплот",
         "histogram": "Гістограма"
       },
+      "sampledTooltip": "Точки: {{sampled}} з {{total}} (вибірка)",
       "keepSelection": "Зберегти лише виділення",
       "stats": {
         "min": "Мін",

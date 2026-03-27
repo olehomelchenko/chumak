@@ -458,6 +458,7 @@
         "boxplot": "Box plot",
         "histogram": "Histogram"
       },
+      "sampledTooltip": "Scatter shows {{sampled}} of {{total}} points (sampled)",
       "keepSelection": "Keep only selection",
       "stats": {
         "min": "Min",

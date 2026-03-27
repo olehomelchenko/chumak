@@ -8,9 +8,20 @@ import { isConversionError } from './type-converter';
  * Provides visualization capabilities using Vega-Lite.
  */
 
+// TODO: Tooltip titles across all chart methods are hardcoded English.
+// To i18n them, accept translated labels from callers (core/ must stay portable, no i18n imports).
+
 /** Escape dots and brackets so Vega-Lite treats them as literal field names */
 function escapeVegaField(name: string): string {
   return name.replace(/([.\[\]])/g, '\\$1');
+}
+
+export interface BoxPlotStats {
+  min: number;
+  max: number;
+  p25: number;
+  median: number;
+  p75: number;
 }
 
 export interface ChartOptions {
@@ -21,36 +32,40 @@ export interface ChartOptions {
 
 export const ChartsEngine = {
   /**
-   * Render a boxplot for a specific column
+   * Render a boxplot for a specific column using pre-aggregated stats.
+   * Jitter scatter uses a sampled subset; the box/whiskers are drawn from summary statistics.
    */
   async renderBoxPlot(
     container: string | HTMLElement,
-    data: any[],
+    sampleData: any[],
     column: string,
+    stats: BoxPlotStats,
     theme: 'syto' | 'blues' = 'syto',
     options: ChartOptions = {}
   ): Promise<void> {
-    if (!data || data.length === 0 || !column) return;
+    if (!column) return;
 
-    const chartData = data
-      .map((row) => ({ [column]: row[column] }))
-      .filter(
-        (row) =>
-          row[column] !== null &&
-          row[column] !== undefined &&
-          row[column] !== '' &&
-          !isConversionError(row[column])
-      );
+    const escaped = escapeVegaField(column);
+    const { min, max, p25, median, p75 } = stats;
+
+    // IQR-based whisker bounds (1.5× IQR), clamped to actual data range
+    const iqr = p75 - p25;
+    const whiskerLow = Math.max(min, p25 - 1.5 * iqr);
+    const whiskerHigh = Math.min(max, p75 + 1.5 * iqr);
+
+    // Sample data for jitter scatter (already filtered by caller)
+    const jitterData = sampleData.map((row) => ({ [column]: row[column] }));
+
+    // Pre-aggregated summary for box/whisker layers (yMid centers in jitter space)
+    const summaryData = [{ whiskerLow, p25, median, p75, whiskerHigh, yMid: 0.5 }];
 
     const spec: any = {
       $schema: 'https://vega.github.io/schema/vega-lite/v6.json',
-      data: { values: chartData },
       width: options.width || 'container',
       height: options.height || 60,
       padding: { top: 10, bottom: 20, left: 10, right: 10 },
       encoding: {
         x: {
-          field: escapeVegaField(column),
           type: 'quantitative',
           title: '',
           scale: { zero: false },
@@ -58,8 +73,10 @@ export const ChartsEngine = {
         },
       },
       layer: [
+        // Jitter scatter (sampled points)
         {
-          transform: [{ sample: 1000 }, { calculate: 'random()', as: 'jitter' }],
+          data: { values: jitterData },
+          transform: [{ calculate: 'random()', as: 'jitter' }],
           mark: {
             type: 'circle',
             tooltip: true,
@@ -68,6 +85,7 @@ export const ChartsEngine = {
             size: 15,
           },
           encoding: {
+            x: { field: escaped },
             y: {
               field: 'jitter',
               type: 'quantitative',
@@ -76,14 +94,44 @@ export const ChartsEngine = {
             },
           },
         },
+        // Whisker line (low to high)
         {
-          mark: {
-            type: 'boxplot',
-            extent: 1.5,
-            ticks: false,
-            size: 30,
+          data: { values: summaryData },
+          mark: { type: 'rule', size: 1 },
+          encoding: {
+            x: { field: 'whiskerLow' },
+            x2: { field: 'whiskerHigh' },
+            y: { field: 'yMid', type: 'quantitative', axis: null, scale: { domain: [-0.1, 1.1] } },
+            tooltip: [
+              { field: 'whiskerLow', type: 'quantitative', title: 'Lower whisker' },
+              { field: 'whiskerHigh', type: 'quantitative', title: 'Upper whisker' },
+            ],
           },
-          encoding: {},
+        },
+        // IQR box
+        {
+          data: { values: summaryData },
+          mark: { type: 'bar', size: 20 },
+          encoding: {
+            x: { field: 'p25' },
+            x2: { field: 'p75' },
+            y: { field: 'yMid', type: 'quantitative', axis: null, scale: { domain: [-0.1, 1.1] } },
+            tooltip: [
+              { field: 'p25', type: 'quantitative', title: 'Q1 (25%)' },
+              { field: 'median', type: 'quantitative', title: 'Median' },
+              { field: 'p75', type: 'quantitative', title: 'Q3 (75%)' },
+            ],
+          },
+        },
+        // Median tick
+        {
+          data: { values: summaryData },
+          mark: { type: 'tick', size: 20, thickness: 2, color: 'white' },
+          encoding: {
+            x: { field: 'median' },
+            y: { field: 'yMid', type: 'quantitative', axis: null, scale: { domain: [-0.1, 1.1] } },
+            tooltip: [{ field: 'median', type: 'quantitative', title: 'Median' }],
+          },
         },
       ],
     };
