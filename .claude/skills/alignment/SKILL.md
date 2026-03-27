@@ -32,15 +32,17 @@ Determine the review scope using `git diff` (unstaged) and `git diff --staged` (
 
 7. **Workarounds**: Flag code that works around a problem rather than solving it (e.g., `// HACK`, `// WORKAROUND`, silent catch-and-ignore, feature detection for internal bugs). If a workaround is justified (e.g., upstream bug, browser quirk, time constraint), ensure it has a comment explaining why and a reference to track resolution. If unjustified, replace it with a proper fix.
 
-8. **Internationalization (i18n)**: All user-facing strings must use i18n. Flag any new hardcoded English strings in UI components (use `useTranslation()` hook), handlers, or services (use `i18n.t()` with namespace option). New keys must be added to both `src/i18n/locales/en/` and `src/i18n/locales/uk/` JSON files. Run `npm run i18n:check` to verify key parity across locales. See [DEVELOPMENT-PATTERNS.md §9](docs/DEVELOPMENT-PATTERNS.md) for patterns.
+8. **Pre-existing issues**: When reviewing the diff, you may notice pre-existing patterns in surrounding code that are out of scope for the current change but worth improving (e.g., duplicated logic the new code follows, workarounds it builds on, missing abstractions it exposes). Don't fix these — mark them with a `// TODO:` comment in the code explaining what could be improved and why. This leaves a trail for future work without scope-creeping the current review.
+
+9. **Internationalization (i18n)**: All user-facing strings must use i18n. Flag any new hardcoded English strings in UI components (use `useTranslation()` hook), handlers, or services (use `i18n.t()` with namespace option). New keys must be added to both `src/i18n/locales/en/` and `src/i18n/locales/uk/` JSON files. Run `npm run i18n:check` to verify key parity across locales. See [DEVELOPMENT-PATTERNS.md §9](docs/DEVELOPMENT-PATTERNS.md) for patterns.
 
 ### Versioning
 
-9. **Version bump reminder**: If the reviewed changes include new features, bug fixes, or behavior changes visible to users, remind the user to run `/release` before deploying. Don't block on this — it's a reminder, not a gate.
+10. **Version bump reminder**: If the reviewed changes include new features, bug fixes, or behavior changes visible to users, remind the user to run `/release` before deploying. Don't block on this — it's a reminder, not a gate.
 
 ### Output
 
-10. **Summary**: After performing the instructions, respond with a summary of changes: choices made due to these instructions, choices where multiple approaches existed, and any non-obvious architectural choices or assumptions the user should know about but might not notice from the diff alone.
+11. **Summary**: After performing the instructions, respond with a summary of changes: choices made due to these instructions, choices where multiple approaches existed, and any non-obvious architectural choices or assumptions the user should know about but might not notice from the diff alone.
 
 ---
 
