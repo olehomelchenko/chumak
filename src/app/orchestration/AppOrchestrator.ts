@@ -64,6 +64,7 @@ import { updateDedupePreview } from '../handlers/transform/dedupe-handlers';
 
 // AppController for orchestration methods only
 import { AppController } from './AppController';
+import { metricsCollector } from '../infrastructure/metrics';
 import i18n from '../../i18n';
 
 let initialized = false;
@@ -77,7 +78,7 @@ export async function initApp(): Promise<void> {
     return;
   }
 
-  console.log('Initializing Syto App...');
+  const appInitStart = performance.now();
 
   // Phase 1: Wire handler callbacks
   wireHandlerCallbacks();
@@ -155,6 +156,12 @@ export async function initApp(): Promise<void> {
 
   // Sync URL state after initial render
   setTimeout(() => syncCurrentStateToUrl(), 0);
+
+  metricsCollector.record({
+    transformType: 'app:init',
+    durationMs: performance.now() - appInitStart,
+    success: true,
+  });
 
   initialized = true;
 }

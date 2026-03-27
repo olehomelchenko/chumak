@@ -136,10 +136,13 @@ describe('Storage - IndexedDB Integration', () => {
   });
 
   describe('autoSave', () => {
-    it('saves sources and models and logs success', async () => {
+    it('saves sources and models successfully', async () => {
       await autoSave([{ id: 'src_1', name: 'Source' }], [{ id: 'mdl_1', name: 'Model' }]);
 
-      expect(consoleLogSpy).toHaveBeenCalledWith('Auto-saved:', 1, 'sources,', 1, 'models');
+      const sources = await loadSources();
+      const models = await loadModels();
+      expect(sources).toHaveLength(1);
+      expect(models).toHaveLength(1);
     });
 
     it('catches and logs errors when save fails', async () => {
@@ -156,7 +159,10 @@ describe('Storage - IndexedDB Integration', () => {
     it('completes without throwing on empty data', async () => {
       await autoSave([], []);
 
-      expect(consoleLogSpy).toHaveBeenCalledWith('Auto-saved:', 0, 'sources,', 0, 'models');
+      const sources = await loadSources();
+      const models = await loadModels();
+      expect(sources).toEqual([]);
+      expect(models).toEqual([]);
     });
   });
 

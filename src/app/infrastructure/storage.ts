@@ -4,6 +4,7 @@
 
 import { SchemaEngine } from '../../core/schema-engine';
 import { validateSteps } from '../linters/transform-linter';
+import { metricsCollector } from './metrics';
 
 const DB_NAME = 'syto-db';
 const DB_VERSION = 1;
@@ -195,12 +196,11 @@ export async function loadModels(): Promise<any[]> {
  * Auto-save current state
  */
 export async function autoSave(sources: any[], models: any[]): Promise<void> {
-  const start = performance.now();
   try {
-    await saveSources(sources);
-    await saveModels(models);
-    console.log('Auto-saved:', sources.length, 'sources,', models.length, 'models');
-    console.log(`⚡ Save to IndexedDB — ${(performance.now() - start).toFixed(1)}ms`);
+    await metricsCollector.time('storage:save', async () => {
+      await saveSources(sources);
+      await saveModels(models);
+    });
   } catch (error) {
     console.error('Auto-save failed:', error);
   }
@@ -241,6 +241,7 @@ export async function loadInitialData(): Promise<{
   models: any[];
   validationWarnings: string[];
 }> {
+  const loadStart = performance.now();
   try {
     const [sources, models] = await Promise.all([loadSources(), loadModels()]);
 
@@ -274,13 +275,11 @@ export async function loadInitialData(): Promise<{
       console.warn('Workflow validation warnings:', validationWarnings);
     }
 
-    console.log(
-      'Loaded from IndexedDB:',
-      normalizedSources.length,
-      'sources,',
-      normalizedModels.length,
-      'models'
-    );
+    metricsCollector.record({
+      transformType: 'storage:load',
+      durationMs: performance.now() - loadStart,
+      success: true,
+    });
     return { sources: normalizedSources, models: normalizedModels, validationWarnings };
   } catch (error) {
     console.error('Failed to load initial data:', error);

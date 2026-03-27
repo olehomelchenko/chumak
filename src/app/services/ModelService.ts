@@ -7,6 +7,7 @@ import { StepService } from './StepService';
 import { NameService } from './NameService';
 import { showSuccess, showWarning } from '../handlers/core/notification-handlers';
 import { cloneData } from '../../core/type-converter';
+import { metricsCollector } from '../infrastructure/metrics';
 import i18n from '../../i18n';
 
 /**
@@ -70,6 +71,7 @@ export class ModelService {
 
     // Auto-recompute if model is stale (a dependency changed)
     if (model.isStale && model.steps.length > 0) {
+      const recomputeStart = performance.now();
       try {
         const models = AppStore.models.value;
         const sources = AppStore.sources.value;
@@ -95,10 +97,23 @@ export class ModelService {
         model.schema = result.schema;
         DependencyService.clearStaleFlag(model);
 
+        metricsCollector.record({
+          transformType: 'model:recompute',
+          durationMs: performance.now() - recomputeStart,
+          success: true,
+          metadata: { modelId: model.id },
+        });
+
         // Trigger reactivity for models list
         AppStore.models.value = [...AppStore.models.value];
         PersistenceService.autoSave();
       } catch (error: any) {
+        metricsCollector.record({
+          transformType: 'model:recompute',
+          durationMs: performance.now() - recomputeStart,
+          success: false,
+          metadata: { modelId: model.id, errorMessage: error.message },
+        });
         console.error('Failed to recompute stale model:', error);
         showWarning(
           i18n.t('notifications.model.recomputeFailed', { ns: 'common', name: model.name }),

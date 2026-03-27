@@ -5,6 +5,7 @@ import { PersistenceService } from './PersistenceService';
 import { StepService } from './StepService';
 import { NameService } from './NameService';
 import { showSuccess } from '../handlers/core/notification-handlers';
+import { metricsCollector } from '../infrastructure/metrics';
 import i18n from '../../i18n';
 
 /**
@@ -29,7 +30,7 @@ export class ImportService {
     updatePagination: () => void,
     closeDialog: (force?: boolean) => void
   ) {
-    const start = performance.now();
+    const importStart = performance.now();
 
     // Validation
     if (columns.some((c) => !c || c.trim() === '')) {
@@ -101,11 +102,11 @@ export class ImportService {
     updatePagination();
     await PersistenceService.autoSave();
 
-    console.log(
-      `⚡ Import ${origin.toUpperCase()} — ${(performance.now() - start).toFixed(1)}ms — ${
-        file.name
-      } (${(file.size / 1024).toFixed(1)} KB)`
-    );
+    metricsCollector.record({
+      transformType: `import:${origin}`,
+      durationMs: performance.now() - importStart,
+      success: true,
+    });
 
     showSuccess(
       i18n.t('notifications.imported', { ns: 'common', name: file.name, count: cleanData.length })

@@ -695,46 +695,30 @@ const previewRows = result.objects().slice(0, getPreviewRowLimit());
 
 ### 5.3 Metrics Collection
 
-Use the metrics collector for timing and tracking transform operations:
+All timed operations flow through `metricsCollector` (`src/app/infrastructure/metrics/`). It handles console logging, IndexedDB persistence, and retention. Metrics are silenced in test mode (`IS_TEST` guard) — no console noise, no IndexedDB writes.
+
+**For tabular operations** (transforms with input/output shape), use `record()` directly with shape data — see `StepService.computeModelUpToStep()` for the pattern.
+
+**For non-tabular operations** (init, import, export, storage):
 
 ```typescript
-import { metricsCollector, getDataShape } from '../core/metrics';
+// Use time() — wraps any sync/async function
+const data = await metricsCollector.time('storage:load', () => loadFromDB());
 
-// Option 1: Use the measure helper (automatic timing)
-const result = await metricsCollector.measure(
-  'Filter',
-  inputData,
-  { modelId: model.id, stepIndex: 2 },
-  () => applyTransform(table, transform, columns)
-);
-
-// Option 2: Record metrics manually
-const inputShape = getDataShape(table);
+// Or record manually when timing can't wrap the whole operation
 const start = performance.now();
-const result = applyTransform(table, transform, columns);
-const duration = performance.now() - start;
-const outputShape = getDataShape(result);
-
-await metricsCollector.record({
-  transformType: 'Filter',
-  durationMs: duration,
+// ... work ...
+metricsCollector.record({
+  transformType: 'model:recompute',
+  durationMs: performance.now() - start,
   success: true,
-  inputRows: inputShape.rows,
-  inputCols: inputShape.cols,
-  outputRows: outputShape.rows,
-  outputCols: outputShape.cols,
   metadata: { modelId: model.id },
 });
 ```
 
-Console logging icons indicate performance:
+**Operation naming convention**: `category:detail` — e.g., `export:csv`, `storage:save`, `duckdb:init:eh`, `model:recompute`, `app:init`, `import:file`. Transform steps use plain names (`filter`, `derive`, `pipeline`).
 
-- ⚡ < 50ms (fast)
-- ✓ 50-200ms (acceptable)
-- ⏱️ 200-500ms (slow)
-- ⚠️ > 500ms (needs attention)
-
-Metrics are stored in IndexedDB and can be viewed as a virtual dataset in the sidebar. Users can enable/disable metrics collection and console logging in Settings.
+Metrics are stored in IndexedDB and viewable as a virtual dataset in the sidebar. Console logging icons: ⚡ <50ms, ✓ 50–200ms, ⏱️ 200–500ms, ⚠️ >500ms.
 
 ### 5.4 Pagination
 

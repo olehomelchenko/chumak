@@ -5,6 +5,7 @@ import i18n from '../../i18n';
 import { isConversionError } from '../../core/type-converter';
 import { DependencyService } from './DependencyService';
 import { V2Workflow, V2SourceDef, V2ModelDef, translateIdsToNames } from '../../core/workflow-v2';
+import { metricsCollector } from '../infrastructure/metrics';
 
 /**
  * ExportService
@@ -38,30 +39,30 @@ export class ExportService {
       return undefined;
     }
 
-    const start = performance.now();
     try {
-      // Pre-process: convert errors to null, serialize native objects/arrays to JSON strings
-      const processedData = data.map((row: Record<string, any>) => {
-        const newRow: Record<string, any> = {};
-        for (const [key, value] of Object.entries(row)) {
-          if (isConversionError(value)) {
-            newRow[key] = null;
-          } else if (value !== null && typeof value === 'object' && !(value instanceof Date)) {
-            newRow[key] = JSON.stringify(value);
-          } else {
-            newRow[key] = value;
+      const csv = await metricsCollector.time('export:csv', () => {
+        // Pre-process: convert errors to null, serialize native objects/arrays to JSON strings
+        const processedData = data.map((row: Record<string, any>) => {
+          const newRow: Record<string, any> = {};
+          for (const [key, value] of Object.entries(row)) {
+            if (isConversionError(value)) {
+              newRow[key] = null;
+            } else if (value !== null && typeof value === 'object' && !(value instanceof Date)) {
+              newRow[key] = JSON.stringify(value);
+            } else {
+              newRow[key] = value;
+            }
           }
-        }
-        return newRow;
+          return newRow;
+        });
+        return Papa.unparse(processedData);
       });
-      const csv = Papa.unparse(processedData);
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const timestamp = new Date().toISOString().slice(0, 10);
       const modelName = AppStore.activeModel.value ? AppStore.activeModel.value.name : 'export';
       const filename = `${modelName}_${timestamp}.csv`;
       ExportService.downloadBlob(blob, filename);
 
-      console.log(`⚡ Export CSV — ${(performance.now() - start).toFixed(1)}ms — ${filename}`);
       showSuccess(i18n.t('notifications.exported', { ns: 'common', filename }));
       return csv;
     } catch (error: any) {
@@ -81,12 +82,9 @@ export class ExportService {
       return;
     }
 
-    const start = performance.now();
     try {
-      const json = JSON.stringify(
-        data,
-        (_key, value) => (isConversionError(value) ? null : value),
-        2
+      const json = await metricsCollector.time('export:json', () =>
+        JSON.stringify(data, (_key, value) => (isConversionError(value) ? null : value), 2)
       );
       const blob = new Blob([json], { type: 'application/json;charset=utf-8;' });
       const timestamp = new Date().toISOString().slice(0, 10);
@@ -94,7 +92,6 @@ export class ExportService {
       const filename = `${modelName}_data_${timestamp}.json`;
       ExportService.downloadBlob(blob, filename);
 
-      console.log(`⚡ Export JSON — ${(performance.now() - start).toFixed(1)}ms — ${filename}`);
       showSuccess(i18n.t('notifications.exported', { ns: 'common', filename }));
     } catch (error: any) {
       console.error('JSON export error:', error);

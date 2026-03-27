@@ -8,6 +8,8 @@
 import { TransformMetric, MetricInput, MetricShape, MetricMetadata } from './types';
 import { addMetric, enforceRetention, loadMetricsConfig, loadMetrics } from './metrics-storage';
 
+const IS_TEST = import.meta.env.MODE === 'test';
+
 /**
  * Generate a UUID v4
  */
@@ -59,33 +61,37 @@ export const metricsCollector = {
    * Record a transform metric
    */
   async record(input: MetricInput): Promise<void> {
+    // No IndexedDB available, no console noise wanted
+    if (IS_TEST) return;
+
     const config = loadMetricsConfig();
 
-    // Console logging (replaces old perfLogger behavior)
+    const inputRows = input.inputRows ?? 0;
+    const inputCols = input.inputCols ?? 0;
+    const outputRows = input.outputRows ?? 0;
+    const outputCols = input.outputCols ?? 0;
+
     if (config.consoleLogging) {
-      this.logToConsole(input);
+      this.logToConsole(input, inputRows, inputCols, outputRows, outputCols);
     }
 
-    // Skip storage if disabled
     if (!config.enabled) {
       return;
     }
 
-    // Build shape JSON
     const shape: MetricShape = {
-      inputRows: input.inputRows,
-      inputCols: input.inputCols,
-      outputRows: input.outputRows,
-      outputCols: input.outputCols,
-      rowDelta: input.outputRows - input.inputRows,
-      colDelta: input.outputCols - input.inputCols,
+      inputRows,
+      inputCols,
+      outputRows,
+      outputCols,
+      rowDelta: outputRows - inputRows,
+      colDelta: outputCols - inputCols,
       rowsPerMs:
-        input.inputRows > 0 && input.durationMs > 0
-          ? Math.round((input.inputRows / input.durationMs) * 100) / 100
+        inputRows > 0 && input.durationMs > 0
+          ? Math.round((inputRows / input.durationMs) * 100) / 100
           : 0,
     };
 
-    // Build metric record
     const metric: TransformMetric = {
       id: generateId(),
       timestamp: new Date().toISOString(),
@@ -108,73 +114,58 @@ export const metricsCollector = {
   },
 
   /**
-   * Log to console (replaces perfLogger.log)
+   * Log metric to console with duration icon and optional shape info.
    */
-  logToConsole(input: MetricInput): void {
+  logToConsole(
+    input: MetricInput,
+    inputRows = input.inputRows ?? 0,
+    inputCols = input.inputCols ?? 0,
+    outputRows = input.outputRows ?? 0,
+    outputCols = input.outputCols ?? 0
+  ): void {
     const icon = getDurationIcon(input.durationMs);
-    const shapeStr = `${input.inputRows.toLocaleString()}×${input.inputCols} → ${input.outputRows.toLocaleString()}×${input.outputCols}`;
+    const hasShape = inputRows > 0 || outputRows > 0;
+    const shapeStr = hasShape
+      ? `\n  ${inputRows.toLocaleString()}×${inputCols} → ${outputRows.toLocaleString()}×${outputCols}`
+      : '';
 
     if (input.success) {
-      console.log(
-        `${icon} ${input.transformType} — ${input.durationMs.toFixed(1)}ms`,
-        `\n  ${shapeStr}`
-      );
+      console.log(`${icon} ${input.transformType} — ${input.durationMs.toFixed(1)}ms${shapeStr}`);
     } else {
       const errorMsg = input.metadata?.errorMessage || 'Unknown error';
       console.error(
-        `❌ ${input.transformType} — ${input.durationMs.toFixed(1)}ms — FAILED`,
-        `\n  ${shapeStr}`,
+        `❌ ${input.transformType} — ${input.durationMs.toFixed(1)}ms — FAILED${shapeStr}`,
         `\n  Error: ${errorMsg}`
       );
     }
   },
 
   /**
-   * Convenience method to time and record a transform execution
+   * Time a non-tabular operation (no input/output shape tracking).
+   * Recording is fire-and-forget — callers are never blocked on IndexedDB writes.
    */
-  async measure<T>(
-    transformType: string,
-    inputData: any,
-    metadata: MetricMetadata | undefined,
-    fn: () => T
+  async time<T>(
+    operation: string,
+    fn: () => T | Promise<T>,
+    metadata?: MetricMetadata
   ): Promise<T> {
-    const inputShape = getDataShape(inputData);
     const start = performance.now();
-
     try {
-      const result = fn();
-      const duration = performance.now() - start;
-      const outputShape = getDataShape(result);
-
-      await this.record({
-        transformType,
-        durationMs: duration,
+      const result = await fn();
+      this.record({
+        transformType: operation,
+        durationMs: performance.now() - start,
         success: true,
-        inputRows: inputShape.rows,
-        inputCols: inputShape.cols,
-        outputRows: outputShape.rows,
-        outputCols: outputShape.cols,
         metadata,
       });
-
       return result;
     } catch (error: any) {
-      const duration = performance.now() - start;
-
-      await this.record({
-        transformType,
-        durationMs: duration,
+      this.record({
+        transformType: operation,
+        durationMs: performance.now() - start,
         success: false,
-        inputRows: inputShape.rows,
-        inputCols: inputShape.cols,
-        outputRows: 0,
-        outputCols: 0,
-        metadata: {
-          ...metadata,
-          errorMessage: error.message,
-        },
+        metadata: { ...metadata, errorMessage: error.message },
       });
-
       throw error;
     }
   },

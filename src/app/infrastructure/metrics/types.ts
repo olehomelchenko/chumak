@@ -61,16 +61,19 @@ export interface MetricMetadata {
 }
 
 /**
- * Input for recording a metric (before ID/timestamp are generated)
+ * Input for recording a metric (before ID/timestamp are generated).
+ *
+ * Shape fields are optional — omit them for non-tabular operations
+ * (e.g. "import", "export:csv", "storage:save", "duckdb:init").
  */
 export interface MetricInput {
   transformType: string;
   durationMs: number;
   success: boolean;
-  inputRows: number;
-  inputCols: number;
-  outputRows: number;
-  outputCols: number;
+  inputRows?: number;
+  inputCols?: number;
+  outputRows?: number;
+  outputCols?: number;
   metadata?: MetricMetadata;
 }
 
@@ -82,7 +85,7 @@ export interface MetricsConfig {
   enabled: boolean;
   /** Maximum number of records to retain (FIFO) */
   maxRecords: number;
-  /** Whether to log to console (replaces old perfLogger behavior) */
+  /** Whether to log metrics to the browser console */
   consoleLogging: boolean;
 }
 

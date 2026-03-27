@@ -5,6 +5,8 @@
  * keeping the initial bundle unaffected. All queries run in a Web Worker.
  */
 
+import { metricsCollector } from '../infrastructure/metrics';
+
 type DuckDBModule = typeof import('@duckdb/duckdb-wasm');
 
 interface DuckDBInstance {
@@ -50,10 +52,11 @@ async function init(): Promise<DuckDBInstance | null> {
 
     const conn = await db.connect();
 
-    if (import.meta.env.DEV) {
-      const ms = (performance.now() - t0).toFixed(0);
-      console.log(`[DuckDB] Initialized (${variant} bundle) in ${ms}ms`);
-    }
+    metricsCollector.record({
+      transformType: `duckdb:init:${variant}`,
+      durationMs: performance.now() - t0,
+      success: true,
+    });
 
     return { db, conn };
   } catch (error) {
