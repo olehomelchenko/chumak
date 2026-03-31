@@ -8,6 +8,7 @@ import { NameService } from './NameService';
 import { showSuccess, showWarning } from '../handlers/core/notification-handlers';
 import { cloneData } from '../../core/type-converter';
 import { metricsCollector } from '../infrastructure/metrics';
+import { ensureSourceData, ensureModelData } from '../infrastructure/storage';
 import i18n from '../../i18n';
 
 /**
@@ -20,15 +21,18 @@ export class ModelService {
   /**
    * Switches the active view to a specific source
    */
-  static switchToSource(source: Source, clearColumnSelection: () => void) {
+  static async switchToSource(source: Source, clearColumnSelection: () => void) {
     AppStore.activeSource.value = source;
     AppStore.activeModel.value = null;
-    AppStore.currentData.value = source.data;
-    AppStore.columns.value = source.columns.map((c) => c.name);
     AppStore.viewMode.value = 'dataset-info';
     AppStore.activeStepIndex.value = null;
     AppStore.viewingIntermediate.value = false;
+    AppStore.columns.value = source.columns.map((c) => c.name);
     clearColumnSelection();
+
+    // Lazy-load data if not yet loaded
+    await ensureSourceData(source);
+    AppStore.currentData.value = source.data;
   }
 
   /**
@@ -59,7 +63,7 @@ export class ModelService {
    * Switches the active view to a specific model.
    * If the model is stale (dependency changed), auto-recomputes it.
    */
-  static switchToModel(
+  static async switchToModel(
     model: Model,
     clearColumnSelection: () => void,
     updatePagination: () => void,
@@ -68,6 +72,15 @@ export class ModelService {
   ) {
     AppStore.activeSource.value = null;
     AppStore.activeModel.value = model;
+
+    // Ensure upstream source data is available (needed for recomputation)
+    const source = AppStore.sources.value.find((s) => s.id === model.sourceId);
+    if (source) {
+      await ensureSourceData(source);
+    }
+
+    // Ensure model data is loaded
+    await ensureModelData(model);
 
     // Auto-recompute if model is stale (a dependency changed)
     if (model.isStale && model.steps.length > 0) {
@@ -85,6 +98,11 @@ export class ModelService {
           if (nodeId === model.id) continue; // Handle target model below
           const dep = models.find((m) => m.id === nodeId);
           if (!dep?.isStale || dep.steps.length === 0) continue;
+
+          // Ensure dependency data is loaded before recomputation
+          await ensureModelData(dep);
+          const depSource = sources.find((s) => s.id === dep.sourceId);
+          if (depSource) await ensureSourceData(depSource);
 
           const depResult = StepService.computeModelUpToStep(dep, dep.steps.length - 1, context);
           dep.data = depResult.data;
@@ -169,13 +187,16 @@ export class ModelService {
       return;
     }
 
+    // Ensure source data is loaded before creating model
+    await ensureSourceData(source);
+
     const newModel: Model = {
       id: `mdl_${Date.now()}`,
       name: name,
       sourceId: source.id,
       steps: [],
       schema: JSON.parse(JSON.stringify(source.columns)),
-      data: cloneData(source.data),
+      data: cloneData(source.data!),
       __v: 1,
     };
 

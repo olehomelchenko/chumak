@@ -360,7 +360,7 @@ Both recomputation paths (lazy and eager) **must** recompute stale upstream depe
 ### Copy vs Reference Semantics
 
 - **Model creation** (new, copy, fork): always deep-copies data, steps, and schema — models are fully independent objects
-- **Multi-model operations** (join, concat, union, etc.): resolve target data at compute time via `resolveTableFromContext()`, which reads `model.data` from the shared context. Arquero creates a new table, but the source array is read by reference — so stale data in context produces stale results
+- **Multi-model operations** (join, concat, union, etc.): resolve target data at compute time via `resolveTableFromContext()`, which reads `model.data` from the shared context. Data must be loaded first via `ensureModelData()`/`ensureSourceData()` — `model.data` may be `null` if not yet fetched from IndexedDB. Arquero creates a new table, but the source array is read by reference — so stale data in context produces stale results
 - **Implication**: the recomputation order rule above is critical because context contains live model objects
 
 ### Dependency Dialog Cancellation

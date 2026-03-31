@@ -7,6 +7,7 @@ import { DependencyService } from '../../services/DependencyService';
 import { NameService } from '../../services/NameService';
 import { prompt } from '../core/notification-handlers';
 import { cloneData } from '../../../core/type-converter';
+import { ensureSourceData, ensureModelData } from '../../infrastructure/storage';
 import i18n from '../../../i18n';
 import { TransformStep } from '../../../core/schema-engine';
 
@@ -99,16 +100,24 @@ export function initializeJoinDialog() {
 }
 
 /**
- * Gets data and columns for a target (model or source) ID
+ * Gets data and columns for a target (model or source) ID.
+ * Lazily loads data from IndexedDB if not yet in memory.
  * @returns Object with data array and columns array
  */
-export function getTableDataForTarget(targetId: string): { data: any[]; columns: string[] } {
+export async function getTableDataForTarget(
+  targetId: string
+): Promise<{ data: any[]; columns: string[] }> {
   if (!targetId) return { data: [], columns: [] };
   const models = AppStore.models.value;
   const sources = AppStore.sources.value;
 
   const model = models.find((m) => m.id === targetId);
   if (model) {
+    // Ensure upstream source data is loaded for computation
+    const modelSource = sources.find((s) => s.id === model.sourceId);
+    if (modelSource) await ensureSourceData(modelSource);
+    await ensureModelData(model);
+
     if (model.steps.length > 0) {
       try {
         const result = StepService.computeModelUpToStep(model, model.steps.length - 1, {
@@ -133,6 +142,7 @@ export function getTableDataForTarget(targetId: string): { data: any[]; columns:
 
   const source = sources.find((s) => s.id === targetId);
   if (source) {
+    await ensureSourceData(source);
     const data = source.data || [];
     const columns =
       source.columns?.map((c: any) => c.name) || (data.length > 0 ? Object.keys(data[0]) : []);
@@ -143,11 +153,26 @@ export function getTableDataForTarget(targetId: string): { data: any[]; columns:
 }
 
 /**
- * Gets only columns for a target (model or source) ID
+ * Gets only columns for a target (model or source) ID.
+ * For columns we can use schema/metadata without loading data.
  * @returns Array of column names
  */
 export function getColumnsForTarget(targetId: string): string[] {
-  return getTableDataForTarget(targetId).columns;
+  if (!targetId) return [];
+  const models = AppStore.models.value;
+  const sources = AppStore.sources.value;
+
+  const model = models.find((m) => m.id === targetId);
+  if (model) {
+    return model.schema?.map((c) => c.name) || [];
+  }
+
+  const source = sources.find((s) => s.id === targetId);
+  if (source) {
+    return source.columns?.map((c: any) => c.name) || [];
+  }
+
+  return [];
 }
 
 export function onJoinLeftModelChange() {
@@ -210,7 +235,7 @@ export function removeJoinKeyPair(index: number) {
   }
 }
 
-export function analyzeJoinKeys() {
+export async function analyzeJoinKeys() {
   const state = DialogStore.joinState;
   const leftModelId = state.leftModel.value;
   const rightModelId = state.rightModel.value;
@@ -222,8 +247,8 @@ export function analyzeJoinKeys() {
   }
 
   // Get left and right table data
-  const { data: leftData } = getTableDataForTarget(leftModelId);
-  const { data: rightData } = getTableDataForTarget(rightModelId);
+  const { data: leftData } = await getTableDataForTarget(leftModelId);
+  const { data: rightData } = await getTableDataForTarget(rightModelId);
 
   const analysis = keyPairs.map((pair) => {
     const leftCol = pair[0];
@@ -384,7 +409,7 @@ export async function previewJoin() {
 
   try {
     // Get left table data and columns
-    const { data: leftData, columns: leftColumns } = getTableDataForTarget(leftModelId);
+    const { data: leftData, columns: leftColumns } = await getTableDataForTarget(leftModelId);
 
     // Get right table data (ensure model data is up-to-date for transform)
     const targetModel = models.find((m) => m.id === rightModel);
@@ -494,7 +519,7 @@ export async function applyJoinTransform(callbacks: any) {
 
   try {
     // Get left table data and columns
-    const { data: leftData, columns: leftColumns } = getTableDataForTarget(leftModelId);
+    const { data: leftData, columns: leftColumns } = await getTableDataForTarget(leftModelId);
     const leftModel = models.find((m) => m.id === leftModelId);
 
     // Get right table data (ensure model data is up-to-date for transform)

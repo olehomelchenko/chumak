@@ -12,7 +12,7 @@
 import { AppStore } from '../stores/AppStore';
 import { SchemaEngine } from '../../core/schema-engine';
 import { loadUXSettings } from '../infrastructure/ux-settings';
-import { loadInitialData } from '../infrastructure/storage';
+import { loadInitialData, ensureSourceData, ensureModelData } from '../infrastructure/storage';
 import { initEventRouter, destroyEventRouter } from './EventRouter';
 import {
   initUrlStateSync,
@@ -132,7 +132,7 @@ export async function initApp(): Promise<void> {
     updateImputePreview: () => SimpleHandlers.updateImputePreview(),
   });
 
-  // Phase 4: Restore URL state
+  // Phase 4: Restore URL state (sets activeModel/activeSource but data is still null)
   restoreStateFromUrl(sources, models, {
     openDialog: (name, section) => openDialog(name, section),
     switchToModel: (model) => AppController.switchToModel(model),
@@ -142,7 +142,10 @@ export async function initApp(): Promise<void> {
     clearColumnSelection: () => clearColumnSelection(),
   });
 
-  // Phase 5: Initialize data state
+  // Phase 5: Lazy-load data for the active source/model only
+  await loadActiveData();
+
+  // Phase 6: Initialize data state
   const activeModel = AppStore.activeModel.value;
   if (activeModel) {
     AppStore.activeStepIndex.value =
@@ -244,6 +247,28 @@ function wireHandlerCallbacks(): void {
 }
 
 /**
+ * Load data for whatever is currently active (source or model).
+ * Called once during init after URL state is restored.
+ */
+async function loadActiveData(): Promise<void> {
+  const activeModel = AppStore.activeModel.value;
+  const activeSource = AppStore.activeSource.value;
+
+  if (activeModel) {
+    await ensureModelData(activeModel);
+    AppStore.currentData.value = activeModel.data;
+    // Also ensure the upstream source data is available (needed for recomputation)
+    const source = AppStore.sources.value.find((s) => s.id === activeModel.sourceId);
+    if (source) {
+      await ensureSourceData(source);
+    }
+  } else if (activeSource) {
+    await ensureSourceData(activeSource);
+    AppStore.currentData.value = activeSource.data;
+  }
+}
+
+/**
  * Initialize columns and schema from current data
  */
 function initializeColumnsAndSchema(): void {
@@ -253,7 +278,7 @@ function initializeColumnsAndSchema(): void {
 
   if (currentData && currentData.length > 0) {
     if (activeModel && (!activeModel.schema || activeModel.schema.length === 0)) {
-      activeModel.schema = SchemaEngine.createLogicalSchema(activeModel.data);
+      activeModel.schema = SchemaEngine.createLogicalSchema(activeModel.data!);
     }
 
     if (activeModel?.schema) {

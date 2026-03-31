@@ -15,7 +15,7 @@ export interface MatchOptions {
  */
 export interface DataEntity {
   id: string;
-  data: any[];
+  data: any[] | null;
 }
 
 /**

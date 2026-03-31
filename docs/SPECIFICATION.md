@@ -171,11 +171,11 @@ Handles type conversion between column types with Power Query-style error cells.
 
 ### 3.4 Storage
 
-| Storage Type     | Purpose                                                     |
-| ---------------- | ----------------------------------------------------------- |
-| **localStorage** | User preferences, active theme selection                    |
-| **IndexedDB**    | Datasets (raw + cached previews), workflows, step snapshots |
-| **URL Hash**     | Active Source and Model state in the app (at `/app/`)       |
+| Storage Type     | Purpose                                                    |
+| ---------------- | ---------------------------------------------------------- |
+| **localStorage** | User preferences, active theme selection                   |
+| **IndexedDB**    | Source/model metadata + lazily-loaded row data (v2 schema) |
+| **URL Hash**     | Active Source and Model state in the app (at `/app/`)      |
 
 ### 3.5 Site Structure
 
@@ -328,7 +328,7 @@ functions/
 
 Browser-specific adapters, isolated from core logic:
 
-- `storage.ts` — IndexedDB persistence layer (sources, models)
+- `storage.ts` — IndexedDB persistence layer (sources, models, lazy data loading)
 - `url-state.ts` — URL hash state management (`window.location`)
 - `ux-settings.ts` — User preferences via localStorage (theme, pagination, language)
 - `metrics/` — Performance metrics collection and storage (IndexedDB + localStorage)

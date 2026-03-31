@@ -75,13 +75,13 @@ export const AppController = {
   // Model & Source Management
   // ============================================================
 
-  switchToSource(source: Source): void {
-    ModelService.switchToSource(source, () => InteractionHandlers.clearColumnSelection());
+  async switchToSource(source: Source): Promise<void> {
+    await ModelService.switchToSource(source, () => InteractionHandlers.clearColumnSelection());
     setUrlState({ sourceId: source.id });
   },
 
-  switchToModel(model: Model): void {
-    ModelService.switchToModel(
+  async switchToModel(model: Model): Promise<void> {
+    await ModelService.switchToModel(
       model,
       () => InteractionHandlers.clearColumnSelection(),
       () => PaginationHandlers.updatePagination(),

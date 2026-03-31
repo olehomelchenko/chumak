@@ -19,13 +19,11 @@ export function getPreviewRowLimit(): number {
  */
 export function getModelMeta(model: any): string {
   if (!model) return '';
-  const rowCount = model.data ? model.data.length : 0;
-  const colCount = model.schema
-    ? model.schema.length
-    : model.data && model.data.length > 0
-      ? Object.keys(model.data[0]).length
-      : 0;
+  // Prefer stored rowCount/colCount (available even when data is not loaded)
+  const rowCount = model.data ? model.data.length : (model.rowCount ?? 0);
+  const colCount = model.schema ? model.schema.length : (model.colCount ?? 0);
   const stepsCount = Math.max(0, (model.steps ? model.steps.length : 0) - 1);
+  // TODO: use i18n for step text — currently hardcoded English (Sidebar.tsx has the i18n version)
   const stepsText = stepsCount === 1 ? '1 step' : `${stepsCount} steps`;
 
   return `${rowCount.toLocaleString()} x ${colCount} • ${stepsText}`;

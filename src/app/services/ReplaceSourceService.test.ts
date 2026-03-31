@@ -10,6 +10,10 @@ vi.mock('./PersistenceService', () => ({
   },
 }));
 
+vi.mock('../infrastructure/storage', () => ({
+  ensureSourceData: vi.fn().mockImplementation(async (source: any) => source.data || []),
+}));
+
 describe('ReplaceSourceService', () => {
   beforeEach(() => {
     AppStore.sources.value = [];

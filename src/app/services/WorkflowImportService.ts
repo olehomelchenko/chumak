@@ -62,6 +62,7 @@ export class WorkflowImportService {
         customHeaders: sourceDef.parsing?.customHeaders || null,
         origin: 'workflow-import',
         rowCount: data.length,
+        colCount: physicalSchema.length,
         createdAt: new Date().toISOString(),
       });
       nameToId.set(sourceName, id);
@@ -121,6 +122,8 @@ export class WorkflowImportService {
       const result = StepService.computeModelUpToStep(model, model.steps.length - 1, context);
       model.data = result.data;
       model.schema = result.schema;
+      model.rowCount = result.data.length;
+      model.colCount = result.schema.length;
 
       newModels.push(model);
       nameToId.set(modelName, id);

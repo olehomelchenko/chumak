@@ -10,6 +10,7 @@ import { cloneData } from '../../core/type-converter';
 import { AppStore, HistoryStack } from '../stores/AppStore';
 import { showSuccess } from '../handlers/core/notification-handlers';
 import i18n from '../../i18n';
+import { ensureSourceData, ensureModelData } from '../infrastructure/storage';
 import { DuckDBService } from './DuckDBService';
 import { DUCKDB_TRANSLATORS } from './duckdb-transforms';
 import type { FullTransformStep } from '../../core/transforms/types';
@@ -75,7 +76,7 @@ export class StepService {
 
     const typesMap: Record<string, ColumnType> = {};
     for (const col of source.columns) {
-      const sample = source.data.slice(0, 20).map((row: any) => row[col.name]);
+      const sample = source.data!.slice(0, 20).map((row: any) => row[col.name]);
       typesMap[col.name] = SchemaEngine.inferType(sample);
     }
     const typesStep: TransformStep = { types: typesMap };
@@ -194,6 +195,8 @@ export class StepService {
     // Update model
     model.schema = result.schema;
     model.data = result.data;
+    model.rowCount = result.data.length;
+    model.colCount = result.schema.length;
 
     const validation = TransformResult.validate(result);
     if (!validation.valid) {
@@ -263,7 +266,12 @@ export class StepService {
     );
     if (!source && !parentModel) throw new Error('Input not found for model');
 
-    let table = source ? aq.from(source.data) : aq.from(parentModel!.data);
+    const inputData = source ? source.data : parentModel!.data;
+    if (!inputData)
+      throw new Error(
+        'Input data not loaded for model — call ensureSourceData/ensureModelData first'
+      );
+    let table = aq.from(inputData);
     let schema: ColumnSchema[] = JSON.parse(
       JSON.stringify(source ? source.columns : parentModel!.schema)
     );
@@ -339,7 +347,6 @@ export class StepService {
     }
 
     const duration = performance.now() - start;
-    const inputData = source ? source.data : parentModel!.data;
     const inputShape = getDataShape(inputData);
     const outputShape = getDataShape(result.data);
 
@@ -481,7 +488,7 @@ export class StepService {
 
     const backup = {
       steps: JSON.parse(JSON.stringify(model.steps)),
-      data: cloneData(model.data),
+      data: model.data ? cloneData(model.data) : [],
       schema: JSON.parse(JSON.stringify(model.schema)),
     };
 
@@ -580,6 +587,11 @@ export class StepService {
         if (!dependentModel) continue;
 
         try {
+          // Ensure upstream source data is loaded before recomputation
+          const depSource = sources.find((s) => s.id === dependentModel.sourceId);
+          if (depSource) await ensureSourceData(depSource);
+          await ensureModelData(dependentModel);
+
           const result = StepService.computeModelUpToStep(
             dependentModel,
             dependentModel.steps.length - 1,

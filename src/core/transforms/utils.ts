@@ -81,12 +81,16 @@ export function resolveTableFromContext(
   // Try to find as a model first
   const targetModel = context?.models.find((m: any) => m.id === targetId);
   if (targetModel) {
+    if (!targetModel.data)
+      throw new Error(`${operationName} target model data not loaded (ID: '${targetId}')`);
     return (aq as any).from(targetModel.data);
   }
 
   // Fall back to source
   const targetSource = context?.sources.find((s: any) => s.id === targetId);
   if (targetSource) {
+    if (!targetSource.data)
+      throw new Error(`${operationName} target source data not loaded (ID: '${targetId}')`);
     return (aq as any).from(targetSource.data);
   }
 

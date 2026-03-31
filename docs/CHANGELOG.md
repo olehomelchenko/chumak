@@ -8,12 +8,15 @@ Historical record of completed features and improvements, organized chronologica
 
 ### v0.4.0
 
+- **Lazy-loading IndexedDB v2 schema** — Row data is now stored in separate `source-data`/`model-data` stores and loaded on demand per source/model. App startup loads only metadata; data is fetched when accessed. Automatic v1→v2 migration on first open. 35 new data-integrity tests cover migration, null-data saves, orphan cleanup, and round-trip scenarios.
 - **DuckDB-WASM experimental engine** — Optional SQL-based computation engine for EDA stats and transforms, selectable in Settings. Loads on demand (~3.5 MB WASM), falls back gracefully to the JS engine on failure.
 - **Clickable missing/error counts** — Missing and error counts in the EDA panel are now clickable, applying filter actions directly.
 - **Numeric/categorical treatment toggle** — EDA panel gains a toggle to view numeric columns as categorical (top values + frequency bars).
+- **EDA boxplot pre-aggregation** — Pre-aggregates boxplot statistics to avoid Vega-Lite sorting the full dataset.
 - **Landing page rework** — Restyled main landing page.
 - **About page** — Added about page content.
 - **DuckDB race condition fixes** — Eliminated EDA panel flicker caused by dual sync/async computation paths; added execution queue to serialize DuckDB queries.
+- **Centralized timing instrumentation** — Refactored performance timing into `metricsCollector`.
 
 ### v0.3.0
 

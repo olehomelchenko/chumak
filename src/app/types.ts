@@ -54,7 +54,7 @@ export interface Source {
   name: string;
   fileName?: string;
   columns: ColumnSchema[];
-  data: DataRow[];
+  data: DataRow[] | null; // null = not loaded (lazy loading from IndexedDB)
   headerMode: 'first-row' | 'auto-generate' | 'manual';
   delimiter: string;
   customHeaders: string[] | null;
@@ -62,6 +62,7 @@ export interface Source {
   schema?: ColumnSchema[];
   rawSize?: number;
   rowCount?: number;
+  colCount?: number;
   createdAt?: string;
   comment?: string;
   rawText?: string; // Original text for sources created via text entry (enables editing)
@@ -75,7 +76,9 @@ export interface Model {
   sourceId: string;
   steps: TransformStep[];
   schema: ColumnSchema[];
-  data: DataRow[];
+  data: DataRow[] | null; // null = not loaded (lazy loading from IndexedDB)
+  rowCount?: number;
+  colCount?: number;
   stats?: EDAStats | null;
   isStale?: boolean; // True if a dependency changed but model not yet recomputed
   comment?: string;

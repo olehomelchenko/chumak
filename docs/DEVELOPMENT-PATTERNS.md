@@ -645,6 +645,7 @@ Type conversion failures and expression evaluation errors produce `ConversionErr
 
 - Always use `isConversionError()` from `src/core/type-converter.ts` to detect error values — never inline duck-type `v.type === 'error'`.
 - **Never use `structuredClone` on `model.data`** — `ConversionError` objects have `toString()`/`valueOf()` methods which `structuredClone` cannot clone (throws `DataCloneError`). Use `cloneData()` from `type-converter.ts` when a data backup is needed (e.g., error recovery). Prefer recomputing from source + steps over cloning when creating new models.
+- **`model.data` and `source.data` can be `null`** — with lazy loading, data is not fetched from IndexedDB until needed. Call `ensureModelData(model)` or `ensureSourceData(source)` before accessing `.data` for cloning, computation, or display. These functions are no-ops when data is already loaded.
 
 **Error propagation in expressions**: Errors propagate through arithmetic, comparisons, and logical operators (like `null` propagation). `??` and `coalesce()` treat errors as missing. `is_error(value)` detects errors in user expressions.
 

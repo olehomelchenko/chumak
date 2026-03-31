@@ -9,6 +9,12 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { DialogStore } from '../../stores/DialogStore';
 import { AppStore } from '../../stores/AppStore';
 import { resetStores, suppressConsole, TestData } from '../test-utils';
+
+vi.mock('../../infrastructure/storage', () => ({
+  ensureSourceData: vi.fn().mockImplementation(async (source: any) => source.data || []),
+  ensureModelData: vi.fn().mockImplementation(async (model: any) => model.data || []),
+}));
+
 import * as JoinHandlers from './join-handlers';
 
 describe('join-handlers', () => {
@@ -92,13 +98,13 @@ describe('join-handlers', () => {
   });
 
   describe('getTableDataForTarget', () => {
-    it('returns empty data for null targetId', () => {
-      const result = JoinHandlers.getTableDataForTarget('');
+    it('returns empty data for null targetId', async () => {
+      const result = await JoinHandlers.getTableDataForTarget('');
 
       expect(result).toEqual({ data: [], columns: [] });
     });
 
-    it('returns source data when target is a source', () => {
+    it('returns source data when target is a source', async () => {
       const sourceData = [
         { id: 1, name: 'Alice' },
         { id: 2, name: 'Bob' },
@@ -115,13 +121,13 @@ describe('join-handlers', () => {
         } as any,
       ];
 
-      const result = JoinHandlers.getTableDataForTarget('src_1');
+      const result = await JoinHandlers.getTableDataForTarget('src_1');
 
       expect(result.data).toEqual(sourceData);
       expect(result.columns).toEqual(['id', 'name']);
     });
 
-    it('returns model data when target is a model without steps', () => {
+    it('returns model data when target is a model without steps', async () => {
       const modelData = [
         { product: 'A', price: 100 },
         { product: 'B', price: 200 },
@@ -140,22 +146,22 @@ describe('join-handlers', () => {
         } as any,
       ];
 
-      const result = JoinHandlers.getTableDataForTarget('mdl_1');
+      const result = await JoinHandlers.getTableDataForTarget('mdl_1');
 
       expect(result.data).toEqual(modelData);
       expect(result.columns).toEqual(['product', 'price']);
     });
 
-    it('returns empty for non-existent target', () => {
+    it('returns empty for non-existent target', async () => {
       AppStore.sources.value = [];
       AppStore.models.value = [];
 
-      const result = JoinHandlers.getTableDataForTarget('non_existent');
+      const result = await JoinHandlers.getTableDataForTarget('non_existent');
 
       expect(result).toEqual({ data: [], columns: [] });
     });
 
-    it('derives columns from data when schema is missing', () => {
+    it('derives columns from data when schema is missing', async () => {
       const sourceData = [{ a: 1, b: 2, c: 3 }];
       AppStore.sources.value = [
         {
@@ -166,7 +172,7 @@ describe('join-handlers', () => {
         } as any,
       ];
 
-      const result = JoinHandlers.getTableDataForTarget('src_1');
+      const result = await JoinHandlers.getTableDataForTarget('src_1');
 
       expect(result.columns).toEqual(['a', 'b', 'c']);
     });
@@ -245,12 +251,12 @@ describe('join-handlers', () => {
       expect(DialogStore.joinState.keyPairAnalysis.value).toEqual([]);
     });
 
-    it('analyzes key pairs with matching values', () => {
+    it('analyzes key pairs with matching values', async () => {
       DialogStore.joinState.leftModel.value = 'left_src';
       DialogStore.joinState.rightModel.value = 'right_src';
       DialogStore.joinState.keyPairs.value = [['id', 'user_id']];
 
-      JoinHandlers.analyzeJoinKeys();
+      await JoinHandlers.analyzeJoinKeys();
 
       const analysis = DialogStore.joinState.keyPairAnalysis.value;
       expect(analysis).toHaveLength(1);
@@ -265,12 +271,12 @@ describe('join-handlers', () => {
       expect(keyAnalysis.rightOnly).toBe(1); // 4 only in right
     });
 
-    it('returns zeroed analysis for incomplete key pairs', () => {
+    it('returns zeroed analysis for incomplete key pairs', async () => {
       DialogStore.joinState.leftModel.value = 'left_src';
       DialogStore.joinState.rightModel.value = 'right_src';
       DialogStore.joinState.keyPairs.value = [['id', null]];
 
-      JoinHandlers.analyzeJoinKeys();
+      await JoinHandlers.analyzeJoinKeys();
 
       const analysis = DialogStore.joinState.keyPairAnalysis.value;
       expect(analysis).toHaveLength(1);
@@ -278,7 +284,7 @@ describe('join-handlers', () => {
       expect(analysis[0].leftUnique).toBe(0);
     });
 
-    it('detects duplicate values in columns', () => {
+    it('detects duplicate values in columns', async () => {
       AppStore.sources.value = [
         {
           id: 'left_src',
@@ -305,14 +311,14 @@ describe('join-handlers', () => {
       DialogStore.joinState.rightModel.value = 'right_src';
       DialogStore.joinState.keyPairs.value = [['category', 'cat']];
 
-      JoinHandlers.analyzeJoinKeys();
+      await JoinHandlers.analyzeJoinKeys();
 
       const analysis = DialogStore.joinState.keyPairAnalysis.value[0];
       expect(analysis.leftHasDuplicates).toBe(true);
       expect(analysis.rightHasDuplicates).toBe(false);
     });
 
-    it('handles null values in join columns', () => {
+    it('handles null values in join columns', async () => {
       AppStore.sources.value = [
         {
           id: 'left_src',
@@ -339,7 +345,7 @@ describe('join-handlers', () => {
       DialogStore.joinState.rightModel.value = 'right_src';
       DialogStore.joinState.keyPairs.value = [['id', 'user_id']];
 
-      JoinHandlers.analyzeJoinKeys();
+      await JoinHandlers.analyzeJoinKeys();
 
       const analysis = DialogStore.joinState.keyPairAnalysis.value[0];
       expect(analysis.leftTotalRows).toBe(3);
@@ -348,7 +354,7 @@ describe('join-handlers', () => {
       expect(analysis.rightNonNullRows).toBe(1);
     });
 
-    it('calculates match percentages correctly', () => {
+    it('calculates match percentages correctly', async () => {
       AppStore.sources.value = [
         {
           id: 'left_src',
@@ -368,7 +374,7 @@ describe('join-handlers', () => {
       DialogStore.joinState.rightModel.value = 'right_src';
       DialogStore.joinState.keyPairs.value = [['id', 'user_id']];
 
-      JoinHandlers.analyzeJoinKeys();
+      await JoinHandlers.analyzeJoinKeys();
 
       const analysis = DialogStore.joinState.keyPairAnalysis.value[0];
       expect(analysis.leftMatchPercent).toBe(50); // 2 of 4 match

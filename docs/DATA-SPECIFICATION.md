@@ -24,14 +24,15 @@ interface Source {
   name: string; // Display name
   fileName?: string; // Original filename if imported from file
   columns: ColumnSchema[]; // Column definitions with types
-  data: DataRow[]; // Array of row objects
+  data: DataRow[] | null; // Row data (null = not yet loaded from IndexedDB)
   headerMode: 'first-row' | 'auto-generate' | 'manual';
   delimiter: string; // CSV delimiter used
   customHeaders: string[] | null;
   origin: string; // Import source (file, clipboard, url)
   schema?: ColumnSchema[]; // Duplicate of columns (legacy)
   rawSize?: number; // Original file size in bytes
-  rowCount?: number; // Number of rows
+  rowCount?: number; // Number of rows (available even when data is not loaded)
+  colCount?: number; // Number of columns (available even when data is not loaded)
   createdAt?: string; // ISO timestamp
   comment?: string; // User-provided comment/notes about the dataset
   rawText?: string; // Original text for sources created via text entry (enables re-editing)
@@ -50,7 +51,9 @@ interface Model {
   sourceId: string; // Reference to parent Source.id or Model.id (model chaining)
   steps: TransformStep[]; // Ordered transformation pipeline
   schema: ColumnSchema[]; // Current column definitions (after transforms)
-  data: DataRow[]; // Computed result data
+  data: DataRow[] | null; // Computed result data (null = not yet loaded from IndexedDB)
+  rowCount?: number; // Number of rows (available even when data is not loaded)
+  colCount?: number; // Number of columns (available even when data is not loaded)
   stats?: EDAStats | null; // Cached EDA statistics for selected column
   isStale?: boolean; // True if a dependency changed but model not yet recomputed
   comment?: string; // User-provided comment/notes about the model
@@ -837,13 +840,17 @@ op.variance('column') — Variance
 
 ### 5.1 IndexedDB Structure
 
-| Object Store | Key  | Contents                                   |
-| ------------ | ---- | ------------------------------------------ |
-| `sources`    | `id` | Full Source objects including data         |
-| `models`     | `id` | Full Model objects including computed data |
+| Object Store  | Key  | Contents                                          |
+| ------------- | ---- | ------------------------------------------------- |
+| `sources`     | `id` | Source metadata (columns, settings) — no row data |
+| `models`      | `id` | Model metadata (steps, schema) — no row data      |
+| `source-data` | `id` | Row data arrays for sources (`{ id, data }`)      |
+| `model-data`  | `id` | Row data arrays for models (`{ id, data }`)       |
 
 **Database name:** `syto-db`
-**Version:** `1`
+**Version:** `2`
+
+Row data is stored separately from metadata and loaded lazily per source/model. On app startup, only metadata is loaded; data is fetched on demand via `ensureSourceData()`/`ensureModelData()`. The v1→v2 migration runs automatically on first open.
 
 ### 5.2 localStorage
 

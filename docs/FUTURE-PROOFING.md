@@ -10,14 +10,16 @@ This is not a theoretical "what if we rename everything" document. It focuses on
 
 ## How Data is Persisted
 
-| Location               | What's Stored                          | Format                                           |
-| ---------------------- | -------------------------------------- | ------------------------------------------------ |
-| IndexedDB `sources`    | Raw imported data + metadata           | `Source` objects                                 |
-| IndexedDB `models`     | Transform pipelines + computed results | `Model` objects with `TransformStep[]`           |
-| Exported workflow JSON | Portable pipeline definition (v2 only) | `{ formatVersion: 2, sources, models, outputs }` |
-| URL hash               | Current view state                     | `/#/sourceId/modelId`                            |
+| Location                | What's Stored                          | Format                                               |
+| ----------------------- | -------------------------------------- | ---------------------------------------------------- |
+| IndexedDB `sources`     | Source metadata (columns, settings)    | `Source` objects (no row data)                       |
+| IndexedDB `models`      | Model metadata (steps, schema)         | `Model` objects with `TransformStep[]` (no row data) |
+| IndexedDB `source-data` | Row data arrays for sources            | `{ id, data }` per source                            |
+| IndexedDB `model-data`  | Row data arrays for models             | `{ id, data }` per model                             |
+| Exported workflow JSON  | Portable pipeline definition (v2 only) | `{ formatVersion: 2, sources, models, outputs }`     |
+| URL hash                | Current view state                     | `/#/sourceId/modelId`                                |
 
-**Key insight:** IndexedDB stores the full objects, including computed `data` arrays. Workflow JSON stores just the pipeline definition.
+**Key insight:** IndexedDB separates metadata from row data. On startup, only metadata is loaded; row data is fetched lazily per source/model via `ensureSourceData()`/`ensureModelData()`. Workflow JSON stores just the pipeline definition.
 
 ---
 
@@ -142,15 +144,16 @@ if (transform.pivot) {
 
 **What to do:**
 
-1. Bump `DB_VERSION` in `src/core/storage.ts`
+1. Bump `DB_VERSION` in `src/app/infrastructure/storage.ts`
 2. Add object store creation in `onupgradeneeded` handler
-3. ✅ Adding stores doesn't affect existing data
+3. Add migration logic in `if (event.oldVersion < N)` block if needed
+4. ✅ Adding stores doesn't affect existing data
 
 **Example:**
 
 ```typescript
-// src/core/storage.ts
-const DB_VERSION = 2; // ← bump from 1
+// src/app/infrastructure/storage.ts
+const DB_VERSION = 3; // ← bump from 2
 
 request.onupgradeneeded = (event) => {
   const db = event.target.result;
@@ -238,6 +241,7 @@ export interface Model {
 - ✅ Graceful unknown transform handling - skips unknown transforms with warnings
 - ✅ Workflow format versioning (`formatVersion`, `sytoVersion`) - enables format detection
 - ✅ Join references use ID internally (IndexedDB) — v2 export format translates to names for portability
+- ✅ IndexedDB v2 schema — row data stored in separate stores (`source-data`, `model-data`), loaded lazily; v1→v2 migration runs automatically
 
 **You should use these patterns when adding new features.**
 

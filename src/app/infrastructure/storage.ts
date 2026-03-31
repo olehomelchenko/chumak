@@ -1,5 +1,8 @@
 /**
  * Syto Storage Layer - IndexedDB Persistence
+ *
+ * V2 schema: data arrays are stored in separate object stores (`source-data`, `model-data`)
+ * so that metadata loads fast and row data is loaded lazily per source/model.
  */
 
 import { SchemaEngine } from '../../core/schema-engine';
@@ -7,7 +10,7 @@ import { validateSteps } from '../linters/transform-linter';
 import { metricsCollector } from './metrics';
 
 const DB_NAME = 'syto-db';
-const DB_VERSION = 1;
+const DB_VERSION = 2;
 
 /**
  * Deep clone an object while converting Date objects to local date strings (YYYY-MM-DD).
@@ -50,7 +53,8 @@ export function convertDatesForStorage(obj: any): any {
 }
 
 /**
- * Open/create the IndexedDB database
+ * Open/create the IndexedDB database.
+ * Handles v1→v2 migration: moves .data from source/model records into separate stores.
  */
 export function openDatabase(): Promise<IDBDatabase> {
   return new Promise((resolve, reject) => {
@@ -66,13 +70,25 @@ export function openDatabase(): Promise<IDBDatabase> {
 
     request.onupgradeneeded = (event: any) => {
       const db = event.target.result;
+      const transaction = event.target.transaction;
 
+      // Create stores that don't exist yet
       if (!db.objectStoreNames.contains('sources')) {
         db.createObjectStore('sources', { keyPath: 'id' });
       }
-
       if (!db.objectStoreNames.contains('models')) {
         db.createObjectStore('models', { keyPath: 'id' });
+      }
+      if (!db.objectStoreNames.contains('source-data')) {
+        db.createObjectStore('source-data', { keyPath: 'id' });
+      }
+      if (!db.objectStoreNames.contains('model-data')) {
+        db.createObjectStore('model-data', { keyPath: 'id' });
+      }
+
+      // Migrate v1→v2: extract .data from existing records
+      if (event.oldVersion < 2) {
+        migrateV1ToV2(transaction);
       }
 
       console.log('Database upgraded to version', DB_VERSION);
@@ -81,24 +97,99 @@ export function openDatabase(): Promise<IDBDatabase> {
 }
 
 /**
- * Save all sources to IndexedDB
+ * V1→V2 migration: extract .data from source/model records into separate stores.
+ * Runs inside the onupgradeneeded transaction.
+ */
+function migrateV1ToV2(transaction: IDBTransaction): void {
+  // Migrate sources
+  const sourceStore = transaction.objectStore('sources');
+  const sourceDataStore = transaction.objectStore('source-data');
+  const sourceRequest = sourceStore.getAll();
+
+  sourceRequest.onsuccess = () => {
+    const sources = sourceRequest.result || [];
+    for (const source of sources) {
+      if (source.data && Array.isArray(source.data)) {
+        // Save data to separate store
+        sourceDataStore.put({ id: source.id, data: source.data });
+        // Update metadata with row/col counts, remove data
+        source.rowCount = source.data.length;
+        source.colCount = source.columns?.length ?? 0;
+        delete source.data;
+        sourceStore.put(source);
+      }
+    }
+  };
+
+  // Migrate models
+  const modelStore = transaction.objectStore('models');
+  const modelDataStore = transaction.objectStore('model-data');
+  const modelRequest = modelStore.getAll();
+
+  modelRequest.onsuccess = () => {
+    const models = modelRequest.result || [];
+    for (const model of models) {
+      if (model.data && Array.isArray(model.data)) {
+        // Save data to separate store
+        modelDataStore.put({ id: model.id, data: model.data });
+        // Update metadata with row/col counts, remove data
+        model.rowCount = model.data.length;
+        model.colCount = model.schema?.length ?? 0;
+        delete model.data;
+        modelStore.put(model);
+      }
+    }
+  };
+}
+
+// ─── Save Functions ───
+
+/**
+ * Save all sources to IndexedDB (metadata only, data saved separately)
  */
 export async function saveSources(sources: any[]): Promise<void> {
   const db = await openDatabase();
 
   return new Promise((resolve, reject) => {
-    const transaction = db.transaction(['sources'], 'readwrite');
-    const store = transaction.objectStore('sources');
+    const transaction = db.transaction(['sources', 'source-data'], 'readwrite');
+    const metaStore = transaction.objectStore('sources');
+    const dataStore = transaction.objectStore('source-data');
 
-    const clearRequest = store.clear();
+    const clearMeta = metaStore.clear();
 
-    clearRequest.onsuccess = () => {
+    clearMeta.onsuccess = () => {
+      const currentIds = new Set(sources.map((s) => s.id));
+
       sources.forEach((source) => {
-        // Convert Date objects to YYYY-MM-DD strings before serialization
         const converted = convertDatesForStorage(source);
-        const cleanSource = JSON.parse(JSON.stringify(converted));
-        store.put(cleanSource);
+        const clean = JSON.parse(JSON.stringify(converted));
+
+        // Separate data from metadata
+        const data = clean.data;
+        delete clean.data;
+
+        // Only update data store for sources with loaded data
+        if (data && Array.isArray(data)) {
+          clean.rowCount = data.length;
+          clean.colCount = clean.columns?.length ?? 0;
+          dataStore.put({ id: clean.id, data });
+        }
+        // If data is null (not loaded), preserve existing data store entry and counts
+
+        metaStore.put(clean);
       });
+
+      // Remove data entries for deleted sources
+      const cursorReq = dataStore.openKeyCursor();
+      cursorReq.onsuccess = () => {
+        const cursor = cursorReq.result;
+        if (cursor) {
+          if (!currentIds.has(cursor.key as string)) {
+            dataStore.delete(cursor.key);
+          }
+          cursor.continue();
+        }
+      };
     };
 
     transaction.oncomplete = () => {
@@ -114,47 +205,50 @@ export async function saveSources(sources: any[]): Promise<void> {
 }
 
 /**
- * Load all sources from IndexedDB
- */
-export async function loadSources(): Promise<any[]> {
-  const db = await openDatabase();
-
-  return new Promise((resolve, reject) => {
-    const transaction = db.transaction(['sources'], 'readonly');
-    const store = transaction.objectStore('sources');
-    const request = store.getAll();
-
-    request.onsuccess = () => {
-      db.close();
-      resolve(request.result || []);
-    };
-
-    request.onerror = () => {
-      db.close();
-      reject(new Error('Failed to load sources: ' + request.error));
-    };
-  });
-}
-
-/**
- * Save all models to IndexedDB
+ * Save all models to IndexedDB (metadata only, data saved separately)
  */
 export async function saveModels(models: any[]): Promise<void> {
   const db = await openDatabase();
 
   return new Promise((resolve, reject) => {
-    const transaction = db.transaction(['models'], 'readwrite');
-    const store = transaction.objectStore('models');
+    const transaction = db.transaction(['models', 'model-data'], 'readwrite');
+    const metaStore = transaction.objectStore('models');
+    const dataStore = transaction.objectStore('model-data');
 
-    const clearRequest = store.clear();
+    const clearMeta = metaStore.clear();
 
-    clearRequest.onsuccess = () => {
+    clearMeta.onsuccess = () => {
+      const currentIds = new Set(models.map((m) => m.id));
+
       models.forEach((model) => {
-        // Convert Date objects to YYYY-MM-DD strings before serialization
         const converted = convertDatesForStorage(model);
-        const cleanModel = JSON.parse(JSON.stringify(converted));
-        store.put(cleanModel);
+        const clean = JSON.parse(JSON.stringify(converted));
+
+        // Separate data from metadata
+        const data = clean.data;
+        delete clean.data;
+
+        // Only update data store for models with loaded data
+        if (data && Array.isArray(data)) {
+          clean.rowCount = data.length;
+          clean.colCount = clean.schema?.length ?? 0;
+          dataStore.put({ id: clean.id, data });
+        }
+
+        metaStore.put(clean);
       });
+
+      // Remove data entries for deleted models
+      const cursorReq = dataStore.openKeyCursor();
+      cursorReq.onsuccess = () => {
+        const cursor = cursorReq.result;
+        if (cursor) {
+          if (!currentIds.has(cursor.key as string)) {
+            dataStore.delete(cursor.key);
+          }
+          cursor.continue();
+        }
+      };
     };
 
     transaction.oncomplete = () => {
@@ -169,8 +263,40 @@ export async function saveModels(models: any[]): Promise<void> {
   });
 }
 
+// ─── Load Functions ───
+
 /**
- * Load all models from IndexedDB
+ * Load all source metadata from IndexedDB (no row data)
+ */
+export async function loadSources(): Promise<any[]> {
+  const db = await openDatabase();
+
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(['sources'], 'readonly');
+    const store = transaction.objectStore('sources');
+    const request = store.getAll();
+
+    request.onsuccess = () => {
+      db.close();
+      // Sources come back without .data — set to null to indicate "not loaded"
+      const sources = request.result || [];
+      for (const source of sources) {
+        if (source.data === undefined) {
+          source.data = null;
+        }
+      }
+      resolve(sources);
+    };
+
+    request.onerror = () => {
+      db.close();
+      reject(new Error('Failed to load sources: ' + request.error));
+    };
+  });
+}
+
+/**
+ * Load all model metadata from IndexedDB (no row data)
  */
 export async function loadModels(): Promise<any[]> {
   const db = await openDatabase();
@@ -182,7 +308,13 @@ export async function loadModels(): Promise<any[]> {
 
     request.onsuccess = () => {
       db.close();
-      resolve(request.result || []);
+      const models = request.result || [];
+      for (const model of models) {
+        if (model.data === undefined) {
+          model.data = null;
+        }
+      }
+      resolve(models);
     };
 
     request.onerror = () => {
@@ -191,6 +323,80 @@ export async function loadModels(): Promise<any[]> {
     };
   });
 }
+
+/**
+ * Load row data for a specific source
+ */
+export async function loadSourceData(sourceId: string): Promise<any[] | null> {
+  const db = await openDatabase();
+
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(['source-data'], 'readonly');
+    const store = transaction.objectStore('source-data');
+    const request = store.get(sourceId);
+
+    request.onsuccess = () => {
+      db.close();
+      resolve(request.result?.data ?? null);
+    };
+
+    request.onerror = () => {
+      db.close();
+      reject(new Error('Failed to load source data: ' + request.error));
+    };
+  });
+}
+
+/**
+ * Load row data for a specific model
+ */
+export async function loadModelData(modelId: string): Promise<any[] | null> {
+  const db = await openDatabase();
+
+  return new Promise((resolve, reject) => {
+    const transaction = db.transaction(['model-data'], 'readonly');
+    const store = transaction.objectStore('model-data');
+    const request = store.get(modelId);
+
+    request.onsuccess = () => {
+      db.close();
+      resolve(request.result?.data ?? null);
+    };
+
+    request.onerror = () => {
+      db.close();
+      reject(new Error('Failed to load model data: ' + request.error));
+    };
+  });
+}
+
+/**
+ * Ensure a source's data is loaded. Returns the data array.
+ * If already loaded, returns immediately. Otherwise loads from IndexedDB.
+ */
+export async function ensureSourceData(source: any): Promise<any[]> {
+  if (source.data !== null && source.data !== undefined) {
+    return source.data;
+  }
+  const data = await loadSourceData(source.id);
+  source.data = data || [];
+  return source.data;
+}
+
+/**
+ * Ensure a model's data is loaded. Returns the data array.
+ * If already loaded, returns immediately. Otherwise loads from IndexedDB.
+ */
+export async function ensureModelData(model: any): Promise<any[]> {
+  if (model.data !== null && model.data !== undefined) {
+    return model.data;
+  }
+  const data = await loadModelData(model.id);
+  model.data = data || [];
+  return model.data;
+}
+
+// ─── Auto-save & Clear ───
 
 /**
  * Auto-save current state
@@ -213,10 +419,15 @@ export async function clearAllData(): Promise<void> {
   const db = await openDatabase();
 
   return new Promise((resolve, reject) => {
-    const transaction = db.transaction(['sources', 'models'], 'readwrite');
+    const transaction = db.transaction(
+      ['sources', 'models', 'source-data', 'model-data'],
+      'readwrite'
+    );
 
     transaction.objectStore('sources').clear();
     transaction.objectStore('models').clear();
+    transaction.objectStore('source-data').clear();
+    transaction.objectStore('model-data').clear();
 
     transaction.oncomplete = () => {
       db.close();
@@ -233,6 +444,7 @@ export async function clearAllData(): Promise<void> {
 
 /**
  * Load initial data on app startup
+ * Loads metadata only (no row data) — data is loaded lazily per source/model.
  * Normalizes schemas to handle unknown types gracefully (future-proofing)
  * Validates model steps and returns warnings for invalid pipelines
  */

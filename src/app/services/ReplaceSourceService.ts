@@ -2,6 +2,7 @@ import { AppStore } from '../stores/AppStore';
 import { DataRow, ColumnSchema } from '../types';
 import { PersistenceService } from './PersistenceService';
 import { DependencyService } from './DependencyService';
+import { ensureSourceData } from '../infrastructure/storage';
 
 /**
  * ReplaceSourceService
@@ -33,23 +34,27 @@ export class ReplaceSourceService {
 
     const source = sources[sourceIndex];
 
-    // 2. Create backup of current state (deep clone to avoid reference issues)
+    // 2. Ensure data is loaded before backup (lazy loading may leave data as null)
+    await ensureSourceData(source);
+
+    // 3. Create backup of current state (deep clone to avoid reference issues)
     // We omit the nested backup to keep it flat (one level of undo)
     const { backup: _, ...sourceToBackup } = source;
     source.backup = JSON.parse(JSON.stringify(sourceToBackup));
 
-    // 3. Update source properties with new data
+    // 4. Update source properties with new data
     source.data = newData;
     source.columns = newColumns;
     if (metadata.fileName) source.fileName = metadata.fileName;
     source.headerMode = metadata.headerMode as any;
     source.delimiter = metadata.delimiter;
     source.rowCount = newData.length;
+    source.colCount = newColumns.length;
 
     // 4. Trigger reactivity for sources list
     AppStore.sources.value = [...AppStore.sources.value];
 
-    // 5. Mark dependent models as stale using DependencyService
+    // 6. Mark dependent models as stale using DependencyService
     const staleIds = DependencyService.markDependentsStale(
       AppStore.models.value,
       AppStore.sources.value,

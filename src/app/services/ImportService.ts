@@ -46,6 +46,7 @@ export class ImportService {
 
     // Use physical types for the dataset (what PapaParse gives us after dynamicTyping)
     // Logical type inference happens in the model's first types step
+    const physicalSchema = SchemaEngine.createPhysicalSchema(cleanData);
     const source: Source = {
       id: `src_${Date.now()}`,
       name: uniqueSourceName,
@@ -56,7 +57,8 @@ export class ImportService {
       customHeaders: customHeaders || null,
       rawSize: file.size,
       rowCount: cleanData.length,
-      columns: SchemaEngine.createPhysicalSchema(cleanData),
+      colCount: physicalSchema.length,
+      columns: physicalSchema,
       createdAt: new Date().toISOString(),
       data: cleanData,
       __v: 1,
@@ -88,6 +90,8 @@ export class ImportService {
 
     mainModel.data = result.data;
     mainModel.schema = result.schema;
+    mainModel.rowCount = result.data.length;
+    mainModel.colCount = result.schema.length;
 
     AppStore.models.value = [...AppStore.models.value, mainModel];
 

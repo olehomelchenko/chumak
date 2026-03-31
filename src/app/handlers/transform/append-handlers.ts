@@ -130,8 +130,8 @@ export async function previewAppend() {
   state.previewData.value = null;
 
   try {
-    const leftTableData = getTableDataForTarget(leftId);
-    const targetTableData = getTableDataForTarget(targetId);
+    const leftTableData = await getTableDataForTarget(leftId);
+    const targetTableData = await getTableDataForTarget(targetId);
 
     // Ensure target model in context has computed data for applyTransform
     const targetModel = models.find((m) => m.id === targetId);

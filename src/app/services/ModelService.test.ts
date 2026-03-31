@@ -43,6 +43,11 @@ vi.mock('./StepService', () => ({
   },
 }));
 
+vi.mock('../infrastructure/storage', () => ({
+  ensureSourceData: vi.fn().mockResolvedValue([]),
+  ensureModelData: vi.fn().mockResolvedValue([]),
+}));
+
 vi.mock('./DependencyService', () => ({
   DependencyService: {
     canDeleteModel: vi.fn().mockReturnValue({ canDelete: true }),
@@ -90,8 +95,8 @@ describe('ModelService', () => {
   });
 
   describe('switchToSource', () => {
-    it('sets source as active and clears model', () => {
-      ModelService.switchToSource(source, clearColumnSelection);
+    it('sets source as active and clears model', async () => {
+      await ModelService.switchToSource(source, clearColumnSelection);
 
       expect(AppStore.activeSource.value).toBe(source);
       expect(AppStore.activeModel.value).toBeNull();
@@ -100,8 +105,8 @@ describe('ModelService', () => {
       expect(clearColumnSelection).toHaveBeenCalled();
     });
 
-    it('extracts column names from source schema', () => {
-      ModelService.switchToSource(source, clearColumnSelection);
+    it('extracts column names from source schema', async () => {
+      await ModelService.switchToSource(source, clearColumnSelection);
 
       expect(AppStore.columns.value).toEqual(['name', 'age']);
     });
@@ -131,8 +136,8 @@ describe('ModelService', () => {
     const updatePagination = vi.fn();
     const setRibbonTab = vi.fn();
 
-    it('sets model as active', () => {
-      ModelService.switchToModel(
+    it('sets model as active', async () => {
+      await ModelService.switchToModel(
         model,
         clearColumnSelection,
         updatePagination,
@@ -145,8 +150,8 @@ describe('ModelService', () => {
       expect(updatePagination).toHaveBeenCalled();
     });
 
-    it('sets ribbon tab to "prepare" when current is "data"', () => {
-      ModelService.switchToModel(
+    it('sets ribbon tab to "prepare" when current is "data"', async () => {
+      await ModelService.switchToModel(
         model,
         clearColumnSelection,
         updatePagination,
@@ -157,8 +162,8 @@ describe('ModelService', () => {
       expect(setRibbonTab).toHaveBeenCalledWith('rows');
     });
 
-    it('does not change ribbon tab when already on valid tab', () => {
-      ModelService.switchToModel(
+    it('does not change ribbon tab when already on valid tab', async () => {
+      await ModelService.switchToModel(
         model,
         clearColumnSelection,
         updatePagination,
@@ -169,8 +174,8 @@ describe('ModelService', () => {
       expect(setRibbonTab).not.toHaveBeenCalled();
     });
 
-    it('sets columns from schema', () => {
-      ModelService.switchToModel(
+    it('sets columns from schema', async () => {
+      await ModelService.switchToModel(
         model,
         clearColumnSelection,
         updatePagination,
@@ -181,11 +186,11 @@ describe('ModelService', () => {
       expect(AppStore.columns.value).toEqual(['name', 'age']);
     });
 
-    it('sets empty columns when model has no data', () => {
+    it('sets empty columns when model has no data', async () => {
       model.data = [];
       model.schema = [];
 
-      ModelService.switchToModel(
+      await ModelService.switchToModel(
         model,
         clearColumnSelection,
         updatePagination,
@@ -196,10 +201,10 @@ describe('ModelService', () => {
       expect(AppStore.columns.value).toEqual([]);
     });
 
-    it('recomputes stale model and clears flag', () => {
+    it('recomputes stale model and clears flag', async () => {
       model.isStale = true;
 
-      ModelService.switchToModel(
+      await ModelService.switchToModel(
         model,
         clearColumnSelection,
         updatePagination,
@@ -215,7 +220,7 @@ describe('ModelService', () => {
       expect(DependencyService.clearStaleFlag).toHaveBeenCalledWith(model);
     });
 
-    it('recomputes stale upstream dependencies before the target model', () => {
+    it('recomputes stale upstream dependencies before the target model', async () => {
       // Set up chain: modelA (stale upstream) -> model (stale target)
       const modelA = createTestModel({ id: 'mdl_A', name: 'Model Upstream', isStale: true });
       AppStore.models.value = [modelA, model];
@@ -261,7 +266,7 @@ describe('ModelService', () => {
         model.id,
       ]);
 
-      ModelService.switchToModel(
+      await ModelService.switchToModel(
         model,
         clearColumnSelection,
         updatePagination,
@@ -287,7 +292,7 @@ describe('ModelService', () => {
       expect(DependencyService.clearStaleFlag).toHaveBeenCalledWith(model);
     });
 
-    it('skips non-stale upstream dependencies', () => {
+    it('skips non-stale upstream dependencies', async () => {
       const modelA = createTestModel({ id: 'mdl_A', name: 'Model Upstream', isStale: false });
       AppStore.models.value = [modelA, model];
       model.isStale = true;
@@ -330,7 +335,7 @@ describe('ModelService', () => {
         model.id,
       ]);
 
-      ModelService.switchToModel(
+      await ModelService.switchToModel(
         model,
         clearColumnSelection,
         updatePagination,
@@ -348,13 +353,13 @@ describe('ModelService', () => {
       expect(DependencyService.clearStaleFlag).not.toHaveBeenCalledWith(modelA);
     });
 
-    it('keeps stale flag and shows warning on recomputation error', () => {
+    it('keeps stale flag and shows warning on recomputation error', async () => {
       model.isStale = true;
       vi.mocked(StepService.computeModelUpToStep).mockImplementationOnce(() => {
         throw new Error('compute failed');
       });
 
-      ModelService.switchToModel(
+      await ModelService.switchToModel(
         model,
         clearColumnSelection,
         updatePagination,
