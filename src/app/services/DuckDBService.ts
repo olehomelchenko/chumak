@@ -24,28 +24,29 @@ async function init(): Promise<DuckDBInstance | null> {
   try {
     const duckdb = await import('@duckdb/duckdb-wasm');
 
-    // Import WASM + worker files as URLs via Vite — self-hosted, no CDN/CORS issues
-    const [
-      { default: mvpWasm },
-      { default: mvpWorker },
-      { default: ehWasm },
-      { default: ehWorker },
-    ] = await Promise.all([
-      import('@duckdb/duckdb-wasm/dist/duckdb-mvp.wasm?url'),
-      import('@duckdb/duckdb-wasm/dist/duckdb-browser-mvp.worker.js?url'),
-      import('@duckdb/duckdb-wasm/dist/duckdb-eh.wasm?url'),
-      import('@duckdb/duckdb-wasm/dist/duckdb-browser-eh.worker.js?url'),
-    ]);
+    // Load WASM + worker bundles from jsDelivr CDN.
+    // The WASM files are 30-40 MB each — too large for Cloudflare Pages' 25 MB per-file limit.
+    const DUCKDB_CDN = `https://cdn.jsdelivr.net/npm/@duckdb/duckdb-wasm@${duckdb.PACKAGE_VERSION}/dist`;
 
     const bundle = await duckdb.selectBundle({
-      mvp: { mainModule: mvpWasm, mainWorker: mvpWorker },
-      eh: { mainModule: ehWasm, mainWorker: ehWorker },
+      mvp: {
+        mainModule: `${DUCKDB_CDN}/duckdb-mvp.wasm`,
+        mainWorker: `${DUCKDB_CDN}/duckdb-browser-mvp.worker.js`,
+      },
+      eh: {
+        mainModule: `${DUCKDB_CDN}/duckdb-eh.wasm`,
+        mainWorker: `${DUCKDB_CDN}/duckdb-browser-eh.worker.js`,
+      },
     });
 
-    const variant = bundle.mainModule === ehWasm ? 'eh' : 'mvp';
+    const variant = String(bundle.mainModule).includes('duckdb-eh') ? 'eh' : 'mvp';
     const t0 = performance.now();
 
-    const worker = new Worker(bundle.mainWorker!);
+    // Workers can't load cross-origin scripts directly — create a local blob
+    // worker that imports the remote script via importScripts().
+    const workerUrl = bundle.mainWorker!;
+    const blob = new Blob([`importScripts("${workerUrl}");`], { type: 'text/javascript' });
+    const worker = new Worker(URL.createObjectURL(blob));
     const logger = new duckdb.ConsoleLogger(duckdb.LogLevel.WARNING);
     const db = new duckdb.AsyncDuckDB(logger, worker);
     await db.instantiate(bundle.mainModule, bundle.pthreadWorker);
