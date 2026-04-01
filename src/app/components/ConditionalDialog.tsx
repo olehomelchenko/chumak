@@ -3,6 +3,7 @@
 import { useTranslation } from 'preact-i18next';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
+import { getActiveSchema } from '../handlers/core/helper-handlers';
 import { ExpressionEditor } from './ExpressionEditor';
 import styles from './form-controls.module.css';
 
@@ -82,6 +83,8 @@ export function ConditionalDialog() {
                 onChange={(v) => updateCondition(index, 'when', v)}
                 placeholder={t('conditional.whenPlaceholder')}
                 columns={AppStore.columns.value}
+                schema={getActiveSchema()}
+                context="conditional"
               />
             </div>
             <div>
@@ -93,6 +96,8 @@ export function ConditionalDialog() {
                 onChange={(v) => updateCondition(index, 'then', v)}
                 placeholder={t('conditional.thenPlaceholder')}
                 columns={AppStore.columns.value}
+                schema={getActiveSchema()}
+                context="conditional"
               />
             </div>
           </div>
@@ -109,6 +114,8 @@ export function ConditionalDialog() {
           onChange={(v) => (elseValue.value = v)}
           placeholder={t('conditional.elsePlaceholder')}
           columns={AppStore.columns.value}
+          schema={getActiveSchema()}
+          context="conditional"
         />
         <p class={styles.helpText}>{t('conditional.elseHelp')}</p>
       </div>

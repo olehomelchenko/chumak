@@ -57,6 +57,8 @@ export function DeriveDialog() {
           onChange={(v) => (expression.value = v)}
           placeholder={t('derive.expressionPlaceholder')}
           columns={AppStore.columns.value}
+          schema={getActiveSchema()}
+          context="derive"
         />
       </div>
 

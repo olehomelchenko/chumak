@@ -141,7 +141,7 @@ Key characteristics:
 The `ExpressionEditor` component (`src/app/components/ExpressionEditor.tsx`) provides a CodeMirror 6-based multi-line editor for formulas used by Derive, Filter, and Conditional dialogs. Grows with content up to a max height, then scrolls.
 
 - **Syntax highlighting**: `src/core/expression-language.ts` — StreamLanguage tokenizer that recognizes functions, column names, bracket notation, strings, numbers, operators, and keywords
-- **Autocomplete**: Column names (highest priority), function names with signatures from `src/schemas/functions.json`, and keywords (`true`, `false`, `null`, `and`, `or`, `not`)
+- **Autocomplete**: Column names (shown in `[brackets]`, highest priority), function names with signatures from `src/schemas/functions.json`, and keywords (`true`, `false`, `null`, `and`, `or`, `not`). Context-aware: functions are boosted by column types in scope (category → type mapping in `expression-language.ts`) and expression context (`filter` boosts comparison functions, `derive`/`conditional` boost transform functions). Dropdown rows are color-tinted by type (blue for columns, brown for functions) via `:has()`-based CSS on CodeMirror icon classes.
 - **Controlled component**: Bidirectional sync between CodeMirror and Preact signals, with an `isSyncing` guard to prevent infinite update loops. See DEVELOPMENT-PATTERNS.md §2.3 for details.
 - **Validation**: Real-time via `useSignalEffect` — parses, validates, and updates error signals with debounced preview computation (150ms)
 - **Error display**: `src/core/error-formatter.ts` produces multi-line messages with position pointers and suggestions

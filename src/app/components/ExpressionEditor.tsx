@@ -13,13 +13,19 @@ import { tags } from '@lezer/highlight';
 import {
   createExpressionLanguage,
   createExpressionCompletion,
+  type ExpressionContext,
 } from '../../core/expression-language';
+import type { ColumnSchema } from '../../core/schema-engine';
 
 export interface ExpressionEditorProps {
   value: string;
   onChange: (value: string) => void;
   placeholder?: string;
   columns: string[];
+  /** Column schema for context-aware autocomplete (boosts relevant functions) */
+  schema?: ColumnSchema[];
+  /** Expression context for autocomplete boosting */
+  context?: ExpressionContext;
   className?: string;
 }
 
@@ -82,10 +88,35 @@ const editorTheme = EditorView.theme({
     background: 'rgba(var(--color-cyan-rgb), 0.12)',
     color: 'var(--color-midnight-blue)',
   },
+  // Row backgrounds by completion type (using :has to target parent li from icon class)
+  '.cm-tooltip-autocomplete ul li:has(.cm-completionIcon-variable)': {
+    background: 'rgba(0, 16, 128, 0.06)',
+  },
+  '.cm-tooltip-autocomplete ul li:has(.cm-completionIcon-function)': {
+    background: 'rgba(121, 94, 38, 0.06)',
+  },
+  '.cm-tooltip-autocomplete ul li:has(.cm-completionIcon-variable)[aria-selected]': {
+    background: 'rgba(0, 16, 128, 0.14)',
+  },
+  '.cm-tooltip-autocomplete ul li:has(.cm-completionIcon-function)[aria-selected]': {
+    background: 'rgba(121, 94, 38, 0.14)',
+  },
   '.cm-completionLabel': {
     fontFamily: 'var(--font-family-mono)',
     fontSize: 'var(--font-size-sm)',
   },
+  // Completion icons: small colored indicators
+  '.cm-completionIcon': {
+    width: '1em',
+    fontSize: '90%',
+    opacity: 1,
+  },
+  '.cm-completionIcon-variable': { color: '#001080' },
+  '.cm-completionIcon-variable::after': { content: "'\\25CF'" },
+  '.cm-completionIcon-function': { color: '#795e26' },
+  '.cm-completionIcon-function::after': { content: "'\\0192'" },
+  '.cm-completionIcon-keyword': { color: '#0000ff' },
+  '.cm-completionIcon-keyword::after': { content: "'\\25CB'" },
   '.cm-completionDetail': {
     fontStyle: 'normal',
     color: 'var(--color-dark-gray)',
@@ -105,6 +136,8 @@ export function ExpressionEditor({
   onChange,
   placeholder,
   columns,
+  schema,
+  context,
   className,
 }: ExpressionEditorProps) {
   const containerRef = useRef<HTMLDivElement>(null);
@@ -128,9 +161,9 @@ export function ExpressionEditor({
       closeBrackets(),
       completionCompartment.current.of(
         autocompletion({
-          override: [createExpressionCompletion(columns)],
+          override: [createExpressionCompletion(columns, schema, context)],
           activateOnTyping: true,
-          icons: false,
+          icons: true,
         })
       ),
       EditorView.updateListener.of((update: ViewUpdate) => {
@@ -183,15 +216,15 @@ export function ExpressionEditor({
           langCompartment.current.reconfigure(createExpressionLanguage(columnSet)),
           completionCompartment.current.reconfigure(
             autocompletion({
-              override: [createExpressionCompletion(columns)],
+              override: [createExpressionCompletion(columns, schema, context)],
               activateOnTyping: true,
-              icons: false,
+              icons: true,
             })
           ),
         ],
       });
     }
-  }, [columnSet]); // columnSet is derived from columns, so this covers both
+  }, [columnSet, schema, context]); // reconfigure when columns, schema, or context change
 
   return <div ref={containerRef} class={className} />;
 }

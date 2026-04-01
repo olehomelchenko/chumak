@@ -49,6 +49,8 @@ export function FilterDialog() {
         onChange={(v) => (expression.value = v)}
         placeholder={t('filter.placeholder')}
         columns={AppStore.columns.value}
+        schema={getActiveSchema()}
+        context="filter"
       />
 
       {/* Preview mode toggle */}

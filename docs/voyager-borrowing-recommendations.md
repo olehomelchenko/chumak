@@ -168,14 +168,14 @@ This replaces showing all possible transforms at all times. Instead, surface the
 
 ## Priority Summary
 
-| #   | Recommendation                                 | Effort     | Impact                                                | Status                                                                  |
-| --- | ---------------------------------------------- | ---------- | ----------------------------------------------------- | ----------------------------------------------------------------------- |
-| 1   | Type-aware EDA chart selection                 | Low        | Medium -- smarter defaults, less manual toggling      | **Done** — `selectChartDefaults()` in `eda-engine.ts`, treatment toggle |
-| 2   | Cross-column bivariate suggestions             | Medium     | High -- transforms EDA from inspection to discovery   | **Done** — `bivariate.ts`, `EdaBivariateStrip`, `EdaBivariateModal`     |
-| 3a  | Transform suggestions (ranked by data signals) | Low-Medium | Medium -- reduces cognitive load in transform dialogs | **Skipped** — ColumnToolbar lacks per-column stats at menu time         |
-| 3b  | Join key suggestions (auto-match by name)      | Low        | Medium -- reduces manual key selection                | **Done** — `findMatchingColumns()` in `join-handlers.ts`                |
-| 4   | Context-aware expression autocomplete          | Low        | Medium -- faster expression writing                   | Open                                                                    |
-| 5   | Feature detection for contextual actions       | Low        | Medium -- cleaner toolbar, less overwhelm             | Open                                                                    |
+| #   | Recommendation                                 | Effort     | Impact                                                | Status                                                                                         |
+| --- | ---------------------------------------------- | ---------- | ----------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
+| 1   | Type-aware EDA chart selection                 | Low        | Medium -- smarter defaults, less manual toggling      | **Done** — `selectChartDefaults()` in `eda-engine.ts`, treatment toggle                        |
+| 2   | Cross-column bivariate suggestions             | Medium     | High -- transforms EDA from inspection to discovery   | **Done** — `bivariate.ts`, `EdaBivariateStrip`, `EdaBivariateModal`                            |
+| 3a  | Transform suggestions (ranked by data signals) | Low-Medium | Medium -- reduces cognitive load in transform dialogs | **Skipped** — ColumnToolbar lacks per-column stats at menu time                                |
+| 3b  | Join key suggestions (auto-match by name)      | Low        | Medium -- reduces manual key selection                | **Done** — `findMatchingColumns()` in `join-handlers.ts`                                       |
+| 4   | Context-aware expression autocomplete          | Low        | Medium -- faster expression writing                   | **Done** — boost logic in `expression-language.ts`, schema/context props on `ExpressionEditor` |
+| 5   | Feature detection for contextual actions       | Low        | Medium -- cleaner toolbar, less overwhelm             | Open                                                                                           |
 
 ---
 
