@@ -388,11 +388,11 @@ describe('App UX Interactions', () => {
       AppStore.edaStats.value = {
         column: 'sales',
         type: 'number',
-        totalCount: 5,
+        totalCount: 100,
         nullCount: 0,
         nullPercentage: '0.0',
-        uniqueCount: 5,
-        uniquePercentage: '100.0',
+        uniqueCount: 50,
+        uniquePercentage: '50.0',
         min: '100',
         max: '500',
         mean: '300',
@@ -417,16 +417,26 @@ describe('App UX Interactions', () => {
 
       renderWithI18n(<App />);
 
+      // Wait for the EDA panel and smart defaults to settle
       await waitFor(() => {
         const edaPanel = document.querySelector('[class*="edaPanel"]');
         expect(edaPanel).toBeDefined();
       });
 
+      // Force numeric treatment — test data has only 3 rows, so smart defaults pick categorical
+      AppStore.edaNumericTreatment.value = 'numeric';
+
       // Find a stat value (e.g., Mean)
+      await waitFor(() => {
+        const meanStat = Array.from(document.querySelectorAll('[class*="edaFlowItem"]')).find(
+          (el) => el.textContent?.includes('Mean')
+        );
+        expect(meanStat).toBeDefined();
+      });
+
       const meanStat = Array.from(document.querySelectorAll('[class*="edaFlowItem"]')).find((el) =>
         el.textContent?.includes('Mean')
       );
-      expect(meanStat).toBeDefined();
 
       if (meanStat) {
         fireEvent.click(meanStat);

@@ -491,6 +491,15 @@
       "keepOnlyMissing": "Keep only missing",
       "removeErrors": "Remove error rows",
       "keepOnlyErrors": "Keep only errors"
+    },
+    "bivariate": {
+      "related": "Related",
+      "chartTypes": {
+        "scatter": "Scatter",
+        "groupedBar": "Bar (mean)",
+        "lineTemporal": "Line (time)",
+        "heatmap": "Heatmap"
+      }
     }
   },
   "typeMenu": {

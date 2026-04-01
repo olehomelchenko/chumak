@@ -168,7 +168,11 @@ Comments are persisted to IndexedDB and automatically saved when edited.
 
 **Centered Modal Dialogs**: Settings, downloads, and informational dialogs (about, reference) use centered modals that overlay the main content.
 
+**Lightweight Modals**: Some features need modals without the full dialog registry lifecycle (state snapshots, unsaved-changes detection, URL sync). These render conditionally based on a signal, manage their own backdrop/escape handling, and follow the same visual pattern (backdrop + rounded card + header). Examples: `TablePreviewModal` (join table preview), `EdaBivariateModal` (bivariate chart preview). Use this pattern when the modal is ephemeral and has no form state to protect.
+
 **Unified Modal Shell**: Both dialog types use a shared component architecture that handles the backdrop, header (title + close button), and footer (actions). This ensures visual consistency and reduces code duplication across all dialogs.
+
+**Z-Index Stacking Rule**: Modals use `position: fixed` with `z-index: var(--z-index-modal-backdrop)` (3000). They must **not** be rendered inside elements that set their own `z-index` (e.g., the EDA panel at `z-index: 1000`), because the parent creates a stacking context that traps the child — the modal's z-index becomes relative to the parent, not the viewport. Solution: render the modal as a sibling (use a fragment) or use a portal.
 
 **Keyboard Accessibility**: Both dialog types implement focus trapping via `useFocusTrap` hook — Tab/Shift+Tab cycles within the dialog, and focus is restored to the previously focused element on close. Slide panel dialogs support Enter-to-submit (skipped when focus is in textarea, select, contenteditable, or CodeMirror editors).
 

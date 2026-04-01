@@ -4,7 +4,7 @@
   padding: 0;
   display: flex;
   flex-direction: column;
-  height: 250px;
+  height: 340px;
   box-shadow: var(--shadow-up);
   z-index: var(--z-index-header);
 

@@ -6,7 +6,7 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { EDAEngine } from './eda-engine';
+import { EDAEngine, selectChartDefaults, EDAStats } from './eda-engine';
 
 describe('EDA Engine', () => {
   describe('calculateNumericStats', () => {
@@ -269,6 +269,141 @@ describe('EDA Engine', () => {
       const errorItem = result.topValues.find((v) => v.isError);
       expect(errorItem).toBeDefined();
       expect(errorItem?.count).toBe(1);
+    });
+  });
+
+  describe('selectChartDefaults', () => {
+    function makeNumericStats(
+      overrides: Partial<{
+        uniqueCount: number;
+        mean: number;
+        median: number;
+        std: number;
+        totalCount: number;
+        nullCount: number;
+        errorCount: number;
+      }>
+    ): EDAStats {
+      const {
+        uniqueCount = 100,
+        mean = 50,
+        median = 50,
+        std = 10,
+        totalCount = 1000,
+        nullCount = 0,
+        errorCount = 0,
+      } = overrides;
+      return {
+        column: 'test',
+        type: 'number',
+        totalCount,
+        nullCount,
+        nullPercentage: '0',
+        errorCount,
+        errorPercentage: '0',
+        uniqueCount,
+        uniquePercentage: '10',
+        min: '0',
+        max: '100',
+        mean: String(mean),
+        median: String(median),
+        p25: '25',
+        p75: '75',
+        std: String(std),
+        meanMinus3Sigma: '0',
+        meanPlus3Sigma: '100',
+        raw: {
+          min: 0,
+          max: 100,
+          mean,
+          median,
+          p25: 25,
+          p75: 75,
+          std,
+          meanMinus3Sigma: mean - 3 * std,
+          meanPlus3Sigma: mean + 3 * std,
+        },
+      };
+    }
+
+    function makeDateStats(
+      overrides: Partial<{ uniqueCount: number; totalCount: number; nullCount: number }>
+    ): EDAStats {
+      const { uniqueCount = 100, totalCount = 1000, nullCount = 0 } = overrides;
+      return {
+        column: 'test',
+        type: 'date',
+        totalCount,
+        nullCount,
+        nullPercentage: '0',
+        errorCount: 0,
+        errorPercentage: '0',
+        uniqueCount,
+        uniquePercentage: String((uniqueCount / totalCount) * 100),
+        topValues: [],
+      };
+    }
+
+    function makeCategoricalStats(): EDAStats {
+      return {
+        column: 'test',
+        type: 'string',
+        totalCount: 100,
+        nullCount: 0,
+        nullPercentage: '0',
+        errorCount: 0,
+        errorPercentage: '0',
+        uniqueCount: 20,
+        uniquePercentage: '20',
+        topValues: [],
+      };
+    }
+
+    it('should default numeric to boxplot', () => {
+      const defaults = selectChartDefaults(makeNumericStats({}));
+      expect(defaults.numericTreatment).toBe('numeric');
+      expect(defaults.chartView).toBe('boxplot');
+    });
+
+    it('should treat numeric with few unique values as categorical', () => {
+      const defaults = selectChartDefaults(makeNumericStats({ uniqueCount: 5 }));
+      expect(defaults.numericTreatment).toBe('categorical');
+    });
+
+    it('should default to histogram for skewed numeric', () => {
+      // mean=80, median=20, std=15 → |80-20|=60 > 15 → skewed
+      const defaults = selectChartDefaults(makeNumericStats({ mean: 80, median: 20, std: 15 }));
+      expect(defaults.numericTreatment).toBe('numeric');
+      expect(defaults.chartView).toBe('histogram');
+    });
+
+    it('should not detect skew when symmetric', () => {
+      // mean=50, median=50, std=10 → |0| < 10 → not skewed
+      const defaults = selectChartDefaults(makeNumericStats({ mean: 50, median: 50, std: 10 }));
+      expect(defaults.chartView).toBe('boxplot');
+    });
+
+    it('should default date to temporal', () => {
+      const defaults = selectChartDefaults(makeDateStats({ uniqueCount: 500 }));
+      expect(defaults.dateTreatment).toBe('temporal');
+    });
+
+    it('should treat sparse dates as categorical', () => {
+      const defaults = selectChartDefaults(makeDateStats({ uniqueCount: 8, totalCount: 1000 }));
+      expect(defaults.dateTreatment).toBe('categorical');
+    });
+
+    it('should treat low-ratio dates as categorical', () => {
+      // 50 unique out of 1000 → 5% < 10% threshold
+      const defaults = selectChartDefaults(makeDateStats({ uniqueCount: 50, totalCount: 1000 }));
+      expect(defaults.dateTreatment).toBe('categorical');
+    });
+
+    it('should return standard defaults for string columns', () => {
+      const defaults = selectChartDefaults(makeCategoricalStats());
+      expect(defaults.numericTreatment).toBe('numeric');
+      expect(defaults.chartView).toBe('boxplot');
+      expect(defaults.dateTreatment).toBe('temporal');
     });
   });
 });

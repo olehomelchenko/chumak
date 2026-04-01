@@ -500,6 +500,15 @@
       "keepOnlyMissing": "Залишити лише пропущені",
       "removeErrors": "Видалити рядки з помилками",
       "keepOnlyErrors": "Залишити лише помилки"
+    },
+    "bivariate": {
+      "related": "Пов'язані",
+      "chartTypes": {
+        "scatter": "Точкова",
+        "groupedBar": "Стовпчаста (середнє)",
+        "lineTemporal": "Лінійна (час)",
+        "heatmap": "Теплокарта"
+      }
     }
   },
   "typeMenu": {

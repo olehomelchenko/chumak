@@ -1,6 +1,7 @@
 import vegaEmbed from 'vega-embed';
 import { sytoTheme, bluesTheme } from './vega-themes';
 import { isConversionError } from './type-converter';
+import type { BivariateSuggestion } from './bivariate';
 
 /**
  * Syto Charts Engine
@@ -28,6 +29,8 @@ export interface ChartOptions {
   width?: number | 'container';
   height?: number;
   maxbins?: number;
+  /** Render as a compact thumbnail (no axes labels, no tooltip, smaller) */
+  thumbnail?: boolean;
 }
 
 export const ChartsEngine = {
@@ -422,6 +425,314 @@ export const ChartsEngine = {
         return;
       }
       console.error('Error rendering temporal chart:', error);
+    }
+  },
+
+  /**
+   * Render a scatter plot for two numeric columns
+   */
+  async renderScatterPlot(
+    container: string | HTMLElement,
+    data: any[],
+    colX: string,
+    colY: string,
+    theme: 'syto' | 'blues' = 'syto',
+    options: ChartOptions = {}
+  ): Promise<void> {
+    if (!data || data.length === 0 || !colX || !colY) return;
+
+    const thumb = options.thumbnail;
+    const escapedX = escapeVegaField(colX);
+    const escapedY = escapeVegaField(colY);
+
+    const spec: any = {
+      $schema: 'https://vega.github.io/schema/vega-lite/v6.json',
+      data: { values: data.map((r) => ({ [colX]: r[colX], [colY]: r[colY] })) },
+      width: options.width || 'container',
+      height: options.height || (thumb ? 50 : 250),
+      padding: thumb ? 2 : { top: 10, bottom: 25, left: 40, right: 10 },
+      mark: {
+        type: 'circle',
+        opacity: 0.5,
+        size: thumb ? 8 : 20,
+        tooltip: !thumb,
+      },
+      encoding: {
+        x: {
+          field: escapedX,
+          type: 'quantitative',
+          title: thumb ? '' : colX,
+          scale: { zero: false },
+          axis: thumb ? null : { grid: false },
+        },
+        y: {
+          field: escapedY,
+          type: 'quantitative',
+          title: thumb ? '' : colY,
+          scale: { zero: false },
+          axis: thumb ? null : { grid: false },
+        },
+        ...(thumb
+          ? {}
+          : {
+              tooltip: [
+                { field: escapedX, type: 'quantitative', title: colX },
+                { field: escapedY, type: 'quantitative', title: colY },
+              ],
+            }),
+      },
+    };
+
+    await this._embed(container, spec, theme);
+  },
+
+  /**
+   * Render a grouped bar chart (mean of numeric by category, or count by category)
+   */
+  async renderGroupedBar(
+    container: string | HTMLElement,
+    data: any[],
+    numericCol: string,
+    categoryCol: string,
+    theme: 'syto' | 'blues' = 'syto',
+    options: ChartOptions = {}
+  ): Promise<void> {
+    if (!data || data.length === 0 || !numericCol || !categoryCol) return;
+
+    const thumb = options.thumbnail;
+    const escapedNum = escapeVegaField(numericCol);
+    const escapedCat = escapeVegaField(categoryCol);
+
+    const spec: any = {
+      $schema: 'https://vega.github.io/schema/vega-lite/v6.json',
+      data: {
+        values: data.map((r) => ({ [numericCol]: r[numericCol], [categoryCol]: r[categoryCol] })),
+      },
+      width: options.width || 'container',
+      height: options.height || (thumb ? 50 : 250),
+      padding: thumb ? 2 : { top: 10, bottom: 25, left: 40, right: 10 },
+      mark: { type: 'bar', tooltip: !thumb },
+      encoding: {
+        x: {
+          field: escapedCat,
+          type: 'nominal',
+          title: thumb ? '' : categoryCol,
+          axis: thumb ? null : { labelAngle: -45 },
+          sort: '-y',
+        },
+        y: {
+          field: escapedNum,
+          aggregate: 'mean',
+          type: 'quantitative',
+          title: thumb ? '' : `mean(${numericCol})`,
+          axis: thumb ? null : { grid: false },
+        },
+        ...(thumb
+          ? {}
+          : {
+              tooltip: [
+                { field: escapedCat, type: 'nominal', title: categoryCol },
+                {
+                  field: escapedNum,
+                  aggregate: 'mean',
+                  type: 'quantitative',
+                  title: `mean(${numericCol})`,
+                  format: '.2f',
+                },
+                { field: escapedNum, aggregate: 'count', type: 'quantitative', title: 'Count' },
+              ],
+            }),
+      },
+    };
+
+    await this._embed(container, spec, theme);
+  },
+
+  /**
+   * Render a line chart for a numeric column over time
+   */
+  async renderLineOverTime(
+    container: string | HTMLElement,
+    data: any[],
+    numericCol: string,
+    dateCol: string,
+    theme: 'syto' | 'blues' = 'syto',
+    options: ChartOptions = {}
+  ): Promise<void> {
+    if (!data || data.length === 0 || !numericCol || !dateCol) return;
+
+    const thumb = options.thumbnail;
+    const escapedNum = escapeVegaField(numericCol);
+    const escapedDate = escapeVegaField(dateCol);
+
+    // Determine time unit based on date range
+    const validDates = data
+      .map((r) => new Date(r[dateCol]))
+      .filter((d) => !isNaN(d.getTime()))
+      .sort((a, b) => a.getTime() - b.getTime());
+
+    if (validDates.length < 2) return;
+
+    const rangeDays =
+      (validDates[validDates.length - 1].getTime() - validDates[0].getTime()) /
+      (1000 * 60 * 60 * 24);
+    const timeUnit =
+      rangeDays > 365 * 2 ? 'yearmonth' : rangeDays > 60 ? 'yearmonthdate' : 'monthdate';
+
+    const spec: any = {
+      $schema: 'https://vega.github.io/schema/vega-lite/v6.json',
+      data: { values: data.map((r) => ({ [numericCol]: r[numericCol], [dateCol]: r[dateCol] })) },
+      width: options.width || 'container',
+      height: options.height || (thumb ? 50 : 250),
+      padding: thumb ? 2 : { top: 10, bottom: 25, left: 40, right: 10 },
+      mark: { type: 'line', point: !thumb, tooltip: !thumb },
+      encoding: {
+        x: {
+          field: escapedDate,
+          type: 'temporal',
+          timeUnit,
+          title: thumb ? '' : dateCol,
+          axis: thumb ? null : { grid: false },
+        },
+        y: {
+          field: escapedNum,
+          aggregate: 'mean',
+          type: 'quantitative',
+          title: thumb ? '' : `mean(${numericCol})`,
+          axis: thumb ? null : { grid: false },
+        },
+        ...(thumb
+          ? {}
+          : {
+              tooltip: [
+                { field: escapedDate, type: 'temporal', timeUnit, title: dateCol },
+                {
+                  field: escapedNum,
+                  aggregate: 'mean',
+                  type: 'quantitative',
+                  title: `mean(${numericCol})`,
+                  format: '.2f',
+                },
+              ],
+            }),
+      },
+    };
+
+    await this._embed(container, spec, theme);
+  },
+
+  /**
+   * Render a heatmap for two categorical columns
+   */
+  async renderHeatmap(
+    container: string | HTMLElement,
+    data: any[],
+    col1: string,
+    col2: string,
+    theme: 'syto' | 'blues' = 'syto',
+    options: ChartOptions = {}
+  ): Promise<void> {
+    if (!data || data.length === 0 || !col1 || !col2) return;
+
+    const thumb = options.thumbnail;
+    const escaped1 = escapeVegaField(col1);
+    const escaped2 = escapeVegaField(col2);
+
+    const spec: any = {
+      $schema: 'https://vega.github.io/schema/vega-lite/v6.json',
+      data: { values: data.map((r) => ({ [col1]: r[col1], [col2]: r[col2] })) },
+      width: options.width || 'container',
+      height: options.height || (thumb ? 50 : 250),
+      padding: thumb ? 2 : { top: 10, bottom: 25, left: 40, right: 10 },
+      mark: { type: 'rect', tooltip: !thumb },
+      encoding: {
+        x: {
+          field: escaped1,
+          type: 'nominal',
+          title: thumb ? '' : col1,
+          axis: thumb ? null : { labelAngle: -45 },
+        },
+        y: {
+          field: escaped2,
+          type: 'nominal',
+          title: thumb ? '' : col2,
+          axis: thumb ? null : undefined,
+        },
+        color: {
+          aggregate: 'count',
+          type: 'quantitative',
+          title: 'Count',
+          legend: thumb ? null : undefined,
+        },
+        ...(thumb
+          ? {}
+          : {
+              tooltip: [
+                { field: escaped1, type: 'nominal', title: col1 },
+                { field: escaped2, type: 'nominal', title: col2 },
+                { aggregate: 'count', type: 'quantitative', title: 'Count' },
+              ],
+            }),
+      },
+    };
+
+    await this._embed(container, spec, theme);
+  },
+
+  /**
+   * Render a bivariate chart based on suggestion type.
+   * Dispatches to the appropriate chart renderer with correct argument order.
+   */
+  async renderBivariate(
+    container: string | HTMLElement,
+    data: any[],
+    selectedColumn: string,
+    suggestion: BivariateSuggestion,
+    theme: 'syto' | 'blues' = 'syto',
+    options: ChartOptions = {}
+  ): Promise<void> {
+    const { partnerColumn, partnerType, chartType } = suggestion;
+    const isPartnerNumeric = partnerType === 'integer' || partnerType === 'float';
+    const isPartnerTemporal = partnerType === 'date' || partnerType === 'datetime';
+
+    switch (chartType) {
+      case 'scatter':
+        return this.renderScatterPlot(
+          container,
+          data,
+          selectedColumn,
+          partnerColumn,
+          theme,
+          options
+        );
+      case 'grouped-bar':
+        return isPartnerNumeric
+          ? this.renderGroupedBar(container, data, partnerColumn, selectedColumn, theme, options)
+          : this.renderGroupedBar(container, data, selectedColumn, partnerColumn, theme, options);
+      case 'line-temporal':
+        return isPartnerTemporal
+          ? this.renderLineOverTime(container, data, selectedColumn, partnerColumn, theme, options)
+          : this.renderLineOverTime(container, data, partnerColumn, selectedColumn, theme, options);
+      case 'heatmap':
+        return this.renderHeatmap(container, data, selectedColumn, partnerColumn, theme, options);
+    }
+  },
+
+  // TODO: Existing chart methods (renderBoxPlot, renderHistogram, etc.) still call
+  // vegaEmbed directly with duplicated error handling. Migrate them to use _embed.
+
+  /** Shared embed helper with standard error handling */
+  async _embed(container: string | HTMLElement, spec: any, theme: 'syto' | 'blues'): Promise<void> {
+    const vegaTheme = theme === 'syto' ? sytoTheme : bluesTheme;
+    try {
+      await vegaEmbed(container, spec, {
+        actions: false,
+        renderer: 'svg',
+        config: vegaTheme,
+      });
+    } catch (error: any) {
+      if (error?.message && error.message.includes('does not exist')) return;
+      console.error('Error rendering chart:', error);
     }
   },
 };

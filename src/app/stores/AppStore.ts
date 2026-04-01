@@ -1,6 +1,7 @@
 import { signal, computed } from '@preact/signals';
 import { Source, Model, DataRow, DialogName, Notification } from '../types';
 import { ColumnSchema, TransformStep } from '../../core/schema-engine';
+import type { BivariateSuggestion } from '../../core/bivariate';
 import { UXSettings } from '../infrastructure/ux-settings';
 
 export interface HistoryEntry {
@@ -57,6 +58,8 @@ export class AppStore {
   static edaBrushSelection = signal<{ min: number; max: number } | null>(null);
   static edaDateTreatment = signal<'temporal' | 'categorical'>('temporal');
   static edaNumericTreatment = signal<'numeric' | 'categorical'>('numeric');
+  static bivariateSuggestions = signal<BivariateSuggestion[]>([]);
+  static bivariatePreview = signal<{ index: number } | null>(null);
   static currentPage = signal(1);
   static pageSize = signal(500);
   static totalPages = signal(1);

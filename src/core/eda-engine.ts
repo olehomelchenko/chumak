@@ -53,6 +53,53 @@ export interface BaseStats {
 
 export type EDAStats = BaseStats & (NumericStats | { topValues: CategoricalStat[] });
 
+export interface ChartDefaults {
+  numericTreatment: 'numeric' | 'categorical';
+  chartView: 'boxplot' | 'histogram';
+  dateTreatment: 'temporal' | 'categorical';
+}
+
+/**
+ * Select smart default chart view/treatment based on column type and EDA stats.
+ *
+ * Rules (from Voyager-inspired recommendation):
+ * - Integer with few unique values (< 10): treat as categorical (bar chart, not histogram)
+ * - Skewed numeric (|mean − median| > std): default to histogram (shows shape)
+ * - Sparse dates (few distinct values relative to row count): treat as categorical
+ * - Otherwise: standard defaults (boxplot for numeric, temporal for dates)
+ */
+export function selectChartDefaults(stats: EDAStats): ChartDefaults {
+  const isNumeric = ['number', 'integer', 'float'].includes(stats.type);
+  const isDate = ['date', 'datetime'].includes(stats.type);
+
+  let numericTreatment: 'numeric' | 'categorical' = 'numeric';
+  let chartView: 'boxplot' | 'histogram' = 'boxplot';
+  let dateTreatment: 'temporal' | 'categorical' = 'temporal';
+
+  if (isNumeric && 'raw' in stats && stats.raw) {
+    // Few unique values → looks categorical (e.g. rating 1-5, status codes)
+    if (stats.uniqueCount < 10) {
+      numericTreatment = 'categorical';
+    } else {
+      // Skewed distribution → histogram shows the shape better than boxplot
+      const { mean, median, std } = stats.raw;
+      if (std > 0 && Math.abs(mean - median) > std) {
+        chartView = 'histogram';
+      }
+    }
+  }
+
+  if (isDate) {
+    // Sparse dates (few distinct values or low unique ratio) → categorical is more informative
+    const validCount = stats.totalCount - stats.nullCount - stats.errorCount;
+    if (validCount > 0 && (stats.uniqueCount < 15 || stats.uniqueCount / validCount < 0.1)) {
+      dateTreatment = 'categorical';
+    }
+  }
+
+  return { numericTreatment, chartView, dateTreatment };
+}
+
 export function extractColumnValues(data: any[], column: string) {
   const nonNullValues: any[] = [];
   let errorCount = 0;

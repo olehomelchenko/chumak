@@ -4,11 +4,18 @@ import { useTranslation } from 'preact-i18next';
 import { AppStore } from '../stores/AppStore';
 import { DialogStore } from '../stores/DialogStore';
 import { ChartsEngine, BoxPlotStats } from '../../core/charts';
-import { CategoricalStat } from '../../core/eda-engine';
+import { CategoricalStat, selectChartDefaults } from '../../core/eda-engine';
 import { SchemaEngine } from '../../core/schema-engine';
+import { suggestBivariatePairings } from '../../core/bivariate';
 import { computeEdaStats, computeCategoricalOverlay } from '../services/eda-compute';
 import { TypeIndicator } from './TypeIndicator';
-import { EdaOverview, EdaNumericSection, EdaCategoricalSection } from './eda';
+import {
+  EdaOverview,
+  EdaNumericSection,
+  EdaCategoricalSection,
+  EdaBivariateStrip,
+  EdaBivariateModal,
+} from './eda';
 import * as FilterHandlers from '../handlers/transform/filter-handlers';
 import * as HelperHandlers from '../handlers/core/helper-handlers';
 import styles from './EdaPanel.module.css';
@@ -45,6 +52,9 @@ export function EdaPanel() {
   const numericTreatment = AppStore.edaNumericTreatment.value;
   const brushSelection = AppStore.edaBrushSelection.value;
 
+  const bivariateSuggestions = AppStore.bivariateSuggestions.value;
+  const bivariatePreview = AppStore.bivariatePreview.value;
+
   const categoricalOverlay = useSignal<{ topValues: CategoricalStat[] } | null>(null);
   const boxPlotSampleSize = useSignal<{ sampled: number; total: number } | null>(null);
   const statsRequestId = useRef(0);
@@ -70,19 +80,36 @@ export function EdaPanel() {
         : SchemaEngine.inferType(currentData.slice(0, 20).map((r) => r[selectedColumn]));
 
       AppStore.edaBrushSelection.value = null;
-      AppStore.edaNumericTreatment.value = 'numeric';
       categoricalOverlay.value = null;
 
       const requestId = ++statsRequestId.current;
       computeEdaStats(currentData, selectedColumn, type).then((stats) => {
         if (requestId === statsRequestId.current) {
           AppStore.edaStats.value = stats;
+
+          // Select smart defaults based on data characteristics
+          if (stats) {
+            const defaults = selectChartDefaults(stats);
+            AppStore.edaNumericTreatment.value = defaults.numericTreatment;
+            AppStore.edaChartView.value = defaults.chartView;
+            AppStore.edaDateTreatment.value = defaults.dateTreatment;
+
+            // Compute bivariate suggestions
+            const schema =
+              AppStore.activeModel.value?.schema || AppStore.activeSource.value?.columns || [];
+            AppStore.bivariateSuggestions.value = suggestBivariatePairings(
+              selectedColumn!,
+              type,
+              schema
+            );
+          }
         }
       });
     } else {
       AppStore.edaStats.value = null;
       AppStore.edaBrushSelection.value = null;
-      AppStore.edaNumericTreatment.value = 'numeric';
+      AppStore.bivariateSuggestions.value = [];
+      AppStore.bivariatePreview.value = null;
       categoricalOverlay.value = null;
     }
   }, [selectedColumn, currentData]);
@@ -287,88 +314,109 @@ export function EdaPanel() {
   };
 
   return (
-    <div class={styles.edaPanel} data-eda-panel="true" onClick={handlePanelClick}>
-      <div class={styles.edaPanel__header}>
-        <div class={styles.edaPanel__title}>
-          <TypeIndicator type={edaStats.type} showLabel={false} size="small" />
-          <span class={styles.edaPanel__columnName}>{selectedColumn}</span>
-          {isDate && (
-            <div class={styles.edaTreatmentToggle}>
-              <button
-                class={`${styles.edaTreatmentToggle__btn} ${dateTreatment === 'temporal' ? styles['edaTreatmentToggle__btn--active'] : ''}`}
-                onClick={() => setDateTreatment('temporal')}
-              >
-                {t('eda.dateTreatment.temporal')}
-              </button>
-              <button
-                class={`${styles.edaTreatmentToggle__btn} ${dateTreatment === 'categorical' ? styles['edaTreatmentToggle__btn--active'] : ''}`}
-                onClick={() => setDateTreatment('categorical')}
-              >
-                {t('eda.dateTreatment.categorical')}
-              </button>
+    <>
+      <div class={styles.edaPanel} data-eda-panel="true" onClick={handlePanelClick}>
+        <div class={styles.edaPanel__header}>
+          <div class={styles.edaPanel__title}>
+            <TypeIndicator type={edaStats.type} showLabel={false} size="small" />
+            <span class={styles.edaPanel__columnName}>{selectedColumn}</span>
+            {isDate && (
+              <div class={styles.edaTreatmentToggle}>
+                <button
+                  class={`${styles.edaTreatmentToggle__btn} ${dateTreatment === 'temporal' ? styles['edaTreatmentToggle__btn--active'] : ''}`}
+                  onClick={() => setDateTreatment('temporal')}
+                >
+                  {t('eda.dateTreatment.temporal')}
+                </button>
+                <button
+                  class={`${styles.edaTreatmentToggle__btn} ${dateTreatment === 'categorical' ? styles['edaTreatmentToggle__btn--active'] : ''}`}
+                  onClick={() => setDateTreatment('categorical')}
+                >
+                  {t('eda.dateTreatment.categorical')}
+                </button>
+              </div>
+            )}
+            {isNumeric && (
+              <div class={styles.edaTreatmentToggle}>
+                <button
+                  class={`${styles.edaTreatmentToggle__btn} ${numericTreatment === 'numeric' ? styles['edaTreatmentToggle__btn--active'] : ''}`}
+                  onClick={() => setNumericTreatment('numeric')}
+                >
+                  {t('eda.numericTreatment.numeric')}
+                </button>
+                <button
+                  class={`${styles.edaTreatmentToggle__btn} ${numericTreatment === 'categorical' ? styles['edaTreatmentToggle__btn--active'] : ''}`}
+                  onClick={() => setNumericTreatment('categorical')}
+                >
+                  {t('eda.numericTreatment.categorical')}
+                </button>
+              </div>
+            )}
+          </div>
+          <button
+            class={styles.edaPanel__close}
+            onClick={clearSelection}
+            aria-label={t('eda.closePanel')}
+          >
+            ×
+          </button>
+        </div>
+
+        <div class={styles.edaPanel__content}>
+          <EdaOverview edaStats={edaStats} />
+
+          {isNumeric && numericTreatment === 'numeric' && (
+            <EdaNumericSection
+              edaStats={edaStats}
+              view={view}
+              brushSelection={brushSelection}
+              boxPlotRef={boxPlotRef}
+              histogramRef={histogramRef}
+              sampleSize={boxPlotSampleSize.value}
+              onViewChange={setView}
+              onApplyBrush={applyBrush}
+              onSelectStat={selectStat}
+            />
+          )}
+
+          {showNumericAsCategorical && categoricalOverlay.value && (
+            <EdaCategoricalSection
+              edaStats={categoricalOverlay.value}
+              categoricalBarRef={categoricalBarRef}
+            />
+          )}
+
+          {isDate && dateTreatment === 'temporal' && (
+            <div class={`${styles.edaSection} ${styles['edaSection--wide']}`}>
+              <div class={styles.edaSection__title}>{t('eda.temporal.title')}</div>
+              <div ref={temporalChartRef} style={{ width: '100%', minHeight: '100px' }}></div>
             </div>
           )}
-          {isNumeric && (
-            <div class={styles.edaTreatmentToggle}>
-              <button
-                class={`${styles.edaTreatmentToggle__btn} ${numericTreatment === 'numeric' ? styles['edaTreatmentToggle__btn--active'] : ''}`}
-                onClick={() => setNumericTreatment('numeric')}
-              >
-                {t('eda.numericTreatment.numeric')}
-              </button>
-              <button
-                class={`${styles.edaTreatmentToggle__btn} ${numericTreatment === 'categorical' ? styles['edaTreatmentToggle__btn--active'] : ''}`}
-                onClick={() => setNumericTreatment('categorical')}
-              >
-                {t('eda.numericTreatment.categorical')}
-              </button>
-            </div>
+
+          {isCategorical && (
+            <EdaCategoricalSection edaStats={edaStats} categoricalBarRef={categoricalBarRef} />
+          )}
+
+          {bivariateSuggestions.length > 0 && currentData && (
+            <EdaBivariateStrip
+              selectedColumn={selectedColumn}
+              suggestions={bivariateSuggestions}
+              data={currentData.slice(0, 1000)}
+              theme={theme}
+            />
           )}
         </div>
-        <button
-          class={styles.edaPanel__close}
-          onClick={clearSelection}
-          aria-label={t('eda.closePanel')}
-        >
-          ×
-        </button>
       </div>
 
-      <div class={styles.edaPanel__content}>
-        <EdaOverview edaStats={edaStats} />
-
-        {isNumeric && numericTreatment === 'numeric' && (
-          <EdaNumericSection
-            edaStats={edaStats}
-            view={view}
-            brushSelection={brushSelection}
-            boxPlotRef={boxPlotRef}
-            histogramRef={histogramRef}
-            sampleSize={boxPlotSampleSize.value}
-            onViewChange={setView}
-            onApplyBrush={applyBrush}
-            onSelectStat={selectStat}
-          />
-        )}
-
-        {showNumericAsCategorical && categoricalOverlay.value && (
-          <EdaCategoricalSection
-            edaStats={categoricalOverlay.value}
-            categoricalBarRef={categoricalBarRef}
-          />
-        )}
-
-        {isDate && dateTreatment === 'temporal' && (
-          <div class={`${styles.edaSection} ${styles['edaSection--wide']}`}>
-            <div class={styles.edaSection__title}>{t('eda.temporal.title')}</div>
-            <div ref={temporalChartRef} style={{ width: '100%', minHeight: '100px' }}></div>
-          </div>
-        )}
-
-        {isCategorical && (
-          <EdaCategoricalSection edaStats={edaStats} categoricalBarRef={categoricalBarRef} />
-        )}
-      </div>
-    </div>
+      {bivariatePreview && currentData && (
+        <EdaBivariateModal
+          selectedColumn={selectedColumn}
+          suggestions={bivariateSuggestions}
+          activeIndex={bivariatePreview.index}
+          data={currentData.slice(0, 1000)}
+          theme={theme}
+        />
+      )}
+    </>
   );
 }

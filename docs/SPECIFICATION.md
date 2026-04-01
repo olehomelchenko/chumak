@@ -499,9 +499,11 @@ Dialog components are rendered directly in `App.tsx`'s slide panel/modal shells 
 ### 6.3 Data Visualization (Vega-Lite)
 
 - **Themed Visuals**: Charts automatically adopt the active application theme.
-- **Chart Types**: Boxplots, Histograms, and Categorical Bar charts for Exploratory Data Analysis (EDA).
+- **Univariate Charts**: Boxplots, Histograms, Categorical Bar charts, and Temporal Area charts for single-column EDA.
+- **Bivariate Charts**: Scatter plots, Grouped Bar charts, Line-over-time, and Heatmaps for cross-column relationship discovery. Pairing logic in `src/core/bivariate.ts` suggests partners based on column types; `ChartsEngine` renders both full-size and thumbnail variants (via `options.thumbnail`).
+- **Smart Chart Defaults**: `selectChartDefaults()` in `eda-engine.ts` picks the initial chart view based on data characteristics (e.g., integers with <10 unique values default to categorical, skewed distributions default to histogram).
 - **Field Name Escaping**: Vega-Lite treats `.`, `[`, `]` in field names as nested property accessors. All user-supplied column names must go through `escapeVegaField()` in `charts.ts` — never pass raw column names to `field:` in specs.
-- **Implementation**: `src/core/charts.ts`, `src/core/vega-themes.ts`
+- **Implementation**: `src/core/charts.ts`, `src/core/vega-themes.ts`, `src/core/bivariate.ts`
 - **Theming**: See [UX-SPECIFICATION.md](UX-SPECIFICATION.md) §1.2 for theme system details
 
 ### 6.4 Dialog System Architecture
