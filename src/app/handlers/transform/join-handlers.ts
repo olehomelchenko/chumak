@@ -12,6 +12,47 @@ import i18n from '../../../i18n';
 import { TransformStep } from '../../../core/schema-engine';
 
 /**
+ * Finds columns with identical names between left and right tables.
+ * Returns pairs sorted by position in the left table.
+ */
+function findMatchingColumns(leftColumns: string[], rightColumns: string[]): [string, string][] {
+  const rightSet = new Set(rightColumns);
+  return leftColumns.filter((col) => rightSet.has(col)).map((col) => [col, col]);
+}
+
+/**
+ * Preserves valid key pairs after a table change, then auto-matches remaining columns.
+ * Invalid keys (columns no longer present in the changed table) are nulled out;
+ * pairs that are entirely empty are dropped; unmatched columns are auto-paired.
+ */
+function reconcileKeyPairs(
+  currentPairs: (string | null)[][],
+  leftColumns: string[],
+  rightColumns: string[],
+  changedSide: 'left' | 'right'
+): (string | null)[][] {
+  const validCols = new Set(changedSide === 'left' ? leftColumns : rightColumns);
+
+  const preserved = currentPairs
+    .map((pair) => {
+      const idx = changedSide === 'left' ? 0 : 1;
+      const updated = [...pair] as (string | null)[];
+      if (!validCols.has(updated[idx]!)) updated[idx] = null;
+      return updated;
+    })
+    .filter((pair) => pair[0] || pair[1]);
+
+  const usedLeft = new Set(preserved.map((p) => p[0]).filter(Boolean));
+  const usedRight = new Set(preserved.map((p) => p[1]).filter(Boolean));
+  const autoMatched = findMatchingColumns(leftColumns, rightColumns).filter(
+    ([l, r]) => !usedLeft.has(l) && !usedRight.has(r)
+  );
+
+  const combined = [...preserved, ...autoMatched];
+  return combined.length > 0 ? combined : [[null, null]];
+}
+
+/**
  * Builds a join/semijoin/antijoin/lookup transform step from dialog state.
  */
 function buildJoinTransform(
@@ -80,12 +121,15 @@ export function initializeJoinDialog() {
   state.targets.value = availableTargets;
   state.rightModel.value = initialRightModel;
   state.joinType.value = 'left';
-  state.keyPairs.value = [[null, null]];
   state.suffixes.value = ['_x', '_y'];
   state.rightColumns.value = initialRightModel ? getColumnsForTarget(initialRightModel) : [];
   state.selectedRightColumns.value = initialRightModel
     ? [...getColumnsForTarget(initialRightModel)]
     : []; // Select all by default
+
+  // Auto-match columns by identical names
+  const autoMatched = findMatchingColumns(state.leftColumns.value, state.rightColumns.value);
+  state.keyPairs.value = autoMatched.length > 0 ? autoMatched : [[null, null]];
   state.saveAsNewModel.value = false;
   state.previewData.value = null;
   state.previewError.value = null;
@@ -187,15 +231,18 @@ export function onJoinLeftModelChange() {
     state.selectedLeftColumns.value = [];
   }
 
-  state.keyPairs.value = [[null, null]];
   state.previewData.value = null;
   state.previewError.value = null;
   state.keyPairAnalysis.value = [];
 
-  // Re-analyze key pairs if any are set
-  if (state.keyPairs.value.some((pair) => pair[0] || pair[1])) {
-    analyzeJoinKeys();
-  }
+  state.keyPairs.value = reconcileKeyPairs(
+    state.keyPairs.value,
+    state.leftColumns.value,
+    state.rightColumns.value,
+    'left'
+  );
+
+  analyzeJoinKeys();
 }
 
 export function onJoinTargetChange() {
@@ -210,15 +257,18 @@ export function onJoinTargetChange() {
     state.selectedRightColumns.value = [];
   }
 
-  state.keyPairs.value = [[null, null]];
   state.previewData.value = null;
   state.previewError.value = null;
   state.keyPairAnalysis.value = [];
 
-  // Re-analyze key pairs if any are set
-  if (state.keyPairs.value.some((pair) => pair[0] || pair[1])) {
-    analyzeJoinKeys();
-  }
+  state.keyPairs.value = reconcileKeyPairs(
+    state.keyPairs.value,
+    state.leftColumns.value,
+    state.rightColumns.value,
+    'right'
+  );
+
+  analyzeJoinKeys();
 }
 
 export function addJoinKeyPair() {

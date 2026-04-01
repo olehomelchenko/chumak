@@ -625,6 +625,8 @@ Complex dialogs are split into focused sub-components organized in directories:
 | `JoinKeyPairEditor.tsx`  | Key pair management for join conditions |
 | `JoinColumnSelector.tsx` | Column selection from joined tables     |
 
+Join key auto-matching: When both tables are available, the dialog auto-populates key pairs from columns with identical names (`findMatchingColumns` in `join-handlers.ts`). When a user switches one table, key selections on the _unchanged_ side are preserved — only invalid keys (columns no longer present) are cleared, then remaining unmatched columns are auto-matched.
+
 **Generate Dialog** (`generate/`):
 
 | Component                   | Purpose                                   |

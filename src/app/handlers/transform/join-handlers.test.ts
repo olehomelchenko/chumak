@@ -417,8 +417,9 @@ describe('join-handlers', () => {
       expect(DialogStore.joinState.selectedRightColumns.value).toEqual([]);
     });
 
-    it('resets key pairs when target changes', () => {
-      DialogStore.joinState.rightModel.value = 'src_1';
+    it('preserves valid right keys and nulls invalid ones on target change', () => {
+      DialogStore.joinState.leftColumns.value = ['id', 'name'];
+      DialogStore.joinState.rightModel.value = 'src_1'; // has columns a, b
       DialogStore.joinState.keyPairs.value = [
         ['id', 'user_id'],
         ['name', 'user_name'],
@@ -426,7 +427,38 @@ describe('join-handlers', () => {
 
       JoinHandlers.onJoinTargetChange();
 
-      expect(DialogStore.joinState.keyPairs.value).toEqual([[null, null]]);
+      // user_id and user_name don't exist in src_1 (which has a, b), so right side nulled
+      // but left side preserved
+      expect(DialogStore.joinState.keyPairs.value).toEqual([
+        ['id', null],
+        ['name', null],
+      ]);
+    });
+
+    it('auto-matches columns with identical names after target change', () => {
+      AppStore.sources.value = [
+        ...AppStore.sources.value,
+        {
+          id: 'src_2',
+          name: 'Shared',
+          data: [{ id: 1, name: 'x', extra: 'y' }],
+          columns: [
+            { name: 'id', type: 'number' },
+            { name: 'name', type: 'string' },
+            { name: 'extra', type: 'string' },
+          ],
+        } as any,
+      ];
+      DialogStore.joinState.leftColumns.value = ['id', 'name'];
+      DialogStore.joinState.rightModel.value = 'src_2';
+      DialogStore.joinState.keyPairs.value = [[null, null]];
+
+      JoinHandlers.onJoinTargetChange();
+
+      expect(DialogStore.joinState.keyPairs.value).toEqual([
+        ['id', 'id'],
+        ['name', 'name'],
+      ]);
     });
 
     it('clears preview data when target changes', () => {
@@ -476,8 +508,9 @@ describe('join-handlers', () => {
       expect(DialogStore.joinState.selectedLeftColumns.value).toEqual([]);
     });
 
-    it('resets key pairs when left model changes', () => {
-      DialogStore.joinState.leftModel.value = 'src_1';
+    it('preserves valid left keys and nulls invalid ones on left model change', () => {
+      DialogStore.joinState.leftModel.value = 'src_1'; // has columns x, y
+      DialogStore.joinState.rightColumns.value = ['user_id', 'user_name'];
       DialogStore.joinState.keyPairs.value = [
         ['id', 'user_id'],
         ['name', 'user_name'],
@@ -485,7 +518,38 @@ describe('join-handlers', () => {
 
       JoinHandlers.onJoinLeftModelChange();
 
-      expect(DialogStore.joinState.keyPairs.value).toEqual([[null, null]]);
+      // id and name don't exist in src_1 (which has x, y), so left side nulled
+      // but right side preserved
+      expect(DialogStore.joinState.keyPairs.value).toEqual([
+        [null, 'user_id'],
+        [null, 'user_name'],
+      ]);
+    });
+
+    it('auto-matches columns with identical names after left model change', () => {
+      AppStore.sources.value = [
+        ...AppStore.sources.value,
+        {
+          id: 'src_2',
+          name: 'Shared',
+          data: [{ x: 1, y: 2, z: 3 }],
+          columns: [
+            { name: 'x', type: 'number' },
+            { name: 'y', type: 'number' },
+            { name: 'z', type: 'number' },
+          ],
+        } as any,
+      ];
+      DialogStore.joinState.leftModel.value = 'src_2';
+      DialogStore.joinState.rightColumns.value = ['x', 'y', 'w'];
+      DialogStore.joinState.keyPairs.value = [[null, null]];
+
+      JoinHandlers.onJoinLeftModelChange();
+
+      expect(DialogStore.joinState.keyPairs.value).toEqual([
+        ['x', 'x'],
+        ['y', 'y'],
+      ]);
     });
   });
 
