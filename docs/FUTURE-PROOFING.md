@@ -147,7 +147,8 @@ if (transform.pivot) {
 1. Bump `DB_VERSION` in `src/app/infrastructure/storage.ts`
 2. Add object store creation in `onupgradeneeded` handler
 3. Add migration logic in `if (event.oldVersion < N)` block if needed
-4. ✅ Adding stores doesn't affect existing data
+4. For destructive migrations, add a pre-migration backup step in `backupV1IfNeeded()` (see v1→v2 pattern)
+5. ✅ Adding stores doesn't affect existing data
 
 **Example:**
 

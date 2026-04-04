@@ -12,6 +12,7 @@ import 'fake-indexeddb/auto';
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import {
   openDatabase,
+  backupV1IfNeeded,
   saveSources,
   saveModels,
   loadSources,
@@ -105,6 +106,11 @@ describe('Storage - Data Integrity', () => {
 
     await new Promise<void>((resolve) => {
       const request = indexedDB.deleteDatabase('syto-db');
+      request.onsuccess = () => resolve();
+      request.onerror = () => resolve();
+    });
+    await new Promise<void>((resolve) => {
+      const request = indexedDB.deleteDatabase('syto-db-v1-backup');
       request.onsuccess = () => resolve();
       request.onerror = () => resolve();
     });
@@ -658,6 +664,83 @@ describe('Storage - Data Integrity', () => {
       expect(db.objectStoreNames.contains('model-data')).toBe(true);
 
       db.close();
+    });
+
+    it('v1 backup is created before migration preserving original data', async () => {
+      const sourceData = [{ name: 'Alice' }, { name: 'Bob' }];
+      const modelData = [{ x: 1 }, { x: 2 }];
+      await seedV1Database(
+        [{ id: 'src_1', name: 'People', columns: [{ name: 'name' }], data: sourceData }],
+        [{ id: 'mdl_1', name: 'Model', schema: [], steps: [], data: modelData }]
+      );
+
+      // Backup should copy v1 data
+      await backupV1IfNeeded();
+
+      // Verify backup exists with original v1 records (data inline)
+      const backup = await new Promise<IDBDatabase>((resolve, reject) => {
+        const req = indexedDB.open('syto-db-v1-backup');
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+
+      const readAll = (store: IDBObjectStore): Promise<any[]> =>
+        new Promise((resolve) => {
+          const req = store.getAll();
+          req.onsuccess = () => resolve(req.result);
+        });
+
+      const tx = backup.transaction(['sources', 'models'], 'readonly');
+      const backupSources = await readAll(tx.objectStore('sources'));
+      const backupModels = await readAll(tx.objectStore('models'));
+      backup.close();
+
+      expect(backupSources).toHaveLength(1);
+      expect(backupSources[0].data).toEqual(sourceData);
+      expect(backupModels).toHaveLength(1);
+      expect(backupModels[0].data).toEqual(modelData);
+    });
+
+    it('v1 backup is skipped when database is already v2', async () => {
+      // Create a v2 database directly
+      const db = await openDatabase();
+      db.close();
+
+      await backupV1IfNeeded();
+
+      // Backup DB should not exist
+      const databases = await indexedDB.databases();
+      expect(databases.some((d) => d.name === 'syto-db-v1-backup')).toBe(false);
+    });
+
+    it('v1 backup is not overwritten on subsequent calls', async () => {
+      const originalData = [{ name: 'Original' }];
+      await seedV1Database([{ id: 'src_1', name: 'Source', columns: [], data: originalData }], []);
+
+      // First backup
+      await backupV1IfNeeded();
+
+      // Now trigger migration to v2
+      const db = await openDatabase();
+      db.close();
+
+      // Second call should be a no-op (backup already exists)
+      await backupV1IfNeeded();
+
+      // Backup should still have original v1 data
+      const backup = await new Promise<IDBDatabase>((resolve, reject) => {
+        const req = indexedDB.open('syto-db-v1-backup');
+        req.onsuccess = () => resolve(req.result);
+        req.onerror = () => reject(req.error);
+      });
+      const tx = backup.transaction(['sources'], 'readonly');
+      const req = tx.objectStore('sources').getAll();
+      const sources = await new Promise<any[]>((resolve) => {
+        req.onsuccess = () => resolve(req.result);
+      });
+      backup.close();
+
+      expect(sources[0].data).toEqual(originalData);
     });
 
     it('metadata load sets data to null, not undefined', async () => {

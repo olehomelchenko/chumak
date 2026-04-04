@@ -852,6 +852,8 @@ op.variance('column') — Variance
 
 Row data is stored separately from metadata and loaded lazily per source/model. On app startup, only metadata is loaded; data is fetched on demand via `ensureSourceData()`/`ensureModelData()`. The v1→v2 migration runs automatically on first open.
 
+**Pre-migration backup:** Before any destructive migration, `backupV1IfNeeded()` copies the existing database to `syto-db-v1-backup`. Startup flow: `loadInitialData()` → `backupV1IfNeeded()` → `openDatabase()` (triggers migration) → load metadata. The backup is a recovery safety net and must not be deleted programmatically.
+
 ### 5.2 localStorage
 
 | Key             | Purpose                                        |

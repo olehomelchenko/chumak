@@ -11,6 +11,7 @@ import { metricsCollector } from './metrics';
 
 const DB_NAME = 'syto-db';
 const DB_VERSION = 2;
+const BACKUP_DB_NAME = 'syto-db-v1-backup';
 
 /**
  * Deep clone an object while converting Date objects to local date strings (YYYY-MM-DD).
@@ -50,6 +51,91 @@ export function convertDatesForStorage(obj: any): any {
 
   // Return primitives and other types as-is
   return obj;
+}
+
+/**
+ * Back up the v1 database before migration.
+ * Copies all sources and models (with inline data) to a separate backup database.
+ * No-op if already migrated to v2 or if backup already exists.
+ */
+export async function backupV1IfNeeded(): Promise<void> {
+  // Check if backup already exists
+  if (indexedDB.databases) {
+    const databases = await indexedDB.databases();
+    if (databases.some((db) => db.name === BACKUP_DB_NAME)) return;
+  }
+
+  // Open current DB without specifying version (won't trigger upgrade)
+  const db = await new Promise<IDBDatabase>((resolve, reject) => {
+    const req = indexedDB.open(DB_NAME);
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+
+  // Already v2+, no backup needed
+  if (db.version >= 2) {
+    db.close();
+    return;
+  }
+
+  // Check the DB actually has data stores (could be a fresh install that never had v1)
+  if (!db.objectStoreNames.contains('sources') && !db.objectStoreNames.contains('models')) {
+    db.close();
+    return;
+  }
+
+  // Read all v1 records
+  const readAll = (store: IDBObjectStore): Promise<any[]> =>
+    new Promise((resolve, reject) => {
+      const req = store.getAll();
+      req.onsuccess = () => resolve(req.result || []);
+      req.onerror = () => reject(req.error);
+    });
+
+  const storeNames = Array.from(db.objectStoreNames).filter((n) =>
+    ['sources', 'models'].includes(n)
+  );
+  const tx = db.transaction(storeNames, 'readonly');
+  const sources = db.objectStoreNames.contains('sources')
+    ? await readAll(tx.objectStore('sources'))
+    : [];
+  const models = db.objectStoreNames.contains('models')
+    ? await readAll(tx.objectStore('models'))
+    : [];
+  db.close();
+
+  // Nothing to back up
+  if (sources.length === 0 && models.length === 0) return;
+
+  // Create backup database with v1 schema
+  const backup = await new Promise<IDBDatabase>((resolve, reject) => {
+    const req = indexedDB.open(BACKUP_DB_NAME, 1);
+    req.onupgradeneeded = (event: any) => {
+      const bdb = event.target.result;
+      if (!bdb.objectStoreNames.contains('sources')) {
+        bdb.createObjectStore('sources', { keyPath: 'id' });
+      }
+      if (!bdb.objectStoreNames.contains('models')) {
+        bdb.createObjectStore('models', { keyPath: 'id' });
+      }
+    };
+    req.onsuccess = () => resolve(req.result);
+    req.onerror = () => reject(req.error);
+  });
+
+  // Write v1 records to backup
+  await new Promise<void>((resolve, reject) => {
+    const btx = backup.transaction(['sources', 'models'], 'readwrite');
+    for (const s of sources) btx.objectStore('sources').put(s);
+    for (const m of models) btx.objectStore('models').put(m);
+    btx.oncomplete = () => resolve();
+    btx.onerror = () => reject(btx.error);
+  });
+  backup.close();
+
+  console.log(
+    `Backed up v1 database: ${sources.length} source(s), ${models.length} model(s) → ${BACKUP_DB_NAME}`
+  );
 }
 
 /**
@@ -455,6 +541,13 @@ export async function loadInitialData(): Promise<{
 }> {
   const loadStart = performance.now();
   try {
+    // Back up v1 data before migration (no-op if already v2 or no data)
+    try {
+      await backupV1IfNeeded();
+    } catch (backupError) {
+      console.warn('V1 backup failed (non-fatal, proceeding with migration):', backupError);
+    }
+
     const [sources, models] = await Promise.all([loadSources(), loadModels()]);
 
     // Normalize schemas to handle unknown types (future-proofing)
