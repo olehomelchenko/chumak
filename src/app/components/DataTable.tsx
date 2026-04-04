@@ -1,9 +1,29 @@
 import { useTranslation } from 'preact-i18next';
 import { AppStore } from '../stores/AppStore';
 import type { DataRow } from '../types';
+import type { ColumnQuality } from '../../core/eda-engine';
 import { debugLogCurrentPage } from '../utils/debug-helpers';
 import { isConversionError } from '../../core/type-converter';
 import styles from './DataTable.module.css';
+
+function QualityBar({ q, t }: { q: ColumnQuality; t: (key: string) => string }) {
+  const errorWidth = Math.round(q.errorPct * 100) / 100;
+  const missingWidth = Math.round(q.nullPct * 100) / 100;
+  if (errorWidth === 0 && missingWidth === 0) return null;
+  const parts: string[] = [];
+  if (errorWidth > 0) parts.push(`${Math.round(q.errorPct)}% ${t('dataTable.qualityErrors')}`);
+  if (missingWidth > 0) parts.push(`${Math.round(q.nullPct)}% ${t('dataTable.qualityMissing')}`);
+  return (
+    <div class={styles.qualityBar} title={parts.join(', ')}>
+      {errorWidth > 0 && (
+        <div class={styles.qualityBar__error} style={{ width: `${errorWidth}%` }} />
+      )}
+      {missingWidth > 0 && (
+        <div class={styles.qualityBar__missing} style={{ width: `${missingWidth}%` }} />
+      )}
+    </div>
+  );
+}
 
 export interface DataTableProps {
   getPaginatedData: () => DataRow[];
@@ -40,6 +60,8 @@ export function DataTable({
   const activeStepIndex = AppStore.activeStepIndex;
   const currentPage = AppStore.currentPage;
   const selectedRows = AppStore.selectedRows;
+
+  const columnQuality = AppStore.columnQuality;
 
   const contextKey = `${activeModel.value?.id || activeSource.value?.id}-${activeStepIndex.value}-${columns.value.length}-${currentPage.value}`;
   const pageOffset = (currentPage.value - 1) * AppStore.pageSize.value;
@@ -258,6 +280,9 @@ export function DataTable({
                     <span class="iconify" aria-hidden="true" data-icon="carbon:chevron-down"></span>
                   </button>
                 </div>
+                {columnQuality.value[column] && (
+                  <QualityBar q={columnQuality.value[column]} t={t} />
+                )}
               </th>
             ))}
           </tr>

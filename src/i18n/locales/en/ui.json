@@ -580,7 +580,9 @@
     "columnMenuTooltip": "Column actions",
     "ariaLabel": "Data table",
     "noRowsTitle": "No rows match the current filter",
-    "noRowsSubtitle": "Try adjusting the expression."
+    "noRowsSubtitle": "Try adjusting the expression.",
+    "qualityErrors": "errors",
+    "qualityMissing": "missing"
   },
   "jsonEditor": {
     "title": "Edit transform pipeline (JSON)",

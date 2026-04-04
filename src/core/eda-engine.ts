@@ -100,6 +100,53 @@ export function selectChartDefaults(stats: EDAStats): ChartDefaults {
   return { numericTreatment, chartView, dateTreatment };
 }
 
+export interface ColumnQuality {
+  nullPct: number;
+  errorPct: number;
+}
+
+/**
+ * Single-pass scan of all columns for null/error percentages.
+ * Lightweight — no sorting, no percentiles, just counts.
+ */
+export function scanColumnQuality(
+  data: any[] | null,
+  columns: string[]
+): Record<string, ColumnQuality> {
+  if (!data || data.length === 0 || columns.length === 0) return {};
+
+  const totalCount = data.length;
+  const nullCounts: Record<string, number> = {};
+  const errorCounts: Record<string, number> = {};
+
+  for (const col of columns) {
+    nullCounts[col] = 0;
+    errorCounts[col] = 0;
+  }
+
+  for (const row of data) {
+    for (const col of columns) {
+      const v = row[col];
+      if (isConversionError(v)) {
+        errorCounts[col]++;
+      } else if (v === null || v === undefined || v === '') {
+        nullCounts[col]++;
+      }
+    }
+  }
+
+  const result: Record<string, ColumnQuality> = {};
+  for (const col of columns) {
+    const nullPct = (nullCounts[col] / totalCount) * 100;
+    const errorPct = (errorCounts[col] / totalCount) * 100;
+    if (nullPct > 0 || errorPct > 0) {
+      result[col] = { nullPct, errorPct };
+    }
+  }
+
+  return result;
+}
+
 export function extractColumnValues(data: any[], column: string) {
   const nonNullValues: any[] = [];
   let errorCount = 0;

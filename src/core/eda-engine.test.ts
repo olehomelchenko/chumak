@@ -6,7 +6,7 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { EDAEngine, selectChartDefaults, EDAStats } from './eda-engine';
+import { EDAEngine, selectChartDefaults, scanColumnQuality, EDAStats } from './eda-engine';
 
 describe('EDA Engine', () => {
   describe('calculateNumericStats', () => {
@@ -404,6 +404,61 @@ describe('EDA Engine', () => {
       expect(defaults.numericTreatment).toBe('numeric');
       expect(defaults.chartView).toBe('boxplot');
       expect(defaults.dateTreatment).toBe('temporal');
+    });
+  });
+
+  describe('scanColumnQuality', () => {
+    it('should return empty for null/empty data', () => {
+      expect(scanColumnQuality(null, ['a'])).toEqual({});
+      expect(scanColumnQuality([], ['a'])).toEqual({});
+      expect(scanColumnQuality([{ a: 1 }], [])).toEqual({});
+    });
+
+    it('should detect null and undefined values', () => {
+      const data = [{ a: 1 }, { a: null }, { a: undefined }, { a: '' }, { a: 2 }];
+      const result = scanColumnQuality(data, ['a']);
+      expect(result.a).toBeDefined();
+      expect(result.a.nullPct).toBe(60); // 3 out of 5
+      expect(result.a.errorPct).toBe(0);
+    });
+
+    it('should detect conversion errors', () => {
+      const err = { type: 'error', message: 'Cannot convert "abc" to integer' };
+      const data = [{ a: 1 }, { a: err }, { a: 2 }, { a: err }];
+      const result = scanColumnQuality(data, ['a']);
+      expect(result.a.errorPct).toBe(50);
+      expect(result.a.nullPct).toBe(0);
+    });
+
+    it('should count errors and nulls separately', () => {
+      const err = { type: 'error', message: 'bad' };
+      const data = [{ a: err }, { a: null }, { a: 1 }, { a: '' }];
+      const result = scanColumnQuality(data, ['a']);
+      expect(result.a.errorPct).toBe(25);
+      expect(result.a.nullPct).toBe(50);
+    });
+
+    it('should omit clean columns from result', () => {
+      const data = [
+        { a: 1, b: null },
+        { a: 2, b: 3 },
+      ];
+      const result = scanColumnQuality(data, ['a', 'b']);
+      expect(result.a).toBeUndefined();
+      expect(result.b).toBeDefined();
+      expect(result.b.nullPct).toBe(50);
+    });
+
+    it('should scan multiple columns independently', () => {
+      const err = { type: 'error', message: 'bad' };
+      const data = [
+        { x: 1, y: null },
+        { x: err, y: 2 },
+        { x: 3, y: null },
+      ];
+      const result = scanColumnQuality(data, ['x', 'y']);
+      expect(result.x.errorPct).toBeCloseTo(33.33, 1);
+      expect(result.y.nullPct).toBeCloseTo(66.67, 1);
     });
   });
 });

@@ -3,6 +3,7 @@ import { Source, Model, DataRow, DialogName, Notification } from '../types';
 import { ColumnSchema, TransformStep } from '../../core/schema-engine';
 import type { BivariateSuggestion } from '../../core/bivariate';
 import { UXSettings } from '../infrastructure/ux-settings';
+import { scanColumnQuality, type ColumnQuality } from '../../core/eda-engine';
 
 export interface HistoryEntry {
   steps: TransformStep[];
@@ -157,6 +158,9 @@ export class AppStore {
 
   // Computed properties
   static hasData = computed(() => AppStore.sources.value.length > 0);
+  static columnQuality = computed<Record<string, ColumnQuality>>(() =>
+    scanColumnQuality(AppStore.currentData.value, AppStore.columns.value)
+  );
 
   /**
    * Resets the entire store to initial state

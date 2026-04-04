@@ -590,7 +590,9 @@
     "columnMenuTooltip": "Дії зі стовпцем",
     "ariaLabel": "Таблиця даних",
     "noRowsTitle": "Жоден рядок не відповідає поточному фільтру",
-    "noRowsSubtitle": "Спробуйте змінити вираз."
+    "noRowsSubtitle": "Спробуйте змінити вираз.",
+    "qualityErrors": "помилок",
+    "qualityMissing": "пропущено"
   },
   "jsonEditor": {
     "title": "Редагувати конвеєр перетворень (JSON)",

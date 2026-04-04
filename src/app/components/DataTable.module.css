@@ -308,6 +308,29 @@
   gap: 4px;
 }
 
+.qualityBar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  display: flex;
+  justify-content: flex-end;
+  opacity: 0.7;
+}
+
+.qualityBar__error {
+  height: 100%;
+  background: var(--color-red);
+  min-width: 2px;
+}
+
+.qualityBar__missing {
+  height: 100%;
+  background: var(--color-warning);
+  min-width: 2px;
+}
+
 .headerLabel {
   flex: 1;
   min-width: 0;
