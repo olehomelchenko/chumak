@@ -1292,6 +1292,12 @@ Two changelogs serve different audiences:
 
 `src/content/whats-new.md` (shown in the Reference dialog) links to GitHub Releases — do not maintain feature highlights there manually.
 
+### PWA & Updates
+
+Updates are **manual** — the user clicks an "Update" button in the header when a new version is detected. This is intentional: auto-update can disrupt in-progress work. Config: `vite-plugin-pwa` with `registerType: 'prompt'` in `vite.config.ts`; client-side logic in `src/app/infrastructure/pwa.ts`; UI in `AppHeader`.
+
+**Testing PWA updates** requires production builds (service workers don't run in dev mode): build → serve `dist/` with a static server → open in browser → rebuild with a change → refresh the tab to trigger the update prompt.
+
 ---
 
 ## 12. DuckDB-WASM Experimental Engine

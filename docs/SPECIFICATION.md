@@ -59,17 +59,17 @@ Syto is a browser-based data wrangling tool for cleaning and transforming tabula
 
 ### 3.1 Runtime Environment
 
-| Constraint      | Decision                                                                               |
-| --------------- | -------------------------------------------------------------------------------------- |
-| Execution       | Browser only, no backend                                                               |
-| Build Tool      | **Vite**                                                                               |
-| Language        | **TypeScript (TS)**                                                                    |
-| App Type        | MPA (landing page + SPA app + static content pages)                                    |
-| Deployment      | Static hosting (Cloudflare Pages)                                                      |
-| Theme Engine    | Custom themes (Syto, Blues) with Vega integration                                      |
-| Browser support | Chrome and Safari (latest 2 versions)                                                  |
-| Offline         | Core functionality works offline; URL imports require network                          |
-| Versioning      | Simplified semver (`0.x.y`); `package.json` → Vite `define` → `__APP_VERSION__` global |
+| Constraint      | Decision                                                                                        |
+| --------------- | ----------------------------------------------------------------------------------------------- |
+| Execution       | Browser only, no backend                                                                        |
+| Build Tool      | **Vite**                                                                                        |
+| Language        | **TypeScript (TS)**                                                                             |
+| App Type        | MPA (landing page + SPA app + static content pages)                                             |
+| Deployment      | Static hosting (Cloudflare Pages)                                                               |
+| Theme Engine    | Custom themes (Syto, Blues) with Vega integration                                               |
+| Browser support | Chrome and Safari (latest 2 versions)                                                           |
+| Offline / PWA   | Service worker via `vite-plugin-pwa` (Workbox); manual update prompt (`registerType: 'prompt'`) |
+| Versioning      | Simplified semver (`0.x.y`); `package.json` → Vite `define` → `__APP_VERSION__` global          |
 
 ### 3.2 Libraries
 

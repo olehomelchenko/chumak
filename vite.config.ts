@@ -31,7 +31,7 @@ export default defineConfig(({ mode }) => {
       // Serve content pages (/about/, /docs/*) during development
       contentPagesDevPlugin(),
       VitePWA({
-        registerType: 'autoUpdate',
+        registerType: 'prompt',
         workbox: {
           globPatterns: ['**/*.{js,css,html,ico,png,svg,woff2}'],
           // SPA fallback only for /app/ routes

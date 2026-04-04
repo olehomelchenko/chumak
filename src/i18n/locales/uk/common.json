@@ -82,7 +82,9 @@
       "columns": "Стовпці",
       "table": "Таблиця"
     },
-    "versionBadge": "альфа {{version}}"
+    "versionBadge": "альфа {{version}}",
+    "update": "Оновити",
+    "updateAvailable": "Доступна нова версія — натисніть, щоб оновити"
   },
   "sidebar": {
     "title": "Джерела та моделі",

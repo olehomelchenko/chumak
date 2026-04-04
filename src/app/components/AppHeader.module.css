@@ -49,6 +49,27 @@
   align-self: center;
 }
 
+.updateButton {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: rgba(var(--color-cyan-rgb), 0.1);
+  border: 1px solid var(--color-cyan);
+  border-radius: var(--border-radius);
+  padding: 2px 8px;
+  font-family: var(--font-family);
+  font-size: var(--font-size-xxs);
+  font-weight: var(--font-weight-medium);
+  color: var(--color-midnight-blue);
+  cursor: pointer;
+  transition: background var(--transition-fast);
+  margin-left: var(--space-sm);
+
+  &:hover {
+    background: rgba(var(--color-cyan-rgb), 0.2);
+  }
+}
+
 .tabs {
   display: flex;
   gap: 0;

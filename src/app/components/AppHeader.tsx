@@ -1,6 +1,7 @@
 import { useComputed } from '@preact/signals';
 import { AppStore } from '../stores/AppStore';
 import { DialogName } from '../types';
+import { updateAvailable, applyUpdate } from '../infrastructure/pwa';
 import styles from './AppHeader.module.css';
 import { useTranslation } from 'preact-i18next';
 
@@ -40,6 +41,16 @@ export function AppHeader({ onOpenDialog, onLogoClick }: AppHeaderProps) {
             {t('header.versionBadge', { version: __APP_VERSION__ })}
           </span>
         </button>
+        {updateAvailable.value && (
+          <button
+            class={styles.updateButton}
+            onClick={applyUpdate}
+            title={t('header.updateAvailable')}
+          >
+            <span class="iconify" aria-hidden="true" data-icon="carbon:upgrade"></span>
+            {t('header.update')}
+          </button>
+        )}
 
         {/* Ribbon Tabs */}
         <div class={styles.tabs} role="tablist" aria-label={t('aria.headerTabs')}>

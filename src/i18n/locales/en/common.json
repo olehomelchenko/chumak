@@ -82,7 +82,9 @@
       "columns": "Columns",
       "table": "Table"
     },
-    "versionBadge": "alpha {{version}}"
+    "versionBadge": "alpha {{version}}",
+    "update": "Update",
+    "updateAvailable": "A new version is available — click to update"
   },
   "sidebar": {
     "title": "Sources & models",
