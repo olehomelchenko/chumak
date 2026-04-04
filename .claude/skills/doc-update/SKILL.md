@@ -1,7 +1,7 @@
 ---
 name: doc-update
 description: Update project documentation based on knowledge gaps discovered during the current session
-disable-model-invocation: true
+disable-model-invocation: false
 ---
 
 # Documentation Update from Session Context
