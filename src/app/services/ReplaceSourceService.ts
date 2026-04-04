@@ -3,6 +3,7 @@ import { DataRow, ColumnSchema } from '../types';
 import { PersistenceService } from './PersistenceService';
 import { DependencyService } from './DependencyService';
 import { ensureSourceData } from '../infrastructure/storage';
+import { invalidate as invalidateStepCache } from './StepResultCache';
 
 /**
  * ReplaceSourceService
@@ -53,6 +54,9 @@ export class ReplaceSourceService {
 
     // 4. Trigger reactivity for sources list
     AppStore.sources.value = [...AppStore.sources.value];
+
+    // Invalidate step cache (source data changed, all cached results are invalid)
+    invalidateStepCache();
 
     // 6. Mark dependent models as stale using DependencyService
     const staleIds = DependencyService.markDependentsStale(

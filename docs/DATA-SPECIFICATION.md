@@ -1057,6 +1057,8 @@ Models are recomputed from Source through all steps whenever:
 - The step order changes
 - The user views an intermediate step
 
+**Step result caching**: When a user is editing step N, `StepResultCache` stores a single checkpoint of the intermediate result at step N-1. On resubmission, computation resumes from the checkpoint rather than replaying from step 0. The cache holds one entry (not per-model), is evicted on model switch, and is invalidated on undo/redo, step removal, or source replacement. See §5 in DEVELOPMENT-PATTERNS.md for the invalidation convention.
+
 ---
 
 **End of Data Specification**

@@ -4,6 +4,7 @@ import { ColumnSchema, TransformStep } from '../../core/schema-engine';
 import type { BivariateSuggestion } from '../../core/bivariate';
 import { UXSettings } from '../infrastructure/ux-settings';
 import { scanColumnQuality, type ColumnQuality } from '../../core/eda-engine';
+import { invalidate as invalidateStepCache } from '../services/StepResultCache';
 
 export interface HistoryEntry {
   steps: TransformStep[];
@@ -166,6 +167,7 @@ export class AppStore {
    * Resets the entire store to initial state
    */
   static reset() {
+    invalidateStepCache();
     this.sources.value = [];
     this.models.value = [];
     this.activeSource.value = null;

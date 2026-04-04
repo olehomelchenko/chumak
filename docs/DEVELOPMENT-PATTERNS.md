@@ -721,7 +721,13 @@ metricsCollector.record({
 
 Metrics are stored in IndexedDB and viewable as a virtual dataset in the sidebar. Console logging icons: ⚡ <50ms, ✓ 50–200ms, ⏱️ 200–500ms, ⚠️ >500ms.
 
-### 5.4 Pagination
+### 5.4 Step Result Cache (`StepResultCache.ts`)
+
+`StepResultCache` stores one intermediate pipeline checkpoint to avoid replaying all steps from step 0 when a user edits a single step. The cache is keyed by model ID + a JSON fingerprint of the steps before the checkpoint.
+
+**Invalidation rule**: Any code that mutates `model.steps`, replaces source data, or changes model context must call `invalidateForModel(modelId)` or `invalidate()`. Current invalidation points: `executeStepRemoval`, `undo`, `redo`, `switchToModel`, `AppStore.reset`, `ReplaceSourceService.replaceSource`. If you add a new code path that mutates steps outside `updateStep`/`applyStepResult`, add an invalidation call — a stale cache produces silently wrong results.
+
+### 5.5 Pagination
 
 Large tables are paginated in the UI:
 

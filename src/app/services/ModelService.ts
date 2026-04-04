@@ -9,6 +9,7 @@ import { showSuccess, showWarning } from '../handlers/core/notification-handlers
 import { cloneData } from '../../core/type-converter';
 import { metricsCollector } from '../infrastructure/metrics';
 import { ensureSourceData, ensureModelData } from '../infrastructure/storage';
+import { invalidate as invalidateStepCache } from './StepResultCache';
 import i18n from '../../i18n';
 
 /**
@@ -72,6 +73,9 @@ export class ModelService {
   ) {
     AppStore.activeSource.value = null;
     AppStore.activeModel.value = model;
+
+    // Evict step cache from previous model
+    invalidateStepCache();
 
     // Ensure upstream source data is available (needed for recomputation)
     const source = AppStore.sources.value.find((s) => s.id === model.sourceId);

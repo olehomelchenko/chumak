@@ -11,6 +11,7 @@ import { AppStore, HistoryStack } from '../stores/AppStore';
 import { showSuccess } from '../handlers/core/notification-handlers';
 import i18n from '../../i18n';
 import { ensureSourceData, ensureModelData } from '../infrastructure/storage';
+import { getCheckpoint, setCheckpoint, invalidateForModel } from './StepResultCache';
 import { DuckDBService } from './DuckDBService';
 import { DUCKDB_TRANSLATORS } from './duckdb-transforms';
 import type { FullTransformStep } from '../../core/transforms/types';
@@ -271,13 +272,33 @@ export class StepService {
       throw new Error(
         'Input data not loaded for model — call ensureSourceData/ensureModelData first'
       );
-    let table = aq.from(inputData);
-    let schema: ColumnSchema[] = JSON.parse(
-      JSON.stringify(source ? source.columns : parentModel!.schema)
-    );
-    let columns = schema.map((c: ColumnSchema) => c.name);
 
-    for (let i = 0; i <= stepIndex; i++) {
+    // Try to resume from a cached checkpoint instead of replaying from step 0
+    let startFromStep = 0;
+    let table: any = null;
+    let schema: ColumnSchema[] = [];
+    let columns: string[] = [];
+
+    const editingIndex = AppStore.editingStepIndex.value;
+    const cacheTarget = editingIndex !== null && editingIndex > 0 ? editingIndex - 1 : null;
+
+    if (cacheTarget !== null && cacheTarget < stepIndex) {
+      const checkpoint = getCheckpoint(model.id, model.steps.slice(0, cacheTarget + 1));
+      if (checkpoint) {
+        table = aq.from(checkpoint.data);
+        schema = JSON.parse(JSON.stringify(checkpoint.schema));
+        columns = [...checkpoint.columns];
+        startFromStep = cacheTarget + 1;
+      }
+    }
+
+    if (startFromStep === 0) {
+      table = aq.from(inputData);
+      schema = JSON.parse(JSON.stringify(source ? source.columns : parentModel!.schema));
+      columns = schema.map((c: ColumnSchema) => c.name);
+    }
+
+    for (let i = startFromStep; i <= stepIndex; i++) {
       const step = model.steps[i];
       if (step.import) continue;
 
@@ -291,6 +312,18 @@ export class StepService {
         const stepResult = TransformResult.create(table, schema, step);
         schema = stepResult.schema;
         columns = stepResult.columns;
+
+        // Populate cache checkpoint at the step before the one being edited
+        if (cacheTarget !== null && i === cacheTarget && startFromStep <= cacheTarget) {
+          setCheckpoint(
+            model.id,
+            i,
+            table.objects() as any[],
+            JSON.parse(JSON.stringify(schema)),
+            [...columns],
+            model.steps.slice(0, i + 1)
+          );
+        }
 
         // Record per-step metrics
         const outputShape = getDataShape(table);
@@ -434,6 +467,9 @@ export class StepService {
   ): Promise<void> {
     // Capture description before mutation (splice removes the step)
     const stepDesc = describeTransform(model.steps[stepIndex]);
+
+    // Invalidate step cache (step indices shift on removal)
+    invalidateForModel(model.id);
 
     // Snapshot for undo before mutation
     const removedDesc = mode === 'all' ? `Remove steps ${stepIndex + 1}+` : `Remove ${stepDesc}`;
@@ -683,6 +719,9 @@ export class StepService {
       description: entry.description,
     });
 
+    // Invalidate step cache (steps replaced entirely)
+    invalidateForModel(model.id);
+
     // Restore steps from snapshot (already a fresh array from JSON.parse)
     model.steps = entry.steps;
 
@@ -725,6 +764,9 @@ export class StepService {
       steps: JSON.parse(JSON.stringify(model.steps)),
       description: entry.description,
     });
+
+    // Invalidate step cache (steps replaced entirely)
+    invalidateForModel(model.id);
 
     // Restore steps from snapshot (already a fresh array from JSON.parse)
     model.steps = entry.steps;
