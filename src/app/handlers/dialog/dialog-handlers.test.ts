@@ -223,6 +223,18 @@ describe('Dialog Handlers', () => {
       expect(DialogStore.replaceState.replaceValue.value).toBe('');
     });
 
+    it('should preserve column when set by quickReplace in error/null mode', () => {
+      // quickReplace sets column but findValue is empty for error/null matchMode
+      DialogStore.replaceState.column.value = 'col2';
+      DialogStore.replaceState.findValue.value = '';
+      DialogStore.replaceState.replaceValue.value = '';
+
+      DialogHandlers.initDialogState('replace');
+
+      // Column should NOT be overwritten to col1
+      expect(DialogStore.replaceState.column.value).toBe('col2');
+    });
+
     it('should handle empty columns array gracefully', () => {
       AppStore.columns.value = [];
       DialogStore.replaceState.findValue.value = '';

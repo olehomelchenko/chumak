@@ -106,12 +106,16 @@ export function initDialogState(dialogName: string, section?: string): void {
       break;
 
     case 'spread':
-      DialogStore.spreadState.column.value = selectedColumn || '';
+      if (!DialogStore.spreadState.column.value) {
+        DialogStore.spreadState.column.value = selectedColumn || '';
+      }
       DialogStore.spreadState.limit.value = undefined;
       break;
 
     case 'unroll':
-      DialogStore.unrollState.column.value = selectedColumn || '';
+      if (!DialogStore.unrollState.column.value) {
+        DialogStore.unrollState.column.value = selectedColumn || '';
+      }
       DialogStore.unrollState.indices.value = false;
       break;
 
@@ -181,11 +185,7 @@ export function initDialogState(dialogName: string, section?: string): void {
 
     case 'replace': {
       const state = DialogStore.replaceState;
-      if (!state.findValue.value) {
-        state.column.value = effectiveColumn;
-        state.findValue.value = '';
-        state.replaceValue.value = '';
-      } else if (!state.column.value) {
+      if (!state.column.value) {
         state.column.value = effectiveColumn;
       }
       break;
@@ -229,7 +229,9 @@ export function initDialogState(dialogName: string, section?: string): void {
 
     case 'regexpMatch': {
       const state = DialogStore.regexpMatchState;
-      state.sourceColumn.value = effectiveColumn;
+      if (!state.sourceColumn.value) {
+        state.sourceColumn.value = effectiveColumn;
+      }
       state.pattern.value = '';
       state.columnName.value = '';
       state.error.value = null;
@@ -238,7 +240,9 @@ export function initDialogState(dialogName: string, section?: string): void {
 
     case 'regexpExtract': {
       const state = DialogStore.regexpExtractState;
-      state.sourceColumn.value = effectiveColumn;
+      if (!state.sourceColumn.value) {
+        state.sourceColumn.value = effectiveColumn;
+      }
       state.pattern.value = '';
       state.columnName.value = '';
       state.group.value = 0;
@@ -247,14 +251,14 @@ export function initDialogState(dialogName: string, section?: string): void {
     }
 
     case 'date': {
-      const dateColumns = DateHandlers.getDateColumns();
-      const initialColumn =
-        selectedColumn && dateColumns.includes(selectedColumn)
-          ? selectedColumn
-          : dateColumns[0] || '';
-
       const state = DialogStore.dateState;
-      state.column.value = initialColumn;
+      if (!state.column.value) {
+        const dateColumns = DateHandlers.getDateColumns();
+        state.column.value =
+          selectedColumn && dateColumns.includes(selectedColumn)
+            ? selectedColumn
+            : dateColumns[0] || '';
+      }
       state.operation.value = 'extract';
       state.extractParts.value = [];
       state.truncateUnits.value = [];
@@ -265,14 +269,14 @@ export function initDialogState(dialogName: string, section?: string): void {
     }
 
     case 'parseDate': {
-      const stringColumns = ParseDateHandlers.getStringColumns();
-      const initialCol =
-        selectedColumn && stringColumns.includes(selectedColumn)
-          ? selectedColumn
-          : stringColumns[0] || '';
-
       const pdState = DialogStore.parseDateState;
-      pdState.column.value = initialCol;
+      if (!pdState.column.value) {
+        const stringColumns = ParseDateHandlers.getStringColumns();
+        pdState.column.value =
+          selectedColumn && stringColumns.includes(selectedColumn)
+            ? selectedColumn
+            : stringColumns[0] || '';
+      }
       pdState.format.value = '';
       pdState.error.value = null;
       ParseDateHandlers.clearParseDatePreview();
@@ -281,7 +285,9 @@ export function initDialogState(dialogName: string, section?: string): void {
 
     case 'text': {
       const state = DialogStore.textState;
-      state.column.value = selectedColumn || '';
+      if (!state.column.value) {
+        state.column.value = selectedColumn || '';
+      }
       state.operations.value = [];
       state.removeOrigin.value = false;
       state.error.value = null;
@@ -304,7 +310,9 @@ export function initDialogState(dialogName: string, section?: string): void {
 
     case 'impute': {
       const state = DialogStore.imputeState;
-      state.column.value = effectiveColumn;
+      if (!state.column.value) {
+        state.column.value = effectiveColumn;
+      }
       state.strategy.value = 'constant';
       state.value.value = '';
       state.includeEmptyString.value = false;
