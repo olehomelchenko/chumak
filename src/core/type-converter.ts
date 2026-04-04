@@ -92,8 +92,8 @@ export function convertType(
     if (toType === 'json') {
       return createErrorObject('Cannot convert empty string to json');
     }
-    // For numeric/boolean, empty string is invalid
-    return createErrorObject(`Cannot convert empty string to ${toType}`);
+    // For numeric/boolean, treat empty/whitespace as null (missing data)
+    return null;
   }
 
   try {

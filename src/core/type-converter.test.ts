@@ -17,11 +17,12 @@ describe('Type Converter', () => {
         expect((result as any).message).toContain('Cannot convert');
       });
 
-      it('should return error for empty strings', () => {
-        const result = convertType('', 'string', 'integer');
-        expect(result).toHaveProperty('type', 'error');
-        expect(result).toHaveProperty('message');
-        expect((result as any).message).toContain('empty string');
+      it('should return null for empty and whitespace-only strings', () => {
+        expect(convertType('', 'string', 'integer')).toBeNull();
+        expect(convertType(' ', 'string', 'integer')).toBeNull();
+        expect(convertType('  ', 'string', 'integer')).toBeNull();
+        expect(convertType(' ', 'string', 'float')).toBeNull();
+        expect(convertType(' ', 'string', 'boolean')).toBeNull();
       });
     });
 
