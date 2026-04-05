@@ -45,9 +45,6 @@ export interface DialogHandlerCallbacks {
   initializeJoinDialog?: () => void;
   initializeAppendDialog?: () => void;
   initializePivotDialog?: () => void;
-  detectDelimiter?: (column: string) => any;
-  debouncedUpdateSplitPreview?: () => void;
-  updateDedupePreview?: () => void;
 }
 
 let dialogHandlerCallbacks: DialogHandlerCallbacks = {};
@@ -104,9 +101,6 @@ export function initDialogState(dialogName: string, section?: string): void {
     initializeJoinDialog: dialogHandlerCallbacks.initializeJoinDialog,
     initializeAppendDialog: dialogHandlerCallbacks.initializeAppendDialog,
     initializePivotDialog: dialogHandlerCallbacks.initializePivotDialog,
-    detectDelimiter: dialogHandlerCallbacks.detectDelimiter,
-    debouncedUpdateSplitPreview: dialogHandlerCallbacks.debouncedUpdateSplitPreview,
-    updateDedupePreview: dialogHandlerCallbacks.updateDedupePreview,
     clearColumnSelection: dialogHandlerCallbacks.clearColumnSelection,
     confirm: dialogHandlerCallbacks.confirm,
   });
@@ -168,18 +162,14 @@ export function activeDialogError(): boolean {
     case 'removePattern':
     case 'renamePattern':
       return DialogStore.activeDialogHasError.value;
-    case 'split': {
-      const state = DialogStore.splitState;
-      return !!state.error.value;
-    }
+    case 'split':
+      return DialogStore.activeDialogHasError.value;
     case 'pivot': {
       const state = DialogStore.pivotState;
       return !state.columnColumn.value || !state.valueColumn.value;
     }
-    case 'dedupe': {
-      const state = DialogStore.dedupeState;
-      return !state.useAllColumns.value && !state.selectedColumns.value?.some((v: any) => v);
-    }
+    case 'dedupe':
+      return DialogStore.activeDialogHasError.value;
     case 'import-url': {
       const state = DialogStore.importUrlState;
       return !state.url.value || state.isFetching.value;

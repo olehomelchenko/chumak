@@ -1,32 +1,131 @@
+import { signal } from '@preact/signals';
 import { useTranslation } from 'preact-i18next';
-import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
+import { useDialogState } from '../hooks/useDialogState';
+import { useTransformPreview } from '../hooks/useTransformPreview';
+import { findDuplicateRows, findAllDuplicateRowCount } from '../handlers/transform/dedupe-handlers';
 import { ColumnSelector } from './column-selector';
 import { InlineBanner } from './InlineBanner';
-import { toggleDedupeAllColumns, updateDedupePreview } from '../handlers/transform/dedupe-handlers';
+import type { DedupeMode } from '../../types/modes';
 import styles from './form-controls.module.css';
 
 export function DedupeDialog() {
   const { t } = useTranslation('dialogs');
-  const { mode, useAllColumns, selectedColumns, duplicateCount } = DialogStore.dedupeState;
   const columns = AppStore.columns.value;
 
-  const handleModeChange = (newMode: 'remove' | 'keep') => {
-    mode.value = newMode;
-    updateDedupePreview();
+  const { state } = useDialogState(
+    (ctx) => {
+      const editing = ctx.editingStep?.dedupe;
+      const quickColumn = AppStore.selectedColumn.value;
+
+      let selectedColumns: boolean[];
+      let useAllColumns: boolean;
+      let mode: DedupeMode = 'remove';
+
+      if (editing) {
+        const dedupeColumns = (editing as any).columns || [];
+        useAllColumns = dedupeColumns.length === 0;
+        selectedColumns = ctx.columns.map((c) => dedupeColumns.includes(c));
+        mode = (editing as any).mode || 'remove';
+      } else if (quickColumn) {
+        useAllColumns = false;
+        selectedColumns = ctx.columns.map((c) => c === quickColumn);
+      } else {
+        useAllColumns = true;
+        selectedColumns = ctx.columns.map(() => true);
+      }
+
+      return {
+        selectedColumns: signal<boolean[]>(selectedColumns),
+        useAllColumns: signal(useAllColumns),
+        duplicateCount: signal(0),
+        mode: signal<DedupeMode>(mode),
+      };
+    },
+    {
+      hasError: (s) => !s.useAllColumns.value && !s.selectedColumns.value.some((v) => v),
+      getState: (s) => ({
+        selectedColumns: s.selectedColumns.value,
+        useAllColumns: s.useAllColumns.value,
+        mode: s.mode.value,
+      }),
+    }
+  );
+
+  const { selectedColumns, useAllColumns, duplicateCount, mode } = state;
+
+  // Compute selected column names for the dedupe transform
+  const getDedupeColumns = (): string[] => {
+    if (useAllColumns.value) return [];
+    return columns.filter((_, i) => selectedColumns.value[i]);
   };
 
-  // Convert boolean array to string array for ColumnSelector
+  useTransformPreview({
+    deps: () => {
+      selectedColumns.value;
+      useAllColumns.value;
+      mode.value;
+    },
+    compute: () => {
+      const currentData = AppStore.currentData.value;
+      if (!currentData || currentData.length === 0) {
+        duplicateCount.value = 0;
+        return null;
+      }
+
+      const cols = getDedupeColumns();
+      const duplicates = findDuplicateRows(currentData, cols);
+      duplicateCount.value = duplicates.size;
+
+      const colInfo =
+        cols.length === 0
+          ? 'all columns'
+          : cols.length === 1
+            ? `"${cols[0]}"`
+            : `${cols.length} columns`;
+
+      const duplicateIndices = Array.from(duplicates).slice(0, 5);
+      const previewRows = duplicateIndices.map((i) => currentData[i]);
+
+      let statsText: string;
+      if (duplicates.size === 0) {
+        statsText = `No duplicates found by ${colInfo}`;
+      } else if (mode.value === 'keep') {
+        const totalDuplicateRows = findAllDuplicateRowCount(currentData, cols);
+        statsText = `${totalDuplicateRows} row${totalDuplicateRows !== 1 ? 's' : ''} are duplicates (will keep)`;
+      } else {
+        statsText = `${duplicates.size} duplicate row${duplicates.size !== 1 ? 's' : ''} will be removed`;
+      }
+
+      return {
+        title: mode.value === 'keep' ? 'Keep Duplicates Preview' : 'Remove Duplicates Preview',
+        stats: statsText,
+        columns: cols.length > 0 ? cols : AppStore.columns.value.slice(0, 5),
+        newColumns: [],
+        rows: previewRows,
+      };
+    },
+  });
+
+  const handleModeChange = (newMode: DedupeMode) => {
+    mode.value = newMode;
+  };
+
   const getSelectedColumnNames = (): string[] => {
     return columns.filter((_, index) => selectedColumns.value[index]);
   };
 
-  // Convert string array from ColumnSelector to boolean array
   const handleColumnSelectionChange = (selected: string[] | string) => {
     const selectedArray = Array.isArray(selected) ? selected : [selected];
     const newSelection = columns.map((col) => selectedArray.includes(col));
     selectedColumns.value = newSelection;
-    updateDedupePreview();
+  };
+
+  const toggleAllColumns = (useAll: boolean) => {
+    useAllColumns.value = useAll;
+    if (useAll) {
+      selectedColumns.value = columns.map(() => true);
+    }
   };
 
   return (
@@ -69,7 +168,7 @@ export function DedupeDialog() {
             class={`button button--small ${
               useAllColumns.value ? 'button--primary' : 'button--secondary'
             }`}
-            onClick={() => toggleDedupeAllColumns(true)}
+            onClick={() => toggleAllColumns(true)}
           >
             {t('dedupe.compareBy.allColumns')}
           </button>
@@ -78,7 +177,7 @@ export function DedupeDialog() {
             class={`button button--small ${
               !useAllColumns.value ? 'button--primary' : 'button--secondary'
             }`}
-            onClick={() => toggleDedupeAllColumns(false)}
+            onClick={() => toggleAllColumns(false)}
           >
             {t('dedupe.compareBy.specificColumns')}
           </button>

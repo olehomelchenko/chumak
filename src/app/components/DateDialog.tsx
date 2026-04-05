@@ -2,44 +2,131 @@
  * DateDialog - Preact component for date extraction and truncation
  */
 
-import { useComputed, useSignalEffect } from '@preact/signals';
+import { signal, useComputed, useSignalEffect } from '@preact/signals';
 import { useTranslation } from 'preact-i18next';
 import formStyles from './form-controls.module.css';
 import colStyles from './column-editor.module.css';
 import exprStyles from './expression-help.module.css';
 import dateStyles from './DateDialog.module.css';
 const styles = { ...formStyles, ...colStyles, ...exprStyles, ...dateStyles };
+import { AppStore } from '../stores/AppStore';
+import { useDialogState } from '../hooks/useDialogState';
+import { useTransformPreview } from '../hooks/useTransformPreview';
+import {
+  getDateColumns,
+  getExtractParts,
+  getTruncateUnits,
+  getDatePartPreview,
+  computeDatePreview,
+} from '../handlers/transform/date-handlers';
+import { clearPreview } from '../handlers/preview-engine';
 import { ColumnSelector } from './column-selector';
-import { DialogStore } from '../stores/DialogStore';
-import * as DateHandlers from '../handlers/transform/date-handlers';
-
-// Re-export for backward compatibility
-export type { DateOperation } from '../../types/modes';
+import type { DateOperation } from '../../types/modes';
 
 export function DateDialog() {
   const { t } = useTranslation('dialogs');
-  const state = DialogStore.dateState;
+
+  const dateColumns = getDateColumns();
+
+  const { state } = useDialogState(
+    () => {
+      // Date dialog never edits existing steps (it creates derive steps)
+      const quickColumn = AppStore.selectedColumn.value;
+      const initialColumn =
+        quickColumn && dateColumns.includes(quickColumn) ? quickColumn : dateColumns[0] || '';
+
+      return {
+        column: signal(initialColumn),
+        operation: signal<DateOperation>('extract'),
+        extractParts: signal<string[]>([]),
+        truncateUnits: signal<string[]>([]),
+        truncateIntervals: signal<Record<string, number>>({}),
+        removeOrigin: signal(false),
+        error: signal<string | null>(null),
+      };
+    },
+    {
+      hasError: (s) => !!s.error.value,
+      getError: (s) => s.error.value,
+      getState: (s) => ({
+        column: s.column.value,
+        operation: s.operation.value,
+        extractParts: s.extractParts.value,
+        truncateUnits: s.truncateUnits.value,
+        truncateIntervals: s.truncateIntervals.value,
+        removeOrigin: s.removeOrigin.value,
+      }),
+    }
+  );
+
   const { column, operation, extractParts, truncateUnits, truncateIntervals, removeOrigin, error } =
     state;
 
-  const dateColumns = DateHandlers.getDateColumns();
-
-  // Update preview when selections change - show both extract and truncate
+  // Update preview when selections change
   useSignalEffect(() => {
     void extractParts.value;
     void truncateUnits.value;
     void truncateIntervals.value;
-    // Update if user has made any selections
     if ((extractParts.value.length > 0 || truncateUnits.value.length > 0) && column.value) {
-      DateHandlers.updateDatePreview();
+      // Preview is handled by useTransformPreview below
     } else {
-      DateHandlers.clearDatePreview();
+      clearPreview();
     }
+  });
+
+  useTransformPreview({
+    deps: () => {
+      column.value;
+      extractParts.value;
+      truncateUnits.value;
+      truncateIntervals.value;
+    },
+    compute: () => {
+      return computeDatePreview(
+        column.value,
+        extractParts.value,
+        truncateUnits.value,
+        truncateIntervals.value
+      );
+    },
   });
 
   const totalSelectionCount = useComputed(() => {
     return extractParts.value.length + truncateUnits.value.length;
   });
+
+  const toggleExtractSelection = (value: string) => {
+    const current = [...extractParts.value];
+    if (current.includes(value)) {
+      const index = current.indexOf(value);
+      current.splice(index, 1);
+    } else {
+      current.push(value);
+    }
+    extractParts.value = current;
+  };
+
+  const toggleTruncateSelection = (value: string) => {
+    const current = [...truncateUnits.value];
+    if (current.includes(value)) {
+      const index = current.indexOf(value);
+      current.splice(index, 1);
+    } else {
+      current.push(value);
+    }
+    truncateUnits.value = current;
+  };
+
+  const setTruncateInterval = (unit: string, interval: number) => {
+    const current = { ...truncateIntervals.value };
+    const clamped = Math.max(1, Math.floor(interval));
+    if (clamped === 1) {
+      delete current[unit];
+    } else {
+      current[unit] = clamped;
+    }
+    truncateIntervals.value = current;
+  };
 
   return (
     <div>
@@ -116,7 +203,7 @@ export function DateDialog() {
                   </tr>
                 </thead>
                 <tbody>
-                  {DateHandlers.getExtractParts().map((part) => {
+                  {getExtractParts().map((part) => {
                     const isSelected = extractParts.value.includes(part.value);
                     return (
                       <tr
@@ -128,7 +215,7 @@ export function DateDialog() {
                             <button
                               type="button"
                               class={styles.itemCheckbox}
-                              onClick={() => DateHandlers.toggleExtractSelection(part.value)}
+                              onClick={() => toggleExtractSelection(part.value)}
                             >
                               <span
                                 style={{
@@ -158,7 +245,7 @@ export function DateDialog() {
                             }}
                           >
                             {column.value
-                              ? DateHandlers.getDatePartPreview(part.value, 'extract')
+                              ? getDatePartPreview(column.value, part.value, 'extract')
                               : part.example}
                           </span>
                         </td>
@@ -183,7 +270,7 @@ export function DateDialog() {
                   </tr>
                 </thead>
                 <tbody>
-                  {DateHandlers.getTruncateUnits().map((unit) => {
+                  {getTruncateUnits().map((unit) => {
                     const isSelected = truncateUnits.value.includes(unit.value);
                     const interval = truncateIntervals.value[unit.value] ?? 1;
                     return (
@@ -196,7 +283,7 @@ export function DateDialog() {
                             <button
                               type="button"
                               class={styles.itemCheckbox}
-                              onClick={() => DateHandlers.toggleTruncateSelection(unit.value)}
+                              onClick={() => toggleTruncateSelection(unit.value)}
                             >
                               <span
                                 style={{
@@ -240,10 +327,7 @@ export function DateDialog() {
                                 onInput={(e) => {
                                   const val = parseInt((e.target as HTMLInputElement).value, 10);
                                   if (!isNaN(val) && val >= 1) {
-                                    DateHandlers.setTruncateInterval(
-                                      unit.value,
-                                      Math.min(val, unit.max)
-                                    );
+                                    setTruncateInterval(unit.value, Math.min(val, unit.max));
                                   }
                                 }}
                                 style={{
@@ -265,7 +349,12 @@ export function DateDialog() {
                             }}
                           >
                             {column.value
-                              ? DateHandlers.getDatePartPreview(unit.value, 'truncate')
+                              ? getDatePartPreview(
+                                  column.value,
+                                  unit.value,
+                                  'truncate',
+                                  truncateIntervals.value
+                                )
                               : '—'}
                           </span>
                         </td>

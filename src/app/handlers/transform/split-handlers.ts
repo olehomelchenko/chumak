@@ -4,9 +4,9 @@ import { SchemaEngine, ColumnType } from '../../../core/schema-engine';
 import { DialogStore } from '../../stores/DialogStore';
 import { AppStore } from '../../stores/AppStore';
 import { StepService } from '../../services/StepService';
-import { createDebouncedPreview, clearPreview, PreviewResult } from '../preview-engine';
-import { validateRegexPattern } from '../validation-engine';
+import type { PreviewResult } from '../preview-engine';
 import i18n from '../../../i18n';
+import type { SplitMode } from '../../../types/modes';
 
 export function detectDelimiter(column: string) {
   const data = AppStore.currentData.value;
@@ -55,129 +55,96 @@ export function detectDelimiter(column: string) {
   return validDelimiters.length > 0 ? validDelimiters[0] : null;
 }
 
-// Preview engine instance for split operations
-const splitPreview = createDebouncedPreview({
-  compute: (): PreviewResult | null => {
-    const state = DialogStore.splitState;
-    const { column, delimiter, mode, maxColumns, keepOriginal, isRegex } = state;
-    const data = AppStore.currentData.value;
-    const columns = AppStore.columns.value;
-    const sources = AppStore.sources.value;
-    const models = AppStore.models.value;
-
-    state.error.value = null;
-
-    if (!column.value || !delimiter.value) return null;
-
-    // Validate regex if needed
-    if (isRegex.value) {
-      const validation = validateRegexPattern(delimiter.value);
-      if (!validation.valid) {
-        state.error.value = validation.error;
-        return null;
-      }
-    }
-
-    const transform = {
-      split: {
-        column: column.value,
-        delimiter: delimiter.value,
-        isRegex: isRegex.value,
-        mode: mode.value,
-        maxColumns:
-          mode.value === 'firstN' || mode.value === 'lastN' ? maxColumns.value : undefined,
-        keepOriginal: keepOriginal.value,
-      },
-    };
-
-    const samples = data!.slice(0, 50);
-    const table = aq.from(samples);
-    const context = { sources, models };
-    const result = applyTransform(table, transform, columns, context);
-
-    const resultColumns = result.columnNames();
-    const newCols = resultColumns.filter((c: string) => c.startsWith(`${column.value}_`));
-
-    // Show only affected columns: original (if kept or marked as removed) + new columns
-    const previewColumns = keepOriginal.value
-      ? [column.value, ...newCols]
-      : [column.value, ...newCols];
-    const fullRows = result.objects();
-
-    // Get original column values from source data for showing removed state
-    const previewRows = fullRows.map((row: any, idx: number) => {
-      const sourceRow = samples[idx];
-      const previewRow: any = {};
-
-      // Include original column (mark as removed if not keeping)
-      if (!keepOriginal.value) {
-        previewRow[column.value] = sourceRow[column.value];
-        previewRow._removedColumns = [column.value];
-      } else {
-        previewRow[column.value] = row[column.value];
-      }
-
-      // Include new columns
-      for (const newCol of newCols) {
-        previewRow[newCol] = row[newCol];
-      }
-
-      return previewRow;
-    });
-
-    return {
-      title: 'Split Preview',
-      stats: keepOriginal.value
-        ? `${newCols.length} new columns created`
-        : `Original column removed, ${newCols.length} new columns created`,
-      columns: previewColumns,
-      newColumns: newCols,
-      rows: previewRows,
-    };
-  },
-  onError: (error) => {
-    DialogStore.splitState.error.value = error.message;
-  },
-});
-
-export function debouncedUpdateSplitPreview() {
-  splitPreview.trigger();
-}
-
-export function selectSplitColumn(col: string) {
-  const state = DialogStore.splitState;
-  state.column.value = col;
-  const detected = detectDelimiter(col);
-  if (detected) {
-    state.delimiter.value = detected.char;
-    state.isRegex.value = detected.isRegex;
-    state.autoDetectedDelimiter.value = detected.name;
-  } else {
-    state.autoDetectedDelimiter.value = null;
-  }
-  updateSplitPreview();
-}
-
-export function updateSplitPreview() {
-  splitPreview.compute();
-}
-
-// Re-export clearPreview from preview-engine
-export { clearPreview };
-
-export async function applySplitTransform(callbacks: any) {
-  const state = DialogStore.splitState;
-  const { column, delimiter, mode, maxColumns, keepOriginal, isRegex } = state;
+/**
+ * Pure preview computation — called from useTransformPreview in the component.
+ */
+export function applySplitPreview(
+  column: string,
+  delimiter: string,
+  isRegex: boolean,
+  mode: SplitMode,
+  maxColumns: number,
+  keepOriginal: boolean
+): PreviewResult | null {
   const data = AppStore.currentData.value;
   const columns = AppStore.columns.value;
   const sources = AppStore.sources.value;
   const models = AppStore.models.value;
 
-  if (!column.value) {
+  if (!column || !delimiter) return null;
+
+  const transform = {
+    split: {
+      column,
+      delimiter,
+      isRegex,
+      mode,
+      maxColumns: mode === 'firstN' || mode === 'lastN' ? maxColumns : undefined,
+      keepOriginal,
+    },
+  };
+
+  const samples = data!.slice(0, 50);
+  const table = aq.from(samples);
+  const context = { sources, models };
+  const result = applyTransform(table, transform, columns, context);
+
+  const resultColumns = result.columnNames();
+  const newCols = resultColumns.filter((c: string) => c.startsWith(`${column}_`));
+
+  const previewColumns = [column, ...newCols];
+  const fullRows = result.objects();
+
+  const previewRows = fullRows.map((row: any, idx: number) => {
+    const sourceRow = samples[idx];
+    const previewRow: any = {};
+
+    if (!keepOriginal) {
+      previewRow[column] = sourceRow[column];
+      previewRow._removedColumns = [column];
+    } else {
+      previewRow[column] = row[column];
+    }
+
+    for (const newCol of newCols) {
+      previewRow[newCol] = row[newCol];
+    }
+
+    return previewRow;
+  });
+
+  return {
+    title: 'Split Preview',
+    stats: keepOriginal
+      ? `${newCols.length} new columns created`
+      : `Original column removed, ${newCols.length} new columns created`,
+    columns: previewColumns,
+    newColumns: newCols,
+    rows: previewRows,
+  };
+}
+
+export async function applySplitTransform(callbacks: any) {
+  const state = DialogStore.activeDialogState.value;
+  if (!state) return;
+
+  const column = state.column as string;
+  const delimiter = state.delimiter as string;
+  const isRegex = state.isRegex as boolean;
+  const mode = state.mode as SplitMode;
+  const maxColumns = state.maxColumns as number;
+  const keepOriginal = state.keepOriginal as boolean;
+
+  const data = AppStore.currentData.value;
+  const columns = AppStore.columns.value;
+  const sources = AppStore.sources.value;
+  const models = AppStore.models.value;
+
+  if (!column) {
     await callbacks.onError?.(i18n.t('validation.selection.column', { ns: 'errors' }));
     return;
   }
-  if (!delimiter.value) {
+  if (!delimiter) {
     await callbacks.onError?.(i18n.t('validation.required.delimiter', { ns: 'errors' }));
     return;
   }
@@ -186,22 +153,19 @@ export async function applySplitTransform(callbacks: any) {
   try {
     const splitTransform = {
       split: {
-        column: column.value,
-        delimiter: delimiter.value,
-        isRegex: isRegex.value,
-        mode: mode.value,
-        maxColumns:
-          mode.value === 'firstN' || mode.value === 'lastN' ? maxColumns.value : undefined,
-        keepOriginal: keepOriginal.value,
+        column,
+        delimiter,
+        isRegex,
+        mode,
+        maxColumns: mode === 'firstN' || mode === 'lastN' ? maxColumns : undefined,
+        keepOriginal,
       },
     };
     let table = aq.from(data!);
     const context = { sources, models };
     let result = applyTransform(table, splitTransform, columns, context);
 
-    const newColumns = result
-      .columnNames()
-      .filter((name: string) => name.startsWith(`${column.value}_`));
+    const newColumns = result.columnNames().filter((name: string) => name.startsWith(`${column}_`));
     const hasTypesStep = newColumns.length > 0;
 
     await StepService.applyStepResult(splitTransform, result, {

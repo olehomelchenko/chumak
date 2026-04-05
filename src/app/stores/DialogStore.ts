@@ -15,8 +15,6 @@ import {
   unrollState,
   typeConversionState,
   mergeState,
-  dedupeState,
-  splitState,
   columnEditorState,
   // Aggregate states
   foldState,
@@ -26,7 +24,6 @@ import {
   describeState,
   // Text states
   textState,
-  dateState,
   parseDateState,
   // Combine states
   joinState,
@@ -60,8 +57,6 @@ export class DialogStore {
   static unrollState = unrollState;
   static typeConversionState = typeConversionState;
   static mergeState = mergeState;
-  static dedupeState = dedupeState;
-  static splitState = splitState;
   static columnEditorState = columnEditorState;
 
   // Aggregate states
@@ -73,7 +68,6 @@ export class DialogStore {
 
   // Text states
   static textState = textState;
-  static dateState = dateState;
   static parseDateState = parseDateState;
 
   // Combine states

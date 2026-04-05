@@ -265,8 +265,6 @@ export function createMockStepCallbacks(overrides?: Partial<StepCallbacks>): Ste
     onJoinTargetChange: vi.fn(),
     onAppendTargetChange: vi.fn(),
     onPivotConfigChange: vi.fn(),
-    updateSplitPreview: vi.fn(),
-    updateDedupePreview: vi.fn(),
     confirmImport: vi.fn(),
     confirmTextEntry: vi.fn(),
     fetchAndImportFromUrl: vi.fn().mockResolvedValue(undefined),
@@ -383,6 +381,8 @@ export const MockFactories = {
     createDebouncedPreview: vi.fn().mockReturnValue({
       trigger: vi.fn(),
       compute: vi.fn(),
+      cancel: vi.fn(),
+      clear: vi.fn(),
     }),
     clearPreview: vi.fn(),
   }),

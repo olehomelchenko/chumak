@@ -21,8 +21,6 @@ export type StepCallbacks = {
   onJoinTargetChange: () => void;
   onAppendTargetChange: () => void;
   onPivotConfigChange: () => void;
-  updateSplitPreview?: () => void;
-  updateDedupePreview?: () => void;
   // Non-transform operations (import, generate)
   confirmImport: () => void;
   confirmTextEntry: () => void;
@@ -303,27 +301,11 @@ export function editStep(stepIndex: number): void {
     // State initialized by useDialogState hook via editingStep context
     callbacks?.openDialog('replace');
   } else if (step.split) {
+    // State initialized by useDialogState hook via editingStep context
     callbacks?.openDialog('split');
-    const state = DialogStore.splitState;
-    state.column.value = step.split.column;
-    state.delimiter.value = step.split.delimiter;
-    state.isRegex.value = !!step.split.isRegex;
-    state.mode.value = step.split.mode || 'spread';
-    state.maxColumns.value = step.split.maxColumns || 10;
-    state.keepOriginal.value = !!step.split.keepOriginal;
-    state.error.value = null;
-
-    callbacks?.updateSplitPreview?.();
   } else if (step.dedupe) {
+    // State initialized by useDialogState hook via editingStep context
     callbacks?.openDialog('dedupe');
-    const dedupeColumns = step.dedupe.columns || [];
-    const state = DialogStore.dedupeState;
-    state.useAllColumns.value = dedupeColumns.length === 0;
-    state.selectedColumns.value = columns.map((c: string) => dedupeColumns.includes(c));
-    state.duplicateCount.value = 0;
-    state.mode.value = step.dedupe.mode || 'remove';
-
-    callbacks?.updateDedupePreview?.();
   } else if (step.impute) {
     // State initialized by useDialogState hook via editingStep context
     callbacks?.openDialog('impute');

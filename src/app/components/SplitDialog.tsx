@@ -2,19 +2,66 @@
  * SplitDialog - Preact component for splitting columns
  */
 
-import { useSignalEffect } from '@preact/signals';
+import { signal, useSignalEffect } from '@preact/signals';
 import { useTranslation } from 'preact-i18next';
-import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
+import { useDialogState } from '../hooks/useDialogState';
+import { useTransformPreview } from '../hooks/useTransformPreview';
+import { detectDelimiter, applySplitPreview } from '../handlers/transform/split-handlers';
+import { validateRegexPattern } from '../handlers/validation-engine';
 import { ColumnSelector } from './column-selector';
-import * as SplitHandlers from '../handlers/transform/split-handlers';
+import type { SplitMode } from '../../types/modes';
 import styles from './form-controls.module.css';
-
-// Re-export for backward compatibility
-export type { SplitMode } from '../../types/modes';
 
 export function SplitDialog() {
   const { t } = useTranslation('dialogs');
+  const columns = AppStore.columns.value;
+
+  const { state } = useDialogState(
+    (ctx) => {
+      const editing = ctx.editingStep?.split;
+      const quickColumn = AppStore.selectedColumn.value;
+      const initialColumn = (editing as any)?.column ?? quickColumn ?? ctx.columns[0] ?? '';
+
+      let delimiter = (editing as any)?.delimiter ?? ',';
+      let isRegex = !!(editing as any)?.isRegex;
+      let autoDetected: string | null = null;
+
+      // Auto-detect delimiter for new dialogs when a column is pre-selected
+      if (!editing && initialColumn) {
+        const detected = detectDelimiter(initialColumn);
+        if (detected) {
+          delimiter = detected.char;
+          isRegex = detected.isRegex;
+          autoDetected = detected.name;
+        }
+      }
+
+      return {
+        column: signal(initialColumn),
+        delimiter: signal(delimiter),
+        isRegex: signal(isRegex),
+        mode: signal<SplitMode>((editing as any)?.mode ?? 'spread'),
+        maxColumns: signal((editing as any)?.maxColumns ?? 10),
+        keepOriginal: signal(!!(editing as any)?.keepOriginal),
+        error: signal<string | null>(null),
+        autoDetectedDelimiter: signal<string | null>(autoDetected),
+      };
+    },
+    {
+      hasError: (s) => !!s.error.value,
+      getError: (s) => s.error.value,
+      getState: (s) => ({
+        column: s.column.value,
+        delimiter: s.delimiter.value,
+        isRegex: s.isRegex.value,
+        mode: s.mode.value,
+        maxColumns: s.maxColumns.value,
+        keepOriginal: s.keepOriginal.value,
+      }),
+    }
+  );
+
   const {
     column,
     delimiter,
@@ -24,29 +71,64 @@ export function SplitDialog() {
     maxColumns,
     keepOriginal,
     error,
-  } = DialogStore.splitState;
-  const columns = AppStore.columns.value;
+  } = state;
 
+  // Re-detect delimiter when column changes
   useSignalEffect(() => {
-    // Detect delimiter when column changes
     const col = column.value;
     if (col) {
-      SplitHandlers.detectDelimiter(col);
+      const detected = detectDelimiter(col);
+      if (detected) {
+        delimiter.value = detected.char;
+        isRegex.value = detected.isRegex;
+        autoDetectedDelimiter.value = detected.name;
+      } else {
+        autoDetectedDelimiter.value = null;
+      }
     }
   });
 
+  // Inline regex validation
   useSignalEffect(() => {
-    // Trigger preview when params change
-    void column.value;
     void delimiter.value;
     void isRegex.value;
-    void mode.value;
-    void maxColumns.value;
-    void keepOriginal.value;
-    if (column.value) {
-      SplitHandlers.debouncedUpdateSplitPreview();
+    if (isRegex.value && delimiter.value) {
+      const validation = validateRegexPattern(delimiter.value);
+      error.value = validation.valid ? null : (validation.error ?? null);
+    } else {
+      error.value = null;
     }
   });
+
+  useTransformPreview({
+    deps: () => {
+      column.value;
+      delimiter.value;
+      isRegex.value;
+      mode.value;
+      maxColumns.value;
+      keepOriginal.value;
+      error.value;
+    },
+    compute: () => {
+      if (!column.value || !delimiter.value || error.value) return null;
+      return applySplitPreview(
+        column.value,
+        delimiter.value,
+        isRegex.value,
+        mode.value,
+        maxColumns.value,
+        keepOriginal.value
+      );
+    },
+    onError: (err) => {
+      error.value = err.message;
+    },
+  });
+
+  const selectColumn = (col: string) => {
+    column.value = col;
+  };
 
   const setPreset = (val: string, regex: boolean) => {
     delimiter.value = val;
@@ -60,7 +142,7 @@ export function SplitDialog() {
         <ColumnSelector
           columns={columns}
           selectedColumns={column.value}
-          onSelectionChange={(col) => SplitHandlers.selectSplitColumn(col as string)}
+          onSelectionChange={(col) => selectColumn(col as string)}
           mode="single"
           display="chip"
           label={t('split.columnLabel')}

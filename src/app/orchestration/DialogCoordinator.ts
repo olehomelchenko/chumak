@@ -10,16 +10,12 @@ import { DialogStore } from '../stores/DialogStore';
 import { DialogName } from '../types';
 import { DIALOG_REGISTRY } from '../dialog-registry';
 import { syncDialogToUrl, clearDialogFromUrl } from './UrlStateSync';
-import * as DateHandlers from '../handlers/transform/date-handlers';
 import * as ParseDateHandlers from '../handlers/transform/parse-date-handlers';
 
 export type DialogCallbacks = {
   initializeJoinDialog?: () => void;
   initializeAppendDialog?: () => void;
   initializePivotDialog?: () => void;
-  detectDelimiter?: (column: string) => { char: string; isRegex: boolean; name: string } | null;
-  debouncedUpdateSplitPreview?: () => void;
-  updateDedupePreview?: () => void;
   clearColumnSelection?: () => void;
   confirm?: (message: string, confirmLabel?: string) => Promise<boolean>;
 };
@@ -72,8 +68,6 @@ export function initDialogState(dialogName: string, section?: string): void {
   const columns = AppStore.columns.value;
   const selectedColumn = AppStore.selectedColumn.value;
   const selectedColumns = AppStore.selectedColumns.value;
-  const effectiveColumn = selectedColumn || columns[0] || '';
-
   switch (dialogName) {
     case 'filter':
     case 'derive':
@@ -172,31 +166,8 @@ export function initDialogState(dialogName: string, section?: string): void {
     case 'replace':
       break; // state managed by useDialogState hook
 
-    case 'split': {
-      const state = DialogStore.splitState;
-      if (!state.column.value) {
-        const initialColumn = effectiveColumn;
-        state.column.value = initialColumn;
-        state.delimiter.value = ',';
-        state.autoDetectedDelimiter.value = null;
-        state.isRegex.value = false;
-
-        if (initialColumn && callbacks?.detectDelimiter) {
-          const detected = callbacks.detectDelimiter(initialColumn);
-          if (detected) {
-            state.delimiter.value = detected.char;
-            state.isRegex.value = detected.isRegex;
-            state.autoDetectedDelimiter.value = detected.name;
-          }
-        }
-      }
-      state.mode.value = 'spread';
-      state.maxColumns.value = 10;
-      state.keepOriginal.value = false;
-      state.error.value = null;
-      callbacks?.debouncedUpdateSplitPreview?.();
-      break;
-    }
+    case 'split':
+      break; // state managed by useDialogState hook
 
     case 'merge': {
       const state = DialogStore.mergeState;
@@ -212,23 +183,8 @@ export function initDialogState(dialogName: string, section?: string): void {
     case 'regexpExtract':
       break; // state managed by useDialogState hook
 
-    case 'date': {
-      const state = DialogStore.dateState;
-      if (!state.column.value) {
-        const dateColumns = DateHandlers.getDateColumns();
-        state.column.value =
-          selectedColumn && dateColumns.includes(selectedColumn)
-            ? selectedColumn
-            : dateColumns[0] || '';
-      }
-      state.operation.value = 'extract';
-      state.extractParts.value = [];
-      state.truncateUnits.value = [];
-      state.outputColumn.value = '';
-      state.error.value = null;
-      DateHandlers.clearDatePreview();
-      break;
-    }
+    case 'date':
+      break; // state managed by useDialogState hook
 
     case 'parseDate': {
       const pdState = DialogStore.parseDateState;
@@ -257,18 +213,8 @@ export function initDialogState(dialogName: string, section?: string): void {
       break;
     }
 
-    case 'dedupe': {
-      const state = DialogStore.dedupeState;
-      const hasSelection = state.selectedColumns.value.some((selected) => selected);
-      if (!hasSelection || state.selectedColumns.value.length !== columns.length) {
-        state.selectedColumns.value = columns.map(() => true);
-        state.useAllColumns.value = true;
-      }
-      state.duplicateCount.value = 0;
-      state.mode.value = 'remove';
-      callbacks?.updateDedupePreview?.();
-      break;
-    }
+    case 'dedupe':
+      break; // state managed by useDialogState hook
 
     case 'impute':
       break; // state managed by useDialogState hook

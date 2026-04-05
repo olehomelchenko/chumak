@@ -4,8 +4,6 @@ import { DialogStore } from '../../stores/DialogStore';
 import { AppStore } from '../../stores/AppStore';
 import * as HelperHandlers from './helper-handlers';
 import * as NotificationHandlers from './notification-handlers';
-import * as SplitHandlers from '../transform/split-handlers';
-import * as DedupeHandlers from '../transform/dedupe-handlers';
 import { StepService } from '../../services/StepService';
 import { PersistenceService } from '../../services/PersistenceService';
 import { convertType } from '../../../core/type-converter';
@@ -505,23 +503,9 @@ export function openTypeMenuForColumn(col: string) {
 }
 
 export function quickSplit(onOpenDialog: (name: string) => void) {
-  const col = AppStore.selectedColumn.value;
-  if (!col) return;
-
-  const detected = SplitHandlers.detectDelimiter(col);
-
-  const state = DialogStore.splitState;
-  state.column.value = col;
-  if (detected) {
-    state.delimiter.value = detected.char;
-    state.isRegex.value = detected.isRegex;
-    state.autoDetectedDelimiter.value = detected.name;
-  } else {
-    state.autoDetectedDelimiter.value = null;
-  }
-
+  if (!AppStore.selectedColumn.value) return;
+  // State initialized by useDialogState hook via selectedColumn context
   onOpenDialog('split');
-  SplitHandlers.updateSplitPreview();
 }
 
 export function quickReplace(onOpenDialog: (name: string) => void) {
@@ -531,15 +515,9 @@ export function quickReplace(onOpenDialog: (name: string) => void) {
 }
 
 export function quickDedupe(onOpenDialog: (name: string) => void) {
-  const col = AppStore.selectedColumn.value;
-  if (!col) return;
-
-  const state = DialogStore.dedupeState;
-  state.useAllColumns.value = false;
-  state.selectedColumns.value = AppStore.columns.value.map((c) => c === col);
-
+  if (!AppStore.selectedColumn.value) return;
+  // State initialized by useDialogState hook via selectedColumn context
   onOpenDialog('dedupe');
-  DedupeHandlers.updateDedupePreview();
 }
 
 export async function removeSelectedRows(callbacks: any) {

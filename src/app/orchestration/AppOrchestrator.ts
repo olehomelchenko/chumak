@@ -54,12 +54,6 @@ import {
   onAppendTargetChange,
 } from '../handlers/transform/append-handlers';
 import { initializePivotDialog, onPivotConfigChange } from '../handlers/transform/pivot-handlers';
-import {
-  detectDelimiter,
-  debouncedUpdateSplitPreview,
-  updateSplitPreview,
-} from '../handlers/transform/split-handlers';
-import { updateDedupePreview } from '../handlers/transform/dedupe-handlers';
 
 // AppController for orchestration methods only
 import { AppController } from './AppController';
@@ -125,9 +119,6 @@ export async function initApp(): Promise<void> {
     initializeJoinDialog: () => initializeJoinDialog(),
     initializeAppendDialog: () => initializeAppendDialog(),
     initializePivotDialog: () => initializePivotDialog(),
-    detectDelimiter: (col) => detectDelimiter(col),
-    debouncedUpdateSplitPreview: () => debouncedUpdateSplitPreview(),
-    updateDedupePreview: () => updateDedupePreview(),
   });
 
   // Phase 4: Restore URL state (sets activeModel/activeSource but data is still null)
@@ -183,9 +174,6 @@ function wireHandlerCallbacks(): void {
     initializeJoinDialog: () => initializeJoinDialog(),
     initializeAppendDialog: () => initializeAppendDialog(),
     initializePivotDialog: () => initializePivotDialog(),
-    detectDelimiter: (col) => detectDelimiter(col),
-    debouncedUpdateSplitPreview: () => debouncedUpdateSplitPreview(),
-    updateDedupePreview: () => updateDedupePreview(),
   });
 
   setStepCallbacks({
@@ -195,8 +183,6 @@ function wireHandlerCallbacks(): void {
     onJoinTargetChange: () => onJoinTargetChange(),
     onAppendTargetChange: () => onAppendTargetChange(),
     onPivotConfigChange: () => onPivotConfigChange(),
-    updateSplitPreview: () => updateSplitPreview(),
-    updateDedupePreview: () => updateDedupePreview(),
     confirmImport: () => confirmImport(),
     confirmTextEntry: () => confirmTextEntry(),
     fetchAndImportFromUrl: () => fetchAndImportFromUrl(),

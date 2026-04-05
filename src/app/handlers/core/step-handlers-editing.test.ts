@@ -201,11 +201,7 @@ describe('step-handlers - editing', () => {
 
       expect(AppStore.editingStepIndex.value).toBe(1);
       expect(callbacks.openDialog).toHaveBeenCalledWith('split');
-      expect(DialogStore.splitState.column.value).toBe('name');
-      expect(DialogStore.splitState.delimiter.value).toBe(',');
-      expect(DialogStore.splitState.mode.value).toBe('spread');
-      expect(DialogStore.splitState.maxColumns.value).toBe(5);
-      expect(DialogStore.splitState.keepOriginal.value).toBe(true);
+      // State initialized by useDialogState hook via editingStep context
     });
 
     it('opens impute dialog for impute step', () => {

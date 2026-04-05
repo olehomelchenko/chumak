@@ -9,7 +9,6 @@ vi.mock('./UrlStateSync', () => ({
 
 vi.mock('../handlers/transform/date-handlers', () => ({
   getDateColumns: vi.fn().mockReturnValue([]),
-  clearDatePreview: vi.fn(),
 }));
 
 vi.mock('../handlers/transform/parse-date-handlers', () => ({
@@ -161,12 +160,15 @@ describe('DialogCoordinator', () => {
 
     // replace: state now managed by useDialogState bridge signals
 
-    it('returns split state', () => {
-      DialogStore.splitState.column.value = 'name';
-      DialogStore.splitState.delimiter.value = ',';
-      DialogStore.splitState.isRegex.value = false;
-      DialogStore.splitState.mode.value = 'spread';
-      DialogStore.splitState.maxColumns.value = 10;
+    it('returns split state from bridge signal', () => {
+      DialogStore.activeDialogState.value = {
+        column: 'name',
+        delimiter: ',',
+        isRegex: false,
+        mode: 'spread',
+        maxColumns: 10,
+        keepOriginal: false,
+      };
 
       const state = getDialogState('split');
       expect(state).toEqual({
@@ -175,6 +177,7 @@ describe('DialogCoordinator', () => {
         isRegex: false,
         mode: 'spread',
         maxColumns: 10,
+        keepOriginal: false,
       });
     });
 
@@ -227,10 +230,12 @@ describe('DialogCoordinator', () => {
       expect(state.rowCount).toBe(100);
     });
 
-    it('returns dedupe state', () => {
-      DialogStore.dedupeState.selectedColumns.value = [true, false, true];
-      DialogStore.dedupeState.useAllColumns.value = false;
-      DialogStore.dedupeState.mode.value = 'keep';
+    it('returns dedupe state from bridge signal', () => {
+      DialogStore.activeDialogState.value = {
+        selectedColumns: [true, false, true],
+        useAllColumns: false,
+        mode: 'keep',
+      };
 
       const state = getDialogState('dedupe');
       expect(state).toEqual({
@@ -460,25 +465,16 @@ describe('DialogCoordinator', () => {
       expect(activeDialogHasError()).toBe(false);
     });
 
-    // dedupe
-    it('dedupe: returns true when not using all columns and none selected', () => {
+    // dedupe (uses bridge signal)
+    it('dedupe: returns true when bridge error signal set', () => {
       AppStore.activeDialog.value = 'dedupe';
-      DialogStore.dedupeState.useAllColumns.value = false;
-      DialogStore.dedupeState.selectedColumns.value = [false, false];
+      DialogStore.activeDialogHasError.value = true;
       expect(activeDialogHasError()).toBe(true);
     });
 
-    it('dedupe: returns false when using all columns', () => {
+    it('dedupe: returns false when bridge error signal clear', () => {
       AppStore.activeDialog.value = 'dedupe';
-      DialogStore.dedupeState.useAllColumns.value = true;
-      DialogStore.dedupeState.selectedColumns.value = [false, false];
-      expect(activeDialogHasError()).toBe(false);
-    });
-
-    it('dedupe: returns false when some columns selected', () => {
-      AppStore.activeDialog.value = 'dedupe';
-      DialogStore.dedupeState.useAllColumns.value = false;
-      DialogStore.dedupeState.selectedColumns.value = [true, false];
+      DialogStore.activeDialogHasError.value = false;
       expect(activeDialogHasError()).toBe(false);
     });
 
@@ -535,15 +531,15 @@ describe('DialogCoordinator', () => {
       expect(activeDialogHasError()).toBe(true);
     });
 
-    it('split: returns true when error present', () => {
+    it('split: returns true when bridge error signal set', () => {
       AppStore.activeDialog.value = 'split';
-      DialogStore.splitState.error.value = 'Invalid delimiter';
+      DialogStore.activeDialogHasError.value = true;
       expect(activeDialogHasError()).toBe(true);
     });
 
-    it('split: returns false when no error', () => {
+    it('split: returns false when bridge error signal clear', () => {
       AppStore.activeDialog.value = 'split';
-      DialogStore.splitState.error.value = null;
+      DialogStore.activeDialogHasError.value = false;
       expect(activeDialogHasError()).toBe(false);
     });
   });

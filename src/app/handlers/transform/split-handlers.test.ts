@@ -114,8 +114,14 @@ describe('split-handlers', () => {
 
   describe('applySplitTransform', () => {
     it('errors when no column selected', async () => {
-      DialogStore.splitState.column.value = '';
-      DialogStore.splitState.delimiter.value = ',';
+      DialogStore.activeDialogState.value = {
+        column: '',
+        delimiter: ',',
+        isRegex: false,
+        mode: 'spread',
+        maxColumns: 10,
+        keepOriginal: false,
+      };
       const callbacks = { onError: vi.fn() };
 
       await applySplitTransform(callbacks);
@@ -124,8 +130,14 @@ describe('split-handlers', () => {
     });
 
     it('errors when no delimiter entered', async () => {
-      DialogStore.splitState.column.value = 'tags';
-      DialogStore.splitState.delimiter.value = '';
+      DialogStore.activeDialogState.value = {
+        column: 'tags',
+        delimiter: '',
+        isRegex: false,
+        mode: 'spread',
+        maxColumns: 10,
+        keepOriginal: false,
+      };
       const callbacks = { onError: vi.fn() };
 
       await applySplitTransform(callbacks);

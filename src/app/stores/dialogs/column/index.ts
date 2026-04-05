@@ -8,8 +8,6 @@ export { spreadState, resetSpreadState } from './spread-state';
 export { unrollState, resetUnrollState } from './unroll-state';
 export { typeConversionState, resetTypeConversionState } from './type-conversion-state';
 export { mergeState, resetMergeState } from './merge-state';
-export { dedupeState, resetDedupeState } from './dedupe-state';
-export { splitState, resetSplitState } from './split-state';
 export {
   columnEditorState,
   resetColumnEditorState,

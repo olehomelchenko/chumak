@@ -25,14 +25,14 @@ export { PivotDialog } from './PivotDialog';
 export type { PivotAggregation } from './PivotDialog';
 
 export { DateDialog } from './DateDialog';
-export type { DateOperation } from './DateDialog';
+export type { DateOperation } from '../../types/modes';
 
 export { ParseDateDialog } from './ParseDateDialog';
 
 export { TextDialog } from './TextDialog';
 
 export { SplitDialog } from './SplitDialog';
-export type { SplitMode } from './SplitDialog';
+export type { SplitMode } from '../../types/modes';
 
 export { MergeDialog } from './MergeDialog';
 

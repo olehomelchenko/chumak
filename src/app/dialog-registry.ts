@@ -23,9 +23,9 @@ import i18n from '../i18n';
 import { confirm } from './handlers/core/notification-handlers';
 import * as SpreadHandlers from './handlers/transform/spread-handlers';
 import * as UnrollHandlers from './handlers/transform/unroll-handlers';
-import * as SplitHandlers from './handlers/transform/split-handlers';
+import { applySplitTransform } from './handlers/transform/split-handlers';
 import * as MergeHandlers from './handlers/transform/merge-handlers';
-import * as DateHandlers from './handlers/transform/date-handlers';
+import { applyDateTransform } from './handlers/transform/date-handlers';
 import * as ParseDateHandlers from './handlers/transform/parse-date-handlers';
 import * as TextHandlers from './handlers/transform/text-handlers';
 import * as FoldHandlers from './handlers/transform/fold-handlers';
@@ -35,7 +35,7 @@ import * as DescribeHandlers from './handlers/transform/describe-handlers';
 import * as WindowHandlers from './handlers/transform/window-handlers';
 import * as JoinHandlers from './handlers/transform/join-handlers';
 import * as AppendHandlers from './handlers/transform/append-handlers';
-import * as DedupeHandlers from './handlers/transform/dedupe-handlers';
+import { applyDedupeTransform } from './handlers/transform/dedupe-handlers';
 import * as ColumnEditorHandlers from './handlers/dialog/column-editor-handlers';
 
 // Dialog type determines rendering location and style
@@ -260,22 +260,13 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
       !DialogStore.unrollState.column.value || DialogStore.unrollState.column.value.trim() === '',
   },
 
-  split: {
+  split: bridgedDialogEntry({
     name: 'split',
     title: 'Split Column',
     type: 'slide-panel',
     buttonText: 'buttons.split',
-    applyHandler: (cb) => SplitHandlers.applySplitTransform(cb),
-    getState: () => ({
-      column: DialogStore.splitState.column.value,
-      delimiter: DialogStore.splitState.delimiter.value,
-      isRegex: DialogStore.splitState.isRegex.value,
-      mode: DialogStore.splitState.mode.value,
-      maxColumns: DialogStore.splitState.maxColumns.value,
-    }),
-    hasError: () => !!DialogStore.splitState.error.value,
-    getError: () => DialogStore.splitState.error.value,
-  },
+    applyHandler: (cb) => applySplitTransform(cb),
+  }),
 
   merge: {
     name: 'merge',
@@ -385,13 +376,13 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     },
   }),
 
-  date: {
+  date: bridgedDialogEntry({
     name: 'date',
     title: 'Date Operations',
     type: 'slide-panel',
     buttonText: 'buttons.addColumn',
-    applyHandler: (cb) => DateHandlers.applyDateTransform(cb),
-  },
+    applyHandler: (cb) => applyDateTransform(cb),
+  }),
 
   parseDate: {
     name: 'parseDate',
@@ -409,21 +400,13 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     applyHandler: (cb) => TextHandlers.applyTextTransform(cb),
   },
 
-  dedupe: {
+  dedupe: bridgedDialogEntry({
     name: 'dedupe',
     title: 'Duplicates',
     type: 'slide-panel',
     buttonText: 'buttons.deduplicate',
-    applyHandler: (cb) => DedupeHandlers.applyDedupeTransform(cb),
-    getState: () => ({
-      selectedColumns: DialogStore.dedupeState.selectedColumns.value,
-      useAllColumns: DialogStore.dedupeState.useAllColumns.value,
-      mode: DialogStore.dedupeState.mode.value,
-    }),
-    hasError: () =>
-      !DialogStore.dedupeState.useAllColumns.value &&
-      !DialogStore.dedupeState.selectedColumns.value.some((v) => v),
-  },
+    applyHandler: (cb) => applyDedupeTransform(cb),
+  }),
 
   fold: {
     name: 'fold',

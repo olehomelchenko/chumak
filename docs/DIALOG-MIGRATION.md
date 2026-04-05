@@ -77,6 +77,16 @@ During batch 3, the Preview column in the checklist below said "No" for regexpMa
 
 `useTransformPreview` wraps `createDebouncedPreview()` and expects a `PreviewResult` return type. Dialogs with **mock previews** (e.g., impute uses hardcoded sample data and writes `previewRows.value` directly) don't fit this pattern. Use plain `useSignalEffect` for mock previews instead of `useTransformPreview`.
 
+### Batch 4b: column defaults and handler cleanup
+
+1. **Replicate DialogCoordinator column fallbacks.** The old init case often defaulted to `selectedColumn || columns[0]`. The factory must do the same — using `quickColumn ?? ''` drops the first-column fallback and leaves the dialog empty. This caused a regression where opening Split from a column didn't pre-select it.
+
+2. **Keep pure functions in handler files.** After migration, delete state-mutating functions and preview engine instances, but **keep pure logic** that the component's preview `compute` callback needs (e.g., `findDuplicateRows`, `detectDelimiter`, `applySplitPreview`). The apply handler stays too — it reads from `DialogStore.activeDialogState.value` (bridge signal) instead of the old typed signals.
+
+3. **Preview engine mock needs `cancel` and `clear`.** `useTransformPreview` calls `handle.clear()` on unmount. The `MockFactories.previewEngine()` `createDebouncedPreview` return value must include both methods, not just `trigger`/`compute`.
+
+4. **Type re-exports break.** Old components re-exported types (`export type { SplitMode } from './SplitDialog'`). After migration the component no longer re-exports them — update barrel files to point to the source (`../../types/modes`).
+
 ### Batches 1–3: reviewed, no regressions found
 
 All prior batches were reviewed commit-by-commit. No dropped functionality was found. The migration actually fixed a few latent issues (inconsistent index reset default, missing `isRegex` on replace editing).
@@ -95,11 +105,16 @@ import { useDialogState } from '../hooks/useDialogState';
 
 export function XxxDialog() {
   const { state } = useDialogState(
-    (ctx) => ({
-      // Default values for new dialog
-      field: signal<string>(ctx.editingStep?.xxx?.field ?? 'default'),
-      // Use ctx.selectedColumns, ctx.columns, ctx.schema for context-aware defaults
-    }),
+    (ctx) => {
+      const editing = ctx.editingStep?.xxx;
+      // Replicate DialogCoordinator fallback: selectedColumn → columns[0] → ''
+      const initialCol =
+        (editing as any)?.column ?? AppStore.selectedColumn.value ?? ctx.columns[0] ?? '';
+      return {
+        column: signal(initialCol),
+        field: signal<string>((editing as any)?.field ?? 'default'),
+      };
+    },
     {
       hasError: (s) => !s.field.value, // Apply button disabled when true
       getError: (s) => (!s.field.value ? 'Field required' : null), // tooltip
@@ -160,7 +175,7 @@ case 'xxx':
 - Delete `src/app/stores/dialogs/xxx-state.ts`
 - Remove its export from `src/app/stores/dialogs/{category}/index.ts`
 - Remove from `DialogStore.ts` imports and static properties
-- Delete the handler function from `src/app/handlers/transform/xxx-handlers.ts`. If the file is shared (e.g., `simple-handlers.ts`, `pattern-handlers.ts`), delete only the migrated function; if the file was dedicated to this dialog, delete the file.
+- Clean up `src/app/handlers/transform/xxx-handlers.ts`: delete state-mutating functions (toggle, select, update) and preview engine instances (`createDebouncedPreview` calls). **Keep** pure logic the component needs (e.g., `detectDelimiter`, `findDuplicateRows`) and the `applyXxxTransform` function (updated to read from `DialogStore.activeDialogState.value`). If the file is shared, delete only the migrated functions.
 - Remove handler import from `dialog-registry.ts` (if no remaining callers)
 - **Grep for all callers** of the apply function — check `interaction-handlers.ts` (quick actions), `eda-handlers.ts`, `EdaPanel.tsx`, and any other direct callers. Actions that bypass the dialog should use `StepService.runTransform()` directly.
 
@@ -189,13 +204,13 @@ case 'xxx':
 | conditional   | `conditional-state.ts`    | `pattern-handlers.ts`       | No         | Medium     | Done   |
 | filter        | `filter-state.ts`         | `filter-handlers.ts`        | Yes        | High       | Done   |
 | derive        | `derive-state.ts`         | `derive-handlers.ts`        | Yes        | High       | Done   |
-| dedupe        | `dedupe-state.ts`         | `dedupe-handlers.ts`        | Yes        | High       |        |
+| dedupe        | `dedupe-state.ts`         | `dedupe-handlers.ts`        | Yes        | High       | Done   |
 | spread        | `spread-state.ts`         | `spread-handlers.ts`        | No         | Medium     |        |
 | unroll        | `unroll-state.ts`         | `unroll-handlers.ts`        | No         | Medium     |        |
-| split         | `split-state.ts`          | `split-handlers.ts`         | Yes        | High       |        |
+| split         | `split-state.ts`          | `split-handlers.ts`         | Yes        | High       | Done   |
 | merge         | `merge-state.ts`          | `merge-handlers.ts`         | Yes        | Medium     |        |
 | text          | `text-state.ts`           | `text-handlers.ts`          | Yes        | Medium     |        |
-| date          | `date-state.ts`           | `date-handlers.ts`          | Yes        | High       |        |
+| date          | `date-state.ts`           | `date-handlers.ts`          | Yes        | High       | Done   |
 | parseDate     | `parse-date-state.ts`     | `parse-date-handlers.ts`    | Yes        | Medium     |        |
 | regexpMatch   | `regexp-match-state.ts`   | `regexp-handlers.ts`        | Yes        | Medium     | Done   |
 | regexpExtract | `regexp-extract-state.ts` | `regexp-handlers.ts`        | Yes        | Medium     | Done   |
