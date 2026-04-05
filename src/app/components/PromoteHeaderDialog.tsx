@@ -1,14 +1,24 @@
-import { computed } from '@preact/signals';
+import { signal, computed } from '@preact/signals';
 import { useTranslation } from 'preact-i18next';
-import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
+import { useDialogState } from '../hooks/useDialogState';
 import formStyles from './form-controls.module.css';
 import exprStyles from './expression-help.module.css';
 const styles = { ...formStyles, ...exprStyles };
 
 export function PromoteHeaderDialog() {
   const { t } = useTranslation('dialogs');
-  const { skipRows } = DialogStore.promoteHeaderState;
+
+  const { state } = useDialogState(
+    (ctx) => ({
+      skipRows: signal<number>(ctx.editingStep?.promoteHeader?.skipRows ?? 0),
+    }),
+    {
+      hasError: (s) => s.skipRows.value < 0,
+    }
+  );
+
+  const { skipRows } = state;
   const rowCount = AppStore.currentData.value?.length || 0;
 
   const previewText = computed(() => {

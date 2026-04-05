@@ -1,15 +1,35 @@
 // Dynamic expression docs intentionally skipped here due to multi-field layout complexity
 // (multiple when/then/else editors). Can be added later by aggregating tokens across all fields.
+import { signal } from '@preact/signals';
 import { useTranslation } from 'preact-i18next';
-import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 import { getActiveSchema } from '../handlers/core/helper-handlers';
+import { useDialogState } from '../hooks/useDialogState';
 import { ExpressionEditor } from './ExpressionEditor';
 import styles from './form-controls.module.css';
 
 export function ConditionalDialog() {
   const { t } = useTranslation('dialogs');
-  const { column, conditions, else: elseValue, error } = DialogStore.conditionalState;
+
+  const { state } = useDialogState(
+    (ctx) => ({
+      column: signal<string>(ctx.editingStep?.conditional?.column ?? ''),
+      conditions: signal<Array<{ when: string; then: string }>>(
+        ctx.editingStep?.conditional?.conditions
+          ? ctx.editingStep.conditional.conditions.map((c: any) => ({ ...c }))
+          : [{ when: '', then: '' }]
+      ),
+      else: signal<string>(ctx.editingStep?.conditional?.else ?? ''),
+    }),
+    {
+      hasError: (s) =>
+        !s.column.value?.trim() ||
+        s.conditions.value.filter((c) => c.when.trim() && c.then.trim()).length === 0 ||
+        !s.else.value?.trim(),
+    }
+  );
+
+  const { column, conditions, else: elseValue } = state;
 
   const addCondition = () => {
     conditions.value = [...conditions.value, { when: '', then: '' }];
@@ -119,12 +139,6 @@ export function ConditionalDialog() {
         />
         <p class={styles.helpText}>{t('conditional.elseHelp')}</p>
       </div>
-
-      {error.value && (
-        <div class={styles.error} style={{ marginTop: '1rem' }}>
-          {error.value}
-        </div>
-      )}
     </div>
   );
 }

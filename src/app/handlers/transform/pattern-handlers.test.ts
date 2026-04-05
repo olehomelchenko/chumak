@@ -12,7 +12,6 @@ vi.mock('../validation-engine', async () =>
 import {
   applySelectPatternTransform,
   applyRemovePatternTransform,
-  applyConditionalTransform,
   applyRenamePatternTransform,
 } from './pattern-handlers';
 import { StepService } from '../../services/StepService';
@@ -141,69 +140,6 @@ describe('pattern-handlers', () => {
           removePattern: {
             pattern: 'temp_*',
             matchType: 'glob',
-          },
-        },
-        callbacks
-      );
-    });
-  });
-
-  describe('applyConditionalTransform', () => {
-    it('errors when column is empty', async () => {
-      DialogStore.conditionalState.column.value = '';
-      const callbacks = { onError: vi.fn() };
-
-      await applyConditionalTransform(callbacks);
-
-      expect(callbacks.onError).toHaveBeenCalledWith('Enter a column name');
-    });
-
-    it('errors when no valid conditions', async () => {
-      DialogStore.conditionalState.column.value = 'result';
-      DialogStore.conditionalState.conditions.value = [
-        { when: '', then: '' },
-        { when: '  ', then: '  ' },
-      ];
-      const callbacks = { onError: vi.fn() };
-
-      await applyConditionalTransform(callbacks);
-
-      expect(callbacks.onError).toHaveBeenCalledWith('Add at least one valid condition');
-    });
-
-    it('errors when else value is empty', async () => {
-      DialogStore.conditionalState.column.value = 'result';
-      DialogStore.conditionalState.conditions.value = [{ when: 'age > 30', then: '"senior"' }];
-      DialogStore.conditionalState.else.value = '';
-      const callbacks = { onError: vi.fn() };
-
-      await applyConditionalTransform(callbacks);
-
-      expect(callbacks.onError).toHaveBeenCalledWith('Enter an else value');
-    });
-
-    it('runs transform with valid conditions', async () => {
-      DialogStore.conditionalState.column.value = 'category';
-      DialogStore.conditionalState.conditions.value = [
-        { when: 'age > 30', then: '"senior"' },
-        { when: '', then: '' }, // should be filtered out
-        { when: 'age > 20', then: '"adult"' },
-      ];
-      DialogStore.conditionalState.else.value = '"young"';
-      const callbacks = { onError: vi.fn() };
-
-      await applyConditionalTransform(callbacks);
-
-      expect(StepService.runTransform).toHaveBeenCalledWith(
-        'Conditional',
-        {
-          conditional: {
-            column: 'category',
-            conditions: [
-              { when: 'age > 30', then: '"senior"' },
-              { when: 'age > 20', then: '"adult"' },
-            ],
-            else: '"young"',
           },
         },
         callbacks

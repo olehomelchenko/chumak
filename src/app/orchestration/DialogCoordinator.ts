@@ -109,9 +109,7 @@ export function initDialogState(dialogName: string, section?: string): void {
       break;
 
     case 'index':
-      DialogStore.indexState.columnName.value = 'row_index';
-      DialogStore.indexState.startFrom.value = 1;
-      break;
+      break; // state managed by useDialogState hook
 
     case 'aggregate':
       DialogStore.aggregateState.groupBy.value =

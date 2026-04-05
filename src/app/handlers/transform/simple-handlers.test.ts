@@ -9,11 +9,7 @@ vi.mock('../core/notification-handlers', async () =>
   (await import('../test-utils')).MockFactories.notificationHandlers()
 );
 
-import {
-  applyIndexTransform,
-  applyReplaceTransform,
-  applyImputeTransform,
-} from './simple-handlers';
+import { applyReplaceTransform, applyImputeTransform } from './simple-handlers';
 import { StepService } from '../../services/StepService';
 import { confirm } from '../core/notification-handlers';
 
@@ -29,54 +25,6 @@ describe('simple-handlers', () => {
   afterEach(() => {
     consoleSpy.errorSpy.mockRestore();
     consoleSpy.warnSpy.mockRestore();
-  });
-
-  describe('applyIndexTransform', () => {
-    it('errors when column name is empty', async () => {
-      DialogStore.indexState.columnName.value = '';
-      const callbacks = { onError: vi.fn() };
-
-      await applyIndexTransform(callbacks);
-
-      expect(callbacks.onError).toHaveBeenCalledWith('Enter a column name');
-    });
-
-    it('errors when column name is whitespace', async () => {
-      DialogStore.indexState.columnName.value = '   ';
-      const callbacks = { onError: vi.fn() };
-
-      await applyIndexTransform(callbacks);
-
-      expect(callbacks.onError).toHaveBeenCalledWith('Enter a column name');
-    });
-
-    it('runs transform with column name and start value', async () => {
-      DialogStore.indexState.columnName.value = 'row_num';
-      DialogStore.indexState.startFrom.value = 0;
-      const callbacks = { onError: vi.fn() };
-
-      await applyIndexTransform(callbacks);
-
-      expect(StepService.runTransform).toHaveBeenCalledWith(
-        'Add Index',
-        { addIndex: { columnName: 'row_num', startFrom: 0 } },
-        callbacks
-      );
-    });
-
-    it('defaults startFrom to 1 when null', async () => {
-      DialogStore.indexState.columnName.value = 'idx';
-      DialogStore.indexState.startFrom.value = null as any;
-      const callbacks = { onError: vi.fn() };
-
-      await applyIndexTransform(callbacks);
-
-      expect(StepService.runTransform).toHaveBeenCalledWith(
-        'Add Index',
-        { addIndex: { columnName: 'idx', startFrom: 1 } },
-        callbacks
-      );
-    });
   });
 
   describe('applyReplaceTransform', () => {

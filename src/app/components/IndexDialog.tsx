@@ -1,14 +1,25 @@
-import { computed } from '@preact/signals';
+import { signal, computed } from '@preact/signals';
 import { useTranslation } from 'preact-i18next';
-import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
+import { useDialogState } from '../hooks/useDialogState';
 import formStyles from './form-controls.module.css';
 import exprStyles from './expression-help.module.css';
 const styles = { ...formStyles, ...exprStyles };
 
 export function IndexDialog() {
   const { t } = useTranslation('dialogs');
-  const { columnName, startFrom } = DialogStore.indexState;
+
+  const { state } = useDialogState(
+    (ctx) => ({
+      columnName: signal<string>(ctx.editingStep?.addIndex?.columnName ?? 'row_index'),
+      startFrom: signal<number>(ctx.editingStep?.addIndex?.startFrom ?? 1),
+    }),
+    {
+      hasError: (s) => !s.columnName.value || s.columnName.value.trim() === '',
+    }
+  );
+
+  const { columnName, startFrom } = state;
   const rowCount = AppStore.currentData.value?.length || 0;
   const endValue = computed(() => (startFrom.value || 0) + rowCount - 1);
   const displayName = computed(() => columnName.value || 'row_index');

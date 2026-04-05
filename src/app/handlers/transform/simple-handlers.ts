@@ -5,21 +5,6 @@ import { StepService } from '../../services/StepService';
 import { confirm } from '../core/notification-handlers';
 import i18n from '../../../i18n';
 
-export async function applyIndexTransform(callbacks: any) {
-  const { columnName, startFrom } = DialogStore.indexState;
-  if (!columnName.value || columnName.value.trim() === '') {
-    await callbacks.onError?.(i18n.t('validation.required.columnName', { ns: 'errors' }));
-    return;
-  }
-  await StepService.runTransform(
-    'Add Index',
-    {
-      addIndex: { columnName: columnName.value.trim(), startFrom: startFrom.value ?? 1 },
-    },
-    callbacks
-  );
-}
-
 export async function applyReplaceTransform(callbacks: any) {
   const { column, findMode, findValue, replaceValue, isRegex } = DialogStore.replaceState;
   const mode = findMode.value;
@@ -75,15 +60,6 @@ export async function applyImputeTransform(callbacks: any) {
   };
 
   await StepService.runTransform('Impute', transform, callbacks);
-}
-
-export async function applyPromoteHeaderTransform(callbacks: any) {
-  const { skipRows } = DialogStore.promoteHeaderState;
-  await StepService.runTransform(
-    'Promote Header',
-    { promoteHeader: { skipRows: skipRows.value } },
-    callbacks
-  );
 }
 
 export function updateImputePreview() {

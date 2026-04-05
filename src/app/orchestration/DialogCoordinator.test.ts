@@ -66,9 +66,9 @@ describe('DialogCoordinator', () => {
       expect(state).toEqual({ count: 50, mode: 'last' });
     });
 
-    it('returns index state', () => {
-      DialogStore.indexState.columnName.value = 'row_num';
-      DialogStore.indexState.startFrom.value = 0;
+    it('returns index state from bridge signal', () => {
+      // index uses useDialogState hook — state comes from bridge signal
+      DialogStore.activeDialogState.value = { columnName: 'row_num', startFrom: 0 };
 
       const state = getDialogState('index');
       expect(state).toEqual({ columnName: 'row_num', startFrom: 0 });
@@ -365,22 +365,16 @@ describe('DialogCoordinator', () => {
       expect(activeDialogHasError()).toBe(false);
     });
 
-    // index
-    it('index: returns true when columnName is empty', () => {
+    // index (uses bridge signals from useDialogState hook)
+    it('index: returns true when bridge hasError is true', () => {
       AppStore.activeDialog.value = 'index';
-      DialogStore.indexState.columnName.value = '';
+      DialogStore.activeDialogHasError.value = true;
       expect(activeDialogHasError()).toBe(true);
     });
 
-    it('index: returns true when columnName is whitespace', () => {
+    it('index: returns false when bridge hasError is false', () => {
       AppStore.activeDialog.value = 'index';
-      DialogStore.indexState.columnName.value = '   ';
-      expect(activeDialogHasError()).toBe(true);
-    });
-
-    it('index: returns false when columnName is valid', () => {
-      AppStore.activeDialog.value = 'index';
-      DialogStore.indexState.columnName.value = 'row_num';
+      DialogStore.activeDialogHasError.value = false;
       expect(activeDialogHasError()).toBe(false);
     });
 

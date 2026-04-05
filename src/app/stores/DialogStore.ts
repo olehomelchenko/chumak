@@ -11,13 +11,10 @@ import { signal } from '@preact/signals';
 // Import all states from organized subdirectories
 import {
   // Transform states
-  indexState,
   replaceState,
   filterState,
   deriveState,
   imputeState,
-  conditionalState,
-  promoteHeaderState,
   // Column states
   spreadState,
   unrollState,
@@ -70,13 +67,10 @@ export type { KeyPairAnalysis, MismatchPreview } from './dialogs/combine';
  */
 export class DialogStore {
   // Transform states
-  static indexState = indexState;
   static replaceState = replaceState;
   static filterState = filterState;
   static deriveState = deriveState;
   static imputeState = imputeState;
-  static conditionalState = conditionalState;
-  static promoteHeaderState = promoteHeaderState;
 
   // Column states
   static spreadState = spreadState;

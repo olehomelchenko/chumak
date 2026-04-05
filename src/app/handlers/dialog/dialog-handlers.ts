@@ -162,10 +162,8 @@ export function activeDialogError(): boolean {
 
   // Handle dialogs using DialogStore directly
   switch (activeDialog) {
-    case 'index': {
-      const state = DialogStore.indexState;
-      return !state.columnName.value || state.columnName.value.trim() === '';
-    }
+    case 'index':
+      return DialogStore.activeDialogHasError.value;
     case 'regexpMatch': {
       const state = DialogStore.regexpMatchState;
       return !!state.error.value;

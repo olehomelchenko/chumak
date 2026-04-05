@@ -166,20 +166,30 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     },
   }),
 
-  index: {
+  index: bridgedDialogEntry({
     name: 'index',
     title: 'Add Index Column',
     type: 'slide-panel',
     buttonText: 'buttons.addColumn',
-    applyHandler: (cb) => SimpleHandlers.applyIndexTransform(cb),
-    getState: () => ({
-      columnName: DialogStore.indexState.columnName.value,
-      startFrom: DialogStore.indexState.startFrom.value,
-    }),
-    hasError: () =>
-      !DialogStore.indexState.columnName.value ||
-      DialogStore.indexState.columnName.value.trim() === '',
-  },
+    applyHandler: async (cb) => {
+      const state = DialogStore.activeDialogState.value;
+      if (!state) return;
+      if (!state.columnName || (state.columnName as string).trim() === '') {
+        await cb.onError?.(i18n.t('validation.required.columnName', { ns: 'errors' }));
+        return;
+      }
+      await StepService.runTransform(
+        'Add Index',
+        {
+          addIndex: {
+            columnName: (state.columnName as string).trim(),
+            startFrom: state.startFrom ?? 1,
+          },
+        },
+        cb
+      );
+    },
+  }),
 
   sample: bridgedDialogEntry({
     name: 'sample',
@@ -501,13 +511,43 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     applyHandler: (cb) => PatternHandlers.applyRemovePatternTransform(cb),
   },
 
-  conditional: {
+  conditional: bridgedDialogEntry({
     name: 'conditional',
     title: 'Conditional Column',
     type: 'slide-panel',
     buttonText: 'buttons.addColumn',
-    applyHandler: (cb) => PatternHandlers.applyConditionalTransform(cb),
-  },
+    applyHandler: async (cb) => {
+      const state = DialogStore.activeDialogState.value;
+      if (!state) return;
+      const column = state.column as string;
+      const conditions = state.conditions as Array<{ when: string; then: string }>;
+      const elseValue = state.else as string;
+      if (!column?.trim()) {
+        await cb.onError?.(i18n.t('validation.required.columnName', { ns: 'errors' }));
+        return;
+      }
+      const validConditions = conditions.filter((c) => c.when.trim() && c.then.trim());
+      if (validConditions.length === 0) {
+        await cb.onError?.(i18n.t('validation.required.condition', { ns: 'errors' }));
+        return;
+      }
+      if (!elseValue?.trim()) {
+        await cb.onError?.(i18n.t('validation.required.elseValue', { ns: 'errors' }));
+        return;
+      }
+      await StepService.runTransform(
+        'Conditional',
+        {
+          conditional: {
+            column: column.trim(),
+            conditions: validConditions.map((c) => ({ when: c.when.trim(), then: c.then.trim() })),
+            else: elseValue.trim(),
+          },
+        },
+        cb
+      );
+    },
+  }),
 
   renamePattern: {
     name: 'renamePattern',
@@ -517,20 +557,21 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     applyHandler: (cb) => PatternHandlers.applyRenamePatternTransform(cb),
   },
 
-  promoteHeader: {
+  promoteHeader: bridgedDialogEntry({
     name: 'promoteHeader',
     title: 'Promote Row to Header',
     type: 'slide-panel',
     buttonText: 'buttons.promote',
-    applyHandler: (cb) => SimpleHandlers.applyPromoteHeaderTransform(cb),
-    initState: () => {
-      DialogStore.promoteHeaderState.skipRows.value = 0;
+    applyHandler: async (cb) => {
+      const state = DialogStore.activeDialogState.value;
+      if (!state) return;
+      await StepService.runTransform(
+        'Promote Header',
+        { promoteHeader: { skipRows: state.skipRows as number } },
+        cb
+      );
     },
-    getState: () => ({
-      skipRows: DialogStore.promoteHeaderState.skipRows.value,
-    }),
-    hasError: () => DialogStore.promoteHeaderState.skipRows.value < 0,
-  },
+  }),
 
   // === Import Dialogs ===
 

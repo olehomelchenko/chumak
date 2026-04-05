@@ -133,8 +133,8 @@ case 'xxx':
 - Delete `src/app/stores/dialogs/xxx-state.ts`
 - Remove its export from `src/app/stores/dialogs/{category}/index.ts`
 - Remove from `DialogStore.ts` imports and static properties
-- Delete handler function from `src/app/handlers/transform/xxx-handlers.ts` (if file only had this dialog)
-- Remove handler import from `dialog-registry.ts` (if no longer used)
+- Delete the handler function from `src/app/handlers/transform/xxx-handlers.ts`. If the file is shared (e.g., `simple-handlers.ts`, `pattern-handlers.ts`), delete only the migrated function; if the file was dedicated to this dialog, delete the file.
+- Remove handler import from `dialog-registry.ts` (if no remaining callers)
 - Check for other callers (quick actions in `interaction-handlers.ts`, etc.)
 
 ### 7. Update tests
@@ -155,11 +155,11 @@ case 'xxx':
 | sort          | `sort-state.ts`           | `simple-handlers.ts`        | No         | Low        | Done   |
 | sliceRows     | `slice-state.ts`          | `simple-handlers.ts`        | No         | Low        | Done   |
 | sample        | `sample-state.ts`         | `sample-handlers.ts`        | No         | Low        | Done   |
-| index         | `index-state.ts`          | `simple-handlers.ts`        | No         | Low        |        |
+| index         | `index-state.ts`          | `simple-handlers.ts`        | No         | Low        | Done   |
 | replace       | `replace-state.ts`        | `simple-handlers.ts`        | No         | Medium     |        |
 | impute        | `impute-state.ts`         | `simple-handlers.ts`        | Yes (mock) | Medium     |        |
-| promoteHeader | `promote-header-state.ts` | `simple-handlers.ts`        | No         | Low        |        |
-| conditional   | `conditional-state.ts`    | `conditional-handlers.ts`   | No         | Medium     |        |
+| promoteHeader | `promote-header-state.ts` | `simple-handlers.ts`        | No         | Low        | Done   |
+| conditional   | `conditional-state.ts`    | `pattern-handlers.ts`       | No         | Medium     | Done   |
 | filter        | `filter-state.ts`         | `filter-handlers.ts`        | Yes        | High       |        |
 | derive        | `derive-state.ts`         | `derive-handlers.ts`        | Yes        | High       |        |
 | dedupe        | `dedupe-state.ts`         | `dedupe-handlers.ts`        | Yes        | High       |        |
@@ -204,7 +204,7 @@ These don't follow the transform pattern and don't benefit from migration:
 **Batch 1 — Simple transforms, no preview (done):**
 sort, sliceRows, sample
 
-**Batch 2 — Simple transforms, no preview:**
+**Batch 2 — Simple transforms, no preview (done):**
 index, promoteHeader, conditional
 
 **Batch 3 — Medium transforms with expression/regex validation:**

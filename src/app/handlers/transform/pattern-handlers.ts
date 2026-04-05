@@ -60,41 +60,6 @@ export async function applyRemovePatternTransform(callbacks: any) {
   await StepService.runTransform('Remove Pattern', transform, callbacks);
 }
 
-export async function applyConditionalTransform(callbacks: any) {
-  const { column, conditions, else: elseValue } = DialogStore.conditionalState;
-
-  if (!column.value || column.value.trim() === '') {
-    await callbacks.onError?.(i18n.t('validation.required.columnName', { ns: 'errors' }));
-    return;
-  }
-
-  // Validate conditions
-  const validConditions = conditions.value.filter((c) => c.when.trim() && c.then.trim());
-  if (validConditions.length === 0) {
-    await callbacks.onError?.(i18n.t('validation.required.condition', { ns: 'errors' }));
-    return;
-  }
-
-  if (!elseValue.value || elseValue.value.trim() === '') {
-    await callbacks.onError?.(i18n.t('validation.required.elseValue', { ns: 'errors' }));
-    return;
-  }
-
-  const transform = {
-    conditional: {
-      column: column.value.trim(),
-      conditions: validConditions.map((c) => ({
-        when: c.when.trim(),
-        then: c.then.trim(),
-      })),
-      else: elseValue.value.trim(),
-    },
-  };
-
-  DialogStore.conditionalState.error.value = null;
-  await StepService.runTransform('Conditional', transform, callbacks);
-}
-
 export async function applyRenamePatternTransform(callbacks: any) {
   const { find, replace: replaceValue, regex } = DialogStore.renamePatternState;
 

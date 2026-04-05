@@ -422,12 +422,11 @@ export function editStep(stepIndex: number): void {
     // State initialized by useDialogState hook via editingStep context
     callbacks?.openDialog('sliceRows');
   } else if (step.addIndex) {
+    // State initialized by useDialogState hook via editingStep context
     callbacks?.openDialog('index');
-    DialogStore.indexState.columnName.value = step.addIndex.columnName;
-    DialogStore.indexState.startFrom.value = step.addIndex.startFrom ?? 1;
   } else if (step.promoteHeader) {
+    // State initialized by useDialogState hook via editingStep context
     callbacks?.openDialog('promoteHeader');
-    DialogStore.promoteHeaderState.skipRows.value = step.promoteHeader.skipRows;
   } else if (step.spread) {
     callbacks?.openDialog('spread');
     const state = DialogStore.spreadState;
@@ -461,12 +460,8 @@ export function editStep(stepIndex: number): void {
     state.regex.value = !!step.renamePattern.regex;
     state.error.value = null;
   } else if (step.conditional) {
+    // State initialized by useDialogState hook via editingStep context
     callbacks?.openDialog('conditional');
-    const state = DialogStore.conditionalState;
-    state.column.value = step.conditional.column;
-    state.conditions.value = step.conditional.conditions.map((c) => ({ ...c }));
-    state.else.value = step.conditional.else;
-    state.error.value = null;
   } else if (step.describe) {
     callbacks?.openDialog('describe');
     DialogStore.describeState.selectedColumns.value = [...step.describe.columns];
