@@ -217,10 +217,8 @@ describe('Interaction Handlers UX', () => {
 
       await InteractionHandlers.applyQuickCellFilter('exact', callbacks);
 
-      // Filter expression should be set
-      expect(DialogStore.filterState.expression.value).toContain('[sales]');
-      expect(DialogStore.filterState.expression.value).toContain('==');
-      expect(AppStore.selectedCell.value).toBeNull(); // Should clear after action
+      // Should clear cell selection after action
+      expect(AppStore.selectedCell.value).toBeNull();
     });
   });
 

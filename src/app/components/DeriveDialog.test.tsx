@@ -1,4 +1,4 @@
-import { screen, fireEvent, waitFor } from '@testing-library/preact';
+import { screen, fireEvent } from '@testing-library/preact';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { renderWithI18n } from '../test-utils';
 
@@ -15,20 +15,41 @@ vi.mock('./ExpressionEditor', () => ({
 }));
 
 import { DeriveDialog } from './DeriveDialog';
-import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 
 describe('DeriveDialog', () => {
   beforeEach(() => {
-    // Reset store state before each test
-    DialogStore.deriveState.columnName.value = '';
-    DialogStore.deriveState.expression.value = '';
-    DialogStore.deriveState.error.value = null;
+    AppStore.editingStepIndex.value = null;
+    AppStore.columns.value = [];
   });
 
-  it('renders input fields with initial values', () => {
-    DialogStore.deriveState.columnName.value = 'initial_name';
-    DialogStore.deriveState.expression.value = 'initial + expression';
+  it('renders input fields with default empty values', () => {
+    renderWithI18n(<DeriveDialog />);
+
+    const nameInput = screen.getByPlaceholderText('e.g., profit_margin') as HTMLInputElement;
+    const expressionInput = screen.getByPlaceholderText(
+      'e.g., (profit / sales) * 100'
+    ) as HTMLInputElement;
+
+    expect(nameInput.value).toBe('');
+    expect(expressionInput.value).toBe('');
+  });
+
+  it('initializes from editing step', () => {
+    AppStore.activeModel.value = {
+      id: 'model-1',
+      name: 'Test',
+      sourceId: 'source-1',
+      steps: [
+        {
+          import: { source: 'source-1', fileName: 'test.csv', delimiter: ',', headerMode: 'auto' },
+        },
+        { derive: { profit: 'sales * 0.1' } },
+      ],
+      schema: [],
+      data: [],
+    };
+    AppStore.editingStepIndex.value = 1;
 
     renderWithI18n(<DeriveDialog />);
 
@@ -37,33 +58,8 @@ describe('DeriveDialog', () => {
       'e.g., (profit / sales) * 100'
     ) as HTMLInputElement;
 
-    expect(nameInput.value).toBe('initial_name');
-    expect(expressionInput.value).toBe('initial + expression');
-  });
-
-  it('updates signals on input', () => {
-    renderWithI18n(<DeriveDialog />);
-
-    const nameInput = screen.getByPlaceholderText('e.g., profit_margin');
-    const expressionInput = screen.getByPlaceholderText('e.g., (profit / sales) * 100');
-
-    fireEvent.input(nameInput, { target: { value: 'new_name' } });
-    expect(DialogStore.deriveState.columnName.value).toBe('new_name');
-
-    fireEvent.input(expressionInput, { target: { value: 'col * 2' } });
-    expect((expressionInput as HTMLInputElement).value).toBe('col * 2');
-  });
-
-  it('displays error message when present', async () => {
-    renderWithI18n(<DeriveDialog />);
-
-    // Set error after rendering (validation runs on mount and may clear it)
-    DialogStore.deriveState.error.value = 'Syntax Error';
-
-    // Wait for error message to appear (Preact signals trigger async updates)
-    const errorElement = await waitFor(() => screen.getByText('Syntax Error'));
-    expect(errorElement).toBeDefined();
-    expect(errorElement.tagName).toBe('DIV');
+    expect(nameInput.value).toBe('profit');
+    expect(expressionInput.value).toBe('sales * 0.1');
   });
 
   it('opens reference dialog when reference button is clicked', () => {

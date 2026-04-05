@@ -70,11 +70,16 @@ During batch 3, the Preview column in the checklist below said "No" for regexpMa
 - Does the handler file have preview/debounce logic?
 - Does the handler set error signals (inline) vs. call `cb.onError` (toast)?
 - Are there quick actions in `interaction-handlers.ts` that pre-configure state?
+- Are there **external callers** beyond quick actions? Grep for the handler's apply function — EDA handlers (`eda-handlers.ts`, `EdaPanel.tsx`) and other components may call it directly, bypassing the dialog entirely. These callers should use `StepService.runTransform()` directly after migration.
 - Are there non-obvious side effects (e.g., clearing other state, triggering callbacks)?
 
-### Batches 1 & 2: review for possible regressions
+### Batch 4a: mock preview vs debounced preview
 
-Batches 1 (sort, sliceRows, sample) and 2 (index, promoteHeader, conditional) were migrated before this checklist discipline was established. They should be spot-checked for the same class of issue — features in the old handler/state files that may not have carried over. Low risk (these are simpler dialogs), but worth a quick read of the git diff for each.
+`useTransformPreview` wraps `createDebouncedPreview()` and expects a `PreviewResult` return type. Dialogs with **mock previews** (e.g., impute uses hardcoded sample data and writes `previewRows.value` directly) don't fit this pattern. Use plain `useSignalEffect` for mock previews instead of `useTransformPreview`.
+
+### Batches 1–3: reviewed, no regressions found
+
+All prior batches were reviewed commit-by-commit. No dropped functionality was found. The migration actually fixed a few latent issues (inconsistent index reset default, missing `isRegex` on replace editing).
 
 ---
 
@@ -157,7 +162,7 @@ case 'xxx':
 - Remove from `DialogStore.ts` imports and static properties
 - Delete the handler function from `src/app/handlers/transform/xxx-handlers.ts`. If the file is shared (e.g., `simple-handlers.ts`, `pattern-handlers.ts`), delete only the migrated function; if the file was dedicated to this dialog, delete the file.
 - Remove handler import from `dialog-registry.ts` (if no remaining callers)
-- Check for other callers (quick actions in `interaction-handlers.ts`, etc.)
+- **Grep for all callers** of the apply function — check `interaction-handlers.ts` (quick actions), `eda-handlers.ts`, `EdaPanel.tsx`, and any other direct callers. Actions that bypass the dialog should use `StepService.runTransform()` directly.
 
 ### 7. Update tests
 
@@ -179,11 +184,11 @@ case 'xxx':
 | sample        | `sample-state.ts`         | `sample-handlers.ts`        | No         | Low        | Done   |
 | index         | `index-state.ts`          | `simple-handlers.ts`        | No         | Low        | Done   |
 | replace       | `replace-state.ts`        | `simple-handlers.ts`        | No         | Medium     | Done   |
-| impute        | `impute-state.ts`         | `simple-handlers.ts`        | Yes (mock) | Medium     |        |
+| impute        | `impute-state.ts`         | `simple-handlers.ts`        | Yes (mock) | Medium     | Done   |
 | promoteHeader | `promote-header-state.ts` | `simple-handlers.ts`        | No         | Low        | Done   |
 | conditional   | `conditional-state.ts`    | `pattern-handlers.ts`       | No         | Medium     | Done   |
-| filter        | `filter-state.ts`         | `filter-handlers.ts`        | Yes        | High       |        |
-| derive        | `derive-state.ts`         | `derive-handlers.ts`        | Yes        | High       |        |
+| filter        | `filter-state.ts`         | `filter-handlers.ts`        | Yes        | High       | Done   |
+| derive        | `derive-state.ts`         | `derive-handlers.ts`        | Yes        | High       | Done   |
 | dedupe        | `dedupe-state.ts`         | `dedupe-handlers.ts`        | Yes        | High       |        |
 | spread        | `spread-state.ts`         | `spread-handlers.ts`        | No         | Medium     |        |
 | unroll        | `unroll-state.ts`         | `unroll-handlers.ts`        | No         | Medium     |        |

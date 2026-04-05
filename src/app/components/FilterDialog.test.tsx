@@ -3,7 +3,7 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { screen, fireEvent, waitFor } from '@testing-library/preact';
+import { screen, fireEvent } from '@testing-library/preact';
 import { renderWithI18n } from '../test-utils';
 
 // Mock ExpressionEditor as a plain input
@@ -19,16 +19,13 @@ vi.mock('./ExpressionEditor', () => ({
 }));
 
 import { FilterDialog } from './FilterDialog';
-import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 
 describe('FilterDialog', () => {
   beforeEach(() => {
-    // Reset store state before each test
-    DialogStore.filterState.expression.value = '';
-    DialogStore.filterState.error.value = null;
-    DialogStore.filterState.previewMode.value = 'all';
     AppStore.columns.value = [];
+    AppStore.selectedColumn.value = null;
+    AppStore.editingStepIndex.value = null;
   });
 
   it('renders with default values', () => {
@@ -38,13 +35,12 @@ describe('FilterDialog', () => {
     expect(screen.getByText('Show all').className).toContain('button--primary');
   });
 
-  it('updates expression when typed', () => {
+  it('pre-populates expression from selectedColumn', () => {
+    AppStore.selectedColumn.value = 'sales';
     renderWithI18n(<FilterDialog />);
 
     const input = screen.getByPlaceholderText('e.g., sales > 1000') as HTMLInputElement;
-    fireEvent.input(input, { target: { value: 'sales > 1000' } });
-
-    expect(DialogStore.filterState.expression.value).toBe('sales > 1000');
+    expect(input.value).toContain('[sales]');
   });
 
   it('toggles preview mode', () => {
@@ -53,19 +49,7 @@ describe('FilterDialog', () => {
     const matchingButton = screen.getByText('Matching only');
     fireEvent.click(matchingButton);
 
-    expect(DialogStore.filterState.previewMode.value).toBe('matching');
-  });
-
-  it('shows error message when present', async () => {
-    renderWithI18n(<FilterDialog />);
-
-    // Set error after rendering (validation runs on mount and may clear it)
-    DialogStore.filterState.error.value = 'Syntax error';
-
-    // Wait for error message to appear (Preact signals trigger async updates)
-    const errorElement = await waitFor(() => screen.getByText('Syntax error'));
-    expect(errorElement).toBeDefined();
-    expect(errorElement.tagName).toBe('DIV');
+    expect(matchingButton.className).toContain('button--primary');
   });
 
   it('opens reference dialog when reference button is clicked', () => {
@@ -75,5 +59,27 @@ describe('FilterDialog', () => {
     fireEvent.click(refButton);
 
     expect(AppStore.activeDialog.value).toBe('reference');
+  });
+
+  it('initializes from editing step', () => {
+    AppStore.activeModel.value = {
+      id: 'model-1',
+      name: 'Test',
+      sourceId: 'source-1',
+      steps: [
+        {
+          import: { source: 'source-1', fileName: 'test.csv', delimiter: ',', headerMode: 'auto' },
+        },
+        { filter: 'age > 25' },
+      ],
+      schema: [],
+      data: [],
+    };
+    AppStore.editingStepIndex.value = 1;
+
+    renderWithI18n(<FilterDialog />);
+
+    const input = screen.getByPlaceholderText('e.g., sales > 1000') as HTMLInputElement;
+    expect(input.value).toBe('age > 25');
   });
 });

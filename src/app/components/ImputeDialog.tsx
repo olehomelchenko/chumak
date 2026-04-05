@@ -1,8 +1,10 @@
-import { useSignalEffect } from '@preact/signals';
+import * as aq from 'arquero';
+import { signal, useSignalEffect } from '@preact/signals';
 import { useTranslation } from 'preact-i18next';
-import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
-import { updateImputePreview } from '../handlers/transform/simple-handlers';
+import { useDialogState } from '../hooks/useDialogState';
+import { applyTransform } from '../../core/transforms';
+import type { ImputeStrategy } from '../../types/modes';
 import formStyles from './form-controls.module.css';
 import prevStyles from './preview-table.module.css';
 const styles = { ...formStyles, ...prevStyles };
@@ -14,18 +16,75 @@ const styles = { ...formStyles, ...prevStyles };
  */
 export function ImputeDialog() {
   const { t } = useTranslation('dialogs');
-  const state = DialogStore.imputeState;
   const columns = AppStore.columns.value;
   const model = AppStore.activeModel.value;
   const schema = model?.schema || [];
 
-  // Reactive preview update
+  const { state } = useDialogState(
+    (ctx) => {
+      const editing = ctx.editingStep?.impute;
+      const effectiveColumn = editing?.column ?? ctx.selectedColumns[0] ?? ctx.columns[0] ?? '';
+      return {
+        column: signal<string>(effectiveColumn),
+        strategy: signal<ImputeStrategy>(editing?.strategy ?? 'constant'),
+        value: signal<string>(editing?.value || ''),
+        includeEmptyString: signal<boolean>(editing?.includeEmptyString ?? false),
+        previewRows: signal<any[] | null>(null),
+        error: signal<string | null>(null),
+      };
+    },
+    {
+      hasError: (s) =>
+        !s.column.value || (s.strategy.value === 'constant' && !s.value.value?.trim()),
+      getState: (s) => ({
+        column: s.column.value,
+        strategy: s.strategy.value,
+        value: s.value.value,
+        includeEmptyString: s.includeEmptyString.value,
+      }),
+    }
+  );
+
+  // Reactive mock preview (not using useTransformPreview since this is a mock, not real data)
   useSignalEffect(() => {
-    state.column.value;
-    state.strategy.value;
-    state.value.value;
-    state.includeEmptyString.value;
-    updateImputePreview();
+    const strategy = state.strategy.value;
+    const value = state.value.value;
+    const includeEmptyString = state.includeEmptyString.value;
+    try {
+      const mockData = [
+        { val: 10 },
+        { val: null },
+        { val: 30 },
+        { val: null },
+        { val: 50 },
+        { val: 60 },
+        { val: '' },
+        { val: 80 },
+      ];
+      const sampleTable = aq.from(mockData);
+      const transform = {
+        impute: {
+          column: 'val',
+          strategy,
+          value: strategy === 'constant' ? value : undefined,
+          includeEmptyString,
+        },
+      };
+      const resultTable = applyTransform(sampleTable, transform, ['val']);
+      const resultRows = resultTable.objects();
+      state.previewRows.value = mockData.map((orig: any, i: number) => {
+        const resVal = resultRows[i] ? resultRows[i].val : orig.val;
+        return {
+          _index: i,
+          original: orig.val,
+          imputed: resVal,
+          isImputed: orig.val !== resVal,
+        };
+      });
+    } catch (e) {
+      console.error('Impute preview error:', e);
+      state.previewRows.value = null;
+    }
   });
 
   const selectedColSchema = schema.find((s) => s.name === state.column.value);

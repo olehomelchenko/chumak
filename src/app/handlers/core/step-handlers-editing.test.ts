@@ -59,7 +59,7 @@ describe('step-handlers - editing', () => {
       expect(callbacks.openDialog).not.toHaveBeenCalled();
     });
 
-    it('opens filter dialog and sets expression for filter step', () => {
+    it('opens filter dialog for filter step', () => {
       const callbacks = createMockStepCallbacks();
       StepHandlers.setStepCallbacks(callbacks);
 
@@ -78,10 +78,10 @@ describe('step-handlers - editing', () => {
 
       expect(AppStore.editingStepIndex.value).toBe(1);
       expect(callbacks.openDialog).toHaveBeenCalledWith('filter');
-      expect(DialogStore.filterState.expression.value).toBe('age > 25');
+      // State initialization handled by useDialogState hook via editingStep context
     });
 
-    it('opens derive dialog and sets state for derive step', () => {
+    it('opens derive dialog for derive step', () => {
       const callbacks = createMockStepCallbacks();
       StepHandlers.setStepCallbacks(callbacks);
 
@@ -100,8 +100,7 @@ describe('step-handlers - editing', () => {
 
       expect(AppStore.editingStepIndex.value).toBe(1);
       expect(callbacks.openDialog).toHaveBeenCalledWith('derive');
-      expect(DialogStore.deriveState.columnName.value).toBe('double_age');
-      expect(DialogStore.deriveState.expression.value).toBe('age * 2');
+      // State initialization handled by useDialogState hook via editingStep context
     });
 
     it('opens sort dialog for sort step (state managed by component hook)', () => {
@@ -209,7 +208,7 @@ describe('step-handlers - editing', () => {
       expect(DialogStore.splitState.keepOriginal.value).toBe(true);
     });
 
-    it('opens impute dialog and sets state for impute step', () => {
+    it('opens impute dialog for impute step', () => {
       const callbacks = createMockStepCallbacks();
       StepHandlers.setStepCallbacks(callbacks);
 
@@ -231,8 +230,7 @@ describe('step-handlers - editing', () => {
 
       expect(AppStore.editingStepIndex.value).toBe(1);
       expect(callbacks.openDialog).toHaveBeenCalledWith('impute');
-      expect(DialogStore.imputeState.column.value).toBe('age');
-      expect(DialogStore.imputeState.strategy.value).toBe('mean');
+      // State initialization handled by useDialogState hook via editingStep context
     });
   });
 

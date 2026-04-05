@@ -20,9 +20,7 @@ import { GeneratorService } from './services/GeneratorService';
 import i18n from '../i18n';
 
 // Transform handlers
-import * as FilterHandlers from './handlers/transform/filter-handlers';
-import * as DeriveHandlers from './handlers/transform/derive-handlers';
-import * as SimpleHandlers from './handlers/transform/simple-handlers';
+import { confirm } from './handlers/core/notification-handlers';
 import * as SpreadHandlers from './handlers/transform/spread-handlers';
 import * as UnrollHandlers from './handlers/transform/unroll-handlers';
 import * as SplitHandlers from './handlers/transform/split-handlers';
@@ -86,44 +84,63 @@ export function bridgedDialogEntry(
 export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
   // === Transform Dialogs (Slide Panels) ===
 
-  filter: {
+  filter: bridgedDialogEntry({
     name: 'filter',
     title: 'Filter Rows',
     type: 'slide-panel',
     buttonText: 'buttons.filter',
-    applyHandler: (cb) => FilterHandlers.applyFilterTransform(cb),
-    getState: () => ({
-      expression: DialogStore.filterState.expression.value,
-      previewMode: DialogStore.filterState.previewMode.value,
-    }),
-    hasError: () => !!DialogStore.filterState.error.value,
-    getError: () => DialogStore.filterState.error.value,
-  },
+    applyHandler: async (cb) => {
+      const state = DialogStore.activeDialogState.value;
+      if (!state) return;
+      const expr = state.expression?.trim();
+      if (!expr) {
+        await cb.onError?.(i18n.t('validation.required.expression', { ns: 'errors' }));
+        return;
+      }
+      if (DialogStore.activeDialogHasError.value) {
+        await cb.onError?.(i18n.t('validation.invalid.expression', { ns: 'errors' }));
+        return;
+      }
+      await StepService.runTransform('Filter', { filter: expr }, cb);
+    },
+  }),
 
-  derive: {
+  derive: bridgedDialogEntry({
     name: 'derive',
     title: 'Derive Column',
     type: 'slide-panel',
     buttonText: 'buttons.addColumn',
-    applyHandler: (cb) => DeriveHandlers.applyDeriveTransform(cb),
-    getState: () => ({
-      columnName: DialogStore.deriveState.columnName.value,
-      expression: DialogStore.deriveState.expression.value,
-    }),
-    hasError: () => {
-      const s = DialogStore.deriveState;
-      return !!s.error.value || !s.columnName.value?.trim() || !s.expression.value?.trim();
+    applyHandler: async (cb) => {
+      const state = DialogStore.activeDialogState.value;
+      if (!state) return;
+      const columnName = state.columnName?.trim();
+      const expression = state.expression?.trim();
+      if (!columnName || !expression) {
+        await cb.onError?.(i18n.t('validation.required.columnNameAndExpression', { ns: 'errors' }));
+        return;
+      }
+      if (DialogStore.activeDialogHasError.value) {
+        await cb.onError?.(i18n.t('validation.invalid.expression', { ns: 'errors' }));
+        return;
+      }
+      const columns = AppStore.columns.value;
+      if (columns.includes(columnName)) {
+        const confirmed = await confirm(
+          i18n.t('confirms.overwriteColumn', {
+            ns: 'common',
+            message: i18n.t('validation.duplicate.columnExists', {
+              ns: 'errors',
+              name: columnName,
+            }),
+          }),
+          undefined,
+          i18n.t('buttons.overwrite', { ns: 'common' })
+        );
+        if (!confirmed) return;
+      }
+      await StepService.runTransform('Derive', { derive: { [columnName]: expression } }, cb);
     },
-    getError: () => {
-      const s = DialogStore.deriveState;
-      if (s.error.value) return s.error.value;
-      if (!s.columnName.value?.trim())
-        return i18n.t('validation.required.columnName', { ns: 'errors' });
-      if (!s.expression.value?.trim())
-        return i18n.t('validation.required.expression', { ns: 'errors' });
-      return null;
-    },
-  },
+  }),
 
   sort: bridgedDialogEntry({
     name: 'sort',
@@ -567,22 +584,29 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     getState: () => DialogStore.columnEditorState.columns.value as any,
   },
 
-  impute: {
+  impute: bridgedDialogEntry({
     name: 'impute',
     title: 'Impute Missing Values',
     type: 'slide-panel',
     buttonText: 'buttons.impute',
-    applyHandler: (cb) => SimpleHandlers.applyImputeTransform(cb),
-    getState: () => ({
-      column: DialogStore.imputeState.column.value,
-      strategy: DialogStore.imputeState.strategy.value,
-      value: DialogStore.imputeState.value.value,
-    }),
-    hasError: () => {
-      const s = DialogStore.imputeState;
-      return !s.column.value || (s.strategy.value === 'constant' && !s.value.value?.trim());
+    applyHandler: async (cb) => {
+      const state = DialogStore.activeDialogState.value;
+      if (!state) return;
+      if (!state.column) {
+        await cb.onError?.(i18n.t('validation.selection.column', { ns: 'errors' }));
+        return;
+      }
+      const transform = {
+        impute: {
+          column: state.column,
+          strategy: state.strategy,
+          value: state.strategy === 'constant' ? state.value : undefined,
+          includeEmptyString: state.includeEmptyString,
+        },
+      };
+      await StepService.runTransform('Impute', transform, cb);
     },
-  },
+  }),
 
   selectPattern: bridgedDialogEntry({
     name: 'selectPattern',

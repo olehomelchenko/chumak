@@ -19,7 +19,7 @@ export { UnpivotDialog } from './UnpivotDialog';
 export { ImputeDialog } from './ImputeDialog';
 
 export { FilterDialog } from './FilterDialog';
-export type { FilterPreviewMode } from './FilterDialog';
+export type { FilterPreviewMode } from '../../types/modes';
 
 export { PivotDialog } from './PivotDialog';
 export type { PivotAggregation } from './PivotDialog';

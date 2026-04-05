@@ -168,13 +168,11 @@ export function editStep(stepIndex: number): void {
   AppStore.editingStepIndex.value = stepIndex;
 
   if (step.filter) {
+    // State initialized by useDialogState hook via editingStep context
     callbacks?.openDialog('filter');
-    DialogStore.filterState.expression.value = step.filter as string;
   } else if (step.derive) {
-    const [colName, expr] = Object.entries(step.derive)[0];
+    // State initialized by useDialogState hook via editingStep context
     callbacks?.openDialog('derive');
-    DialogStore.deriveState.columnName.value = colName;
-    DialogStore.deriveState.expression.value = expr as string;
   } else if (step.select) {
     callbacks?.openDialog('column-editor');
     const selectedSet = new Set(step.select as string[]);
@@ -327,11 +325,8 @@ export function editStep(stepIndex: number): void {
 
     callbacks?.updateDedupePreview?.();
   } else if (step.impute) {
+    // State initialized by useDialogState hook via editingStep context
     callbacks?.openDialog('impute');
-    const state = DialogStore.imputeState;
-    state.column.value = step.impute.column;
-    state.strategy.value = step.impute.strategy;
-    state.value.value = step.impute.value || '';
   } else if (step.concat) {
     callbacks?.openDialog('append');
     DialogStore.appendState.targetModel.value = step.concat.with;

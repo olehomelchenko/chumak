@@ -59,8 +59,8 @@ export interface PreviewHandle<TState = void> {
  * @example
  * const filterPreview = createDebouncedPreview({
  *   compute: () => {
- *     const expr = DialogStore.filterState.expression.value;
- *     if (!expr || DialogStore.filterState.error.value) return null;
+ *     const expr = expression.value;
+ *     if (!expr || error.value) return null;
  *     // ... compute preview rows ...
  *     return {
  *       title: 'Filter Preview',

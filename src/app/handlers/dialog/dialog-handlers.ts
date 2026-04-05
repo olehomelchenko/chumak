@@ -48,7 +48,6 @@ export interface DialogHandlerCallbacks {
   detectDelimiter?: (column: string) => any;
   debouncedUpdateSplitPreview?: () => void;
   updateDedupePreview?: () => void;
-  updateImputePreview?: () => void;
 }
 
 let dialogHandlerCallbacks: DialogHandlerCallbacks = {};
@@ -108,7 +107,6 @@ export function initDialogState(dialogName: string, section?: string): void {
     detectDelimiter: dialogHandlerCallbacks.detectDelimiter,
     debouncedUpdateSplitPreview: dialogHandlerCallbacks.debouncedUpdateSplitPreview,
     updateDedupePreview: dialogHandlerCallbacks.updateDedupePreview,
-    updateImputePreview: dialogHandlerCallbacks.updateImputePreview,
     clearColumnSelection: dialogHandlerCallbacks.clearColumnSelection,
     confirm: dialogHandlerCallbacks.confirm,
   });

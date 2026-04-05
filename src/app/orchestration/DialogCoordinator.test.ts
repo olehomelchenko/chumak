@@ -42,17 +42,20 @@ describe('DialogCoordinator', () => {
       expect(getDialogState('nonexistent')).toBeNull();
     });
 
-    it('returns filter state', () => {
-      DialogStore.filterState.expression.value = 'age > 30';
-      DialogStore.filterState.previewMode.value = 'matching';
+    it('returns filter state via bridge signal', () => {
+      DialogStore.activeDialogState.value = { expression: 'age > 30', previewMode: 'matching' };
+      AppStore.activeDialog.value = 'filter';
 
       const state = getDialogState('filter');
       expect(state).toEqual({ expression: 'age > 30', previewMode: 'matching' });
     });
 
-    it('returns derive state', () => {
-      DialogStore.deriveState.columnName.value = 'full_name';
-      DialogStore.deriveState.expression.value = 'first + " " + last';
+    it('returns derive state via bridge signal', () => {
+      DialogStore.activeDialogState.value = {
+        columnName: 'full_name',
+        expression: 'first + " " + last',
+      };
+      AppStore.activeDialog.value = 'derive';
 
       const state = getDialogState('derive');
       expect(state).toEqual({ columnName: 'full_name', expression: 'first + " " + last' });
@@ -245,10 +248,9 @@ describe('DialogCoordinator', () => {
       expect(state).toEqual(cols);
     });
 
-    it('returns impute state', () => {
-      DialogStore.imputeState.column.value = 'salary';
-      DialogStore.imputeState.strategy.value = 'mean';
-      DialogStore.imputeState.value.value = '';
+    it('returns impute state via bridge signal', () => {
+      DialogStore.activeDialogState.value = { column: 'salary', strategy: 'mean', value: '' };
+      AppStore.activeDialog.value = 'impute';
 
       const state = getDialogState('impute');
       expect(state).toEqual({ column: 'salary', strategy: 'mean', value: '' });
@@ -282,49 +284,29 @@ describe('DialogCoordinator', () => {
       expect(activeDialogHasError()).toBe(false);
     });
 
-    // filter
-    it('filter: returns true when error present', () => {
+    // filter (uses bridge signal via useDialogState)
+    it('filter: returns true when bridge error present', () => {
       AppStore.activeDialog.value = 'filter';
-      DialogStore.filterState.error.value = 'Syntax error';
+      DialogStore.activeDialogHasError.value = true;
       expect(activeDialogHasError()).toBe(true);
     });
 
-    it('filter: returns false when no error', () => {
+    it('filter: returns false when bridge has no error', () => {
       AppStore.activeDialog.value = 'filter';
-      DialogStore.filterState.error.value = null;
+      DialogStore.activeDialogHasError.value = false;
       expect(activeDialogHasError()).toBe(false);
     });
 
-    // derive
-    it('derive: returns true when error present', () => {
+    // derive (uses bridge signal via useDialogState)
+    it('derive: returns true when bridge error present', () => {
       AppStore.activeDialog.value = 'derive';
-      DialogStore.deriveState.error.value = 'Bad expression';
-      DialogStore.deriveState.columnName.value = 'col';
-      DialogStore.deriveState.expression.value = 'x + 1';
+      DialogStore.activeDialogHasError.value = true;
       expect(activeDialogHasError()).toBe(true);
     });
 
-    it('derive: returns true when columnName empty', () => {
+    it('derive: returns false when bridge has no error', () => {
       AppStore.activeDialog.value = 'derive';
-      DialogStore.deriveState.error.value = null;
-      DialogStore.deriveState.columnName.value = '';
-      DialogStore.deriveState.expression.value = 'x + 1';
-      expect(activeDialogHasError()).toBe(true);
-    });
-
-    it('derive: returns true when expression empty', () => {
-      AppStore.activeDialog.value = 'derive';
-      DialogStore.deriveState.error.value = null;
-      DialogStore.deriveState.columnName.value = 'col';
-      DialogStore.deriveState.expression.value = '';
-      expect(activeDialogHasError()).toBe(true);
-    });
-
-    it('derive: returns false when all valid', () => {
-      AppStore.activeDialog.value = 'derive';
-      DialogStore.deriveState.error.value = null;
-      DialogStore.deriveState.columnName.value = 'col';
-      DialogStore.deriveState.expression.value = 'x + 1';
+      DialogStore.activeDialogHasError.value = false;
       expect(activeDialogHasError()).toBe(false);
     });
 
@@ -521,35 +503,16 @@ describe('DialogCoordinator', () => {
       expect(activeDialogHasError()).toBe(false);
     });
 
-    // impute
-    it('impute: returns true when no column selected', () => {
+    // impute (uses bridge signal via useDialogState)
+    it('impute: returns true when bridge error present', () => {
       AppStore.activeDialog.value = 'impute';
-      DialogStore.imputeState.column.value = '';
-      DialogStore.imputeState.strategy.value = 'mean';
+      DialogStore.activeDialogHasError.value = true;
       expect(activeDialogHasError()).toBe(true);
     });
 
-    it('impute: returns true when constant strategy with empty value', () => {
+    it('impute: returns false when bridge has no error', () => {
       AppStore.activeDialog.value = 'impute';
-      DialogStore.imputeState.column.value = 'salary';
-      DialogStore.imputeState.strategy.value = 'constant';
-      DialogStore.imputeState.value.value = '';
-      expect(activeDialogHasError()).toBe(true);
-    });
-
-    it('impute: returns false when constant strategy with value', () => {
-      AppStore.activeDialog.value = 'impute';
-      DialogStore.imputeState.column.value = 'salary';
-      DialogStore.imputeState.strategy.value = 'constant';
-      DialogStore.imputeState.value.value = '0';
-      expect(activeDialogHasError()).toBe(false);
-    });
-
-    it('impute: returns false for non-constant strategy without value', () => {
-      AppStore.activeDialog.value = 'impute';
-      DialogStore.imputeState.column.value = 'salary';
-      DialogStore.imputeState.strategy.value = 'mean';
-      DialogStore.imputeState.value.value = '';
+      DialogStore.activeDialogHasError.value = false;
       expect(activeDialogHasError()).toBe(false);
     });
 
@@ -602,8 +565,7 @@ describe('DialogCoordinator', () => {
 
     it('returns false when state matches snapshot', () => {
       AppStore.activeDialog.value = 'filter';
-      DialogStore.filterState.expression.value = 'age > 30';
-      DialogStore.filterState.previewMode.value = 'all';
+      DialogStore.activeDialogState.value = { expression: 'age > 30', previewMode: 'all' };
       snapshotDialogState();
 
       expect(hasUnsavedChanges()).toBe(false);
@@ -611,11 +573,10 @@ describe('DialogCoordinator', () => {
 
     it('returns true when state differs from snapshot', () => {
       AppStore.activeDialog.value = 'filter';
-      DialogStore.filterState.expression.value = 'age > 30';
-      DialogStore.filterState.previewMode.value = 'all';
+      DialogStore.activeDialogState.value = { expression: 'age > 30', previewMode: 'all' };
       snapshotDialogState();
 
-      DialogStore.filterState.expression.value = 'age > 50';
+      DialogStore.activeDialogState.value = { expression: 'age > 50', previewMode: 'all' };
       expect(hasUnsavedChanges()).toBe(true);
     });
 

@@ -83,9 +83,9 @@ export interface RegexValidationOptions {
  * @example
  * // With signal binding - error is written to signal automatically
  * validateExpression(
- *   DialogStore.filterState.expression.value,
+ *   expression.value,
  *   AppStore.columns.value,
- *   { errorSignal: DialogStore.filterState.error }
+ *   { errorSignal: error }
  * );
  */
 export function validateExpression(

@@ -39,7 +39,6 @@ import {
   fetchAndImportFromUrl,
 } from '../handlers/import/import-handlers';
 import { setGenerateCallbacks, generateData } from '../handlers/import/generate-handlers';
-import * as SimpleHandlers from '../handlers/transform/simple-handlers';
 
 // Direct handler imports for callback wiring
 import {
@@ -129,7 +128,6 @@ export async function initApp(): Promise<void> {
     detectDelimiter: (col) => detectDelimiter(col),
     debouncedUpdateSplitPreview: () => debouncedUpdateSplitPreview(),
     updateDedupePreview: () => updateDedupePreview(),
-    updateImputePreview: () => SimpleHandlers.updateImputePreview(),
   });
 
   // Phase 4: Restore URL state (sets activeModel/activeSource but data is still null)
@@ -188,7 +186,6 @@ function wireHandlerCallbacks(): void {
     detectDelimiter: (col) => detectDelimiter(col),
     debouncedUpdateSplitPreview: () => debouncedUpdateSplitPreview(),
     updateDedupePreview: () => updateDedupePreview(),
-    updateImputePreview: () => SimpleHandlers.updateImputePreview(),
   });
 
   setStepCallbacks({

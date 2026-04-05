@@ -4,7 +4,6 @@ import { DialogStore } from '../../stores/DialogStore';
 import { AppStore } from '../../stores/AppStore';
 import * as HelperHandlers from './helper-handlers';
 import * as NotificationHandlers from './notification-handlers';
-import * as FilterHandlers from '../transform/filter-handlers';
 import * as SplitHandlers from '../transform/split-handlers';
 import * as DedupeHandlers from '../transform/dedupe-handlers';
 import { StepService } from '../../services/StepService';
@@ -389,9 +388,7 @@ export async function applyQuickCellFilter(op: string, callbacks: any) {
     else if (op === 'lte') expr = `[${col}] <= ${formattedValue}`;
   }
   if (expr) {
-    DialogStore.filterState.expression.value = expr;
-    DialogStore.filterState.error.value = null;
-    await FilterHandlers.applyFilterTransform(callbacks);
+    await StepService.runTransform('Filter', { filter: expr }, callbacks);
   }
   AppStore.selectedCell.value = null;
 }
@@ -406,11 +403,7 @@ export async function quickSort(order: 'asc' | 'desc', callbacks: any) {
 export function quickFilter(onOpenDialog: (name: string) => void) {
   const selectedColumn = AppStore.selectedColumn.value;
   if (!selectedColumn) return;
-
-  const initialExpr = `[${selectedColumn}] == `;
-  DialogStore.filterState.expression.value = initialExpr;
-  DialogStore.filterState.error.value = null;
-
+  // Expression pre-populated by useDialogState factory reading AppStore.selectedColumn
   onOpenDialog('filter');
 }
 

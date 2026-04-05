@@ -20,7 +20,6 @@ export type DialogCallbacks = {
   detectDelimiter?: (column: string) => { char: string; isRegex: boolean; name: string } | null;
   debouncedUpdateSplitPreview?: () => void;
   updateDedupePreview?: () => void;
-  updateImputePreview?: () => void;
   clearColumnSelection?: () => void;
   confirm?: (message: string, confirmLabel?: string) => Promise<boolean>;
 };
@@ -271,19 +270,8 @@ export function initDialogState(dialogName: string, section?: string): void {
       break;
     }
 
-    case 'impute': {
-      const state = DialogStore.imputeState;
-      if (!state.column.value) {
-        state.column.value = effectiveColumn;
-      }
-      state.strategy.value = 'constant';
-      state.value.value = '';
-      state.includeEmptyString.value = false;
-      state.previewRows.value = null;
-      state.error.value = null;
-      callbacks?.updateImputePreview?.();
-      break;
-    }
+    case 'impute':
+      break; // state managed by useDialogState hook
 
     default: {
       // Delegate to registry initState for dialogs not handled above

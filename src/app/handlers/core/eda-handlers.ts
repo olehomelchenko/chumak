@@ -1,6 +1,5 @@
 import { AppStore } from '../../stores/AppStore';
-import { DialogStore } from '../../stores/DialogStore';
-import * as FilterHandlers from '../transform/filter-handlers';
+import { StepService } from '../../services/StepService';
 import * as HelperHandlers from './helper-handlers';
 
 /**
@@ -152,9 +151,10 @@ export async function applyBrushFilter(): Promise<void> {
   const fmtMax = Number.isInteger(max) ? max : max.toFixed(4);
   const expr = `[${selectedColumn}] >= ${fmtMin} && [${selectedColumn}] <= ${fmtMax}`;
 
-  DialogStore.filterState.expression.value = expr;
-  DialogStore.filterState.error.value = null;
-
-  await FilterHandlers.applyFilterTransform(HelperHandlers.createExecutionCallbacks());
+  await StepService.runTransform(
+    'Filter',
+    { filter: expr },
+    HelperHandlers.createExecutionCallbacks()
+  );
   callbacks?.clearColumnSelection();
 }

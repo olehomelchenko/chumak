@@ -124,12 +124,12 @@ describe('Generic Dialog Behavior', () => {
       });
     });
 
-    it('should have enabled Apply button when valid filter expression is set', async () => {
+    it('should have enabled Apply button when bridge has no error', async () => {
       renderWithI18n(<App />);
 
-      // Set up valid filter expression
-      DialogStore.filterState.expression.value = 'sales > 1000';
-      DialogStore.filterState.error.value = null;
+      // Use bridge signals (filter state is now local to component)
+      DialogStore.activeDialogHasError.value = false;
+      DialogStore.activeDialogError.value = null;
 
       const footer = await waitFor(() => {
         const f = document.querySelector('[class*="slidePanelFooter"]');
@@ -139,16 +139,14 @@ describe('Generic Dialog Behavior', () => {
 
       const applyButton = footer?.querySelector('.button--primary') as HTMLButtonElement;
       expect(applyButton).toBeDefined();
-      // Apply button should be enabled when there's a valid expression
       expect(applyButton.hasAttribute('disabled')).toBe(false);
     });
 
-    it('should disable Apply button when dialog has errors', async () => {
+    it('should disable Apply button when bridge has error', async () => {
       renderWithI18n(<App />);
 
-      // Set up invalid filter expression
-      DialogStore.filterState.expression.value = 'invalid expression';
-      DialogStore.filterState.error.value = 'Syntax error';
+      DialogStore.activeDialogHasError.value = true;
+      DialogStore.activeDialogError.value = 'Syntax error';
 
       await waitFor(() => {
         const footer = document.querySelector('[class*="slidePanelFooter"]');
@@ -161,16 +159,14 @@ describe('Generic Dialog Behavior', () => {
     it('should show error message as tooltip on disabled Apply button', async () => {
       renderWithI18n(<App />);
 
-      // Set an invalid expression — the filter dialog validates in real-time
-      DialogStore.filterState.expression.value = 'age >';
-      DialogStore.filterState.error.value = 'Expected expression after operator';
+      DialogStore.activeDialogHasError.value = true;
+      DialogStore.activeDialogError.value = 'Expected expression after operator';
 
       await waitFor(() => {
         const footer = document.querySelector('[class*="slidePanelFooter"]');
         const applyButton = footer?.querySelector('.button--primary') as HTMLButtonElement;
         expect(applyButton).toBeDefined();
         expect(applyButton.getAttribute('aria-disabled')).toBe('true');
-        // Tooltip should show the error message (whatever validation produces)
         const title = applyButton.getAttribute('title');
         expect(title).toBeTruthy();
         expect(typeof title).toBe('string');
@@ -180,8 +176,8 @@ describe('Generic Dialog Behavior', () => {
     it('should not show tooltip when Apply button is enabled', async () => {
       renderWithI18n(<App />);
 
-      DialogStore.filterState.expression.value = 'age > 10';
-      DialogStore.filterState.error.value = null;
+      DialogStore.activeDialogHasError.value = false;
+      DialogStore.activeDialogError.value = null;
 
       await waitFor(() => {
         const footer = document.querySelector('[class*="slidePanelFooter"]');
@@ -195,9 +191,7 @@ describe('Generic Dialog Behavior', () => {
     it('should have correct button structure in dialog footer', async () => {
       renderWithI18n(<App />);
 
-      // Set up valid filter expression
-      DialogStore.filterState.expression.value = 'sales > 1000';
-      DialogStore.filterState.error.value = null;
+      DialogStore.activeDialogHasError.value = false;
 
       const footer = await waitFor(() => {
         const f = document.querySelector('[class*="slidePanelFooter"]');
@@ -205,7 +199,6 @@ describe('Generic Dialog Behavior', () => {
         return f;
       });
 
-      // Verify both Cancel and Filter buttons exist
       const cancelButton = footer?.querySelector('.button--secondary');
       const applyButton = footer?.querySelector('.button--primary');
       expect(cancelButton).toBeDefined();
@@ -297,10 +290,9 @@ describe('Generic Dialog Behavior', () => {
     it('should have enabled Apply button when valid derive inputs are set', async () => {
       renderWithI18n(<App />);
 
-      // Set up valid derive inputs
-      DialogStore.deriveState.columnName.value = 'total';
-      DialogStore.deriveState.expression.value = 'sales * 1.1';
-      DialogStore.deriveState.error.value = null;
+      // Use bridge signals (derive state is now local to component)
+      DialogStore.activeDialogHasError.value = false;
+      DialogStore.activeDialogError.value = null;
 
       const footer = await waitFor(() => {
         const f = document.querySelector('[class*="slidePanelFooter"]');
@@ -310,17 +302,14 @@ describe('Generic Dialog Behavior', () => {
 
       const applyButton = footer?.querySelector('.button--primary') as HTMLButtonElement;
       expect(applyButton).toBeDefined();
-      // Apply button should be enabled when there are valid inputs
       expect(applyButton.hasAttribute('disabled')).toBe(false);
     });
 
-    it('should disable Apply button when there are expression errors', async () => {
+    it('should disable Apply button when bridge has error', async () => {
       renderWithI18n(<App />);
 
-      // Set up invalid derive inputs
-      DialogStore.deriveState.columnName.value = 'total';
-      DialogStore.deriveState.expression.value = 'invalid expression';
-      DialogStore.deriveState.error.value = 'Syntax error';
+      DialogStore.activeDialogHasError.value = true;
+      DialogStore.activeDialogError.value = 'Syntax error';
 
       await waitFor(() => {
         const footer = document.querySelector('[class*="slidePanelFooter"]');
@@ -333,10 +322,8 @@ describe('Generic Dialog Behavior', () => {
     it('should disable Apply button when column name is missing', async () => {
       renderWithI18n(<App />);
 
-      // Missing column name
-      DialogStore.deriveState.columnName.value = '';
-      DialogStore.deriveState.expression.value = 'sales * 1.1';
-      DialogStore.deriveState.error.value = null;
+      DialogStore.activeDialogHasError.value = true;
+      DialogStore.activeDialogError.value = 'Column name required';
 
       await waitFor(() => {
         const footer = document.querySelector('[class*="slidePanelFooter"]');

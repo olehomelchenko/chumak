@@ -2,8 +2,8 @@
  * Transform dialog states
  *
  * Basic transform operations: filter, derive, sort, slice, sample, etc.
+ * (All migrated to useDialogState hook — this barrel kept for directory structure)
  */
 
-export { filterState, resetFilterState } from './filter-state';
-export { deriveState, resetDeriveState } from './derive-state';
-export { imputeState, resetImputeState } from './impute-state';
+// Placeholder export to keep this a valid module
+export {};

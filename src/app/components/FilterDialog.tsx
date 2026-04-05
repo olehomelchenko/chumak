@@ -2,39 +2,126 @@
  * FilterDialog - Preact component for filtering rows
  */
 
-import { useSignal, useSignalEffect } from '@preact/signals';
+import { signal, useSignal, useSignalEffect } from '@preact/signals';
 import { useTranslation } from 'preact-i18next';
-import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
-import * as FilterHandlers from '../handlers/transform/filter-handlers';
+import { useDialogState } from '../hooks/useDialogState';
+import { useTransformPreview } from '../hooks/useTransformPreview';
 import { openDialog } from '../handlers/dialog/dialog-handlers';
+import { parseExpression } from '../../core/expression-parser';
+import { interpretAST } from '../../core/ast-interpreter';
+import { isConversionError } from '../../core/type-converter';
+import { validateExpression } from '../handlers/validation-engine';
+import { getPreviewRowLimit, getActiveSchema } from '../handlers/core/helper-handlers';
 import {
   computeTokens,
   EMPTY_TOKENS,
   type ExpressionTokens,
 } from '../../core/expression-token-extractor';
-import { getActiveSchema } from '../handlers/core/helper-handlers';
 import { ExpressionEditor } from './ExpressionEditor';
 import { ExpressionDocs } from './ExpressionDocs';
+import type { FilterPreviewMode } from '../../types/modes';
 import formStyles from './form-controls.module.css';
 import exprStyles from './expression-help.module.css';
 const styles = { ...formStyles, ...exprStyles };
 
-// Re-export for backward compatibility
-export type { FilterPreviewMode } from '../../types/modes';
-
 export function FilterDialog() {
   const { t } = useTranslation('dialogs');
-  const { expression, error, previewMode } = DialogStore.filterState;
+
+  const { state } = useDialogState(
+    (ctx) => {
+      const editing = ctx.editingStep?.filter;
+      // quickFilter pre-populates via selectedColumn
+      const selectedColumn = AppStore.selectedColumn.value;
+      const defaultExpr = editing
+        ? (editing as string)
+        : selectedColumn
+          ? `[${selectedColumn}] == `
+          : '';
+      return {
+        expression: signal<string>(defaultExpr),
+        error: signal<string | null>(null),
+        previewMode: signal<FilterPreviewMode>('all'),
+      };
+    },
+    {
+      hasError: (s) => !!s.error.value,
+      getError: (s) => s.error.value,
+      getState: (s) => ({
+        expression: s.expression.value,
+        previewMode: s.previewMode.value,
+      }),
+    }
+  );
+
+  const { expression, error, previewMode } = state;
   const tokens = useSignal<ExpressionTokens>(EMPTY_TOKENS);
 
   useSignalEffect(() => {
-    // Subscribe to changes and validate
     const expr = expression.value;
     void previewMode.value;
-    FilterHandlers.validateFilterExpression();
-    FilterHandlers.debouncedUpdateFilterPreview();
+    validateExpression(expr, AppStore.columns.value, { errorSignal: error });
     tokens.value = computeTokens(expr, AppStore.columns.value);
+  });
+
+  useTransformPreview({
+    deps: () => {
+      expression.value;
+      error.value;
+      previewMode.value;
+    },
+    compute: () => {
+      const expr = expression.value.trim();
+      const hasError = error.value;
+      const mode = previewMode.value;
+      const data = AppStore.currentData.value;
+      const columns = AppStore.columns.value;
+
+      if (!expr || hasError || !data?.length) return null;
+
+      const ast = parseExpression(expr);
+      const previewRows: any[] = [];
+      let matchCount = 0;
+
+      const previewLimit = getPreviewRowLimit();
+      const sampleData = data.slice(0, previewLimit);
+
+      for (const row of sampleData) {
+        try {
+          const matches = interpretAST(ast, row);
+          if (matches && !isConversionError(matches)) {
+            matchCount++;
+            if (previewRows.length < 50) previewRows.push(row);
+          } else {
+            if (mode === 'all' && previewRows.length < 50) {
+              previewRows.push({ ...row, _removed: true });
+            }
+          }
+        } catch {
+          // Skip rows with evaluation errors
+        }
+      }
+
+      let totalMatchCount = matchCount;
+      if (data.length > previewLimit) {
+        totalMatchCount = 0;
+        for (const row of data) {
+          try {
+            const result = interpretAST(ast, row);
+            if (result && !isConversionError(result)) totalMatchCount++;
+          } catch {
+            // Skip
+          }
+        }
+      }
+
+      return {
+        title: 'Filter Preview',
+        stats: `<strong>${totalMatchCount}</strong> of ${data.length} rows match`,
+        columns: columns.slice(0, 8),
+        rows: previewRows,
+      };
+    },
   });
 
   const openRef = (section?: string) => {

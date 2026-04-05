@@ -2,7 +2,6 @@ import { useEffect, useRef } from 'preact/hooks';
 import { useSignal } from '@preact/signals';
 import { useTranslation } from 'preact-i18next';
 import { AppStore } from '../stores/AppStore';
-import { DialogStore } from '../stores/DialogStore';
 import { ChartsEngine, BoxPlotStats } from '../../core/charts';
 import { CategoricalStat, selectChartDefaults } from '../../core/eda-engine';
 import { SchemaEngine } from '../../core/schema-engine';
@@ -16,7 +15,7 @@ import {
   EdaBivariateStrip,
   EdaBivariateModal,
 } from './eda';
-import * as FilterHandlers from '../handlers/transform/filter-handlers';
+import { StepService } from '../services/StepService';
 import * as HelperHandlers from '../handlers/core/helper-handlers';
 import styles from './EdaPanel.module.css';
 
@@ -264,10 +263,7 @@ export function EdaPanel() {
     const fmtMax = Number.isInteger(max) ? max : max.toFixed(4);
     const expr = `[${selectedColumn}] >= ${fmtMin} && [${selectedColumn}] <= ${fmtMax}`;
 
-    DialogStore.filterState.expression.value = expr;
-    DialogStore.filterState.error.value = null;
-
-    FilterHandlers.applyFilterTransform(HelperHandlers.createExecutionCallbacks());
+    StepService.runTransform('Filter', { filter: expr }, HelperHandlers.createExecutionCallbacks());
 
     clearSelection();
   };
