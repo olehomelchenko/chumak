@@ -4,7 +4,7 @@ import { parseExpression } from '../../../core/expression-parser';
 import { interpretAST } from '../../../core/ast-interpreter';
 import * as HelperHandlers from '../core/helper-handlers';
 import { StepService } from '../../services/StepService';
-import { createDebouncedPreview, clearPreview, PreviewResult } from '../preview-engine';
+import type { PreviewResult } from '../preview-engine';
 import i18n from '../../../i18n';
 
 export function getTextColumns(): string[] {
@@ -38,136 +38,78 @@ export function getCaseOperations() {
   ];
 }
 
-export function setCaseOperation(opValue: string | null) {
-  const state = DialogStore.textState;
-  const caseOps = ['uppercase', 'lowercase', 'titlecase'];
+/**
+ * Build a text transform expression from column ref and operations list.
+ */
+export function buildTextExpression(colRef: string, operations: string[]): string {
+  let expression = colRef;
 
-  // Remove all case operations
-  const filtered = state.operations.value.filter((op) => !caseOps.includes(op));
-
-  // Add the new one if not null
-  if (opValue) {
-    filtered.push(opValue);
+  if (operations.includes('trim')) {
+    expression = `trim(${expression})`;
   }
 
-  state.operations.value = filtered;
-  updatePreview();
-}
-
-export function setTrimOperation(enabled: boolean) {
-  const state = DialogStore.textState;
-  const current = [...state.operations.value];
-
-  if (enabled) {
-    // Add trim if not already present
-    if (!current.includes('trim')) {
-      current.push('trim');
-    }
-  } else {
-    // Remove trim if present
-    const index = current.indexOf('trim');
-    if (index !== -1) {
-      current.splice(index, 1);
-    }
+  if (operations.includes('uppercase')) {
+    expression = `upper(${expression})`;
+  } else if (operations.includes('lowercase')) {
+    expression = `lower(${expression})`;
+  } else if (operations.includes('titlecase')) {
+    expression = `titlecase(${expression})`;
   }
 
-  state.operations.value = current;
-  updatePreview();
+  return expression;
 }
 
-// Preview engine instance for text operations
-const textPreview = createDebouncedPreview({
-  compute: (): PreviewResult | null => {
-    const state = DialogStore.textState;
-    const { column, operations } = state;
-    const colVal = column.value;
-    const data = AppStore.currentData.value;
+/**
+ * Pure preview compute for text operations — called by useTransformPreview in the component.
+ */
+export function computeTextPreview(colVal: string, operations: string[]): PreviewResult | null {
+  const data = AppStore.currentData.value;
+  if (!colVal || !data?.length || operations.length === 0) return null;
 
-    if (!colVal || !data?.length || operations.value.length === 0) {
-      return null;
+  const previewLimit = AppStore.uxSettings.value.preview.rowLimit;
+  const samples = data.slice(0, previewLimit);
+  const colRef = HelperHandlers.quoteColumnRef.call(null as any, colVal);
+  const expression = buildTextExpression(colRef, operations);
+  const outputName = `${colVal}_text`;
+
+  const previewRows = samples.map((row) => {
+    const previewRow: any = { [colVal]: row[colVal] };
+    try {
+      const ast = parseExpression(expression);
+      const result = interpretAST(ast, row);
+      previewRow[outputName] = result != null ? String(result) : '—';
+    } catch {
+      previewRow[outputName] = '(error)';
     }
+    return previewRow;
+  });
 
-    // Use preview row limit setting
-    const previewLimit = AppStore.uxSettings.value.preview.rowLimit;
-    const samples = data.slice(0, previewLimit);
-    const colRef = HelperHandlers.quoteColumnRef.call(null as any, colVal);
+  const opLabels = operations.map((op) => {
+    const opDef = getTextOperations().find((o) => o.value === op);
+    return opDef?.label || op;
+  });
 
-    // Build the expression
-    let expression = colRef;
-
-    // Apply trim first (if selected)
-    if (operations.value.includes('trim')) {
-      expression = `trim(${expression})`;
-    }
-
-    // Apply case transformation (only one)
-    if (operations.value.includes('uppercase')) {
-      expression = `upper(${expression})`;
-    } else if (operations.value.includes('lowercase')) {
-      expression = `lower(${expression})`;
-    } else if (operations.value.includes('titlecase')) {
-      expression = `titlecase(${expression})`;
-    }
-
-    const outputName = `${colVal}_text`;
-
-    const previewRows = samples.map((row) => {
-      const previewRow: any = { [colVal]: row[colVal] };
-
-      try {
-        const ast = parseExpression(expression);
-        const result = interpretAST(ast, row);
-        previewRow[outputName] = result != null ? String(result) : '—';
-      } catch {
-        previewRow[outputName] = '(error)';
-      }
-
-      return previewRow;
-    });
-
-    // Build operation description
-    const opLabels = operations.value.map((op) => {
-      const opDef = getTextOperations().find((o) => o.value === op);
-      return opDef?.label || op;
-    });
-
-    return {
-      title: `Text: ${opLabels.join(' + ')}`,
-      stats: `Showing ${previewRows.length} sample rows`,
-      columns: [colVal, outputName],
-      newColumns: [outputName],
-      rows: previewRows,
-    };
-  },
-});
-
-export function debouncedUpdatePreview() {
-  textPreview.trigger();
+  return {
+    title: `Text: ${opLabels.join(' + ')}`,
+    stats: `Showing ${previewRows.length} sample rows`,
+    columns: [colVal, outputName],
+    newColumns: [outputName],
+    rows: previewRows,
+  };
 }
 
-export function updatePreview() {
-  textPreview.compute();
-}
-
-// Re-export clearPreview from preview-engine
-export { clearPreview };
-
-export function getTextOperationPreview(opValue: string): string {
-  const state = DialogStore.textState;
-  const { column } = state;
-  const colVal = column.value;
+/**
+ * Get a sample preview for a single text operation (shown inline in the table).
+ */
+export function getTextOperationPreview(opValue: string, colVal: string): string {
   const data = AppStore.currentData.value;
 
-  if (!colVal || !data?.length) {
-    return '—';
-  }
+  if (!colVal || !data?.length) return '—';
 
   try {
-    // Use preview row limit setting
     const previewLimit = AppStore.uxSettings.value.preview.rowLimit;
     const searchData = data.slice(0, previewLimit);
 
-    // Find first non-null value in the column within preview limit
     let sampleRow: any = null;
     for (const row of searchData) {
       if (row[colVal] != null && String(row[colVal]).trim() !== '') {
@@ -176,9 +118,7 @@ export function getTextOperationPreview(opValue: string): string {
       }
     }
 
-    if (!sampleRow) {
-      return '—';
-    }
+    if (!sampleRow) return '—';
 
     const colRef = HelperHandlers.quoteColumnRef.call(null as any, colVal);
     let expression: string;
@@ -208,68 +148,52 @@ export function getTextOperationPreview(opValue: string): string {
   }
 }
 
-export async function applyTextTransform(callbacks: any, app?: any) {
-  const state = DialogStore.textState;
-  const { column, operations, removeOrigin } = state;
-  const colVal = column.value;
+export async function applyTextTransform(callbacks: any) {
+  const state = DialogStore.activeDialogState.value;
+  if (!state) return;
+  const colVal = state.column as string;
+  const operations = state.operations as string[];
+  const removeOrigin = state.removeOrigin as boolean;
 
   if (!colVal) {
     await callbacks.onError?.(i18n.t('validation.selection.sourceColumn', { ns: 'errors' }));
     return;
   }
 
-  if (operations.value.length === 0) {
+  if (operations.length === 0) {
     await callbacks.onError?.(i18n.t('validation.selection.operation', { ns: 'errors' }));
     return;
   }
 
   const colRef = HelperHandlers.quoteColumnRef.call(null as any, colVal);
-
-  // Build the expression
-  let expression = colRef;
-
-  // Apply trim first (if selected)
-  if (operations.value.includes('trim')) {
-    expression = `trim(${expression})`;
-  }
-
-  // Apply case transformation (only one)
-  if (operations.value.includes('uppercase')) {
-    expression = `upper(${expression})`;
-  } else if (operations.value.includes('lowercase')) {
-    expression = `lower(${expression})`;
-  } else if (operations.value.includes('titlecase')) {
-    expression = `titlecase(${expression})`;
-  }
-
+  const expression = buildTextExpression(colRef, operations);
   const outputName = `${colVal}_text`;
-  const deriveSpecs: Record<string, string> = {
-    [outputName]: expression,
-  };
+  const deriveSpecs: Record<string, string> = { [outputName]: expression };
 
-  // Check for existing column
   const appCols = AppStore.columns.value;
-  if (appCols.includes(outputName) && outputName !== colVal && app) {
+  if (appCols.includes(outputName) && outputName !== colVal) {
+    const { confirm } = await import('../core/notification-handlers');
     const message = i18n.t('confirms.overwriteColumn', {
       ns: 'common',
       message: i18n.t('validation.duplicate.columnExists', { ns: 'errors', name: outputName }),
     });
-    const confirmed = await app.confirm(message, i18n.t('buttons.overwrite', { ns: 'common' }));
+    const confirmed = await confirm(
+      message,
+      undefined,
+      i18n.t('buttons.overwrite', { ns: 'common' })
+    );
     if (!confirmed) return;
   }
 
-  // Build operation description
-  const opLabels = operations.value.map((op) => {
+  const opLabels = operations.map((op) => {
     const opDef = getTextOperations().find((o) => o.value === op);
     return opDef?.label || op;
   });
   const opName = `Text: ${opLabels.join(' + ')}`;
 
-  // Apply the transform
   await StepService.runTransform(opName, { derive: deriveSpecs }, callbacks);
 
-  // If removeOrigin is checked, apply a separate remove step
-  if (removeOrigin.value) {
+  if (removeOrigin) {
     await StepService.runTransform(`Remove column "${colVal}"`, { remove: [colVal] }, callbacks);
   }
 }

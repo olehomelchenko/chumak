@@ -140,19 +140,15 @@ describe('DialogCoordinator', () => {
       expect(state).toEqual({ count: 50, seed: 42 });
     });
 
-    it('returns spread state', () => {
-      DialogStore.spreadState.column.value = 'tags';
-      DialogStore.spreadState.limit.value = 5;
-      DialogStore.spreadState.keepOriginal.value = true;
+    it('returns spread state from bridge signal', () => {
+      DialogStore.activeDialogState.value = { column: 'tags', limit: 5, keepOriginal: true };
 
       const state = getDialogState('spread');
       expect(state).toEqual({ column: 'tags', limit: 5, keepOriginal: true });
     });
 
-    it('returns unroll state', () => {
-      DialogStore.unrollState.column.value = 'items';
-      DialogStore.unrollState.indices.value = true;
-      DialogStore.unrollState.keepOriginal.value = false;
+    it('returns unroll state from bridge signal', () => {
+      DialogStore.activeDialogState.value = { column: 'items', indices: true, keepOriginal: false };
 
       const state = getDialogState('unroll');
       expect(state).toEqual({ column: 'items', indices: true, keepOriginal: false });
@@ -181,11 +177,13 @@ describe('DialogCoordinator', () => {
       });
     });
 
-    it('returns merge state', () => {
-      DialogStore.mergeState.columns.value = ['first', 'last'];
-      DialogStore.mergeState.separator.value = ' ';
-      DialogStore.mergeState.columnName.value = 'full_name';
-      DialogStore.mergeState.removeOriginal.value = true;
+    it('returns merge state from bridge signal', () => {
+      DialogStore.activeDialogState.value = {
+        columns: ['first', 'last'],
+        separator: ' ',
+        columnName: 'full_name',
+        removeOriginal: true,
+      };
 
       const state = getDialogState('merge');
       expect(state).toEqual({
@@ -355,53 +353,41 @@ describe('DialogCoordinator', () => {
     });
 
     // spread
-    it('spread: returns true when column is empty', () => {
+    it('spread: returns true when bridge hasError is true', () => {
       AppStore.activeDialog.value = 'spread';
-      DialogStore.spreadState.column.value = '';
+      DialogStore.activeDialogHasError.value = true;
       expect(activeDialogHasError()).toBe(true);
     });
 
-    it('spread: returns false when column is set', () => {
+    it('spread: returns false when bridge hasError is false', () => {
       AppStore.activeDialog.value = 'spread';
-      DialogStore.spreadState.column.value = 'tags';
+      DialogStore.activeDialogHasError.value = false;
       expect(activeDialogHasError()).toBe(false);
     });
 
     // unroll
-    it('unroll: returns true when column is empty', () => {
+    it('unroll: returns true when bridge hasError is true', () => {
       AppStore.activeDialog.value = 'unroll';
-      DialogStore.unrollState.column.value = '';
+      DialogStore.activeDialogHasError.value = true;
       expect(activeDialogHasError()).toBe(true);
     });
 
-    it('unroll: returns false when column is set', () => {
+    it('unroll: returns false when bridge hasError is false', () => {
       AppStore.activeDialog.value = 'unroll';
-      DialogStore.unrollState.column.value = 'items';
+      DialogStore.activeDialogHasError.value = false;
       expect(activeDialogHasError()).toBe(false);
     });
 
     // merge
-    it('merge: returns true when no columns selected', () => {
+    it('merge: returns true when bridge hasError is true', () => {
       AppStore.activeDialog.value = 'merge';
-      DialogStore.mergeState.error.value = null;
-      DialogStore.mergeState.columns.value = [];
-      DialogStore.mergeState.columnName.value = 'merged';
+      DialogStore.activeDialogHasError.value = true;
       expect(activeDialogHasError()).toBe(true);
     });
 
-    it('merge: returns true when columnName is empty', () => {
+    it('merge: returns false when bridge hasError is false', () => {
       AppStore.activeDialog.value = 'merge';
-      DialogStore.mergeState.error.value = null;
-      DialogStore.mergeState.columns.value = ['a', 'b'];
-      DialogStore.mergeState.columnName.value = '';
-      expect(activeDialogHasError()).toBe(true);
-    });
-
-    it('merge: returns false when valid', () => {
-      AppStore.activeDialog.value = 'merge';
-      DialogStore.mergeState.error.value = null;
-      DialogStore.mergeState.columns.value = ['a', 'b'];
-      DialogStore.mergeState.columnName.value = 'merged';
+      DialogStore.activeDialogHasError.value = false;
       expect(activeDialogHasError()).toBe(false);
     });
 

@@ -2,33 +2,77 @@
  * TextDialog - Preact component for text operations
  */
 
-import { useSignalEffect } from '@preact/signals';
+import { signal } from '@preact/signals';
 import { useTranslation } from 'preact-i18next';
 import formStyles from './form-controls.module.css';
 import exprStyles from './expression-help.module.css';
 import dateStyles from './DateDialog.module.css';
 const styles = { ...formStyles, ...exprStyles, ...dateStyles };
+import { AppStore } from '../stores/AppStore';
+import { useDialogState } from '../hooks/useDialogState';
+import { useTransformPreview } from '../hooks/useTransformPreview';
 import { ColumnSelector } from './column-selector';
-import { DialogStore } from '../stores/DialogStore';
-import * as TextHandlers from '../handlers/transform/text-handlers';
+import {
+  getTextColumns,
+  getTextOperationPreview,
+  computeTextPreview,
+} from '../handlers/transform/text-handlers';
 
 export function TextDialog() {
   const { t } = useTranslation('dialogs');
-  const state = DialogStore.textState;
-  const { column, operations, removeOrigin, error } = state;
 
-  const textColumns = TextHandlers.getTextColumns();
-
-  // Update preview when selections change
-  useSignalEffect(() => {
-    void operations.value;
-    // Update if user has made any selections
-    if (operations.value.length > 0 && column.value) {
-      TextHandlers.updatePreview();
-    } else {
-      TextHandlers.clearPreview();
+  const { state } = useDialogState(
+    () => ({
+      column: signal(AppStore.selectedColumn.value ?? ''),
+      operations: signal<string[]>([]),
+      removeOrigin: signal(false),
+      error: signal<string | null>(null),
+    }),
+    {
+      hasError: (s) => !s.column.value || s.operations.value.length === 0,
+      getState: (s) => ({
+        column: s.column.value,
+        operations: s.operations.value,
+        removeOrigin: s.removeOrigin.value,
+      }),
     }
+  );
+
+  const { column, operations, removeOrigin, error } = state;
+  const textColumns = getTextColumns();
+
+  useTransformPreview({
+    deps: () => {
+      column.value;
+      operations.value;
+    },
+    compute: () => {
+      error.value = null;
+      if (!column.value || operations.value.length === 0) return null;
+      return computeTextPreview(column.value, operations.value);
+    },
+    onError: (err) => {
+      error.value = err.message;
+    },
   });
+
+  const setCaseOperation = (opValue: string | null) => {
+    const caseOps = ['uppercase', 'lowercase', 'titlecase'];
+    const filtered = operations.value.filter((op) => !caseOps.includes(op));
+    if (opValue) filtered.push(opValue);
+    operations.value = filtered;
+  };
+
+  const setTrimOperation = (enabled: boolean) => {
+    const current = [...operations.value];
+    if (enabled) {
+      if (!current.includes('trim')) current.push('trim');
+    } else {
+      const index = current.indexOf('trim');
+      if (index !== -1) current.splice(index, 1);
+    }
+    operations.value = current;
+  };
 
   const caseOperations = [
     { value: 'uppercase', label: t('text.operations.uppercase') },
@@ -85,7 +129,7 @@ export function TextDialog() {
                             type="radio"
                             name="case-operation"
                             checked={isSelected}
-                            onChange={() => TextHandlers.setCaseOperation(op.value)}
+                            onChange={() => setCaseOperation(op.value)}
                             style={{ margin: 0 }}
                           />
                           <span>{op.label}</span>
@@ -100,7 +144,7 @@ export function TextDialog() {
                             opacity: !isSelected ? 0.4 : 1,
                           }}
                         >
-                          {column.value ? TextHandlers.getTextOperationPreview(op.value) : '—'}
+                          {column.value ? getTextOperationPreview(op.value, column.value) : '—'}
                         </span>
                       </td>
                     </tr>
@@ -127,7 +171,7 @@ export function TextDialog() {
                             ['uppercase', 'lowercase', 'titlecase'].includes(op)
                           )
                         }
-                        onChange={() => TextHandlers.setCaseOperation(null)}
+                        onChange={() => setCaseOperation(null)}
                         style={{ margin: 0 }}
                       />
                       <span>{t('text.operations.none')}</span>
@@ -156,9 +200,7 @@ export function TextDialog() {
               <input
                 type="checkbox"
                 checked={operations.value.includes('trim')}
-                onChange={(e) =>
-                  TextHandlers.setTrimOperation((e.target as HTMLInputElement).checked)
-                }
+                onChange={(e) => setTrimOperation((e.target as HTMLInputElement).checked)}
               />
               <span>{t('text.trimWhitespace')}</span>
             </label>

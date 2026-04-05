@@ -2,24 +2,68 @@
  * ParseDateDialog - Parse date strings into date values using a format pattern
  */
 
-import { useSignalEffect } from '@preact/signals';
+import { signal } from '@preact/signals';
 import { useTranslation } from 'preact-i18next';
 import formStyles from './form-controls.module.css';
 import exprStyles from './expression-help.module.css';
 const styles = { ...formStyles, ...exprStyles };
+import { AppStore } from '../stores/AppStore';
+import { useDialogState } from '../hooks/useDialogState';
+import { useTransformPreview } from '../hooks/useTransformPreview';
 import { ColumnSelector } from './column-selector';
-import { DialogStore } from '../stores/DialogStore';
-import * as ParseDateHandlers from '../handlers/transform/parse-date-handlers';
+import {
+  getStringColumns,
+  getCommonFormats,
+  getSampleValue,
+  computeParseDatePreview,
+} from '../handlers/transform/parse-date-handlers';
 
 export function ParseDateDialog() {
   const { t } = useTranslation('dialogs');
-  const state = DialogStore.parseDateState;
+
+  const stringColumns = getStringColumns();
+
+  const { state } = useDialogState(
+    () => {
+      const selectedColumn = AppStore.selectedColumn.value;
+      const initialColumn =
+        selectedColumn && stringColumns.includes(selectedColumn)
+          ? selectedColumn
+          : stringColumns[0] || '';
+      return {
+        column: signal(initialColumn),
+        format: signal(''),
+        error: signal<string | null>(null),
+      };
+    },
+    {
+      hasError: (s) => !s.column.value || !s.format.value,
+      getState: (s) => ({
+        column: s.column.value,
+        format: s.format.value,
+      }),
+    }
+  );
+
   const { column, format, error } = state;
 
-  const stringColumns = ParseDateHandlers.getStringColumns();
-  const commonFormatsRaw = ParseDateHandlers.getCommonFormats();
+  useTransformPreview({
+    deps: () => {
+      column.value;
+      format.value;
+    },
+    compute: () => {
+      error.value = null;
+      if (!column.value || !format.value) return null;
+      return computeParseDatePreview(column.value, format.value);
+    },
+    onError: (err) => {
+      error.value = err.message;
+    },
+  });
 
-  // Map format values to translation keys
+  const commonFormatsRaw = getCommonFormats();
+
   const formatKeyMap: Record<string, string> = {
     'YYYY-MM-DD': 'iso',
     'MM/DD/YYYY': 'us',
@@ -29,24 +73,12 @@ export function ParseDateDialog() {
     timestamp: 'unix',
   };
 
-  // For formats not in the map, just show the format string as the label
   const commonFormats = commonFormatsRaw.map((fmt) => ({
     ...fmt,
     label: formatKeyMap[fmt.value] ? t(`parseDate.formats.${formatKeyMap[fmt.value]}`) : fmt.value,
   }));
 
-  // Update preview when column or format changes
-  useSignalEffect(() => {
-    void column.value;
-    void format.value;
-    if (column.value && format.value) {
-      ParseDateHandlers.updateParseDatePreview();
-    } else {
-      ParseDateHandlers.clearParseDatePreview();
-    }
-  });
-
-  const sampleValue = column.value ? ParseDateHandlers.getSampleValue() : '';
+  const sampleValue = column.value ? getSampleValue(column.value) : '';
 
   return (
     <div>

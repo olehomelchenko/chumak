@@ -1,6 +1,7 @@
+import { signal } from '@preact/signals';
 import { useTranslation } from 'preact-i18next';
-import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
+import { useDialogState } from '../hooks/useDialogState';
 import { ColumnSelector } from './column-selector';
 import formStyles from './form-controls.module.css';
 import exprStyles from './expression-help.module.css';
@@ -12,8 +13,30 @@ const styles = { ...formStyles, ...exprStyles };
  */
 export function UnrollDialog() {
   const { t } = useTranslation('dialogs');
-  const { column, indices, keepOriginal } = DialogStore.unrollState;
   const columns = AppStore.columns.value;
+
+  const { state } = useDialogState(
+    (ctx) => {
+      const editing = ctx.editingStep?.unroll;
+      const initialColumn =
+        (editing as any)?.column ?? AppStore.selectedColumn.value ?? ctx.columns[0] ?? '';
+      return {
+        column: signal(initialColumn),
+        indices: signal(!!(editing as any)?.indices),
+        keepOriginal: signal(!!(editing as any)?.keepOriginal),
+      };
+    },
+    {
+      hasError: (s) => !s.column.value || s.column.value.trim() === '',
+      getState: (s) => ({
+        column: s.column.value,
+        indices: s.indices.value,
+        keepOriginal: s.keepOriginal.value,
+      }),
+    }
+  );
+
+  const { column, indices, keepOriginal } = state;
 
   return (
     <div>

@@ -2,32 +2,42 @@
  * MergeDialog - Preact component for merging/concatenating columns
  */
 
-import { useSignalEffect } from '@preact/signals';
+import { signal, useSignalEffect } from '@preact/signals';
 import { useTranslation } from 'preact-i18next';
-import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
+import { useDialogState } from '../hooks/useDialogState';
+import { useTransformPreview } from '../hooks/useTransformPreview';
+import { computeMergePreview } from '../handlers/transform/merge-handlers';
 import { ColumnSelector } from './column-selector/ColumnSelector';
-import * as MergeHandlers from '../handlers/transform/merge-handlers';
+import i18n from '../../i18n';
 import styles from './form-controls.module.css';
 
 export function MergeDialog() {
   const { t } = useTranslation('dialogs');
-  const { columns, separator, columnName, removeOriginal, error } = DialogStore.mergeState;
   const allColumns = AppStore.columns.value;
 
-  useSignalEffect(() => {
-    // Trigger preview when params change
-    void columns.value;
-    void separator.value;
-    void columnName.value;
-    if (columns.value.length > 0) {
-      MergeHandlers.debouncedUpdateMergePreview();
+  const { state } = useDialogState(
+    () => ({
+      columns: signal<string[]>([...(AppStore.selectedColumns.value || [])]),
+      separator: signal(' '),
+      columnName: signal(''),
+      removeOriginal: signal(false),
+      error: signal<string | null>(null),
+    }),
+    {
+      hasError: (s) =>
+        !!s.error.value || s.columns.value.length === 0 || !s.columnName.value?.trim(),
+      getError: (s) => s.error.value,
+      getState: (s) => ({
+        columns: s.columns.value,
+        separator: s.separator.value,
+        columnName: s.columnName.value,
+        removeOriginal: s.removeOriginal.value,
+      }),
     }
-  });
+  );
 
-  const setPresetSeparator = (val: string) => {
-    separator.value = val;
-  };
+  const { columns, separator, columnName, removeOriginal, error } = state;
 
   // Auto-generate column name from selected columns (only if empty)
   useSignalEffect(() => {
@@ -35,6 +45,27 @@ export function MergeDialog() {
       const baseName = columns.value.join('_');
       columnName.value = baseName + '_merged';
     }
+  });
+
+  useTransformPreview({
+    deps: () => {
+      columns.value;
+      separator.value;
+      columnName.value;
+    },
+    compute: () => {
+      error.value = null;
+      if (!columns.value.length || !columnName.value) {
+        if (columns.value.length > 0 && !columnName.value) {
+          error.value = i18n.t('validation.required.outputColumnName', { ns: 'errors' });
+        }
+        return null;
+      }
+      return computeMergePreview(columns.value, separator.value, columnName.value, allColumns);
+    },
+    onError: (err) => {
+      error.value = err.message;
+    },
   });
 
   return (
@@ -46,7 +77,7 @@ export function MergeDialog() {
           selectedColumns={columns.value}
           onSelectionChange={(selected) => {
             if (Array.isArray(selected)) {
-              MergeHandlers.selectMergeColumns(selected);
+              columns.value = selected;
             }
           }}
           mode="multi"
@@ -65,7 +96,7 @@ export function MergeDialog() {
               type="button"
               class="button button--secondary"
               style={{ padding: '4px 8px', fontSize: '12px' }}
-              onClick={() => setPresetSeparator(sep)}
+              onClick={() => (separator.value = sep)}
               title={
                 sep === ''
                   ? t('merge.separatorPresets.noSeparator')

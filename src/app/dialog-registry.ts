@@ -21,8 +21,6 @@ import i18n from '../i18n';
 
 // Transform handlers
 import { confirm } from './handlers/core/notification-handlers';
-import * as SpreadHandlers from './handlers/transform/spread-handlers';
-import * as UnrollHandlers from './handlers/transform/unroll-handlers';
 import { applySplitTransform } from './handlers/transform/split-handlers';
 import * as MergeHandlers from './handlers/transform/merge-handlers';
 import { applyDateTransform } from './handlers/transform/date-handlers';
@@ -230,35 +228,48 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     },
   }),
 
-  spread: {
+  spread: bridgedDialogEntry({
     name: 'spread',
     title: 'Spread Array Column',
     type: 'slide-panel',
     buttonText: 'buttons.spread',
-    applyHandler: (cb) => SpreadHandlers.applySpreadTransform(cb),
-    getState: () => ({
-      column: DialogStore.spreadState.column.value,
-      limit: DialogStore.spreadState.limit.value,
-      keepOriginal: DialogStore.spreadState.keepOriginal.value,
-    }),
-    hasError: () =>
-      !DialogStore.spreadState.column.value || DialogStore.spreadState.column.value.trim() === '',
-  },
+    applyHandler: async (cb) => {
+      const state = DialogStore.activeDialogState.value;
+      if (!state) return;
+      const column = state.column as string;
+      if (!column || column.trim() === '') {
+        await cb.onError?.(i18n.t('validation.selection.column', { ns: 'errors' }));
+        return;
+      }
+      const limit = state.limit as number | undefined;
+      if (limit !== undefined && limit <= 0) {
+        await cb.onError?.(i18n.t('validation.invalid.spreadLimit', { ns: 'errors' }));
+        return;
+      }
+      const transform: any = { spread: { column, keepOriginal: state.keepOriginal } };
+      if (limit !== undefined) transform.spread.limit = limit;
+      await StepService.runTransform('Spread', transform, cb);
+    },
+  }),
 
-  unroll: {
+  unroll: bridgedDialogEntry({
     name: 'unroll',
     title: 'Unroll Array Column',
     type: 'slide-panel',
     buttonText: 'buttons.unroll',
-    applyHandler: (cb) => UnrollHandlers.applyUnrollTransform(cb),
-    getState: () => ({
-      column: DialogStore.unrollState.column.value,
-      indices: DialogStore.unrollState.indices.value,
-      keepOriginal: DialogStore.unrollState.keepOriginal.value,
-    }),
-    hasError: () =>
-      !DialogStore.unrollState.column.value || DialogStore.unrollState.column.value.trim() === '',
-  },
+    applyHandler: async (cb) => {
+      const state = DialogStore.activeDialogState.value;
+      if (!state) return;
+      const column = state.column as string;
+      if (!column || column.trim() === '') {
+        await cb.onError?.(i18n.t('validation.selection.unrollColumn', { ns: 'errors' }));
+        return;
+      }
+      const transform: any = { unroll: { column, keepOriginal: state.keepOriginal } };
+      if (state.indices) transform.unroll.indices = true;
+      await StepService.runTransform('Unroll', transform, cb);
+    },
+  }),
 
   split: bridgedDialogEntry({
     name: 'split',
@@ -268,24 +279,13 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     applyHandler: (cb) => applySplitTransform(cb),
   }),
 
-  merge: {
+  merge: bridgedDialogEntry({
     name: 'merge',
     title: 'Merge Columns',
     type: 'slide-panel',
     buttonText: 'buttons.merge',
     applyHandler: (cb) => MergeHandlers.applyMergeTransform(cb),
-    getState: () => ({
-      columns: DialogStore.mergeState.columns.value,
-      separator: DialogStore.mergeState.separator.value,
-      columnName: DialogStore.mergeState.columnName.value,
-      removeOriginal: DialogStore.mergeState.removeOriginal.value,
-    }),
-    hasError: () =>
-      !!DialogStore.mergeState.error.value ||
-      DialogStore.mergeState.columns.value.length === 0 ||
-      !DialogStore.mergeState.columnName.value?.trim(),
-    getError: () => DialogStore.mergeState.error.value,
-  },
+  }),
 
   regexpMatch: bridgedDialogEntry({
     name: 'regexpMatch',
@@ -384,21 +384,21 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     applyHandler: (cb) => applyDateTransform(cb),
   }),
 
-  parseDate: {
+  parseDate: bridgedDialogEntry({
     name: 'parseDate',
     title: 'Parse Date',
     type: 'slide-panel',
     buttonText: 'buttons.parse',
     applyHandler: (cb) => ParseDateHandlers.applyParseDateTransform(cb),
-  },
+  }),
 
-  text: {
+  text: bridgedDialogEntry({
     name: 'text',
     title: 'Text Operations',
     type: 'slide-panel',
     buttonText: 'buttons.addColumn',
     applyHandler: (cb) => TextHandlers.applyTextTransform(cb),
-  },
+  }),
 
   dedupe: bridgedDialogEntry({
     name: 'dedupe',

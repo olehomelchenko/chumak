@@ -401,17 +401,11 @@ export function editStep(stepIndex: number): void {
     // State initialized by useDialogState hook via editingStep context
     callbacks?.openDialog('promoteHeader');
   } else if (step.spread) {
+    // State initialized by useDialogState hook via editingStep context
     callbacks?.openDialog('spread');
-    const state = DialogStore.spreadState;
-    state.column.value = step.spread.column;
-    state.limit.value = step.spread.limit;
-    state.keepOriginal.value = !!step.spread.keepOriginal;
   } else if (step.unroll) {
+    // State initialized by useDialogState hook via editingStep context
     callbacks?.openDialog('unroll');
-    const state = DialogStore.unrollState;
-    state.column.value = step.unroll.column;
-    state.indices.value = !!step.unroll.indices;
-    state.keepOriginal.value = !!step.unroll.keepOriginal;
   } else if (step.selectPattern) {
     // State initialized by useDialogState hook via editingStep context
     callbacks?.openDialog('selectPattern');

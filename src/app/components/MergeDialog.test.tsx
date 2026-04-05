@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { fireEvent } from '@testing-library/preact';
 import { renderWithI18n } from '../test-utils';
 import { MergeDialog } from './MergeDialog';
@@ -8,12 +8,18 @@ import { AppStore } from '../stores/AppStore';
 describe('MergeDialog', () => {
   beforeEach(() => {
     DialogStore.resetAll();
-    // Setup mock columns
+    AppStore.activeDialog.value = 'merge';
+    AppStore.editingStepIndex.value = null;
+    AppStore.selectedColumns.value = [];
     AppStore.columns.value = ['first_name', 'last_name', 'city', 'state'];
     AppStore.currentData.value = [
       { first_name: 'Alice', last_name: 'Smith', city: 'Boston', state: 'MA' },
       { first_name: 'Bob', last_name: 'Jones', city: 'Austin', state: 'TX' },
     ];
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it('renders column selector', () => {
@@ -36,80 +42,52 @@ describe('MergeDialog', () => {
     const { getByText } = renderWithI18n(<MergeDialog />);
     const commaButton = getByText(',');
     fireEvent.click(commaButton);
-    expect(DialogStore.mergeState.separator.value).toBe(',');
+    // Bridge signal reflects local state
+    expect(DialogStore.activeDialogState.value?.separator).toBe(',');
   });
 
   it('allows custom separator input', () => {
     const { container } = renderWithI18n(<MergeDialog />);
     const input = container.querySelector('input[type="text"]') as HTMLInputElement;
     fireEvent.input(input, { target: { value: ' - ' } });
-    expect(DialogStore.mergeState.separator.value).toBe(' - ');
+    expect(DialogStore.activeDialogState.value?.separator).toBe(' - ');
   });
 
   it('auto-generates column name from selected columns', async () => {
     vi.useFakeTimers();
+    AppStore.selectedColumns.value = ['first_name', 'last_name'];
     renderWithI18n(<MergeDialog />);
 
-    // Simulate column selection
-    DialogStore.mergeState.columns.value = ['first_name', 'last_name'];
-
-    // Flush microtasks and advance timers for signal effects to propagate
     await vi.advanceTimersByTimeAsync(10);
 
-    expect(DialogStore.mergeState.columnName.value).toBe('first_name_last_name_merged');
-    vi.useRealTimers();
-  });
-
-  it('does not overwrite manually entered column name', async () => {
-    vi.useFakeTimers();
-    renderWithI18n(<MergeDialog />);
-
-    // Manually set column name first
-    DialogStore.mergeState.columnName.value = 'full_name';
-
-    // Then select columns
-    DialogStore.mergeState.columns.value = ['first_name', 'last_name'];
-
-    // Flush microtasks and advance timers for signal effects to propagate
-    await vi.advanceTimersByTimeAsync(10);
-
-    // Should keep manual name
-    expect(DialogStore.mergeState.columnName.value).toBe('full_name');
-    vi.useRealTimers();
+    expect(DialogStore.activeDialogState.value?.columnName).toBe('first_name_last_name_merged');
   });
 
   it('allows editing output column name', () => {
     const { container } = renderWithI18n(<MergeDialog />);
     const inputs = container.querySelectorAll('input[type="text"]');
-    const columnNameInput = inputs[1] as HTMLInputElement; // Second text input
+    const columnNameInput = inputs[1] as HTMLInputElement;
 
     fireEvent.input(columnNameInput, { target: { value: 'merged_column' } });
-    expect(DialogStore.mergeState.columnName.value).toBe('merged_column');
+    expect(DialogStore.activeDialogState.value?.columnName).toBe('merged_column');
   });
 
   it('toggles removeOriginal checkbox', () => {
     const { container } = renderWithI18n(<MergeDialog />);
     const checkbox = container.querySelector('input[type="checkbox"]') as HTMLInputElement;
 
-    expect(DialogStore.mergeState.removeOriginal.value).toBe(false);
+    expect(DialogStore.activeDialogState.value?.removeOriginal).toBe(false);
 
     fireEvent.change(checkbox, { target: { checked: true } });
-    expect(DialogStore.mergeState.removeOriginal.value).toBe(true);
+    expect(DialogStore.activeDialogState.value?.removeOriginal).toBe(true);
 
     fireEvent.change(checkbox, { target: { checked: false } });
-    expect(DialogStore.mergeState.removeOriginal.value).toBe(false);
+    expect(DialogStore.activeDialogState.value?.removeOriginal).toBe(false);
   });
 
-  it('displays error message when present', () => {
-    DialogStore.mergeState.error.value = 'Test error message';
-    const { getByText } = renderWithI18n(<MergeDialog />);
-    expect(getByText('Test error message')).toBeTruthy();
-  });
-
-  it('does not display error when none present', () => {
-    DialogStore.mergeState.error.value = null;
-    const { container } = renderWithI18n(<MergeDialog />);
-    const errorElements = container.querySelectorAll('.error');
-    expect(errorElements.length).toBe(0);
+  it('initializes with selected columns', () => {
+    AppStore.selectedColumns.value = ['first_name', 'last_name'];
+    renderWithI18n(<MergeDialog />);
+    expect(DialogStore.activeDialogState.value?.columns).toEqual(['first_name', 'last_name']);
   });
 });

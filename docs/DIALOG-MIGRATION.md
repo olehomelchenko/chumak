@@ -87,6 +87,14 @@ During batch 3, the Preview column in the checklist below said "No" for regexpMa
 
 4. **Type re-exports break.** Old components re-exported types (`export type { SplitMode } from './SplitDialog'`). After migration the component no longer re-exports them — update barrel files to point to the source (`../../types/modes`).
 
+### Batch 5: non-editable dialogs and quick action cleanup
+
+1. **Non-editable dialogs skip the editing branch.** Some dialogs (e.g., merge) store their transform as a combination of other step types (`derive` + `remove`), not as their own step key. For these, `ctx.editingStep?.xxx` doesn't exist on `TransformStep` and causes a TypeScript error. The factory should omit the editing branch entirely — just initialize with defaults from `AppStore`.
+
+2. **Quick actions that pre-set DialogStore state become dead code.** After migration, the hook reads initial values from `AppStore.selectedColumn.value` directly. Quick action functions (in `interaction-handlers.ts`) that set `DialogStore.xxxState.column.value` before calling `openDialog` are now redundant — remove the state-setting line, keep the `openDialog` call.
+
+3. **Refactor handler functions to accept parameters.** Functions like `getSampleValue(column)` or `getTextOperationPreview(op, column)` should take explicit parameters instead of reading from DialogStore state. This makes them callable from the component's local signals and properly pure.
+
 ### Batches 1–3: reviewed, no regressions found
 
 All prior batches were reviewed commit-by-commit. No dropped functionality was found. The migration actually fixed a few latent issues (inconsistent index reset default, missing `isRegex` on replace editing).
@@ -205,13 +213,13 @@ case 'xxx':
 | filter        | `filter-state.ts`         | `filter-handlers.ts`        | Yes        | High       | Done   |
 | derive        | `derive-state.ts`         | `derive-handlers.ts`        | Yes        | High       | Done   |
 | dedupe        | `dedupe-state.ts`         | `dedupe-handlers.ts`        | Yes        | High       | Done   |
-| spread        | `spread-state.ts`         | `spread-handlers.ts`        | No         | Medium     |        |
-| unroll        | `unroll-state.ts`         | `unroll-handlers.ts`        | No         | Medium     |        |
+| spread        | `spread-state.ts`         | `spread-handlers.ts`        | No         | Medium     | Done   |
+| unroll        | `unroll-state.ts`         | `unroll-handlers.ts`        | No         | Medium     | Done   |
 | split         | `split-state.ts`          | `split-handlers.ts`         | Yes        | High       | Done   |
-| merge         | `merge-state.ts`          | `merge-handlers.ts`         | Yes        | Medium     |        |
-| text          | `text-state.ts`           | `text-handlers.ts`          | Yes        | Medium     |        |
+| merge         | `merge-state.ts`          | `merge-handlers.ts`         | Yes        | Medium     | Done   |
+| text          | `text-state.ts`           | `text-handlers.ts`          | Yes        | Medium     | Done   |
 | date          | `date-state.ts`           | `date-handlers.ts`          | Yes        | High       | Done   |
-| parseDate     | `parse-date-state.ts`     | `parse-date-handlers.ts`    | Yes        | Medium     |        |
+| parseDate     | `parse-date-state.ts`     | `parse-date-handlers.ts`    | Yes        | Medium     | Done   |
 | regexpMatch   | `regexp-match-state.ts`   | `regexp-handlers.ts`        | Yes        | Medium     | Done   |
 | regexpExtract | `regexp-extract-state.ts` | `regexp-handlers.ts`        | Yes        | Medium     | Done   |
 | fold          | `fold-state.ts`           | `fold-handlers.ts`          | Yes        | Medium     |        |

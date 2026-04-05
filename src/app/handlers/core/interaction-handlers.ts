@@ -481,8 +481,6 @@ export function quickReplaceColumn(onOpenDialog: (name: string) => void) {
 export function quickSpread(onOpenDialog: (name: string) => void) {
   const col = AppStore.selectedColumn.value;
   if (!col) return;
-
-  DialogStore.spreadState.column.value = col;
   onOpenDialog('spread');
 }
 

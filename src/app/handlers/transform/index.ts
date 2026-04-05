@@ -5,8 +5,6 @@ export * from './pivot-handlers';
 export * from './fold-handlers';
 export * from './split-handlers';
 export * from './merge-handlers';
-export * from './spread-handlers';
-export * from './unroll-handlers';
 export * from './dedupe-handlers';
 export * from './text-handlers';
 export * from './date-handlers';

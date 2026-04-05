@@ -5,7 +5,7 @@ import { interpretAST } from '../../../core/ast-interpreter';
 import { isConversionError } from '../../../core/type-converter';
 import * as HelperHandlers from '../core/helper-handlers';
 import { StepService } from '../../services/StepService';
-import { createDebouncedPreview, clearPreview, PreviewResult } from '../preview-engine';
+import type { PreviewResult } from '../preview-engine';
 import i18n from '../../../i18n';
 
 export function getStringColumns(): string[] {
@@ -37,66 +37,51 @@ export function getCommonFormats() {
   ];
 }
 
-// Preview engine instance
-const parseDatePreview = createDebouncedPreview({
-  compute: (): PreviewResult | null => {
-    const state = DialogStore.parseDateState;
-    const { column, format } = state;
-    const colVal = column.value;
-    const formatVal = format.value;
-    const data = AppStore.currentData.value;
+/**
+ * Pure preview compute for parseDate — called by useTransformPreview in the component.
+ */
+export function computeParseDatePreview(colVal: string, formatVal: string): PreviewResult | null {
+  const data = AppStore.currentData.value;
+  if (!colVal || !formatVal || !data?.length) return null;
 
-    if (!colVal || !formatVal || !data?.length) {
-      return null;
+  const previewLimit = AppStore.uxSettings.value.preview.rowLimit;
+  const samples = data.slice(0, previewLimit);
+  const colRef = HelperHandlers.quoteColumnRef.call(null as any, colVal);
+  const outputColName = `${colVal}_parsed`;
+  const expression = `parse_date(${colRef}, "${formatVal.replace(/"/g, '\\"')}")`;
+
+  let successCount = 0;
+  const previewRows = samples.map((row) => {
+    const previewRow: any = { [colVal]: row[colVal] };
+    try {
+      const ast = parseExpression(expression);
+      const result = interpretAST(ast, row);
+      const isError = isConversionError(result);
+      previewRow[outputColName] = result != null && !isError ? String(result) : '(null)';
+      if (result != null && !isError) successCount++;
+    } catch {
+      previewRow[outputColName] = '(error)';
     }
+    return previewRow;
+  });
 
-    const previewLimit = AppStore.uxSettings.value.preview.rowLimit;
-    const samples = data.slice(0, previewLimit);
-    const colRef = HelperHandlers.quoteColumnRef.call(null as any, colVal);
-    const outputColName = `${colVal}_parsed`;
-    const expression = `parse_date(${colRef}, "${formatVal.replace(/"/g, '\\"')}")`;
+  const totalSampled = previewRows.length;
+  const failCount = totalSampled - successCount;
 
-    let successCount = 0;
-    const previewRows = samples.map((row) => {
-      const previewRow: any = { [colVal]: row[colVal] };
-
-      try {
-        const ast = parseExpression(expression);
-        const result = interpretAST(ast, row);
-        const isError = isConversionError(result);
-        previewRow[outputColName] = result != null && !isError ? String(result) : '(null)';
-        if (result != null && !isError) successCount++;
-      } catch {
-        previewRow[outputColName] = '(error)';
-      }
-
-      return previewRow;
-    });
-
-    const totalSampled = previewRows.length;
-    const failCount = totalSampled - successCount;
-
-    return {
-      title: 'Parse Date Preview',
-      stats: `<strong>${successCount}</strong> of ${totalSampled} parsed${failCount > 0 ? ` (<strong>${failCount} failed</strong>)` : ''}`,
-      columns: [colVal, outputColName],
-      newColumns: [outputColName],
-      rows: previewRows,
-    };
-  },
-});
-
-export function updateParseDatePreview() {
-  parseDatePreview.compute();
+  return {
+    title: 'Parse Date Preview',
+    stats: `<strong>${successCount}</strong> of ${totalSampled} parsed${failCount > 0 ? ` (<strong>${failCount} failed</strong>)` : ''}`,
+    columns: [colVal, outputColName],
+    newColumns: [outputColName],
+    rows: previewRows,
+  };
 }
 
-export { clearPreview as clearParseDatePreview };
-
-export function getSampleValue(): string {
-  const state = DialogStore.parseDateState;
-  const colVal = state.column.value;
+/**
+ * Get a sample value from the selected column.
+ */
+export function getSampleValue(colVal: string): string {
   const data = AppStore.currentData.value;
-
   if (!colVal || !data?.length) return '';
 
   const previewLimit = AppStore.uxSettings.value.preview.rowLimit;
@@ -111,10 +96,10 @@ export function getSampleValue(): string {
 }
 
 export async function applyParseDateTransform(callbacks: any) {
-  const state = DialogStore.parseDateState;
-  const { column, format } = state;
-  const colVal = column.value;
-  const formatVal = format.value;
+  const state = DialogStore.activeDialogState.value;
+  if (!state) return;
+  const colVal = state.column as string;
+  const formatVal = state.format as string;
 
   if (!colVal) {
     await callbacks.onError?.(i18n.t('validation.selection.sourceColumn', { ns: 'errors' }));
@@ -130,15 +115,7 @@ export async function applyParseDateTransform(callbacks: any) {
   const outputColName = `${colVal}_parsed`;
   const expression = `parse_date(${colRef}, "${formatVal.replace(/"/g, '\\"')}")`;
 
-  const deriveSpecs: Record<string, string> = {
-    [outputColName]: expression,
-  };
-
-  // Check for existing column
-  const appCols = AppStore.columns.value;
-  if (appCols.includes(outputColName) && outputColName !== colVal) {
-    // Column already exists - it will be overwritten
-  }
+  const deriveSpecs: Record<string, string> = { [outputColName]: expression };
 
   await StepService.runTransform(`Parse Date: ${colVal}`, { derive: deriveSpecs }, callbacks);
 }

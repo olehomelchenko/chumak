@@ -10,7 +10,6 @@ import { DialogStore } from '../stores/DialogStore';
 import { DialogName } from '../types';
 import { DIALOG_REGISTRY } from '../dialog-registry';
 import { syncDialogToUrl, clearDialogFromUrl } from './UrlStateSync';
-import * as ParseDateHandlers from '../handlers/transform/parse-date-handlers';
 
 export type DialogCallbacks = {
   initializeJoinDialog?: () => void;
@@ -66,7 +65,6 @@ export function hasUnsavedChanges(): boolean {
  */
 export function initDialogState(dialogName: string, section?: string): void {
   const columns = AppStore.columns.value;
-  const selectedColumn = AppStore.selectedColumn.value;
   const selectedColumns = AppStore.selectedColumns.value;
   switch (dialogName) {
     case 'filter':
@@ -88,18 +86,8 @@ export function initDialogState(dialogName: string, section?: string): void {
       break;
 
     case 'spread':
-      if (!DialogStore.spreadState.column.value) {
-        DialogStore.spreadState.column.value = selectedColumn || '';
-      }
-      DialogStore.spreadState.limit.value = undefined;
-      break;
-
     case 'unroll':
-      if (!DialogStore.unrollState.column.value) {
-        DialogStore.unrollState.column.value = selectedColumn || '';
-      }
-      DialogStore.unrollState.indices.value = false;
-      break;
+      break; // state managed by useDialogState hook
 
     case 'index':
       break; // state managed by useDialogState hook
@@ -169,15 +157,8 @@ export function initDialogState(dialogName: string, section?: string): void {
     case 'split':
       break; // state managed by useDialogState hook
 
-    case 'merge': {
-      const state = DialogStore.mergeState;
-      state.columns.value = selectedColumns.length > 0 ? [...selectedColumns] : [];
-      state.separator.value = ' ';
-      state.columnName.value = '';
-      state.removeOriginal.value = false;
-      state.error.value = null;
-      break;
-    }
+    case 'merge':
+      break; // state managed by useDialogState hook
 
     case 'regexpMatch':
     case 'regexpExtract':
@@ -186,32 +167,11 @@ export function initDialogState(dialogName: string, section?: string): void {
     case 'date':
       break; // state managed by useDialogState hook
 
-    case 'parseDate': {
-      const pdState = DialogStore.parseDateState;
-      if (!pdState.column.value) {
-        const stringColumns = ParseDateHandlers.getStringColumns();
-        pdState.column.value =
-          selectedColumn && stringColumns.includes(selectedColumn)
-            ? selectedColumn
-            : stringColumns[0] || '';
-      }
-      pdState.format.value = '';
-      pdState.error.value = null;
-      ParseDateHandlers.clearParseDatePreview();
-      break;
-    }
+    case 'parseDate':
+      break; // state managed by useDialogState hook
 
-    case 'text': {
-      const state = DialogStore.textState;
-      if (!state.column.value) {
-        state.column.value = selectedColumn || '';
-      }
-      state.operations.value = [];
-      state.removeOrigin.value = false;
-      state.error.value = null;
-      state.previewData.value = [];
-      break;
-    }
+    case 'text':
+      break; // state managed by useDialogState hook
 
     case 'dedupe':
       break; // state managed by useDialogState hook
