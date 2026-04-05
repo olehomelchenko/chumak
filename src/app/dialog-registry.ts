@@ -408,19 +408,13 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     applyHandler: (cb) => applyDedupeTransform(cb),
   }),
 
-  fold: {
+  fold: bridgedDialogEntry({
     name: 'fold',
     title: 'Unpivot Data (Fold)',
     type: 'slide-panel',
     buttonText: 'buttons.unpivot',
     applyHandler: (cb) => FoldHandlers.applyFoldTransform(cb),
-    getState: () => ({
-      keyName: DialogStore.foldState.keyName.value,
-      valueName: DialogStore.foldState.valueName.value,
-      selectedColumns: DialogStore.foldState.selectedColumns.value,
-      mode: DialogStore.foldState.mode.value,
-    }),
-  },
+  }),
 
   pivot: {
     name: 'pivot',
@@ -451,24 +445,13 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     }),
   },
 
-  describe: {
+  describe: bridgedDialogEntry({
     name: 'describe',
     title: 'Summary Statistics',
     type: 'slide-panel',
     buttonText: 'buttons.describe',
     applyHandler: (cb) => DescribeHandlers.applyDescribeTransform(cb),
-    initState: () => {
-      const schema = AppStore.activeModel.value?.schema || [];
-      const numericCols = schema
-        .filter((c: any) => ['integer', 'float'].includes(c.type))
-        .map((c: any) => c.name);
-      DialogStore.describeState.selectedColumns.value = numericCols;
-    },
-    getState: () => ({
-      selectedColumns: DialogStore.describeState.selectedColumns.value,
-    }),
-    hasError: () => DialogStore.describeState.selectedColumns.value.length === 0,
-  },
+  }),
 
   window: {
     name: 'window',

@@ -275,14 +275,8 @@ export function editStep(stepIndex: number): void {
     DialogStore.joinState.selectedRightColumns.value = step.lookup.values;
     callbacks?.onJoinTargetChange();
   } else if (step.fold) {
+    // State initialized by useDialogState hook via editingStep context
     callbacks?.openDialog('fold');
-    const state = DialogStore.foldState;
-    state.keyName.value = step.fold.as[0];
-    state.valueName.value = step.fold.as[1];
-    state.selectedColumns.value = columns.map((c: string) =>
-      step.fold ? step.fold.columns.includes(c) : false
-    );
-    state.mode.value = 'fold';
   } else if (step.pivot) {
     callbacks?.openDialog('pivot');
     const state = DialogStore.pivotState;
@@ -419,9 +413,8 @@ export function editStep(stepIndex: number): void {
     // State initialized by useDialogState hook via editingStep context
     callbacks?.openDialog('conditional');
   } else if (step.describe) {
+    // State initialized by useDialogState hook via editingStep context
     callbacks?.openDialog('describe');
-    DialogStore.describeState.selectedColumns.value = [...step.describe.columns];
-    DialogStore.describeState.isPreviewing.value = false;
   }
 }
 

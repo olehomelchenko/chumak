@@ -1,7 +1,10 @@
+import { signal } from '@preact/signals';
+import { useRef, useEffect } from 'preact/hooks';
 import { useTranslation } from 'preact-i18next';
-import * as DescribeHandlers from '../handlers/transform/describe-handlers';
-import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
+import { useDialogState } from '../hooks/useDialogState';
+import { computeDescribePreview } from '../handlers/transform/describe-handlers';
+import { createDebouncedPreview, type PreviewHandle } from '../handlers/preview-engine';
 import { ColumnSelector } from './column-selector';
 import formStyles from './form-controls.module.css';
 import exprStyles from './expression-help.module.css';
@@ -9,8 +12,56 @@ const styles = { ...formStyles, ...exprStyles };
 
 export function DescribeDialog() {
   const { t } = useTranslation('dialogs');
-  const { selectedColumns, isPreviewing } = DialogStore.describeState;
   const columns = AppStore.columns.value;
+
+  const { state } = useDialogState(
+    (ctx) => {
+      const editing = ctx.editingStep?.describe;
+      const initialColumns = editing
+        ? [...editing.columns]
+        : ctx.schema.filter((c) => ['integer', 'float'].includes(c.type)).map((c) => c.name);
+      return {
+        selectedColumns: signal<string[]>(initialColumns),
+        isPreviewing: signal(false),
+        previewError: signal<string | null>(null),
+      };
+    },
+    {
+      hasError: (s) => s.selectedColumns.value.length === 0,
+      getState: (s) => ({
+        selectedColumns: s.selectedColumns.value,
+      }),
+    }
+  );
+
+  const { selectedColumns, isPreviewing, previewError } = state;
+
+  // Manual preview handle
+  const previewRef = useRef<PreviewHandle | null>(null);
+  if (previewRef.current === null) {
+    previewRef.current = createDebouncedPreview({
+      compute: () => computeDescribePreview(selectedColumns.value),
+      onError: (error) => {
+        previewError.value = error.message;
+      },
+    });
+  }
+
+  useEffect(() => {
+    return () => {
+      previewRef.current?.clear();
+    };
+  }, []);
+
+  const handlePreviewClick = () => {
+    isPreviewing.value = true;
+    previewError.value = null;
+    try {
+      previewRef.current?.compute();
+    } finally {
+      isPreviewing.value = false;
+    }
+  };
 
   return (
     <div>
@@ -84,7 +135,7 @@ export function DescribeDialog() {
       <div class={styles.group} style={{ marginTop: '1rem' }}>
         <button
           class="button button--secondary"
-          onClick={DescribeHandlers.updateDescribePreview}
+          onClick={handlePreviewClick}
           disabled={isPreviewing.value}
         >
           {isPreviewing.value ? t('describe.previewing') : t('describe.previewButton')}

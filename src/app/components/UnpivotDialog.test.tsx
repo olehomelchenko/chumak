@@ -2,79 +2,75 @@
  * UnpivotDialog Component Tests
  */
 
-import { describe, it, expect, beforeEach } from 'vitest';
+import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { screen, fireEvent } from '@testing-library/preact';
 import { renderWithI18n } from '../test-utils';
 import { UnpivotDialog } from './UnpivotDialog';
 import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 
+vi.mock('../handlers/preview-engine', async () =>
+  (await import('../handlers/test-utils')).MockFactories.previewEngine()
+);
+
 describe('UnpivotDialog', () => {
   const testColumns = ['Year', 'Q1', 'Q2', 'Q3', 'Q4'];
 
   beforeEach(() => {
-    // Reset store state before each test
-    DialogStore.foldState.keyName.value = 'Year';
-    DialogStore.foldState.valueName.value = 'Sales';
-    DialogStore.foldState.mode.value = 'keep';
-    DialogStore.foldState.selectedColumns.value = [true, false, false, false, false];
     AppStore.columns.value = testColumns;
+    AppStore.selectedColumns.value = [];
+    AppStore.editingStepIndex.value = null;
+    DialogStore.activeDialogState.value = null;
+    DialogStore.activeDialogHasError.value = false;
+    DialogStore.activeDialogError.value = null;
   });
 
   it('renders with default values', () => {
     renderWithI18n(<UnpivotDialog />);
 
-    expect(screen.getByDisplayValue('Year')).toBeDefined();
-    expect(screen.getByDisplayValue('Sales')).toBeDefined();
-    // Check that the button has the active class (CSS module class contains "active")
+    expect(screen.getByDisplayValue('key')).toBeDefined();
+    expect(screen.getByDisplayValue('value')).toBeDefined();
     const keepButton = screen.getByText('Columns to keep (as index)').closest('button');
     expect(keepButton?.className).toContain('active');
   });
 
   it('updates names when input changes', () => {
-    DialogStore.foldState.keyName.value = '';
-    DialogStore.foldState.valueName.value = '';
     renderWithI18n(<UnpivotDialog />);
 
     const keyInput = screen.getByPlaceholderText('e.g. Year') as HTMLInputElement;
     fireEvent.input(keyInput, { target: { value: 'Month' } });
-    expect(DialogStore.foldState.keyName.value).toBe('Month');
+    expect(keyInput.value).toBe('Month');
   });
 
   it('toggles mode', () => {
     renderWithI18n(<UnpivotDialog />);
 
     fireEvent.click(screen.getByText('Columns to fold'));
-    expect(DialogStore.foldState.mode.value).toBe('fold');
     expect(screen.getByText('Select columns to fold:')).toBeDefined();
   });
 
-  it('toggles column selection', () => {
-    DialogStore.foldState.selectedColumns.value = [false, false, false, false, false];
+  it('initializes from editing step', () => {
+    AppStore.editingStepIndex.value = 0;
+    const mockModel = {
+      id: 'test',
+      steps: [
+        {
+          fold: {
+            columns: ['Q1', 'Q2'],
+            as: ['Quarter', 'Sales'],
+          },
+        },
+      ],
+      schema: [],
+      data: [],
+      sourceId: 'src',
+      name: 'test',
+    };
+    AppStore.activeModel.value = mockModel as any;
+
     renderWithI18n(<UnpivotDialog />);
 
-    fireEvent.click(screen.getByText('Q1').closest('button')!);
-    expect(DialogStore.foldState.selectedColumns.value[1]).toBe(true);
-
-    fireEvent.click(screen.getByText('Q1').closest('button')!);
-    expect(DialogStore.foldState.selectedColumns.value[1]).toBe(false);
-  });
-
-  it('handles Select All', () => {
-    DialogStore.foldState.selectedColumns.value = [false, false, false, false, false];
-    renderWithI18n(<UnpivotDialog />);
-
-    // ColumnSelector renders "Select All" as hardcoded text (not yet internationalized)
-    fireEvent.click(screen.getByText('Select All'));
-    expect(DialogStore.foldState.selectedColumns.value.every((v) => v)).toBe(true);
-  });
-
-  it('handles Select None', () => {
-    DialogStore.foldState.selectedColumns.value = [true, true, true, true, true];
-    renderWithI18n(<UnpivotDialog />);
-
-    // ColumnSelector renders "Select None" as hardcoded text (not yet internationalized)
-    fireEvent.click(screen.getByText('Select None'));
-    expect(DialogStore.foldState.selectedColumns.value.every((v) => !v)).toBe(true);
+    expect(screen.getByDisplayValue('Quarter')).toBeDefined();
+    expect(screen.getByDisplayValue('Sales')).toBeDefined();
   });
 });

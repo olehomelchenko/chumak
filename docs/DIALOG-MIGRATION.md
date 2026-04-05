@@ -95,6 +95,10 @@ During batch 3, the Preview column in the checklist below said "No" for regexpMa
 
 3. **Refactor handler functions to accept parameters.** Functions like `getSampleValue(column)` or `getTextOperationPreview(op, column)` should take explicit parameters instead of reading from DialogStore state. This makes them callable from the component's local signals and properly pure.
 
+4. **Manual-trigger previews use `createDebouncedPreview` directly, not `useTransformPreview`.** Some dialogs (e.g., describe) trigger preview via a button click instead of auto-triggering on signal changes. For these, create a `PreviewHandle` with `useRef` + `createDebouncedPreview`, call `handle.compute()` from the click handler, and `handle.clear()` in an `useEffect` cleanup. Do not use `useTransformPreview` — its `deps`-based auto-trigger is wrong for manual previews.
+
+5. **Registry `initState` logic moves into the factory.** If the old dialog-registry entry had an `initState` function (e.g., describe pre-selected numeric columns from schema), that logic moves into the `useDialogState` factory — use `ctx.schema` to derive initial values. Remove the `initState` property from the registry entry when switching to `bridgedDialogEntry()`.
+
 ### Batches 1–3: reviewed, no regressions found
 
 All prior batches were reviewed commit-by-commit. No dropped functionality was found. The migration actually fixed a few latent issues (inconsistent index reset default, missing `isRegex` on replace editing).
@@ -222,10 +226,10 @@ case 'xxx':
 | parseDate     | `parse-date-state.ts`     | `parse-date-handlers.ts`    | Yes        | Medium     | Done   |
 | regexpMatch   | `regexp-match-state.ts`   | `regexp-handlers.ts`        | Yes        | Medium     | Done   |
 | regexpExtract | `regexp-extract-state.ts` | `regexp-handlers.ts`        | Yes        | Medium     | Done   |
-| fold          | `fold-state.ts`           | `fold-handlers.ts`          | Yes        | Medium     |        |
+| fold          | `fold-state.ts`           | `fold-handlers.ts`          | Yes        | Medium     | Done   |
 | pivot         | `pivot-state.ts`          | `pivot-handlers.ts`         | Yes        | High       |        |
 | aggregate     | `aggregate-state.ts`      | `aggregate-handlers.ts`     | Yes        | High       |        |
-| describe      | `describe-state.ts`       | `describe-handlers.ts`      | Yes        | Medium     |        |
+| describe      | `describe-state.ts`       | `describe-handlers.ts`      | Yes        | Medium     | Done   |
 | window        | `window-state.ts`         | `window-handlers.ts`        | Yes        | High       |        |
 | selectPattern | `select-pattern-state.ts` | `pattern-handlers.ts`       | No         | Medium     | Done   |
 | removePattern | `remove-pattern-state.ts` | `pattern-handlers.ts`       | No         | Medium     | Done   |

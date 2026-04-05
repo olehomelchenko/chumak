@@ -17,11 +17,9 @@ import {
   mergeState,
   columnEditorState,
   // Aggregate states
-  foldState,
   aggregateState,
   pivotState,
   windowState,
-  describeState,
   // Text states
   textState,
   parseDateState,
@@ -60,11 +58,9 @@ export class DialogStore {
   static columnEditorState = columnEditorState;
 
   // Aggregate states
-  static foldState = foldState;
   static aggregateState = aggregateState;
   static pivotState = pivotState;
   static windowState = windowState;
-  static describeState = describeState;
 
   // Text states
   static textState = textState;

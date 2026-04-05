@@ -102,11 +102,14 @@ describe('DialogCoordinator', () => {
       });
     });
 
-    it('returns fold state', () => {
-      DialogStore.foldState.keyName.value = 'metric';
-      DialogStore.foldState.valueName.value = 'value';
-      DialogStore.foldState.selectedColumns.value = [true, false, true];
-      DialogStore.foldState.mode.value = 'keep';
+    it('returns fold state from bridge signal', () => {
+      // fold uses useDialogState hook — state comes from bridge signal
+      DialogStore.activeDialogState.value = {
+        keyName: 'metric',
+        valueName: 'value',
+        selectedColumns: [true, false, true],
+        mode: 'keep',
+      };
 
       const state = getDialogState('fold');
       expect(state.keyName).toBe('metric');

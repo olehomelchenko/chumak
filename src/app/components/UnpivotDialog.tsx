@@ -1,37 +1,62 @@
-import { useComputed } from '@preact/signals';
+import { signal, useComputed } from '@preact/signals';
 import { useTranslation } from 'preact-i18next';
 import styles from './form-controls.module.css';
 import { ColumnSelector } from './column-selector';
-import * as FoldHandlers from '../handlers/transform/fold-handlers';
-import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
+import { useDialogState } from '../hooks/useDialogState';
+import { useTransformPreview } from '../hooks/useTransformPreview';
+import { computeColumnsToFold, computeFoldPreview } from '../handlers/transform/fold-handlers';
 import type { UnpivotMode } from '../../types/modes';
-
-// Re-export for backward compatibility
-export type { UnpivotMode } from '../../types/modes';
 
 export function UnpivotDialog() {
   const { t } = useTranslation('dialogs');
-  const { keyName, valueName, mode, selectedColumns } = DialogStore.foldState;
   const columns = AppStore.columns.value;
+
+  const { state } = useDialogState(
+    (ctx) => {
+      const editing = ctx.editingStep?.fold;
+      return {
+        keyName: signal(editing ? editing.as[0] : 'key'),
+        valueName: signal(editing ? editing.as[1] : 'value'),
+        selectedColumns: signal<boolean[]>(
+          editing
+            ? ctx.columns.map((c) => editing.columns.includes(c))
+            : ctx.selectedColumns.length > 0
+              ? ctx.columns.map((col) => ctx.selectedColumns.includes(col))
+              : ctx.columns.map(() => false)
+        ),
+        mode: signal<UnpivotMode>(editing ? 'fold' : 'keep'),
+      };
+    },
+    {
+      hasError: (s) =>
+        computeColumnsToFold(AppStore.columns.value, s.selectedColumns.value, s.mode.value)
+          .length === 0,
+    }
+  );
+
+  const { keyName, valueName, mode, selectedColumns } = state;
+
   const labelText = useComputed(() =>
     mode.value === 'keep' ? t('unpivot.selectKeep') : t('unpivot.selectFold')
   );
 
-  const handleKeyNameInput = (e: any) => {
-    keyName.value = e.currentTarget.value;
-    FoldHandlers.updateFoldPreview();
-  };
-
-  const handleValueNameInput = (e: any) => {
-    valueName.value = e.currentTarget.value;
-    FoldHandlers.updateFoldPreview();
-  };
-
-  const handleModeChange = (newMode: UnpivotMode) => {
-    mode.value = newMode;
-    FoldHandlers.updateFoldPreview();
-  };
+  useTransformPreview({
+    deps: () => {
+      keyName.value;
+      valueName.value;
+      selectedColumns.value;
+      mode.value;
+    },
+    compute: () =>
+      computeFoldPreview(
+        columns,
+        selectedColumns.value,
+        mode.value,
+        keyName.value,
+        valueName.value
+      ),
+  });
 
   // Convert boolean array to string array for ColumnSelector
   const getSelectedColumnNames = (): string[] => {
@@ -41,9 +66,7 @@ export function UnpivotDialog() {
   // Convert string array from ColumnSelector to boolean array
   const handleColumnSelectionChange = (selected: string[] | string) => {
     const selectedArray = Array.isArray(selected) ? selected : [selected];
-    const newSelection = columns.map((col) => selectedArray.includes(col));
-    selectedColumns.value = newSelection;
-    FoldHandlers.updateFoldPreview();
+    selectedColumns.value = columns.map((col) => selectedArray.includes(col));
   };
 
   return (
@@ -66,7 +89,7 @@ export function UnpivotDialog() {
             type="text"
             class={styles.input}
             value={keyName.value}
-            onInput={handleKeyNameInput}
+            onInput={(e) => (keyName.value = (e.currentTarget as HTMLInputElement).value)}
             placeholder={t('unpivot.keyNamePlaceholder')}
           />
           <p class={styles.helpText} style={{ fontSize: '0.75rem', marginTop: '0.25rem' }}>
@@ -80,7 +103,7 @@ export function UnpivotDialog() {
             type="text"
             class={styles.input}
             value={valueName.value}
-            onInput={handleValueNameInput}
+            onInput={(e) => (valueName.value = (e.currentTarget as HTMLInputElement).value)}
             placeholder={t('unpivot.valueNamePlaceholder')}
           />
           <p class={styles.helpText} style={{ fontSize: '0.75rem', marginTop: '0.25rem' }}>
@@ -95,14 +118,14 @@ export function UnpivotDialog() {
           <button
             type="button"
             class={`${styles.toggleButton} ${mode.value === 'keep' ? styles.active : ''}`}
-            onClick={() => handleModeChange('keep')}
+            onClick={() => (mode.value = 'keep')}
           >
             {t('unpivot.modes.keep')}
           </button>
           <button
             type="button"
             class={`${styles.toggleButton} ${mode.value === 'fold' ? styles.active : ''}`}
-            onClick={() => handleModeChange('fold')}
+            onClick={() => (mode.value = 'fold')}
           >
             {t('unpivot.modes.fold')}
           </button>

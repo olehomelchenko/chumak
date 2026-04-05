@@ -138,14 +138,7 @@ export function initDialogState(dialogName: string, section?: string): void {
     }
 
     case 'fold':
-      DialogStore.foldState.keyName.value = 'key';
-      DialogStore.foldState.valueName.value = 'value';
-      DialogStore.foldState.selectedColumns.value =
-        selectedColumns.length > 0
-          ? columns.map((col) => selectedColumns.includes(col))
-          : columns.map(() => false);
-      DialogStore.foldState.mode.value = 'keep';
-      break;
+      break; // state managed by useDialogState hook
 
     case 'pivot':
       callbacks?.initializePivotDialog?.();

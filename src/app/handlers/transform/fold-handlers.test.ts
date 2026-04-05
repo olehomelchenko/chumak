@@ -13,14 +13,7 @@ vi.mock('../preview-engine', async () =>
   (await import('../test-utils')).MockFactories.previewEngine()
 );
 
-import {
-  toggleColumnForFold,
-  toggleFoldMode,
-  getColumnsToFold,
-  selectAllForFold,
-  selectNoneForFold,
-  applyFoldTransform,
-} from './fold-handlers';
+import { computeColumnsToFold, applyFoldTransform } from './fold-handlers';
 import { StepService } from '../../services/StepService';
 
 describe('fold-handlers', () => {
@@ -31,9 +24,6 @@ describe('fold-handlers', () => {
     vi.clearAllMocks();
     consoleSpy = suppressConsole();
     setTestData(TestData.simple);
-    // Initialize selectedColumns to match column count
-    DialogStore.foldState.selectedColumns.value = [false, false, false];
-    DialogStore.foldState.mode.value = 'fold';
   });
 
   afterEach(() => {
@@ -41,106 +31,55 @@ describe('fold-handlers', () => {
     consoleSpy.warnSpy.mockRestore();
   });
 
-  describe('toggleColumnForFold', () => {
-    it('toggles a column from false to true', () => {
-      toggleColumnForFold(1);
-
-      expect(DialogStore.foldState.selectedColumns.value[1]).toBe(true);
-    });
-
-    it('toggles a column from true to false', () => {
-      DialogStore.foldState.selectedColumns.value = [true, true, false];
-
-      toggleColumnForFold(0);
-
-      expect(DialogStore.foldState.selectedColumns.value[0]).toBe(false);
-    });
-  });
-
-  describe('toggleFoldMode', () => {
-    it('toggles from fold to keep', () => {
-      DialogStore.foldState.mode.value = 'fold';
-
-      toggleFoldMode();
-
-      expect(DialogStore.foldState.mode.value).toBe('keep');
-    });
-
-    it('toggles from keep to fold', () => {
-      DialogStore.foldState.mode.value = 'keep';
-
-      toggleFoldMode();
-
-      expect(DialogStore.foldState.mode.value).toBe('fold');
-    });
-  });
-
-  describe('getColumnsToFold', () => {
+  describe('computeColumnsToFold', () => {
     it('returns selected columns in fold mode', () => {
-      DialogStore.foldState.mode.value = 'fold';
-      DialogStore.foldState.selectedColumns.value = [true, false, true];
-
-      const result = getColumnsToFold();
-
+      const result = computeColumnsToFold(['name', 'age', 'city'], [true, false, true], 'fold');
       expect(result).toEqual(['name', 'city']);
     });
 
     it('returns unselected columns in keep mode', () => {
-      DialogStore.foldState.mode.value = 'keep';
-      DialogStore.foldState.selectedColumns.value = [true, false, true];
-
-      const result = getColumnsToFold();
-
+      const result = computeColumnsToFold(['name', 'age', 'city'], [true, false, true], 'keep');
       expect(result).toEqual(['age']);
     });
 
     it('returns empty when none selected in fold mode', () => {
-      DialogStore.foldState.mode.value = 'fold';
-      DialogStore.foldState.selectedColumns.value = [false, false, false];
-
-      expect(getColumnsToFold()).toEqual([]);
+      expect(computeColumnsToFold(['name', 'age', 'city'], [false, false, false], 'fold')).toEqual(
+        []
+      );
     });
 
     it('returns all columns when all selected in fold mode', () => {
-      DialogStore.foldState.mode.value = 'fold';
-      DialogStore.foldState.selectedColumns.value = [true, true, true];
-
-      expect(getColumnsToFold()).toEqual(['name', 'age', 'city']);
-    });
-  });
-
-  describe('selectAllForFold', () => {
-    it('selects all columns', () => {
-      selectAllForFold();
-
-      expect(DialogStore.foldState.selectedColumns.value).toEqual([true, true, true]);
-    });
-  });
-
-  describe('selectNoneForFold', () => {
-    it('deselects all columns', () => {
-      DialogStore.foldState.selectedColumns.value = [true, true, true];
-
-      selectNoneForFold();
-
-      expect(DialogStore.foldState.selectedColumns.value).toEqual([false, false, false]);
+      expect(computeColumnsToFold(['name', 'age', 'city'], [true, true, true], 'fold')).toEqual([
+        'name',
+        'age',
+        'city',
+      ]);
     });
   });
 
   describe('applyFoldTransform', () => {
-    it('alerts when no columns selected to fold', async () => {
-      DialogStore.foldState.selectedColumns.value = [false, false, false];
+    it('calls onError when no columns selected to fold', async () => {
+      DialogStore.activeDialogState.value = {
+        keyName: 'key',
+        valueName: 'value',
+        selectedColumns: [false, false, false],
+        mode: 'fold',
+      };
       const callbacks = { onError: vi.fn() };
 
       await applyFoldTransform(callbacks);
 
       expect(StepService.runTransform).not.toHaveBeenCalled();
+      expect(callbacks.onError).toHaveBeenCalled();
     });
 
     it('runs transform with selected columns', async () => {
-      DialogStore.foldState.selectedColumns.value = [false, true, true];
-      DialogStore.foldState.keyName.value = 'metric';
-      DialogStore.foldState.valueName.value = 'val';
+      DialogStore.activeDialogState.value = {
+        keyName: 'metric',
+        valueName: 'val',
+        selectedColumns: [false, true, true],
+        mode: 'fold',
+      };
       const callbacks = { onError: vi.fn() };
 
       await applyFoldTransform(callbacks);
@@ -158,9 +97,12 @@ describe('fold-handlers', () => {
     });
 
     it('uses default key/value names when empty', async () => {
-      DialogStore.foldState.selectedColumns.value = [true, false, false];
-      DialogStore.foldState.keyName.value = '';
-      DialogStore.foldState.valueName.value = '';
+      DialogStore.activeDialogState.value = {
+        keyName: '',
+        valueName: '',
+        selectedColumns: [true, false, false],
+        mode: 'fold',
+      };
       const callbacks = { onError: vi.fn() };
 
       await applyFoldTransform(callbacks);

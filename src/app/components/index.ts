@@ -7,7 +7,7 @@
 // Dialog components
 export { SortDialog } from './SortDialog';
 export type { SliceMode } from '../../types/modes';
-export type { UnpivotMode } from './UnpivotDialog';
+export type { UnpivotMode } from '../../types/modes';
 
 export { IndexDialog } from './IndexDialog';
 export { ReplaceDialog } from './ReplaceDialog';
