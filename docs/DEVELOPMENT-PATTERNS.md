@@ -24,9 +24,11 @@ This document describes established patterns for developing Syto. Follow these c
 
 Adding a transform requires changes across multiple files. All transform logic must be **non-destructive** — sources immutable, transforms return new tables, no side effects. See [SPECIFICATION.md §4.1](SPECIFICATION.md) for the full non-destructive principles.
 
-### 1.1 Checklist
+> **New dialogs should use the `useDialogState` pattern** — local signals in the component, `bridgedDialogEntry()` in the registry. No global state file, no handler file, no DialogCoordinator case. See [DIALOG-MIGRATION.md](DIALOG-MIGRATION.md) for the full guide. The legacy checklist below still applies to existing un-migrated dialogs.
 
-**Core layer** (portable, no browser APIs):
+### 1.1 Checklist (new style — `useDialogState`)
+
+**Core layer** (same for both patterns):
 
 | Step | File                                           | What to Add                                                                                                                                                           |
 | ---- | ---------------------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
@@ -37,7 +39,41 @@ Adding a transform requires changes across multiple files. All transform logic m
 | 5    | `src/core/transforms/describers/<category>.ts` | Human-readable description                                                                                                                                            |
 | 6    | `src/core/transforms/describers/index.ts`      | Register describer in `TRANSFORM_DESCRIBERS`                                                                                                                          |
 
-**App layer** (dialog, state, UI):
+**App layer** (new style):
+
+| Step | File                                   | What to Add                                                                      |
+| ---- | -------------------------------------- | -------------------------------------------------------------------------------- |
+| 7    | `src/app/types.ts`                     | Add to `DialogName` union type                                                   |
+| 8    | `src/app/components/*Dialog.tsx`       | Dialog component using `useDialogState` hook (state + validation + edit support) |
+| 9    | `src/app/components/index.ts`          | Export dialog component                                                          |
+| 10   | `src/app/components/App.tsx`           | Render dialog in slide-panel section                                             |
+| 11   | `src/app/dialog-registry.ts`           | `bridgedDialogEntry()` with inline `applyHandler`                                |
+| 12   | `src/app/components/RibbonToolbar.tsx` | Ribbon button                                                                    |
+
+**Key conventions:**
+
+- Dialog state is created via `useDialogState((ctx) => ({ ... }))` — factory receives `columns`, `selectedColumns`, `schema`, `editingStep`
+- Edit mode: factory reads `ctx.editingStep?.xxx` to pre-populate (no code needed in `step-handlers.ts:editStep()`)
+- Error state: `hasError` / `getError` options on the hook flow to the Apply button via bridge signals
+- Preview: use `useTransformPreview` hook (wraps `createDebouncedPreview`)
+
+**i18n + docs + tests:**
+
+| Step | File                                       | What to Add                                      |
+| ---- | ------------------------------------------ | ------------------------------------------------ |
+| 13   | `src/i18n/locales/{en,uk}/dialogs.json`    | Dialog title + dialog-specific strings           |
+| 14   | `src/i18n/locales/{en,uk}/transforms.json` | Describer translation (with plural forms for UK) |
+| 15   | `src/i18n/locales/{en,uk}/ui.json`         | Ribbon button label + title                      |
+| 16   | `src/core/transforms-*.test.ts`            | Core logic tests                                 |
+| 17   | `docs/DATA-SPECIFICATION.md`               | Transform documentation                          |
+| 18   | `src/app/handlers/*`                       | Cycle check (if external ref, e.g. join/concat)  |
+
+### 1.1.1 Legacy Checklist (global DialogStore)
+
+<details>
+<summary>For un-migrated dialogs only — click to expand</summary>
+
+**App layer** (legacy):
 
 | Step | File                                           | What to Add                                                   |
 | ---- | ---------------------------------------------- | ------------------------------------------------------------- |
@@ -52,16 +88,7 @@ Adding a transform requires changes across multiple files. All transform logic m
 | 15   | `src/app/dialog-registry.ts`                   | Registry entry (`applyHandler`, `getState`, `getError`, etc.) |
 | 16   | `src/app/components/RibbonToolbar.tsx`         | Ribbon button                                                 |
 
-**i18n + docs + tests:**
-
-| Step | File                                       | What to Add                                      |
-| ---- | ------------------------------------------ | ------------------------------------------------ |
-| 17   | `src/i18n/locales/{en,uk}/dialogs.json`    | Dialog title + dialog-specific strings           |
-| 18   | `src/i18n/locales/{en,uk}/transforms.json` | Describer translation (with plural forms for UK) |
-| 19   | `src/i18n/locales/{en,uk}/ui.json`         | Ribbon button label + title                      |
-| 20   | `src/core/transforms-*.test.ts`            | Core logic tests                                 |
-| 21   | `docs/DATA-SPECIFICATION.md`               | Transform documentation                          |
-| 22   | `src/app/handlers/*`                       | Cycle check (if external ref, e.g. join/concat)  |
+</details>
 
 ### 1.2 Adding a One-Click Shortcut (No Dialog)
 
@@ -76,7 +103,7 @@ No changes needed in `AppController`, `RibbonToolbar`, or other files — render
 
 For ribbon popover chips that pre-configure a dialog rather than applying instantly (e.g., Window presets like "Running Total", or `quickFilter`/`quickSplit` in `interaction-handlers.ts`):
 
-1. Define preset data and a function that writes to `DialogStore.*State` signals
+1. Define preset data and a function that writes to `DialogStore.*State` signals (legacy dialogs) or sets `AppStore` context that the `useDialogState` factory reads (migrated dialogs)
 2. Add a `ShortcutChip` in the popover content that calls the pre-fill function, then `onOpenDialog('...')`
 3. Add i18n keys under `ribbon.popovers.{category}.shortcuts`
 

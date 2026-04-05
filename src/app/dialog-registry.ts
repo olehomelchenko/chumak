@@ -13,7 +13,7 @@
 
 import type { ComponentType } from 'preact';
 import type { DialogName } from './types';
-import type { ExecutionCallbacks } from './services/StepService';
+import { StepService, type ExecutionCallbacks } from './services/StepService';
 import { DialogStore } from './stores/DialogStore';
 import { AppStore } from './stores/AppStore';
 import { GeneratorService } from './services/GeneratorService';
@@ -23,7 +23,6 @@ import i18n from '../i18n';
 import * as FilterHandlers from './handlers/transform/filter-handlers';
 import * as DeriveHandlers from './handlers/transform/derive-handlers';
 import * as SimpleHandlers from './handlers/transform/simple-handlers';
-import * as SampleHandlers from './handlers/transform/sample-handlers';
 import * as SpreadHandlers from './handlers/transform/spread-handlers';
 import * as UnrollHandlers from './handlers/transform/unroll-handlers';
 import * as SplitHandlers from './handlers/transform/split-handlers';
@@ -62,6 +61,22 @@ export interface DialogConfig {
   getError?: () => string | null; // Error message for disabled Apply tooltip
   isUrlNavigable?: boolean; // Whether dialog should update URL hash
   applyHandler?: ApplyHandler; // Handler called when Apply is clicked
+}
+
+/**
+ * Creates a dialog config that delegates state/error to bridge signals
+ * populated by the useDialogState hook. Use this for new-style dialogs
+ * that manage their own state locally instead of via DialogStore.
+ */
+export function bridgedDialogEntry(
+  base: Omit<DialogConfig, 'getState' | 'hasError' | 'getError'>
+): DialogConfig {
+  return {
+    ...base,
+    getState: () => DialogStore.activeDialogState.value,
+    hasError: () => DialogStore.activeDialogHasError.value,
+    getError: () => DialogStore.activeDialogError.value,
+  };
 }
 
 /**
@@ -112,27 +127,44 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     },
   },
 
-  sort: {
+  sort: bridgedDialogEntry({
     name: 'sort',
     title: 'Sort Rows',
     type: 'slide-panel',
     buttonText: 'buttons.sort',
-    applyHandler: (cb) => SimpleHandlers.applySortTransform(cb),
-    getState: () => ({ fields: DialogStore.sortState.fields.value }),
-  },
+    applyHandler: async (cb) => {
+      const state = DialogStore.activeDialogState.value;
+      if (!state) return;
+      const fields = (state.fields as Array<{ field: string; order: 'asc' | 'desc' }>).filter(
+        (f) => f.field !== ''
+      );
+      if (fields.length === 0) {
+        await cb.onError?.(i18n.t('validation.selection.sortColumn', { ns: 'errors' }));
+        return;
+      }
+      const sort = fields.length === 1 ? fields[0] : fields;
+      await StepService.runTransform('Sort', { sort }, cb);
+    },
+  }),
 
-  sliceRows: {
+  sliceRows: bridgedDialogEntry({
     name: 'sliceRows',
     title: 'Keep / Remove Rows',
     type: 'slide-panel',
-    applyHandler: (cb) => SimpleHandlers.applySliceRowsTransform(cb),
-    getState: () => ({
-      count: DialogStore.sliceRowsState.count.value,
-      mode: DialogStore.sliceRowsState.mode.value,
-    }),
-    hasError: () =>
-      !DialogStore.sliceRowsState.count.value || DialogStore.sliceRowsState.count.value <= 0,
-  },
+    applyHandler: async (cb) => {
+      const state = DialogStore.activeDialogState.value;
+      if (!state) return;
+      if (!state.count || state.count <= 0) {
+        await cb.onError?.(i18n.t('validation.invalid.rowCount', { ns: 'errors' }));
+        return;
+      }
+      await StepService.runTransform(
+        'Slice Rows',
+        { sliceRows: { count: state.count, mode: state.mode } },
+        cb
+      );
+    },
+  }),
 
   index: {
     name: 'index',
@@ -149,19 +181,29 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
       DialogStore.indexState.columnName.value.trim() === '',
   },
 
-  sample: {
+  sample: bridgedDialogEntry({
     name: 'sample',
     title: 'Sample Rows',
     type: 'slide-panel',
     buttonText: 'buttons.sample',
-    applyHandler: (cb) => SampleHandlers.applySampleTransform(cb),
-    getState: () => ({
-      count: DialogStore.sampleState.count.value,
-      seed: DialogStore.sampleState.seed.value,
-    }),
-    hasError: () =>
-      !DialogStore.sampleState.count.value || DialogStore.sampleState.count.value <= 0,
-  },
+    applyHandler: async (cb) => {
+      const state = DialogStore.activeDialogState.value;
+      if (!state) return;
+      if (!state.count || state.count <= 0) {
+        await cb.onError?.(i18n.t('validation.invalid.sampleSize', { ns: 'errors' }));
+        return;
+      }
+      const finalSeed =
+        state.seed !== undefined && !isNaN(state.seed)
+          ? state.seed
+          : Math.floor(Math.random() * 1000000);
+      await StepService.runTransform(
+        'Sample',
+        { sample: { count: state.count, seed: finalSeed } },
+        cb
+      );
+    },
+  }),
 
   spread: {
     name: 'spread',

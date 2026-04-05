@@ -6,12 +6,11 @@
  * for backward compatibility.
  */
 
+import { signal } from '@preact/signals';
+
 // Import all states from organized subdirectories
 import {
   // Transform states
-  sortState,
-  sliceRowsState,
-  sampleState,
   indexState,
   replaceState,
   filterState,
@@ -71,9 +70,6 @@ export type { KeyPairAnalysis, MismatchPreview } from './dialogs/combine';
  */
 export class DialogStore {
   // Transform states
-  static sortState = sortState;
-  static sliceRowsState = sliceRowsState;
-  static sampleState = sampleState;
   static indexState = indexState;
   static replaceState = replaceState;
   static filterState = filterState;
@@ -123,6 +119,13 @@ export class DialogStore {
   static importTextState = importTextState;
   static workflowImportState = workflowImportState;
 
+  // Bridge signals for useDialogState hook
+  // These are written by the hook and read by the dialog lifecycle
+  // (hasUnsavedChanges, activeDialogError, Apply button state).
+  static activeDialogState = signal<Record<string, any> | null>(null);
+  static activeDialogHasError = signal(false);
+  static activeDialogError = signal<string | null>(null);
+
   /**
    * Creates a reactive proxy for a signal-based state object.
    * Allows direct property access and assignment to be transparently
@@ -153,5 +156,9 @@ export class DialogStore {
    */
   static resetAll() {
     resetAllDialogStates();
+    // Reset bridge signals used by useDialogState hook
+    DialogStore.activeDialogState.value = null;
+    DialogStore.activeDialogHasError.value = false;
+    DialogStore.activeDialogError.value = null;
   }
 }
