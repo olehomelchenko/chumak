@@ -76,11 +76,12 @@ describe('DialogCoordinator', () => {
       expect(state).toEqual({ columnName: 'row_num', startFrom: 0 });
     });
 
-    it('returns aggregate state', () => {
-      DialogStore.aggregateState.groupBy.value = ['category'];
-      DialogStore.aggregateState.aggregations.value = [
-        { output: 'total', func: 'sum', col: 'amount' },
-      ];
+    it('returns aggregate state from bridge signal', () => {
+      // aggregate uses useDialogState hook — state comes from bridge signal
+      DialogStore.activeDialogState.value = {
+        groupBy: ['category'],
+        aggregations: [{ output: 'total', func: 'sum', col: 'amount' }],
+      };
 
       const state = getDialogState('aggregate');
       expect(state.groupBy).toEqual(['category']);
@@ -116,11 +117,14 @@ describe('DialogCoordinator', () => {
       expect(state.selectedColumns).toEqual([true, false, true]);
     });
 
-    it('returns pivot state', () => {
-      DialogStore.pivotState.rowColumns.value = ['date'];
-      DialogStore.pivotState.columnColumn.value = 'category';
-      DialogStore.pivotState.valueColumn.value = 'amount';
-      DialogStore.pivotState.aggregation.value = 'sum';
+    it('returns pivot state from bridge signal', () => {
+      // pivot uses useDialogState hook — state comes from bridge signal
+      DialogStore.activeDialogState.value = {
+        rowColumns: ['date'],
+        columnColumn: 'category',
+        valueColumn: 'amount',
+        aggregation: 'sum',
+      };
 
       const state = getDialogState('pivot');
       expect(state.rowColumns).toEqual(['date']);
@@ -432,25 +436,16 @@ describe('DialogCoordinator', () => {
       expect(activeDialogHasError()).toBe(false);
     });
 
-    // pivot
-    it('pivot: returns true when columnColumn is missing', () => {
+    // pivot (uses bridge signal)
+    it('pivot: returns true when bridge error signal set', () => {
       AppStore.activeDialog.value = 'pivot';
-      DialogStore.pivotState.columnColumn.value = '';
-      DialogStore.pivotState.valueColumn.value = 'amount';
+      DialogStore.activeDialogHasError.value = true;
       expect(activeDialogHasError()).toBe(true);
     });
 
-    it('pivot: returns true when valueColumn is missing', () => {
+    it('pivot: returns false when bridge error signal not set', () => {
       AppStore.activeDialog.value = 'pivot';
-      DialogStore.pivotState.columnColumn.value = 'category';
-      DialogStore.pivotState.valueColumn.value = '';
-      expect(activeDialogHasError()).toBe(true);
-    });
-
-    it('pivot: returns false when both set', () => {
-      AppStore.activeDialog.value = 'pivot';
-      DialogStore.pivotState.columnColumn.value = 'category';
-      DialogStore.pivotState.valueColumn.value = 'amount';
+      DialogStore.activeDialogHasError.value = false;
       expect(activeDialogHasError()).toBe(false);
     });
 

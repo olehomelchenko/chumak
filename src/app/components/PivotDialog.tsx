@@ -1,8 +1,14 @@
-import { useComputed } from '@preact/signals';
+import { signal, useComputed, useSignalEffect } from '@preact/signals';
+import { useRef, useEffect } from 'preact/hooks';
 import { useTranslation } from 'preact-i18next';
-import * as PivotHandlers from '../handlers/transform/pivot-handlers';
-import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
+import { useDialogState } from '../hooks/useDialogState';
+import {
+  computePivotPreview,
+  countUniqueValues,
+  type PivotOptions,
+} from '../handlers/transform/pivot-handlers';
+import { createDebouncedPreview, type PreviewHandle } from '../handlers/preview-engine';
 import { ColumnSelector } from './column-selector';
 import formStyles from './form-controls.module.css';
 import exprStyles from './expression-help.module.css';
@@ -14,6 +20,37 @@ export type { PivotAggregation } from '../../types/modes';
 
 export function PivotDialog() {
   const { t } = useTranslation('dialogs');
+  const columns = AppStore.columns.value;
+
+  const { state } = useDialogState(
+    (ctx) => {
+      const editing = ctx.editingStep?.pivot;
+      return {
+        rowColumns: signal<string[]>(editing?.rows ? [...editing.rows] : []),
+        columnColumn: signal<string>(editing?.keys ?? ''),
+        valueColumn: signal<string>(editing?.values ?? ''),
+        aggregation: signal<PivotAggregation>((editing?.aggregation as PivotAggregation) ?? 'sum'),
+        options: signal<PivotOptions>({
+          sort: editing?.options?.sort ?? true,
+          limit: editing?.options?.limit ?? null,
+        }),
+        uniqueValueCount: signal(0),
+        isPreviewing: signal(false),
+        previewError: signal<string | null>(null),
+      };
+    },
+    {
+      hasError: (s) => !s.columnColumn.value || !s.valueColumn.value,
+      getState: (s) => ({
+        rowColumns: s.rowColumns.value,
+        columnColumn: s.columnColumn.value,
+        valueColumn: s.valueColumn.value,
+        aggregation: s.aggregation.value,
+        options: s.options.value,
+      }),
+    }
+  );
+
   const {
     rowColumns,
     columnColumn,
@@ -22,8 +59,47 @@ export function PivotDialog() {
     uniqueValueCount,
     options,
     isPreviewing,
-  } = DialogStore.pivotState;
-  const columns = AppStore.columns.value;
+    previewError,
+  } = state;
+
+  // Compute unique value count when columnColumn changes
+  useSignalEffect(() => {
+    uniqueValueCount.value = countUniqueValues(columnColumn.value);
+  });
+
+  // Manual preview handle
+  const previewRef = useRef<PreviewHandle | null>(null);
+  if (previewRef.current === null) {
+    previewRef.current = createDebouncedPreview({
+      compute: () =>
+        computePivotPreview(
+          rowColumns.value,
+          columnColumn.value,
+          valueColumn.value,
+          aggregation.value,
+          options.value
+        ),
+      onError: (error) => {
+        previewError.value = error.message;
+      },
+    });
+  }
+
+  useEffect(() => {
+    return () => {
+      previewRef.current?.clear();
+    };
+  }, []);
+
+  const handlePreviewClick = () => {
+    isPreviewing.value = true;
+    previewError.value = null;
+    try {
+      previewRef.current?.compute();
+    } finally {
+      isPreviewing.value = false;
+    }
+  };
 
   // Preview text computed in component to avoid complex templates
   const summaryText = useComputed(() => {
@@ -98,7 +174,6 @@ export function PivotDialog() {
               value={columnColumn.value}
               onChange={(e) => {
                 columnColumn.value = (e.currentTarget as HTMLSelectElement).value;
-                PivotHandlers.onPivotConfigChange();
               }}
               style={{ marginBottom: '0.5rem' }}
             >
@@ -142,7 +217,6 @@ export function PivotDialog() {
               value={valueColumn.value}
               onChange={(e) => {
                 valueColumn.value = (e.currentTarget as HTMLSelectElement).value;
-                PivotHandlers.onPivotConfigChange();
               }}
               style={{ marginBottom: '0.5rem' }}
             >
@@ -163,7 +237,6 @@ export function PivotDialog() {
               onChange={(e) => {
                 aggregation.value = (e.currentTarget as HTMLSelectElement)
                   .value as PivotAggregation;
-                PivotHandlers.onPivotConfigChange();
               }}
               disabled={!valueColumn.value}
             >
@@ -234,7 +307,7 @@ export function PivotDialog() {
         <button
           type="button"
           class="button button--secondary"
-          onClick={PivotHandlers.previewPivot}
+          onClick={handlePreviewClick}
           disabled={isPreviewing.value || !columnColumn.value || !valueColumn.value}
         >
           {isPreviewing.value ? t('pivot.previewing') : t('pivot.previewButton')}

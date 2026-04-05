@@ -416,34 +416,21 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     applyHandler: (cb) => FoldHandlers.applyFoldTransform(cb),
   }),
 
-  pivot: {
+  pivot: bridgedDialogEntry({
     name: 'pivot',
     title: 'Pivot Data (Wide)',
     type: 'slide-panel',
     buttonText: 'buttons.pivot',
     applyHandler: (cb) => PivotHandlers.applyPivotTransform(cb),
-    getState: () => ({
-      rowColumns: DialogStore.pivotState.rowColumns.value,
-      columnColumn: DialogStore.pivotState.columnColumn.value,
-      valueColumn: DialogStore.pivotState.valueColumn.value,
-      aggregation: DialogStore.pivotState.aggregation.value,
-      options: DialogStore.pivotState.options.value,
-    }),
-    hasError: () =>
-      !DialogStore.pivotState.columnColumn.value || !DialogStore.pivotState.valueColumn.value,
-  },
+  }),
 
-  aggregate: {
+  aggregate: bridgedDialogEntry({
     name: 'aggregate',
     title: 'Group By',
     type: 'slide-panel',
     buttonText: 'buttons.group',
     applyHandler: (cb) => AggregateHandlers.applyAggregateTransform(cb),
-    getState: () => ({
-      groupBy: DialogStore.aggregateState.groupBy.value,
-      aggregations: DialogStore.aggregateState.aggregations.value,
-    }),
-  },
+  }),
 
   describe: bridgedDialogEntry({
     name: 'describe',

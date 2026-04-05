@@ -99,6 +99,13 @@ During batch 3, the Preview column in the checklist below said "No" for regexpMa
 
 5. **Registry `initState` logic moves into the factory.** If the old dialog-registry entry had an `initState` function (e.g., describe pre-selected numeric columns from schema), that logic moves into the `useDialogState` factory — use `ctx.schema` to derive initial values. Remove the `initState` property from the registry entry when switching to `bridgedDialogEntry()`.
 
+### Batch 6: reactive derived state in the component
+
+1. **Use `useSignalEffect` for reactive derived values that aren't previews.** Some dialogs compute a derived value when a signal changes (e.g., pivot counts unique values when the column selection changes). This is not a preview (no table output), so `useTransformPreview` is wrong. And it's not a pure render derivation, so `useComputed` is wrong (it writes to another signal). Use `useSignalEffect` to subscribe to input signal(s) and update output signal(s). The three reactive patterns in migrated dialogs:
+   - **`useComputed`** — derived render value (JSX or display string) from signals
+   - **`useSignalEffect`** — side-effectful reaction to signal changes (updates another signal)
+   - **`useTransformPreview` / `createDebouncedPreview`** — debounced data preview with table output
+
 ### Batches 1–3: reviewed, no regressions found
 
 All prior batches were reviewed commit-by-commit. No dropped functionality was found. The migration actually fixed a few latent issues (inconsistent index reset default, missing `isRegex` on replace editing).
@@ -227,8 +234,8 @@ case 'xxx':
 | regexpMatch   | `regexp-match-state.ts`   | `regexp-handlers.ts`        | Yes        | Medium     | Done   |
 | regexpExtract | `regexp-extract-state.ts` | `regexp-handlers.ts`        | Yes        | Medium     | Done   |
 | fold          | `fold-state.ts`           | `fold-handlers.ts`          | Yes        | Medium     | Done   |
-| pivot         | `pivot-state.ts`          | `pivot-handlers.ts`         | Yes        | High       |        |
-| aggregate     | `aggregate-state.ts`      | `aggregate-handlers.ts`     | Yes        | High       |        |
+| pivot         | `pivot-state.ts`          | `pivot-handlers.ts`         | Yes        | High       | Done   |
+| aggregate     | `aggregate-state.ts`      | `aggregate-handlers.ts`     | Yes        | High       | Done   |
 | describe      | `describe-state.ts`       | `describe-handlers.ts`      | Yes        | Medium     | Done   |
 | window        | `window-state.ts`         | `window-handlers.ts`        | Yes        | High       |        |
 | selectPattern | `select-pattern-state.ts` | `pattern-handlers.ts`       | No         | Medium     | Done   |

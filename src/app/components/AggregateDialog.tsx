@@ -1,29 +1,95 @@
+import { signal } from '@preact/signals';
+import { useRef, useEffect } from 'preact/hooks';
 import { useTranslation } from 'preact-i18next';
-import * as AggregateHandlers from '../handlers/transform/aggregate-handlers';
-import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
+import { useDialogState } from '../hooks/useDialogState';
+import {
+  computeAggregatePreview,
+  generateOutputName,
+  parseRollupToAggregations,
+  type Aggregation,
+} from '../handlers/transform/aggregate-handlers';
+import { createDebouncedPreview, type PreviewHandle } from '../handlers/preview-engine';
 import { ColumnSelector } from './column-selector';
 import formStyles from './form-controls.module.css';
 import aggStyles from './AggregateDialog.module.css';
 import exprStyles from './expression-help.module.css';
 const styles = { ...formStyles, ...aggStyles, ...exprStyles };
 
-export interface Aggregation {
-  col: string;
-  func: string;
-  output: string;
-}
-
 export function AggregateDialog() {
   const { t } = useTranslation('dialogs');
-  const { groupBy, aggregations, isPreviewing } = DialogStore.aggregateState;
   const columns = AppStore.columns.value;
+
+  const { state } = useDialogState(
+    (ctx) => {
+      const editing = ctx.editingStep?.aggregate;
+      const initialGroupBy = editing
+        ? [...editing.groupby]
+        : ctx.selectedColumns.length > 0
+          ? [...ctx.selectedColumns]
+          : [];
+      const initialAggregations: Aggregation[] = editing
+        ? parseRollupToAggregations(editing.rollup)
+        : [{ output: 'count', func: 'count', col: '' }];
+      return {
+        groupBy: signal<string[]>(initialGroupBy),
+        aggregations: signal<Aggregation[]>(initialAggregations),
+        isPreviewing: signal(false),
+        previewError: signal<string | null>(null),
+      };
+    },
+    {
+      hasError: (s) => s.aggregations.value.length === 0,
+      getState: (s) => ({
+        groupBy: s.groupBy.value,
+        aggregations: s.aggregations.value,
+      }),
+    }
+  );
+
+  const { groupBy, aggregations, isPreviewing, previewError } = state;
+
+  // Manual preview handle
+  const previewRef = useRef<PreviewHandle | null>(null);
+  if (previewRef.current === null) {
+    previewRef.current = createDebouncedPreview({
+      compute: () => computeAggregatePreview(groupBy.value, aggregations.value),
+      onError: (error) => {
+        previewError.value = error.message;
+      },
+    });
+  }
+
+  useEffect(() => {
+    return () => {
+      previewRef.current?.clear();
+    };
+  }, []);
+
+  const handlePreviewClick = () => {
+    isPreviewing.value = true;
+    previewError.value = null;
+    try {
+      previewRef.current?.compute();
+    } finally {
+      isPreviewing.value = false;
+    }
+  };
+
+  const addAggregation = () => {
+    aggregations.value = [...aggregations.value, { output: '', func: 'mean', col: '' }];
+  };
+
+  const removeAggregation = (index: number) => {
+    aggregations.value = aggregations.value.filter((_, i) => i !== index);
+  };
 
   const updateAggregation = (index: number, field: keyof Aggregation, value: string) => {
     const newAggs = [...aggregations.value];
     newAggs[index] = { ...newAggs[index], [field]: value };
+    // Auto-generate output name
+    newAggs[index].output = generateOutputName(newAggs[index]);
     aggregations.value = newAggs;
-    AggregateHandlers.updateAggregateOutputName(index);
   };
 
   const aggFunctions = [
@@ -107,15 +173,20 @@ export function AggregateDialog() {
                 class={styles.input}
                 style={{ flex: 1 }}
                 value={agg.output}
-                onInput={(e) =>
-                  updateAggregation(index, 'output', (e.target as HTMLInputElement).value)
-                }
+                onInput={(e) => {
+                  const newAggs = [...aggregations.value];
+                  newAggs[index] = {
+                    ...newAggs[index],
+                    output: (e.target as HTMLInputElement).value,
+                  };
+                  aggregations.value = newAggs;
+                }}
                 placeholder={t('aggregate.outputPlaceholder')}
               />
 
               <button
                 class="button button--secondary button--small"
-                onClick={() => AggregateHandlers.removeAggregation(index)}
+                onClick={() => removeAggregation(index)}
                 title={t('aggregate.remove')}
               >
                 ×
@@ -124,10 +195,7 @@ export function AggregateDialog() {
           ))}
         </div>
 
-        <button
-          class="button button--secondary button--small"
-          onClick={AggregateHandlers.addAggregation}
-        >
+        <button class="button button--secondary button--small" onClick={addAggregation}>
           {t('aggregate.addAggregation')}
         </button>
       </div>
@@ -173,10 +241,11 @@ export function AggregateDialog() {
       </div>
 
       {/* Preview Button */}
+      {/* TODO: previewError is set on failure but never displayed — add error UI (same issue in PivotDialog, DescribeDialog) */}
       <div class={styles.group} style={{ marginTop: '1rem' }}>
         <button
           class="button button--secondary"
-          onClick={AggregateHandlers.updateAggregatePreview}
+          onClick={handlePreviewClick}
           disabled={isPreviewing.value}
         >
           {isPreviewing.value ? t('aggregate.previewing') : t('aggregate.previewButton')}

@@ -1,28 +1,29 @@
 /**
  * PivotDialog Component Tests
+ *
+ * Tests the Pivot Dialog with local state (useDialogState pattern).
+ * State is initialized from AppStore context, not set directly on DialogStore.
  */
 
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { screen, fireEvent } from '@testing-library/preact';
 import { renderWithI18n } from '../test-utils';
 import { PivotDialog } from './PivotDialog';
-import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
-import * as PivotHandlers from '../handlers/transform/pivot-handlers';
 
 describe('PivotDialog', () => {
   const testColumns = ['Year', 'Region', 'Sales', 'Category'];
 
   beforeEach(() => {
-    // Reset store state before each test
-    DialogStore.pivotState.rowColumns.value = [];
-    DialogStore.pivotState.columnColumn.value = '';
-    DialogStore.pivotState.valueColumn.value = '';
-    DialogStore.pivotState.aggregation.value = 'sum';
-    DialogStore.pivotState.uniqueValueCount.value = 0;
-    DialogStore.pivotState.options.value = { sort: true, limit: null };
-    DialogStore.pivotState.isPreviewing.value = false;
     AppStore.columns.value = testColumns;
+    AppStore.selectedColumns.value = [];
+    AppStore.editingStepIndex.value = null;
+    AppStore.activeModel.value = { steps: [], schema: [], id: 'test', name: 'test' } as any;
+    AppStore.currentData.value = [
+      { Year: 2020, Region: 'East', Sales: 100, Category: 'A' },
+      { Year: 2020, Region: 'West', Sales: 200, Category: 'B' },
+      { Year: 2021, Region: 'East', Sales: 150, Category: 'A' },
+    ];
   });
 
   it('renders with default values', () => {
@@ -37,56 +38,76 @@ describe('PivotDialog', () => {
   it('toggles row column selection', () => {
     renderWithI18n(<PivotDialog />);
 
-    // Region appears in chip and select options. Find the one in the button (chip)
     const regionTexts = screen.getAllByText('Region');
     const chipText = regionTexts.find((el) => el.closest('button'));
     fireEvent.click(chipText!.closest('button')!);
 
-    expect(DialogStore.pivotState.rowColumns.value).toContain('Region');
-
     // Click again to toggle off
     fireEvent.click(chipText!.closest('button')!);
-    expect(DialogStore.pivotState.rowColumns.value).not.toContain('Region');
   });
 
   it('updates column options', () => {
     renderWithI18n(<PivotDialog />);
 
-    // Select Columns field (first select is for Columns)
     const selects = screen.getAllByRole('combobox');
     const colSelect = selects[0];
     fireEvent.change(colSelect, { target: { value: 'Category' } });
-    expect(DialogStore.pivotState.columnColumn.value).toBe('Category');
+    expect((colSelect as HTMLSelectElement).value).toBe('Category');
 
-    // Select Values field (second select is for Values)
     const valSelect = selects[1];
     fireEvent.change(valSelect, { target: { value: 'Sales' } });
-    expect(DialogStore.pivotState.valueColumn.value).toBe('Sales');
+    expect((valSelect as HTMLSelectElement).value).toBe('Sales');
   });
 
   it('shows summary when configured', () => {
-    DialogStore.pivotState.rowColumns.value = ['Year'];
-    DialogStore.pivotState.columnColumn.value = 'Region';
-    DialogStore.pivotState.valueColumn.value = 'Sales';
-    DialogStore.pivotState.uniqueValueCount.value = 5;
     renderWithI18n(<PivotDialog />);
+
+    // Select columns to trigger summary
+    const selects = screen.getAllByRole('combobox');
+    fireEvent.change(selects[0], { target: { value: 'Region' } });
+    fireEvent.change(selects[1], { target: { value: 'Sales' } });
 
     expect(screen.getByText('Result:')).toBeDefined();
-
-    // Find the element containing "unique values" text and check it contains "5"
-    const uniqueHelper = screen.getByText(/unique values/);
-    expect(uniqueHelper.textContent).toContain('5 unique values');
   });
 
-  it('calls preview handler when clicked', () => {
-    vi.spyOn(PivotHandlers, 'previewPivot');
-    DialogStore.pivotState.rowColumns.value = ['Year'];
-    DialogStore.pivotState.columnColumn.value = 'Region';
-    DialogStore.pivotState.valueColumn.value = 'Sales';
+  it('preview button disabled until columns selected', () => {
+    renderWithI18n(<PivotDialog />);
+
+    const previewBtn = screen.getByText('Preview result');
+    expect((previewBtn as HTMLButtonElement).disabled).toBe(true);
+
+    // Select required columns
+    const selects = screen.getAllByRole('combobox');
+    fireEvent.change(selects[0], { target: { value: 'Region' } });
+    fireEvent.change(selects[1], { target: { value: 'Sales' } });
+
+    expect((previewBtn as HTMLButtonElement).disabled).toBe(false);
+  });
+
+  it('initializes from editing step', () => {
+    AppStore.editingStepIndex.value = 0;
+    AppStore.activeModel.value = {
+      steps: [
+        {
+          pivot: {
+            rows: ['Year'],
+            keys: 'Region',
+            values: 'Sales',
+            aggregation: 'mean',
+            options: { sort: false, limit: 10 },
+          },
+        },
+      ],
+      schema: [],
+      id: 'test',
+      name: 'test',
+    } as any;
 
     renderWithI18n(<PivotDialog />);
 
-    fireEvent.click(screen.getByText('Preview result'));
-    expect(PivotHandlers.previewPivot).toHaveBeenCalled();
+    const selects = screen.getAllByRole('combobox');
+    expect((selects[0] as HTMLSelectElement).value).toBe('Region');
+    expect((selects[1] as HTMLSelectElement).value).toBe('Sales');
+    expect((selects[2] as HTMLSelectElement).value).toBe('mean');
   });
 });

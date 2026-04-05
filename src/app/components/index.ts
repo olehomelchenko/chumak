@@ -44,7 +44,7 @@ export type { JoinType, JoinTarget } from './JoinDialog';
 export { AppendDialog } from './AppendDialog';
 
 export { AggregateDialog } from './AggregateDialog';
-export type { Aggregation } from './AggregateDialog';
+export type { Aggregation } from '../handlers/transform/aggregate-handlers';
 
 export { WindowDialog } from './WindowDialog';
 

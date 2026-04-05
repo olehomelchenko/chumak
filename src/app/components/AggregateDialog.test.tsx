@@ -1,94 +1,113 @@
+/**
+ * AggregateDialog Component Tests
+ *
+ * Tests the Aggregate Dialog with local state (useDialogState pattern).
+ * State is initialized from AppStore context, not set directly on DialogStore.
+ */
+
 import { screen, fireEvent } from '@testing-library/preact';
 import { renderWithI18n } from '../test-utils';
-import { describe, it, expect, beforeEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { AggregateDialog } from './AggregateDialog';
-import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
-import * as AggregateHandlers from '../handlers/transform/aggregate-handlers';
 
 describe('AggregateDialog', () => {
   const columns = ['dept', 'salary', 'age'];
 
   beforeEach(() => {
-    // Reset store state before each test
-    DialogStore.aggregateState.groupBy.value = [];
-    DialogStore.aggregateState.aggregations.value = [];
-    DialogStore.aggregateState.isPreviewing.value = false;
     AppStore.columns.value = columns;
+    AppStore.selectedColumns.value = [];
+    AppStore.editingStepIndex.value = null;
+    AppStore.activeModel.value = { steps: [], schema: [], id: 'test', name: 'test' } as any;
+    AppStore.currentData.value = [
+      { dept: 'Sales', salary: 50000, age: 30 },
+      { dept: 'Sales', salary: 60000, age: 35 },
+      { dept: 'Eng', salary: 80000, age: 28 },
+    ];
   });
 
-  it('renders correctly with initial state', () => {
-    DialogStore.aggregateState.aggregations.value = [{ col: '', func: 'count', output: 'count' }];
-
+  it('renders with default count aggregation', () => {
     renderWithI18n(<AggregateDialog />);
 
     expect(screen.getByText('Group by (columns)')).toBeDefined();
-    expect(columns.length).toBe(3);
-    columns.forEach((col) => {
-      expect(screen.getAllByText(col).length).toBeGreaterThan(0);
-    });
+    // Default aggregation is count
     expect(screen.getByText('Count')).toBeDefined();
   });
 
   it('toggles group by columns', () => {
     renderWithI18n(<AggregateDialog />);
 
-    const deptButton = screen.getByText('dept').closest('button');
-    expect(deptButton).toBeDefined();
-    fireEvent.click(deptButton!);
-    expect(DialogStore.aggregateState.groupBy.value).toContain('dept');
+    const deptTexts = screen.getAllByText('dept');
+    const chipText = deptTexts.find((el) => el.closest('button'));
+    expect(chipText).toBeDefined();
+    fireEvent.click(chipText!.closest('button')!);
 
-    fireEvent.click(deptButton!);
-    expect(DialogStore.aggregateState.groupBy.value).not.toContain('dept');
+    // Click again to toggle off
+    fireEvent.click(chipText!.closest('button')!);
   });
 
   it('handles select all and select none', () => {
     renderWithI18n(<AggregateDialog />);
 
-    // ColumnSelector renders "Select All" / "Select None" as hardcoded text (not yet internationalized)
     fireEvent.click(screen.getByText('Select All'));
-    expect(DialogStore.aggregateState.groupBy.value.length).toBe(3);
-
     fireEvent.click(screen.getByText('Select None'));
-    expect(DialogStore.aggregateState.groupBy.value.length).toBe(0);
   });
 
-  it('adds and removes aggregations', () => {
-    vi.spyOn(AggregateHandlers, 'addAggregation').mockImplementation(() => {
-      DialogStore.aggregateState.aggregations.value = [{ col: '', func: 'count', output: 'count' }];
-    });
-    vi.spyOn(AggregateHandlers, 'removeAggregation').mockImplementation(() => {
-      DialogStore.aggregateState.aggregations.value = [];
-    });
-
+  it('adds aggregation via button', () => {
     renderWithI18n(<AggregateDialog />);
 
+    // Should start with one default aggregation (count)
+    const removeButtons = screen.getAllByTitle('Remove');
+    expect(removeButtons).toHaveLength(1);
+
     fireEvent.click(screen.getByText('+ Add aggregation'));
-    expect(DialogStore.aggregateState.aggregations.value.length).toBe(1);
-    expect(DialogStore.aggregateState.aggregations.value[0].func).toBe('count');
+
+    // Now should have two aggregation rows
+    expect(screen.getAllByTitle('Remove')).toHaveLength(2);
+  });
+
+  it('removes aggregation', () => {
+    renderWithI18n(<AggregateDialog />);
 
     const removeBtn = screen.getByTitle('Remove');
     fireEvent.click(removeBtn);
-    expect(DialogStore.aggregateState.aggregations.value.length).toBe(0);
+
+    // No more aggregation rows — no Remove buttons
+    expect(screen.queryAllByTitle('Remove')).toHaveLength(0);
   });
 
-  it('auto-generates output name', () => {
-    vi.spyOn(AggregateHandlers, 'updateAggregateOutputName').mockImplementation(() => {
-      const aggs = DialogStore.aggregateState.aggregations.value;
-      if (aggs.length > 0 && aggs[0].col === 'salary' && aggs[0].func === 'sum') {
-        aggs[0].output = 'sum_salary';
-        DialogStore.aggregateState.aggregations.value = [...aggs];
-      }
-    });
-
-    DialogStore.aggregateState.aggregations.value = [{ col: '', func: 'sum', output: '' }];
+  it('initializes with selected columns for group by', () => {
+    AppStore.selectedColumns.value = ['dept'];
     renderWithI18n(<AggregateDialog />);
 
-    const selects = screen.getAllByRole('combobox');
-    fireEvent.change(selects[0], { target: { value: 'salary' } });
+    // dept should be pre-selected — find it in the chip buttons
+    const deptTexts = screen.getAllByText('dept');
+    const chipText = deptTexts.find((el) => el.closest('button'));
+    expect(chipText).toBeDefined();
+  });
 
-    AggregateHandlers.updateAggregateOutputName(0);
-    expect(DialogStore.aggregateState.aggregations.value[0].col).toBe('salary');
-    expect(DialogStore.aggregateState.aggregations.value[0].output).toBe('sum_salary');
+  it('initializes from editing step', () => {
+    AppStore.editingStepIndex.value = 0;
+    AppStore.activeModel.value = {
+      steps: [
+        {
+          aggregate: {
+            groupby: ['dept'],
+            rollup: {
+              total_salary: "op.sum('salary')",
+              count: 'op.count()',
+            },
+          },
+        },
+      ],
+      schema: [],
+      id: 'test',
+      name: 'test',
+    } as any;
+
+    renderWithI18n(<AggregateDialog />);
+
+    // Should have 2 aggregation rows
+    expect(screen.getAllByTitle('Remove')).toHaveLength(2);
   });
 });

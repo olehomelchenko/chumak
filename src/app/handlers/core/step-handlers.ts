@@ -4,7 +4,6 @@ import { ColumnSchema, TransformStep } from '../../../core/schema-engine';
 import { DialogStore } from '../../stores/DialogStore';
 import { AppStore } from '../../stores/AppStore';
 import { StepService, ComputeResult } from '../../services/StepService';
-import type { PivotAggregation } from '../../components/PivotDialog';
 import * as HelperHandlers from './helper-handlers';
 import { showError, showWarning, showSuccess, confirm } from './notification-handlers';
 import { getDialogConfig } from '../../dialog-registry';
@@ -20,7 +19,6 @@ export type StepCallbacks = {
   closeDialog: (force?: boolean) => void;
   onJoinTargetChange: () => void;
   onAppendTargetChange: () => void;
-  onPivotConfigChange: () => void;
   // Non-transform operations (import, generate)
   confirmImport: () => void;
   confirmTextEntry: () => void;
@@ -233,21 +231,8 @@ export function editStep(stepIndex: number): void {
     // State initialized by useDialogState hook via editingStep context
     callbacks?.openDialog('sample');
   } else if (step.aggregate) {
+    // State initialized by useDialogState hook via editingStep context
     callbacks?.openDialog('aggregate');
-    const aggregations = Object.entries(step.aggregate.rollup).map(([output, opStr]) => {
-      const match = (opStr as string).match(/op\.(\w+)\('([^']+)'\)/);
-      if (match) {
-        return { output, func: match[1], col: match[2] };
-      }
-      if ((opStr as string) === 'op.count()') {
-        return { output, func: 'count', col: '' };
-      }
-      return { output, func: 'custom', col: '' };
-    });
-    const state = DialogStore.aggregateState;
-    state.groupBy.value = [...step.aggregate.groupby];
-    state.aggregations.value = aggregations;
-    state.isPreviewing.value = false;
   } else if (step.join) {
     callbacks?.openDialog('join');
     DialogStore.joinState.rightModel.value = step.join.right;
@@ -278,19 +263,8 @@ export function editStep(stepIndex: number): void {
     // State initialized by useDialogState hook via editingStep context
     callbacks?.openDialog('fold');
   } else if (step.pivot) {
+    // State initialized by useDialogState hook via editingStep context
     callbacks?.openDialog('pivot');
-    const state = DialogStore.pivotState;
-    state.rowColumns.value = step.pivot.rows || [];
-    state.columnColumn.value = step.pivot.keys;
-    state.valueColumn.value = step.pivot.values;
-    state.aggregation.value = (step.pivot.aggregation || 'sum') as PivotAggregation;
-    state.options.value = {
-      sort: step.pivot.options?.sort ?? true,
-      limit: step.pivot.options?.limit || null,
-    };
-    state.uniqueValueCount.value = 0;
-    state.isPreviewing.value = false;
-    callbacks?.onPivotConfigChange();
   } else if (step.replace) {
     // State initialized by useDialogState hook via editingStep context
     callbacks?.openDialog('replace');

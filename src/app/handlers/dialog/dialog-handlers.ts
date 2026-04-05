@@ -44,7 +44,6 @@ export interface DialogHandlerCallbacks {
   // Dialog initialization callbacks (passed to DialogCoordinator)
   initializeJoinDialog?: () => void;
   initializeAppendDialog?: () => void;
-  initializePivotDialog?: () => void;
 }
 
 let dialogHandlerCallbacks: DialogHandlerCallbacks = {};
@@ -100,7 +99,6 @@ export function initDialogState(dialogName: string, section?: string): void {
   DialogCoordinator.setDialogCallbacks({
     initializeJoinDialog: dialogHandlerCallbacks.initializeJoinDialog,
     initializeAppendDialog: dialogHandlerCallbacks.initializeAppendDialog,
-    initializePivotDialog: dialogHandlerCallbacks.initializePivotDialog,
     clearColumnSelection: dialogHandlerCallbacks.clearColumnSelection,
     confirm: dialogHandlerCallbacks.confirm,
   });
@@ -164,10 +162,8 @@ export function activeDialogError(): boolean {
       return DialogStore.activeDialogHasError.value;
     case 'split':
       return DialogStore.activeDialogHasError.value;
-    case 'pivot': {
-      const state = DialogStore.pivotState;
-      return !state.columnColumn.value || !state.valueColumn.value;
-    }
+    case 'pivot':
+      return DialogStore.activeDialogHasError.value;
     case 'dedupe':
       return DialogStore.activeDialogHasError.value;
     case 'import-url': {

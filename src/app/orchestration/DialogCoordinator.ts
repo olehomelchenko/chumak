@@ -14,7 +14,6 @@ import { syncDialogToUrl, clearDialogFromUrl } from './UrlStateSync';
 export type DialogCallbacks = {
   initializeJoinDialog?: () => void;
   initializeAppendDialog?: () => void;
-  initializePivotDialog?: () => void;
   clearColumnSelection?: () => void;
   confirm?: (message: string, confirmLabel?: string) => Promise<boolean>;
 };
@@ -65,7 +64,6 @@ export function hasUnsavedChanges(): boolean {
  */
 export function initDialogState(dialogName: string, section?: string): void {
   const columns = AppStore.columns.value;
-  const selectedColumns = AppStore.selectedColumns.value;
   switch (dialogName) {
     case 'filter':
     case 'derive':
@@ -93,11 +91,7 @@ export function initDialogState(dialogName: string, section?: string): void {
       break; // state managed by useDialogState hook
 
     case 'aggregate':
-      DialogStore.aggregateState.groupBy.value =
-        selectedColumns.length > 0 ? [...selectedColumns] : [];
-      DialogStore.aggregateState.aggregations.value = [{ output: 'count', func: 'count', col: '' }];
-      DialogStore.aggregateState.isPreviewing.value = false;
-      break;
+      break; // state managed by useDialogState hook
 
     case 'import-csv':
       break;
@@ -141,8 +135,7 @@ export function initDialogState(dialogName: string, section?: string): void {
       break; // state managed by useDialogState hook
 
     case 'pivot':
-      callbacks?.initializePivotDialog?.();
-      break;
+      break; // state managed by useDialogState hook
 
     case 'replace':
       break; // state managed by useDialogState hook

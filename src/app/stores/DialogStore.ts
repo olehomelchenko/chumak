@@ -17,8 +17,6 @@ import {
   mergeState,
   columnEditorState,
   // Aggregate states
-  aggregateState,
-  pivotState,
   windowState,
   // Text states
   textState,
@@ -39,7 +37,6 @@ import {
 } from './dialogs';
 
 // Re-export types for backward compatibility
-export type { Aggregation, PivotOptions } from './dialogs/aggregate';
 export type { ColumnEditorColumn } from './dialogs/column';
 export type { KeyPairAnalysis, MismatchPreview } from './dialogs/combine';
 
@@ -58,8 +55,6 @@ export class DialogStore {
   static columnEditorState = columnEditorState;
 
   // Aggregate states
-  static aggregateState = aggregateState;
-  static pivotState = pivotState;
   static windowState = windowState;
 
   // Text states

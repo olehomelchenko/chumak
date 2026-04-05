@@ -53,7 +53,6 @@ import {
   initializeAppendDialog,
   onAppendTargetChange,
 } from '../handlers/transform/append-handlers';
-import { initializePivotDialog, onPivotConfigChange } from '../handlers/transform/pivot-handlers';
 
 // AppController for orchestration methods only
 import { AppController } from './AppController';
@@ -118,7 +117,6 @@ export async function initApp(): Promise<void> {
     clearColumnSelection: () => clearColumnSelection(),
     initializeJoinDialog: () => initializeJoinDialog(),
     initializeAppendDialog: () => initializeAppendDialog(),
-    initializePivotDialog: () => initializePivotDialog(),
   });
 
   // Phase 4: Restore URL state (sets activeModel/activeSource but data is still null)
@@ -173,7 +171,6 @@ function wireHandlerCallbacks(): void {
     showDatasetInfo: (source) => AppController.showDatasetInfo(source),
     initializeJoinDialog: () => initializeJoinDialog(),
     initializeAppendDialog: () => initializeAppendDialog(),
-    initializePivotDialog: () => initializePivotDialog(),
   });
 
   setStepCallbacks({
@@ -182,7 +179,6 @@ function wireHandlerCallbacks(): void {
     closeDialog: (force) => closeDialog(force),
     onJoinTargetChange: () => onJoinTargetChange(),
     onAppendTargetChange: () => onAppendTargetChange(),
-    onPivotConfigChange: () => onPivotConfigChange(),
     confirmImport: () => confirmImport(),
     confirmTextEntry: () => confirmTextEntry(),
     fetchAndImportFromUrl: () => fetchAndImportFromUrl(),
