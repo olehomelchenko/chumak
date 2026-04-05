@@ -1,24 +1,102 @@
+import { signal } from '@preact/signals';
 import { useTranslation } from 'preact-i18next';
-import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
+import { useDialogState } from '../hooks/useDialogState';
+import { useTransformPreview } from '../hooks/useTransformPreview';
+import { validateRegexPattern } from '../handlers/validation-engine';
 import { ColumnSelector } from './column-selector';
-import {
-  validateRegexpExtractExpression,
-  debouncedUpdateRegexpExtractPreview,
-} from '../handlers/transform/regexp-handlers';
 import formStyles from './form-controls.module.css';
 import exprStyles from './expression-help.module.css';
 const styles = { ...formStyles, ...exprStyles };
 
 export function RegexpExtractDialog() {
   const { t } = useTranslation('dialogs');
-  const { sourceColumn, pattern, columnName, group, error } = DialogStore.regexpExtractState;
+
+  const { state } = useDialogState(
+    (ctx) => {
+      // For editing, derive values from the existing derive expression
+      // regexpExtract is stored as: { derive: { colName: "regexp_extract(src, pat, group)" } }
+      const editing = ctx.editingStep?.derive;
+      let editSourceColumn = '';
+      let editPattern = '';
+      let editColumnName = '';
+      let editGroup = 0;
+
+      if (editing) {
+        const [colName, expr] = Object.entries(editing)[0];
+        editColumnName = colName;
+        const match = (expr as string).match(
+          /^regexp_extract\((\[?[^\],]+\]?),\s*"(.*)",\s*(\d+)\)$/
+        );
+        if (match) {
+          editSourceColumn = match[1].replace(/^\[|\]$/g, '');
+          editPattern = match[2].replace(/\\\\/g, '\\').replace(/\\"/g, '"');
+          editGroup = parseInt(match[3], 10) || 0;
+        }
+      }
+
+      const defaultColumn = editSourceColumn || ctx.selectedColumns[0] || ctx.columns[0] || '';
+
+      return {
+        sourceColumn: signal<string>(defaultColumn),
+        pattern: signal<string>(editPattern),
+        columnName: signal<string>(editColumnName),
+        group: signal<number>(editGroup),
+        error: signal<string | null>(null),
+      };
+    },
+    {
+      hasError: (s) => !!s.error.value || !s.columnName.value?.trim() || !s.pattern.value?.trim(),
+      getError: (s) => s.error.value,
+    }
+  );
+
+  const { sourceColumn, pattern, columnName, group, error } = state;
   const columns = AppStore.columns.value;
 
-  const handleInput = () => {
-    validateRegexpExtractExpression();
-    debouncedUpdateRegexpExtractPreview();
+  const validatePattern = () => {
+    validateRegexPattern(pattern.value, { errorSignal: error });
   };
+
+  useTransformPreview({
+    compute: () => {
+      const src = sourceColumn.value;
+      const pat = pattern.value;
+      const currentData = AppStore.currentData.value;
+      if (!src || !pat || error.value || !currentData?.length) return null;
+
+      const regex = new RegExp(pat);
+      const previewLimit = Math.min(AppStore.uxSettings.value.preview.rowLimit, 50);
+      const samples = currentData.slice(0, previewLimit);
+      const outputCol = columnName.value || 'extracted';
+      const groupNum = group.value || 0;
+
+      const rows = samples.map((row: any) => {
+        const val = row[src];
+        let extracted: string | null = null;
+        if (val != null) {
+          const match = String(val).match(regex);
+          extracted = match ? (match[groupNum] ?? match[0]) : null;
+        }
+        return { [src]: val, [outputCol]: extracted ?? '(no match)' };
+      });
+
+      return {
+        title: `Regexp Extract: ${outputCol}`,
+        stats: `Extracting group ${groupNum} from ${samples.length} rows`,
+        columns: [src, outputCol],
+        newColumns: [outputCol],
+        rows,
+      };
+    },
+    deps: () => {
+      sourceColumn.value;
+      pattern.value;
+      columnName.value;
+      group.value;
+      error.value;
+    },
+  });
 
   return (
     <div>
@@ -32,7 +110,6 @@ export function RegexpExtractDialog() {
           selectedColumns={sourceColumn.value}
           onSelectionChange={(col) => {
             sourceColumn.value = col as string;
-            debouncedUpdateRegexpExtractPreview();
           }}
           mode="single"
           display="chip"
@@ -48,7 +125,7 @@ export function RegexpExtractDialog() {
           value={pattern.value}
           onInput={(e) => {
             pattern.value = (e.target as HTMLInputElement).value;
-            handleInput();
+            validatePattern();
           }}
           placeholder={t('regexpExtract.patternPlaceholder')}
         />
@@ -62,7 +139,6 @@ export function RegexpExtractDialog() {
           value={group.value}
           onInput={(e) => {
             group.value = parseInt((e.target as HTMLInputElement).value) || 0;
-            debouncedUpdateRegexpExtractPreview();
           }}
           min="0"
           max="9"
@@ -78,7 +154,6 @@ export function RegexpExtractDialog() {
           value={columnName.value}
           onInput={(e) => {
             columnName.value = (e.target as HTMLInputElement).value;
-            debouncedUpdateRegexpExtractPreview();
           }}
           placeholder={t('regexpExtract.columnNamePlaceholder')}
         />

@@ -1,24 +1,91 @@
+import { signal } from '@preact/signals';
 import { useTranslation } from 'preact-i18next';
-import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
+import { useDialogState } from '../hooks/useDialogState';
+import { useTransformPreview } from '../hooks/useTransformPreview';
+import { validateRegexPattern } from '../handlers/validation-engine';
 import { ColumnSelector } from './column-selector';
-import {
-  validateRegexpMatchExpression,
-  debouncedUpdateRegexpMatchPreview,
-} from '../handlers/transform/regexp-handlers';
 import formStyles from './form-controls.module.css';
 import exprStyles from './expression-help.module.css';
 const styles = { ...formStyles, ...exprStyles };
 
 export function RegexpMatchDialog() {
   const { t } = useTranslation('dialogs');
-  const { sourceColumn, pattern, columnName, error } = DialogStore.regexpMatchState;
+
+  const { state } = useDialogState(
+    (ctx) => {
+      // For editing, derive values from the existing derive expression
+      // regexpMatch is stored as a derive step: { derive: { colName: "regexp_match(src, pat)" } }
+      const editing = ctx.editingStep?.derive;
+      let editSourceColumn = '';
+      let editPattern = '';
+      let editColumnName = '';
+
+      if (editing) {
+        const [colName, expr] = Object.entries(editing)[0];
+        editColumnName = colName;
+        const match = (expr as string).match(/^regexp_match\((\[?[^\],]+\]?),\s*"(.*)"\)$/);
+        if (match) {
+          editSourceColumn = match[1].replace(/^\[|\]$/g, '');
+          editPattern = match[2].replace(/\\\\/g, '\\').replace(/\\"/g, '"');
+        }
+      }
+
+      const defaultColumn = editSourceColumn || ctx.selectedColumns[0] || ctx.columns[0] || '';
+
+      return {
+        sourceColumn: signal<string>(defaultColumn),
+        pattern: signal<string>(editPattern),
+        columnName: signal<string>(editColumnName),
+        error: signal<string | null>(null),
+      };
+    },
+    {
+      hasError: (s) => !!s.error.value || !s.columnName.value?.trim() || !s.pattern.value?.trim(),
+      getError: (s) => s.error.value,
+    }
+  );
+
+  const { sourceColumn, pattern, columnName, error } = state;
   const columns = AppStore.columns.value;
 
-  const handleInput = () => {
-    validateRegexpMatchExpression();
-    debouncedUpdateRegexpMatchPreview();
+  const validatePattern = () => {
+    validateRegexPattern(pattern.value, { errorSignal: error });
   };
+
+  useTransformPreview({
+    compute: () => {
+      const src = sourceColumn.value;
+      const pat = pattern.value;
+      const currentData = AppStore.currentData.value;
+      if (!src || !pat || error.value || !currentData?.length) return null;
+
+      const regex = new RegExp(pat);
+      const previewLimit = Math.min(AppStore.uxSettings.value.preview.rowLimit, 50);
+      const samples = currentData.slice(0, previewLimit);
+      const outputCol = columnName.value || 'is_match';
+
+      const rows = samples.map((row: any) => {
+        const val = row[src];
+        const matches = val != null ? regex.test(String(val)) : false;
+        return { [src]: val, [outputCol]: matches };
+      });
+
+      return {
+        title: `Regexp Match: ${outputCol}`,
+        stats: `Testing pattern on ${samples.length} rows`,
+        columns: [src, outputCol],
+        newColumns: [outputCol],
+        rows,
+      };
+    },
+    deps: () => {
+      sourceColumn.value;
+      pattern.value;
+      columnName.value;
+      error.value;
+    },
+  });
 
   return (
     <div>
@@ -32,7 +99,6 @@ export function RegexpMatchDialog() {
           selectedColumns={sourceColumn.value}
           onSelectionChange={(col) => {
             sourceColumn.value = col as string;
-            debouncedUpdateRegexpMatchPreview();
           }}
           mode="single"
           display="chip"
@@ -48,7 +114,7 @@ export function RegexpMatchDialog() {
           value={pattern.value}
           onInput={(e) => {
             pattern.value = (e.target as HTMLInputElement).value;
-            handleInput();
+            validatePattern();
           }}
           placeholder={t('regexpMatch.patternPlaceholder')}
         />
@@ -62,7 +128,6 @@ export function RegexpMatchDialog() {
           value={columnName.value}
           onInput={(e) => {
             columnName.value = (e.target as HTMLInputElement).value;
-            debouncedUpdateRegexpMatchPreview();
           }}
           placeholder={t('regexpMatch.columnNamePlaceholder')}
         />

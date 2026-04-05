@@ -3,22 +3,20 @@
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
-import { screen, fireEvent } from '@testing-library/preact';
+import { screen } from '@testing-library/preact';
 import { renderWithI18n } from '../test-utils';
 import { ReplaceDialog } from './ReplaceDialog';
-import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 
 describe('ReplaceDialog', () => {
   const testColumns = ['name', 'status', 'count'];
 
   beforeEach(() => {
-    // Reset store state before each test
-    DialogStore.replaceState.column.value = '';
-    DialogStore.replaceState.findValue.value = '';
-    DialogStore.replaceState.replaceValue.value = '';
-    DialogStore.replaceState.isRegex.value = false;
     AppStore.columns.value = testColumns;
+    AppStore.selectedColumn.value = null;
+    AppStore.selectedColumns.value = [];
+    AppStore.selectedCell.value = null;
+    AppStore.editingStepIndex.value = null;
   });
 
   it('renders all column chips', () => {
@@ -29,42 +27,28 @@ describe('ReplaceDialog', () => {
     });
   });
 
-  it('selects a column when clicked', () => {
-    renderWithI18n(<ReplaceDialog />);
-
-    const statusButton = screen.getByText('status').closest('button');
-    fireEvent.click(statusButton!);
-
-    expect(DialogStore.replaceState.column.value).toBe('status');
-  });
-
-  it('updates find value when typed', () => {
-    DialogStore.replaceState.column.value = 'name';
-    renderWithI18n(<ReplaceDialog />);
-
-    const input = screen.getByPlaceholderText('Value to replace') as HTMLInputElement;
-    fireEvent.input(input, { target: { value: 'old_value' } });
-
-    expect(DialogStore.replaceState.findValue.value).toBe('old_value');
-  });
-
-  it('updates replace value when typed', () => {
-    DialogStore.replaceState.column.value = 'name';
-    renderWithI18n(<ReplaceDialog />);
-
-    const input = screen.getByPlaceholderText(
-      'New value (leave empty for null)'
-    ) as HTMLInputElement;
-    fireEvent.input(input, { target: { value: 'new_value' } });
-
-    expect(DialogStore.replaceState.replaceValue.value).toBe('new_value');
-  });
-
-  it('highlights the selected column', () => {
-    DialogStore.replaceState.column.value = 'status';
+  it('initializes from selectedColumn', () => {
+    AppStore.selectedColumn.value = 'status';
     renderWithI18n(<ReplaceDialog />);
 
     const statusButton = screen.getByText('status').closest('button');
     expect(statusButton?.className).toContain('active');
+  });
+
+  it('initializes from selectedCell with value', () => {
+    AppStore.selectedCell.value = { col: 'name', value: 'Alice', isError: false };
+    renderWithI18n(<ReplaceDialog />);
+
+    // Should have the find value pre-filled
+    const input = screen.getByPlaceholderText('Value to replace') as HTMLInputElement;
+    expect(input.value).toBe('Alice');
+  });
+
+  it('initializes from selectedCell with error', () => {
+    AppStore.selectedCell.value = { col: 'name', value: 'bad', isError: true };
+    renderWithI18n(<ReplaceDialog />);
+
+    // Should be in errors mode — find value input is hidden
+    expect(screen.queryByPlaceholderText('Value to replace')).toBeNull();
   });
 });

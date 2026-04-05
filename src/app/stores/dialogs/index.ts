@@ -13,5 +13,4 @@ export * from './column';
 export * from './aggregate';
 export * from './combine';
 export * from './text';
-export * from './pattern';
 export * from './import';

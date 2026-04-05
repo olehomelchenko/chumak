@@ -56,6 +56,28 @@ MOD  src/core/transforms/types.ts                       # KNOWN_TRANSFORM_KEYS
 
 ---
 
+## Lessons Learned
+
+### Batch 3: verify implementation before trusting this checklist
+
+During batch 3, the Preview column in the checklist below said "No" for regexpMatch and regexpExtract. The actual code had debounced preview via `createDebouncedPreview()` in `regexp-handlers.ts`. Trusting the checklist over the code led to:
+
+1. **Preview dropped** — regex match/extract live preview was deleted with the handler file. Caught in review, restored via `useTransformPreview` hook.
+2. **Inline validation regressed** — the old pattern-handlers set `error.value` on the dialog's signal (inline display). The new apply handlers called `cb.onError()` (toast). Caught in review, fixed by adding real-time `validatePattern()` on input.
+
+**Rule for future batches:** Before migrating a dialog, read the handler file and component end-to-end. Do not rely on the Preview column or Complexity rating below — they may be inaccurate. Verify:
+
+- Does the handler file have preview/debounce logic?
+- Does the handler set error signals (inline) vs. call `cb.onError` (toast)?
+- Are there quick actions in `interaction-handlers.ts` that pre-configure state?
+- Are there non-obvious side effects (e.g., clearing other state, triggering callbacks)?
+
+### Batches 1 & 2: review for possible regressions
+
+Batches 1 (sort, sliceRows, sample) and 2 (index, promoteHeader, conditional) were migrated before this checklist discipline was established. They should be spot-checked for the same class of issue — features in the old handler/state files that may not have carried over. Low risk (these are simpler dialogs), but worth a quick read of the git diff for each.
+
+---
+
 ## Migration Steps for Each Dialog
 
 ### 1. Update the dialog component
@@ -156,7 +178,7 @@ case 'xxx':
 | sliceRows     | `slice-state.ts`          | `simple-handlers.ts`        | No         | Low        | Done   |
 | sample        | `sample-state.ts`         | `sample-handlers.ts`        | No         | Low        | Done   |
 | index         | `index-state.ts`          | `simple-handlers.ts`        | No         | Low        | Done   |
-| replace       | `replace-state.ts`        | `simple-handlers.ts`        | No         | Medium     |        |
+| replace       | `replace-state.ts`        | `simple-handlers.ts`        | No         | Medium     | Done   |
 | impute        | `impute-state.ts`         | `simple-handlers.ts`        | Yes (mock) | Medium     |        |
 | promoteHeader | `promote-header-state.ts` | `simple-handlers.ts`        | No         | Low        | Done   |
 | conditional   | `conditional-state.ts`    | `pattern-handlers.ts`       | No         | Medium     | Done   |
@@ -166,20 +188,20 @@ case 'xxx':
 | spread        | `spread-state.ts`         | `spread-handlers.ts`        | No         | Medium     |        |
 | unroll        | `unroll-state.ts`         | `unroll-handlers.ts`        | No         | Medium     |        |
 | split         | `split-state.ts`          | `split-handlers.ts`         | Yes        | High       |        |
-| merge         | `merge-state.ts`          | `merge-handlers.ts`         | No         | Medium     |        |
-| text          | `text-state.ts`           | `text-handlers.ts`          | No         | Medium     |        |
+| merge         | `merge-state.ts`          | `merge-handlers.ts`         | Yes        | Medium     |        |
+| text          | `text-state.ts`           | `text-handlers.ts`          | Yes        | Medium     |        |
 | date          | `date-state.ts`           | `date-handlers.ts`          | Yes        | High       |        |
-| parseDate     | `parse-date-state.ts`     | `parse-date-handlers.ts`    | No         | Medium     |        |
-| regexpMatch   | `regexp-match-state.ts`   | `regexp-handlers.ts`        | No         | Medium     |        |
-| regexpExtract | `regexp-extract-state.ts` | `regexp-handlers.ts`        | No         | Medium     |        |
-| fold          | `fold-state.ts`           | `fold-handlers.ts`          | No         | Medium     |        |
-| pivot         | `pivot-state.ts`          | `pivot-handlers.ts`         | No         | High       |        |
-| aggregate     | `aggregate-state.ts`      | `aggregate-handlers.ts`     | No         | High       |        |
-| describe      | `describe-state.ts`       | `describe-handlers.ts`      | No         | Medium     |        |
-| window        | `window-state.ts`         | `window-handlers.ts`        | No         | High       |        |
-| selectPattern | `select-pattern-state.ts` | `pattern-handlers.ts`       | No         | Medium     |        |
-| removePattern | `remove-pattern-state.ts` | `pattern-handlers.ts`       | No         | Medium     |        |
-| renamePattern | `rename-pattern-state.ts` | `pattern-handlers.ts`       | No         | Medium     |        |
+| parseDate     | `parse-date-state.ts`     | `parse-date-handlers.ts`    | Yes        | Medium     |        |
+| regexpMatch   | `regexp-match-state.ts`   | `regexp-handlers.ts`        | Yes        | Medium     | Done   |
+| regexpExtract | `regexp-extract-state.ts` | `regexp-handlers.ts`        | Yes        | Medium     | Done   |
+| fold          | `fold-state.ts`           | `fold-handlers.ts`          | Yes        | Medium     |        |
+| pivot         | `pivot-state.ts`          | `pivot-handlers.ts`         | Yes        | High       |        |
+| aggregate     | `aggregate-state.ts`      | `aggregate-handlers.ts`     | Yes        | High       |        |
+| describe      | `describe-state.ts`       | `describe-handlers.ts`      | Yes        | Medium     |        |
+| window        | `window-state.ts`         | `window-handlers.ts`        | Yes        | High       |        |
+| selectPattern | `select-pattern-state.ts` | `pattern-handlers.ts`       | No         | Medium     | Done   |
+| removePattern | `remove-pattern-state.ts` | `pattern-handlers.ts`       | No         | Medium     | Done   |
+| renamePattern | `rename-pattern-state.ts` | `pattern-handlers.ts`       | No         | Medium     | Done   |
 | column-editor | `column-editor-state.ts`  | `column-editor-handlers.ts` | No         | High       |        |
 
 ### Combine Dialogs
@@ -207,17 +229,21 @@ sort, sliceRows, sample
 **Batch 2 — Simple transforms, no preview (done):**
 index, promoteHeader, conditional
 
-**Batch 3 — Medium transforms with expression/regex validation:**
+**Batch 3 — Medium transforms with expression/regex validation (done):**
 replace, regexpMatch, regexpExtract, selectPattern, removePattern, renamePattern
 
 **Batch 4 — Transforms with preview (`useTransformPreview`):**
 impute, dedupe, filter, derive, split, date
 
-**Batch 5 — Complex multi-field transforms:**
+**Batch 5 — Multi-field transforms (all have preview except spread/unroll):**
 fold, merge, spread, unroll, text, parseDate, describe
 
-**Batch 6 — High-complexity transforms:**
+**Batch 6 — High-complexity transforms (all have preview):**
 aggregate, pivot, window, column-editor, join, append
+
+> **Note:** The Preview column above was corrected after batch 3. Only spread and unroll
+> lack preview — every other remaining dialog has `createDebouncedPreview()` in its handler file.
+> Verify handler code before each migration; do not rely on this table alone.
 
 ---
 

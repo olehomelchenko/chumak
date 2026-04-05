@@ -163,15 +163,13 @@ export function activeDialogError(): boolean {
   // Handle dialogs using DialogStore directly
   switch (activeDialog) {
     case 'index':
+    case 'regexpMatch':
+    case 'regexpExtract':
+    case 'replace':
+    case 'selectPattern':
+    case 'removePattern':
+    case 'renamePattern':
       return DialogStore.activeDialogHasError.value;
-    case 'regexpMatch': {
-      const state = DialogStore.regexpMatchState;
-      return !!state.error.value;
-    }
-    case 'regexpExtract': {
-      const state = DialogStore.regexpExtractState;
-      return !!state.error.value;
-    }
     case 'split': {
       const state = DialogStore.splitState;
       return !!state.error.value;

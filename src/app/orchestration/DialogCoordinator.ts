@@ -170,13 +170,8 @@ export function initDialogState(dialogName: string, section?: string): void {
       callbacks?.initializePivotDialog?.();
       break;
 
-    case 'replace': {
-      const state = DialogStore.replaceState;
-      if (!state.column.value) {
-        state.column.value = effectiveColumn;
-      }
-      break;
-    }
+    case 'replace':
+      break; // state managed by useDialogState hook
 
     case 'split': {
       const state = DialogStore.splitState;
@@ -214,28 +209,9 @@ export function initDialogState(dialogName: string, section?: string): void {
       break;
     }
 
-    case 'regexpMatch': {
-      const state = DialogStore.regexpMatchState;
-      if (!state.sourceColumn.value) {
-        state.sourceColumn.value = effectiveColumn;
-      }
-      state.pattern.value = '';
-      state.columnName.value = '';
-      state.error.value = null;
-      break;
-    }
-
-    case 'regexpExtract': {
-      const state = DialogStore.regexpExtractState;
-      if (!state.sourceColumn.value) {
-        state.sourceColumn.value = effectiveColumn;
-      }
-      state.pattern.value = '';
-      state.columnName.value = '';
-      state.group.value = 0;
-      state.error.value = null;
-      break;
-    }
+    case 'regexpMatch':
+    case 'regexpExtract':
+      break; // state managed by useDialogState hook
 
     case 'date': {
       const state = DialogStore.dateState;

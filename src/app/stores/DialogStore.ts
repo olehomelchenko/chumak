@@ -11,7 +11,6 @@ import { signal } from '@preact/signals';
 // Import all states from organized subdirectories
 import {
   // Transform states
-  replaceState,
   filterState,
   deriveState,
   imputeState,
@@ -31,14 +30,8 @@ import {
   describeState,
   // Text states
   textState,
-  regexpMatchState,
-  regexpExtractState,
   dateState,
   parseDateState,
-  // Pattern states
-  selectPatternState,
-  removePatternState,
-  renamePatternState,
   // Combine states
   joinState,
   appendState,
@@ -67,7 +60,6 @@ export type { KeyPairAnalysis, MismatchPreview } from './dialogs/combine';
  */
 export class DialogStore {
   // Transform states
-  static replaceState = replaceState;
   static filterState = filterState;
   static deriveState = deriveState;
   static imputeState = imputeState;
@@ -90,15 +82,8 @@ export class DialogStore {
 
   // Text states
   static textState = textState;
-  static regexpMatchState = regexpMatchState;
-  static regexpExtractState = regexpExtractState;
   static dateState = dateState;
   static parseDateState = parseDateState;
-
-  // Pattern states
-  static selectPatternState = selectPatternState;
-  static removePatternState = removePatternState;
-  static renamePatternState = renamePatternState;
 
   // Combine states
   static joinState = joinState;

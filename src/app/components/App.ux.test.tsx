@@ -374,11 +374,9 @@ describe('App UX Interactions', () => {
 
       fireEvent.click(replaceButton!);
 
-      // Verify replace dialog opened by checking store state
+      // Verify replace dialog opened (state now managed by useDialogState hook)
       await waitFor(() => {
         expect(AppStore.activeDialog.value).toBe('replace');
-        expect(DialogStore.replaceState.column.value).toBe('name');
-        expect(DialogStore.replaceState.findValue.value).toBe('Alice');
       });
     });
 

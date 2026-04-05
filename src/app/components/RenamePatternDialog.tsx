@@ -1,10 +1,34 @@
+import { signal } from '@preact/signals';
 import { useTranslation } from 'preact-i18next';
-import { DialogStore } from '../stores/DialogStore';
+import { useDialogState } from '../hooks/useDialogState';
+import { validateRegexPattern } from '../handlers/validation-engine';
 import styles from './form-controls.module.css';
 
 export function RenamePatternDialog() {
   const { t } = useTranslation('dialogs');
-  const { find, replace: replaceValue, regex, error } = DialogStore.renamePatternState;
+
+  const { state } = useDialogState(
+    (ctx) => ({
+      find: signal<string>(ctx.editingStep?.renamePattern?.find ?? ''),
+      replace: signal<string>(ctx.editingStep?.renamePattern?.replace ?? ''),
+      regex: signal<boolean>(ctx.editingStep?.renamePattern?.regex ?? false),
+      error: signal<string | null>(null),
+    }),
+    {
+      hasError: (s) => !s.find.value?.trim() || !!s.error.value,
+      getError: (s) => s.error.value,
+    }
+  );
+
+  const { find, replace: replaceValue, regex, error } = state;
+
+  const validatePattern = () => {
+    if (regex.value) {
+      validateRegexPattern(find.value, { errorSignal: error });
+    } else {
+      error.value = null;
+    }
+  };
 
   return (
     <div>
@@ -18,7 +42,10 @@ export function RenamePatternDialog() {
           type="text"
           class={styles.input}
           value={find.value}
-          onInput={(e) => (find.value = (e.target as HTMLInputElement).value)}
+          onInput={(e) => {
+            find.value = (e.target as HTMLInputElement).value;
+            validatePattern();
+          }}
           placeholder={t('pattern.rename.findPlaceholder')}
         />
       </div>
@@ -39,7 +66,10 @@ export function RenamePatternDialog() {
           <input
             type="checkbox"
             checked={regex.value}
-            onChange={(e) => (regex.value = (e.target as HTMLInputElement).checked)}
+            onChange={(e) => {
+              regex.value = (e.target as HTMLInputElement).checked;
+              validatePattern();
+            }}
           />
           <span>{t('pattern.rename.useRegex')}</span>
         </label>

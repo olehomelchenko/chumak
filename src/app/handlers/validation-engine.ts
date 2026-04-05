@@ -153,7 +153,7 @@ export function isExpressionValid(expression: string, columns: string[]): boolea
  * @example
  * // With signal binding
  * validateRegexPattern(pattern, {
- *   errorSignal: DialogStore.regexpMatchState.error
+ *   errorSignal: myErrorSignal
  * });
  */
 export function validateRegexPattern(

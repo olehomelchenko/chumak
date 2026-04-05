@@ -156,14 +156,7 @@ describe('DialogCoordinator', () => {
       expect(state).toEqual({ column: 'items', indices: true, keepOriginal: false });
     });
 
-    it('returns replace state', () => {
-      DialogStore.replaceState.column.value = 'status';
-      DialogStore.replaceState.findValue.value = 'active';
-      DialogStore.replaceState.replaceValue.value = 'enabled';
-
-      const state = getDialogState('replace');
-      expect(state).toEqual({ column: 'status', findValue: 'active', replaceValue: 'enabled' });
-    });
+    // replace: state now managed by useDialogState bridge signals
 
     it('returns split state', () => {
       DialogStore.splitState.column.value = 'name';
@@ -197,24 +190,7 @@ describe('DialogCoordinator', () => {
       });
     });
 
-    it('returns regexpMatch state', () => {
-      DialogStore.regexpMatchState.sourceColumn.value = 'email';
-      DialogStore.regexpMatchState.pattern.value = '@gmail';
-      DialogStore.regexpMatchState.columnName.value = 'is_gmail';
-
-      const state = getDialogState('regexpMatch');
-      expect(state).toEqual({ sourceColumn: 'email', pattern: '@gmail', columnName: 'is_gmail' });
-    });
-
-    it('returns regexpExtract state', () => {
-      DialogStore.regexpExtractState.sourceColumn.value = 'url';
-      DialogStore.regexpExtractState.pattern.value = '(\\d+)';
-      DialogStore.regexpExtractState.columnName.value = 'number';
-      DialogStore.regexpExtractState.group.value = 1;
-
-      const state = getDialogState('regexpExtract');
-      expect(state.group).toBe(1);
-    });
+    // regexpMatch, regexpExtract: state now managed by useDialogState bridge signals
 
     it('returns import-csv state', () => {
       DialogStore.importCsvState.sourceName.value = 'sales.csv';
@@ -578,21 +554,21 @@ describe('DialogCoordinator', () => {
     });
 
     // regexpMatch / regexpExtract / split error signals
-    it('regexpMatch: returns true when error present', () => {
+    it('regexpMatch: returns true when bridge error present', () => {
       AppStore.activeDialog.value = 'regexpMatch';
-      DialogStore.regexpMatchState.error.value = 'Invalid regex';
+      DialogStore.activeDialogHasError.value = true;
       expect(activeDialogHasError()).toBe(true);
     });
 
-    it('regexpMatch: returns false when no error', () => {
+    it('regexpMatch: returns false when no bridge error', () => {
       AppStore.activeDialog.value = 'regexpMatch';
-      DialogStore.regexpMatchState.error.value = null;
+      DialogStore.activeDialogHasError.value = false;
       expect(activeDialogHasError()).toBe(false);
     });
 
-    it('regexpExtract: returns true when error present', () => {
+    it('regexpExtract: returns true when bridge error present', () => {
       AppStore.activeDialog.value = 'regexpExtract';
-      DialogStore.regexpExtractState.error.value = 'Invalid regex';
+      DialogStore.activeDialogHasError.value = true;
       expect(activeDialogHasError()).toBe(true);
     });
 

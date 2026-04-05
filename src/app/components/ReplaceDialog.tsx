@@ -1,13 +1,59 @@
+import { signal } from '@preact/signals';
 import { useTranslation } from 'preact-i18next';
-import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
+import { useDialogState } from '../hooks/useDialogState';
 import { ColumnSelector } from './column-selector';
-import type { ReplaceFindMode } from '../stores/dialogs/transform/replace-state';
 import styles from './form-controls.module.css';
+
+export type ReplaceFindMode = 'value' | 'errors' | 'null';
 
 export function ReplaceDialog() {
   const { t } = useTranslation('dialogs');
-  const { column, findMode, findValue, replaceValue, isRegex } = DialogStore.replaceState;
+
+  const { state } = useDialogState(
+    (ctx) => {
+      const editing = ctx.editingStep?.replace;
+      if (editing) {
+        return {
+          column: signal<string>(editing.column),
+          findMode: signal<ReplaceFindMode>(editing.matchMode ?? 'value'),
+          findValue: signal<string>(editing.find ?? ''),
+          replaceValue: signal<string>(editing.replace ?? ''),
+          isRegex: signal<boolean>(editing.isRegex ?? false),
+        };
+      }
+
+      // Quick-replace from cell: read selectedCell for pre-fill
+      const selectedCell = AppStore.selectedCell.value;
+      const selectedColumn = AppStore.selectedColumn.value;
+      const defaultColumn = selectedCell?.col || selectedColumn || ctx.columns[0] || '';
+
+      let findMode: ReplaceFindMode = 'value';
+      let findValue = '';
+      if (selectedCell) {
+        if (selectedCell.isError) {
+          findMode = 'errors';
+        } else if (selectedCell.value === null || selectedCell.value === undefined) {
+          findMode = 'null';
+        } else {
+          findValue = selectedCell.value;
+        }
+      }
+
+      return {
+        column: signal<string>(defaultColumn),
+        findMode: signal<ReplaceFindMode>(findMode),
+        findValue: signal<string>(findValue),
+        replaceValue: signal<string>(''),
+        isRegex: signal<boolean>(false),
+      };
+    },
+    {
+      hasError: (s) => !s.column.value,
+    }
+  );
+
+  const { column, findMode, findValue, replaceValue, isRegex } = state;
   const columns = AppStore.columns.value;
   const mode = findMode.value;
 

@@ -1,10 +1,35 @@
+import { signal } from '@preact/signals';
 import { useTranslation } from 'preact-i18next';
-import { DialogStore } from '../stores/DialogStore';
+import { useDialogState } from '../hooks/useDialogState';
+import { validateRegexPattern } from '../handlers/validation-engine';
+import type { PatternMatchType } from '../../types/modes';
 import styles from './form-controls.module.css';
 
 export function SelectPatternDialog() {
   const { t } = useTranslation('dialogs');
-  const { pattern, matchType, error } = DialogStore.selectPatternState;
+
+  const { state } = useDialogState(
+    (ctx) => ({
+      pattern: signal<string>(ctx.editingStep?.selectPattern?.pattern ?? ''),
+      matchType: signal<PatternMatchType>(ctx.editingStep?.selectPattern?.matchType ?? 'prefix'),
+      include: signal<string[]>(ctx.editingStep?.selectPattern?.include ?? []),
+      error: signal<string | null>(null),
+    }),
+    {
+      hasError: (s) => !s.pattern.value?.trim() || !!s.error.value,
+      getError: (s) => s.error.value,
+    }
+  );
+
+  const { pattern, matchType, error } = state;
+
+  const validatePattern = () => {
+    if (matchType.value === 'regex') {
+      validateRegexPattern(pattern.value, { errorSignal: error });
+    } else {
+      error.value = null;
+    }
+  };
 
   return (
     <div>
@@ -18,7 +43,10 @@ export function SelectPatternDialog() {
           type="text"
           class={styles.input}
           value={pattern.value}
-          onInput={(e) => (pattern.value = (e.target as HTMLInputElement).value)}
+          onInput={(e) => {
+            pattern.value = (e.target as HTMLInputElement).value;
+            validatePattern();
+          }}
           placeholder={t('pattern.select.placeholder')}
         />
       </div>
@@ -28,7 +56,10 @@ export function SelectPatternDialog() {
         <select
           class={styles.input}
           value={matchType.value}
-          onChange={(e) => (matchType.value = (e.target as HTMLSelectElement).value as any)}
+          onChange={(e) => {
+            matchType.value = (e.target as HTMLSelectElement).value as any;
+            validatePattern();
+          }}
         >
           <option value="prefix">{t('common.matchTypes.prefix')}</option>
           <option value="suffix">{t('common.matchTypes.suffix')}</option>

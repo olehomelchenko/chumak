@@ -198,8 +198,6 @@ describe('Interaction Handlers UX', () => {
       InteractionHandlers.quickReplace(mockOpenDialog);
 
       expect(mockOpenDialog).toHaveBeenCalledWith('replace');
-      expect(DialogStore.replaceState.column.value).toBe('name');
-      expect(DialogStore.replaceState.findValue.value).toBe('Alice');
     });
 
     it('should apply filter when applyQuickCellFilter is called', async () => {

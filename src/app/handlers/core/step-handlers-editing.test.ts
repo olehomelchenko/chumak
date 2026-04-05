@@ -170,9 +170,6 @@ describe('step-handlers - editing', () => {
 
       expect(AppStore.editingStepIndex.value).toBe(1);
       expect(callbacks.openDialog).toHaveBeenCalledWith('replace');
-      expect(DialogStore.replaceState.column.value).toBe('city');
-      expect(DialogStore.replaceState.findValue.value).toBe('Boston');
-      expect(DialogStore.replaceState.replaceValue.value).toBe('NYC');
     });
 
     it('opens split dialog and sets state for split step', () => {

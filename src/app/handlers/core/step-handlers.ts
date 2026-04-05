@@ -302,12 +302,8 @@ export function editStep(stepIndex: number): void {
     state.isPreviewing.value = false;
     callbacks?.onPivotConfigChange();
   } else if (step.replace) {
+    // State initialized by useDialogState hook via editingStep context
     callbacks?.openDialog('replace');
-    const state = DialogStore.replaceState;
-    state.column.value = step.replace.column;
-    state.findMode.value = step.replace.matchMode ?? 'value';
-    state.findValue.value = step.replace.find ?? '';
-    state.replaceValue.value = step.replace.replace;
   } else if (step.split) {
     callbacks?.openDialog('split');
     const state = DialogStore.splitState;
@@ -440,25 +436,14 @@ export function editStep(stepIndex: number): void {
     state.indices.value = !!step.unroll.indices;
     state.keepOriginal.value = !!step.unroll.keepOriginal;
   } else if (step.selectPattern) {
+    // State initialized by useDialogState hook via editingStep context
     callbacks?.openDialog('selectPattern');
-    const state = DialogStore.selectPatternState;
-    state.pattern.value = step.selectPattern.pattern;
-    state.matchType.value = step.selectPattern.matchType;
-    state.include.value = step.selectPattern.include || [];
-    state.error.value = null;
   } else if (step.removePattern) {
+    // State initialized by useDialogState hook via editingStep context
     callbacks?.openDialog('removePattern');
-    const state = DialogStore.removePatternState;
-    state.pattern.value = step.removePattern.pattern;
-    state.matchType.value = step.removePattern.matchType;
-    state.error.value = null;
   } else if (step.renamePattern) {
+    // State initialized by useDialogState hook via editingStep context
     callbacks?.openDialog('renamePattern');
-    const state = DialogStore.renamePatternState;
-    state.find.value = step.renamePattern.find;
-    state.replace.value = step.renamePattern.replace;
-    state.regex.value = !!step.renamePattern.regex;
-    state.error.value = null;
   } else if (step.conditional) {
     // State initialized by useDialogState hook via editingStep context
     callbacks?.openDialog('conditional');

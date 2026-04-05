@@ -482,15 +482,8 @@ export function quickDate(onOpenDialog: (name: string) => void) {
 }
 
 export function quickReplaceColumn(onOpenDialog: (name: string) => void) {
-  const col = AppStore.selectedColumn.value;
-  if (!col) return;
-
-  const state = DialogStore.replaceState;
-  state.column.value = col;
-  state.findValue.value = '';
-  state.replaceValue.value = '';
-  state.isRegex.value = false;
-
+  if (!AppStore.selectedColumn.value) return;
+  // State initialized by useDialogState hook via selectedColumn context
   onOpenDialog('replace');
 }
 
@@ -539,24 +532,8 @@ export function quickSplit(onOpenDialog: (name: string) => void) {
 }
 
 export function quickReplace(onOpenDialog: (name: string) => void) {
-  const selectedCell = AppStore.selectedCell.value;
-  if (!selectedCell) return;
-  const { col, value, isError } = selectedCell;
-
-  const state = DialogStore.replaceState;
-  state.column.value = col;
-  if (isError) {
-    state.findMode.value = 'errors';
-    state.findValue.value = '';
-  } else if (value === null || value === undefined) {
-    state.findMode.value = 'null';
-    state.findValue.value = '';
-  } else {
-    state.findMode.value = 'value';
-    state.findValue.value = value;
-  }
-  state.replaceValue.value = '';
-
+  if (!AppStore.selectedCell.value) return;
+  // State initialized by useDialogState hook via selectedCell context
   onOpenDialog('replace');
 }
 

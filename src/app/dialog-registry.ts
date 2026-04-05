@@ -27,7 +27,6 @@ import * as SpreadHandlers from './handlers/transform/spread-handlers';
 import * as UnrollHandlers from './handlers/transform/unroll-handlers';
 import * as SplitHandlers from './handlers/transform/split-handlers';
 import * as MergeHandlers from './handlers/transform/merge-handlers';
-import * as RegexpHandlers from './handlers/transform/regexp-handlers';
 import * as DateHandlers from './handlers/transform/date-handlers';
 import * as ParseDateHandlers from './handlers/transform/parse-date-handlers';
 import * as TextHandlers from './handlers/transform/text-handlers';
@@ -39,7 +38,6 @@ import * as WindowHandlers from './handlers/transform/window-handlers';
 import * as JoinHandlers from './handlers/transform/join-handlers';
 import * as AppendHandlers from './handlers/transform/append-handlers';
 import * as DedupeHandlers from './handlers/transform/dedupe-handlers';
-import * as PatternHandlers from './handlers/transform/pattern-handlers';
 import * as ColumnEditorHandlers from './handlers/dialog/column-editor-handlers';
 
 // Dialog type determines rendering location and style
@@ -281,36 +279,94 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     getError: () => DialogStore.mergeState.error.value,
   },
 
-  regexpMatch: {
+  regexpMatch: bridgedDialogEntry({
     name: 'regexpMatch',
     title: 'Regexp Match',
     type: 'slide-panel',
     buttonText: 'buttons.match',
-    applyHandler: (cb) => RegexpHandlers.applyRegexpMatchTransform(cb),
-    getState: () => ({
-      sourceColumn: DialogStore.regexpMatchState.sourceColumn.value,
-      pattern: DialogStore.regexpMatchState.pattern.value,
-      columnName: DialogStore.regexpMatchState.columnName.value,
-    }),
-    hasError: () => !!DialogStore.regexpMatchState.error.value,
-    getError: () => DialogStore.regexpMatchState.error.value,
-  },
+    applyHandler: async (cb) => {
+      const state = DialogStore.activeDialogState.value;
+      if (!state) return;
+      const colName = state.columnName as string;
+      const srcCol = state.sourceColumn as string;
+      const pat = state.pattern as string;
+      if (!colName || !pat) {
+        await cb.onError?.(i18n.t('validation.required.columnNameAndPattern', { ns: 'errors' }));
+        return;
+      }
+      if (state.error) {
+        await cb.onError?.(i18n.t('validation.invalid.pattern', { ns: 'errors' }));
+        return;
+      }
+      if (!srcCol) {
+        await cb.onError?.(i18n.t('validation.selection.sourceColumn', { ns: 'errors' }));
+        return;
+      }
+      const columns = AppStore.columns.value;
+      if (columns.includes(colName)) {
+        const { confirm } = await import('./handlers/core/notification-handlers');
+        const confirmed = await confirm(
+          i18n.t('confirms.overwriteColumn', {
+            ns: 'common',
+            message: i18n.t('validation.duplicate.columnExists', { ns: 'errors', name: colName }),
+          }),
+          undefined,
+          i18n.t('buttons.overwrite', { ns: 'common' })
+        );
+        if (!confirmed) return;
+      }
+      const { quoteColumnRef, escapePattern } = await import('./handlers/core/helper-handlers');
+      const colRef = quoteColumnRef(srcCol);
+      const escapedPattern = escapePattern(pat);
+      const expression = `regexp_match(${colRef}, "${escapedPattern}")`;
+      await StepService.runTransform('Regexp Match', { derive: { [colName]: expression } }, cb);
+    },
+  }),
 
-  regexpExtract: {
+  regexpExtract: bridgedDialogEntry({
     name: 'regexpExtract',
     title: 'Regexp Extract',
     type: 'slide-panel',
     buttonText: 'buttons.extract',
-    applyHandler: (cb) => RegexpHandlers.applyRegexpExtractTransform(cb),
-    getState: () => ({
-      sourceColumn: DialogStore.regexpExtractState.sourceColumn.value,
-      pattern: DialogStore.regexpExtractState.pattern.value,
-      columnName: DialogStore.regexpExtractState.columnName.value,
-      group: DialogStore.regexpExtractState.group.value,
-    }),
-    hasError: () => !!DialogStore.regexpExtractState.error.value,
-    getError: () => DialogStore.regexpExtractState.error.value,
-  },
+    applyHandler: async (cb) => {
+      const state = DialogStore.activeDialogState.value;
+      if (!state) return;
+      const colName = state.columnName as string;
+      const srcCol = state.sourceColumn as string;
+      const pat = state.pattern as string;
+      const grp = (state.group as number) || 0;
+      if (!colName || !pat) {
+        await cb.onError?.(i18n.t('validation.required.columnNameAndPattern', { ns: 'errors' }));
+        return;
+      }
+      if (state.error) {
+        await cb.onError?.(i18n.t('validation.invalid.pattern', { ns: 'errors' }));
+        return;
+      }
+      if (!srcCol) {
+        await cb.onError?.(i18n.t('validation.selection.sourceColumn', { ns: 'errors' }));
+        return;
+      }
+      const columns = AppStore.columns.value;
+      if (columns.includes(colName)) {
+        const { confirm } = await import('./handlers/core/notification-handlers');
+        const confirmed = await confirm(
+          i18n.t('confirms.overwriteColumn', {
+            ns: 'common',
+            message: i18n.t('validation.duplicate.columnExists', { ns: 'errors', name: colName }),
+          }),
+          undefined,
+          i18n.t('buttons.overwrite', { ns: 'common' })
+        );
+        if (!confirmed) return;
+      }
+      const { quoteColumnRef, escapePattern } = await import('./handlers/core/helper-handlers');
+      const colRef = quoteColumnRef(srcCol);
+      const escapedPattern = escapePattern(pat);
+      const expression = `regexp_extract(${colRef}, "${escapedPattern}", ${grp})`;
+      await StepService.runTransform('Regexp Extract', { derive: { [colName]: expression } }, cb);
+    },
+  }),
 
   date: {
     name: 'date',
@@ -457,18 +513,51 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     hasError: () => !DialogStore.appendState.targetModel.value,
   },
 
-  replace: {
+  replace: bridgedDialogEntry({
     name: 'replace',
     title: 'Replace Values',
     type: 'slide-panel',
     buttonText: 'buttons.replace',
-    applyHandler: (cb) => SimpleHandlers.applyReplaceTransform(cb),
-    getState: () => ({
-      column: DialogStore.replaceState.column.value,
-      findValue: DialogStore.replaceState.findValue.value,
-      replaceValue: DialogStore.replaceState.replaceValue.value,
-    }),
-  },
+    applyHandler: async (cb) => {
+      const state = DialogStore.activeDialogState.value;
+      if (!state) return;
+      const column = state.column as string;
+      const mode = state.findMode as string;
+      const findValue = state.findValue as string;
+      const replaceValue = state.replaceValue as string;
+      const isRegex = state.isRegex as boolean;
+      if (!column) {
+        await cb.onError?.(i18n.t('validation.selection.column', { ns: 'errors' }));
+        return;
+      }
+      if (mode === 'value') {
+        // TODO: dead code — findValue is always a string from the signal bridge; was dead in old handler too
+        if (!isRegex && (findValue === undefined || findValue === null)) {
+          const { confirm } = await import('./handlers/core/notification-handlers');
+          const confirmed = await confirm(
+            i18n.t('confirms.replaceNulls', { ns: 'common' }),
+            undefined,
+            i18n.t('buttons.replace', { ns: 'common' })
+          );
+          if (!confirmed) return;
+        }
+        if (isRegex && !findValue) {
+          await cb.onError?.(i18n.t('validation.required.regexPattern', { ns: 'errors' }));
+          return;
+        }
+      }
+      const transform = {
+        replace: {
+          column,
+          find: mode === 'value' ? findValue : null,
+          replace: replaceValue === '' ? null : replaceValue,
+          isRegex: mode === 'value' ? isRegex : false,
+          matchMode: mode !== 'value' ? (mode as 'errors' | 'null') : undefined,
+        },
+      };
+      await StepService.runTransform(isRegex ? 'Replace (Regex)' : 'Replace', transform, cb);
+    },
+  }),
 
   'column-editor': {
     name: 'column-editor',
@@ -495,21 +584,77 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     },
   },
 
-  selectPattern: {
+  selectPattern: bridgedDialogEntry({
     name: 'selectPattern',
     title: 'Select Pattern',
     type: 'slide-panel',
     buttonText: 'buttons.select',
-    applyHandler: (cb) => PatternHandlers.applySelectPatternTransform(cb),
-  },
+    applyHandler: async (cb) => {
+      const state = DialogStore.activeDialogState.value;
+      if (!state) return;
+      const pattern = state.pattern as string;
+      const matchType = state.matchType as string;
+      const include = state.include as string[];
+      if (!pattern?.trim()) {
+        await cb.onError?.(i18n.t('validation.required.pattern', { ns: 'errors' }));
+        return;
+      }
+      if (matchType === 'regex') {
+        const { validateRegexPattern } = await import('./handlers/validation-engine');
+        const validation = validateRegexPattern(pattern);
+        if (!validation.valid) {
+          await cb.onError?.(validation.error!);
+          return;
+        }
+      }
+      await StepService.runTransform(
+        'Select Pattern',
+        {
+          selectPattern: {
+            pattern: pattern.trim(),
+            matchType: matchType as 'prefix' | 'suffix' | 'contains' | 'regex',
+            include: include?.length > 0 ? include : undefined,
+          },
+        },
+        cb
+      );
+    },
+  }),
 
-  removePattern: {
+  removePattern: bridgedDialogEntry({
     name: 'removePattern',
     title: 'Remove Pattern',
     type: 'slide-panel',
     buttonText: 'buttons.remove',
-    applyHandler: (cb) => PatternHandlers.applyRemovePatternTransform(cb),
-  },
+    applyHandler: async (cb) => {
+      const state = DialogStore.activeDialogState.value;
+      if (!state) return;
+      const pattern = state.pattern as string;
+      const matchType = state.matchType as string;
+      if (!pattern?.trim()) {
+        await cb.onError?.(i18n.t('validation.required.pattern', { ns: 'errors' }));
+        return;
+      }
+      if (matchType === 'regex') {
+        const { validateRegexPattern } = await import('./handlers/validation-engine');
+        const validation = validateRegexPattern(pattern);
+        if (!validation.valid) {
+          await cb.onError?.(validation.error!);
+          return;
+        }
+      }
+      await StepService.runTransform(
+        'Remove Pattern',
+        {
+          removePattern: {
+            pattern: pattern.trim(),
+            matchType: matchType as 'prefix' | 'suffix' | 'contains' | 'regex',
+          },
+        },
+        cb
+      );
+    },
+  }),
 
   conditional: bridgedDialogEntry({
     name: 'conditional',
@@ -549,13 +694,38 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     },
   }),
 
-  renamePattern: {
+  renamePattern: bridgedDialogEntry({
     name: 'renamePattern',
     title: 'Rename Pattern',
     type: 'slide-panel',
     buttonText: 'buttons.rename',
-    applyHandler: (cb) => PatternHandlers.applyRenamePatternTransform(cb),
-  },
+    applyHandler: async (cb) => {
+      const state = DialogStore.activeDialogState.value;
+      if (!state) return;
+      const find = state.find as string;
+      const replace = state.replace as string;
+      const regex = state.regex as boolean;
+      if (!find?.trim()) {
+        await cb.onError?.(i18n.t('validation.required.findPattern', { ns: 'errors' }));
+        return;
+      }
+      if (regex) {
+        const { validateRegexPattern } = await import('./handlers/validation-engine');
+        const validation = validateRegexPattern(find);
+        if (!validation.valid) {
+          await cb.onError?.(validation.error!);
+          return;
+        }
+      }
+      await StepService.runTransform(
+        'Rename Pattern',
+        {
+          renamePattern: { find: find.trim(), replace: (replace || '').trim(), regex },
+        },
+        cb
+      );
+    },
+  }),
 
   promoteHeader: bridgedDialogEntry({
     name: 'promoteHeader',
