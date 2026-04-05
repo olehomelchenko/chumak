@@ -1,13 +1,36 @@
+import { signal } from '@preact/signals';
 import { useTranslation } from 'preact-i18next';
-import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
-import type { SortField } from '../stores/dialogs/transform/sort-state';
+import { useDialogState } from '../hooks/useDialogState';
 import styles from './form-controls.module.css';
+
+export interface SortField {
+  field: string;
+  order: 'asc' | 'desc';
+}
 
 export function SortDialog() {
   const { t } = useTranslation('dialogs');
-  const { fields } = DialogStore.sortState;
   const columns = AppStore.columns.value;
+
+  const { state } = useDialogState(
+    (ctx) => ({
+      fields: signal<SortField[]>(
+        ctx.editingStep?.sort
+          ? Array.isArray(ctx.editingStep.sort)
+            ? ctx.editingStep.sort
+            : [ctx.editingStep.sort]
+          : ctx.selectedColumns.length > 0
+            ? ctx.selectedColumns.map((col) => ({ field: col, order: 'asc' as const }))
+            : [{ field: ctx.columns[0] || '', order: 'asc' as const }]
+      ),
+    }),
+    {
+      hasError: (s) => s.fields.value.filter((f) => f.field !== '').length === 0,
+    }
+  );
+
+  const { fields } = state;
 
   const updateField = (index: number, updates: Partial<SortField>) => {
     const next = fields.value.map((f, i) => (i === index ? { ...f, ...updates } : f));

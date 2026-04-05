@@ -4,9 +4,6 @@
  * Basic transform operations: filter, derive, sort, slice, sample, etc.
  */
 
-export { sortState, resetSortState } from './sort-state';
-export { sliceRowsState, resetSliceRowsState } from './slice-state';
-export { sampleState, resetSampleState } from './sample-state';
 export { indexState, resetIndexState } from './index-state';
 export { replaceState, resetReplaceState } from './replace-state';
 export { filterState, resetFilterState } from './filter-state';

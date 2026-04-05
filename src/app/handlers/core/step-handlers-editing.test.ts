@@ -104,7 +104,7 @@ describe('step-handlers - editing', () => {
       expect(DialogStore.deriveState.expression.value).toBe('age * 2');
     });
 
-    it('opens sort dialog and sets state for sort step', () => {
+    it('opens sort dialog for sort step (state managed by component hook)', () => {
       const callbacks = createMockStepCallbacks();
       StepHandlers.setStepCallbacks(callbacks);
 
@@ -123,11 +123,10 @@ describe('step-handlers - editing', () => {
 
       expect(AppStore.editingStepIndex.value).toBe(1);
       expect(callbacks.openDialog).toHaveBeenCalledWith('sort');
-      expect(DialogStore.sortState.fields.value[0].field).toBe('age');
-      expect(DialogStore.sortState.fields.value[0].order).toBe('desc');
+      // State initialization handled by useDialogState hook via editingStep context
     });
 
-    it('opens sample dialog and sets state for sample step', () => {
+    it('opens sample dialog for sample step (state managed by component hook)', () => {
       const callbacks = createMockStepCallbacks();
       StepHandlers.setStepCallbacks(callbacks);
 
@@ -146,8 +145,7 @@ describe('step-handlers - editing', () => {
 
       expect(AppStore.editingStepIndex.value).toBe(1);
       expect(callbacks.openDialog).toHaveBeenCalledWith('sample');
-      expect(DialogStore.sampleState.count.value).toBe(10);
-      expect(DialogStore.sampleState.seed.value).toBe(42);
+      // State initialization handled by useDialogState hook via editingStep context
     });
 
     it('opens replace dialog and sets state for replace step', () => {

@@ -5,7 +5,6 @@ import { AppStore } from '../../stores/AppStore';
 import * as HelperHandlers from './helper-handlers';
 import * as NotificationHandlers from './notification-handlers';
 import * as FilterHandlers from '../transform/filter-handlers';
-import * as SimpleHandlers from '../transform/simple-handlers';
 import * as SplitHandlers from '../transform/split-handlers';
 import * as DedupeHandlers from '../transform/dedupe-handlers';
 import { StepService } from '../../services/StepService';
@@ -400,8 +399,7 @@ export async function applyQuickCellFilter(op: string, callbacks: any) {
 export async function quickSort(order: 'asc' | 'desc', callbacks: any) {
   const selectedColumn = AppStore.selectedColumn.value;
   if (!selectedColumn) return;
-  DialogStore.sortState.fields.value = [{ field: selectedColumn, order }];
-  await SimpleHandlers.applySortTransform(callbacks);
+  await StepService.runTransform('Sort', { sort: { field: selectedColumn, order } }, callbacks);
   AppStore.selectedColumn.value = null;
 }
 

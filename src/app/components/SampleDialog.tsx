@@ -1,6 +1,7 @@
+import { signal } from '@preact/signals';
 import { useTranslation } from 'preact-i18next';
-import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
+import { useDialogState } from '../hooks/useDialogState';
 import formStyles from './form-controls.module.css';
 import exprStyles from './expression-help.module.css';
 const styles = { ...formStyles, ...exprStyles };
@@ -11,9 +12,20 @@ const styles = { ...formStyles, ...exprStyles };
  */
 export function SampleDialog() {
   const { t } = useTranslation('dialogs');
-  const { count, seed } = DialogStore.sampleState;
   const currentData = AppStore.currentData.value;
   const totalRows = currentData ? currentData.length : 0;
+
+  const { state } = useDialogState(
+    (ctx) => ({
+      count: signal<number>(ctx.editingStep?.sample?.count ?? 100),
+      seed: signal<number | undefined>(ctx.editingStep?.sample?.seed),
+    }),
+    {
+      hasError: (s) => !s.count.value || s.count.value <= 0,
+    }
+  );
+
+  const { count, seed } = state;
 
   return (
     <div class={styles.formSection}>

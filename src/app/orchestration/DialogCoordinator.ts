@@ -88,21 +88,10 @@ export function initDialogState(dialogName: string, section?: string): void {
       callbacks?.initializeAppendDialog?.();
       break;
 
+    // sort, sliceRows, sample: state managed by useDialogState hook in component
     case 'sort':
-      DialogStore.sortState.fields.value =
-        selectedColumns.length > 0
-          ? selectedColumns.map((col) => ({ field: col, order: 'asc' as const }))
-          : [{ field: columns[0] || '', order: 'asc' as const }];
-      break;
-
     case 'sliceRows':
-      DialogStore.sliceRowsState.count.value = 10;
-      DialogStore.sliceRowsState.mode.value = 'first';
-      break;
-
     case 'sample':
-      DialogStore.sampleState.count.value = 100;
-      DialogStore.sampleState.seed.value = undefined;
       break;
 
     case 'spread':

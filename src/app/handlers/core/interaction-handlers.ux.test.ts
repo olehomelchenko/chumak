@@ -172,7 +172,7 @@ describe('Interaction Handlers UX', () => {
       expect(AppStore.selectedColumn.value).toBe('name'); // Should remain selected
     });
 
-    it('should open sort dialog when quickSort is called', async () => {
+    it('should clear selection after quickSort', async () => {
       AppStore.selectedColumn.value = 'sales';
 
       const callbacks = {
@@ -184,10 +184,7 @@ describe('Interaction Handlers UX', () => {
 
       await InteractionHandlers.quickSort('asc', callbacks);
 
-      // Sort state should be set
-      expect(DialogStore.sortState.fields.value[0].field).toBe('sales');
-      expect(DialogStore.sortState.fields.value[0].order).toBe('asc');
-      expect(AppStore.selectedColumn.value).toBeNull(); // Should clear after action
+      expect(AppStore.selectedColumn.value).toBeNull();
     });
 
     it('should open replace dialog when quickReplace is called', () => {

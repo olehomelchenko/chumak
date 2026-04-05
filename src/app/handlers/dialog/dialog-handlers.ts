@@ -162,10 +162,6 @@ export function activeDialogError(): boolean {
 
   // Handle dialogs using DialogStore directly
   switch (activeDialog) {
-    case 'sliceRows': {
-      const state = DialogStore.sliceRowsState;
-      return !state.count.value || state.count.value <= 0;
-    }
     case 'index': {
       const state = DialogStore.indexState;
       return !state.columnName.value || state.columnName.value.trim() === '';

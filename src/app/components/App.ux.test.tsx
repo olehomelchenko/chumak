@@ -345,9 +345,9 @@ describe('App UX Interactions', () => {
 
       fireEvent.click(sortButton!);
 
-      // Should trigger quickSort which opens sort dialog
+      // quickSort runs StepService.runTransform and clears selection
       await waitFor(() => {
-        expect(DialogStore.sortState.fields.value[0].field).toBe('sales');
+        expect(AppStore.selectedColumn.value).toBeNull();
       });
     });
 

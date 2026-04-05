@@ -1,18 +1,27 @@
-import { computed } from '@preact/signals';
+import { signal, computed } from '@preact/signals';
 import { useTranslation } from 'preact-i18next';
-import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
+import { useDialogState } from '../hooks/useDialogState';
+import type { SliceMode } from '../../types/modes';
 import formStyles from './form-controls.module.css';
 import exprStyles from './expression-help.module.css';
 const styles = { ...formStyles, ...exprStyles };
 
-// Re-export for backward compatibility
-export type { SliceMode } from '../../types/modes';
-
 export function SliceRowsDialog() {
   const { t } = useTranslation('dialogs');
-  const { count, mode } = DialogStore.sliceRowsState;
   const rowCount = AppStore.currentData.value?.length || 0;
+
+  const { state } = useDialogState(
+    (ctx) => ({
+      count: signal<number>(ctx.editingStep?.sliceRows?.count ?? 10),
+      mode: signal<SliceMode>(ctx.editingStep?.sliceRows?.mode ?? 'first'),
+    }),
+    {
+      hasError: (s) => !s.count.value || s.count.value <= 0,
+    }
+  );
+
+  const { count, mode } = state;
   // Computed values for the preview text
   const previewText = computed(() => {
     const n = count.value || 0;

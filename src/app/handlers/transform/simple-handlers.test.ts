@@ -10,8 +10,6 @@ vi.mock('../core/notification-handlers', async () =>
 );
 
 import {
-  applySortTransform,
-  applySliceRowsTransform,
   applyIndexTransform,
   applyReplaceTransform,
   applyImputeTransform,
@@ -31,65 +29,6 @@ describe('simple-handlers', () => {
   afterEach(() => {
     consoleSpy.errorSpy.mockRestore();
     consoleSpy.warnSpy.mockRestore();
-  });
-
-  describe('applySortTransform', () => {
-    it('errors when no field selected', async () => {
-      DialogStore.sortState.fields.value = [{ field: '', order: 'asc' }];
-      const callbacks = { onError: vi.fn() };
-
-      await applySortTransform(callbacks);
-
-      expect(callbacks.onError).toHaveBeenCalledWith('Select at least one column to sort by');
-      expect(StepService.runTransform).not.toHaveBeenCalled();
-    });
-
-    it('runs transform with field and order', async () => {
-      DialogStore.sortState.fields.value = [{ field: 'age', order: 'desc' }];
-      const callbacks = { onError: vi.fn() };
-
-      await applySortTransform(callbacks);
-
-      expect(StepService.runTransform).toHaveBeenCalledWith(
-        'Sort',
-        { sort: { field: 'age', order: 'desc' } },
-        callbacks
-      );
-    });
-  });
-
-  describe('applySliceRowsTransform', () => {
-    it('errors when count is empty', async () => {
-      DialogStore.sliceRowsState.count.value = 0;
-      const callbacks = { onError: vi.fn() };
-
-      await applySliceRowsTransform(callbacks);
-
-      expect(callbacks.onError).toHaveBeenCalledWith('Enter a valid number of rows');
-    });
-
-    it('errors when count is negative', async () => {
-      DialogStore.sliceRowsState.count.value = -5;
-      const callbacks = { onError: vi.fn() };
-
-      await applySliceRowsTransform(callbacks);
-
-      expect(callbacks.onError).toHaveBeenCalledWith('Enter a valid number of rows');
-    });
-
-    it('runs transform with count and mode', async () => {
-      DialogStore.sliceRowsState.count.value = 10;
-      DialogStore.sliceRowsState.mode.value = 'first';
-      const callbacks = { onError: vi.fn() };
-
-      await applySliceRowsTransform(callbacks);
-
-      expect(StepService.runTransform).toHaveBeenCalledWith(
-        'Slice Rows',
-        { sliceRows: { count: 10, mode: 'first' } },
-        callbacks
-      );
-    });
   });
 
   describe('applyIndexTransform', () => {

@@ -10,7 +10,6 @@ export * from './merge-handlers';
 export * from './spread-handlers';
 export * from './unroll-handlers';
 export * from './dedupe-handlers';
-export * from './sample-handlers';
 export * from './pattern-handlers';
 export * from './regexp-handlers';
 export * from './text-handlers';

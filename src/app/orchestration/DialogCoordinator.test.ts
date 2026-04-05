@@ -58,9 +58,9 @@ describe('DialogCoordinator', () => {
       expect(state).toEqual({ columnName: 'full_name', expression: 'first + " " + last' });
     });
 
-    it('returns sliceRows state', () => {
-      DialogStore.sliceRowsState.count.value = 50;
-      DialogStore.sliceRowsState.mode.value = 'last';
+    it('returns sliceRows state from bridge signal', () => {
+      // sliceRows uses useDialogState hook — state comes from bridge signal
+      DialogStore.activeDialogState.value = { count: 50, mode: 'last' };
 
       const state = getDialogState('sliceRows');
       expect(state).toEqual({ count: 50, mode: 'last' });
@@ -122,16 +122,17 @@ describe('DialogCoordinator', () => {
       expect(state.columnColumn).toBe('category');
     });
 
-    it('returns sort state', () => {
-      DialogStore.sortState.fields.value = [{ field: 'name', order: 'desc' }];
+    it('returns sort state from bridge signal', () => {
+      // sort uses useDialogState hook — state comes from bridge signal
+      DialogStore.activeDialogState.value = { fields: [{ field: 'name', order: 'desc' }] };
 
       const state = getDialogState('sort');
       expect(state).toEqual({ fields: [{ field: 'name', order: 'desc' }] });
     });
 
-    it('returns sample state', () => {
-      DialogStore.sampleState.count.value = 50;
-      DialogStore.sampleState.seed.value = 42;
+    it('returns sample state from bridge signal', () => {
+      // sample uses useDialogState hook — state comes from bridge signal
+      DialogStore.activeDialogState.value = { count: 50, seed: 42 };
 
       const state = getDialogState('sample');
       expect(state).toEqual({ count: 50, seed: 42 });
@@ -351,22 +352,16 @@ describe('DialogCoordinator', () => {
       expect(activeDialogHasError()).toBe(false);
     });
 
-    // sliceRows
-    it('sliceRows: returns true when count is 0', () => {
+    // sliceRows (uses bridge signals from useDialogState hook)
+    it('sliceRows: returns true when bridge hasError is true', () => {
       AppStore.activeDialog.value = 'sliceRows';
-      DialogStore.sliceRowsState.count.value = 0;
+      DialogStore.activeDialogHasError.value = true;
       expect(activeDialogHasError()).toBe(true);
     });
 
-    it('sliceRows: returns true when count is negative', () => {
+    it('sliceRows: returns false when bridge hasError is false', () => {
       AppStore.activeDialog.value = 'sliceRows';
-      DialogStore.sliceRowsState.count.value = -5;
-      expect(activeDialogHasError()).toBe(true);
-    });
-
-    it('sliceRows: returns false when count is positive', () => {
-      AppStore.activeDialog.value = 'sliceRows';
-      DialogStore.sliceRowsState.count.value = 10;
+      DialogStore.activeDialogHasError.value = false;
       expect(activeDialogHasError()).toBe(false);
     });
 
@@ -389,16 +384,16 @@ describe('DialogCoordinator', () => {
       expect(activeDialogHasError()).toBe(false);
     });
 
-    // sample
-    it('sample: returns true when count is 0', () => {
+    // sample (uses bridge signals from useDialogState hook)
+    it('sample: returns true when bridge hasError is true', () => {
       AppStore.activeDialog.value = 'sample';
-      DialogStore.sampleState.count.value = 0;
+      DialogStore.activeDialogHasError.value = true;
       expect(activeDialogHasError()).toBe(true);
     });
 
-    it('sample: returns false when count is positive', () => {
+    it('sample: returns false when bridge hasError is false', () => {
       AppStore.activeDialog.value = 'sample';
-      DialogStore.sampleState.count.value = 50;
+      DialogStore.activeDialogHasError.value = false;
       expect(activeDialogHasError()).toBe(false);
     });
 
@@ -666,8 +661,9 @@ describe('DialogCoordinator', () => {
   // ──────────────────────────────────────────────
   describe('snapshotDialogState', () => {
     it('captures current dialog state as JSON', () => {
+      // sort uses bridge signal — set it directly for this unit test
       AppStore.activeDialog.value = 'sort';
-      DialogStore.sortState.fields.value = [{ field: 'name', order: 'desc' }];
+      DialogStore.activeDialogState.value = { fields: [{ field: 'name', order: 'desc' }] };
 
       snapshotDialogState();
 

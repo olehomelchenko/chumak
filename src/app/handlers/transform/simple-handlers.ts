@@ -5,29 +5,6 @@ import { StepService } from '../../services/StepService';
 import { confirm } from '../core/notification-handlers';
 import i18n from '../../../i18n';
 
-export async function applySortTransform(callbacks: any) {
-  const fields = DialogStore.sortState.fields.value.filter((f) => f.field !== '');
-  if (fields.length === 0) {
-    await callbacks.onError?.(i18n.t('validation.selection.sortColumn', { ns: 'errors' }));
-    return;
-  }
-  const sort = fields.length === 1 ? fields[0] : fields;
-  await StepService.runTransform('Sort', { sort }, callbacks);
-}
-
-export async function applySliceRowsTransform(callbacks: any) {
-  const { count, mode } = DialogStore.sliceRowsState;
-  if (!count.value || count.value <= 0) {
-    await callbacks.onError?.(i18n.t('validation.invalid.rowCount', { ns: 'errors' }));
-    return;
-  }
-  await StepService.runTransform(
-    'Slice Rows',
-    { sliceRows: { count: count.value, mode: mode.value } },
-    callbacks
-  );
-}
-
 export async function applyIndexTransform(callbacks: any) {
   const { columnName, startFrom } = DialogStore.indexState;
   if (!columnName.value || columnName.value.trim() === '') {

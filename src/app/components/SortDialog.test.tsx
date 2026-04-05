@@ -1,13 +1,13 @@
 /**
  * SortDialog Component Tests
  *
- * Verifies the Sort Dialog TSX component works correctly with @testing-library/preact
+ * Tests the Sort Dialog with local state (useDialogState pattern).
+ * State is initialized from AppStore context, not set directly on DialogStore.
  */
 
 import { describe, it, expect, beforeEach } from 'vitest';
 import { screen, fireEvent } from '@testing-library/preact';
 import { SortDialog } from './SortDialog';
-import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 import { renderWithI18n } from '../test-utils';
 
@@ -15,8 +15,10 @@ describe('SortDialog', () => {
   const testColumns = ['name', 'age', 'city'];
 
   beforeEach(() => {
-    DialogStore.sortState.fields.value = [{ field: '', order: 'asc' }];
     AppStore.columns.value = testColumns;
+    AppStore.selectedColumns.value = [];
+    AppStore.editingStepIndex.value = null;
+    AppStore.activeModel.value = { steps: [], schema: [], id: 'test', name: 'test' } as any;
   });
 
   it('renders column options in the select dropdown', () => {
@@ -30,24 +32,32 @@ describe('SortDialog', () => {
   it('selects a column via the dropdown', () => {
     renderWithI18n(<SortDialog />);
 
-    const select = screen.getByDisplayValue('Select column…') as HTMLSelectElement;
+    const select = screen.getAllByRole('combobox')[0] as HTMLSelectElement;
     fireEvent.change(select, { target: { value: 'age' } });
 
-    expect(DialogStore.sortState.fields.value[0].field).toBe('age');
+    expect(select.value).toBe('age');
+  });
+
+  it('initializes with selected columns', () => {
+    AppStore.selectedColumns.value = ['name'];
+    renderWithI18n(<SortDialog />);
+
+    const select = screen.getAllByRole('combobox')[0] as HTMLSelectElement;
+    expect(select.value).toBe('name');
   });
 
   it('toggles between ascending and descending order', () => {
-    DialogStore.sortState.fields.value = [{ field: 'name', order: 'asc' }];
+    AppStore.selectedColumns.value = ['name'];
     renderWithI18n(<SortDialog />);
 
     const toggleButton = screen.getByTitle('Ascending');
     fireEvent.click(toggleButton);
 
-    expect(DialogStore.sortState.fields.value[0].order).toBe('desc');
+    expect(screen.getByTitle('Descending')).toBeDefined();
   });
 
   it('shows ascending as default', () => {
-    DialogStore.sortState.fields.value = [{ field: 'name', order: 'asc' }];
+    AppStore.selectedColumns.value = ['name'];
     renderWithI18n(<SortDialog />);
 
     const toggleButton = screen.getByTitle('Ascending');
@@ -65,7 +75,6 @@ describe('SortDialog', () => {
   });
 
   it('adds a second sort level', () => {
-    DialogStore.sortState.fields.value = [{ field: 'name', order: 'asc' }];
     renderWithI18n(<SortDialog />);
 
     fireEvent.click(
@@ -74,32 +83,63 @@ describe('SortDialog', () => {
       })
     );
 
-    expect(DialogStore.sortState.fields.value).toHaveLength(2);
-    expect(DialogStore.sortState.fields.value[1]).toEqual({ field: '', order: 'asc' });
+    // Should now have 2 select dropdowns
+    expect(screen.getAllByRole('combobox')).toHaveLength(2);
   });
 
   it('shows remove button when multiple levels exist', () => {
-    DialogStore.sortState.fields.value = [
-      { field: 'name', order: 'asc' },
-      { field: 'age', order: 'desc' },
-    ];
     renderWithI18n(<SortDialog />);
+
+    // Add a second level
+    fireEvent.click(
+      screen.getByText((_content, element) => {
+        return element?.tagName === 'BUTTON' && element?.textContent === '+ Add sort level';
+      })
+    );
 
     const removeButtons = screen.getAllByTitle('Remove sort level');
     expect(removeButtons).toHaveLength(2);
   });
 
   it('shows help text when multiple levels exist', () => {
-    DialogStore.sortState.fields.value = [
-      { field: 'name', order: 'asc' },
-      { field: 'age', order: 'desc' },
-    ];
     renderWithI18n(<SortDialog />);
+
+    // Add a second level
+    fireEvent.click(
+      screen.getByText((_content, element) => {
+        return element?.tagName === 'BUTTON' && element?.textContent === '+ Add sort level';
+      })
+    );
 
     expect(
       screen.getByText(
         'Rows are sorted by the first column, then ties are broken by subsequent columns.'
       )
     ).toBeDefined();
+  });
+
+  it('initializes from editing step', () => {
+    AppStore.editingStepIndex.value = 0;
+    AppStore.activeModel.value = {
+      steps: [
+        {
+          sort: [
+            { field: 'age', order: 'desc' },
+            { field: 'name', order: 'asc' },
+          ],
+        },
+      ],
+      schema: [],
+      id: 'test',
+      name: 'test',
+    } as any;
+
+    renderWithI18n(<SortDialog />);
+
+    const selects = screen.getAllByRole('combobox');
+    expect(selects).toHaveLength(2);
+    expect((selects[0] as HTMLSelectElement).value).toBe('age');
+    expect((selects[1] as HTMLSelectElement).value).toBe('name');
+    expect(screen.getByTitle('Descending')).toBeDefined();
   });
 });

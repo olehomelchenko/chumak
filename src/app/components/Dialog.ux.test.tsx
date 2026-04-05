@@ -240,10 +240,8 @@ describe('Generic Dialog Behavior', () => {
     });
 
     it('should have enabled Apply button when valid sort selection is set', async () => {
+      // useDialogState factory auto-selects the first column
       renderWithI18n(<App />);
-
-      // Set up valid sort selection
-      DialogStore.sortState.fields.value = [{ field: 'age', order: 'asc' }];
 
       const footer = await waitFor(() => {
         const f = document.querySelector('[class*="slidePanelFooter"]');
@@ -258,11 +256,8 @@ describe('Generic Dialog Behavior', () => {
     });
 
     it('should allow changing sort order when field is selected', async () => {
+      // useDialogState factory auto-selects the first column
       renderWithI18n(<App />);
-
-      // Sort dialog auto-selects first field, so field is already selected
-      // Verify we can change the order
-      DialogStore.sortState.fields.value = [{ field: 'age', order: 'asc' }];
 
       await waitFor(() => {
         const footer = document.querySelector('[class*="slidePanelFooter"]');

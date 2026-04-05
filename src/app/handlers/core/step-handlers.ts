@@ -231,13 +231,11 @@ export function editStep(stepIndex: number): void {
     state.patternMatchType.value = 'prefix';
     state.draggedIndex.value = null;
   } else if (step.sort) {
+    // State initialized by useDialogState hook via editingStep context
     callbacks?.openDialog('sort');
-    const sortFields = Array.isArray(step.sort) ? step.sort : [step.sort];
-    DialogStore.sortState.fields.value = sortFields;
   } else if (step.sample) {
+    // State initialized by useDialogState hook via editingStep context
     callbacks?.openDialog('sample');
-    DialogStore.sampleState.count.value = step.sample.count;
-    DialogStore.sampleState.seed.value = step.sample.seed;
   } else if (step.aggregate) {
     callbacks?.openDialog('aggregate');
     const aggregations = Object.entries(step.aggregate.rollup).map(([output, opStr]) => {
@@ -421,9 +419,8 @@ export function editStep(stepIndex: number): void {
     state.windowFunctions.value = windowFunctions;
     state.isPreviewing.value = false;
   } else if (step.sliceRows) {
+    // State initialized by useDialogState hook via editingStep context
     callbacks?.openDialog('sliceRows');
-    DialogStore.sliceRowsState.count.value = step.sliceRows.count;
-    DialogStore.sliceRowsState.mode.value = step.sliceRows.mode;
   } else if (step.addIndex) {
     callbacks?.openDialog('index');
     DialogStore.indexState.columnName.value = step.addIndex.columnName;
