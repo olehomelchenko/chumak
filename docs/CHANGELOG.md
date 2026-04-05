@@ -4,19 +4,26 @@ Historical record of completed features and improvements, organized chronologica
 
 ---
 
-## March 2026
+## April 2026
 
 ### v0.4.0
 
-- **Lazy-loading IndexedDB v2 schema** — Row data is now stored in separate `source-data`/`model-data` stores and loaded on demand per source/model. App startup loads only metadata; data is fetched when accessed. Automatic v1→v2 migration on first open. 35 new data-integrity tests cover migration, null-data saves, orphan cleanup, and round-trip scenarios.
-- **DuckDB-WASM experimental engine** — Optional SQL-based computation engine for EDA stats and transforms, selectable in Settings. Loads on demand (~3.5 MB WASM), falls back gracefully to the JS engine on failure.
+- **Pipeline step caching** — Caches intermediate step results so editing a late step replays only from the change point, not the entire pipeline.
+- **Quality bar on column headers** — Thin colored bars on column headers showing error and missing value percentages at a glance.
+- **Context-aware expression autocomplete** — Autocomplete suggestions now adapt to expression context (e.g. column names after operators, functions after open paren).
+- **Auto-match join keys** — Join dialog automatically matches key pairs when both tables share identical column names.
+- **Bivariate chart suggestions & smart EDA defaults** — EDA panel suggests bivariate charts (scatter, grouped bar) and picks sensible axis/encoding defaults based on column types.
+- **Manual PWA update prompt** — New version prompt lets users choose when to update, instead of auto-refreshing the page.
+- **IndexedDB v1 backup** — Backs up v1 IndexedDB data before destructive v2 migration, so users can recover if something goes wrong.
+- **Lazy-loading IndexedDB v2 schema** — Row data stored in separate `source-data`/`model-data` stores, loaded on demand per source/model. App startup loads only metadata. Automatic v1→v2 migration on first open.
+- **DuckDB-WASM experimental engine** — Optional SQL-based computation engine for EDA stats and transforms, selectable in Settings. Loads from jsDelivr CDN on demand, falls back gracefully to the JS engine on failure.
 - **Clickable missing/error counts** — Missing and error counts in the EDA panel are now clickable, applying filter actions directly.
 - **Numeric/categorical treatment toggle** — EDA panel gains a toggle to view numeric columns as categorical (top values + frequency bars).
+- **Landing page rework** — Restyled main landing page with about page content.
+- **Empty strings as null** — Empty and whitespace-only strings are now treated as null instead of conversion error during numeric parsing.
+- **Cell toolbar replace fix** — Fixed replace targeting the wrong column when triggered from error/null mode.
 - **EDA boxplot pre-aggregation** — Pre-aggregates boxplot statistics to avoid Vega-Lite sorting the full dataset.
-- **Landing page rework** — Restyled main landing page.
-- **About page** — Added about page content.
 - **DuckDB race condition fixes** — Eliminated EDA panel flicker caused by dual sync/async computation paths; added execution queue to serialize DuckDB queries.
-- **Centralized timing instrumentation** — Refactored performance timing into `metricsCollector`.
 
 ### v0.3.0
 
