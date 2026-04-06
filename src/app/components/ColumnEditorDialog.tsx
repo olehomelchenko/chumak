@@ -365,14 +365,10 @@ export function ColumnEditorDialog() {
           {/* Help Text */}
           <p class={styles.helpText}>
             {textSubMode.value === 'rename' && (
-              <span>
-                {t('columnEditor.textMode.help.rename', { count: appColumns.length })}
-              </span>
+              <span>{t('columnEditor.textMode.help.rename', { count: appColumns.length })}</span>
             )}
             {textSubMode.value === 'reorder' && (
-              <span>
-                {t('columnEditor.textMode.help.reorder', { count: appColumns.length })}
-              </span>
+              <span>{t('columnEditor.textMode.help.reorder', { count: appColumns.length })}</span>
             )}
             {textSubMode.value === 'select' && (
               <span>{t('columnEditor.textMode.help.select')}</span>

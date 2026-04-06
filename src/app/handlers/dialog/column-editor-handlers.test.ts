@@ -212,11 +212,7 @@ describe('column-editor-handlers', () => {
     });
 
     it('matches columns with contains pattern', () => {
-      const matched = ColumnEditorHandlers.getPatternMatchedColumns(
-        'a',
-        'contains',
-        simpleColumns
-      );
+      const matched = ColumnEditorHandlers.getPatternMatchedColumns('a', 'contains', simpleColumns);
       expect(matched).toContain('name');
       expect(matched).toContain('age');
       expect(matched).not.toContain('city');

@@ -43,15 +43,15 @@ describe('window-handlers', () => {
 
   describe('constructWindowStep', () => {
     it('throws when orderBy is empty', () => {
-      expect(() =>
-        constructWindowStep([], [], [wf({ func: 'row_number', output: 'rn' })])
-      ).toThrow('At least one order by column is required');
+      expect(() => constructWindowStep([], [], [wf({ func: 'row_number', output: 'rn' })])).toThrow(
+        'At least one order by column is required'
+      );
     });
 
     it('throws when no window functions', () => {
-      expect(() =>
-        constructWindowStep([{ field: 'date', order: 'asc' }], [], [])
-      ).toThrow('At least one window function is required');
+      expect(() => constructWindowStep([{ field: 'date', order: 'asc' }], [], [])).toThrow(
+        'At least one window function is required'
+      );
     });
 
     it('throws when output name is empty', () => {
@@ -209,7 +209,17 @@ describe('window-handlers', () => {
       DialogStore.activeDialogState.value = {
         orderBy: [{ field: 'date', order: 'asc' }],
         partitionBy: [],
-        windowFunctions: [{ func: 'row_number', output: 'rn', sourceCol: '', offset: 1, defaultValue: '', frameStart: null, frameEnd: 0 }],
+        windowFunctions: [
+          {
+            func: 'row_number',
+            output: 'rn',
+            sourceCol: '',
+            offset: 1,
+            defaultValue: '',
+            frameStart: null,
+            frameEnd: 0,
+          },
+        ],
       };
       const callbacks = createMockExecutionCallbacks();
 
