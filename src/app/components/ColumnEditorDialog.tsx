@@ -1,20 +1,32 @@
+import { signal } from '@preact/signals';
 import { Fragment } from 'preact';
 import { useTranslation } from 'preact-i18next';
-import { DialogStore } from '../stores/DialogStore';
-import { AppStore } from '../stores/AppStore';
 import { useComputed } from '@preact/signals';
+import { AppStore } from '../stores/AppStore';
+import { useDialogState } from '../hooks/useDialogState';
+import {
+  consumeColumnEditorSection,
+  getColumnEditorChanges,
+  getPatternMatchedColumns,
+  getPatternRenamePreview,
+  switchColumnEditorToText,
+  validateColumnEditorText,
+  type ColumnEditorColumn,
+  type ColumnEditorState,
+} from '../handlers/dialog/column-editor-handlers';
 import { ColumnSelector } from './column-selector';
 import formStyles from './form-controls.module.css';
 import colStyles from './column-editor.module.css';
 import exprStyles from './expression-help.module.css';
 const styles = { ...formStyles, ...colStyles, ...exprStyles };
-import * as Handlers from '../handlers/dialog/column-editor-handlers';
 
-export interface ColumnEditorItem {
-  original: string;
-  renamed: string;
-  selected: boolean;
-}
+import type {
+  ColumnEditorMode,
+  ColumnEditorTextSubMode,
+  ColumnEditorPatternMode,
+  ColumnEditorPatternMatchType,
+  ColumnEditorPatternOperationMode,
+} from '../../types/modes';
 
 export interface ColumnEditorChanges {
   removed: string[];
@@ -25,6 +37,85 @@ export interface ColumnEditorChanges {
 
 export function ColumnEditorDialog() {
   const { t } = useTranslation('dialogs');
+
+  const { state } = useDialogState(
+    (ctx) => {
+      const section = consumeColumnEditorSection();
+      const editing = ctx.editingStep;
+
+      let initialColumns: ColumnEditorColumn[];
+
+      if (editing?.select) {
+        const selectedSet = new Set(editing.select as string[]);
+        const allUniqueCols = Array.from(
+          new Set([...(editing.select as string[]), ...ctx.columns])
+        );
+        initialColumns = allUniqueCols.map((col) => ({
+          original: col,
+          renamed: col,
+          selected: selectedSet.has(col),
+        }));
+      } else if (editing?.rename) {
+        const renames = editing.rename || {};
+        initialColumns = ctx.columns.map((col) => ({
+          original: col,
+          renamed: renames[col] || col,
+          selected: true,
+        }));
+      } else if (editing?.remove) {
+        const removedSet = new Set(editing.remove as string[]);
+        initialColumns = ctx.columns.map((col) => ({
+          original: col,
+          renamed: col,
+          selected: !removedSet.has(col),
+        }));
+      } else {
+        // Fresh open
+        initialColumns = ctx.columns.map((col) => ({
+          original: col,
+          renamed: col,
+          selected: true,
+        }));
+      }
+
+      return {
+        mode: signal<ColumnEditorMode>('list'),
+        columns: signal<ColumnEditorColumn[]>(initialColumns),
+        textSubMode: signal<ColumnEditorTextSubMode>(
+          section === 'select' || section === 'reorder' ? section : 'rename'
+        ),
+        textValue: signal(''),
+        textError: signal<string | null>(null),
+        patternText: signal(''),
+        patternMode: signal<ColumnEditorPatternMode>('include'),
+        patternMatchType: signal<ColumnEditorPatternMatchType>('prefix'),
+        draggedIndex: signal<number | null>(null),
+        patternOperationMode: signal<ColumnEditorPatternOperationMode>('select'),
+        patternFind: signal(''),
+        patternReplace: signal(''),
+        patternRegex: signal(false),
+        patternError: signal<string | null>(null),
+      } satisfies ColumnEditorState;
+    },
+    {
+      getState: (s) => ({
+        mode: s.mode.value,
+        columns: s.columns.value,
+        textSubMode: s.textSubMode.value,
+        textValue: s.textValue.value,
+        textError: s.textError.value,
+        patternText: s.patternText.value,
+        patternMode: s.patternMode.value,
+        patternMatchType: s.patternMatchType.value,
+        patternOperationMode: s.patternOperationMode.value,
+        patternFind: s.patternFind.value,
+        patternReplace: s.patternReplace.value,
+        patternRegex: s.patternRegex.value,
+        patternError: s.patternError.value,
+      }),
+    }
+  );
+
   const {
     mode,
     columns,
@@ -39,11 +130,19 @@ export function ColumnEditorDialog() {
     patternReplace,
     patternRegex,
     patternError,
-  } = DialogStore.columnEditorState;
+  } = state;
+
+  const appColumns = AppStore.columns.value;
 
   // Compute changes using shared logic
   const changes = useComputed<ColumnEditorChanges>(() => {
-    return Handlers.getColumnEditorChanges();
+    return getColumnEditorChanges(
+      mode.value,
+      textValue.value,
+      textSubMode.value,
+      columns.value,
+      appColumns
+    );
   });
 
   // Adapter functions for ColumnSelector
@@ -83,6 +182,51 @@ export function ColumnEditorDialog() {
     columns.value = reordered;
   };
 
+  // Inline: apply list-mode pattern (select/deselect by pattern)
+  const applyListPattern = () => {
+    const text = patternText.value.trim();
+    if (!text) return;
+
+    const pattern = text.toLowerCase();
+    const matchFn = (name: string) => {
+      const lower = name.toLowerCase();
+      switch (patternMatchType.value) {
+        case 'prefix':
+          return lower.startsWith(pattern);
+        case 'suffix':
+          return lower.endsWith(pattern);
+        case 'exact':
+          return lower === pattern;
+        default:
+          return false;
+      }
+    };
+
+    const shouldSelect = patternMode.value === 'include';
+    columns.value = columns.value.map((c) => {
+      if (matchFn(c.original)) {
+        return { ...c, selected: shouldSelect };
+      }
+      return c;
+    });
+  };
+
+  // Inline: select all / select none
+  const selectAll = () => {
+    columns.value = columns.value.map((c) => ({ ...c, selected: true }));
+  };
+
+  const selectNone = () => {
+    columns.value = columns.value.map((c) => ({ ...c, selected: false }));
+  };
+
+  // Handle text validation inline
+  const handleTextInput = (value: string) => {
+    textValue.value = value;
+    const result = validateColumnEditorText(value, textSubMode.value, appColumns);
+    textError.value = result.error;
+  };
+
   return (
     <div>
       {/* Mode Toggle */}
@@ -98,7 +242,7 @@ export function ColumnEditorDialog() {
           <button
             type="button"
             class={`${styles.toggleButton} ${mode.value === 'text' ? styles.active : ''}`}
-            onClick={() => Handlers.switchColumnEditorToText()}
+            onClick={() => switchColumnEditorToText(state)}
           >
             {t('columnEditor.modes.text')}
           </button>
@@ -155,23 +299,17 @@ export function ColumnEditorDialog() {
               <button
                 type="button"
                 class="button button--small button--primary"
-                onClick={() => Handlers.applyColumnEditorPattern()}
+                onClick={applyListPattern}
                 disabled={!patternText.value.trim()}
               >
                 {t('columnEditor.listMode.apply')}
               </button>
             </div>
             <div class={styles.actions} style={{ marginTop: '0.5rem' }}>
-              <button
-                className="button button--text button--small"
-                onClick={() => Handlers.selectAllColumnEditor()}
-              >
+              <button className="button button--text button--small" onClick={selectAll}>
                 {t('columnEditor.listMode.selectAll')}
               </button>
-              <button
-                className="button button--text button--small"
-                onClick={() => Handlers.selectNoneColumnEditor()}
-              >
+              <button className="button button--text button--small" onClick={selectNone}>
                 {t('columnEditor.listMode.selectNone')}
               </button>
             </div>
@@ -215,7 +353,7 @@ export function ColumnEditorDialog() {
                     checked={textSubMode.value === opt.val}
                     onChange={() => {
                       textSubMode.value = opt.val as any;
-                      Handlers.switchColumnEditorToText();
+                      switchColumnEditorToText(state);
                     }}
                   />
                   <span>{opt.label}</span>
@@ -228,12 +366,12 @@ export function ColumnEditorDialog() {
           <p class={styles.helpText}>
             {textSubMode.value === 'rename' && (
               <span>
-                {t('columnEditor.textMode.help.rename', { count: AppStore.columns.value.length })}
+                {t('columnEditor.textMode.help.rename', { count: appColumns.length })}
               </span>
             )}
             {textSubMode.value === 'reorder' && (
               <span>
-                {t('columnEditor.textMode.help.reorder', { count: AppStore.columns.value.length })}
+                {t('columnEditor.textMode.help.reorder', { count: appColumns.length })}
               </span>
             )}
             {textSubMode.value === 'select' && (
@@ -244,10 +382,7 @@ export function ColumnEditorDialog() {
           <textarea
             class={styles.input}
             value={textValue.value}
-            onInput={(e) => {
-              textValue.value = e.currentTarget.value;
-              Handlers.validateColumnEditorText();
-            }}
+            onInput={(e) => handleTextInput(e.currentTarget.value)}
             rows={12}
             style={{ fontFamily: 'monospace', fontSize: '0.875rem' }}
             placeholder={t('columnEditor.textMode.placeholder')}
@@ -396,8 +531,11 @@ export function ColumnEditorDialog() {
                 {t('columnEditor.patternMode.preview.select')}
               </div>
               <div style={{ fontSize: '0.8125rem', marginTop: '0.5rem' }}>
-                {Handlers.getPatternMatchedColumns('select').join(', ') ||
-                  t('columnEditor.patternMode.preview.noMatch')}
+                {getPatternMatchedColumns(
+                  patternText.value,
+                  patternMatchType.value,
+                  appColumns
+                ).join(', ') || t('columnEditor.patternMode.preview.noMatch')}
               </div>
             </div>
           )}
@@ -408,8 +546,11 @@ export function ColumnEditorDialog() {
                 {t('columnEditor.patternMode.preview.remove')}
               </div>
               <div style={{ fontSize: '0.8125rem', marginTop: '0.5rem' }}>
-                {Handlers.getPatternMatchedColumns('remove').join(', ') ||
-                  t('columnEditor.patternMode.preview.noMatch')}
+                {getPatternMatchedColumns(
+                  patternText.value,
+                  patternMatchType.value,
+                  appColumns
+                ).join(', ') || t('columnEditor.patternMode.preview.noMatch')}
               </div>
             </div>
           )}
@@ -420,7 +561,12 @@ export function ColumnEditorDialog() {
                 {t('columnEditor.patternMode.preview.rename')}
               </div>
               <div style={{ fontSize: '0.8125rem', marginTop: '0.5rem' }}>
-                {Handlers.getPatternRenamePreview()
+                {getPatternRenamePreview(
+                  patternFind.value,
+                  patternReplace.value,
+                  patternRegex.value,
+                  appColumns
+                )
                   .map((p) => `${p.from} -> ${p.to}`)
                   .join(', ') || t('columnEditor.patternMode.preview.noMatch')}
               </div>

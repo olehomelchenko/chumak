@@ -56,7 +56,7 @@ export type { ImportCsvDialogProps } from './ImportCsvDialog';
 export { GenerateDialog } from './GenerateDialog';
 
 export { ColumnEditorDialog } from './ColumnEditorDialog';
-export type { ColumnEditorItem, ColumnEditorChanges } from './ColumnEditorDialog';
+export type { ColumnEditorChanges } from './ColumnEditorDialog';
 
 export { SettingsDialog } from './SettingsDialog';
 export type { SettingsDialogProps } from './SettingsDialog';

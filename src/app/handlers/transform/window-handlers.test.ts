@@ -6,8 +6,26 @@ vi.mock('../../services/StepService', async () =>
   (await import('../test-utils')).MockFactories.stepService()
 );
 
-import { constructWindowStep, applyWindowTransform } from './window-handlers';
+import {
+  constructWindowStep,
+  applyWindowTransform,
+  parseWindowDeriveToFunctions,
+  type OrderByItem,
+  type WindowFunction,
+} from './window-handlers';
 import { StepService } from '../../services/StepService';
+
+// Helper to create full WindowFunction objects for tests
+function wf(partial: Partial<WindowFunction> & { func: string; output: string }): WindowFunction {
+  return {
+    sourceCol: '',
+    offset: 1,
+    defaultValue: '',
+    frameStart: null,
+    frameEnd: 0,
+    ...partial,
+  };
+}
 
 describe('window-handlers', () => {
   let consoleSpy: ReturnType<typeof suppressConsole>;
@@ -25,168 +43,174 @@ describe('window-handlers', () => {
 
   describe('constructWindowStep', () => {
     it('throws when orderBy is empty', () => {
-      DialogStore.windowState.orderBy.value = [];
-      DialogStore.windowState.windowFunctions.value = [
-        { func: 'row_number', output: 'rn', sourceCol: '' },
-      ];
-
-      expect(() => constructWindowStep()).toThrow('At least one order by column is required');
+      expect(() =>
+        constructWindowStep([], [], [wf({ func: 'row_number', output: 'rn' })])
+      ).toThrow('At least one order by column is required');
     });
 
     it('throws when no window functions', () => {
-      DialogStore.windowState.orderBy.value = ['date'];
-      DialogStore.windowState.windowFunctions.value = [];
-
-      expect(() => constructWindowStep()).toThrow('At least one window function is required');
+      expect(() =>
+        constructWindowStep([{ field: 'date', order: 'asc' }], [], [])
+      ).toThrow('At least one window function is required');
     });
 
     it('throws when output name is empty', () => {
-      DialogStore.windowState.orderBy.value = ['date'];
-      DialogStore.windowState.windowFunctions.value = [
-        { func: 'row_number', output: '', sourceCol: '' },
-      ];
-
-      expect(() => constructWindowStep()).toThrow('must have an output column name');
+      expect(() =>
+        constructWindowStep(
+          [{ field: 'date', order: 'asc' }],
+          [],
+          [wf({ func: 'row_number', output: '' })]
+        )
+      ).toThrow('must have an output column name');
     });
 
     it('throws when column-required function lacks sourceCol', () => {
-      DialogStore.windowState.orderBy.value = ['date'];
-      DialogStore.windowState.windowFunctions.value = [
-        { func: 'lag', output: 'prev_val', sourceCol: '' },
-      ];
-
-      expect(() => constructWindowStep()).toThrow('Source column is required for lag');
+      expect(() =>
+        constructWindowStep(
+          [{ field: 'date', order: 'asc' }],
+          [],
+          [wf({ func: 'lag', output: 'prev_val' })]
+        )
+      ).toThrow('Source column is required for lag');
     });
 
     it('builds step for row_number', () => {
-      DialogStore.windowState.orderBy.value = ['date'];
-      DialogStore.windowState.partitionBy.value = [];
-      DialogStore.windowState.windowFunctions.value = [
-        { func: 'row_number', output: 'rn', sourceCol: '' },
-      ];
+      const step = constructWindowStep(
+        [{ field: 'date', order: 'asc' }],
+        [],
+        [wf({ func: 'row_number', output: 'rn' })]
+      );
 
-      const step = constructWindowStep();
-
-      expect(step.window.orderBy).toEqual(['date']);
+      expect(step.window.orderBy).toEqual([{ field: 'date', order: 'asc' }]);
       expect(step.window.derive.rn).toBe('op.row_number()');
       expect(step.window.partitionBy).toBeUndefined();
     });
 
     it('builds step for rank with partitionBy', () => {
-      DialogStore.windowState.orderBy.value = ['score'];
-      DialogStore.windowState.partitionBy.value = ['department'];
-      DialogStore.windowState.windowFunctions.value = [
-        { func: 'rank', output: 'dept_rank', sourceCol: '' },
-      ];
-
-      const step = constructWindowStep();
+      const step = constructWindowStep(
+        [{ field: 'score', order: 'asc' }],
+        ['department'],
+        [wf({ func: 'rank', output: 'dept_rank' })]
+      );
 
       expect(step.window.partitionBy).toEqual(['department']);
       expect(step.window.derive.dept_rank).toBe('op.rank()');
     });
 
     it('builds step for lag with sourceCol and offset', () => {
-      DialogStore.windowState.orderBy.value = ['date'];
-      DialogStore.windowState.partitionBy.value = [];
-      DialogStore.windowState.windowFunctions.value = [
-        { func: 'lag', output: 'prev_val', sourceCol: 'price', offset: 2, defaultValue: '0' },
-      ];
-
-      const step = constructWindowStep();
+      const step = constructWindowStep(
+        [{ field: 'date', order: 'asc' }],
+        [],
+        [wf({ func: 'lag', output: 'prev_val', sourceCol: 'price', offset: 2, defaultValue: '0' })]
+      );
 
       expect(step.window.derive.prev_val).toBe("op.lag('price', 2, 0)");
     });
 
     it('builds step for lead without default', () => {
-      DialogStore.windowState.orderBy.value = ['date'];
-      DialogStore.windowState.partitionBy.value = [];
-      DialogStore.windowState.windowFunctions.value = [
-        { func: 'lead', output: 'next_val', sourceCol: 'price', offset: 1 },
-      ];
-
-      const step = constructWindowStep();
+      const step = constructWindowStep(
+        [{ field: 'date', order: 'asc' }],
+        [],
+        [wf({ func: 'lead', output: 'next_val', sourceCol: 'price', offset: 1 })]
+      );
 
       expect(step.window.derive.next_val).toBe("op.lead('price', 1)");
     });
 
     it('builds step for first_value', () => {
-      DialogStore.windowState.orderBy.value = ['date'];
-      DialogStore.windowState.partitionBy.value = [];
-      DialogStore.windowState.windowFunctions.value = [
-        { func: 'first_value', output: 'first_price', sourceCol: 'price' },
-      ];
-
-      const step = constructWindowStep();
+      const step = constructWindowStep(
+        [{ field: 'date', order: 'asc' }],
+        [],
+        [wf({ func: 'first_value', output: 'first_price', sourceCol: 'price' })]
+      );
 
       expect(step.window.derive.first_price).toBe("op.first_value('price')");
     });
 
     it('builds step for avg_rank', () => {
-      DialogStore.windowState.orderBy.value = ['score'];
-      DialogStore.windowState.partitionBy.value = [];
-      DialogStore.windowState.windowFunctions.value = [
-        { func: 'avg_rank', output: 'avg_rnk', sourceCol: '' },
-      ];
-
-      const step = constructWindowStep();
+      const step = constructWindowStep(
+        [{ field: 'score', order: 'asc' }],
+        [],
+        [wf({ func: 'avg_rank', output: 'avg_rnk' })]
+      );
 
       expect(step.window.derive.avg_rnk).toBe('op.avg_rank()');
     });
 
     it('builds step for cume_dist', () => {
-      DialogStore.windowState.orderBy.value = ['score'];
-      DialogStore.windowState.partitionBy.value = [];
-      DialogStore.windowState.windowFunctions.value = [
-        { func: 'cume_dist', output: 'cdist', sourceCol: '' },
-      ];
-
-      const step = constructWindowStep();
+      const step = constructWindowStep(
+        [{ field: 'score', order: 'asc' }],
+        [],
+        [wf({ func: 'cume_dist', output: 'cdist' })]
+      );
 
       expect(step.window.derive.cdist).toBe('op.cume_dist()');
     });
 
     it('builds step for nth_value', () => {
-      DialogStore.windowState.orderBy.value = ['date'];
-      DialogStore.windowState.partitionBy.value = [];
-      DialogStore.windowState.windowFunctions.value = [
-        { func: 'nth_value', output: 'second_price', sourceCol: 'price', offset: 2 },
-      ];
-
-      const step = constructWindowStep();
+      const step = constructWindowStep(
+        [{ field: 'date', order: 'asc' }],
+        [],
+        [wf({ func: 'nth_value', output: 'second_price', sourceCol: 'price', offset: 2 })]
+      );
 
       expect(step.window.derive.second_price).toBe("op.nth_value('price', 2)");
     });
 
     it('throws when nth_value lacks sourceCol', () => {
-      DialogStore.windowState.orderBy.value = ['date'];
-      DialogStore.windowState.windowFunctions.value = [
-        { func: 'nth_value', output: 'nth', sourceCol: '' },
-      ];
-
-      expect(() => constructWindowStep()).toThrow('Source column is required for nth_value');
+      expect(() =>
+        constructWindowStep(
+          [{ field: 'date', order: 'asc' }],
+          [],
+          [wf({ func: 'nth_value', output: 'nth' })]
+        )
+      ).toThrow('Source column is required for nth_value');
     });
 
     it('builds step with multiple window functions', () => {
-      DialogStore.windowState.orderBy.value = ['date'];
-      DialogStore.windowState.partitionBy.value = [];
-      DialogStore.windowState.windowFunctions.value = [
-        { func: 'row_number', output: 'rn', sourceCol: '' },
-        { func: 'rank', output: 'rank', sourceCol: '' },
-      ];
-
-      const step = constructWindowStep();
+      const step = constructWindowStep(
+        [{ field: 'date', order: 'asc' }],
+        [],
+        [wf({ func: 'row_number', output: 'rn' }), wf({ func: 'rank', output: 'rank' })]
+      );
 
       expect(Object.keys(step.window.derive)).toEqual(['rn', 'rank']);
     });
   });
 
+  describe('parseWindowDeriveToFunctions', () => {
+    it('parses row_number', () => {
+      const result = parseWindowDeriveToFunctions({ rn: 'op.row_number()' });
+      expect(result).toEqual([
+        expect.objectContaining({ func: 'row_number', output: 'rn', sourceCol: '' }),
+      ]);
+    });
+
+    it('parses lag with args', () => {
+      const result = parseWindowDeriveToFunctions({ prev: "op.lag('price', 2, 0)" });
+      expect(result[0].func).toBe('lag');
+      expect(result[0].sourceCol).toBe('price');
+      expect(result[0].offset).toBe(2);
+      expect(result[0].defaultValue).toBe('0');
+    });
+
+    it('reads frame spec', () => {
+      const result = parseWindowDeriveToFunctions(
+        { rolling_sum: "op.sum('price')" },
+        { rolling_sum: [-2, 0] }
+      );
+      expect(result[0].frameStart).toBe(-2);
+      expect(result[0].frameEnd).toBe(0);
+    });
+  });
+
   describe('applyWindowTransform', () => {
     it('calls StepService.runTransform with valid step', async () => {
-      DialogStore.windowState.orderBy.value = ['date'];
-      DialogStore.windowState.partitionBy.value = [];
-      DialogStore.windowState.windowFunctions.value = [
-        { func: 'row_number', output: 'rn', sourceCol: '' },
-      ];
+      DialogStore.activeDialogState.value = {
+        orderBy: [{ field: 'date', order: 'asc' }],
+        partitionBy: [],
+        windowFunctions: [{ func: 'row_number', output: 'rn', sourceCol: '', offset: 1, defaultValue: '', frameStart: null, frameEnd: 0 }],
+      };
       const callbacks = createMockExecutionCallbacks();
 
       await applyWindowTransform(callbacks);
@@ -199,8 +223,11 @@ describe('window-handlers', () => {
     });
 
     it('calls onError when constructWindowStep throws', async () => {
-      DialogStore.windowState.orderBy.value = [];
-      DialogStore.windowState.windowFunctions.value = [];
+      DialogStore.activeDialogState.value = {
+        orderBy: [],
+        partitionBy: [],
+        windowFunctions: [],
+      };
       const callbacks = createMockExecutionCallbacks();
 
       await applyWindowTransform(callbacks);

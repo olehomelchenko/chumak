@@ -2,7 +2,7 @@ import { useComputed } from '@preact/signals';
 import { useRef } from 'preact/hooks';
 import { useTranslation } from 'preact-i18next';
 import { AppStore } from '../stores/AppStore';
-import { DialogStore } from '../stores/DialogStore';
+import { setWindowPreset } from '../handlers/transform/window-handlers';
 import { AppController } from '../orchestration/AppController';
 import { getColumnType } from '../handlers/core/helper-handlers';
 import {
@@ -376,7 +376,7 @@ function applyWindowPreset(preset: WindowPreset) {
   const sourceCol = preset.needsColumn ? selectedCol : '';
   const output = preset.needsColumn && sourceCol ? `${preset.func}_${sourceCol}` : '';
 
-  DialogStore.windowState.windowFunctions.value = [
+  setWindowPreset([
     {
       func: preset.func,
       sourceCol,
@@ -386,7 +386,7 @@ function applyWindowPreset(preset: WindowPreset) {
       frameStart: preset.frameStart ?? null,
       frameEnd: preset.frameEnd ?? 0,
     },
-  ];
+  ]);
 }
 
 function WindowPopoverContent({

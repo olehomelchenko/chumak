@@ -10,6 +10,7 @@ import { DialogStore } from '../stores/DialogStore';
 import { DialogName } from '../types';
 import { DIALOG_REGISTRY } from '../dialog-registry';
 import { syncDialogToUrl, clearDialogFromUrl } from './UrlStateSync';
+import { setColumnEditorSection } from '../handlers/dialog/column-editor-handlers';
 
 export type DialogCallbacks = {
   initializeJoinDialog?: () => void;
@@ -63,7 +64,6 @@ export function hasUnsavedChanges(): boolean {
  * Initialize state for a specific dialog
  */
 export function initDialogState(dialogName: string, section?: string): void {
-  const columns = AppStore.columns.value;
   switch (dialogName) {
     case 'filter':
     case 'derive':
@@ -96,30 +96,10 @@ export function initDialogState(dialogName: string, section?: string): void {
     case 'import-csv':
       break;
 
-    case 'column-editor': {
-      const state = DialogStore.columnEditorState;
-      state.mode.value = 'list';
-      state.columns.value = columns.map((col) => ({
-        original: col,
-        renamed: col,
-        selected: true,
-      }));
-      state.patternText.value = '';
-      state.patternMode.value = 'include';
-      state.patternMatchType.value = 'prefix';
-      state.draggedIndex.value = null;
-      state.textSubMode.value = (
-        section === 'select' || section === 'reorder' ? section : 'rename'
-      ) as any;
-      state.textValue.value = '';
-      state.textError.value = null;
-      state.patternOperationMode.value = 'select';
-      state.patternFind.value = '';
-      state.patternReplace.value = '';
-      state.patternRegex.value = false;
-      state.patternError.value = null;
+    case 'column-editor':
+      // State managed by useDialogState hook; pass section for textSubMode preset
+      if (section) setColumnEditorSection(section);
       break;
-    }
 
     case 'settings': {
       const state = DialogStore.settingsState;

@@ -99,6 +99,14 @@ During batch 3, the Preview column in the checklist below said "No" for regexpMa
 
 5. **Registry `initState` logic moves into the factory.** If the old dialog-registry entry had an `initState` function (e.g., describe pre-selected numeric columns from schema), that logic moves into the `useDialogState` factory — use `ctx.schema` to derive initial values. Remove the `initState` property from the registry entry when switching to `bridgedDialogEntry()`.
 
+### Batch 7: pre-configuration and multi-step-type dialogs
+
+1. **Quick actions that set complex state need a preset mechanism.** Some quick actions pre-fill non-trivial state (e.g., RibbonToolbar window presets set a full `WindowFunction` array). After migration, the global state no longer exists — `useDialogState` creates local signals on mount. Solution: add `setXxxPreset(data)`/`consumeXxxPreset()` functions in the handler file. The quick action calls `setXxxPreset(...)` then `openDialog(...)`. The factory calls `consumeXxxPreset()` to read and clear the preset. This also works for parameters like column-editor's `section` → `setColumnEditorSection()`/`consumeColumnEditorSection()`.
+
+2. **One dialog, multiple step types.** Column-editor handles `select`, `rename`, and `remove` steps from a single dialog. The factory must check multiple keys on `ctx.editingStep` and build the appropriate initial state for each. The step-handlers editing cases simplify to just `callbacks?.openDialog('column-editor')` for all three.
+
+3. **Handler functions that update multiple signals accept a typed state object.** For complex dialogs (join, append) where handler functions update several signals at once (e.g., `onJoinTargetChange` updates rightColumns, selectedRightColumns, keyPairs, keyPairAnalysis), define a `XxxDialogState` interface with Signal properties and pass it to the handler. This avoids passing 10+ individual signal params.
+
 ### Batch 6: reactive derived state in the component
 
 1. **Use `useSignalEffect` for reactive derived values that aren't previews.** Some dialogs compute a derived value when a signal changes (e.g., pivot counts unique values when the column selection changes). This is not a preview (no table output), so `useTransformPreview` is wrong. And it's not a pure render derivation, so `useComputed` is wrong (it writes to another signal). Use `useSignalEffect` to subscribe to input signal(s) and update output signal(s). The three reactive patterns in migrated dialogs:
@@ -237,11 +245,11 @@ case 'xxx':
 | pivot         | `pivot-state.ts`          | `pivot-handlers.ts`         | Yes        | High       | Done   |
 | aggregate     | `aggregate-state.ts`      | `aggregate-handlers.ts`     | Yes        | High       | Done   |
 | describe      | `describe-state.ts`       | `describe-handlers.ts`      | Yes        | Medium     | Done   |
-| window        | `window-state.ts`         | `window-handlers.ts`        | Yes        | High       |        |
+| window        | `window-state.ts`         | `window-handlers.ts`        | Yes        | High       | Done   |
 | selectPattern | `select-pattern-state.ts` | `pattern-handlers.ts`       | No         | Medium     | Done   |
 | removePattern | `remove-pattern-state.ts` | `pattern-handlers.ts`       | No         | Medium     | Done   |
 | renamePattern | `rename-pattern-state.ts` | `pattern-handlers.ts`       | No         | Medium     | Done   |
-| column-editor | `column-editor-state.ts`  | `column-editor-handlers.ts` | No         | High       |        |
+| column-editor | `column-editor-state.ts`  | `column-editor-handlers.ts` | No         | High       | Done   |
 
 ### Combine Dialogs
 

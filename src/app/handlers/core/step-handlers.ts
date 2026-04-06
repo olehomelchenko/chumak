@@ -155,7 +155,6 @@ export function viewFinalResult(): void {
  */
 export function editStep(stepIndex: number): void {
   const activeModel = AppStore.activeModel.value;
-  const columns = AppStore.columns.value;
 
   if (!activeModel) return;
   const step = activeModel.steps[stepIndex];
@@ -170,60 +169,14 @@ export function editStep(stepIndex: number): void {
     // State initialized by useDialogState hook via editingStep context
     callbacks?.openDialog('derive');
   } else if (step.select) {
+    // State initialized by useDialogState hook via editingStep context
     callbacks?.openDialog('column-editor');
-    const selectedSet = new Set(step.select as string[]);
-    const state = DialogStore.columnEditorState;
-    state.mode.value = 'list';
-    state.textSubMode.value = 'rename';
-
-    // Build union of current columns and selected columns to preserve order but show missing ones
-    const allUniqueCols = Array.from(new Set([...(step.select as string[]), ...columns]));
-
-    state.columns.value = allUniqueCols.map((col) => ({
-      original: col,
-      renamed: col,
-      selected: selectedSet.has(col),
-    }));
-    state.textValue.value = '';
-    state.textError.value = null;
-    state.patternText.value = '';
-    state.patternMode.value = 'include';
-    state.patternMatchType.value = 'prefix';
-    state.draggedIndex.value = null;
   } else if (step.rename) {
+    // State initialized by useDialogState hook via editingStep context
     callbacks?.openDialog('column-editor');
-    const state = DialogStore.columnEditorState;
-    state.mode.value = 'list';
-    state.textSubMode.value = 'rename';
-    const renames = step.rename || {};
-    state.columns.value = columns.map((col: string) => ({
-      original: col,
-      renamed: renames[col] || col,
-      selected: true,
-    }));
-    state.textValue.value = '';
-    state.textError.value = null;
-    state.patternText.value = '';
-    state.patternMode.value = 'include';
-    state.patternMatchType.value = 'prefix';
-    state.draggedIndex.value = null;
   } else if (step.remove) {
+    // State initialized by useDialogState hook via editingStep context
     callbacks?.openDialog('column-editor');
-    const removedSet = new Set(step.remove as string[]);
-    const state = DialogStore.columnEditorState;
-    state.mode.value = 'list';
-    state.textSubMode.value = 'rename';
-    state.columns.value = columns.map((col: string) => ({
-      original: col,
-      renamed: col,
-      selected: !removedSet.has(col),
-    }));
-    state.textValue.value = '';
-    state.textError.value = null;
-    state.patternText.value = '';
-    state.patternMode.value = 'include';
-    state.patternMatchType.value = 'prefix';
-    state.draggedIndex.value = null;
   } else if (step.sort) {
     // State initialized by useDialogState hook via editingStep context
     callbacks?.openDialog('sort');
@@ -292,73 +245,8 @@ export function editStep(stepIndex: number): void {
     DialogStore.appendState.selectedRightColumns.value = step.union.targetColumns || [];
     callbacks?.onAppendTargetChange();
   } else if (step.window) {
+    // State initialized by useDialogState hook via editingStep context
     callbacks?.openDialog('window');
-    const state = DialogStore.windowState;
-    state.orderBy.value = [...step.window.orderBy];
-    state.partitionBy.value = [...(step.window.partitionBy || [])];
-
-    // Parse window expressions back to WindowFunction objects
-    const windowFunctions = Object.entries(step.window.derive).map(([output, exprString]) => {
-      // Match expressions like op.func('col', offset, default) or op.func()
-      const match = (exprString as string).match(/^op\.(\w+)\(([^)]*)\)$/);
-      if (!match) {
-        return {
-          func: 'row_number',
-          sourceCol: '',
-          offset: 1,
-          defaultValue: '',
-          output,
-          frameStart: null,
-          frameEnd: 0,
-        };
-      }
-
-      const func = match[1];
-      const argsStr = match[2].trim();
-
-      // Parse arguments
-      let sourceCol = '';
-      let offset = 1;
-      let defaultValue = '';
-
-      if (argsStr) {
-        const args = argsStr.match(/(?:[^,'"]+|'[^']*'|"[^"]*")+/g) || [];
-
-        // First argument is typically the column name (quoted)
-        if (args[0]) {
-          const trimmed = args[0].trim();
-          if (
-            (trimmed.startsWith("'") && trimmed.endsWith("'")) ||
-            (trimmed.startsWith('"') && trimmed.endsWith('"'))
-          ) {
-            sourceCol = trimmed.slice(1, -1);
-          }
-        }
-
-        // Second argument is typically the offset (numeric)
-        if (args[1]) {
-          const numVal = parseInt(args[1].trim(), 10);
-          if (!isNaN(numVal)) {
-            offset = numVal;
-          }
-        }
-
-        // Third argument is the default value
-        if (args[2]) {
-          defaultValue = args[2].trim();
-        }
-      }
-
-      // Read frame from step.window.frames map if present
-      const frameSpec = step.window!.frames?.[output];
-      const frameStart = frameSpec ? frameSpec[0] : null;
-      const frameEnd = frameSpec ? frameSpec[1] : 0;
-
-      return { func, sourceCol, offset, defaultValue, output, frameStart, frameEnd };
-    });
-
-    state.windowFunctions.value = windowFunctions;
-    state.isPreviewing.value = false;
   } else if (step.sliceRows) {
     // State initialized by useDialogState hook via editingStep context
     callbacks?.openDialog('sliceRows');

@@ -1,182 +1,87 @@
+import { Signal } from '@preact/signals';
 import { DialogStore } from '../../stores/DialogStore';
 import { AppStore } from '../../stores/AppStore';
 import { StepService } from '../../services/StepService';
 import { matchColumnPattern } from '../../../core/transforms';
 import i18n from '../../../i18n';
+import type {
+  ColumnEditorMode,
+  ColumnEditorTextSubMode,
+  ColumnEditorPatternMode,
+  ColumnEditorPatternMatchType,
+  ColumnEditorPatternOperationMode,
+} from '../../../types/modes';
 
-export function toggleColumnEditorColumn(index: number) {
-  const columns = DialogStore.columnEditorState.columns.value;
-  const newCols = [...columns];
-  newCols[index] = { ...newCols[index], selected: !newCols[index].selected };
-  DialogStore.columnEditorState.columns.value = newCols;
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
+
+export interface ColumnEditorColumn {
+  original: string;
+  renamed: string;
+  selected: boolean;
 }
 
-export function selectAllColumnEditor() {
-  const columns = DialogStore.columnEditorState.columns.value;
-  DialogStore.columnEditorState.columns.value = columns.map((c) => ({ ...c, selected: true }));
+/** Shape of the local signal state created by the component's useDialogState factory. */
+export interface ColumnEditorState {
+  mode: Signal<ColumnEditorMode>;
+  textSubMode: Signal<ColumnEditorTextSubMode>;
+  columns: Signal<ColumnEditorColumn[]>;
+  textValue: Signal<string>;
+  textError: Signal<string | null>;
+  patternText: Signal<string>;
+  patternMode: Signal<ColumnEditorPatternMode>;
+  patternMatchType: Signal<ColumnEditorPatternMatchType>;
+  draggedIndex: Signal<number | null>;
+  patternOperationMode: Signal<ColumnEditorPatternOperationMode>;
+  patternFind: Signal<string>;
+  patternReplace: Signal<string>;
+  patternRegex: Signal<boolean>;
+  patternError: Signal<string | null>;
 }
 
-export function selectNoneColumnEditor() {
-  const columns = DialogStore.columnEditorState.columns.value;
-  DialogStore.columnEditorState.columns.value = columns.map((c) => ({ ...c, selected: false }));
+// ---------------------------------------------------------------------------
+// Section parameter mechanism
+// ---------------------------------------------------------------------------
+
+let pendingSection: string | null = null;
+
+export function setColumnEditorSection(section: string): void {
+  pendingSection = section;
 }
 
-export function applyColumnEditorPattern() {
-  const { patternText, patternMode, patternMatchType, columns } = DialogStore.columnEditorState;
-  const text = patternText.value.trim();
-  if (!text) return;
-
-  const pattern = text.toLowerCase();
-  const matchFn = (name: string) => {
-    const lower = name.toLowerCase();
-    switch (patternMatchType.value) {
-      case 'prefix':
-        return lower.startsWith(pattern);
-      case 'suffix':
-        return lower.endsWith(pattern);
-      case 'exact':
-        return lower === pattern;
-      default:
-        return false;
-    }
-  };
-
-  const shouldSelect = patternMode.value === 'include';
-  const newCols = columns.value.map((c) => {
-    if (matchFn(c.original)) {
-      return { ...c, selected: shouldSelect };
-    }
-    return c;
-  });
-  columns.value = newCols;
+export function consumeColumnEditorSection(): string | null {
+  const s = pendingSection;
+  pendingSection = null;
+  return s;
 }
 
-export function handleColumnEditorDragStart(index: number, event: DragEvent) {
-  DialogStore.columnEditorState.draggedIndex.value = index;
-  if (event.dataTransfer) {
-    event.dataTransfer.effectAllowed = 'move';
-    event.dataTransfer.setData('text/plain', String(index));
-  }
-}
+// ---------------------------------------------------------------------------
+// Pure functions (accept params, no store reads)
+// ---------------------------------------------------------------------------
 
-export function handleColumnEditorDragOver(event: DragEvent) {
-  event.preventDefault();
-  if (event.dataTransfer) {
-    event.dataTransfer.dropEffect = 'move';
-  }
-}
-
-export function handleColumnEditorDrop(dropIndex: number) {
-  const dragIndex = DialogStore.columnEditorState.draggedIndex.value;
-  if (dragIndex === null || dragIndex === dropIndex) return;
-
-  const columns = [...DialogStore.columnEditorState.columns.value];
-  const [draggedItem] = columns.splice(dragIndex, 1);
-  columns.splice(dropIndex, 0, draggedItem);
-  DialogStore.columnEditorState.columns.value = columns;
-  DialogStore.columnEditorState.draggedIndex.value = null;
-}
-
-export function handleColumnEditorDragEnd() {
-  DialogStore.columnEditorState.draggedIndex.value = null;
-}
-
-export function switchColumnEditorToText() {
-  const state = DialogStore.columnEditorState;
-  // Populate text value based on sub-mode
-  if (state.textSubMode.value === 'rename') {
-    // Show renamed names for all columns (in current order)
-    const lines = state.columns.value.map((c) => c.renamed);
-    state.textValue.value = lines.join('\n');
-  } else if (state.textSubMode.value === 'reorder') {
-    // Show original names of selected columns (in current order)
-    const lines = state.columns.value.filter((c) => c.selected).map((c) => c.original);
-    state.textValue.value = lines.join('\n');
-  } else if (state.textSubMode.value === 'select') {
-    // Show original names of selected columns
-    const lines = state.columns.value.filter((c) => c.selected).map((c) => c.original);
-    state.textValue.value = lines.join('\n');
-  }
-  state.textError.value = null;
-  state.mode.value = 'text';
-}
-
-export function validateColumnEditorText(): boolean {
-  const state = DialogStore.columnEditorState;
-  const lines = state.textValue.value
-    .split('\n')
-    .map((l) => l.trim())
-    .filter((l) => l.length > 0);
-
-  const appColumns = AppStore.columns.value;
-  const columnCount = appColumns.length;
-  const originalNameSet = new Set(appColumns);
-
-  if (lines.length === 0) {
-    state.textError.value = 'Enter at least one column name';
-    return false;
-  }
-
-  // Check for duplicates (case-insensitive)
-  const seen = new Set<string>();
-  for (const line of lines) {
-    if (seen.has(line.toLowerCase())) {
-      state.textError.value = `Duplicate column name: "${line}"`;
-      return false;
-    }
-    seen.add(line.toLowerCase());
-  }
-
-  if (state.textSubMode.value === 'rename') {
-    // Must have exactly N lines for N columns
-    if (lines.length !== columnCount) {
-      state.textError.value = `Rename requires exactly ${columnCount} lines (one per column), got ${lines.length}`;
-      return false;
-    }
-  } else if (state.textSubMode.value === 'reorder') {
-    // All names must exist in original columns
-    for (const line of lines) {
-      if (!originalNameSet.has(line)) {
-        state.textError.value = `Unknown column: "${line}"`;
-        return false;
-      }
-    }
-    // Must include all columns (no removal in reorder mode)
-    if (lines.length !== columnCount) {
-      state.textError.value = `Reorder requires all ${columnCount} columns, got ${lines.length}`;
-      return false;
-    }
-  } else if (state.textSubMode.value === 'select') {
-    // All names must exist in original columns
-    for (const line of lines) {
-      if (!originalNameSet.has(line)) {
-        state.textError.value = `Unknown column: "${line}"`;
-        return false;
-      }
-    }
-  }
-
-  state.textError.value = null;
-  return true;
-}
-
-export function getColumnEditorChanges(): {
+/**
+ * Compute changes relative to appColumns from the dialog's current state values.
+ */
+export function getColumnEditorChanges(
+  mode: ColumnEditorMode,
+  textValue: string,
+  textSubMode: ColumnEditorTextSubMode,
+  columns: ColumnEditorColumn[],
+  appColumns: string[]
+): {
   hasChanges: boolean;
   removed: string[];
   renamed: { from: string; to: string }[];
   reordered: boolean;
 } {
-  const state = DialogStore.columnEditorState;
-  const appColumns = AppStore.columns.value;
-
-  if (state.mode.value === 'text') {
-    const lines = state.textValue.value
+  if (mode === 'text') {
+    const lines = textValue
       .split('\n')
       .map((l) => l.trim())
       .filter((l) => l.length > 0);
 
-    if (state.textSubMode.value === 'rename') {
-      // Compare line by line - same order
+    if (textSubMode === 'rename') {
       const renamed: { from: string; to: string }[] = [];
       for (let i = 0; i < lines.length && i < appColumns.length; i++) {
         if (appColumns[i] !== lines[i]) {
@@ -184,30 +89,27 @@ export function getColumnEditorChanges(): {
         }
       }
       return { hasChanges: renamed.length > 0, removed: [], renamed, reordered: false };
-    } else if (state.textSubMode.value === 'reorder') {
-      // Check if order differs
+    } else if (textSubMode === 'reorder') {
       const reordered = lines.join(',') !== appColumns.join(',');
       return { hasChanges: reordered, removed: [], renamed: [], reordered };
-    } else if (state.textSubMode.value === 'select') {
-      // Columns not in lines are removed
+    } else if (textSubMode === 'select') {
       const lineSet = new Set(lines);
       const removed = appColumns.filter((c) => !lineSet.has(c));
       return { hasChanges: removed.length > 0, removed, renamed: [], reordered: false };
     }
   }
 
-  // List mode
-  const removed = state.columns.value.filter((c) => !c.selected).map((c) => c.original);
+  // List mode (or pattern — fallthrough)
+  const removed = columns.filter((c) => !c.selected).map((c) => c.original);
 
-  const renamed = state.columns.value
+  const renamed = columns
     .filter((c) => c.selected && c.original !== c.renamed && c.renamed.trim() !== '')
     .map((c) => ({ from: c.original, to: c.renamed.trim() }));
 
-  // Check reorder by comparing selected columns order to original
-  const selectedOriginals = state.columns.value.filter((c) => c.selected).map((c) => c.original);
+  const selectedOriginals = columns.filter((c) => c.selected).map((c) => c.original);
 
   const originalSelectedOrder = appColumns.filter((c) =>
-    state.columns.value.find((sc) => sc.original === c && sc.selected)
+    columns.find((sc) => sc.original === c && sc.selected)
   );
 
   const reordered = JSON.stringify(selectedOriginals) !== JSON.stringify(originalSelectedOrder);
@@ -217,41 +119,44 @@ export function getColumnEditorChanges(): {
   return { hasChanges, removed, renamed, reordered };
 }
 
-export function getPatternMatchedColumns(_operation: 'select' | 'remove'): string[] {
-  const state = DialogStore.columnEditorState;
-  const appColumns = AppStore.columns.value;
-  const { patternText, patternMatchType } = state;
-
-  if (!patternText.value || patternText.value.trim() === '') {
+/**
+ * Find columns matching a pattern (for preview in pattern mode).
+ */
+export function getPatternMatchedColumns(
+  patternText: string,
+  patternMatchType: ColumnEditorPatternMatchType,
+  appColumns: string[]
+): string[] {
+  if (!patternText || patternText.trim() === '') {
     return [];
   }
 
   try {
-    // For both select and remove, we want to find columns that match the pattern
-    // The difference is in how they're used: select keeps them, remove removes them
-    // Filter out 'exact' since it's not supported by transform types
-    let matchType = patternMatchType.value;
+    let matchType = patternMatchType;
     if (matchType === 'exact') {
-      // Convert 'exact' to 'contains' for preview purposes
       matchType = 'contains';
     }
     const matched = matchColumnPattern(appColumns, {
-      pattern: patternText.value.trim(),
+      pattern: patternText.trim(),
       matchType: matchType as 'prefix' | 'suffix' | 'contains' | 'regex',
-      mode: 'include', // Always use 'include' to get matching columns
+      mode: 'include',
     });
     return matched;
-  } catch (e) {
+  } catch (_e) {
     return [];
   }
 }
 
-export function getPatternRenamePreview(): Array<{ from: string; to: string }> {
-  const state = DialogStore.columnEditorState;
-  const appColumns = AppStore.columns.value;
-  const { patternFind, patternReplace, patternRegex } = state;
-
-  if (!patternFind.value || patternFind.value.trim() === '') {
+/**
+ * Preview rename results for pattern mode.
+ */
+export function getPatternRenamePreview(
+  patternFind: string,
+  patternReplace: string,
+  patternRegex: boolean,
+  appColumns: string[]
+): Array<{ from: string; to: string }> {
+  if (!patternFind || patternFind.trim() === '') {
     return [];
   }
 
@@ -260,19 +165,18 @@ export function getPatternRenamePreview(): Array<{ from: string; to: string }> {
   for (const col of appColumns) {
     let newName: string | null = null;
 
-    if (patternRegex.value) {
+    if (patternRegex) {
       try {
-        const regex = new RegExp(patternFind.value);
+        const regex = new RegExp(patternFind);
         if (regex.test(col)) {
-          newName = col.replace(regex, patternReplace.value);
+          newName = col.replace(regex, patternReplace);
         }
-      } catch (e) {
-        // Invalid regex
+      } catch (_e) {
         return [];
       }
     } else {
-      if (col.includes(patternFind.value)) {
-        newName = col.replace(patternFind.value, patternReplace.value);
+      if (col.includes(patternFind)) {
+        newName = col.replace(patternFind, patternReplace);
       }
     }
 
@@ -284,127 +188,218 @@ export function getPatternRenamePreview(): Array<{ from: string; to: string }> {
   return preview;
 }
 
+/**
+ * Populate text value from the list state, switching to text mode.
+ * Operates on the local signal state object.
+ */
+export function switchColumnEditorToText(state: ColumnEditorState): void {
+  if (state.textSubMode.value === 'rename') {
+    const lines = state.columns.value.map((c) => c.renamed);
+    state.textValue.value = lines.join('\n');
+  } else if (state.textSubMode.value === 'reorder') {
+    const lines = state.columns.value.filter((c) => c.selected).map((c) => c.original);
+    state.textValue.value = lines.join('\n');
+  } else if (state.textSubMode.value === 'select') {
+    const lines = state.columns.value.filter((c) => c.selected).map((c) => c.original);
+    state.textValue.value = lines.join('\n');
+  }
+  state.textError.value = null;
+  state.mode.value = 'text';
+}
+
+/**
+ * Validate the text editor content. Pure — returns result without writing to signals.
+ */
+// TODO: i18n — validation messages below are hardcoded English; should use i18n.t() keys
+export function validateColumnEditorText(
+  textValue: string,
+  textSubMode: ColumnEditorTextSubMode,
+  appColumns: string[]
+): { valid: boolean; error: string | null } {
+  const lines = textValue
+    .split('\n')
+    .map((l) => l.trim())
+    .filter((l) => l.length > 0);
+
+  const columnCount = appColumns.length;
+  const originalNameSet = new Set(appColumns);
+
+  if (lines.length === 0) {
+    return { valid: false, error: 'Enter at least one column name' };
+  }
+
+  // Check for duplicates (case-insensitive)
+  const seen = new Set<string>();
+  for (const line of lines) {
+    if (seen.has(line.toLowerCase())) {
+      return { valid: false, error: `Duplicate column name: "${line}"` };
+    }
+    seen.add(line.toLowerCase());
+  }
+
+  if (textSubMode === 'rename') {
+    if (lines.length !== columnCount) {
+      return {
+        valid: false,
+        error: `Rename requires exactly ${columnCount} lines (one per column), got ${lines.length}`,
+      };
+    }
+  } else if (textSubMode === 'reorder') {
+    for (const line of lines) {
+      if (!originalNameSet.has(line)) {
+        return { valid: false, error: `Unknown column: "${line}"` };
+      }
+    }
+    if (lines.length !== columnCount) {
+      return {
+        valid: false,
+        error: `Reorder requires all ${columnCount} columns, got ${lines.length}`,
+      };
+    }
+  } else if (textSubMode === 'select') {
+    for (const line of lines) {
+      if (!originalNameSet.has(line)) {
+        return { valid: false, error: `Unknown column: "${line}"` };
+      }
+    }
+  }
+
+  return { valid: true, error: null };
+}
+
+// ---------------------------------------------------------------------------
+// Apply handler — reads from bridge signal
+// ---------------------------------------------------------------------------
+
 export async function applyColumnEditorTransform(callbacks: any) {
-  const state = DialogStore.columnEditorState;
+  const state = DialogStore.activeDialogState.value;
+  if (!state) return;
+
   const appColumns = AppStore.columns.value;
 
+  const mode = state.mode as ColumnEditorMode;
+  const textSubMode = state.textSubMode as ColumnEditorTextSubMode;
+  const textValue = state.textValue as string;
+  const columns = state.columns as ColumnEditorColumn[];
+  const patternOperationMode = state.patternOperationMode as ColumnEditorPatternOperationMode;
+  const patternText = state.patternText as string;
+  const patternMatchType = state.patternMatchType as ColumnEditorPatternMatchType;
+  const patternFind = state.patternFind as string;
+  const patternReplace = state.patternReplace as string;
+  const patternRegex = state.patternRegex as boolean;
   // Handle pattern mode
-  if (state.mode.value === 'pattern') {
-    const {
-      patternOperationMode,
-      patternText,
-      patternMatchType,
-      patternFind,
-      patternReplace,
-      patternRegex,
-    } = state;
-
-    if (patternOperationMode.value === 'select') {
-      if (!patternText.value || patternText.value.trim() === '') {
+  if (mode === 'pattern') {
+    if (patternOperationMode === 'select') {
+      if (!patternText || patternText.trim() === '') {
         await callbacks.onError?.(i18n.t('validation.required.pattern', { ns: 'errors' }));
         return;
       }
 
-      // Validate regex if matchType is regex
-      if (patternMatchType.value === 'regex') {
+      if (patternMatchType === 'regex') {
         try {
-          new RegExp(patternText.value);
+          new RegExp(patternText);
         } catch (e: any) {
-          state.patternError.value = `Invalid regex pattern: ${e.message}`;
+          // Write error back via bridge — the component will see it
+          DialogStore.activeDialogState.value = {
+            ...state,
+            patternError: `Invalid regex pattern: ${e.message}`,
+          };
           return;
         }
       }
 
-      // Filter out 'exact' since transform types don't support it
-      let matchType = patternMatchType.value;
+      let matchType = patternMatchType;
       if (matchType === 'exact') {
-        matchType = 'contains'; // Convert to contains for transform
+        matchType = 'contains';
       }
       const transform = {
         selectPattern: {
-          pattern: patternText.value.trim(),
+          pattern: patternText.trim(),
           matchType: matchType as 'prefix' | 'suffix' | 'contains' | 'regex',
         },
       };
 
-      state.patternError.value = null;
+      DialogStore.activeDialogState.value = { ...state, patternError: null };
       await StepService.runTransform('Select Pattern', transform, callbacks);
       return;
-    } else if (patternOperationMode.value === 'remove') {
-      if (!patternText.value || patternText.value.trim() === '') {
+    } else if (patternOperationMode === 'remove') {
+      if (!patternText || patternText.trim() === '') {
         await callbacks.onError?.(i18n.t('validation.required.pattern', { ns: 'errors' }));
         return;
       }
 
-      // Validate regex if matchType is regex
-      if (patternMatchType.value === 'regex') {
+      if (patternMatchType === 'regex') {
         try {
-          new RegExp(patternText.value);
+          new RegExp(patternText);
         } catch (e: any) {
-          state.patternError.value = `Invalid regex pattern: ${e.message}`;
+          DialogStore.activeDialogState.value = {
+            ...state,
+            patternError: `Invalid regex pattern: ${e.message}`,
+          };
           return;
         }
       }
 
-      // Filter out 'exact' since transform types don't support it
-      let matchType = patternMatchType.value;
+      let matchType = patternMatchType;
       if (matchType === 'exact') {
-        matchType = 'contains'; // Convert to contains for transform
+        matchType = 'contains';
       }
       const transform = {
         removePattern: {
-          pattern: patternText.value.trim(),
+          pattern: patternText.trim(),
           matchType: matchType as 'prefix' | 'suffix' | 'contains' | 'regex',
         },
       };
 
-      state.patternError.value = null;
+      DialogStore.activeDialogState.value = { ...state, patternError: null };
       await StepService.runTransform('Remove Pattern', transform, callbacks);
       return;
-    } else if (patternOperationMode.value === 'rename') {
-      if (!patternFind.value || patternFind.value.trim() === '') {
+    } else if (patternOperationMode === 'rename') {
+      if (!patternFind || patternFind.trim() === '') {
         await callbacks.onError?.(i18n.t('validation.required.findPattern', { ns: 'errors' }));
         return;
       }
 
-      // Validate regex if enabled
-      if (patternRegex.value) {
+      if (patternRegex) {
         try {
-          new RegExp(patternFind.value);
+          new RegExp(patternFind);
         } catch (e: any) {
-          state.patternError.value = `Invalid regex pattern: ${e.message}`;
+          DialogStore.activeDialogState.value = {
+            ...state,
+            patternError: `Invalid regex pattern: ${e.message}`,
+          };
           return;
         }
       }
 
       const transform = {
         renamePattern: {
-          find: patternFind.value.trim(),
-          replace: patternReplace.value.trim(),
-          regex: patternRegex.value,
+          find: patternFind.trim(),
+          replace: (patternReplace || '').trim(),
+          regex: patternRegex,
         },
       };
 
-      state.patternError.value = null;
+      DialogStore.activeDialogState.value = { ...state, patternError: null };
       await StepService.runTransform('Rename Pattern', transform, callbacks);
       return;
     }
   }
 
   // Handle text mode
-  if (state.mode.value === 'text') {
-    if (!validateColumnEditorText()) {
-      await callbacks.onError?.(state.textError.value || 'Invalid column names');
+  if (mode === 'text') {
+    const validation = validateColumnEditorText(textValue, textSubMode, appColumns);
+    if (!validation.valid) {
+      await callbacks.onError?.(validation.error || 'Invalid column names');
       return;
     }
 
-    const lines = state.textValue.value
+    const lines = textValue
       .split('\n')
-      .map((l) => l.trim())
-      .filter((l) => l.length > 0);
+      .map((l: string) => l.trim())
+      .filter((l: string) => l.length > 0);
 
-    if (state.textSubMode.value === 'rename') {
-      // Apply rename transform - map column[i] -> lines[i]
+    if (textSubMode === 'rename') {
       const renames: Record<string, string> = {};
       for (let i = 0; i < lines.length && i < appColumns.length; i++) {
         if (appColumns[i] !== lines[i]) {
@@ -416,15 +411,13 @@ export async function applyColumnEditorTransform(callbacks: any) {
       } else {
         callbacks.onDialogClose(true);
       }
-    } else if (state.textSubMode.value === 'reorder') {
-      // Apply select transform with new order
+    } else if (textSubMode === 'reorder') {
       if (lines.join(',') !== appColumns.join(',')) {
         await StepService.runTransform('Reorder Columns', { select: lines }, callbacks);
       } else {
         callbacks.onDialogClose(true);
       }
-    } else if (state.textSubMode.value === 'select') {
-      // Apply select transform to keep only listed columns
+    } else if (textSubMode === 'select') {
       if (lines.length < appColumns.length || lines.join(',') !== appColumns.join(',')) {
         await StepService.runTransform('Select Columns', { select: lines }, callbacks);
       } else {
@@ -436,7 +429,7 @@ export async function applyColumnEditorTransform(callbacks: any) {
   }
 
   // List mode
-  const changes = getColumnEditorChanges();
+  const changes = getColumnEditorChanges(mode, textValue, textSubMode, columns, appColumns);
 
   if (!changes.hasChanges) {
     callbacks.onDialogClose(true);
@@ -444,7 +437,7 @@ export async function applyColumnEditorTransform(callbacks: any) {
   }
 
   // Build select transform from current order of selected columns
-  const selectedInOrder = state.columns.value.filter((c) => c.selected).map((c) => c.original);
+  const selectedInOrder = columns.filter((c) => c.selected).map((c) => c.original);
 
   // Check if we need select (order changed or columns removed)
   const needsSelect =
@@ -453,7 +446,7 @@ export async function applyColumnEditorTransform(callbacks: any) {
 
   // Build rename map
   const renames: Record<string, string> = {};
-  state.columns.value.forEach((c) => {
+  columns.forEach((c) => {
     if (c.selected && c.original !== c.renamed && c.renamed.trim() !== '') {
       renames[c.original] = c.renamed.trim();
     }

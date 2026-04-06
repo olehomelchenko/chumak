@@ -165,6 +165,8 @@ export function activeDialogError(): boolean {
     case 'pivot':
       return DialogStore.activeDialogHasError.value;
     case 'dedupe':
+    case 'window':
+    case 'column-editor':
       return DialogStore.activeDialogHasError.value;
     case 'import-url': {
       const state = DialogStore.importUrlState;

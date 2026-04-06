@@ -1,14 +1,22 @@
+import { signal } from '@preact/signals';
+import { useRef, useEffect } from 'preact/hooks';
 import { useTranslation } from 'preact-i18next';
-import * as WindowHandlers from '../handlers/transform/window-handlers';
-import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
+import { useDialogState } from '../hooks/useDialogState';
+import {
+  computeWindowPreview,
+  consumeWindowPreset,
+  parseWindowDeriveToFunctions,
+  type WindowFunction,
+  type OrderByItem,
+} from '../handlers/transform/window-handlers';
+import { createDebouncedPreview, type PreviewHandle } from '../handlers/preview-engine';
 import { ColumnSelector } from './column-selector';
 import formStyles from './form-controls.module.css';
 import winStyles from './WindowDialog.module.css';
 import aggStyles from './AggregateDialog.module.css';
 import exprStyles from './expression-help.module.css';
 const styles = { ...formStyles, ...winStyles, ...aggStyles, ...exprStyles };
-import type { WindowFunction, OrderByItem } from '../stores/dialogs/aggregate/window-state';
 import {
   AGGREGATE_FUNCTIONS,
   COLUMN_REQUIRED_FUNCTIONS,
@@ -22,8 +30,67 @@ const DEFAULT_VALUE_FUNCTIONS = ['lag', 'lead'];
 
 export function WindowDialog() {
   const { t } = useTranslation('dialogs');
-  const { orderBy, partitionBy, windowFunctions, isPreviewing } = DialogStore.windowState;
   const columns = AppStore.columns.value;
+
+  const { state } = useDialogState(
+    (ctx) => {
+      const editing = ctx.editingStep?.window;
+      const preset = consumeWindowPreset();
+
+      const initialOrderBy: OrderByItem[] = editing ? [...editing.orderBy] : [];
+      const initialPartitionBy: string[] = editing ? [...(editing.partitionBy || [])] : [];
+      const initialWindowFunctions: WindowFunction[] = editing
+        ? parseWindowDeriveToFunctions(editing.derive, editing.frames)
+        : preset || [];
+
+      return {
+        orderBy: signal<OrderByItem[]>(initialOrderBy),
+        partitionBy: signal<string[]>(initialPartitionBy),
+        windowFunctions: signal<WindowFunction[]>(initialWindowFunctions),
+        isPreviewing: signal(false),
+        previewError: signal<string | null>(null),
+      };
+    },
+    {
+      hasError: (s) =>
+        s.orderBy.value.filter((o) => o.field !== '').length === 0 ||
+        s.windowFunctions.value.length === 0,
+      getState: (s) => ({
+        orderBy: s.orderBy.value,
+        partitionBy: s.partitionBy.value,
+        windowFunctions: s.windowFunctions.value,
+      }),
+    }
+  );
+
+  const { orderBy, partitionBy, windowFunctions, isPreviewing, previewError } = state;
+
+  // Manual preview handle
+  const previewRef = useRef<PreviewHandle | null>(null);
+  if (previewRef.current === null) {
+    previewRef.current = createDebouncedPreview({
+      compute: () => computeWindowPreview(orderBy.value, partitionBy.value, windowFunctions.value),
+      onError: (error) => {
+        previewError.value = error.message;
+      },
+    });
+  }
+
+  useEffect(() => {
+    return () => {
+      previewRef.current?.clear();
+    };
+  }, []);
+
+  const handlePreviewClick = () => {
+    isPreviewing.value = true;
+    previewError.value = null;
+    try {
+      previewRef.current?.compute();
+    } finally {
+      isPreviewing.value = false;
+    }
+  };
 
   const functionCategories = [
     {
@@ -428,7 +495,7 @@ export function WindowDialog() {
       <div class={styles.group} style={{ marginTop: '1rem' }}>
         <button
           class="button button--secondary"
-          onClick={WindowHandlers.updateWindowPreview}
+          onClick={handlePreviewClick}
           disabled={isPreviewing.value}
         >
           {isPreviewing.value ? t('window.previewing') : t('window.previewButton')}

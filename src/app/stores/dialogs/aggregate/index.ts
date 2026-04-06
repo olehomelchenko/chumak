@@ -1,11 +1,8 @@
 /**
- * Aggregate dialog states — window only.
- * (aggregate, pivot, fold migrated to useDialogState)
+ * Aggregate dialog states — all migrated to useDialogState.
+ * (aggregate, pivot, fold, window migrated)
  */
 
-export {
-  windowState,
-  resetWindowState,
-  type WindowFunction,
-  type OrderByItem,
-} from './window-state';
+// Empty — all aggregate dialog states have been migrated to useDialogState hook.
+// This barrel is kept to avoid breaking the parent index.ts re-export.
+export {};

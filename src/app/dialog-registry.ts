@@ -440,13 +440,13 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     applyHandler: (cb) => DescribeHandlers.applyDescribeTransform(cb),
   }),
 
-  window: {
+  window: bridgedDialogEntry({
     name: 'window',
     title: 'Window Functions',
     type: 'slide-panel',
     buttonText: 'buttons.addColumns',
     applyHandler: (cb) => WindowHandlers.applyWindowTransform(cb),
-  },
+  }),
 
   join: {
     name: 'join',
@@ -529,13 +529,12 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     },
   }),
 
-  'column-editor': {
+  'column-editor': bridgedDialogEntry({
     name: 'column-editor',
     title: 'Edit Columns',
     type: 'slide-panel',
     applyHandler: (cb) => ColumnEditorHandlers.applyColumnEditorTransform(cb),
-    getState: () => DialogStore.columnEditorState.columns.value as any,
-  },
+  }),
 
   impute: bridgedDialogEntry({
     name: 'impute',

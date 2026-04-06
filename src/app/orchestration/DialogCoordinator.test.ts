@@ -250,12 +250,13 @@ describe('DialogCoordinator', () => {
       });
     });
 
-    it('returns column-editor state', () => {
+    it('returns column-editor state via bridge signal', () => {
       const cols = [{ original: 'a', renamed: 'b', selected: true }];
-      DialogStore.columnEditorState.columns.value = cols;
+      DialogStore.activeDialogState.value = { columns: cols };
+      AppStore.activeDialog.value = 'column-editor';
 
       const state = getDialogState('column-editor');
-      expect(state).toEqual(cols);
+      expect(state).toEqual({ columns: cols });
     });
 
     it('returns impute state via bridge signal', () => {

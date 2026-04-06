@@ -15,9 +15,6 @@ import {
   unrollState,
   typeConversionState,
   mergeState,
-  columnEditorState,
-  // Aggregate states
-  windowState,
   // Text states
   textState,
   parseDateState,
@@ -37,7 +34,7 @@ import {
 } from './dialogs';
 
 // Re-export types for backward compatibility
-export type { ColumnEditorColumn } from './dialogs/column';
+export type { ColumnEditorColumn } from '../handlers/dialog/column-editor-handlers';
 export type { KeyPairAnalysis, MismatchPreview } from './dialogs/combine';
 
 /**
@@ -52,10 +49,6 @@ export class DialogStore {
   static unrollState = unrollState;
   static typeConversionState = typeConversionState;
   static mergeState = mergeState;
-  static columnEditorState = columnEditorState;
-
-  // Aggregate states
-  static windowState = windowState;
 
   // Text states
   static textState = textState;
