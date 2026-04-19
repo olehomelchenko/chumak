@@ -189,7 +189,7 @@ export const ukPageMeta: Record<string, LocalePageMeta> = {
   'getting-started.md': {
     title: 'Початок роботи',
     description:
-      'Дізнайтеся, як імпортувати, трансформувати та експортувати дані за допомогою Syto.',
+      'Дізнайтеся, як імпортувати, трансформувати та експортувати дані за допомогою Сито.',
   },
   'functions/operators.md': {
     title: 'Оператори',
