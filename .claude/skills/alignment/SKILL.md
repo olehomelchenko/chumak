@@ -32,7 +32,11 @@ Determine the review scope using `git diff` (unstaged) and `git diff --staged` (
 
 7. **Workarounds**: Flag code that works around a problem rather than solving it (e.g., `// HACK`, `// WORKAROUND`, silent catch-and-ignore, feature detection for internal bugs). If a workaround is justified (e.g., upstream bug, browser quirk, time constraint), ensure it has a comment explaining why and a reference to track resolution. If unjustified, replace it with a proper fix.
 
-8. **Pre-existing issues**: When reviewing the diff, you may notice pre-existing patterns in surrounding code that are out of scope for the current change but worth improving (e.g., duplicated logic the new code follows, workarounds it builds on, missing abstractions it exposes). Don't fix these — mark them with a `// TODO:` comment in the code explaining what could be improved and why. This leaves a trail for future work without scope-creeping the current review.
+8. **Pre-existing & out-of-scope issues**: Leave a breadcrumb in the code for anything you notice but don't fix. This includes:
+   - **Pre-existing patterns** in surrounding code (duplicated logic the new code follows, workarounds it builds on, missing abstractions it exposes).
+   - **Observations arising from the current change** that you decide are out of scope (redundant logic the refactor exposes, naming drift, mildly leaky abstractions, benign-but-suboptimal patterns).
+
+   Mark these with a `// TODO:` comment at the relevant site, explaining _what_ could be improved and _why_. If the observation is important enough to mention in the summary, it's important enough to deserve a TODO at the code location too — otherwise the reader reviewing that code later has no way to find the context. Keep the TODO concise (1–3 lines) and include a pointer to the adjacent owner/contract when relevant (e.g. "see StepService.ts line ~246"). This leaves a trail for future work without scope-creeping the current review.
 
 9. **PWA / Offline**: If changes add, remove, or change external resource URLs (CDN scripts, fonts, APIs), verify they are covered by a `runtimeCaching` rule in `vite.config.ts`. If a previously bundled asset moves to a CDN, this is a potential offline regression.
 
@@ -40,7 +44,7 @@ Determine the review scope using `git diff` (unstaged) and `git diff --staged` (
 
 ### Output
 
-12. **Summary**: After performing the instructions, respond with a summary of changes: choices made due to these instructions, choices where multiple approaches existed, and any non-obvious architectural choices or assumptions the user should know about but might not notice from the diff alone.
+12. **Summary**: After performing the instructions, respond with a summary of changes: choices made due to these instructions, choices where multiple approaches existed, and any non-obvious architectural choices or assumptions the user should know about but might not notice from the diff alone. If the summary mentions an observation that you chose not to fix (per rule #8), confirm that a `// TODO:` breadcrumb was placed at the relevant code site so the context is recoverable later.
 
 ---
 
