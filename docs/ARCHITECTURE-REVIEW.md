@@ -75,7 +75,7 @@ Each expression limitation pushes toward adding new transform types (e.g., the `
 
 **Fix:** Add `let` bindings to the expression language (`let x = trim([Name]) in if(len(x) > 0, x, "unknown")`). Safe (no mutation, no side effects), bounded effort, high leverage.
 
-**Status:** Not started.
+**Status:** Addressed. `let NAME = EXPR [, NAME = EXPR]* in BODY` is supported with sequential (let\*) scoping, shadowing of columns, and pass-through of error values into the body. Parser, validator, interpreter, token extractor, and highlighter all updated. See [DATA-SPECIFICATION.md §4.2b](DATA-SPECIFICATION.md#42b-let-bindings).
 
 ---
 

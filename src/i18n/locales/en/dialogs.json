@@ -98,6 +98,7 @@
     "sidebar": {
       "getting-started": "Getting started",
       "operators": "Operators",
+      "let-bindings": "Let bindings",
       "date": "Date",
       "text": "Text",
       "math": "Math",

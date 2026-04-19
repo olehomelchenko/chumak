@@ -5,6 +5,7 @@ import { syncDialogToUrl } from '../orchestration/UrlStateSync';
 
 // English content
 import { html as enOperators } from '../../content/functions/operators.md';
+import { html as enLetBindings } from '../../content/functions/let-bindings.md';
 import { html as enRegex } from '../../content/functions/regex.md';
 import { html as enDate } from '../../content/functions/date.md';
 import { html as enText } from '../../content/functions/text.md';
@@ -18,6 +19,7 @@ import { html as enWhatsNew } from '../../content/whats-new.md';
 
 // Ukrainian content
 import { html as ukOperators } from '../../content/uk/functions/operators.md';
+import { html as ukLetBindings } from '../../content/uk/functions/let-bindings.md';
 import { html as ukRegex } from '../../content/uk/functions/regex.md';
 import { html as ukDate } from '../../content/uk/functions/date.md';
 import { html as ukText } from '../../content/uk/functions/text.md';
@@ -35,6 +37,7 @@ const contentByLocale: Record<string, Record<string, string>> = {
   en: {
     'getting-started': enGettingStarted,
     operators: enOperators,
+    'let-bindings': enLetBindings,
     date: enDate,
     text: enText,
     math: enMath,
@@ -48,6 +51,7 @@ const contentByLocale: Record<string, Record<string, string>> = {
   uk: {
     'getting-started': ukGettingStarted,
     operators: ukOperators,
+    'let-bindings': ukLetBindings,
     date: ukDate,
     text: ukText,
     math: ukMath,
@@ -63,7 +67,7 @@ const contentByLocale: Record<string, Record<string, string>> = {
 /** Section IDs grouped for sidebar rendering. */
 const sidebarGroups: string[][] = [
   ['getting-started'],
-  ['operators', 'date', 'text', 'math', 'regex', 'conversion', 'json', 'aggregate'],
+  ['operators', 'let-bindings', 'date', 'text', 'math', 'regex', 'conversion', 'json', 'aggregate'],
   ['shortcuts', 'whats-new'],
 ];
 

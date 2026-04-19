@@ -12,6 +12,7 @@ const ALLOWED_NODE_TYPES = new Set([
   'UnaryExpression',
   'ConditionalExpression',
   'CallExpression',
+  'LetExpression',
 ]);
 
 const ALLOWED_OPS = {
@@ -278,6 +279,37 @@ function validateNode(node: ASTNode, schema: string[]) {
     case 'CallExpression':
       validateCallExpression(node, schema);
       break;
+
+    case 'LetExpression': {
+      if (!Array.isArray(node.bindings) || node.bindings.length === 0 || !node.body) {
+        throw {
+          message: 'Malformed let expression',
+          position: node.start || 0,
+          type: 'malformed-let',
+        };
+      }
+      let scope = schema;
+      for (const binding of node.bindings) {
+        if (!binding.name || typeof binding.name !== 'string' || !binding.value) {
+          throw {
+            message: 'Malformed let binding',
+            position: node.start || 0,
+            type: 'malformed-let',
+          };
+        }
+        if (ALLOWED_FUNCTIONS[binding.name]) {
+          throw {
+            message: `Cannot use function name '${binding.name}' as let binding`,
+            position: node.start || 0,
+            type: 'reserved-name',
+          };
+        }
+        validateNode(binding.value, scope);
+        scope = scope.includes(binding.name) ? scope : [...scope, binding.name];
+      }
+      validateNode(node.body, scope);
+      break;
+    }
   }
 }
 

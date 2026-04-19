@@ -146,6 +146,17 @@ function evaluateNode(node: ASTNode, rowData: Record<string, any>): any {
       return fn(...args);
     }
 
+    case 'LetExpression': {
+      // Bindings are assigned as-is — including ConversionError values — so
+      // the body can observe them via is_error / coalesce / ?? just like
+      // function arguments do.
+      let scope = rowData;
+      for (const binding of node.bindings!) {
+        scope = { ...scope, [binding.name]: evaluateNode(binding.value, scope) };
+      }
+      return evaluateNode(node.body!, scope);
+    }
+
     default:
       throw new Error(`Cannot interpret node type: ${node.type}`);
   }

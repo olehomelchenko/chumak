@@ -140,6 +140,25 @@ describe('extractTokensFromText', () => {
   });
 });
 
+describe('extractExpressionTokens – let bindings', () => {
+  it('does not treat bound names as columns', () => {
+    const result = extract('let x = revenue * 2 in x + cost');
+    expect(result.columns).toEqual(['revenue', 'cost']);
+    expect(result.functions).toEqual([]);
+  });
+
+  it('collects functions from binding values and the body', () => {
+    const result = extract('let s = trim(name) in upper(s)');
+    expect(result.functions).toEqual(['trim', 'upper']);
+    expect(result.columns).toEqual(['name']);
+  });
+
+  it('skips a bound name that shadows a column', () => {
+    const result = extract('let revenue = 0 in revenue + cost');
+    expect(result.columns).toEqual(['cost']);
+  });
+});
+
 describe('computeTokens', () => {
   it('returns EMPTY_TOKENS for empty/whitespace input', () => {
     expect(computeTokens('', columns)).toBe(EMPTY_TOKENS);

@@ -1208,6 +1208,24 @@ const FUNCTION_ARITY: Record<string, [number, number]> = {
 
 6. Update `DATA-SPECIFICATION.md` §4.3 if adding a new category or significant function group.
 
+### 7.3 Extending the Expression Language (New Syntax / AST Node)
+
+For new **syntax** (a new AST node type, keyword, or operator — not just a function), updates span five files. Miss one and either the runtime or the editor UX breaks silently.
+
+| File                                     | Role                                 | What to Add                                                                                                                            |
+| ---------------------------------------- | ------------------------------------ | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/core/expression-parser.ts`          | Preprocess + jsep → AST              | jsep plugin (`hooks.add('gobble-token', …)`) or `addBinaryOp`/`addUnaryOp`. If the node stores bare names, extend `restoreColumnNames` |
+| `src/core/ast-validator.ts`              | Whitelist + scope + arity            | Add the type to `ALLOWED_NODE_TYPES`; validate children; pass an extended schema array down if the node introduces locals              |
+| `src/core/ast-interpreter.ts`            | Evaluate AST against row data        | Add a `case` in `evaluateNode`. If the node introduces locals, build a new scope object — do not mutate `rowData`                      |
+| `src/core/expression-token-extractor.ts` | AST walk for editor chip/column list | Add a `case` so columns aren't double-counted and locals aren't reported as columns                                                    |
+| `src/core/expression-language.ts`        | CodeMirror tokenizer + autocomplete  | Add keywords to `KEYWORDS`/`OPERATOR_KEYWORDS` + a `KEYWORD_COMPLETIONS` entry                                                         |
+
+**Invariants to preserve:**
+
+- **Error pass-through in local scopes.** `CallExpression` and `LetExpression` deliberately do **not** short-circuit on `ConversionError`; the error flows into the function arg / binding so `is_error(x)`, `coalesce(x, …)`, and `x ?? fallback` can observe it. Short-circuiting is correct only for binary/logical/conditional/unary nodes (see `ast-interpreter.ts` — it is load-bearing, not an accident). Any new scope-introducing node should follow the pass-through rule.
+- **Reserved bare identifiers.** Word-form keywords (`and`, `or`, `not`, `let`, `in`) are not available as bare column references; users must bracket such column names. See DATA-SPECIFICATION.md §4.2b.
+- **Bracket placeholder restoration.** The parser replaces `[Col Name]` with a short placeholder before calling jsep, then restores names by walking the AST. Any new node that stores identifier **strings** (rather than nested `Identifier` nodes) must be covered explicitly in `restoreColumnNames`, or users writing `[X]` in that position will see the placeholder leak through.
+
 ---
 
 ## 8. Refactoring & Refinement Patterns
@@ -1364,6 +1382,22 @@ Tool pages are standalone Preact mini-apps (e.g., JSON-to-CSV converter) served 
 Tool pages load `styles/content.css` for the shared site chrome (header, footer, layout). Tool-specific UI uses a CSS Module. Components from the main app (e.g., `DataTable.module.css`) can be imported if reuse is appropriate — note that imports from `src/tools/<name>/components/` to `src/app/components/` require three levels up (`../../../app/components/`), not two.
 
 The `content.css` file includes a `.tool-page` section with layout rules for tool pages.
+
+### 10.4 Adding a Reference Chapter (In-App Dialog + Public Docs Site)
+
+Reference content lives under `src/content/` as plain markdown and is rendered in **two places** from the same source: the in-app `FunctionReferenceDialog` and the static public site at `/docs/<slug>/`. A new chapter requires changes in four directories:
+
+| #   | File                                             | Purpose                                                                                       |
+| --- | ------------------------------------------------ | --------------------------------------------------------------------------------------------- |
+| 1   | `src/content/<section>/<chapter>.md`             | English content                                                                               |
+| 2   | `src/content/uk/<section>/<chapter>.md`          | Ukrainian translation (required — the sidebar lookup falls back to EN)                        |
+| 3   | `src/app/components/FunctionReferenceDialog.tsx` | Import both `{ html }` modules, add to `contentByLocale`, insert into `sidebarGroups`         |
+| 4   | `src/i18n/locales/{en,uk}/dialogs.json`          | `referencePage.sidebar.<id>` labels (EN + UK)                                                 |
+| 5   | `scripts/content-pages-config.ts`                | Append to `pages`, add entry to `ukPageMeta`, insert into `sidebarGroups` + `ukSidebarLabels` |
+
+The chapter **id** (e.g., `let-bindings`) is the single key that ties all five files together. Pick it deliberately — it becomes the URL slug (`/docs/<id>/`), the sidebar id, and the i18n translation key.
+
+---
 
 ## 11. Versioning & Release
 

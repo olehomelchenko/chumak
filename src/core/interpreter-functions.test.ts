@@ -893,3 +893,54 @@ describe('is_error() function', () => {
     expect(interpretAST(parseExpression('is_error(sales) ? 0 : sales'), row)).toBe(1500);
   });
 });
+
+describe('Let Bindings', () => {
+  const row = {
+    Name: '  Alice ',
+    Empty: '',
+    sales: 1500,
+    cost: 1000,
+  };
+
+  it('should bind and reference a single value', () => {
+    expect(interpretAST(parseExpression('let x = 10 in x * 2'), row)).toBe(20);
+  });
+
+  it('should avoid recomputation (semantic equivalence)', () => {
+    const ast = parseExpression('let s = trim(lower(Name)) in if(len(s) > 0, s, "unknown")');
+    expect(interpretAST(ast, row)).toBe('alice');
+  });
+
+  it('should return the fallback branch when the binding is empty', () => {
+    const ast = parseExpression('let s = trim(lower(Empty)) in if(len(s) > 0, s, "unknown")');
+    expect(interpretAST(ast, row)).toBe('unknown');
+  });
+
+  it('should allow later bindings to reference earlier ones (let*)', () => {
+    expect(interpretAST(parseExpression('let x = 5, y = x + 3 in x * y'), row)).toBe(40);
+  });
+
+  it('should shadow column names within the binding scope', () => {
+    expect(interpretAST(parseExpression('let sales = 0 in sales + cost'), row)).toBe(1000);
+  });
+
+  it('should not leak bindings outside the let body', () => {
+    expect(interpretAST(parseExpression('(let x = 99 in x) + sales'), row)).toBe(1599);
+  });
+
+  it('should evaluate nested let expressions', () => {
+    expect(interpretAST(parseExpression('let x = let y = sales in y * 2 in x - cost'), row)).toBe(
+      2000
+    );
+  });
+
+  it('should expose error values to the body so is_error can detect them', () => {
+    const rowWithError = {
+      ...row,
+      errCol: { type: 'error', message: 'bad', toString: () => 'Error', valueOf: () => 'Error' },
+    };
+    expect(
+      interpretAST(parseExpression('let n = errCol in is_error(n) ? 0 : n'), rowWithError)
+    ).toBe(0);
+  });
+});

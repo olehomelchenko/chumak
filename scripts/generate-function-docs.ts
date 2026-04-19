@@ -284,6 +284,11 @@ function generateOperatorsMarkdown(): string {
     'Conversion errors propagate through arithmetic, comparison, and logical operators. If either operand is an error, the result is an error. Use `is_error(value)` to detect errors, `??` or `coalesce()` to provide fallbacks.\n'
   );
 
+  lines.push('## See also\n');
+  lines.push(
+    '- **Let bindings** (`let x = ... in ...`) — name an intermediate value and reuse it inside the same expression. See the "Let bindings" page.\n'
+  );
+
   return lines.join('\n');
 }
 

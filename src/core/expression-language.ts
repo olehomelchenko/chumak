@@ -13,7 +13,7 @@ import functionDocs from '../schemas/functions.json';
 export type ExpressionContext = 'filter' | 'derive' | 'conditional';
 
 const FUNCTION_NAMES = new Set(Object.keys(ALLOWED_FUNCTIONS));
-const KEYWORDS = new Set(['true', 'false', 'null']);
+const KEYWORDS = new Set(['true', 'false', 'null', 'let', 'in']);
 const OPERATOR_KEYWORDS = new Set(['and', 'or', 'not']);
 
 interface ExpressionState {
@@ -199,6 +199,8 @@ const KEYWORD_COMPLETIONS: Completion[] = [
   { label: 'and', type: 'keyword', detail: 'logical AND (&&)' },
   { label: 'or', type: 'keyword', detail: 'logical OR (||)' },
   { label: 'not', type: 'keyword', detail: 'logical NOT (!)' },
+  { label: 'let', type: 'keyword', detail: 'local binding: let x = ... in ...' },
+  { label: 'in', type: 'keyword', detail: 'body of let binding' },
 ];
 
 const FUNCTION_COMPLETION_BASES = buildFunctionCompletionBases();

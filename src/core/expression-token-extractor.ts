@@ -33,6 +33,9 @@ export function extractExpressionTokens(ast: ASTNode, knownColumns: string[]): E
   const colsSeen = new Set<string>();
   const functions: string[] = [];
   const columns: string[] = [];
+  // Names bound by enclosing `let` expressions — identifiers resolving to one
+  // of these are locals, not columns.
+  const boundStack: string[] = [];
 
   function walk(node: ASTNode | undefined | null): void {
     if (!node || typeof node !== 'object') return;
@@ -54,7 +57,12 @@ export function extractExpressionTokens(ast: ASTNode, knownColumns: string[]): E
         break;
 
       case 'Identifier':
-        if (node.name && columnSet.has(node.name) && !colsSeen.has(node.name)) {
+        if (
+          node.name &&
+          !boundStack.includes(node.name) &&
+          columnSet.has(node.name) &&
+          !colsSeen.has(node.name)
+        ) {
           colsSeen.add(node.name);
           columns.push(node.name);
         }
@@ -76,6 +84,18 @@ export function extractExpressionTokens(ast: ASTNode, knownColumns: string[]): E
         walk(node.alternate);
         break;
 
+      case 'LetExpression':
+        if (Array.isArray(node.bindings)) {
+          const pushed: number = node.bindings.length;
+          for (const binding of node.bindings) {
+            walk(binding.value);
+            boundStack.push(binding.name);
+          }
+          walk(node.body);
+          for (let i = 0; i < pushed; i++) boundStack.pop();
+        }
+        break;
+
       case 'MemberExpression':
         walk(node.object);
         break;
@@ -88,13 +108,15 @@ export function extractExpressionTokens(ast: ASTNode, knownColumns: string[]): E
         }
         break;
 
-      case 'Compound':
-        if (node.body) {
-          for (const child of node.body) {
+      case 'Compound': {
+        const children = node.body as unknown as ASTNode[] | undefined;
+        if (children) {
+          for (const child of children) {
             walk(child);
           }
         }
         break;
+      }
 
       case 'Literal':
         break;

@@ -97,6 +97,14 @@ export const pages: PageDef[] = [
     sidebarId: 'operators',
   },
   {
+    markdown: 'functions/let-bindings.md',
+    output: 'docs/let-bindings/index.html',
+    title: 'Let Bindings',
+    description: 'Name intermediate values and reuse them inside a Syto expression.',
+    activeNav: 'docs',
+    sidebarId: 'let-bindings',
+  },
+  {
     markdown: 'functions/date.md',
     output: 'docs/date/index.html',
     title: 'Date Functions',
@@ -195,6 +203,11 @@ export const ukPageMeta: Record<string, LocalePageMeta> = {
     title: 'Оператори',
     description: 'Арифметичні, порівняльні, логічні та спеціальні оператори у виразах Syto.',
   },
+  'functions/let-bindings.md': {
+    title: 'Локальні імена (let)',
+    description:
+      'Іменуйте проміжні значення й повторно використовуйте їх у межах одного виразу Syto.',
+  },
   'functions/date.md': {
     title: 'Функції дати',
     description: 'Функції розбору, вилучення та маніпуляції датами в Syto.',
@@ -247,6 +260,7 @@ export const sidebarGroups: SidebarItem[][] = [
   [{ id: 'getting-started', label: 'Getting Started', href: '/docs/' }],
   [
     { id: 'operators', label: 'Operators', href: '/docs/operators/' },
+    { id: 'let-bindings', label: 'Let Bindings', href: '/docs/let-bindings/' },
     { id: 'date', label: 'Date', href: '/docs/date/' },
     { id: 'text', label: 'Text', href: '/docs/text/' },
     { id: 'math', label: 'Math', href: '/docs/math/' },
@@ -265,6 +279,7 @@ export const sidebarGroups: SidebarItem[][] = [
 const ukSidebarLabels: Record<string, string> = {
   'getting-started': 'Початок роботи',
   operators: 'Оператори',
+  'let-bindings': 'Локальні імена (let)',
   date: 'Дата',
   text: 'Текст',
   math: 'Математика',

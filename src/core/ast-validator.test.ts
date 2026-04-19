@@ -588,5 +588,67 @@ describe('AST Validator', () => {
         expect(result.error?.type).toBe('wrong-arity');
       });
     });
+
+    describe('let bindings', () => {
+      it('should validate a simple let with body referencing the binding', () => {
+        const ast = parseExpression('let x = sales * 2 in x + 1');
+        const result = validateAST(ast, testSchema);
+        expect(result.valid).toBe(true);
+      });
+
+      it('should make bindings visible to subsequent bindings (let*)', () => {
+        const ast = parseExpression('let x = sales, y = x + 1 in y');
+        const result = validateAST(ast, testSchema);
+        expect(result.valid).toBe(true);
+      });
+
+      it('should reject earlier bindings that reference later ones', () => {
+        const ast = parseExpression('let x = y, y = 1 in x');
+        const result = validateAST(ast, testSchema);
+        expect(result.valid).toBe(false);
+        expect(result.error?.type).toBe('unknown-column');
+      });
+
+      it('should reject unknown columns inside a binding value', () => {
+        const ast = parseExpression('let x = unknown_col in x');
+        const result = validateAST(ast, testSchema);
+        expect(result.valid).toBe(false);
+        expect(result.error?.type).toBe('unknown-column');
+      });
+
+      it('should reject unknown identifiers in the body that are not bound', () => {
+        const ast = parseExpression('let x = sales in y + x');
+        const result = validateAST(ast, testSchema);
+        expect(result.valid).toBe(false);
+        expect(result.error?.type).toBe('unknown-column');
+      });
+
+      it('should allow bindings to shadow column names', () => {
+        const ast = parseExpression('let sales = 0 in sales + 1');
+        const result = validateAST(ast, testSchema);
+        expect(result.valid).toBe(true);
+      });
+
+      it('should reject using a function name as a binding', () => {
+        const ast = parseExpression('let trim = 1 in trim');
+        const result = validateAST(ast, testSchema);
+        expect(result.valid).toBe(false);
+        expect(result.error?.type).toBe('reserved-name');
+      });
+
+      it('should validate nested let expressions', () => {
+        const ast = parseExpression('let x = let y = sales in y + 1 in x * 2');
+        const result = validateAST(ast, testSchema);
+        expect(result.valid).toBe(true);
+      });
+
+      it('should not leak bindings from sibling lets', () => {
+        // `x` is bound only in the first branch; the second branch should not see it.
+        const ast = parseExpression('(let x = sales in x) + x');
+        const result = validateAST(ast, testSchema);
+        expect(result.valid).toBe(false);
+        expect(result.error?.type).toBe('unknown-column');
+      });
+    });
   });
 });

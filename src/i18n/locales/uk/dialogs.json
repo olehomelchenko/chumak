@@ -98,6 +98,7 @@
     "sidebar": {
       "getting-started": "Початок роботи",
       "operators": "Оператори",
+      "let-bindings": "Локальні імена (let)",
       "date": "Дата",
       "text": "Текст",
       "math": "Математика",

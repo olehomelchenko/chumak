@@ -763,6 +763,8 @@ Expressions are used in `filter` and `derive` transforms.
 - Simple names: `sales`, `revenue`
 - Names with spaces: `[Product Name]`, `[Total Sales]`
 
+**Reserved bare identifiers:** `and`, `or`, `not`, `let`, `in`. Columns whose bare name collides with a keyword must be written in bracket notation (`[and]`, `[in]`, etc.). Bracketed names never collide because they are preprocessed to opaque placeholders before jsep parsing.
+
 ### 4.2 Operators
 
 | Category        | Operators                                      |
@@ -774,6 +776,20 @@ Expressions are used in `filter` and `derive` transforms.
 | Conditional     | `condition ? trueValue : falseValue`           |
 
 > **Note:** Word-form operators (`and`, `or`, `not`) are beginner-friendly alternatives to the symbolic operators (`&&`, `||`, `!`). Both syntaxes are fully supported.
+
+### 4.2b Let Bindings
+
+Name an intermediate value and reuse it in the body of an expression:
+
+```
+let s = trim(lower([Name])) in if(len(s) > 0, s, "unknown")
+```
+
+- Multiple bindings: `let x = [a], y = x + 1 in x * y` (sequential — later bindings see earlier ones).
+- Bindings may be nested: `let x = let y = 1 in y + 1 in x * 2`.
+- A binding shadows any column with the same name inside its body.
+- Binding names must be identifiers; function names (`trim`, `if`, …) cannot be shadowed.
+- Bound values are passed through as-is — including error values — so `is_error(x)` and `x ?? fallback` work in the body.
 
 ### 4.3 Functions
 
@@ -943,6 +959,7 @@ Errors propagate through expressions similarly to `null`:
 - **`is_error(value)`**: Returns `true` if the value is a conversion error, `false` otherwise.
 - **Ternary `? :`**: If the test is an error, the error propagates (neither branch executes).
 - **Unary operators**: `-error` → error. `!error` → error.
+- **Function arguments and `let` bindings**: **Pass-through** — an error value is handed to the function / bound to the name as-is, without short-circuiting. This is what lets `is_error(x)`, `coalesce(x, …)`, and `x ?? fallback` actually observe the error in the body. Any new scope-introducing construct must preserve this rule (see DEVELOPMENT-PATTERNS.md §7.3).
 
 ### 8.4 Error Handling in Transforms
 

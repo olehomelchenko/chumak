@@ -13,6 +13,11 @@ jsep.addBinaryOp('or', 1);
 jsep.addBinaryOp('and', 2);
 jsep.addUnaryOp('not');
 
+export interface LetBinding {
+  name: string;
+  value: ASTNode;
+}
+
 export interface ASTNode {
   type: string;
   name?: string;
@@ -28,7 +33,86 @@ export interface ASTNode {
   test?: ASTNode;
   consequent?: ASTNode;
   alternate?: ASTNode;
+  bindings?: LetBinding[];
+  body?: ASTNode;
   [key: string]: any;
+}
+
+// `let NAME = EXPR [, NAME = EXPR]* in BODY` — sequential let* bindings.
+// Bound names are scoped to subsequent bindings and the body.
+jsep.plugins.register({
+  name: 'syto-let',
+  init() {
+    jsep.hooks.add('gobble-token', function gobbleLet(this: any, env: any) {
+      if (env.node) return;
+      if (!matchKeyword(this, 'let')) return;
+
+      const bindings: LetBinding[] = [];
+
+      while (true) {
+        this.gobbleSpaces();
+        const name = this.gobbleIdentifier();
+        if (!name || name.type !== 'Identifier') {
+          this.throwError('Expected identifier after "let"');
+        }
+
+        this.gobbleSpaces();
+        if (this.char !== '=' || this.expr.charAt(this.index + 1) === '=') {
+          this.throwError('Expected "=" after let binding name');
+        }
+        this.index++;
+
+        const value = this.gobbleExpression();
+        if (!value) {
+          this.throwError('Expected expression after "="');
+        }
+
+        bindings.push({ name: name.name, value });
+
+        this.gobbleSpaces();
+        if (this.char === ',') {
+          this.index++;
+          continue;
+        }
+        if (matchKeyword(this, 'in')) break;
+        this.throwError('Expected "," or "in" after let binding');
+      }
+
+      const body = this.gobbleExpression();
+      if (!body) {
+        this.throwError('Expected expression after "in"');
+      }
+
+      env.node = { type: 'LetExpression', bindings, body };
+    });
+  },
+});
+
+/**
+ * Consume a bare keyword (followed by a non-identifier character) if present.
+ * Does not advance the cursor on miss.
+ */
+function matchKeyword(ctx: any, keyword: string): boolean {
+  ctx.gobbleSpaces();
+  const start = ctx.index;
+  for (let i = 0; i < keyword.length; i++) {
+    if (ctx.expr.charAt(start + i) !== keyword[i]) return false;
+  }
+  const after = ctx.expr.charCodeAt(start + keyword.length);
+  if (isIdentifierPartCode(after)) return false;
+  ctx.index = start + keyword.length;
+  return true;
+}
+
+function isIdentifierPartCode(code: number): boolean {
+  if (Number.isNaN(code)) return false;
+  return (
+    (code >= 48 && code <= 57) || // 0-9
+    (code >= 65 && code <= 90) || // A-Z
+    (code >= 97 && code <= 122) || // a-z
+    code === 95 || // _
+    code === 36 // $
+  );
 }
 
 /**
@@ -121,6 +205,13 @@ function restoreColumnNames(node: ASTNode, colMatches: { placeholder: string; co
   if (node.type === 'Identifier' && node.name) {
     const match = colMatches.find((m) => m.placeholder === node.name);
     if (match) node.name = match.colName;
+  }
+
+  if (node.type === 'LetExpression' && Array.isArray(node.bindings)) {
+    for (const binding of node.bindings) {
+      const match = colMatches.find((m) => m.placeholder === binding.name);
+      if (match) binding.name = match.colName;
+    }
   }
 
   for (const key in node) {
