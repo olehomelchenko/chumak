@@ -15,7 +15,6 @@ import { html as enJson } from '../../content/functions/json.md';
 import { html as enAggregate } from '../../content/functions/aggregate.md';
 import { html as enGettingStarted } from '../../content/getting-started.md';
 import { html as enShortcuts } from '../../content/shortcuts.md';
-import { html as enWhatsNew } from '../../content/whats-new.md';
 
 // Ukrainian content
 import { html as ukOperators } from '../../content/uk/functions/operators.md';
@@ -29,7 +28,6 @@ import { html as ukJson } from '../../content/uk/functions/json.md';
 import { html as ukAggregate } from '../../content/uk/functions/aggregate.md';
 import { html as ukGettingStarted } from '../../content/uk/getting-started.md';
 import { html as ukShortcuts } from '../../content/uk/shortcuts.md';
-import { html as ukWhatsNew } from '../../content/uk/whats-new.md';
 
 import styles from './FunctionReferenceDialog.module.css';
 
@@ -46,7 +44,6 @@ const contentByLocale: Record<string, Record<string, string>> = {
     json: enJson,
     aggregate: enAggregate,
     shortcuts: enShortcuts,
-    'whats-new': enWhatsNew,
   },
   uk: {
     'getting-started': ukGettingStarted,
@@ -60,18 +57,40 @@ const contentByLocale: Record<string, Record<string, string>> = {
     json: ukJson,
     aggregate: ukAggregate,
     shortcuts: ukShortcuts,
-    'whats-new': ukWhatsNew,
   },
 };
 
-/** Section IDs grouped for sidebar rendering. */
-const sidebarGroups: string[][] = [
-  ['getting-started'],
-  ['operators', 'let-bindings', 'date', 'text', 'math', 'regex', 'conversion', 'json', 'aggregate'],
-  ['shortcuts', 'whats-new'],
+type SidebarItem =
+  | { kind: 'internal'; id: string }
+  | { kind: 'external'; id: string; href: string };
+
+const sidebarGroups: SidebarItem[][] = [
+  [{ kind: 'internal', id: 'getting-started' }],
+  [
+    { kind: 'internal', id: 'operators' },
+    { kind: 'internal', id: 'let-bindings' },
+    { kind: 'internal', id: 'date' },
+    { kind: 'internal', id: 'text' },
+    { kind: 'internal', id: 'math' },
+    { kind: 'internal', id: 'regex' },
+    { kind: 'internal', id: 'conversion' },
+    { kind: 'internal', id: 'json' },
+    { kind: 'internal', id: 'aggregate' },
+  ],
+  [
+    { kind: 'internal', id: 'shortcuts' },
+    {
+      kind: 'external',
+      id: 'whats-new',
+      href: 'https://github.com/olehomelchenko/syto/releases',
+    },
+  ],
 ];
 
-const allSectionIds = sidebarGroups.flat();
+const internalSectionIds = sidebarGroups
+  .flat()
+  .filter((item): item is Extract<SidebarItem, { kind: 'internal' }> => item.kind === 'internal')
+  .map((item) => item.id);
 
 export function FunctionReferenceDialog({ section }: { section?: string } = {}) {
   const { t, i18n } = useTranslation('dialogs');
@@ -80,7 +99,7 @@ export function FunctionReferenceDialog({ section }: { section?: string } = {}) 
   // See dialog-registry.ts reference.initState for why globalThis is used here
   const initialSection = section || (globalThis as any).__referenceSection || 'getting-started';
   const [activeCategory, setActiveCategory] = useState(
-    allSectionIds.includes(initialSection) ? initialSection : 'getting-started'
+    internalSectionIds.includes(initialSection) ? initialSection : 'getting-started'
   );
   const [searchText, setSearchText] = useState('');
 
@@ -93,7 +112,7 @@ export function FunctionReferenceDialog({ section }: { section?: string } = {}) 
     if (!searchText) return null;
     const lower = searchText.toLowerCase();
     const locale = contentByLocale[lang] || contentByLocale.en;
-    return allSectionIds.filter((id) => {
+    return internalSectionIds.filter((id) => {
       const html = locale[id] || contentByLocale.en[id] || '';
       const text = html.replace(/<[^>]+>/g, '').toLowerCase();
       return text.includes(lower);
@@ -137,7 +156,9 @@ export function FunctionReferenceDialog({ section }: { section?: string } = {}) 
         <div className={styles.categoryList}>
           {sidebarGroups.map((group, groupIndex) => {
             const filtered = matchingSections
-              ? group.filter((id) => matchingSections.includes(id))
+              ? group.filter(
+                  (item) => item.kind === 'external' || matchingSections.includes(item.id)
+                )
               : group;
             if (filtered.length === 0) return null;
             return (
@@ -145,20 +166,32 @@ export function FunctionReferenceDialog({ section }: { section?: string } = {}) 
                 {groupIndex > 0 && filtered.length > 0 && (
                   <hr className={styles.categorySeparator} />
                 )}
-                {filtered.map((id) => (
-                  <button
-                    key={id}
-                    className={`${styles.categoryButton} ${
-                      activeCategory === id ? styles.active : ''
-                    }`}
-                    onClick={() => {
-                      setActiveCategory(id);
-                      syncDialogToUrl('reference', id);
-                    }}
-                  >
-                    {t(`referencePage.sidebar.${id}`)}
-                  </button>
-                ))}
+                {filtered.map((item) =>
+                  item.kind === 'external' ? (
+                    <a
+                      key={item.id}
+                      href={item.href}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className={styles.categoryButton}
+                    >
+                      {t(`referencePage.sidebar.${item.id}`)} &#8599;
+                    </a>
+                  ) : (
+                    <button
+                      key={item.id}
+                      className={`${styles.categoryButton} ${
+                        activeCategory === item.id ? styles.active : ''
+                      }`}
+                      onClick={() => {
+                        setActiveCategory(item.id);
+                        syncDialogToUrl('reference', item.id);
+                      }}
+                    >
+                      {t(`referencePage.sidebar.${item.id}`)}
+                    </button>
+                  )
+                )}
               </Fragment>
             );
           })}

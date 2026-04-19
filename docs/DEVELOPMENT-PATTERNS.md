@@ -1397,6 +1397,8 @@ Reference content lives under `src/content/` as plain markdown and is rendered i
 
 The chapter **id** (e.g., `let-bindings`) is the single key that ties all five files together. Pick it deliberately — it becomes the URL slug (`/docs/<id>/`), the sidebar id, and the i18n translation key.
 
+**External sidebar entries** (e.g., "What's New" → GitHub Releases): use `SidebarItem.external: true` with an absolute URL in `content-pages-config.ts`, and the `kind: 'external'` variant in `FunctionReferenceDialog.tsx`. Only the sidebar label and i18n key are required — skip files 1, 2, and the `pages` / `ukPageMeta` entries. External entries open in a new tab with a ↗ indicator.
+
 ---
 
 ## 11. Versioning & Release
@@ -1420,7 +1422,7 @@ Two changelogs serve different audiences:
 - **`docs/CHANGELOG.md`** — internal dev log, implementation-oriented, every change. Updated during `/release`.
 - **GitHub Releases** — user-facing release notes per tag. Written for users of the tool, not maintainers.
 
-`src/content/whats-new.md` (shown in the Reference dialog) links to GitHub Releases — do not maintain feature highlights there manually.
+The "What's New" entry in the docs sidebar and in-app Reference dialog links directly to GitHub Releases — there is no Syto-hosted "What's New" page to maintain.
 
 ### PWA & Updates
 

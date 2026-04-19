@@ -169,14 +169,6 @@ export const pages: PageDef[] = [
     activeNav: 'docs',
     sidebarId: 'shortcuts',
   },
-  {
-    markdown: 'whats-new.md',
-    output: 'docs/whats-new/index.html',
-    title: "What's New",
-    description: 'Recent features and updates in Syto.',
-    activeNav: 'docs',
-    sidebarId: 'whats-new',
-  },
 ];
 
 // ---------------------------------------------------------------------------
@@ -240,10 +232,6 @@ export const ukPageMeta: Record<string, LocalePageMeta> = {
     title: 'Комбінації клавіш',
     description: 'Комбінації клавіш для ефективної роботи з Syto.',
   },
-  'whats-new.md': {
-    title: 'Що нового',
-    description: 'Нові функції та оновлення Syto.',
-  },
 };
 
 // ---------------------------------------------------------------------------
@@ -254,6 +242,8 @@ export interface SidebarItem {
   id: string;
   label: string;
   href: string;
+  /** If true, href is an absolute external URL and the link opens in a new tab. */
+  external?: boolean;
 }
 
 export const sidebarGroups: SidebarItem[][] = [
@@ -271,7 +261,12 @@ export const sidebarGroups: SidebarItem[][] = [
   ],
   [
     { id: 'shortcuts', label: 'Shortcuts', href: '/docs/shortcuts/' },
-    { id: 'whats-new', label: "What's New", href: '/docs/whats-new/' },
+    {
+      id: 'whats-new',
+      label: "What's New",
+      href: 'https://github.com/olehomelchenko/syto/releases',
+      external: true,
+    },
   ],
 ];
 
@@ -333,10 +328,13 @@ export function renderSidebar(activeId: string, locale: Locale = 'en'): string {
   for (let i = 0; i < sidebarGroups.length; i++) {
     if (i > 0) parts.push('  <hr />');
     for (const item of sidebarGroups[i]) {
-      const current = item.id === activeId ? ' aria-current="page"' : '';
       const label = locale === 'uk' ? (ukSidebarLabels[item.id] ?? item.label) : item.label;
-      const href = `${prefix}${item.href}`;
-      parts.push(`  <a href="${href}"${current}>${label}</a>`);
+      if (item.external) {
+        parts.push(`  <a href="${item.href}" target="_blank" rel="noopener">${label} ↗</a>`);
+      } else {
+        const current = item.id === activeId ? ' aria-current="page"' : '';
+        parts.push(`  <a href="${prefix}${item.href}"${current}>${label}</a>`);
+      }
     }
   }
   parts.push('</nav>');
