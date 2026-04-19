@@ -1,6 +1,6 @@
 {
   "name": "syto",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "private": true,
   "description": "Browser-based data wrangling tool",
   "type": "module",

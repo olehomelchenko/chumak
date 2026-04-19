@@ -6,6 +6,12 @@ Historical record of completed features and improvements, organized chronologica
 
 ## April 2026
 
+### v0.4.1
+
+- **Dialog state refactor** — Migrated all 31 transform dialogs from the global `DialogStore` state pattern to a local `useDialogState` hook. Per-dialog boilerplate dropped from ~13 files to ~9; `DialogCoordinator` and `DialogStore` shrunk significantly. No user-facing behavior change.
+- **Transform callback indirection removed** — `executeTransform()` utility replaces the `setXxxCallbacks()` → `createExecutionCallbacks()` chain. "Go to definition" now lands on the implementation, not a stored callback reference.
+- **Docs consolidation** — `DIALOG-MIGRATION.md` removed; its still-useful pattern guidance folded into `DEVELOPMENT-PATTERNS.md` §1.
+
 ### v0.4.0
 
 - **Pipeline step caching** — Caches intermediate step results so editing a late step replays only from the change point, not the entire pipeline.
