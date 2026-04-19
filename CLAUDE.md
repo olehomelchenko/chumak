@@ -18,10 +18,9 @@ See @AGENTS.md for project overview, security requirements, codebase orientation
 - **[UI-VOCAB.md](docs/UI-VOCAB.md)**: UI terminology, design vocabulary, and recommended patterns for UI work
 - **[FUTURE-PROOFING.md](docs/FUTURE-PROOFING.md)**: Schema evolution constraints and persistence compatibility
 
-### Active Refactor (top priority)
+### Architecture Review
 
 - **[ARCHITECTURE-REVIEW.md](docs/ARCHITECTURE-REVIEW.md)**: Critical review of extensibility friction — prioritized findings and recommendations
-- **[DIALOG-MIGRATION.md](docs/DIALOG-MIGRATION.md)**: Migrating dialogs from global DialogStore to local `useDialogState` hook — step-by-step guide, checklist, batch order
 
 ### Development Guides
 
@@ -45,32 +44,31 @@ See @AGENTS.md for project overview, security requirements, codebase orientation
 
 ## Quick Reference
 
-| Topic                  | Where to Look                                                                                                                       |
-| ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------- |
-| Data structures        | [DATA-SPECIFICATION.md](docs/DATA-SPECIFICATION.md) §1-3                                                                            |
-| Expression syntax      | [DATA-SPECIFICATION.md](docs/DATA-SPECIFICATION.md) §4                                                                              |
-| Expression functions   | [FUNCTION-DOCS-SYSTEM.md](docs/FUNCTION-DOCS-SYSTEM.md)                                                                             |
-| How transforms work    | [SPECIFICATION.md](docs/SPECIFICATION.md) §3, §5                                                                                    |
-| Adding new transforms  | [DIALOG-MIGRATION.md](docs/DIALOG-MIGRATION.md) (new style), [DEVELOPMENT-PATTERNS.md](docs/DEVELOPMENT-PATTERNS.md) §1 (old style) |
-| Architecture review    | [ARCHITECTURE-REVIEW.md](docs/ARCHITECTURE-REVIEW.md)                                                                               |
-| Dialog migration       | [DIALOG-MIGRATION.md](docs/DIALOG-MIGRATION.md)                                                                                     |
-| Testing patterns       | [DEVELOPMENT-PATTERNS.md](docs/DEVELOPMENT-PATTERNS.md) §3                                                                          |
-| State management       | [DEVELOPMENT-PATTERNS.md](docs/DEVELOPMENT-PATTERNS.md) §2                                                                          |
-| UI component patterns  | [UX-SPECIFICATION.md](docs/UX-SPECIFICATION.md) §3                                                                                  |
-| UI vocabulary & terms  | [UI-VOCAB.md](docs/UI-VOCAB.md)                                                                                                     |
-| Content & writing      | [CONTENT-GUIDELINES.md](docs/CONTENT-GUIDELINES.md)                                                                                 |
-| What's safe to change  | [FUTURE-PROOFING.md](docs/FUTURE-PROOFING.md)                                                                                       |
-| Date handling rules    | [DATE-STORAGE-ARCHITECTURE.md](docs/DATE-STORAGE-ARCHITECTURE.md)                                                                   |
-| Adding tool pages      | [DEVELOPMENT-PATTERNS.md](docs/DEVELOPMENT-PATTERNS.md) §10                                                                         |
-| Site structure         | [SPECIFICATION.md](docs/SPECIFICATION.md) §3.5                                                                                      |
-| CSS debugging          | [DEBUGGING.md](docs/DEBUGGING.md)                                                                                                   |
-| Architecture decisions | [docs/archive/DECISIONS.md](docs/archive/DECISIONS.md)                                                                              |
-| CLI & workflow v2      | [SPECIFICATION.md](docs/SPECIFICATION.md) §3.6, [DATA-SPECIFICATION.md](docs/DATA-SPECIFICATION.md) §7.2                            |
-| Multi-model & chaining | [MULTI-MODEL-ARCHITECTURE.md](docs/MULTI-MODEL-ARCHITECTURE.md)                                                                     |
-| Versioning & release   | [DEVELOPMENT-PATTERNS.md](docs/DEVELOPMENT-PATTERNS.md) §11, [AGENTS.md](AGENTS.md) §Versioning                                     |
-| DuckDB experimental    | [DEVELOPMENT-PATTERNS.md](docs/DEVELOPMENT-PATTERNS.md) §12                                                                         |
-| Adding a setting       | [DEVELOPMENT-PATTERNS.md](docs/DEVELOPMENT-PATTERNS.md) §2.3                                                                        |
-| Project philosophy     | [SOUL.md](SOUL.md)                                                                                                                  |
+| Topic                  | Where to Look                                                                                            |
+| ---------------------- | -------------------------------------------------------------------------------------------------------- |
+| Data structures        | [DATA-SPECIFICATION.md](docs/DATA-SPECIFICATION.md) §1-3                                                 |
+| Expression syntax      | [DATA-SPECIFICATION.md](docs/DATA-SPECIFICATION.md) §4                                                   |
+| Expression functions   | [FUNCTION-DOCS-SYSTEM.md](docs/FUNCTION-DOCS-SYSTEM.md)                                                  |
+| How transforms work    | [SPECIFICATION.md](docs/SPECIFICATION.md) §3, §5                                                         |
+| Adding new transforms  | [DEVELOPMENT-PATTERNS.md](docs/DEVELOPMENT-PATTERNS.md) §1                                               |
+| Architecture review    | [ARCHITECTURE-REVIEW.md](docs/ARCHITECTURE-REVIEW.md)                                                    |
+| Testing patterns       | [DEVELOPMENT-PATTERNS.md](docs/DEVELOPMENT-PATTERNS.md) §3                                               |
+| State management       | [DEVELOPMENT-PATTERNS.md](docs/DEVELOPMENT-PATTERNS.md) §2                                               |
+| UI component patterns  | [UX-SPECIFICATION.md](docs/UX-SPECIFICATION.md) §3                                                       |
+| UI vocabulary & terms  | [UI-VOCAB.md](docs/UI-VOCAB.md)                                                                          |
+| Content & writing      | [CONTENT-GUIDELINES.md](docs/CONTENT-GUIDELINES.md)                                                      |
+| What's safe to change  | [FUTURE-PROOFING.md](docs/FUTURE-PROOFING.md)                                                            |
+| Date handling rules    | [DATE-STORAGE-ARCHITECTURE.md](docs/DATE-STORAGE-ARCHITECTURE.md)                                        |
+| Adding tool pages      | [DEVELOPMENT-PATTERNS.md](docs/DEVELOPMENT-PATTERNS.md) §10                                              |
+| Site structure         | [SPECIFICATION.md](docs/SPECIFICATION.md) §3.5                                                           |
+| CSS debugging          | [DEBUGGING.md](docs/DEBUGGING.md)                                                                        |
+| Architecture decisions | [docs/archive/DECISIONS.md](docs/archive/DECISIONS.md)                                                   |
+| CLI & workflow v2      | [SPECIFICATION.md](docs/SPECIFICATION.md) §3.6, [DATA-SPECIFICATION.md](docs/DATA-SPECIFICATION.md) §7.2 |
+| Multi-model & chaining | [MULTI-MODEL-ARCHITECTURE.md](docs/MULTI-MODEL-ARCHITECTURE.md)                                          |
+| Versioning & release   | [DEVELOPMENT-PATTERNS.md](docs/DEVELOPMENT-PATTERNS.md) §11, [AGENTS.md](AGENTS.md) §Versioning          |
+| DuckDB experimental    | [DEVELOPMENT-PATTERNS.md](docs/DEVELOPMENT-PATTERNS.md) §12                                              |
+| Adding a setting       | [DEVELOPMENT-PATTERNS.md](docs/DEVELOPMENT-PATTERNS.md) §2.3                                             |
+| Project philosophy     | [SOUL.md](SOUL.md)                                                                                       |
 
 ---
 

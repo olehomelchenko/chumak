@@ -25,7 +25,7 @@ The `setXxxCallbacks()` → `createExecutionCallbacks()` indirection means you c
 
 **Fix:** Collapse handlers + services into a single "actions" layer. One file per feature that imports stores directly, calls core transforms, writes results. Components dispatch actions, actions orchestrate.
 
-**Status:** Partially addressed. `executeTransform()` utility bypasses callback wiring. `useDialogState` hook eliminates handler files for migrated dialogs. Apply logic inlined in dialog registry entries. See [DIALOG-MIGRATION.md](DIALOG-MIGRATION.md) for migration progress.
+**Status:** Addressed for transform dialogs. `executeTransform()` utility bypasses callback wiring. `useDialogState` hook eliminates handler files. Apply logic inlined in dialog registry entries. Non-transform dialogs (import, settings) retain the legacy pattern intentionally.
 
 ---
 
@@ -39,7 +39,7 @@ All dialog states coexist globally, requiring lifecycle awareness of other dialo
 
 **Fix:** Dialog state becomes local signals owned by the component via `useDialogState` hook. DialogStore bridge signals handle integration with the existing lifecycle (snapshot, dirty detection, error state).
 
-**Status:** Partially addressed. `useDialogState` hook implemented. Sort, sliceRows, sample dialogs migrated. See [DIALOG-MIGRATION.md](DIALOG-MIGRATION.md).
+**Status:** Addressed for transform dialogs. `useDialogState` hook implemented; all 31 transform dialogs migrated. Non-transform dialogs (import, settings, type-conversion, workflow-import) retain the legacy pattern intentionally — they don't benefit from the migration.
 
 ---
 

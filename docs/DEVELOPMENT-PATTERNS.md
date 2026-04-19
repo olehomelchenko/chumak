@@ -24,7 +24,7 @@ This document describes established patterns for developing Syto. Follow these c
 
 Adding a transform requires changes across multiple files. All transform logic must be **non-destructive** — sources immutable, transforms return new tables, no side effects. See [SPECIFICATION.md §4.1](SPECIFICATION.md) for the full non-destructive principles.
 
-> **New dialogs should use the `useDialogState` pattern** — local signals in the component, `bridgedDialogEntry()` in the registry. No global state file, no handler file, no DialogCoordinator case. See [DIALOG-MIGRATION.md](DIALOG-MIGRATION.md) for the full guide. The legacy checklist below still applies to existing un-migrated dialogs.
+> **New dialogs use the `useDialogState` pattern** — local signals in the component, `bridgedDialogEntry()` in the registry. No global state file, no handler file, no DialogCoordinator case. The legacy checklist below only applies to the remaining non-transform dialogs (`import-csv`, `import-url`, `import-text`, `generate`, `settings`, `type-conversion`, `workflow-import`).
 
 ### 1.1 Checklist (new style — `useDialogState`)
 
@@ -56,6 +56,42 @@ Adding a transform requires changes across multiple files. All transform logic m
 - Edit mode: factory reads `ctx.editingStep?.xxx` to pre-populate (no code needed in `step-handlers.ts:editStep()`)
 - Error state: `hasError` / `getError` options on the hook flow to the Apply button via bridge signals
 - Preview: use `useTransformPreview` hook (wraps `createDebouncedPreview`)
+
+**Example:**
+
+```tsx
+import { signal } from '@preact/signals';
+import { useDialogState } from '../hooks/useDialogState';
+
+export function XxxDialog() {
+  const { state } = useDialogState(
+    (ctx) => {
+      const editing = ctx.editingStep?.xxx;
+      const initialCol =
+        (editing as any)?.column ?? AppStore.selectedColumn.value ?? ctx.columns[0] ?? '';
+      return {
+        column: signal(initialCol),
+        field: signal<string>((editing as any)?.field ?? 'default'),
+      };
+    },
+    {
+      hasError: (s) => !s.field.value,
+      getError: (s) => (!s.field.value ? 'Field required' : null),
+    }
+  );
+  // render using state.field.value
+}
+```
+
+The registry entry uses `bridgedDialogEntry()`; its `applyHandler` reads `DialogStore.activeDialogState.value` (written by the hook) and dispatches via `StepService.runTransform()`.
+
+**Three reactive patterns inside a dialog — pick the right one:**
+
+- `useComputed` — derived render value (JSX or display string) from signals
+- `useSignalEffect` — side-effectful reaction to signal changes (update another signal)
+- `useTransformPreview` / `createDebouncedPreview` — debounced data preview with table output
+
+For **manual-trigger previews** (button click, not auto-triggered), use `createDebouncedPreview` directly with a `useRef` — `useTransformPreview`'s `deps`-based auto-trigger is wrong there.
 
 **i18n + docs + tests:**
 
@@ -103,11 +139,28 @@ No changes needed in `AppController`, `RibbonToolbar`, or other files — render
 
 For ribbon popover chips that pre-configure a dialog rather than applying instantly (e.g., Window presets like "Running Total", or `quickFilter`/`quickSplit` in `interaction-handlers.ts`):
 
-1. Define preset data and a function that writes to `DialogStore.*State` signals (legacy dialogs) or sets `AppStore` context that the `useDialogState` factory reads (migrated dialogs)
+1. Define preset data and a function that stashes it (see preset mechanism below)
 2. Add a `ShortcutChip` in the popover content that calls the pre-fill function, then `onOpenDialog('...')`
 3. Add i18n keys under `ribbon.popovers.{category}.shortcuts`
 
 This is distinct from §1.2 shortcuts (which apply immediately). Use this pattern when the transform needs user review before applying.
+
+**Preset mechanism for migrated dialogs.** Because `useDialogState` creates local signals only on mount, a quick action can't pre-fill them directly. Use a pair of module-level functions in the handler file:
+
+```ts
+// handlers/transform/xxx-handlers.ts
+let xxxPreset: XxxPreset | null = null;
+export function setXxxPreset(data: XxxPreset) {
+  xxxPreset = data;
+}
+export function consumeXxxPreset(): XxxPreset | null {
+  const p = xxxPreset;
+  xxxPreset = null;
+  return p;
+}
+```
+
+The quick action calls `setXxxPreset(...)` then `openDialog('xxx')`. The factory calls `consumeXxxPreset()` to read and clear. Use this only when the preset data is non-trivial — simple cases (single column) should just read `AppStore.selectedColumn.value` in the factory.
 
 ### 1.2.2 Adding a Column Menu Quick Action
 
