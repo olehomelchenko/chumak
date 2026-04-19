@@ -14,6 +14,7 @@
 - **No "please"** — it adds no information and translates inconsistently across languages. See §9.
 - **No exclamation marks** in errors or warnings. Reserve for positive confirmations only ("Imported!").
 - **Second person** — address the user as "you" when needed, but most UI text can omit the pronoun entirely ("Select a column" not "You need to select a column").
+- **No editorial meta-talk** — don't leak internal framing into user-visible copy. Phrases like "user-facing changes", "excluding refactors", "curated list" describe the content as filtered; users just want the content. Describe what the thing _is_, not what it was _selected down to_. Applies to docs, release notes, dialog text, tooltips — anywhere a reader lands cold.
 
 ---
 
@@ -39,6 +40,14 @@ All UI text uses **sentence case**: capitalize only the first word and proper no
 - **Proper nouns**: CSV, JSON, URL, Syto, Arquero, Vega-Lite, Excel
 - **Acronyms**: EDA, TSV, ODS, ISO
 - **Column/function names** displayed as user data — render as-is
+
+### 2.3 Product Name in Ukrainian
+
+In Ukrainian prose (`src/content/uk/**/*.md`, Ukrainian i18n bundles, anywhere a reader sees rendered UK text), write the product name as **Сито**, not "Syto".
+
+Keep the Latin "Syto" unchanged in: URLs, GitHub links, CLI commands (`syto run`), code blocks, HTML `<title>` slugs, file paths, and the npm package name. These are identifiers, not prose.
+
+Rationale: Cyrillic transliteration reads natively to Ukrainian users; Latin spellings read like untranslated technical jargon.
 
 ---
 

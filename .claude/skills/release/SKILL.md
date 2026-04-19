@@ -60,7 +60,17 @@ If the current month already has entries, add a version separator:
 - **Bug fix** — Description...
 ```
 
-### 5. Suggest git tag
+### 5. Cross-check user-facing docs
+
+Before cutting the tag, scan the hand-maintained user-facing docs against the changes landing in this release:
+
+- `src/content/getting-started.md` (+ UK) — still describe the three-tab ribbon, current import sources, workflow, and tips correctly?
+- `src/content/shortcuts.md` (+ UK) — did any PR in this range touch `keyboard-handlers.ts`, `EventRouter.ts`, `DataTable.tsx`, or add dialog-level keyboard handling? If yes, verify the list is complete.
+- `src/content/about.md` (+ UK) — any feature descriptions or counts worth refreshing?
+
+The `/alignment` skill should catch per-PR drift; this is the net for accumulated drift across many PRs since the last tag. If anything is stale, update it **before** creating the version bump commit — the release's CHANGELOG entry is not the place to quietly include doc fixes.
+
+### 6. Suggest git tag
 
 After the user stages and commits the version bump, suggest:
 

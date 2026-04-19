@@ -106,6 +106,12 @@ Arquero handles data operations. jsep handles expression parsing. Vega-Lite hand
 
 The custom code focuses on what's unique to Syto: the expression validation/interpretation pipeline, the workflow specification format, the UI that ties it together.
 
+### No Parallel Systems
+
+Each fact lives in one place. When the same information needs to appear in multiple surfaces — a transform's label in the ribbon tooltip and in the docs, a function's signature in autocomplete and in reference pages, a workflow's schema in validation and in type definitions — one is the source of truth and the others are derived from it.
+
+This rules out a category of bugs (drift between a source and its copies) and rules out a category of work (updating the same thing in multiple places). It applies equally to code, content, and config: if you find yourself writing the same string or the same logic twice, one of them should be generated or imported from the other. When no clean derivation exists, prefer a single manual surface with others linking to it, not two manual surfaces kept in sync by discipline.
+
 ### Test the Core, Trust the UI
 
 High test coverage on the transformation engine, expression parser, and schema system. Lower coverage on UI components. The rationale: if `filter` breaks, users lose data; if a button has the wrong hover state, users are annoyed but their work is intact.

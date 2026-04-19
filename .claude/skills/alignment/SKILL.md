@@ -79,11 +79,23 @@ The list is not exclusive - if you think another document needs update, proceed 
 
 ### User-Facing Content
 
-If the feature changes user-visible behavior or adds new capabilities:
+If the feature changes user-visible behavior or adds new capabilities, check each of these for drift — do not assume "docs will get updated later," it doesn't. Update English and Ukrainian together. In Ukrainian prose, use **Сито** not "Syto" (see [CONTENT-GUIDELINES.md §2.3](docs/CONTENT-GUIDELINES.md)).
 
-- **`src/content/about.md`**: Update feature descriptions or counts if the about page references them
-- **`src/content/functions/*.md`**: Auto-generated via `npm run docs:generate` — do not edit directly
-- **UI copy**: Review labels, tooltips, placeholders, and help text in affected components for accuracy
+- **`src/content/getting-started.md`** (+ `src/content/uk/getting-started.md`): The narrative onboarding doc — first page new users read. Re-read it whenever the change touches any of:
+  - Ribbon tab names, groups, or the three-tab split (currently **Rows / Columns / Table**)
+  - Import sources (drag-drop, URL, paste, sample datasets, synthetic data)
+  - Transforms, EDA panel capabilities, or features described in the "typical workflow" section
+  - Workflow export / CLI / DuckDB references, or the tips list
+  - Links to other docs pages (sidebar slugs like `/docs/shortcuts/` — broken links here are the most common failure mode)
+- **`src/content/shortcuts.md`** (+ `src/content/uk/shortcuts.md`): Hand-maintained, no registry backs it. If the diff touches **any** of these sources, re-audit:
+  - `src/app/handlers/core/keyboard-handlers.ts` (global shortcuts: Ctrl/Cmd+S, Ctrl/Cmd+Z, Ctrl/Cmd+Shift+Z, Delete, Arrow nav)
+  - `src/app/orchestration/EventRouter.ts` (Escape, Enter routing)
+  - `src/app/components/DataTable.tsx` (table keyboard nav, Shift+Arrow range)
+  - Dialog-level keyboard handling added via `useFocusTrap` or new component-local handlers
+- **`src/content/about.md`** (+ UK): Update feature descriptions or counts if the about page references them.
+- **No editorial meta-talk** in any of these files — see [CONTENT-GUIDELINES.md §1](docs/CONTENT-GUIDELINES.md).
+- **`src/content/functions/*.md`**: Auto-generated via `npm run docs:generate` — never edit directly. If the diff adds or changes an expression function, regenerate.
+- **UI copy**: Review labels, tooltips, placeholders, and help text in affected components for accuracy. Ribbon tooltips (`src/i18n/locales/{en,uk}/ui.json` under `ribbon.buttons.*`) are user-facing — write them for users, not for engineers.
 
 ### Dependencies
 
