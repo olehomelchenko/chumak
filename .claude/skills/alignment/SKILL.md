@@ -44,7 +44,7 @@ Determine the review scope using `git diff` (unstaged) and `git diff --staged` (
 
 ### Output
 
-12. **Summary**: After performing the instructions, respond with a summary of changes: choices made due to these instructions, choices where multiple approaches existed, and any non-obvious architectural choices or assumptions the user should know about but might not notice from the diff alone. If the summary mentions an observation that you chose not to fix (per rule #8), confirm that a `// TODO:` breadcrumb was placed at the relevant code site so the context is recoverable later.
+11. **Summary**: After performing the instructions, respond with a summary of changes: choices made due to these instructions, choices where multiple approaches existed, and any non-obvious architectural choices or assumptions the user should know about but might not notice from the diff alone. If the summary mentions an observation that you chose not to fix (per rule #8), confirm that a `// TODO:` breadcrumb was placed at the relevant code site so the context is recoverable later.
 
 ---
 
@@ -78,6 +78,8 @@ For documentation guidance, see **[CLAUDE.md](CLAUDE.md)** — the Documentation
 The list is not exclusive - if you think another document needs update, proceed with it.
 
 ### User-Facing Content
+
+All user-visible copy — labels, tooltips, error messages, notifications, narrative docs — must follow **[CONTENT-GUIDELINES.md](docs/CONTENT-GUIDELINES.md)**: sentence case, active voice, no "please", no exclamation marks in errors, no editorial meta-talk. Review new or changed strings against it.
 
 If the feature changes user-visible behavior or adds new capabilities, check each of these for drift — do not assume "docs will get updated later," it doesn't. Update English and Ukrainian together. In Ukrainian prose, use **Сито** not "Syto" (see [CONTENT-GUIDELINES.md §2.3](docs/CONTENT-GUIDELINES.md)).
 
@@ -202,6 +204,7 @@ Verify refactoring aligns with:
 | [DATA-SPECIFICATION.md](docs/DATA-SPECIFICATION.md)               | Data structures and persistence                 |
 | [UX-SPECIFICATION.md](docs/UX-SPECIFICATION.md)                   | UI/UX guidelines                                |
 | [UI-VOCAB.md](docs/UI-VOCAB.md)                                   | UI terminology, design vocabulary, and patterns |
+| [CONTENT-GUIDELINES.md](docs/CONTENT-GUIDELINES.md)               | User-facing copy: tone, case, i18n-friendly     |
 | [FUTURE-PROOFING.md](docs/FUTURE-PROOFING.md)                     | Schema evolution constraints                    |
 | [DEVELOPMENT-PATTERNS.md](docs/DEVELOPMENT-PATTERNS.md)           | Coding conventions                              |
 | [MULTI-MODEL-ARCHITECTURE.md](docs/MULTI-MODEL-ARCHITECTURE.md)   | Dependency graph and multi-model system         |

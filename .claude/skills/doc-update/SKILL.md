@@ -44,7 +44,10 @@ Map each gap to the right document using the project's single-source-of-truth pr
 | Data structures, transform schemas, expressions  | `docs/DATA-SPECIFICATION.md`        |
 | UI patterns, component design, styling           | `docs/UX-SPECIFICATION.md`          |
 | UI terminology, design vocabulary, control types | `docs/UI-VOCAB.md`                  |
+| User-facing copy: tone, case, error phrasing     | `docs/CONTENT-GUIDELINES.md`        |
 | Development conventions, how-to patterns         | `docs/DEVELOPMENT-PATTERNS.md`      |
+| i18n patterns, adding languages, plural rules    | `docs/I18N-GUIDE.md`                |
+| Expression function docs, JSDoc metadata         | `docs/FUNCTION-DOCS-SYSTEM.md`      |
 | Schema evolution, compatibility                  | `docs/FUTURE-PROOFING.md`           |
 | Dependency graph, multi-model ops                | `docs/MULTI-MODEL-ARCHITECTURE.md`  |
 | Date/datetime handling                           | `docs/DATE-STORAGE-ARCHITECTURE.md` |
