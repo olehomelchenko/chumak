@@ -503,6 +503,7 @@ Dialog components are rendered directly in `App.tsx`'s slide panel/modal shells 
 - **Bivariate Charts**: Scatter plots, Grouped Bar charts, Line-over-time, and Heatmaps for cross-column relationship discovery. Pairing logic in `src/core/bivariate.ts` suggests partners based on column types; `ChartsEngine` renders both full-size and thumbnail variants (via `options.thumbnail`).
 - **Smart Chart Defaults**: `selectChartDefaults()` in `eda-engine.ts` picks the initial chart view based on data characteristics (e.g., integers with <10 unique values default to categorical, skewed distributions default to histogram).
 - **Field Name Escaping**: Vega-Lite treats `.`, `[`, `]` in field names as nested property accessors. All user-supplied column names must go through `escapeVegaField()` in `charts.ts` — never pass raw column names to `field:` in specs.
+- **Chart Interaction**: Two Vega patterns are in use — `params` selections + `view.addSignalListener` (histogram brush) for declarative selections, and `view.addEventListener('click', (event, item) => item.datum)` (categorical bar) when you need raw click + datum access. Interactive EDA charts must route selections through `AppStore.selectedCell` + `cellToolbarPos` to reuse `CellToolbar` — see [UX-SPECIFICATION.md](UX-SPECIFICATION.md) §7.3.
 - **Implementation**: `src/core/charts.ts`, `src/core/vega-themes.ts`, `src/core/bivariate.ts`
 - **Theming**: See [UX-SPECIFICATION.md](UX-SPECIFICATION.md) §1.2 for theme system details
 

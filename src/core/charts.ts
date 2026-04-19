@@ -164,6 +164,15 @@ export const ChartsEngine = {
     container: string | HTMLElement,
     aggregatedData: any[],
     theme: 'syto' | 'blues' = 'syto',
+    onValueClick?: (
+      item: {
+        value: any;
+        isNull?: boolean;
+        isOther?: boolean;
+        isError?: boolean;
+      },
+      event: MouseEvent
+    ) => void,
     options: ChartOptions = {}
   ): Promise<void> {
     if (!aggregatedData || aggregatedData.length === 0) return;
@@ -181,7 +190,7 @@ export const ChartsEngine = {
       width: options.width || 'container',
       height: options.height || 40,
       padding: { top: 5, bottom: 5, left: 10, right: 10 },
-      mark: { type: 'bar', tooltip: true },
+      mark: { type: 'bar', tooltip: true, cursor: onValueClick ? 'pointer' : undefined },
       encoding: {
         x: {
           field: 'count',
@@ -220,11 +229,27 @@ export const ChartsEngine = {
     const vegaTheme = theme === 'syto' ? sytoTheme : bluesTheme;
 
     try {
-      await vegaEmbed(container, spec, {
+      const result = await vegaEmbed(container, spec, {
         actions: false,
         renderer: 'svg',
         config: vegaTheme,
       });
+
+      if (onValueClick) {
+        result.view.addEventListener('click', (event: any, item: any) => {
+          if (item?.datum?.value !== undefined) {
+            onValueClick(
+              {
+                value: item.datum.value,
+                isNull: item.datum.isNull,
+                isOther: item.datum.isOther,
+                isError: item.datum.isError,
+              },
+              event
+            );
+          }
+        });
+      }
     } catch (error: any) {
       // Filter out non-critical errors about element IDs that don't affect rendering
       if (error?.message && error.message.includes('does not exist')) {

@@ -210,7 +210,10 @@ export function EdaPanel() {
 
         if (topValues) {
           try {
-            await ChartsEngine.renderCategoricalBar(categoricalBarRef.current, topValues, theme);
+            const chartEl = categoricalBarRef.current;
+            await ChartsEngine.renderCategoricalBar(chartEl, topValues, theme, (item, event) =>
+              selectChartValue(item, chartEl, event)
+            );
           } catch (error) {
             console.error('Error rendering categorical bar:', error);
           }
@@ -265,6 +268,62 @@ export function EdaPanel() {
     executeTransform('Filter', { filter: expr });
 
     clearSelection();
+  };
+
+  const selectChartValue = (
+    item: { value: any; isNull?: boolean; isOther?: boolean; isError?: boolean },
+    chartEl: HTMLElement,
+    event: MouseEvent
+  ) => {
+    // "Other" is a composite bin — no meaningful value to filter by.
+    if (item.isOther || !selectedColumn) return;
+
+    // TODO: Third copy of toolbar centering/clamping logic — see selectStat below
+    // and EdaOverview.openToolbar. Extract a shared positioner.
+    const rect = chartEl.getBoundingClientRect();
+    const toolbarWidth = 220;
+    const margin = 12;
+    const center =
+      event && Number.isFinite(event.clientX) ? event.clientX : rect.left + rect.width / 2;
+    const x = Math.max(
+      toolbarWidth / 2 + margin,
+      Math.min(window.innerWidth - toolbarWidth / 2 - margin, center)
+    );
+    const toolbarPos = { x, y: rect.top - 8, arrowOffset: center - x };
+
+    const colType = edaStats?.type || 'string';
+
+    AppStore.selectedCell.value = null;
+    setTimeout(() => {
+      if (item.isNull) {
+        AppStore.selectedCell.value = {
+          col: selectedColumn,
+          value: null,
+          type: colType,
+          isEda: true,
+          isEdaMissing: true,
+          edaLabel: 'missing',
+        };
+      } else if (item.isError) {
+        AppStore.selectedCell.value = {
+          col: selectedColumn,
+          value: item.value,
+          type: colType,
+          isEda: true,
+          isError: true,
+          edaLabel: 'errors',
+        };
+      } else {
+        // Regular value bin — reuse the non-EDA cell toolbar (= / ≠ / replace [+ comparable]).
+        AppStore.selectedCell.value = {
+          col: selectedColumn,
+          value: item.value,
+          type: colType,
+          rowIdx: -1,
+        };
+      }
+      AppStore.cellToolbarPos.value = toolbarPos;
+    }, 0);
   };
 
   const selectStat = (label: string, value: any, e: MouseEvent) => {
