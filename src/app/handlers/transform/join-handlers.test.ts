@@ -6,9 +6,10 @@
  */
 
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { DialogStore } from '../../stores/DialogStore';
+import { signal } from '@preact/signals';
 import { AppStore } from '../../stores/AppStore';
-import { resetStores, suppressConsole, TestData } from '../test-utils';
+import { resetStores, suppressConsole } from '../test-utils';
+import type { JoinDialogState } from './join-handlers';
 
 vi.mock('../../infrastructure/storage', () => ({
   ensureSourceData: vi.fn().mockImplementation(async (source: any) => source.data || []),
@@ -21,80 +22,6 @@ describe('join-handlers', () => {
   beforeEach(() => {
     resetStores();
     suppressConsole();
-  });
-
-  describe('addJoinKeyPair', () => {
-    it('adds a new empty key pair', () => {
-      DialogStore.joinState.keyPairs.value = [[null, null]];
-
-      JoinHandlers.addJoinKeyPair();
-
-      expect(DialogStore.joinState.keyPairs.value).toEqual([
-        [null, null],
-        [null, null],
-      ]);
-    });
-
-    it('appends to existing key pairs', () => {
-      DialogStore.joinState.keyPairs.value = [
-        ['id', 'user_id'],
-        ['name', 'user_name'],
-      ];
-
-      JoinHandlers.addJoinKeyPair();
-
-      expect(DialogStore.joinState.keyPairs.value).toHaveLength(3);
-      expect(DialogStore.joinState.keyPairs.value[2]).toEqual([null, null]);
-    });
-  });
-
-  describe('removeJoinKeyPair', () => {
-    it('removes key pair at specified index', () => {
-      DialogStore.joinState.keyPairs.value = [
-        ['id', 'user_id'],
-        ['name', 'user_name'],
-        ['email', 'user_email'],
-      ];
-
-      JoinHandlers.removeJoinKeyPair(1);
-
-      expect(DialogStore.joinState.keyPairs.value).toEqual([
-        ['id', 'user_id'],
-        ['email', 'user_email'],
-      ]);
-    });
-
-    it('does not remove when only one key pair remains', () => {
-      DialogStore.joinState.keyPairs.value = [['id', 'user_id']];
-
-      JoinHandlers.removeJoinKeyPair(0);
-
-      // Should still have one pair
-      expect(DialogStore.joinState.keyPairs.value).toHaveLength(1);
-      expect(DialogStore.joinState.keyPairs.value[0]).toEqual(['id', 'user_id']);
-    });
-
-    it('removes first key pair correctly', () => {
-      DialogStore.joinState.keyPairs.value = [
-        ['first', 'first_right'],
-        ['second', 'second_right'],
-      ];
-
-      JoinHandlers.removeJoinKeyPair(0);
-
-      expect(DialogStore.joinState.keyPairs.value).toEqual([['second', 'second_right']]);
-    });
-
-    it('removes last key pair correctly', () => {
-      DialogStore.joinState.keyPairs.value = [
-        ['first', 'first_right'],
-        ['second', 'second_right'],
-      ];
-
-      JoinHandlers.removeJoinKeyPair(1);
-
-      expect(DialogStore.joinState.keyPairs.value).toEqual([['first', 'first_right']]);
-    });
   });
 
   describe('getTableDataForTarget', () => {
@@ -198,6 +125,28 @@ describe('join-handlers', () => {
     });
   });
 
+  const createMockJoinState = (
+    overrides: Partial<Record<keyof JoinDialogState, any>> = {}
+  ): JoinDialogState => ({
+    leftModel: signal<string | null>(overrides.leftModel ?? null),
+    rightModel: signal<string | null>(overrides.rightModel ?? null),
+    joinType: signal(overrides.joinType ?? 'left'),
+    keyPairs: signal<(string | null)[][]>(overrides.keyPairs ?? [[null, null]]),
+    suffixes: signal<string[]>(overrides.suffixes ?? ['_x', '_y']),
+    targets: signal(overrides.targets ?? []),
+    leftColumns: signal<string[]>(overrides.leftColumns ?? []),
+    rightColumns: signal<string[]>(overrides.rightColumns ?? []),
+    selectedLeftColumns: signal<string[]>(overrides.selectedLeftColumns ?? []),
+    selectedRightColumns: signal<string[]>(overrides.selectedRightColumns ?? []),
+    saveAsNewModel: signal<boolean>(overrides.saveAsNewModel ?? false),
+    previewData: signal<any | null>(overrides.previewData ?? null),
+    previewError: signal<string | null>(overrides.previewError ?? null),
+    isPreviewing: signal<boolean>(overrides.isPreviewing ?? false),
+    keyPairAnalysis: signal(overrides.keyPairAnalysis ?? []),
+    previewTableId: signal<string | null>(overrides.previewTableId ?? null),
+    previewMismatchValues: signal(overrides.previewMismatchValues ?? null),
+  });
+
   describe('analyzeJoinKeys', () => {
     beforeEach(() => {
       // Set up two sources for join analysis
@@ -232,33 +181,37 @@ describe('join-handlers', () => {
     });
 
     it('returns empty analysis when left model is not set', () => {
-      DialogStore.joinState.leftModel.value = null;
-      DialogStore.joinState.rightModel.value = 'right_src';
-      DialogStore.joinState.keyPairs.value = [['id', 'user_id']];
+      const state = createMockJoinState({
+        rightModel: 'right_src',
+        keyPairs: [['id', 'user_id']],
+      });
 
-      JoinHandlers.analyzeJoinKeys();
+      JoinHandlers.analyzeJoinKeys(state);
 
-      expect(DialogStore.joinState.keyPairAnalysis.value).toEqual([]);
+      expect(state.keyPairAnalysis.value).toEqual([]);
     });
 
     it('returns empty analysis when right model is not set', () => {
-      DialogStore.joinState.leftModel.value = 'left_src';
-      DialogStore.joinState.rightModel.value = null;
-      DialogStore.joinState.keyPairs.value = [['id', 'user_id']];
+      const state = createMockJoinState({
+        leftModel: 'left_src',
+        keyPairs: [['id', 'user_id']],
+      });
 
-      JoinHandlers.analyzeJoinKeys();
+      JoinHandlers.analyzeJoinKeys(state);
 
-      expect(DialogStore.joinState.keyPairAnalysis.value).toEqual([]);
+      expect(state.keyPairAnalysis.value).toEqual([]);
     });
 
     it('analyzes key pairs with matching values', async () => {
-      DialogStore.joinState.leftModel.value = 'left_src';
-      DialogStore.joinState.rightModel.value = 'right_src';
-      DialogStore.joinState.keyPairs.value = [['id', 'user_id']];
+      const state = createMockJoinState({
+        leftModel: 'left_src',
+        rightModel: 'right_src',
+        keyPairs: [['id', 'user_id']],
+      });
 
-      await JoinHandlers.analyzeJoinKeys();
+      await JoinHandlers.analyzeJoinKeys(state);
 
-      const analysis = DialogStore.joinState.keyPairAnalysis.value;
+      const analysis = state.keyPairAnalysis.value;
       expect(analysis).toHaveLength(1);
 
       const keyAnalysis = analysis[0];
@@ -272,13 +225,15 @@ describe('join-handlers', () => {
     });
 
     it('returns zeroed analysis for incomplete key pairs', async () => {
-      DialogStore.joinState.leftModel.value = 'left_src';
-      DialogStore.joinState.rightModel.value = 'right_src';
-      DialogStore.joinState.keyPairs.value = [['id', null]];
+      const state = createMockJoinState({
+        leftModel: 'left_src',
+        rightModel: 'right_src',
+        keyPairs: [['id', null]],
+      });
 
-      await JoinHandlers.analyzeJoinKeys();
+      await JoinHandlers.analyzeJoinKeys(state);
 
-      const analysis = DialogStore.joinState.keyPairAnalysis.value;
+      const analysis = state.keyPairAnalysis.value;
       expect(analysis).toHaveLength(1);
       expect(analysis[0].matches).toBe(0);
       expect(analysis[0].leftUnique).toBe(0);
@@ -307,13 +262,15 @@ describe('join-handlers', () => {
         } as any,
       ];
 
-      DialogStore.joinState.leftModel.value = 'left_src';
-      DialogStore.joinState.rightModel.value = 'right_src';
-      DialogStore.joinState.keyPairs.value = [['category', 'cat']];
+      const state = createMockJoinState({
+        leftModel: 'left_src',
+        rightModel: 'right_src',
+        keyPairs: [['category', 'cat']],
+      });
 
-      await JoinHandlers.analyzeJoinKeys();
+      await JoinHandlers.analyzeJoinKeys(state);
 
-      const analysis = DialogStore.joinState.keyPairAnalysis.value[0];
+      const analysis = state.keyPairAnalysis.value[0];
       expect(analysis.leftHasDuplicates).toBe(true);
       expect(analysis.rightHasDuplicates).toBe(false);
     });
@@ -341,13 +298,15 @@ describe('join-handlers', () => {
         } as any,
       ];
 
-      DialogStore.joinState.leftModel.value = 'left_src';
-      DialogStore.joinState.rightModel.value = 'right_src';
-      DialogStore.joinState.keyPairs.value = [['id', 'user_id']];
+      const state = createMockJoinState({
+        leftModel: 'left_src',
+        rightModel: 'right_src',
+        keyPairs: [['id', 'user_id']],
+      });
 
-      await JoinHandlers.analyzeJoinKeys();
+      await JoinHandlers.analyzeJoinKeys(state);
 
-      const analysis = DialogStore.joinState.keyPairAnalysis.value[0];
+      const analysis = state.keyPairAnalysis.value[0];
       expect(analysis.leftTotalRows).toBe(3);
       expect(analysis.leftNonNullRows).toBe(2);
       expect(analysis.rightTotalRows).toBe(2);
@@ -370,201 +329,17 @@ describe('join-handlers', () => {
         } as any,
       ];
 
-      DialogStore.joinState.leftModel.value = 'left_src';
-      DialogStore.joinState.rightModel.value = 'right_src';
-      DialogStore.joinState.keyPairs.value = [['id', 'user_id']];
+      const state = createMockJoinState({
+        leftModel: 'left_src',
+        rightModel: 'right_src',
+        keyPairs: [['id', 'user_id']],
+      });
 
-      await JoinHandlers.analyzeJoinKeys();
+      await JoinHandlers.analyzeJoinKeys(state);
 
-      const analysis = DialogStore.joinState.keyPairAnalysis.value[0];
+      const analysis = state.keyPairAnalysis.value[0];
       expect(analysis.leftMatchPercent).toBe(50); // 2 of 4 match
       expect(analysis.rightMatchPercent).toBe(100); // 2 of 2 match
-    });
-  });
-
-  describe('onJoinTargetChange', () => {
-    beforeEach(() => {
-      AppStore.sources.value = [
-        {
-          id: 'src_1',
-          name: 'Test',
-          data: [{ a: 1, b: 2 }],
-          columns: [
-            { name: 'a', type: 'number' },
-            { name: 'b', type: 'number' },
-          ],
-        } as any,
-      ];
-    });
-
-    it('updates right columns when target changes', () => {
-      DialogStore.joinState.rightModel.value = 'src_1';
-
-      JoinHandlers.onJoinTargetChange();
-
-      expect(DialogStore.joinState.rightColumns.value).toEqual(['a', 'b']);
-      expect(DialogStore.joinState.selectedRightColumns.value).toEqual(['a', 'b']);
-    });
-
-    it('clears columns when target is null', () => {
-      DialogStore.joinState.rightModel.value = null;
-      DialogStore.joinState.rightColumns.value = ['old', 'columns'];
-      DialogStore.joinState.selectedRightColumns.value = ['old'];
-
-      JoinHandlers.onJoinTargetChange();
-
-      expect(DialogStore.joinState.rightColumns.value).toEqual([]);
-      expect(DialogStore.joinState.selectedRightColumns.value).toEqual([]);
-    });
-
-    it('preserves valid right keys and nulls invalid ones on target change', () => {
-      DialogStore.joinState.leftColumns.value = ['id', 'name'];
-      DialogStore.joinState.rightModel.value = 'src_1'; // has columns a, b
-      DialogStore.joinState.keyPairs.value = [
-        ['id', 'user_id'],
-        ['name', 'user_name'],
-      ];
-
-      JoinHandlers.onJoinTargetChange();
-
-      // user_id and user_name don't exist in src_1 (which has a, b), so right side nulled
-      // but left side preserved
-      expect(DialogStore.joinState.keyPairs.value).toEqual([
-        ['id', null],
-        ['name', null],
-      ]);
-    });
-
-    it('auto-matches columns with identical names after target change', () => {
-      AppStore.sources.value = [
-        ...AppStore.sources.value,
-        {
-          id: 'src_2',
-          name: 'Shared',
-          data: [{ id: 1, name: 'x', extra: 'y' }],
-          columns: [
-            { name: 'id', type: 'number' },
-            { name: 'name', type: 'string' },
-            { name: 'extra', type: 'string' },
-          ],
-        } as any,
-      ];
-      DialogStore.joinState.leftColumns.value = ['id', 'name'];
-      DialogStore.joinState.rightModel.value = 'src_2';
-      DialogStore.joinState.keyPairs.value = [[null, null]];
-
-      JoinHandlers.onJoinTargetChange();
-
-      expect(DialogStore.joinState.keyPairs.value).toEqual([
-        ['id', 'id'],
-        ['name', 'name'],
-      ]);
-    });
-
-    it('clears preview data when target changes', () => {
-      DialogStore.joinState.rightModel.value = 'src_1';
-      DialogStore.joinState.previewData.value = { rows: [], columns: [], totalRows: 0 };
-      DialogStore.joinState.previewError.value = 'previous error';
-
-      JoinHandlers.onJoinTargetChange();
-
-      expect(DialogStore.joinState.previewData.value).toBeNull();
-      expect(DialogStore.joinState.previewError.value).toBeNull();
-    });
-  });
-
-  describe('onJoinLeftModelChange', () => {
-    beforeEach(() => {
-      AppStore.sources.value = [
-        {
-          id: 'src_1',
-          name: 'Test',
-          data: [{ x: 1, y: 2 }],
-          columns: [
-            { name: 'x', type: 'number' },
-            { name: 'y', type: 'number' },
-          ],
-        } as any,
-      ];
-    });
-
-    it('updates left columns when left model changes', () => {
-      DialogStore.joinState.leftModel.value = 'src_1';
-
-      JoinHandlers.onJoinLeftModelChange();
-
-      expect(DialogStore.joinState.leftColumns.value).toEqual(['x', 'y']);
-      expect(DialogStore.joinState.selectedLeftColumns.value).toEqual(['x', 'y']);
-    });
-
-    it('clears columns when left model is null', () => {
-      DialogStore.joinState.leftModel.value = null;
-      DialogStore.joinState.leftColumns.value = ['old'];
-      DialogStore.joinState.selectedLeftColumns.value = ['old'];
-
-      JoinHandlers.onJoinLeftModelChange();
-
-      expect(DialogStore.joinState.leftColumns.value).toEqual([]);
-      expect(DialogStore.joinState.selectedLeftColumns.value).toEqual([]);
-    });
-
-    it('preserves valid left keys and nulls invalid ones on left model change', () => {
-      DialogStore.joinState.leftModel.value = 'src_1'; // has columns x, y
-      DialogStore.joinState.rightColumns.value = ['user_id', 'user_name'];
-      DialogStore.joinState.keyPairs.value = [
-        ['id', 'user_id'],
-        ['name', 'user_name'],
-      ];
-
-      JoinHandlers.onJoinLeftModelChange();
-
-      // id and name don't exist in src_1 (which has x, y), so left side nulled
-      // but right side preserved
-      expect(DialogStore.joinState.keyPairs.value).toEqual([
-        [null, 'user_id'],
-        [null, 'user_name'],
-      ]);
-    });
-
-    it('auto-matches columns with identical names after left model change', () => {
-      AppStore.sources.value = [
-        ...AppStore.sources.value,
-        {
-          id: 'src_2',
-          name: 'Shared',
-          data: [{ x: 1, y: 2, z: 3 }],
-          columns: [
-            { name: 'x', type: 'number' },
-            { name: 'y', type: 'number' },
-            { name: 'z', type: 'number' },
-          ],
-        } as any,
-      ];
-      DialogStore.joinState.leftModel.value = 'src_2';
-      DialogStore.joinState.rightColumns.value = ['x', 'y', 'w'];
-      DialogStore.joinState.keyPairs.value = [[null, null]];
-
-      JoinHandlers.onJoinLeftModelChange();
-
-      expect(DialogStore.joinState.keyPairs.value).toEqual([
-        ['x', 'x'],
-        ['y', 'y'],
-      ]);
-    });
-  });
-
-  describe('DialogStore join state initialization', () => {
-    it('has correct default values', () => {
-      const state = DialogStore.joinState;
-
-      expect(state.leftModel.value).toBeNull();
-      expect(state.rightModel.value).toBeNull();
-      expect(state.joinType.value).toBe('left');
-      expect(state.keyPairs.value).toEqual([[null, null]]);
-      expect(state.suffixes.value).toEqual(['_x', '_y']);
-      expect(state.previewData.value).toBeNull();
-      expect(state.previewError.value).toBeNull();
-      expect(state.isPreviewing.value).toBe(false);
     });
   });
 });

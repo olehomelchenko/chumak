@@ -6,10 +6,12 @@
  */
 
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
+import { signal } from '@preact/signals';
 import { DialogStore } from '../../stores/DialogStore';
 import { AppStore } from '../../stores/AppStore';
 import { resetStores, setTestData, TestData, suppressConsole } from '../test-utils';
 import * as AppendHandlers from './append-handlers';
+import type { AppendDialogState } from './append-handlers';
 import type { Model, Source, DataRow } from '../../types';
 
 describe('append-handlers', () => {
@@ -52,159 +54,6 @@ describe('append-handlers', () => {
     consoleSpy.warnSpy.mockRestore();
   });
 
-  describe('initializeAppendDialog', () => {
-    it('sets up dialog state with active model as left table', () => {
-      const source = createTestSource('source-1', 'Source 1', ['name', 'age']);
-      const model1 = createTestModel('model-1', 'Model 1', 'source-1', ['name', 'age']);
-      const model2 = createTestModel('model-2', 'Model 2', 'source-1', ['name', 'city']);
-
-      AppStore.sources.value = [source];
-      AppStore.models.value = [model1, model2];
-      AppStore.activeModel.value = model1;
-      AppStore.activeSource.value = source;
-
-      AppendHandlers.initializeAppendDialog();
-
-      const state = DialogStore.appendState;
-      expect(state.leftModel.value).toBe('model-1');
-      expect(state.leftColumns.value).toEqual(['name', 'age']);
-      expect(state.selectedLeftColumns.value).toEqual(['name', 'age']);
-      expect(state.targetModel.value).toBe('model-2');
-      expect(state.removeDuplicates.value).toBe(false);
-      expect(AppStore.activeDialog.value).toBe('append');
-    });
-
-    it('sets first source as target when no other models exist', () => {
-      const source1 = createTestSource('source-1', 'Source 1', ['name', 'age']);
-      const source2 = createTestSource('source-2', 'Source 2', ['name', 'city']);
-      const model1 = createTestModel('model-1', 'Model 1', 'source-1', ['name', 'age']);
-
-      AppStore.sources.value = [source1, source2];
-      AppStore.models.value = [model1];
-      AppStore.activeModel.value = model1;
-      AppStore.activeSource.value = source1;
-
-      AppendHandlers.initializeAppendDialog();
-
-      const state = DialogStore.appendState;
-      expect(state.targetModel.value).toBe('source-1');
-    });
-
-    it('uses source as left table when no active model', () => {
-      const source = createTestSource('source-1', 'Source 1', ['name', 'age']);
-
-      AppStore.sources.value = [source];
-      AppStore.models.value = [];
-      AppStore.activeModel.value = null;
-      AppStore.activeSource.value = source;
-
-      AppendHandlers.initializeAppendDialog();
-
-      const state = DialogStore.appendState;
-      expect(state.leftModel.value).toBe('source-1');
-    });
-
-    it('resets preview state', () => {
-      const source = createTestSource('source-1', 'Source 1', ['name', 'age']);
-      const model1 = createTestModel('model-1', 'Model 1', 'source-1', ['name', 'age']);
-
-      AppStore.sources.value = [source];
-      AppStore.models.value = [model1];
-      AppStore.activeModel.value = model1;
-
-      // Set some existing preview data
-      DialogStore.appendState.previewData.value = { rows: [], totalRows: 0, columns: [] };
-      DialogStore.appendState.previewError.value = 'Some error';
-      DialogStore.appendState.isPreviewing.value = true;
-
-      AppendHandlers.initializeAppendDialog();
-
-      const state = DialogStore.appendState;
-      expect(state.previewData.value).toBeNull();
-      expect(state.previewError.value).toBeNull();
-      expect(state.isPreviewing.value).toBe(false);
-    });
-  });
-
-  describe('onAppendLeftModelChange', () => {
-    it('updates left columns when model changes', () => {
-      // Note: getColumnsForTarget uses the source's data columns, not the model's schema
-      const source1 = createTestSource('source-1', 'Source 1', ['name', 'age']);
-      const source2 = createTestSource('source-2', 'Source 2', ['city', 'state']);
-      const model1 = createTestModel('model-1', 'Model 1', 'source-1', ['name', 'age']);
-      const model2 = createTestModel('model-2', 'Model 2', 'source-2', ['city', 'state']);
-
-      AppStore.sources.value = [source1, source2];
-      AppStore.models.value = [model1, model2];
-      AppStore.activeModel.value = model1;
-
-      DialogStore.appendState.leftModel.value = 'model-2';
-
-      AppendHandlers.onAppendLeftModelChange();
-
-      const state = DialogStore.appendState;
-      // Columns come from computed model data
-      expect(state.leftColumns.value.length).toBeGreaterThan(0);
-    });
-
-    it('clears columns when no model selected', () => {
-      DialogStore.appendState.leftModel.value = null;
-      DialogStore.appendState.leftColumns.value = ['col1', 'col2'];
-      DialogStore.appendState.selectedLeftColumns.value = ['col1'];
-
-      AppendHandlers.onAppendLeftModelChange();
-
-      const state = DialogStore.appendState;
-      expect(state.leftColumns.value).toEqual([]);
-      expect(state.selectedLeftColumns.value).toEqual([]);
-    });
-  });
-
-  describe('onAppendTargetChange', () => {
-    it('updates right columns when target changes', () => {
-      const source1 = createTestSource('source-1', 'Source 1', ['name', 'age']);
-      const source2 = createTestSource('source-2', 'Source 2', ['city', 'country']);
-      const model1 = createTestModel('model-1', 'Model 1', 'source-1', ['name', 'age']);
-      const model2 = createTestModel('model-2', 'Model 2', 'source-2', ['city', 'country']);
-
-      AppStore.sources.value = [source1, source2];
-      AppStore.models.value = [model1, model2];
-
-      DialogStore.appendState.targetModel.value = 'model-2';
-
-      AppendHandlers.onAppendTargetChange();
-
-      const state = DialogStore.appendState;
-      // Columns come from computed model data
-      expect(state.rightColumns.value.length).toBeGreaterThan(0);
-    });
-
-    it('clears columns when no target selected', () => {
-      DialogStore.appendState.targetModel.value = null;
-      DialogStore.appendState.rightColumns.value = ['col1', 'col2'];
-      DialogStore.appendState.selectedRightColumns.value = ['col1'];
-
-      AppendHandlers.onAppendTargetChange();
-
-      const state = DialogStore.appendState;
-      expect(state.rightColumns.value).toEqual([]);
-      expect(state.selectedRightColumns.value).toEqual([]);
-    });
-  });
-
-  describe('onAppendConfigChange', () => {
-    it('clears preview data and error', () => {
-      DialogStore.appendState.previewData.value = { rows: [], totalRows: 0, columns: [] };
-      DialogStore.appendState.previewError.value = 'Some error';
-
-      AppendHandlers.onAppendConfigChange();
-
-      const state = DialogStore.appendState;
-      expect(state.previewData.value).toBeNull();
-      expect(state.previewError.value).toBeNull();
-    });
-  });
-
   describe('checkCircularDependency', () => {
     it('returns false when no circular dependency', () => {
       const source = createTestSource('source-1', 'Source 1', ['name', 'age']);
@@ -235,23 +84,37 @@ describe('append-handlers', () => {
     });
   });
 
+  const createMockAppendState = (
+    overrides: Partial<Record<keyof AppendDialogState, any>> = {}
+  ): AppendDialogState => ({
+    leftModel: signal<string | null>(overrides.leftModel ?? null),
+    targetModel: signal<string | null>(overrides.targetModel ?? null),
+    leftColumns: signal<string[]>(overrides.leftColumns ?? []),
+    rightColumns: signal<string[]>(overrides.rightColumns ?? []),
+    selectedLeftColumns: signal<string[]>(overrides.selectedLeftColumns ?? []),
+    selectedRightColumns: signal<string[]>(overrides.selectedRightColumns ?? []),
+    removeDuplicates: signal<boolean>(overrides.removeDuplicates ?? false),
+    previewData: signal<any | null>(overrides.previewData ?? null),
+    previewError: signal<string | null>(overrides.previewError ?? null),
+    isPreviewing: signal<boolean>(overrides.isPreviewing ?? false),
+    previewTableId: signal<string | null>(overrides.previewTableId ?? null),
+  });
+
   describe('previewAppend', () => {
     it('sets error when no left model selected', async () => {
-      DialogStore.appendState.leftModel.value = null;
-      DialogStore.appendState.targetModel.value = 'model-2';
+      const state = createMockAppendState({ targetModel: 'model-2' });
 
-      await AppendHandlers.previewAppend();
+      await AppendHandlers.previewAppend(state);
 
-      expect(DialogStore.appendState.previewError.value).toBe('Select a left table');
+      expect(state.previewError.value).toBe('Select a left table');
     });
 
     it('sets error when no target model selected', async () => {
-      DialogStore.appendState.leftModel.value = 'model-1';
-      DialogStore.appendState.targetModel.value = null;
+      const state = createMockAppendState({ leftModel: 'model-1' });
 
-      await AppendHandlers.previewAppend();
+      await AppendHandlers.previewAppend(state);
 
-      expect(DialogStore.appendState.previewError.value).toBe('Select a model or source to append');
+      expect(state.previewError.value).toBe('Select a model or source to append');
     });
 
     it('sets error when circular dependency detected', async () => {
@@ -262,14 +125,16 @@ describe('append-handlers', () => {
       AppStore.models.value = [model1];
       AppStore.activeModel.value = model1;
 
-      DialogStore.appendState.leftModel.value = 'model-1';
-      DialogStore.appendState.targetModel.value = 'model-1';
-      DialogStore.appendState.selectedLeftColumns.value = ['name', 'age'];
-      DialogStore.appendState.selectedRightColumns.value = ['name', 'age'];
+      const state = createMockAppendState({
+        leftModel: 'model-1',
+        targetModel: 'model-1',
+        selectedLeftColumns: ['name', 'age'],
+        selectedRightColumns: ['name', 'age'],
+      });
 
-      await AppendHandlers.previewAppend();
+      await AppendHandlers.previewAppend(state);
 
-      expect(DialogStore.appendState.previewError.value).toContain('circular');
+      expect(state.previewError.value).toContain('circular');
     });
 
     it('sets isPreviewing during preview', async () => {
@@ -293,17 +158,19 @@ describe('append-handlers', () => {
       AppStore.models.value = [model1, model2];
       AppStore.activeModel.value = model1;
 
-      DialogStore.appendState.leftModel.value = 'model-1';
-      DialogStore.appendState.targetModel.value = 'model-2';
-      DialogStore.appendState.selectedLeftColumns.value = ['name', 'age'];
-      DialogStore.appendState.selectedRightColumns.value = ['name', 'age'];
-      DialogStore.appendState.removeDuplicates.value = false;
+      const state = createMockAppendState({
+        leftModel: 'model-1',
+        targetModel: 'model-2',
+        selectedLeftColumns: ['name', 'age'],
+        selectedRightColumns: ['name', 'age'],
+        removeDuplicates: false,
+      });
 
-      const previewPromise = AppendHandlers.previewAppend();
+      const previewPromise = AppendHandlers.previewAppend(state);
 
       // After preview completes, isPreviewing should be false
       await previewPromise;
-      expect(DialogStore.appendState.isPreviewing.value).toBe(false);
+      expect(state.isPreviewing.value).toBe(false);
     });
   });
 
@@ -316,8 +183,13 @@ describe('append-handlers', () => {
 
     it('calls onError when no left model selected', async () => {
       const callbacks = createMockCallbacks();
-      DialogStore.appendState.leftModel.value = null;
-      DialogStore.appendState.targetModel.value = 'model-2';
+      DialogStore.activeDialogState.value = {
+        leftModel: null,
+        targetModel: 'model-2',
+        selectedLeftColumns: [],
+        selectedRightColumns: [],
+        removeDuplicates: false,
+      };
 
       await AppendHandlers.applyAppendTransform(callbacks);
 
@@ -326,8 +198,13 @@ describe('append-handlers', () => {
 
     it('calls onError when no target model selected', async () => {
       const callbacks = createMockCallbacks();
-      DialogStore.appendState.leftModel.value = 'model-1';
-      DialogStore.appendState.targetModel.value = null;
+      DialogStore.activeDialogState.value = {
+        leftModel: 'model-1',
+        targetModel: null,
+        selectedLeftColumns: [],
+        selectedRightColumns: [],
+        removeDuplicates: false,
+      };
 
       await AppendHandlers.applyAppendTransform(callbacks);
 
@@ -343,10 +220,13 @@ describe('append-handlers', () => {
       AppStore.models.value = [model1];
       AppStore.activeModel.value = model1;
 
-      DialogStore.appendState.leftModel.value = 'model-1';
-      DialogStore.appendState.targetModel.value = 'model-1';
-      DialogStore.appendState.selectedLeftColumns.value = ['name', 'age'];
-      DialogStore.appendState.selectedRightColumns.value = ['name', 'age'];
+      DialogStore.activeDialogState.value = {
+        leftModel: 'model-1',
+        targetModel: 'model-1',
+        selectedLeftColumns: ['name', 'age'],
+        selectedRightColumns: ['name', 'age'],
+        removeDuplicates: false,
+      };
 
       await AppendHandlers.applyAppendTransform(callbacks);
 

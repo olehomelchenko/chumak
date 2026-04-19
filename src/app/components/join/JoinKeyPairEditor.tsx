@@ -1,32 +1,9 @@
 import { useTranslation } from 'preact-i18next';
-import { DialogStore } from '../../stores/DialogStore';
 import formStyles from '../form-controls.module.css';
 import colStyles from '../column-editor.module.css';
 const styles = { ...formStyles, ...colStyles };
 import joinStyles from '../JoinDialog.module.css';
-import * as JoinHandlers from '../../handlers/transform/join-handlers';
-
-export interface KeyPairAnalysis {
-  leftCol: string | null;
-  rightCol: string | null;
-  leftUnique: number;
-  rightUnique: number;
-  leftHasDuplicates: boolean;
-  rightHasDuplicates: boolean;
-  leftOnly: number;
-  rightOnly: number;
-  matches: number;
-  leftTotalRows: number;
-  rightTotalRows: number;
-  leftNonNullRows: number;
-  rightNonNullRows: number;
-  leftMatchPercent: number;
-  rightMatchPercent: number;
-  leftOnlyPercent: number;
-  rightOnlyPercent: number;
-  leftOnlyValues: any[];
-  rightOnlyValues: any[];
-}
+import type { KeyPairAnalysis } from '../../handlers/transform/join-handlers';
 
 interface JoinKeyPairEditorProps {
   index: number;
@@ -37,6 +14,7 @@ interface JoinKeyPairEditorProps {
   canRemove: boolean;
   onUpdate: (index: number, position: 0 | 1, value: string | null) => void;
   onRemove: (index: number) => void;
+  onShowMismatch: (values: any[], column: string, side: 'left' | 'right') => void;
 }
 
 export function JoinKeyPairEditor({
@@ -48,21 +26,12 @@ export function JoinKeyPairEditor({
   canRemove,
   onUpdate,
   onRemove,
+  onShowMismatch,
 }: JoinKeyPairEditorProps) {
   const { t } = useTranslation('dialogs');
   const hasLeftError = !pair[0];
   const hasRightError = !pair[1];
   const hasError = hasLeftError || hasRightError;
-
-  const handleShowMismatch = (values: any[], column: string, side: 'left' | 'right') => {
-    if (values.length > 0) {
-      DialogStore.joinState.previewMismatchValues.value = {
-        values,
-        column,
-        side,
-      };
-    }
-  };
 
   return (
     <div class={joinStyles.keyPairContainer}>
@@ -166,7 +135,7 @@ export function JoinKeyPairEditor({
             <button
               class={joinStyles.clickableCount}
               onClick={() =>
-                handleShowMismatch(analysis.leftOnlyValues, analysis.leftCol || '', 'left')
+                onShowMismatch(analysis.leftOnlyValues, analysis.leftCol || '', 'left')
               }
               disabled={analysis.leftOnly === 0}
               title={t('joinKeyPairEditor.clickToView')}
@@ -182,7 +151,7 @@ export function JoinKeyPairEditor({
             <button
               class={joinStyles.clickableCount}
               onClick={() =>
-                handleShowMismatch(analysis.rightOnlyValues, analysis.rightCol || '', 'right')
+                onShowMismatch(analysis.rightOnlyValues, analysis.rightCol || '', 'right')
               }
               disabled={analysis.rightOnly === 0}
               title={t('joinKeyPairEditor.clickToView')}
@@ -205,6 +174,9 @@ interface JoinKeysEditorProps {
   rightColumns: string[];
   keyPairAnalysis: KeyPairAnalysis[];
   onUpdate: (index: number, position: 0 | 1, value: string | null) => void;
+  onAdd: () => void;
+  onRemove: (index: number) => void;
+  onShowMismatch: (values: any[], column: string, side: 'left' | 'right') => void;
 }
 
 export function JoinKeysEditor({
@@ -213,6 +185,9 @@ export function JoinKeysEditor({
   rightColumns,
   keyPairAnalysis,
   onUpdate,
+  onAdd,
+  onRemove,
+  onShowMismatch,
 }: JoinKeysEditorProps) {
   const { t } = useTranslation('dialogs');
   return (
@@ -228,10 +203,11 @@ export function JoinKeysEditor({
           analysis={keyPairAnalysis[index]}
           canRemove={keyPairs.length > 1}
           onUpdate={onUpdate}
-          onRemove={JoinHandlers.removeJoinKeyPair}
+          onRemove={onRemove}
+          onShowMismatch={onShowMismatch}
         />
       ))}
-      <button class="button button--secondary button--small" onClick={JoinHandlers.addJoinKeyPair}>
+      <button class="button button--secondary button--small" onClick={onAdd}>
         {t('joinKeyPairEditor.addKeyPair')}
       </button>
       <div class={styles.helpText}>{t('joinKeyPairEditor.helpText')}</div>

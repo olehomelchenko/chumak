@@ -1,26 +1,17 @@
 /**
  * DialogStore
  *
- * Centralized state management for all dialogs in the application.
- * States are organized in subdirectories under ./dialogs/ and re-exported here
- * for backward compatibility.
+ * Centralized state management for dialogs.
+ * Transform dialogs use useDialogState hook (local signals).
+ * Non-transform dialogs (import, settings, etc.) still use global state here.
  */
 
 import { signal } from '@preact/signals';
 
-// Import all states from organized subdirectories
+// Import states from organized subdirectories
 import {
-  // Column states
-  spreadState,
-  unrollState,
+  // Column states (only type-conversion remains — non-transform)
   typeConversionState,
-  mergeState,
-  // Text states
-  textState,
-  parseDateState,
-  // Combine states
-  joinState,
-  appendState,
   // Import states
   importUrlState,
   settingsState,
@@ -35,28 +26,18 @@ import {
 
 // Re-export types for backward compatibility
 export type { ColumnEditorColumn } from '../handlers/dialog/column-editor-handlers';
-export type { KeyPairAnalysis, MismatchPreview } from './dialogs/combine';
+export type { KeyPairAnalysis, MismatchPreview } from '../handlers/transform/join-handlers';
 
 /**
  * DialogStore class
  *
- * Provides static access to all dialog states for backward compatibility.
- * All states are now defined in separate modules under ./dialogs/
+ * Provides static access to dialog states.
+ * Transform dialogs have been migrated to useDialogState — only
+ * non-transform dialog states remain here.
  */
 export class DialogStore {
-  // Column states
-  static spreadState = spreadState;
-  static unrollState = unrollState;
+  // Column states (non-transform only)
   static typeConversionState = typeConversionState;
-  static mergeState = mergeState;
-
-  // Text states
-  static textState = textState;
-  static parseDateState = parseDateState;
-
-  // Combine states
-  static joinState = joinState;
-  static appendState = appendState;
 
   // Import states
   static importUrlState = importUrlState;

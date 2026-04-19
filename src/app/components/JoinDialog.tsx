@@ -1,6 +1,17 @@
+import { signal } from '@preact/signals';
+import { useEffect } from 'preact/hooks';
 import { useTranslation } from 'preact-i18next';
-import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
+import { useDialogState } from '../hooks/useDialogState';
+import {
+  findMatchingColumns,
+  reconcileKeyPairs,
+  getColumnsForTarget,
+  analyzeJoinKeys,
+  previewJoin,
+  type KeyPairAnalysis,
+  type MismatchPreview,
+} from '../handlers/transform/join-handlers';
 import formStyles from './form-controls.module.css';
 import colStyles from './column-editor.module.css';
 import exprStyles from './expression-help.module.css';
@@ -9,14 +20,139 @@ import joinStyles from './JoinDialog.module.css';
 import { JoinTreeSelector } from './JoinTreeSelector';
 import { TablePreviewModal } from './TablePreviewModal';
 import { JoinTypeSelector, JoinKeysEditor, JoinColumnSelector } from './join';
-import * as JoinHandlers from '../handlers/transform/join-handlers';
-import type { JoinType } from '../../types/modes';
+import type { JoinType, JoinTarget } from '../../types/modes';
 
 // Re-export for backward compatibility
 export type { JoinType, JoinTarget } from '../../types/modes';
 
 export function JoinDialog() {
   const { t } = useTranslation('dialogs');
+
+  const { state } = useDialogState(
+    (ctx) => {
+      const models = AppStore.models.value;
+      const sources = AppStore.sources.value;
+      const activeModel = AppStore.activeModel.value;
+      const activeSource = AppStore.activeSource.value;
+
+      // Build available targets
+      const availableTargets: JoinTarget[] = [];
+      models.forEach((model) => {
+        if (activeModel && model.id !== activeModel.id) {
+          availableTargets.push({
+            id: model.id,
+            name: model.name,
+            type: 'model',
+            sourceName: sources.find((s) => s.id === model.sourceId)?.name || 'Unknown',
+          });
+        }
+      });
+      sources.forEach((source) => {
+        availableTargets.push({
+          id: source.id,
+          name: source.name,
+          type: 'source',
+          sourceName: source.name,
+        });
+      });
+
+      const leftModelId = activeModel?.id || activeSource?.id || null;
+      const leftCols = leftModelId ? getColumnsForTarget(leftModelId) : [];
+
+      // Check for editing — join has 4 step types
+      const editJoin = ctx.editingStep?.join;
+      const editSemijoin = ctx.editingStep?.semijoin;
+      const editAntijoin = ctx.editingStep?.antijoin;
+      const editLookup = ctx.editingStep?.lookup;
+
+      let initialRightModel: string | null;
+      let initialJoinType: JoinType;
+      let initialKeyPairs: (string | null)[][];
+      let initialSuffixes: string[];
+      let rightCols: string[];
+      let initialSelectedRight: string[];
+
+      if (editJoin) {
+        initialRightModel = editJoin.right;
+        initialJoinType = editJoin.how;
+        initialKeyPairs = editJoin.on;
+        initialSuffixes = editJoin.suffixes || ['_x', '_y'];
+        rightCols = initialRightModel ? getColumnsForTarget(initialRightModel) : [];
+        initialSelectedRight = [...rightCols];
+      } else if (editSemijoin) {
+        initialRightModel = editSemijoin.right;
+        initialJoinType = 'semi';
+        initialKeyPairs = editSemijoin.on;
+        initialSuffixes = ['_x', '_y'];
+        rightCols = initialRightModel ? getColumnsForTarget(initialRightModel) : [];
+        initialSelectedRight = [...rightCols];
+      } else if (editAntijoin) {
+        initialRightModel = editAntijoin.right;
+        initialJoinType = 'anti';
+        initialKeyPairs = editAntijoin.on;
+        initialSuffixes = ['_x', '_y'];
+        rightCols = initialRightModel ? getColumnsForTarget(initialRightModel) : [];
+        initialSelectedRight = [...rightCols];
+      } else if (editLookup) {
+        initialRightModel = editLookup.right;
+        initialJoinType = 'lookup';
+        initialKeyPairs = editLookup.on;
+        initialSuffixes = ['_x', '_y'];
+        rightCols = initialRightModel ? getColumnsForTarget(initialRightModel) : [];
+        initialSelectedRight = editLookup.values || [...rightCols];
+      } else {
+        // New open
+        initialRightModel = availableTargets[0]?.id || null;
+        initialJoinType = 'left';
+        initialSuffixes = ['_x', '_y'];
+        rightCols = initialRightModel ? getColumnsForTarget(initialRightModel) : [];
+        initialSelectedRight = [...rightCols];
+        // Auto-match columns by identical names
+        const autoMatched = findMatchingColumns(leftCols, rightCols);
+        initialKeyPairs = autoMatched.length > 0 ? autoMatched : [[null, null]];
+      }
+
+      return {
+        leftModel: signal<string | null>(leftModelId),
+        rightModel: signal<string | null>(initialRightModel),
+        joinType: signal<JoinType>(initialJoinType),
+        keyPairs: signal<(string | null)[][]>(initialKeyPairs),
+        suffixes: signal<string[]>(initialSuffixes),
+        targets: signal<JoinTarget[]>(availableTargets),
+        leftColumns: signal<string[]>(leftCols),
+        rightColumns: signal<string[]>(rightCols),
+        selectedLeftColumns: signal<string[]>([...leftCols]),
+        selectedRightColumns: signal<string[]>(initialSelectedRight),
+        saveAsNewModel: signal(false),
+        previewData: signal<any | null>(null),
+        previewError: signal<string | null>(null),
+        isPreviewing: signal(false),
+        keyPairAnalysis: signal<KeyPairAnalysis[]>([]),
+        previewTableId: signal<string | null>(null),
+        previewMismatchValues: signal<MismatchPreview | null>(null),
+      };
+    },
+    {
+      hasError: (s) => {
+        const hasRight = !!s.rightModel.value;
+        const hasKeys = s.joinType.value === 'cross' || s.keyPairs.value.some((p) => p[0] && p[1]);
+        const hasLookupValues =
+          s.joinType.value !== 'lookup' || s.selectedRightColumns.value.length > 0;
+        return !hasRight || !hasKeys || !hasLookupValues;
+      },
+      getState: (s) => ({
+        leftModel: s.leftModel.value,
+        rightModel: s.rightModel.value,
+        joinType: s.joinType.value,
+        keyPairs: s.keyPairs.value,
+        suffixes: s.suffixes.value,
+        selectedLeftColumns: s.selectedLeftColumns.value,
+        selectedRightColumns: s.selectedRightColumns.value,
+        saveAsNewModel: s.saveAsNewModel.value,
+      }),
+    }
+  );
+
   const {
     leftModel,
     rightModel,
@@ -31,33 +167,54 @@ export function JoinDialog() {
     previewError,
     isPreviewing,
     keyPairAnalysis,
-  } = DialogStore.joinState;
+    previewTableId,
+    previewMismatchValues,
+  } = state;
+
+  // Trigger async key analysis on mount
+  useEffect(() => {
+    analyzeJoinKeys(state);
+  }, []);
 
   const activeModel = AppStore.activeModel.value;
   const activeSource = AppStore.activeSource.value;
 
   const handleLeftModelChange = (id: string) => {
-    DialogStore.joinState.leftModel.value = id;
-    JoinHandlers.onJoinLeftModelChange();
+    leftModel.value = id;
+    const cols = getColumnsForTarget(id);
+    leftColumns.value = cols;
+    selectedLeftColumns.value = [...cols];
+    previewData.value = null;
+    previewError.value = null;
+    keyPairAnalysis.value = [];
+    keyPairs.value = reconcileKeyPairs(keyPairs.value, cols, rightColumns.value, 'left');
+    analyzeJoinKeys(state);
   };
 
   const handleRightModelChange = (id: string) => {
-    DialogStore.joinState.rightModel.value = id;
-    JoinHandlers.onJoinTargetChange();
+    rightModel.value = id;
+    const cols = getColumnsForTarget(id);
+    rightColumns.value = cols;
+    selectedRightColumns.value = [...cols];
+    previewData.value = null;
+    previewError.value = null;
+    keyPairAnalysis.value = [];
+    keyPairs.value = reconcileKeyPairs(keyPairs.value, leftColumns.value, cols, 'right');
+    analyzeJoinKeys(state);
   };
 
   const handleJoinTypeChange = (type: JoinType) => {
-    DialogStore.joinState.joinType.value = type;
+    joinType.value = type;
     // Re-analyze if not cross join
     if (type !== 'cross') {
-      JoinHandlers.analyzeJoinKeys();
+      analyzeJoinKeys(state);
     }
   };
 
   const handleSuffixChange = (index: number, value: string) => {
     const newSuffixes = [...suffixes.value];
     newSuffixes[index] = value;
-    DialogStore.joinState.suffixes.value = newSuffixes;
+    suffixes.value = newSuffixes;
   };
 
   const updateKeyPair = (index: number, position: 0 | 1, value: string | null) => {
@@ -69,48 +226,46 @@ export function JoinDialog() {
       }
       return pair;
     });
-    DialogStore.joinState.keyPairs.value = newPairs;
-    // Analyze keys after update
-    JoinHandlers.analyzeJoinKeys();
+    keyPairs.value = newPairs;
+    analyzeJoinKeys(state);
   };
 
   const handlePreview = () => {
-    JoinHandlers.previewJoin();
+    previewJoin(state);
   };
+
+  // Destructure previewData separately to avoid JSX reference issues
+  const { previewData } = state;
 
   // Column selection handlers
   const toggleLeftColumn = (col: string) => {
     const selected = selectedLeftColumns.value;
-    if (selected.includes(col)) {
-      DialogStore.joinState.selectedLeftColumns.value = selected.filter((c) => c !== col);
-    } else {
-      DialogStore.joinState.selectedLeftColumns.value = [...selected, col];
-    }
+    selectedLeftColumns.value = selected.includes(col)
+      ? selected.filter((c) => c !== col)
+      : [...selected, col];
   };
 
   const toggleRightColumn = (col: string) => {
     const selected = selectedRightColumns.value;
-    if (selected.includes(col)) {
-      DialogStore.joinState.selectedRightColumns.value = selected.filter((c) => c !== col);
-    } else {
-      DialogStore.joinState.selectedRightColumns.value = [...selected, col];
-    }
+    selectedRightColumns.value = selected.includes(col)
+      ? selected.filter((c) => c !== col)
+      : [...selected, col];
   };
 
   const selectAllLeftColumns = () => {
-    DialogStore.joinState.selectedLeftColumns.value = [...leftColumns.value];
+    selectedLeftColumns.value = [...leftColumns.value];
   };
 
   const selectNoneLeftColumns = () => {
-    DialogStore.joinState.selectedLeftColumns.value = [];
+    selectedLeftColumns.value = [];
   };
 
   const selectAllRightColumns = () => {
-    DialogStore.joinState.selectedRightColumns.value = [...rightColumns.value];
+    selectedRightColumns.value = [...rightColumns.value];
   };
 
   const selectNoneRightColumns = () => {
-    DialogStore.joinState.selectedRightColumns.value = [];
+    selectedRightColumns.value = [];
   };
 
   // Get current left model ID (from active model or source)
@@ -148,7 +303,7 @@ export function JoinDialog() {
             onSelect={handleLeftModelChange}
             excludeId={rightModel.value}
             onPreview={(id) => {
-              DialogStore.joinState.previewTableId.value = id;
+              previewTableId.value = id;
             }}
           />
         </div>
@@ -161,7 +316,7 @@ export function JoinDialog() {
             onSelect={handleRightModelChange}
             excludeId={effectiveLeftId}
             onPreview={(id) => {
-              DialogStore.joinState.previewTableId.value = id;
+              previewTableId.value = id;
             }}
           />
         </div>
@@ -178,6 +333,21 @@ export function JoinDialog() {
           rightColumns={rightColumns.value}
           keyPairAnalysis={keyPairAnalysis.value}
           onUpdate={updateKeyPair}
+          onAdd={() => {
+            keyPairs.value = [...keyPairs.value, [null, null]];
+            analyzeJoinKeys(state);
+          }}
+          onRemove={(index) => {
+            if (keyPairs.value.length > 1) {
+              keyPairs.value = keyPairs.value.filter((_, i) => i !== index);
+              analyzeJoinKeys(state);
+            }
+          }}
+          onShowMismatch={(values, column, side) => {
+            if (values.length > 0) {
+              previewMismatchValues.value = { values, column, side };
+            }
+          }}
         />
       )}
 
@@ -238,7 +408,7 @@ export function JoinDialog() {
             type="checkbox"
             checked={saveAsNewModel.value}
             onChange={(e) => {
-              DialogStore.joinState.saveAsNewModel.value = e.currentTarget.checked;
+              saveAsNewModel.value = e.currentTarget.checked;
             }}
           />
           <span>{t('join.saveAsNew')}</span>
@@ -293,7 +463,10 @@ export function JoinDialog() {
       {previewError.value && <div class={styles.error}>{previewError.value}</div>}
 
       {/* Table Preview Modal */}
-      <TablePreviewModal />
+      <TablePreviewModal
+        previewTableId={previewTableId}
+        previewMismatchValues={previewMismatchValues}
+      />
     </div>
   );
 }

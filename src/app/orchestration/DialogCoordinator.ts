@@ -13,8 +13,6 @@ import { syncDialogToUrl, clearDialogFromUrl } from './UrlStateSync';
 import { setColumnEditorSection } from '../handlers/dialog/column-editor-handlers';
 
 export type DialogCallbacks = {
-  initializeJoinDialog?: () => void;
-  initializeAppendDialog?: () => void;
   clearColumnSelection?: () => void;
   confirm?: (message: string, confirmLabel?: string) => Promise<boolean>;
 };
@@ -64,94 +62,26 @@ export function hasUnsavedChanges(): boolean {
  * Initialize state for a specific dialog
  */
 export function initDialogState(dialogName: string, section?: string): void {
-  switch (dialogName) {
-    case 'filter':
-    case 'derive':
-      break;
-
-    case 'join':
-      callbacks?.initializeJoinDialog?.();
-      break;
-
-    case 'append':
-      callbacks?.initializeAppendDialog?.();
-      break;
-
-    // sort, sliceRows, sample: state managed by useDialogState hook in component
-    case 'sort':
-    case 'sliceRows':
-    case 'sample':
-      break;
-
-    case 'spread':
-    case 'unroll':
-      break; // state managed by useDialogState hook
-
-    case 'index':
-      break; // state managed by useDialogState hook
-
-    case 'aggregate':
-      break; // state managed by useDialogState hook
-
-    case 'import-csv':
-      break;
-
-    case 'column-editor':
-      // State managed by useDialogState hook; pass section for textSubMode preset
-      if (section) setColumnEditorSection(section);
-      break;
-
-    case 'settings': {
-      const state = DialogStore.settingsState;
-      state.theme.value = AppStore.theme.value as any;
-      state.rowLimit.value = AppStore.uxSettings.value.preview?.rowLimit || 100;
-      state.analyticsOptOut.value = AppStore.uxSettings.value.analyticsOptOut ?? false;
-      state.language.value = AppStore.uxSettings.value.language || 'en';
-      state.engine.value = AppStore.uxSettings.value.experimental?.engine || 'arquero';
-      break;
-    }
-
-    case 'fold':
-      break; // state managed by useDialogState hook
-
-    case 'pivot':
-      break; // state managed by useDialogState hook
-
-    case 'replace':
-      break; // state managed by useDialogState hook
-
-    case 'split':
-      break; // state managed by useDialogState hook
-
-    case 'merge':
-      break; // state managed by useDialogState hook
-
-    case 'regexpMatch':
-    case 'regexpExtract':
-      break; // state managed by useDialogState hook
-
-    case 'date':
-      break; // state managed by useDialogState hook
-
-    case 'parseDate':
-      break; // state managed by useDialogState hook
-
-    case 'text':
-      break; // state managed by useDialogState hook
-
-    case 'dedupe':
-      break; // state managed by useDialogState hook
-
-    case 'impute':
-      break; // state managed by useDialogState hook
-
-    default: {
-      // Delegate to registry initState for dialogs not handled above
-      const config = DIALOG_REGISTRY[dialogName];
-      config?.initState?.(section);
-      break;
-    }
+  // Settings dialog: initialize from AppStore (non-transform, no useDialogState)
+  if (dialogName === 'settings') {
+    const state = DialogStore.settingsState;
+    state.theme.value = AppStore.theme.value as any;
+    state.rowLimit.value = AppStore.uxSettings.value.preview?.rowLimit || 100;
+    state.analyticsOptOut.value = AppStore.uxSettings.value.analyticsOptOut ?? false;
+    state.language.value = AppStore.uxSettings.value.language || 'en';
+    state.engine.value = AppStore.uxSettings.value.experimental?.engine || 'arquero';
+    return;
   }
+
+  // Column-editor section preset (useDialogState reads AppStore, but section needs forwarding)
+  if (dialogName === 'column-editor' && section) {
+    setColumnEditorSection(section);
+    return;
+  }
+
+  // All other dialogs: delegate to registry initState if present
+  const config = DIALOG_REGISTRY[dialogName];
+  config?.initState?.(section);
 }
 
 /**

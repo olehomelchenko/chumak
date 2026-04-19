@@ -1,20 +1,35 @@
+import { signal, type Signal } from '@preact/signals';
 import { render, screen, fireEvent } from '@testing-library/preact';
 import { describe, it, expect, beforeEach } from 'vitest';
 import { TablePreviewModal } from './TablePreviewModal';
-import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
 
 describe('TablePreviewModal', () => {
+  let previewTableId: Signal<string | null>;
+  let previewMismatchValues: Signal<{
+    values: any[];
+    column: string;
+    side: 'left' | 'right';
+  } | null>;
+
   beforeEach(() => {
-    // Reset stores
-    DialogStore.joinState.previewTableId.value = null;
-    DialogStore.joinState.previewMismatchValues.value = null;
+    previewTableId = signal<string | null>(null);
+    previewMismatchValues = signal<{
+      values: any[];
+      column: string;
+      side: 'left' | 'right';
+    } | null>(null);
     AppStore.models.value = [];
     AppStore.sources.value = [];
   });
 
   it('returns null when no preview is requested', () => {
-    const { container } = render(<TablePreviewModal />);
+    const { container } = render(
+      <TablePreviewModal
+        previewTableId={previewTableId}
+        previewMismatchValues={previewMismatchValues}
+      />
+    );
     expect(container.firstChild).toBeNull();
   });
 
@@ -39,9 +54,14 @@ describe('TablePreviewModal', () => {
       },
     ];
 
-    DialogStore.joinState.previewTableId.value = 's1';
+    previewTableId.value = 's1';
 
-    render(<TablePreviewModal />);
+    render(
+      <TablePreviewModal
+        previewTableId={previewTableId}
+        previewMismatchValues={previewMismatchValues}
+      />
+    );
 
     expect(screen.getByText('Customers')).toBeDefined();
     expect(screen.getByText('2 rows, 2 columns')).toBeDefined();
@@ -62,9 +82,14 @@ describe('TablePreviewModal', () => {
       },
     ];
 
-    DialogStore.joinState.previewTableId.value = 'm1';
+    previewTableId.value = 'm1';
 
-    render(<TablePreviewModal />);
+    render(
+      <TablePreviewModal
+        previewTableId={previewTableId}
+        previewMismatchValues={previewMismatchValues}
+      />
+    );
 
     expect(screen.getByText('Sales')).toBeDefined();
     expect(screen.getByText('2 rows, 1 columns')).toBeDefined();
@@ -86,14 +111,19 @@ describe('TablePreviewModal', () => {
       },
     ];
 
-    DialogStore.joinState.previewTableId.value = 's1';
+    previewTableId.value = 's1';
 
-    render(<TablePreviewModal />);
+    render(
+      <TablePreviewModal
+        previewTableId={previewTableId}
+        previewMismatchValues={previewMismatchValues}
+      />
+    );
 
     const closeButton = screen.getByText('×');
     fireEvent.click(closeButton);
 
-    expect(DialogStore.joinState.previewTableId.value).toBeNull();
+    expect(previewTableId.value).toBeNull();
   });
 
   it('closes when backdrop is clicked', () => {
@@ -111,34 +141,35 @@ describe('TablePreviewModal', () => {
       },
     ];
 
-    DialogStore.joinState.previewTableId.value = 's1';
+    previewTableId.value = 's1';
 
-    const { container } = render(<TablePreviewModal />);
+    const { container } = render(
+      <TablePreviewModal
+        previewTableId={previewTableId}
+        previewMismatchValues={previewMismatchValues}
+      />
+    );
 
-    // Find backdrop (the div with backdrop class)
     const backdrop = container.querySelector('[class*="backdrop"]');
     if (backdrop) {
       fireEvent.click(backdrop);
-      expect(DialogStore.joinState.previewTableId.value).toBeNull();
-    } else {
-      // If backdrop not found by class, try finding by role or structure
-      const modalContent = screen.getByText('Customers');
-      const backdropDiv = modalContent.closest('div')?.parentElement?.parentElement;
-      if (backdropDiv) {
-        fireEvent.click(backdropDiv);
-        expect(DialogStore.joinState.previewTableId.value).toBeNull();
-      }
+      expect(previewTableId.value).toBeNull();
     }
   });
 
   it('renders mismatch values preview', () => {
-    DialogStore.joinState.previewMismatchValues.value = {
+    previewMismatchValues.value = {
       values: ['value1', 'value2', 'value3'],
       column: 'id',
       side: 'left',
     };
 
-    render(<TablePreviewModal />);
+    render(
+      <TablePreviewModal
+        previewTableId={previewTableId}
+        previewMismatchValues={previewMismatchValues}
+      />
+    );
 
     expect(screen.getByText('Left only values (id)')).toBeDefined();
     expect(screen.getByText('3 unique values')).toBeDefined();
@@ -149,18 +180,23 @@ describe('TablePreviewModal', () => {
   });
 
   it('closes mismatch values preview when close button is clicked', () => {
-    DialogStore.joinState.previewMismatchValues.value = {
+    previewMismatchValues.value = {
       values: ['value1'],
       column: 'id',
       side: 'left',
     };
 
-    render(<TablePreviewModal />);
+    render(
+      <TablePreviewModal
+        previewTableId={previewTableId}
+        previewMismatchValues={previewMismatchValues}
+      />
+    );
 
     const closeButton = screen.getByText('×');
     fireEvent.click(closeButton);
 
-    expect(DialogStore.joinState.previewMismatchValues.value).toBeNull();
+    expect(previewMismatchValues.value).toBeNull();
   });
 
   it('shows footer note when more than 100 rows', () => {
@@ -186,9 +222,14 @@ describe('TablePreviewModal', () => {
       },
     ];
 
-    DialogStore.joinState.previewTableId.value = 's1';
+    previewTableId.value = 's1';
 
-    render(<TablePreviewModal />);
+    render(
+      <TablePreviewModal
+        previewTableId={previewTableId}
+        previewMismatchValues={previewMismatchValues}
+      />
+    );
 
     expect(screen.getByText('Showing first 100 of 150 rows')).toBeDefined();
   });

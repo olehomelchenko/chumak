@@ -88,11 +88,13 @@ describe('DialogCoordinator', () => {
       expect(state.aggregations).toHaveLength(1);
     });
 
-    it('returns join state', () => {
-      DialogStore.joinState.rightModel.value = 'mdl_2';
-      DialogStore.joinState.joinType.value = 'left';
-      DialogStore.joinState.keyPairs.value = [['id', 'employee_id']];
-      DialogStore.joinState.suffixes.value = ['_left', '_right'];
+    it('returns join state from bridge signal', () => {
+      DialogStore.activeDialogState.value = {
+        rightModel: 'mdl_2',
+        joinType: 'left',
+        keyPairs: [['id', 'employee_id']],
+        suffixes: ['_left', '_right'],
+      };
 
       const state = getDialogState('join');
       expect(state).toEqual({
@@ -272,9 +274,8 @@ describe('DialogCoordinator', () => {
       expect(state).toBeNull();
     });
 
-    it('returns append state', () => {
-      DialogStore.appendState.targetModel.value = 'mdl_2';
-      DialogStore.appendState.removeDuplicates.value = true;
+    it('returns append state from bridge signal', () => {
+      DialogStore.activeDialogState.value = { targetModel: 'mdl_2', removeDuplicates: true };
 
       const state = getDialogState('append');
       expect(state).toEqual({ targetModel: 'mdl_2', removeDuplicates: true });
@@ -399,41 +400,29 @@ describe('DialogCoordinator', () => {
       expect(activeDialogHasError()).toBe(false);
     });
 
-    // join
-    it('join: returns true when no right model', () => {
+    // join (uses bridge signal via useDialogState)
+    it('join: returns true when bridge error present', () => {
       AppStore.activeDialog.value = 'join';
-      DialogStore.joinState.rightModel.value = '';
-      DialogStore.joinState.joinType.value = 'inner';
-      DialogStore.joinState.keyPairs.value = [['id', 'id']];
+      DialogStore.activeDialogHasError.value = true;
       expect(activeDialogHasError()).toBe(true);
     });
 
-    it('join: returns true when no valid key pairs', () => {
+    it('join: returns false when bridge has no error', () => {
       AppStore.activeDialog.value = 'join';
-      DialogStore.joinState.rightModel.value = 'mdl_2';
-      DialogStore.joinState.joinType.value = 'inner';
-      DialogStore.joinState.keyPairs.value = [['', '']];
-      expect(activeDialogHasError()).toBe(true);
-    });
-
-    it('join: returns false for cross join without key pairs', () => {
-      AppStore.activeDialog.value = 'join';
-      DialogStore.joinState.rightModel.value = 'mdl_2';
-      DialogStore.joinState.joinType.value = 'cross';
-      DialogStore.joinState.keyPairs.value = [];
+      DialogStore.activeDialogHasError.value = false;
       expect(activeDialogHasError()).toBe(false);
     });
 
-    // append
-    it('append: returns true when no target model', () => {
+    // append (uses bridge signal via useDialogState)
+    it('append: returns true when bridge error present', () => {
       AppStore.activeDialog.value = 'append';
-      DialogStore.appendState.targetModel.value = '';
+      DialogStore.activeDialogHasError.value = true;
       expect(activeDialogHasError()).toBe(true);
     });
 
-    it('append: returns false when target model set', () => {
+    it('append: returns false when bridge has no error', () => {
       AppStore.activeDialog.value = 'append';
-      DialogStore.appendState.targetModel.value = 'mdl_2';
+      DialogStore.activeDialogHasError.value = false;
       expect(activeDialogHasError()).toBe(false);
     });
 

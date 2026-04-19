@@ -1,4 +1,5 @@
 import * as aq from 'arquero';
+import type { Signal } from '@preact/signals';
 import { applyTransform } from '../../../core/transforms';
 import { DialogStore } from '../../stores/DialogStore';
 import { AppStore } from '../../stores/AppStore';
@@ -10,12 +11,64 @@ import { cloneData } from '../../../core/type-converter';
 import { ensureSourceData, ensureModelData } from '../../infrastructure/storage';
 import i18n from '../../../i18n';
 import { TransformStep } from '../../../core/schema-engine';
+import type { JoinType, JoinTarget } from '../../../types/modes';
+
+export interface KeyPairAnalysis {
+  leftCol: string | null;
+  rightCol: string | null;
+  leftUnique: number;
+  rightUnique: number;
+  leftHasDuplicates: boolean;
+  rightHasDuplicates: boolean;
+  leftOnly: number;
+  rightOnly: number;
+  matches: number;
+  leftTotalRows: number;
+  rightTotalRows: number;
+  leftNonNullRows: number;
+  rightNonNullRows: number;
+  leftMatchPercent: number;
+  rightMatchPercent: number;
+  leftOnlyPercent: number;
+  rightOnlyPercent: number;
+  leftOnlyValues: any[];
+  rightOnlyValues: any[];
+}
+
+export interface MismatchPreview {
+  values: any[];
+  column: string;
+  side: 'left' | 'right';
+}
+
+export interface JoinDialogState {
+  leftModel: Signal<string | null>;
+  rightModel: Signal<string | null>;
+  joinType: Signal<JoinType>;
+  keyPairs: Signal<(string | null)[][]>;
+  suffixes: Signal<string[]>;
+  targets: Signal<JoinTarget[]>;
+  leftColumns: Signal<string[]>;
+  rightColumns: Signal<string[]>;
+  selectedLeftColumns: Signal<string[]>;
+  selectedRightColumns: Signal<string[]>;
+  saveAsNewModel: Signal<boolean>;
+  previewData: Signal<any | null>;
+  previewError: Signal<string | null>;
+  isPreviewing: Signal<boolean>;
+  keyPairAnalysis: Signal<KeyPairAnalysis[]>;
+  previewTableId: Signal<string | null>;
+  previewMismatchValues: Signal<MismatchPreview | null>;
+}
 
 /**
  * Finds columns with identical names between left and right tables.
  * Returns pairs sorted by position in the left table.
  */
-function findMatchingColumns(leftColumns: string[], rightColumns: string[]): [string, string][] {
+export function findMatchingColumns(
+  leftColumns: string[],
+  rightColumns: string[]
+): [string, string][] {
   const rightSet = new Set(rightColumns);
   return leftColumns.filter((col) => rightSet.has(col)).map((col) => [col, col]);
 }
@@ -25,7 +78,7 @@ function findMatchingColumns(leftColumns: string[], rightColumns: string[]): [st
  * Invalid keys (columns no longer present in the changed table) are nulled out;
  * pairs that are entirely empty are dropped; unmatched columns are auto-paired.
  */
-function reconcileKeyPairs(
+export function reconcileKeyPairs(
   currentPairs: (string | null)[][],
   leftColumns: string[],
   rightColumns: string[],
@@ -55,7 +108,7 @@ function reconcileKeyPairs(
 /**
  * Builds a join/semijoin/antijoin/lookup transform step from dialog state.
  */
-function buildJoinTransform(
+export function buildJoinTransform(
   joinType: string,
   rightModel: string,
   keyPairs: (string | null)[][],
@@ -73,74 +126,6 @@ function buildJoinTransform(
     return { lookup: { right: rightModel, on: completePairs, values: selectedRightColumns } };
   }
   return { join: { right: rightModel, on: completePairs, how: joinType, suffixes } };
-}
-
-export function initializeJoinDialog() {
-  const models = AppStore.models.value;
-  const sources = AppStore.sources.value;
-  const activeModel = AppStore.activeModel.value;
-  const activeSource = AppStore.activeSource.value;
-
-  const availableTargets: any[] = [];
-  models.forEach((model) => {
-    if (activeModel && model.id !== activeModel.id) {
-      availableTargets.push({
-        id: model.id,
-        name: model.name,
-        type: 'model',
-        sourceName: sources.find((s) => s.id === model.sourceId)?.name || 'Unknown',
-      });
-    }
-  });
-  sources.forEach((source) => {
-    availableTargets.push({
-      id: source.id,
-      name: source.name,
-      type: 'source',
-      sourceName: source.name,
-    });
-  });
-
-  // Reset store state
-  const state = DialogStore.joinState;
-  const initialRightModel = availableTargets[0]?.id || null;
-
-  // Set left model to current active model or source
-  const leftModelId = activeModel?.id || activeSource?.id || null;
-  state.leftModel.value = leftModelId;
-
-  // Initialize left columns
-  if (leftModelId) {
-    state.leftColumns.value = getColumnsForTarget(leftModelId);
-    state.selectedLeftColumns.value = [...state.leftColumns.value]; // Select all by default
-  } else {
-    state.leftColumns.value = [];
-    state.selectedLeftColumns.value = [];
-  }
-
-  state.targets.value = availableTargets;
-  state.rightModel.value = initialRightModel;
-  state.joinType.value = 'left';
-  state.suffixes.value = ['_x', '_y'];
-  state.rightColumns.value = initialRightModel ? getColumnsForTarget(initialRightModel) : [];
-  state.selectedRightColumns.value = initialRightModel
-    ? [...getColumnsForTarget(initialRightModel)]
-    : []; // Select all by default
-
-  // Auto-match columns by identical names
-  const autoMatched = findMatchingColumns(state.leftColumns.value, state.rightColumns.value);
-  state.keyPairs.value = autoMatched.length > 0 ? autoMatched : [[null, null]];
-  state.saveAsNewModel.value = false;
-  state.previewData.value = null;
-  state.previewError.value = null;
-  state.isPreviewing.value = false;
-  state.keyPairAnalysis.value = [];
-  state.previewTableId.value = null;
-
-  AppStore.activeDialog.value = 'join';
-
-  // Analyze keys if any are set (shouldn't be on init, but just in case)
-  setTimeout(() => analyzeJoinKeys(), 0);
 }
 
 /**
@@ -219,74 +204,7 @@ export function getColumnsForTarget(targetId: string): string[] {
   return [];
 }
 
-export function onJoinLeftModelChange() {
-  const state = DialogStore.joinState;
-  const leftModelId = state.leftModel.value;
-
-  if (leftModelId) {
-    state.leftColumns.value = getColumnsForTarget(leftModelId);
-    state.selectedLeftColumns.value = [...state.leftColumns.value]; // Select all by default
-  } else {
-    state.leftColumns.value = [];
-    state.selectedLeftColumns.value = [];
-  }
-
-  state.previewData.value = null;
-  state.previewError.value = null;
-  state.keyPairAnalysis.value = [];
-
-  state.keyPairs.value = reconcileKeyPairs(
-    state.keyPairs.value,
-    state.leftColumns.value,
-    state.rightColumns.value,
-    'left'
-  );
-
-  analyzeJoinKeys();
-}
-
-export function onJoinTargetChange() {
-  const state = DialogStore.joinState;
-  const rightModelId = state.rightModel.value;
-
-  if (rightModelId) {
-    state.rightColumns.value = getColumnsForTarget(rightModelId);
-    state.selectedRightColumns.value = [...state.rightColumns.value]; // Select all by default
-  } else {
-    state.rightColumns.value = [];
-    state.selectedRightColumns.value = [];
-  }
-
-  state.previewData.value = null;
-  state.previewError.value = null;
-  state.keyPairAnalysis.value = [];
-
-  state.keyPairs.value = reconcileKeyPairs(
-    state.keyPairs.value,
-    state.leftColumns.value,
-    state.rightColumns.value,
-    'right'
-  );
-
-  analyzeJoinKeys();
-}
-
-export function addJoinKeyPair() {
-  const state = DialogStore.joinState;
-  state.keyPairs.value = [...state.keyPairs.value, [null, null]];
-  analyzeJoinKeys();
-}
-
-export function removeJoinKeyPair(index: number) {
-  const state = DialogStore.joinState;
-  if (state.keyPairs.value.length > 1) {
-    state.keyPairs.value = state.keyPairs.value.filter((_, i) => i !== index);
-    analyzeJoinKeys();
-  }
-}
-
-export async function analyzeJoinKeys() {
-  const state = DialogStore.joinState;
+export async function analyzeJoinKeys(state: JoinDialogState) {
   const leftModelId = state.leftModel.value;
   const rightModelId = state.rightModel.value;
   const keyPairs = state.keyPairs.value;
@@ -364,13 +282,10 @@ export async function analyzeJoinKeys() {
     });
 
     // Calculate row-level statistics for percentages
-    // Count how many left rows have values that exist in right table
     const leftRowsWithMatch = leftValues.filter((v) => v != null && rightValueSet.has(v)).length;
     const leftRowsWithoutMatch = leftValues.filter(
       (v) => v != null && !rightValueSet.has(v)
     ).length;
-
-    // Count how many right rows have values that exist in left table
     const rightRowsWithMatch = rightValues.filter((v) => v != null && leftValueSet.has(v)).length;
     const rightRowsWithoutMatch = rightValues.filter(
       (v) => v != null && !leftValueSet.has(v)
@@ -412,8 +327,7 @@ export async function analyzeJoinKeys() {
   state.keyPairAnalysis.value = analysis;
 }
 
-export async function previewJoin() {
-  const state = DialogStore.joinState;
+export async function previewJoin(state: JoinDialogState) {
   const leftModelId = state.leftModel.value;
   const rightModel = state.rightModel.value;
   const joinType = state.joinType.value;
@@ -497,7 +411,7 @@ export async function previewJoin() {
     const previewRows = allData.slice(0, 100);
     const totalRows = allData.length;
 
-    // Store in joinState for backward compatibility
+    // Store in local state
     state.previewData.value = {
       rows: previewRows,
       totalRows: totalRows,
@@ -508,7 +422,7 @@ export async function previewJoin() {
     DialogStore.previewState.title.value = 'Join Preview';
     DialogStore.previewState.stats.value = `${totalRows} rows, ${resultColumns.length} columns (showing first ${previewRows.length} rows)`;
     DialogStore.previewState.columns.value = resultColumns;
-    DialogStore.previewState.newColumns.value = []; // No new columns in join
+    DialogStore.previewState.newColumns.value = [];
     DialogStore.previewState.rows.value = previewRows;
   } catch (error: any) {
     console.error('Join preview error:', error);
@@ -525,15 +439,17 @@ export async function previewJoin() {
 }
 
 export async function applyJoinTransform(callbacks: any) {
-  const state = DialogStore.joinState;
-  const leftModelId = state.leftModel.value;
-  const rightModel = state.rightModel.value;
-  const joinType = state.joinType.value;
-  const keyPairs = state.keyPairs.value;
-  const suffixes = state.suffixes.value;
-  const selectedLeftColumns = state.selectedLeftColumns.value;
-  const selectedRightColumns = state.selectedRightColumns.value;
-  const saveAsNewModel = state.saveAsNewModel.value;
+  const rawState = DialogStore.activeDialogState.value;
+  if (!rawState) return;
+
+  const leftModelId = rawState.leftModel as string | null;
+  const rightModelVal = rawState.rightModel as string | null;
+  const joinType = rawState.joinType as JoinType;
+  const keyPairs = rawState.keyPairs as (string | null)[][];
+  const suffixes = rawState.suffixes as string[];
+  const selectedLeftColumns = rawState.selectedLeftColumns as string[];
+  const selectedRightColumns = rawState.selectedRightColumns as string[];
+  const saveAsNewModel = rawState.saveAsNewModel as boolean;
   const models = AppStore.models.value;
   const sources = AppStore.sources.value;
 
@@ -541,7 +457,7 @@ export async function applyJoinTransform(callbacks: any) {
     await callbacks.onError?.(i18n.t('validation.selection.leftTable', { ns: 'errors' }));
     return;
   }
-  if (!rightModel) {
+  if (!rightModelVal) {
     await callbacks.onError?.(i18n.t('validation.selection.joinRightTable', { ns: 'errors' }));
     return;
   }
@@ -558,7 +474,7 @@ export async function applyJoinTransform(callbacks: any) {
     models,
     sources,
     leftModelId,
-    rightModel
+    rightModelVal
   );
   if (cycleResult.isCyclic) {
     await callbacks.onError?.(
@@ -573,7 +489,7 @@ export async function applyJoinTransform(callbacks: any) {
     const leftModel = models.find((m) => m.id === leftModelId);
 
     // Get right table data (ensure model data is up-to-date for transform)
-    const targetModel = models.find((m) => m.id === rightModel);
+    const targetModel = models.find((m) => m.id === rightModelVal);
     if (targetModel && targetModel.steps.length > 0) {
       const result = StepService.computeModelUpToStep(targetModel, targetModel.steps.length - 1, {
         sources,
@@ -584,7 +500,7 @@ export async function applyJoinTransform(callbacks: any) {
 
     const transform = buildJoinTransform(
       joinType,
-      rightModel,
+      rightModelVal,
       keyPairs,
       suffixes as [string, string],
       selectedRightColumns

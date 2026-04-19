@@ -1,6 +1,9 @@
+import { signal } from '@preact/signals';
 import { useTranslation } from 'preact-i18next';
-import { DialogStore } from '../stores/DialogStore';
 import { AppStore } from '../stores/AppStore';
+import { useDialogState } from '../hooks/useDialogState';
+import { getColumnsForTarget } from '../handlers/transform/join-handlers';
+import { previewAppend } from '../handlers/transform/append-handlers';
 import formStyles from './form-controls.module.css';
 import colStyles from './column-editor.module.css';
 import prevStyles from './preview-table.module.css';
@@ -9,10 +12,71 @@ import joinStyles from './JoinDialog.module.css';
 import tableStyles from './DataTable.module.css';
 import { JoinTreeSelector } from './JoinTreeSelector';
 import { TablePreviewModal } from './TablePreviewModal';
-import * as AppendHandlers from '../handlers/transform/append-handlers';
 
 export function AppendDialog() {
   const { t } = useTranslation('dialogs');
+
+  const { state } = useDialogState(
+    (ctx) => {
+      const models = AppStore.models.value;
+      const sources = AppStore.sources.value;
+      const activeModel = AppStore.activeModel.value;
+      const activeSource = AppStore.activeSource.value;
+
+      const leftModelId = activeModel?.id || activeSource?.id || null;
+      const leftCols = leftModelId ? getColumnsForTarget(leftModelId) : [];
+
+      // Check for editing
+      const editConcat = ctx.editingStep?.concat;
+      const editUnion = ctx.editingStep?.union;
+      const editing = editConcat || editUnion;
+
+      let initialTarget: string | null = null;
+      let rightCols: string[] = [];
+      let initialSelectedLeft = [...leftCols];
+      let initialSelectedRight: string[] = [];
+      let initialRemoveDuplicates = false;
+
+      if (editing) {
+        initialTarget = editing.with;
+        rightCols = initialTarget ? getColumnsForTarget(initialTarget) : [];
+        initialSelectedLeft = editing.columns || [...leftCols];
+        initialSelectedRight = editing.targetColumns || [...rightCols];
+        initialRemoveDuplicates = !!editUnion;
+      } else {
+        // First available model or source that is not the active one
+        const firstModel = models.find((m) => (activeModel ? m.id !== activeModel.id : true));
+        initialTarget = firstModel?.id || sources[0]?.id || null;
+        rightCols = initialTarget ? getColumnsForTarget(initialTarget) : [];
+        initialSelectedRight = [...rightCols];
+      }
+
+      return {
+        leftModel: signal<string | null>(leftModelId),
+        targetModel: signal<string | null>(initialTarget),
+        leftColumns: signal<string[]>(leftCols),
+        rightColumns: signal<string[]>(rightCols),
+        selectedLeftColumns: signal<string[]>(initialSelectedLeft),
+        selectedRightColumns: signal<string[]>(initialSelectedRight),
+        removeDuplicates: signal(initialRemoveDuplicates),
+        previewData: signal<any | null>(null),
+        previewError: signal<string | null>(null),
+        isPreviewing: signal(false),
+        previewTableId: signal<string | null>(null),
+      };
+    },
+    {
+      hasError: (s) => !s.targetModel.value,
+      getState: (s) => ({
+        leftModel: s.leftModel.value,
+        targetModel: s.targetModel.value,
+        removeDuplicates: s.removeDuplicates.value,
+        selectedLeftColumns: s.selectedLeftColumns.value,
+        selectedRightColumns: s.selectedRightColumns.value,
+      }),
+    }
+  );
+
   const {
     leftModel,
     targetModel,
@@ -24,63 +88,69 @@ export function AppendDialog() {
     previewData,
     previewError,
     isPreviewing,
-  } = DialogStore.appendState;
+    previewTableId,
+  } = state;
 
   const activeModel = AppStore.activeModel.value;
   const activeSource = AppStore.activeSource.value;
 
   const handleLeftModelChange = (id: string) => {
-    DialogStore.appendState.leftModel.value = id;
-    AppendHandlers.onAppendLeftModelChange();
+    leftModel.value = id;
+    const cols = getColumnsForTarget(id);
+    leftColumns.value = cols;
+    selectedLeftColumns.value = [...cols];
+    previewData.value = null;
+    previewError.value = null;
   };
 
   const handleRightModelChange = (id: string) => {
-    DialogStore.appendState.targetModel.value = id;
-    AppendHandlers.onAppendTargetChange();
+    targetModel.value = id;
+    const cols = getColumnsForTarget(id);
+    rightColumns.value = cols;
+    selectedRightColumns.value = [...cols];
+    previewData.value = null;
+    previewError.value = null;
   };
 
   const handleToggleDuplicates = (e: Event) => {
     const target = e.target as HTMLInputElement;
     removeDuplicates.value = target.checked;
-    AppendHandlers.onAppendConfigChange();
+    previewData.value = null;
+    previewError.value = null;
   };
 
   const toggleLeftColumn = (col: string) => {
     const selected = selectedLeftColumns.value;
-    if (selected.includes(col)) {
-      DialogStore.appendState.selectedLeftColumns.value = selected.filter((c) => c !== col);
-    } else {
-      DialogStore.appendState.selectedLeftColumns.value = [...selected, col];
-    }
+    selectedLeftColumns.value = selected.includes(col)
+      ? selected.filter((c) => c !== col)
+      : [...selected, col];
   };
 
   const toggleRightColumn = (col: string) => {
     const selected = selectedRightColumns.value;
-    if (selected.includes(col)) {
-      DialogStore.appendState.selectedRightColumns.value = selected.filter((c) => c !== col);
-    } else {
-      DialogStore.appendState.selectedRightColumns.value = [...selected, col];
-    }
+    selectedRightColumns.value = selected.includes(col)
+      ? selected.filter((c) => c !== col)
+      : [...selected, col];
   };
 
   const selectAllLeftColumns = () => {
-    DialogStore.appendState.selectedLeftColumns.value = [...leftColumns.value];
+    selectedLeftColumns.value = [...leftColumns.value];
   };
 
   const selectNoneLeftColumns = () => {
-    DialogStore.appendState.selectedLeftColumns.value = [];
+    selectedLeftColumns.value = [];
   };
 
   const selectAllRightColumns = () => {
-    DialogStore.appendState.selectedRightColumns.value = [...rightColumns.value];
+    selectedRightColumns.value = [...rightColumns.value];
   };
 
   const selectNoneRightColumns = () => {
-    DialogStore.appendState.selectedRightColumns.value = [];
+    selectedRightColumns.value = [];
   };
 
   const handlePreview = () => {
-    AppendHandlers.previewAppend();
+    previewAppend(state);
   };
 
   // Get current left model ID (from active model or source)
@@ -118,7 +188,7 @@ export function AppendDialog() {
             onSelect={handleLeftModelChange}
             excludeId={targetModel.value}
             onPreview={(id) => {
-              DialogStore.appendState.previewTableId.value = id;
+              previewTableId.value = id;
             }}
           />
         </div>
@@ -131,7 +201,7 @@ export function AppendDialog() {
             onSelect={handleRightModelChange}
             excludeId={effectiveLeftId}
             onPreview={(id) => {
-              DialogStore.appendState.previewTableId.value = id;
+              previewTableId.value = id;
             }}
           />
         </div>
@@ -324,7 +394,7 @@ export function AppendDialog() {
       )}
 
       {/* Table Preview Modal */}
-      <TablePreviewModal />
+      <TablePreviewModal previewTableId={previewTableId} previewMismatchValues={signal(null)} />
     </div>
   );
 }

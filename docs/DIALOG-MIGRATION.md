@@ -255,8 +255,8 @@ case 'xxx':
 
 | Dialog | State file        | Handler file         | Preview | Complexity | Status |
 | ------ | ----------------- | -------------------- | ------- | ---------- | ------ |
-| join   | `join-state.ts`   | `join-handlers.ts`   | No      | High       |        |
-| append | `append-state.ts` | `append-handlers.ts` | No      | High       |        |
+| join   | `join-state.ts`   | `join-handlers.ts`   | No      | High       | Done   |
+| append | `append-state.ts` | `append-handlers.ts` | No      | High       | Done   |
 
 ### Non-Transform Dialogs (out of scope)
 
@@ -294,13 +294,15 @@ aggregate, pivot, window, column-editor, join, append
 
 ---
 
-## When Migration Is Complete
+## Post-Migration Cleanup (completed)
 
-Once all transform dialogs are migrated:
+With all transform dialogs migrated:
 
-1. **Delete `DialogCoordinator.initDialogState`** — the entire 332-line switch
-2. **Delete `reset-registry.ts`** — no global state to reset
-3. **Remove `createExecutionCallbacks()` / `setTransformCallbacks()`** — replaced by `executeTransform()`
-4. **Remove callback wiring from `AppOrchestrator.wireHandlerCallbacks()`**
-5. **Simplify `activeDialogError()` switch** in `dialog-handlers.ts` — all dialogs use bridge signal
-6. **Remove unused `DialogStore` static properties** as their state files are deleted
+1. **Collapsed `DialogCoordinator.initDialogState`** — the 90-line switch reduced to settings + column-editor + registry delegation
+2. **`reset-registry.ts`** — still used by non-transform dialogs (import, settings, etc.); will be removed when those are migrated
+3. **`createExecutionCallbacks()` / `setTransformCallbacks()`** — deferred; still used by `step-handlers`, `eda-handlers`, `EdaPanel`. Migrate to `executeTransform()` in a separate refactor.
+4. **Removed callback wiring** — join/append init and target-change callbacks removed from `AppOrchestrator`, `DialogCoordinator`, `StepCallbacks`
+5. **Simplified `activeDialogError()` switch** — collapsed 19-case switch to bridge signal check + import-url special case
+6. **Removed all transform `DialogStore` static properties** — only non-transform states remain (import, settings, type-conversion, preview, generate)
+7. **Deleted 7 stale state files** — spread, unroll, merge, text, parseDate, join, append
+8. **Refactored `TablePreviewModal`** — accepts signal props instead of reading `DialogStore.joinState` globals

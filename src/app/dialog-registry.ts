@@ -448,40 +448,21 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
     applyHandler: (cb) => WindowHandlers.applyWindowTransform(cb),
   }),
 
-  join: {
+  join: bridgedDialogEntry({
     name: 'join',
     title: 'Join Data',
     type: 'slide-panel',
     buttonText: 'buttons.join',
     applyHandler: (cb) => JoinHandlers.applyJoinTransform(cb),
-    getState: () => ({
-      rightModel: DialogStore.joinState.rightModel.value,
-      joinType: DialogStore.joinState.joinType.value,
-      keyPairs: DialogStore.joinState.keyPairs.value,
-      suffixes: DialogStore.joinState.suffixes.value,
-    }),
-    hasError: () => {
-      const s = DialogStore.joinState;
-      const hasRight = !!s.rightModel.value;
-      const hasKeys = s.joinType.value === 'cross' || s.keyPairs.value.some((p) => p[0] && p[1]);
-      const hasLookupValues =
-        s.joinType.value !== 'lookup' || s.selectedRightColumns.value.length > 0;
-      return !hasRight || !hasKeys || !hasLookupValues;
-    },
-  },
+  }),
 
-  append: {
+  append: bridgedDialogEntry({
     name: 'append',
     title: 'Append Data',
     type: 'slide-panel',
     buttonText: 'buttons.append',
     applyHandler: (cb) => AppendHandlers.applyAppendTransform(cb),
-    getState: () => ({
-      targetModel: DialogStore.appendState.targetModel.value,
-      removeDuplicates: DialogStore.appendState.removeDuplicates.value,
-    }),
-    hasError: () => !DialogStore.appendState.targetModel.value,
-  },
+  }),
 
   replace: bridgedDialogEntry({
     name: 'replace',

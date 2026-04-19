@@ -1,20 +1,27 @@
-import { DialogStore } from '../stores/DialogStore';
+import type { Signal } from '@preact/signals';
 import { AppStore } from '../stores/AppStore';
 import { StepService } from '../services/StepService';
 import tableStyles from './DataTable.module.css';
 import styles from './TablePreviewModal.module.css';
 
-export function TablePreviewModal() {
-  const previewTableId = DialogStore.joinState.previewTableId.value;
-  const previewMismatchValues = DialogStore.joinState.previewMismatchValues.value;
+export interface TablePreviewModalProps {
+  previewTableId: Signal<string | null>;
+  previewMismatchValues: Signal<{ values: any[]; column: string; side: 'left' | 'right' } | null>;
+}
+
+export function TablePreviewModal({
+  previewTableId,
+  previewMismatchValues,
+}: TablePreviewModalProps) {
+  const mismatch = previewMismatchValues.value;
 
   // Handle mismatch values preview
-  if (previewMismatchValues) {
-    const { values, column, side } = previewMismatchValues;
+  if (mismatch) {
+    const { values, column, side } = mismatch;
     const title = `${side === 'left' ? 'Left' : 'Right'} only values (${column})`;
 
     const handleClose = () => {
-      DialogStore.joinState.previewMismatchValues.value = null;
+      previewMismatchValues.value = null;
     };
 
     return (
@@ -64,7 +71,8 @@ export function TablePreviewModal() {
   }
 
   // Handle table preview
-  if (!previewTableId) return null;
+  const tableId = previewTableId.value;
+  if (!tableId) return null;
 
   const models = AppStore.models.value;
   const sources = AppStore.sources.value;
@@ -74,7 +82,7 @@ export function TablePreviewModal() {
   let columns: string[] = [];
   let title = '';
 
-  const model = models.find((m) => m.id === previewTableId);
+  const model = models.find((m) => m.id === tableId);
   if (model) {
     title = model.name;
     if (model.steps.length > 0) {
@@ -95,7 +103,7 @@ export function TablePreviewModal() {
       columns = model.schema?.map((c) => c.name) || [];
     }
   } else {
-    const source = sources.find((s) => s.id === previewTableId);
+    const source = sources.find((s) => s.id === tableId);
     if (source) {
       title = source.name;
       data = source.data || [];
@@ -104,7 +112,7 @@ export function TablePreviewModal() {
   }
 
   const handleClose = () => {
-    DialogStore.joinState.previewTableId.value = null;
+    previewTableId.value = null;
   };
 
   return (

@@ -2,12 +2,8 @@
  * Combine dialog states
  *
  * Multi-table operations: join, append.
+ * State files deleted — dialogs use useDialogState hook.
+ * Types re-exported from handler files.
  */
 
-export {
-  joinState,
-  resetJoinState,
-  type KeyPairAnalysis,
-  type MismatchPreview,
-} from './join-state';
-export { appendState, resetAppendState } from './append-state';
+export type { KeyPairAnalysis, MismatchPreview } from '../../../handlers/transform/join-handlers';

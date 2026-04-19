@@ -1,7 +1,6 @@
 import { describeTransform } from '../../../core/transforms';
 import { Model } from '../../types';
 import { ColumnSchema, TransformStep } from '../../../core/schema-engine';
-import { DialogStore } from '../../stores/DialogStore';
 import { AppStore } from '../../stores/AppStore';
 import { StepService, ComputeResult } from '../../services/StepService';
 import * as HelperHandlers from './helper-handlers';
@@ -17,8 +16,6 @@ export type StepCallbacks = {
   updatePagination: () => void;
   openDialog: (name: string, section?: string) => void;
   closeDialog: (force?: boolean) => void;
-  onJoinTargetChange: () => void;
-  onAppendTargetChange: () => void;
   // Non-transform operations (import, generate)
   confirmImport: () => void;
   confirmTextEntry: () => void;
@@ -186,32 +183,9 @@ export function editStep(stepIndex: number): void {
   } else if (step.aggregate) {
     // State initialized by useDialogState hook via editingStep context
     callbacks?.openDialog('aggregate');
-  } else if (step.join) {
+  } else if (step.join || step.semijoin || step.antijoin || step.lookup) {
+    // State initialized by useDialogState hook via editingStep context
     callbacks?.openDialog('join');
-    DialogStore.joinState.rightModel.value = step.join.right;
-    DialogStore.joinState.joinType.value = step.join.how;
-    DialogStore.joinState.keyPairs.value = step.join.on;
-    DialogStore.joinState.suffixes.value = step.join.suffixes || ['_x', '_y'];
-    callbacks?.onJoinTargetChange();
-  } else if (step.semijoin) {
-    callbacks?.openDialog('join');
-    DialogStore.joinState.rightModel.value = step.semijoin.right;
-    DialogStore.joinState.joinType.value = 'semi';
-    DialogStore.joinState.keyPairs.value = step.semijoin.on;
-    callbacks?.onJoinTargetChange();
-  } else if (step.antijoin) {
-    callbacks?.openDialog('join');
-    DialogStore.joinState.rightModel.value = step.antijoin.right;
-    DialogStore.joinState.joinType.value = 'anti';
-    DialogStore.joinState.keyPairs.value = step.antijoin.on;
-    callbacks?.onJoinTargetChange();
-  } else if (step.lookup) {
-    callbacks?.openDialog('join');
-    DialogStore.joinState.rightModel.value = step.lookup.right;
-    DialogStore.joinState.joinType.value = 'lookup';
-    DialogStore.joinState.keyPairs.value = step.lookup.on;
-    DialogStore.joinState.selectedRightColumns.value = step.lookup.values;
-    callbacks?.onJoinTargetChange();
   } else if (step.fold) {
     // State initialized by useDialogState hook via editingStep context
     callbacks?.openDialog('fold');
@@ -230,20 +204,9 @@ export function editStep(stepIndex: number): void {
   } else if (step.impute) {
     // State initialized by useDialogState hook via editingStep context
     callbacks?.openDialog('impute');
-  } else if (step.concat) {
+  } else if (step.concat || step.union) {
+    // State initialized by useDialogState hook via editingStep context
     callbacks?.openDialog('append');
-    DialogStore.appendState.targetModel.value = step.concat.with;
-    DialogStore.appendState.removeDuplicates.value = false;
-    DialogStore.appendState.selectedLeftColumns.value = step.concat.columns || [];
-    DialogStore.appendState.selectedRightColumns.value = step.concat.targetColumns || [];
-    callbacks?.onAppendTargetChange();
-  } else if (step.union) {
-    callbacks?.openDialog('append');
-    DialogStore.appendState.targetModel.value = step.union.with;
-    DialogStore.appendState.removeDuplicates.value = true;
-    DialogStore.appendState.selectedLeftColumns.value = step.union.columns || [];
-    DialogStore.appendState.selectedRightColumns.value = step.union.targetColumns || [];
-    callbacks?.onAppendTargetChange();
   } else if (step.window) {
     // State initialized by useDialogState hook via editingStep context
     callbacks?.openDialog('window');

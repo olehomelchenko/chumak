@@ -1,84 +1,25 @@
 import * as aq from 'arquero';
+import type { Signal } from '@preact/signals';
 import { applyTransform } from '../../../core/transforms';
 import { DialogStore } from '../../stores/DialogStore';
 import { AppStore } from '../../stores/AppStore';
 import { StepService } from '../../services/StepService';
 import { DependencyService } from '../../services/DependencyService';
-import { getColumnsForTarget, getTableDataForTarget } from './join-handlers';
+import { getTableDataForTarget } from './join-handlers';
 import i18n from '../../../i18n';
 
-export function initializeAppendDialog() {
-  const models = AppStore.models.value;
-  const sources = AppStore.sources.value;
-  const activeModel = AppStore.activeModel.value;
-  const activeSource = AppStore.activeSource.value;
-
-  // Reset store state
-  const state = DialogStore.appendState;
-
-  // Set left model
-  const leftModelId = activeModel?.id || activeSource?.id || null;
-  state.leftModel.value = leftModelId;
-  if (leftModelId) {
-    state.leftColumns.value = getColumnsForTarget(leftModelId);
-    state.selectedLeftColumns.value = [...state.leftColumns.value];
-  }
-
-  // Set initial right model (first available model or source that is not the active one)
-  let initialTargetModel: string | null = null;
-  const firstModel = models.find((m) => (activeModel ? m.id !== activeModel.id : true));
-  if (firstModel) {
-    initialTargetModel = firstModel.id;
-  } else if (sources.length > 0) {
-    initialTargetModel = sources[0].id;
-  }
-
-  state.targetModel.value = initialTargetModel;
-
-  if (initialTargetModel) {
-    state.rightColumns.value = getColumnsForTarget(initialTargetModel);
-    state.selectedRightColumns.value = [...state.rightColumns.value];
-  }
-
-  state.removeDuplicates.value = false; // Default to Concat
-  state.previewData.value = null;
-  state.previewError.value = null;
-  state.isPreviewing.value = false;
-  state.previewTableId.value = null;
-
-  AppStore.activeDialog.value = 'append';
-}
-
-export function onAppendLeftModelChange() {
-  const state = DialogStore.appendState;
-  const leftModelId = state.leftModel.value;
-  if (leftModelId) {
-    state.leftColumns.value = getColumnsForTarget(leftModelId);
-    state.selectedLeftColumns.value = [...state.leftColumns.value];
-  } else {
-    state.leftColumns.value = [];
-    state.selectedLeftColumns.value = [];
-  }
-  onAppendConfigChange();
-}
-
-export function onAppendTargetChange() {
-  const state = DialogStore.appendState;
-  const targetId = state.targetModel.value;
-  if (targetId) {
-    state.rightColumns.value = getColumnsForTarget(targetId);
-    state.selectedRightColumns.value = [...state.rightColumns.value];
-  } else {
-    state.rightColumns.value = [];
-    state.selectedRightColumns.value = [];
-  }
-  onAppendConfigChange();
-}
-
-export function onAppendConfigChange() {
-  const state = DialogStore.appendState;
-  state.previewData.value = null;
-  state.previewError.value = null;
+export interface AppendDialogState {
+  leftModel: Signal<string | null>;
+  targetModel: Signal<string | null>;
+  leftColumns: Signal<string[]>;
+  rightColumns: Signal<string[]>;
+  selectedLeftColumns: Signal<string[]>;
+  selectedRightColumns: Signal<string[]>;
+  removeDuplicates: Signal<boolean>;
+  previewData: Signal<any | null>;
+  previewError: Signal<string | null>;
+  isPreviewing: Signal<boolean>;
+  previewTableId: Signal<string | null>;
 }
 
 /**
@@ -97,8 +38,7 @@ export function checkCircularDependency(targetId: string): { isCyclic: boolean; 
   );
 }
 
-export async function previewAppend() {
-  const state = DialogStore.appendState;
+export async function previewAppend(state: AppendDialogState) {
   const leftId = state.leftModel.value;
   const targetId = state.targetModel.value;
   const removeDuplicates = state.removeDuplicates.value;
@@ -178,12 +118,14 @@ export async function previewAppend() {
 }
 
 export async function applyAppendTransform(callbacks: any) {
-  const state = DialogStore.appendState;
-  const leftId = state.leftModel.value;
-  const targetId = state.targetModel.value;
-  const removeDuplicates = state.removeDuplicates.value;
-  const selectedLeftColumns = state.selectedLeftColumns.value;
-  const selectedRightColumns = state.selectedRightColumns.value;
+  const state = DialogStore.activeDialogState.value;
+  if (!state) return;
+
+  const leftId = state.leftModel as string | null;
+  const targetId = state.targetModel as string | null;
+  const removeDuplicates = state.removeDuplicates as boolean;
+  const selectedLeftColumns = state.selectedLeftColumns as string[];
+  const selectedRightColumns = state.selectedRightColumns as string[];
 
   if (!leftId) {
     await callbacks.onError?.(i18n.t('validation.selection.leftTable', { ns: 'errors' }));

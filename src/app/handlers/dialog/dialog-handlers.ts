@@ -41,9 +41,6 @@ export interface DialogHandlerCallbacks {
   switchToSource?: (source: any) => void;
   showModelInfo?: () => void;
   showDatasetInfo?: (source: any) => void;
-  // Dialog initialization callbacks (passed to DialogCoordinator)
-  initializeJoinDialog?: () => void;
-  initializeAppendDialog?: () => void;
 }
 
 let dialogHandlerCallbacks: DialogHandlerCallbacks = {};
@@ -97,8 +94,6 @@ export function openDialog(dialogName: string, section?: string): void {
 export function initDialogState(dialogName: string, section?: string): void {
   // Set up callbacks for DialogCoordinator
   DialogCoordinator.setDialogCallbacks({
-    initializeJoinDialog: dialogHandlerCallbacks.initializeJoinDialog,
-    initializeAppendDialog: dialogHandlerCallbacks.initializeAppendDialog,
     clearColumnSelection: dialogHandlerCallbacks.clearColumnSelection,
     confirm: dialogHandlerCallbacks.confirm,
   });
@@ -149,33 +144,18 @@ export function clearPreview(): void {
  */
 export function activeDialogError(): boolean {
   const activeDialog = AppStore.activeDialog.value;
+  if (!activeDialog) return false;
 
-  // Handle dialogs using DialogStore directly
-  switch (activeDialog) {
-    case 'index':
-    case 'regexpMatch':
-    case 'regexpExtract':
-    case 'replace':
-    case 'selectPattern':
-    case 'removePattern':
-    case 'renamePattern':
-      return DialogStore.activeDialogHasError.value;
-    case 'split':
-      return DialogStore.activeDialogHasError.value;
-    case 'pivot':
-      return DialogStore.activeDialogHasError.value;
-    case 'dedupe':
-    case 'window':
-    case 'column-editor':
-      return DialogStore.activeDialogHasError.value;
-    case 'import-url': {
-      const state = DialogStore.importUrlState;
-      return !state.url.value || state.isFetching.value;
-    }
-    default:
-      // Delegate to DialogCoordinator for other dialogs
-      return DialogCoordinator.activeDialogHasError();
+  // Special case: import-url has custom validation (not using useDialogState)
+  if (activeDialog === 'import-url') {
+    const state = DialogStore.importUrlState;
+    return !state.url.value || state.isFetching.value;
   }
+
+  // All useDialogState dialogs use the bridge signal
+  // For non-useDialogState dialogs, fall back to registry hasError
+  if (DialogStore.activeDialogHasError.value) return true;
+  return DialogCoordinator.activeDialogHasError();
 }
 
 /**

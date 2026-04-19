@@ -1,8 +1,8 @@
 /**
  * Text dialog states
  *
- * Text operations: text, date, regexp match, regexp extract.
+ * text, parseDate, date, regexpMatch, regexpExtract: migrated to useDialogState
+ * No remaining state files in this directory.
  */
 
-export { textState, resetTextState } from './text-state';
-export { parseDateState, resetParseDateState } from './parse-date-state';
+export {};

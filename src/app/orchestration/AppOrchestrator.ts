@@ -48,11 +48,6 @@ import {
 } from '../handlers/core/notification-handlers';
 import { clearColumnSelection, updateToolbarPosition } from '../handlers/core/interaction-handlers';
 import { updatePagination } from '../handlers/core/pagination-handlers';
-import { initializeJoinDialog, onJoinTargetChange } from '../handlers/transform/join-handlers';
-import {
-  initializeAppendDialog,
-  onAppendTargetChange,
-} from '../handlers/transform/append-handlers';
 
 // AppController for orchestration methods only
 import { AppController } from './AppController';
@@ -115,8 +110,6 @@ export async function initApp(): Promise<void> {
   setDialogCallbacks({
     confirm: (msg, label) => confirm(msg, undefined, label),
     clearColumnSelection: () => clearColumnSelection(),
-    initializeJoinDialog: () => initializeJoinDialog(),
-    initializeAppendDialog: () => initializeAppendDialog(),
   });
 
   // Phase 4: Restore URL state (sets activeModel/activeSource but data is still null)
@@ -169,16 +162,12 @@ function wireHandlerCallbacks(): void {
     switchToSource: (source) => AppController.switchToSource(source),
     showModelInfo: () => AppController.showModelInfo(),
     showDatasetInfo: (source) => AppController.showDatasetInfo(source),
-    initializeJoinDialog: () => initializeJoinDialog(),
-    initializeAppendDialog: () => initializeAppendDialog(),
   });
 
   setStepCallbacks({
     updatePagination: () => updatePagination(),
     openDialog: (name, section) => openDialog(name, section),
     closeDialog: (force) => closeDialog(force),
-    onJoinTargetChange: () => onJoinTargetChange(),
-    onAppendTargetChange: () => onAppendTargetChange(),
     confirmImport: () => confirmImport(),
     confirmTextEntry: () => confirmTextEntry(),
     fetchAndImportFromUrl: () => fetchAndImportFromUrl(),

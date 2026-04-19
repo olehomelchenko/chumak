@@ -262,8 +262,6 @@ export function createMockStepCallbacks(overrides?: Partial<StepCallbacks>): Ste
     updatePagination: vi.fn(),
     openDialog: vi.fn(),
     closeDialog: vi.fn(),
-    onJoinTargetChange: vi.fn(),
-    onAppendTargetChange: vi.fn(),
     confirmImport: vi.fn(),
     confirmTextEntry: vi.fn(),
     fetchAndImportFromUrl: vi.fn().mockResolvedValue(undefined),
