@@ -1,9 +1,8 @@
 /**
  * executeTransform — Simplified transform execution
  *
- * Assembles ExecutionCallbacks directly from store/handler imports,
- * bypassing the setTransformCallbacks() + createExecutionCallbacks()
- * indirection. Can be called from anywhere without callback wiring.
+ * Assembles ExecutionCallbacks directly from store/handler imports so callers
+ * can run a transform from anywhere without any pre-wired callback registry.
  */
 
 import { AppStore } from '../stores/AppStore';
@@ -17,6 +16,52 @@ import { clearPreview } from '../handlers/preview-engine';
 export interface ExecuteTransformOptions {
   /** Whether to close the dialog after success. Default: true */
   closeDialog?: boolean;
+}
+
+/**
+ * Build the default ExecutionCallbacks used by the app's transform runner.
+ *
+ * Pulls real implementations directly from AppStore / notification / dialog /
+ * pagination / preview modules so callers don't need any pre-wired globals.
+ */
+export function buildDefaultExecutionCallbacks(
+  options?: ExecuteTransformOptions
+): ExecutionCallbacks {
+  const shouldCloseDialog = options?.closeDialog ?? true;
+
+  return {
+    async onTransformStart(msg: string) {
+      AppStore.isTransforming.value = true;
+      AppStore.transformMessage.value = msg;
+      // Yield to render the loading indicator (matches AppController.startTransformation)
+      await new Promise((resolve) => requestAnimationFrame(() => resolve(undefined)));
+      await new Promise((resolve) => setTimeout(resolve, 50));
+    },
+
+    onTransformEnd() {
+      AppStore.isTransforming.value = false;
+      AppStore.transformMessage.value = '';
+    },
+
+    async onError(message: string) {
+      await showAlert(message);
+    },
+
+    // TODO: `shouldCloseDialog` double-gates with StepService.runTransform's
+    // own `closeDialog` arg (see StepService.ts line ~246). Pick one owner —
+    // either drop this inner gate and rely on StepService to skip onDialogClose,
+    // or drop the 4th arg from runTransform and let callbacks decide.
+    onDialogClose(clearPrev?: boolean) {
+      if (shouldCloseDialog) {
+        if (clearPrev) clearPreview();
+        closeDialog(true);
+      }
+    },
+
+    updatePagination() {
+      updatePagination();
+    },
+  };
 }
 
 /**
@@ -35,36 +80,6 @@ export async function executeTransform(
   options?: ExecuteTransformOptions
 ): Promise<boolean> {
   const shouldCloseDialog = options?.closeDialog ?? true;
-
-  const callbacks: ExecutionCallbacks = {
-    async onTransformStart(msg: string) {
-      AppStore.isTransforming.value = true;
-      AppStore.transformMessage.value = msg;
-      // Yield to render the loading indicator (matches AppController.startTransformation)
-      await new Promise((resolve) => requestAnimationFrame(() => resolve(undefined)));
-      await new Promise((resolve) => setTimeout(resolve, 50));
-    },
-
-    onTransformEnd() {
-      AppStore.isTransforming.value = false;
-      AppStore.transformMessage.value = '';
-    },
-
-    async onError(message: string) {
-      await showAlert(message);
-    },
-
-    onDialogClose(clearPrev?: boolean) {
-      if (shouldCloseDialog) {
-        if (clearPrev) clearPreview();
-        closeDialog(true);
-      }
-    },
-
-    updatePagination() {
-      updatePagination();
-    },
-  };
-
+  const callbacks = buildDefaultExecutionCallbacks(options);
   return StepService.runTransform(label, transform, callbacks, shouldCloseDialog);
 }

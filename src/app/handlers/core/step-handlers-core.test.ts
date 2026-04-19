@@ -4,7 +4,7 @@
  * Tests setup and basic dispatch functionality.
  */
 
-import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
+import { describe, it, expect, beforeEach, afterEach } from 'vitest';
 import { AppStore } from '../../stores/AppStore';
 import {
   resetStores,
@@ -14,7 +14,6 @@ import {
   createMockStepCallbacks,
 } from '../test-utils';
 import * as StepHandlers from './step-handlers';
-import { setTransformCallbacks } from './helper-handlers';
 import type { Model, Source } from '../../types';
 
 describe('step-handlers - core', () => {
@@ -41,30 +40,19 @@ describe('step-handlers - core', () => {
   });
 
   describe('applyActiveTransform', () => {
-    const mockTransformCallbacks = {
-      startTransformation: vi.fn(),
-      endTransformation: vi.fn(),
-      alert: vi.fn().mockResolvedValue(true),
-      closeDialog: vi.fn(),
-      updatePagination: vi.fn(),
-    };
-
     it('dispatches via registry for filter dialog', async () => {
       const callbacks = createMockStepCallbacks();
       StepHandlers.setStepCallbacks(callbacks);
-      setTransformCallbacks(mockTransformCallbacks);
       AppStore.activeDialog.value = 'filter';
 
       // The registry applyHandler will call the actual filter handler,
       // which needs dialog state — just verify it doesn't throw unrelated errors
       await StepHandlers.applyActiveTransform();
-      // If we reach here without "Transform callbacks not set" error, dispatch worked
     });
 
     it('dispatches via registry for sort dialog', async () => {
       const callbacks = createMockStepCallbacks();
       StepHandlers.setStepCallbacks(callbacks);
-      setTransformCallbacks(mockTransformCallbacks);
       AppStore.activeDialog.value = 'sort';
 
       await StepHandlers.applyActiveTransform();
@@ -73,7 +61,6 @@ describe('step-handlers - core', () => {
     it('dispatches via registry for aggregate dialog', async () => {
       const callbacks = createMockStepCallbacks();
       StepHandlers.setStepCallbacks(callbacks);
-      setTransformCallbacks(mockTransformCallbacks);
       AppStore.activeDialog.value = 'aggregate';
 
       await StepHandlers.applyActiveTransform();
@@ -82,7 +69,6 @@ describe('step-handlers - core', () => {
     it('dispatches via registry for join dialog', async () => {
       const callbacks = createMockStepCallbacks();
       StepHandlers.setStepCallbacks(callbacks);
-      setTransformCallbacks(mockTransformCallbacks);
       AppStore.activeDialog.value = 'join';
 
       await StepHandlers.applyActiveTransform();

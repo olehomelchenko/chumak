@@ -778,22 +778,32 @@ const pageData = allData.slice(startIdx, startIdx + pageSize);
 ```
 User clicks Apply
     ↓
-applyActiveTransform() → dialog registry applyHandler
+applyActiveTransform() → dialog registry applyHandler(cb)
     ↓
-Handler function (e.g., filter-handlers.applyFilterTransform)
+Handler (inline in dialog-registry.ts, or e.g. filter-handlers.applyFilterTransform)
     ↓
-StepService.runTransform(label, transform, callbacks)
-    ├─ callbacks.onTransformStart(label)     → AppStore.isTransforming = true
+StepService.runTransform(label, transform, cb)
+    ├─ cb.onTransformStart(label)          → AppStore.isTransforming = true
     ├─ transforms.applyTransform(table, transform, columns)
-    ├─ StepService.applyStepResult(...)      → updates model + AppStore signals
-    └─ callbacks.onTransformEnd()            → AppStore.isTransforming = false
+    ├─ StepService.applyStepResult(...)    → updates model + AppStore signals
+    └─ cb.onTransformEnd()                 → AppStore.isTransforming = false
     ↓
 UI re-renders via signal subscriptions
 ```
 
-**Key signals**: `AppStore.isTransforming` (boolean, true during execution) and `AppStore.transformMessage` (label string shown in StatusBar). Both are set/cleared by `AppController.startTransformation()`/`endTransformation()`, wired as callbacks via `AppOrchestrator`.
+**Key signals**: `AppStore.isTransforming` (boolean, true during execution) and `AppStore.transformMessage` (label shown in StatusBar). Set/cleared by the `ExecutionCallbacks`.
 
-**Callbacks**: `ExecutionCallbacks` (defined in `StepService.ts`) are created by `createExecutionCallbacks()` in `helper-handlers.ts` and passed through handlers to `StepService`.
+**Callbacks**: `ExecutionCallbacks` (defined in `StepService.ts`) are built by `buildDefaultExecutionCallbacks()` in `src/app/infrastructure/executeTransform.ts`. It resolves defaults directly from AppStore, notification, dialog, pagination, and preview modules — no global callback registration.
+
+**Which execution API to use:**
+
+| Caller context                                              | API to call                                             |
+| ----------------------------------------------------------- | ------------------------------------------------------- |
+| Inside a registry `applyHandler`                            | `StepService.runTransform(label, transform, cb)`        |
+| Outside a dialog (EDA, quick actions, external triggers)    | `executeTransform(label, transform)`                    |
+| Dispatching an `applyHandler` (only `applyActiveTransform`) | `config.applyHandler(buildDefaultExecutionCallbacks())` |
+
+Do not reintroduce a global callback registry (`setTransformCallbacks`-style) — all paths must resolve synchronously via module imports.
 
 ### 6.2 Dialog Lifecycle
 

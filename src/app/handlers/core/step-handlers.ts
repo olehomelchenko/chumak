@@ -3,7 +3,7 @@ import { Model } from '../../types';
 import { ColumnSchema, TransformStep } from '../../../core/schema-engine';
 import { AppStore } from '../../stores/AppStore';
 import { StepService, ComputeResult } from '../../services/StepService';
-import * as HelperHandlers from './helper-handlers';
+import { buildDefaultExecutionCallbacks } from '../../infrastructure/executeTransform';
 import { showError, showWarning, showSuccess, confirm } from './notification-handlers';
 import { getDialogConfig } from '../../dialog-registry';
 import i18n from '../../../i18n';
@@ -58,7 +58,7 @@ export async function applyActiveTransform(): Promise<void> {
   // Registry-driven dispatch for all transform dialogs
   const config = getDialogConfig(activeDialog);
   if (config?.applyHandler) {
-    await config.applyHandler(HelperHandlers.createExecutionCallbacks());
+    await config.applyHandler(buildDefaultExecutionCallbacks());
   }
 }
 

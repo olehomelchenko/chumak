@@ -4,7 +4,6 @@ import { parseExpression } from '../../../core/expression-parser';
 import { validateAST } from '../../../core/ast-validator';
 import { formatError } from '../../../core/error-formatter';
 import { ColumnSchema } from '../../../core/schema-engine';
-import { StepService, ExecutionCallbacks } from '../../services/StepService';
 import { DependencyService } from '../../services/DependencyService';
 import { AppStore } from '../../stores/AppStore';
 import type { Model } from '../../types';
@@ -34,72 +33,6 @@ export function getModelMeta(model: any): string {
  */
 export function describeTransformWrapper(transform: any): string {
   return describeTransform(transform);
-}
-
-/**
- * Callbacks interface for transform execution.
- * Used by handlers and components to interact with the UI.
- */
-export type TransformCallbacks = {
-  startTransformation: (label: string) => void;
-  endTransformation: () => void;
-  alert: (message: string) => Promise<boolean>;
-  closeDialog: (clearPreview?: boolean) => void;
-  updatePagination: () => void;
-};
-
-let transformCallbacks: TransformCallbacks | null = null;
-
-/**
- * Set transform callbacks for store-based operations
- */
-export function setTransformCallbacks(cb: TransformCallbacks): void {
-  transformCallbacks = cb;
-}
-
-/**
- * Creates callbacks for StepService.
- * Uses stored callbacks set via setTransformCallbacks().
- */
-export function createExecutionCallbacks(): ExecutionCallbacks {
-  if (!transformCallbacks) {
-    throw new Error('Transform callbacks not set. Call setTransformCallbacks first.');
-  }
-  return {
-    onTransformStart: (label: string) => transformCallbacks!.startTransformation(label),
-    onTransformEnd: () => transformCallbacks!.endTransformation(),
-    onError: async (message: string) => {
-      await transformCallbacks!.alert(message);
-    },
-    onDialogClose: (clearPreview?: boolean) => transformCallbacks!.closeDialog(clearPreview),
-    updatePagination: () => transformCallbacks!.updatePagination(),
-  };
-}
-
-/**
- * Runs a transform using StepService.
- * Uses stored callbacks set via setTransformCallbacks().
- */
-export async function runTransform(
-  label: string,
-  transform: any,
-  closeDialog = true
-): Promise<boolean> {
-  const callbacks = createExecutionCallbacks();
-  return StepService.runTransform(label, transform, callbacks, closeDialog);
-}
-
-/**
- * Apply a step result using StepService.
- * Uses stored callbacks set via setTransformCallbacks().
- */
-export async function applyStepResult(
-  transform: any,
-  resultTable: any,
-  closeDialogAfter = true
-): Promise<void> {
-  const callbacks = createExecutionCallbacks();
-  return StepService.applyStepResult(transform, resultTable, callbacks, closeDialogAfter);
 }
 
 /**

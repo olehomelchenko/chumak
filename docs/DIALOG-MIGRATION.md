@@ -300,7 +300,7 @@ With all transform dialogs migrated:
 
 1. **Collapsed `DialogCoordinator.initDialogState`** — the 90-line switch reduced to settings + column-editor + registry delegation
 2. **`reset-registry.ts`** — still used by non-transform dialogs (import, settings, etc.); will be removed when those are migrated
-3. **`createExecutionCallbacks()` / `setTransformCallbacks()`** — deferred; still used by `step-handlers`, `eda-handlers`, `EdaPanel`. Migrate to `executeTransform()` in a separate refactor.
+3. **Removed `createExecutionCallbacks()` / `setTransformCallbacks()`** — adopted `executeTransform()` in `eda-handlers` and `EdaPanel`; `step-handlers` dispatch now builds callbacks via `buildDefaultExecutionCallbacks()`. Legacy helpers and orchestrator wiring deleted.
 4. **Removed callback wiring** — join/append init and target-change callbacks removed from `AppOrchestrator`, `DialogCoordinator`, `StepCallbacks`
 5. **Simplified `activeDialogError()` switch** — collapsed 19-case switch to bridge signal check + import-url special case
 6. **Removed all transform `DialogStore` static properties** — only non-transform states remain (import, settings, type-conversion, preview, generate)

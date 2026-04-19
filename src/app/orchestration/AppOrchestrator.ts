@@ -30,7 +30,6 @@ import {
 } from '../handlers/dialog/dialog-handlers';
 import { setStepCallbacks, computeModelUpToStep } from '../handlers/core/step-handlers';
 import { setEdaCallbacks } from '../handlers/core/eda-handlers';
-import { setTransformCallbacks } from '../handlers/core/helper-handlers';
 import { setJsonEditCallbacks } from '../handlers/import/json-handlers';
 import {
   setImportCallbacks,
@@ -41,11 +40,7 @@ import {
 import { setGenerateCallbacks, generateData } from '../handlers/import/generate-handlers';
 
 // Direct handler imports for callback wiring
-import {
-  alert as notificationAlert,
-  confirm,
-  showWarning,
-} from '../handlers/core/notification-handlers';
+import { confirm, showWarning } from '../handlers/core/notification-handlers';
 import { clearColumnSelection, updateToolbarPosition } from '../handlers/core/interaction-handlers';
 import { updatePagination } from '../handlers/core/pagination-handlers';
 
@@ -177,14 +172,6 @@ function wireHandlerCallbacks(): void {
   setEdaCallbacks({
     updateToolbarPosition: () => updateToolbarPosition(),
     clearColumnSelection: () => clearColumnSelection(),
-  });
-
-  setTransformCallbacks({
-    startTransformation: (label) => AppController.startTransformation(label),
-    endTransformation: () => AppController.endTransformation(),
-    alert: (msg) => notificationAlert(msg),
-    closeDialog: (clearPreview) => closeDialog(clearPreview),
-    updatePagination: () => updatePagination(),
   });
 
   setJsonEditCallbacks({

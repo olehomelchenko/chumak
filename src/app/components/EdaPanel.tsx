@@ -15,8 +15,7 @@ import {
   EdaBivariateStrip,
   EdaBivariateModal,
 } from './eda';
-import { StepService } from '../services/StepService';
-import * as HelperHandlers from '../handlers/core/helper-handlers';
+import { executeTransform } from '../infrastructure/executeTransform';
 import styles from './EdaPanel.module.css';
 
 /** Sample up to `n` rows with valid numeric values for `column`. Returns sampled rows and total valid count. */
@@ -263,7 +262,7 @@ export function EdaPanel() {
     const fmtMax = Number.isInteger(max) ? max : max.toFixed(4);
     const expr = `[${selectedColumn}] >= ${fmtMin} && [${selectedColumn}] <= ${fmtMax}`;
 
-    StepService.runTransform('Filter', { filter: expr }, HelperHandlers.createExecutionCallbacks());
+    executeTransform('Filter', { filter: expr });
 
     clearSelection();
   };

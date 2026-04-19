@@ -1,6 +1,5 @@
 import { AppStore } from '../../stores/AppStore';
-import { StepService } from '../../services/StepService';
-import * as HelperHandlers from './helper-handlers';
+import { executeTransform } from '../../infrastructure/executeTransform';
 
 /**
  * Callbacks for EDA operations that need UI interaction
@@ -151,10 +150,6 @@ export async function applyBrushFilter(): Promise<void> {
   const fmtMax = Number.isInteger(max) ? max : max.toFixed(4);
   const expr = `[${selectedColumn}] >= ${fmtMin} && [${selectedColumn}] <= ${fmtMax}`;
 
-  await StepService.runTransform(
-    'Filter',
-    { filter: expr },
-    HelperHandlers.createExecutionCallbacks()
-  );
+  await executeTransform('Filter', { filter: expr });
   callbacks?.clearColumnSelection();
 }
