@@ -1,5 +1,6 @@
 import * as aq from 'arquero';
 import { applyTransform } from '../../../core/transforms';
+import { encodeRollupSpec, tryDecodeRollupSpec } from '../../../core/transforms/rollup-spec';
 import { DialogStore } from '../../stores/DialogStore';
 import { AppStore } from '../../stores/AppStore';
 import { StepService } from '../../services/StepService';
@@ -31,13 +32,10 @@ export function constructAggregateStep(groupBy: string[], aggregations: Aggregat
     if (!agg.output) throw new Error('All aggregations must have an output name.');
     if (agg.output.trim() === '') throw new Error('Output name cannot be empty.');
     if (agg.func === 'count') {
-      rollup[agg.output] = 'op.count()';
-    } else if (agg.func === 'distinct') {
-      if (!agg.col) throw new Error(`Column required for ${agg.func}`);
-      rollup[agg.output] = `op.distinct('${agg.col}')`;
+      rollup[agg.output] = encodeRollupSpec('count');
     } else {
       if (!agg.col) throw new Error(`Column required for ${agg.func}`);
-      rollup[agg.output] = `op.${agg.func}('${agg.col}')`;
+      rollup[agg.output] = encodeRollupSpec(agg.func, agg.col);
     }
   });
   return { aggregate: { groupby: groupBy, rollup } };
@@ -48,14 +46,9 @@ export function constructAggregateStep(groupBy: string[], aggregations: Aggregat
  */
 export function parseRollupToAggregations(rollup: Record<string, string>): Aggregation[] {
   return Object.entries(rollup).map(([output, opStr]) => {
-    const match = opStr.match(/op\.(\w+)\('([^']+)'\)/);
-    if (match) {
-      return { output, func: match[1], col: match[2] };
-    }
-    if (opStr === 'op.count()') {
-      return { output, func: 'count', col: '' };
-    }
-    return { output, func: 'custom', col: '' };
+    const spec = tryDecodeRollupSpec(opStr);
+    if (!spec) return { output, func: 'custom', col: '' };
+    return { output, func: spec.func, col: spec.col ?? '' };
   });
 }
 

@@ -36,6 +36,45 @@ describe('Transform Engine - Aggregation Operations', () => {
       expect(rows[1].count).toBe(2);
     });
 
+    it('should aggregate columns whose names contain single quotes', () => {
+      const table = (aq as any).from([
+        { "O'Brien": 10, group: 'a' },
+        { "O'Brien": 20, group: 'a' },
+        { "O'Brien": 30, group: 'b' },
+      ]);
+
+      const transform = {
+        aggregate: {
+          groupby: ['group'],
+          rollup: { total: 'op.sum("O\'Brien")' },
+        },
+      };
+
+      const result = applyTransform(table, transform, ['group', "O'Brien"]);
+      const rows = result.orderby('group').objects();
+      expect(rows[0].total).toBe(30);
+      expect(rows[1].total).toBe(30);
+    });
+
+    it('should throw when a rollup output name collides with a groupby column', () => {
+      // Arquero would silently overwrite the group label with the rollup
+      // value, producing an unusable result with no way to identify groups.
+      const table = (aq as any).from([
+        { region: 'N', amount: 10 },
+        { region: 'N', amount: 20 },
+        { region: 'S', amount: 5 },
+      ]);
+      const transform = {
+        aggregate: {
+          groupby: ['region'],
+          rollup: { region: 'op.count()' },
+        },
+      };
+      expect(() => applyTransform(table, transform, ['region', 'amount'])).toThrow(
+        /Aggregate would overwrite existing column: "region"/
+      );
+    });
+
     it('should mitigate floating point errors in sum/mean', () => {
       const floatTable = (aq as any).from([
         { id: 1, val: 0.1 },
@@ -79,6 +118,53 @@ describe('Transform Engine - Aggregation Operations', () => {
       expect(result.columnNames()).toEqual(['id', 'name_1', 'name_2', 'name_3']);
       const rows = result.objects();
       expect(rows[0]).toEqual({ id: 1, name_1: 'John', name_2: 'Doe', name_3: '25' });
+    });
+
+    it('should throw when split would overwrite an existing column', () => {
+      const table = (aq as any).from([{ name: 'John,Doe', name_1: 'existing', id: 1 }]);
+      const transform = {
+        split: { column: 'name', delimiter: ',', mode: 'spread', keepOriginal: false },
+      };
+      expect(() => applyTransform(table, transform, ['name', 'name_1', 'id'])).toThrow(
+        /Split would overwrite existing column: "name_1"/
+      );
+    });
+  });
+
+  describe('applyTransform() - UNROLL', () => {
+    it('should throw when unroll index column would overwrite an existing column', () => {
+      const table = (aq as any).from([{ tags: [1, 2, 3], tags__unroll_index: 'existing', id: 1 }]);
+      const transform = {
+        unroll: { column: 'tags', indices: true, keepOriginal: false },
+      };
+      expect(() => applyTransform(table, transform, ['tags', 'tags__unroll_index', 'id'])).toThrow(
+        /Unroll would overwrite existing column: "tags__unroll_index"/
+      );
+    });
+  });
+
+  describe('applyTransform() - SPREAD', () => {
+    it('should throw when spread would overwrite an existing column', () => {
+      const table = (aq as any).from([{ tags: [10, 20], tags_1: 'existing', id: 1 }]);
+      const transform = { spread: { column: 'tags', keepOriginal: false } };
+      expect(() => applyTransform(table, transform, ['tags', 'tags_1', 'id'])).toThrow(
+        /Spread would overwrite existing column: "tags_1"/
+      );
+    });
+  });
+
+  describe('applyTransform() - PIVOT collision', () => {
+    it('should throw when a pivot key value collides with a row-identity column', () => {
+      const table = (aq as any).from([
+        { product: 'X', region: 'North', sales: 100 },
+        { product: 'X', region: 'product', sales: 50 },
+      ]);
+      const transform = {
+        pivot: { rows: ['product'], keys: 'region', values: 'sales', aggregation: 'sum' },
+      };
+      expect(() => applyTransform(table, transform, ['product', 'region', 'sales'])).toThrow(
+        /Pivot would overwrite existing column: "product"/
+      );
     });
   });
 

@@ -6,6 +6,7 @@
  */
 
 import type { FullTransformStep } from '../../core/transforms/types';
+import { decodeRollupSpec } from '../../core/transforms/rollup-spec';
 
 /** Double-quote a column name for DuckDB SQL. */
 export function quoteCol(name: string): string {
@@ -87,13 +88,8 @@ export function aggregateToSQL(transform: FullTransformStep): string {
   }
 
   for (const [outCol, exprString] of Object.entries(rollup)) {
-    const match = (exprString as string).match(/^op\.(\w+)\((?:'([^']+)'|"?([^")]+)"?)?\)$/);
-    if (!match) {
-      throw new Error(`Invalid aggregation expression: ${exprString}`);
-    }
-
-    const funcName = match[1];
-    const colName = match[2] || match[3] || null;
+    const { func: funcName, col } = decodeRollupSpec(exprString as string);
+    const colName = col ?? null;
     const sqlFunc = OP_TO_SQL[funcName];
 
     if (!sqlFunc) {

@@ -4,6 +4,8 @@
  * Handles granular type inference and schema propagation through transformation steps.
  */
 
+import { tryDecodeRollupSpec } from './transforms/rollup-spec';
+
 export type ColumnType = 'string' | 'integer' | 'float' | 'boolean' | 'date' | 'datetime' | 'json';
 
 // Known column types for validation (future-proofing: handle unknown types gracefully)
@@ -631,17 +633,15 @@ export const SchemaEngine = {
         for (const [outName, expr] of Object.entries(rollup)) {
           // Infer type from function
           let type: ColumnType = 'float'; // Default to numeric
-          const match = typeof expr === 'string' ? expr.match(/^op\.(\w+)\(/) : null;
-          const funcName = match ? match[1] : 'unknown';
+          const spec = typeof expr === 'string' ? tryDecodeRollupSpec(expr) : null;
+          const funcName = spec ? spec.func : 'unknown';
 
           if (['count', 'distinct', 'valid', 'invalid'].includes(funcName)) {
             type = 'integer';
           } else if (['first', 'last', 'min', 'max'].includes(funcName)) {
             // Inherit type from input column if possible
-            const colMatch = typeof expr === 'string' ? expr.match(/\(['"]?([^'"]+)['"]?\)/) : null;
-            if (colMatch) {
-              const inCol = colMatch[1];
-              const existing = currentSchema.find((c) => c.name === inCol);
+            if (spec?.col) {
+              const existing = currentSchema.find((c) => c.name === spec.col);
               if (existing) type = existing.type;
             }
           }

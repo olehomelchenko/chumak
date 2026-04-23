@@ -1,9 +1,18 @@
 import * as aq from 'arquero';
 import type { FullTransformStep } from '../types';
+import { decodeRollupSpec } from '../rollup-spec';
+import { assertNoCollisions } from '../unique-names';
 
 export function handleAggregate(table: any, transform: FullTransformStep): any {
   const { groupby, rollup } = transform.aggregate!;
   const op = (aq as any).op;
+
+  // A rollup output named identically to a groupby column silently clobbers
+  // the group label in arquero, leaving an unusable result (no way to tell
+  // the groups apart). Reject it up front.
+  if (groupby && groupby.length > 0) {
+    assertNoCollisions(Object.keys(rollup), groupby, 'Aggregate');
+  }
 
   let groupedTable = table;
   if (groupby && groupby.length > 0) {
@@ -14,11 +23,7 @@ export function handleAggregate(table: any, transform: FullTransformStep): any {
   const floatCols: string[] = [];
 
   for (const [outCol, exprString] of Object.entries(rollup)) {
-    const match = (exprString as string).match(/^op\.(\w+)\((?:'([^']+)'|"?([^"]+)"?)?\)$/);
-    if (!match) throw new Error(`Invalid aggregation: ${exprString}`);
-
-    const funcName = match[1];
-    const colName = match[2] || match[3];
+    const { func: funcName, col: colName } = decodeRollupSpec(exprString as string);
 
     if (!op[funcName]) throw new Error(`Unknown op: ${funcName}`);
 

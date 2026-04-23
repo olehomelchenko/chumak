@@ -313,6 +313,30 @@ describe('Transform Engine - Window Operations', () => {
         'Unknown or disallowed window function'
       );
     });
+
+    // Regression: window `derive` output named identically to an existing
+    // column REPLACES that column in place. The user named the output
+    // explicitly, so this is treated as intent, not a collision — unlike
+    // auto-generated names from split/spread/unroll/pivot. If this behavior
+    // ever needs to change, update this test and add `assertNoCollisions`
+    // in handleWindow.
+    it('replaces an existing column when derive output reuses its name', () => {
+      const table = (aq as any).from([
+        { id: 1, value: 10 },
+        { id: 2, value: 20 },
+      ]);
+      const transform = {
+        window: {
+          orderBy: [{ field: 'id', order: 'asc' as const }],
+          derive: { value: 'op.row_number()' },
+        },
+      };
+      const result = applyTransform(table, transform, ['id', 'value']);
+      expect(result.columnNames()).toEqual(['id', 'value']);
+      const rows = result.objects();
+      expect(rows[0].value).toBe(1);
+      expect(rows[1].value).toBe(2);
+    });
   });
 
   describe('applyTransform() - WINDOW cumulative aggregates', () => {

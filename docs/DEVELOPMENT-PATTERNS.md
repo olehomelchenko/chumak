@@ -226,11 +226,15 @@ Key conventions:
 - Use Arquero verbs when possible (`filter`, `derive`, `select`, `groupby`, etc.)
 - Throw descriptive errors for invalid inputs
 - Handle null/undefined values gracefully
+- **Transforms that generate new column names** (split, unroll, spread, pivot, describe-style output) **must call `assertNoCollisions`** from `src/core/transforms/unique-names.ts` before mutating the table. Arquero's `derive`/`spread`/`pivot` silently overwrite existing columns that happen to share a generated name, and that's a data-loss bug. Use `pickUniqueName` for internal scratch columns.
 
 **Two expression styles in transforms:**
 
-- **Row-wise** (derive, filter, conditional): Full AST pipeline — `parseExpression()` → `validateAST()` → `interpretAST()` per row. See §7.
-- **Arquero op-based** (window, aggregate): String `"op.func('col')"` parsed by regex, called as `aq.op.func()`. Aggregate functions in window context **must** be wrapped with `aq.rolling(opResult, frame)` — plain `op.sum` in `derive()` gives the whole-group total, not a running aggregate. Default frame `[-Infinity, 0]` gives SQL-consistent cumulative behavior.
+- **Row-wise** (derive, filter, conditional): Full AST pipeline — `parseExpression()` → `validateAST()` → `interpretAST()` per row. See §7. Column references: bare identifier for simple names, `[Bracketed Name]` for anything else — both produce `Identifier` AST nodes (the bracket form is a native jsep plugin, not a string pre-pass).
+- **Arquero op-based** (window, aggregate): Persisted as strings like `"op.sum('col')"` or `"op.lag('col', 1)"`.
+  - **Aggregate rollup specs** (zero-arg or single-column): encode and decode only via `encodeRollupSpec`/`decodeRollupSpec`/`tryDecodeRollupSpec` in `src/core/transforms/rollup-spec.ts` — never regex-parse these strings ad-hoc. The decoder handles three dialects (single-quoted legacy, bare-identifier legacy, JSON-quoted for names with quotes/backslashes) so column names with unusual characters round-trip safely.
+  - **Window specs** (multi-arg, e.g. `op.lag('col', 1)`) use a separate parser in `src/core/transforms/handlers/window.ts` — they're not interchangeable with the rollup-spec helpers. TODO: window persistence still has the ad-hoc dialect and doesn't round-trip names with commas/quotes; converge with rollup-spec once a shared multi-arg encoder exists.
+  - Aggregate functions in window context **must** be wrapped with `aq.rolling(opResult, frame)` — plain `op.sum` in `derive()` gives the whole-group total, not a running aggregate. Default frame `[-Infinity, 0]` gives SQL-consistent cumulative behavior.
 
 ### 1.4 Schema Propagation (`schema-engine.ts`)
 
