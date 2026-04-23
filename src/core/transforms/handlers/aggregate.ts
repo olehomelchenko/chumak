@@ -35,12 +35,21 @@ export function handleAggregate(table: any, transform: FullTransformStep): any {
 
   let result = groupedTable.rollup(rollupSpecs).ungroup();
 
-  if (floatCols.length > 0) {
+  // Normalise aggregate outputs: round floats, and convert Arquero's
+  // `undefined`-on-empty (e.g. sum/mean/min/max of an all-null column) to
+  // `null`, matching Syto's "null means missing" convention everywhere else
+  // (SOUL.md §7 "Predictable, Not Clever").
+  const outCols = Object.keys(rollupSpecs);
+  if (outCols.length > 0) {
     const cleanups: any = {};
-    floatCols.forEach((col) => {
+    const floatSet = new Set(floatCols);
+    outCols.forEach((col) => {
+      const isFloat = floatSet.has(col);
       cleanups[col] = (aq as any).escape((d: any) => {
         const val = d[col];
-        return typeof val === 'number' ? Math.round(val * 1e9) / 1e9 : val;
+        if (val === undefined) return null;
+        if (isFloat && typeof val === 'number') return Math.round(val * 1e9) / 1e9;
+        return val;
       });
     });
     result = result.derive(cleanups);

@@ -608,4 +608,103 @@ describe('Transform Engine - Aggregation Operations', () => {
       expect(desc).toContain('3');
     });
   });
+
+  describe('applyTransform() - Aggregate degenerate cases', () => {
+    it('empty-but-schemad input produces empty aggregate result', () => {
+      // Filter-to-empty retains schema; aq.from([]) is schema-less and throws.
+      const table = (aq as any).from([{ region: 'N', sales: 0 }]).filter(() => false);
+      const transform = {
+        aggregate: { groupby: ['region'], rollup: { total: 'op.sum("sales")' } },
+      };
+      const result = applyTransform(table, transform, ['region', 'sales']);
+      expect(result.numRows()).toBe(0);
+      expect(result.columnNames()).toContain('region');
+      expect(result.columnNames()).toContain('total');
+    });
+
+    it('single-row input produces single-row aggregate', () => {
+      const table = (aq as any).from([{ region: 'N', sales: 10 }]);
+      const transform = {
+        aggregate: { groupby: ['region'], rollup: { total: 'op.sum("sales")' } },
+      };
+      const result = applyTransform(table, transform, ['region', 'sales']);
+      expect(result.numRows()).toBe(1);
+      expect(result.objects()[0]).toEqual({ region: 'N', total: 10 });
+    });
+
+    it('null in groupby column forms its own group', () => {
+      const table = (aq as any).from([
+        { region: 'N', sales: 10 },
+        { region: null, sales: 20 },
+        { region: null, sales: 30 },
+        { region: 'N', sales: 5 },
+      ]);
+      const transform = {
+        aggregate: { groupby: ['region'], rollup: { total: 'op.sum("sales")' } },
+      };
+      const result = applyTransform(table, transform, ['region', 'sales']);
+      expect(result.numRows()).toBe(2);
+      const rows = result.objects();
+      const nRow = rows.find((r: any) => r.region === 'N');
+      const nullRow = rows.find((r: any) => r.region === null);
+      expect(nRow.total).toBe(15);
+      expect(nullRow.total).toBe(50);
+    });
+
+    it('sum of an all-null column returns null', () => {
+      // Syto normalises Arquero's `undefined`-on-empty to `null` so aggregate
+      // outputs are consistent with null-for-missing used elsewhere.
+      const table = (aq as any).from([
+        { region: 'N', sales: null },
+        { region: 'N', sales: null },
+      ]);
+      const transform = {
+        aggregate: { groupby: ['region'], rollup: { total: 'op.sum("sales")' } },
+      };
+      const result = applyTransform(table, transform, ['region', 'sales']);
+      expect(result.objects()[0].total).toBeNull();
+    });
+
+    it('mean/min/max of an all-null column return null', () => {
+      const table = (aq as any).from([
+        { region: 'N', sales: null },
+        { region: 'N', sales: null },
+      ]);
+      const transform = {
+        aggregate: {
+          groupby: ['region'],
+          rollup: {
+            avg: 'op.mean("sales")',
+            lo: 'op.min("sales")',
+            hi: 'op.max("sales")',
+          },
+        },
+      };
+      const result = applyTransform(table, transform, ['region', 'sales']);
+      const row = result.objects()[0];
+      expect(row.avg).toBeNull();
+      expect(row.lo).toBeNull();
+      expect(row.hi).toBeNull();
+    });
+
+    it('valid/distinct of an all-null column return integer counts, not null', () => {
+      // These ops have meaningful integer semantics and shouldn't be
+      // normalised to null. `valid` counts non-null (0 here); `distinct`
+      // treats null as a value (1 here — one distinct null).
+      const table = (aq as any).from([
+        { region: 'N', sales: null },
+        { region: 'N', sales: null },
+      ]);
+      const transform = {
+        aggregate: {
+          groupby: ['region'],
+          rollup: { n: 'op.valid("sales")', u: 'op.distinct("sales")' },
+        },
+      };
+      const result = applyTransform(table, transform, ['region', 'sales']);
+      const row = result.objects()[0];
+      expect(row.n).toBe(0);
+      expect(row.u).toBe(1);
+    });
+  });
 });
