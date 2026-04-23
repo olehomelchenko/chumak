@@ -212,3 +212,101 @@ describe('AST Interpreter - Error Propagation', () => {
     expect(interpretAST(parseExpression('nullVal ?? 0'), row)).toBe(0);
   });
 });
+
+// These tests CHARACTERISE the current interpreter behaviour on numeric edges.
+// They pass native JS semantics through unchanged. If any of these surprise
+// you, the contract is worth a decision — don't just change the test.
+describe('AST Interpreter - Numeric Edge Cases', () => {
+  const row = {
+    a: 1,
+    zero: 0,
+    negZero: -0,
+    big: Number.MAX_SAFE_INTEGER,
+    inf: Infinity,
+    ninf: -Infinity,
+    nan: NaN,
+  };
+
+  describe('division by zero', () => {
+    it('positive / 0 returns Infinity', () => {
+      expect(interpretAST(parseExpression('a / zero'), row)).toBe(Infinity);
+      expect(interpretAST(parseExpression('1 / 0'), row)).toBe(Infinity);
+    });
+
+    it('negative / 0 returns -Infinity', () => {
+      expect(interpretAST(parseExpression('-a / zero'), row)).toBe(-Infinity);
+    });
+
+    it('0 / 0 returns NaN', () => {
+      expect(interpretAST(parseExpression('zero / zero'), row)).toBe(NaN);
+    });
+
+    it('modulo by zero returns NaN', () => {
+      expect(interpretAST(parseExpression('a % zero'), row)).toBe(NaN);
+    });
+  });
+
+  describe('NaN propagation and comparison', () => {
+    it('NaN arithmetic yields NaN', () => {
+      expect(interpretAST(parseExpression('nan + 1'), row)).toBe(NaN);
+      expect(interpretAST(parseExpression('nan * 0'), row)).toBe(NaN);
+    });
+
+    it('NaN == NaN is false (native JS)', () => {
+      expect(interpretAST(parseExpression('nan == nan'), row)).toBe(false);
+      expect(interpretAST(parseExpression('nan === nan'), row)).toBe(false);
+    });
+
+    it('NaN != NaN is true', () => {
+      expect(interpretAST(parseExpression('nan != nan'), row)).toBe(true);
+    });
+
+    it('NaN comparisons are always false', () => {
+      expect(interpretAST(parseExpression('nan > 0'), row)).toBe(false);
+      expect(interpretAST(parseExpression('nan < 0'), row)).toBe(false);
+      expect(interpretAST(parseExpression('nan >= nan'), row)).toBe(false);
+    });
+  });
+
+  describe('Infinity arithmetic', () => {
+    it('Infinity + finite = Infinity', () => {
+      expect(interpretAST(parseExpression('inf + 1'), row)).toBe(Infinity);
+    });
+
+    it('Infinity - Infinity = NaN', () => {
+      expect(interpretAST(parseExpression('inf - inf'), row)).toBe(NaN);
+    });
+
+    it('Infinity * 0 = NaN', () => {
+      expect(interpretAST(parseExpression('inf * zero'), row)).toBe(NaN);
+    });
+
+    it('-Infinity < Infinity', () => {
+      expect(interpretAST(parseExpression('ninf < inf'), row)).toBe(true);
+    });
+
+    it('Infinity == Infinity', () => {
+      expect(interpretAST(parseExpression('inf == inf'), row)).toBe(true);
+    });
+  });
+
+  describe('signed zero', () => {
+    it('-0 == 0 (loose and strict)', () => {
+      expect(interpretAST(parseExpression('negZero == zero'), row)).toBe(true);
+      expect(interpretAST(parseExpression('negZero === zero'), row)).toBe(true);
+    });
+
+    it('-0 is not less than 0', () => {
+      expect(interpretAST(parseExpression('negZero < zero'), row)).toBe(false);
+    });
+  });
+
+  describe('large numbers', () => {
+    it('MAX_SAFE_INTEGER + 1 loses precision (native JS)', () => {
+      // 2^53 and 2^53+1 are indistinguishable as JS numbers
+      const result = interpretAST(parseExpression('big + 1'), row);
+      expect(result).toBe(Number.MAX_SAFE_INTEGER + 1);
+      expect(result === Number.MAX_SAFE_INTEGER + 2).toBe(true); // surprising but correct
+    });
+  });
+});

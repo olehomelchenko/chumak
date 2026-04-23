@@ -629,4 +629,77 @@ describe('Transform Engine - Window Operations', () => {
       expect(desc).toBe('Window rolling (1 column, by date)');
     });
   });
+
+  describe('applyTransform() - Window degenerate cases', () => {
+    it('empty-but-schemad table returns empty result with derived column present', () => {
+      // Filter-to-empty retains schema; aq.from([]) doesn't.
+      const table = (aq as any).from([{ value: 1 }]).filter(() => false);
+      const transform = {
+        window: {
+          orderBy: [{ field: 'value', order: 'asc' as const }],
+          derive: { rn: 'op.row_number()' },
+        },
+      };
+      const result = applyTransform(table, transform, ['value']);
+      expect(result.numRows()).toBe(0);
+      expect(result.columnNames()).toContain('rn');
+    });
+
+    it('single-row table produces single-row output with rank 1', () => {
+      const table = (aq as any).from([{ value: 42 }]);
+      const transform = {
+        window: {
+          orderBy: [{ field: 'value', order: 'asc' as const }],
+          derive: { rn: 'op.row_number()', r: 'op.rank()' },
+        },
+      };
+      const result = applyTransform(table, transform, ['value']);
+      expect(result.numRows()).toBe(1);
+      const row = result.objects()[0];
+      expect(row.rn).toBe(1);
+      expect(row.r).toBe(1);
+    });
+
+    it('partitionBy with all rows in one partition equals no partition', () => {
+      const table = (aq as any).from([
+        { g: 'a', v: 1 },
+        { g: 'a', v: 2 },
+        { g: 'a', v: 3 },
+      ]);
+      const transform = {
+        window: {
+          partitionBy: ['g'],
+          orderBy: [{ field: 'v', order: 'asc' as const }],
+          derive: { rn: 'op.row_number()' },
+        },
+      };
+      const result = applyTransform(table, transform, ['g', 'v']);
+      const rns = result.objects().map((r: any) => r.rn);
+      expect(rns).toEqual([1, 2, 3]);
+    });
+
+    it('partitionBy on column containing nulls groups null rows together', () => {
+      // Pins current behaviour: null is treated as a partition value (not dropped).
+      const table = (aq as any).from([
+        { g: 'a', v: 1 },
+        { g: null, v: 2 },
+        { g: null, v: 3 },
+        { g: 'a', v: 4 },
+      ]);
+      const transform = {
+        window: {
+          partitionBy: ['g'],
+          orderBy: [{ field: 'v', order: 'asc' as const }],
+          derive: { rn: 'op.row_number()' },
+        },
+      };
+      const result = applyTransform(table, transform, ['g', 'v']);
+      const rows = result.objects();
+      // Each of the two groups ('a' and null) should start numbering at 1
+      const aRows = rows.filter((r: any) => r.g === 'a').map((r: any) => r.rn);
+      const nullRows = rows.filter((r: any) => r.g === null).map((r: any) => r.rn);
+      expect(aRows.sort()).toEqual([1, 2]);
+      expect(nullRows.sort()).toEqual([1, 2]);
+    });
+  });
 });

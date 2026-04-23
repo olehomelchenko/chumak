@@ -291,4 +291,54 @@ describe('Transform Engine - Combine Operations', () => {
       );
     });
   });
+
+  describe('applyTransform() - Combine degenerate cases', () => {
+    const mkModel = (id: string, data: any[]) => ({ id, name: id, data });
+
+    it('concat with empty right preserves left unchanged', () => {
+      const left = (aq as any).from([
+        { id: 1, x: 'a' },
+        { id: 2, x: 'b' },
+      ]);
+      const ctx = { sources: [], models: [mkModel('mdl_r', [])] };
+      const result = applyTransform(left, { concat: { with: 'mdl_r' } }, ['id', 'x'], ctx);
+      expect(result.numRows()).toBe(2);
+      expect(result.objects()).toEqual([
+        { id: 1, x: 'a' },
+        { id: 2, x: 'b' },
+      ]);
+    });
+
+    it('concat with empty-but-schemad left yields the right table', () => {
+      const left = (aq as any).from([{ id: 0, x: '' }]).filter(() => false);
+      const rightData = [
+        { id: 1, x: 'a' },
+        { id: 2, x: 'b' },
+      ];
+      const ctx = { sources: [], models: [mkModel('mdl_r', rightData)] };
+      const result = applyTransform(left, { concat: { with: 'mdl_r' } }, ['id', 'x'], ctx);
+      expect(result.numRows()).toBe(2);
+    });
+
+    it('concat of two empty tables yields empty', () => {
+      const left = (aq as any).from([{ id: 0 }]).filter(() => false);
+      const ctx = { sources: [], models: [mkModel('mdl_r', [])] };
+      const result = applyTransform(left, { concat: { with: 'mdl_r' } }, ['id'], ctx);
+      expect(result.numRows()).toBe(0);
+    });
+
+    it('union with empty right equals dedup of left', () => {
+      const left = (aq as any).from([{ id: 1 }, { id: 1 }, { id: 2 }]);
+      const ctx = { sources: [], models: [mkModel('mdl_r', [])] };
+      const result = applyTransform(left, { union: { with: 'mdl_r' } }, ['id'], ctx);
+      expect(result.numRows()).toBe(2);
+    });
+
+    it('union of two empty tables yields empty', () => {
+      const left = (aq as any).from([]);
+      const ctx = { sources: [], models: [mkModel('mdl_r', [])] };
+      const result = applyTransform(left, { union: { with: 'mdl_r' } }, [], ctx);
+      expect(result.numRows()).toBe(0);
+    });
+  });
 });
