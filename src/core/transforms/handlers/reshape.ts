@@ -1,7 +1,7 @@
 import * as aq from 'arquero';
 import type { FullTransformStep } from '../types';
 import { checkIfNeedsJsonParsing } from '../utils';
-import { assertNoCollisions } from '../unique-names';
+import { assertNoCollisions, pickUniqueName } from '../unique-names';
 
 export function handleFold(table: any, transform: FullTransformStep): any {
   const { columns, as } = transform.fold!;
@@ -61,10 +61,7 @@ export function handleSplit(table: any, transform: FullTransformStep): any {
   let delimiterPattern: string | RegExp = delimiter;
   if (isRegex) delimiterPattern = new RegExp(delimiter);
 
-  // TODO: derive `arrayCol` via `pickUniqueName` (unique-names.ts) to match the
-  // convention in DEVELOPMENT-PATTERNS §1.3 — a user column literally named
-  // `__split_temp_<column>` would be silently overwritten here.
-  const arrayCol = `__split_temp_${column}`;
+  const arrayCol = pickUniqueName(`__split_temp_${column}`, table.columnNames());
   let resultTable = table.derive({
     [arrayCol]: (aq as any).escape((d: any) => {
       const value = d[column];
@@ -123,9 +120,7 @@ export function handleSpread(table: any, transform: FullTransformStep): any {
   // overwrite an existing user column; we then rename temp-prefixed outputs
   // to the final `${column}_<suffix>` names and validate collisions first.
   const needsParsing = checkIfNeedsJsonParsing(table, column);
-  // TODO: derive `tempCol` via `pickUniqueName` — the `__temp_spread_` prefix
-  // is a convention, not a guarantee of uniqueness. See DEVELOPMENT-PATTERNS §1.3.
-  const tempCol = `__temp_spread_${column}`;
+  const tempCol = pickUniqueName(`__temp_spread_${column}`, originalCols);
   const tempTable = table.derive({
     [tempCol]: (aq as any).escape((d: any) => {
       const val = d[column];
@@ -173,8 +168,7 @@ export function handleUnroll(table: any, transform: FullTransformStep): any {
   // Check if column contains JSON strings and parse if needed
   const needsParsing = checkIfNeedsJsonParsing(table, column);
   if (needsParsing) {
-    // TODO: derive `tempCol` via `pickUniqueName` — same caveat as in handleSpread.
-    const tempCol = `__temp_unroll_${column}`;
+    const tempCol = pickUniqueName(`__temp_unroll_${column}`, table.columnNames());
     table = table.derive({
       [tempCol]: (aq as any).escape((d: any) => {
         const val = d[column];
@@ -203,8 +197,7 @@ export function handleUnroll(table: any, transform: FullTransformStep): any {
   // Native array handling
   // If keepOriginal is true, preserve the column before unroll
   if (keepOriginal) {
-    // TODO: derive `preservedCol` via `pickUniqueName` — same caveat as above.
-    const preservedCol = `__preserve_${column}`;
+    const preservedCol = pickUniqueName(`__preserve_${column}`, table.columnNames());
     table = table.derive({
       [preservedCol]: (aq as any).escape((d: any) => d[column]),
     });
