@@ -464,6 +464,189 @@ describe('Transform Engine - Join and Array Operations', () => {
     });
   });
 
+  // Degenerate inputs — no-match right, duplicate keys, and empty-schema
+  // inputs. These pin cardinality invariants plus one real gotcha: a model
+  // with `data: []` is schema-less and throws in join parsing. That's a bug
+  // at the Syto↔Arquero seam worth surfacing.
+  describe('applyTransform() - Join degenerate cases', () => {
+    const left = () =>
+      (aq as any).from([
+        { id: 1, name: 'Alice' },
+        { id: 2, name: 'Bob' },
+      ]);
+
+    it('semijoin with no matching right rows returns zero rows', () => {
+      const ctx = {
+        sources: [],
+        models: [{ id: 'mdl_r', name: 'R', data: [{ id: 999, score: 1 }] }],
+      };
+      const result = applyTransform(
+        left(),
+        { semijoin: { right: 'mdl_r', on: [['id', 'id']] } },
+        ['id', 'name'],
+        ctx
+      );
+      expect(result.numRows()).toBe(0);
+    });
+
+    it('antijoin with no matching right rows returns all left rows', () => {
+      const ctx = {
+        sources: [],
+        models: [{ id: 'mdl_r', name: 'R', data: [{ id: 999, score: 1 }] }],
+      };
+      const result = applyTransform(
+        left(),
+        { antijoin: { right: 'mdl_r', on: [['id', 'id']] } },
+        ['id', 'name'],
+        ctx
+      );
+      expect(result.numRows()).toBe(2);
+    });
+
+    it('lookup with no matching right rows preserves left cardinality with undefined values', () => {
+      const ctx = {
+        sources: [],
+        models: [{ id: 'mdl_r', name: 'R', data: [{ id: 999, score: 1 }] }],
+      };
+      const result = applyTransform(
+        left(),
+        { lookup: { right: 'mdl_r', on: [['id', 'id']], values: ['score'] } },
+        ['id', 'name'],
+        ctx
+      );
+      expect(result.numRows()).toBe(2);
+      expect(result.columnNames()).toContain('score');
+      const rows = result.objects();
+      expect(rows[0].score).toBeUndefined();
+      expect(rows[1].score).toBeUndefined();
+    });
+
+    it('semijoin on empty-but-schemad left returns zero rows', () => {
+      // A filter-to-empty left retains its schema, unlike aq.from([]).
+      const empty = (aq as any).from([{ id: 1, name: 'A' }]).filter(() => false);
+      const ctx = {
+        sources: [],
+        models: [{ id: 'mdl_r', name: 'R', data: [{ id: 1, x: 'a' }] }],
+      };
+      const result = applyTransform(
+        empty,
+        { semijoin: { right: 'mdl_r', on: [['id', 'id']] } },
+        ['id', 'name'],
+        ctx
+      );
+      expect(result.numRows()).toBe(0);
+    });
+
+    it('semijoin against a `data: []` model returns empty result', () => {
+      // Empty `data` produces a schema-less Arquero table. The handler
+      // detects this and short-circuits to the correct empty result
+      // rather than letting Arquero's key parser throw.
+      const ctx = {
+        sources: [],
+        models: [{ id: 'mdl_r', name: 'R', data: [] as any[] }],
+      };
+      const result = applyTransform(
+        left(),
+        { semijoin: { right: 'mdl_r', on: [['id', 'id']] } },
+        ['id', 'name'],
+        ctx
+      );
+      expect(result.numRows()).toBe(0);
+      expect(result.columnNames()).toEqual(['id', 'name']);
+    });
+
+    it('antijoin against a `data: []` model returns the left table unchanged', () => {
+      const ctx = {
+        sources: [],
+        models: [{ id: 'mdl_r', name: 'R', data: [] as any[] }],
+      };
+      const result = applyTransform(
+        left(),
+        { antijoin: { right: 'mdl_r', on: [['id', 'id']] } },
+        ['id', 'name'],
+        ctx
+      );
+      expect(result.numRows()).toBe(2);
+      expect(result.objects()).toEqual([
+        { id: 1, name: 'Alice' },
+        { id: 2, name: 'Bob' },
+      ]);
+    });
+
+    it('lookup against a `data: []` model adds undefined-valued columns', () => {
+      const ctx = {
+        sources: [],
+        models: [{ id: 'mdl_r', name: 'R', data: [] as any[] }],
+      };
+      const result = applyTransform(
+        left(),
+        { lookup: { right: 'mdl_r', on: [['id', 'id']], values: ['score', 'grade'] } },
+        ['id', 'name'],
+        ctx
+      );
+      expect(result.numRows()).toBe(2);
+      expect(result.columnNames()).toContain('score');
+      expect(result.columnNames()).toContain('grade');
+      const rows = result.objects();
+      expect(rows[0].score).toBeUndefined();
+      expect(rows[0].grade).toBeUndefined();
+    });
+
+    it('lookup with duplicate keys on right picks one match (1:1 cardinality)', () => {
+      // Arquero's lookup matches at most one right row per left row.
+      // This test pins that behaviour so a change would be explicit.
+      const ctx = {
+        sources: [],
+        models: [
+          {
+            id: 'mdl_r',
+            name: 'R',
+            data: [
+              { id: 1, score: 100 },
+              { id: 1, score: 999 },
+            ],
+          },
+        ],
+      };
+      const result = applyTransform(
+        left(),
+        { lookup: { right: 'mdl_r', on: [['id', 'id']], values: ['score'] } },
+        ['id', 'name'],
+        ctx
+      );
+      expect(result.numRows()).toBe(2); // left cardinality preserved
+      const rows = result.objects();
+      // id=1 gets exactly one of the two candidate scores (not both, not summed)
+      expect([100, 999]).toContain(rows[0].score);
+    });
+
+    it('semijoin with duplicate right keys preserves left cardinality', () => {
+      const ctx = {
+        sources: [],
+        models: [
+          {
+            id: 'mdl_r',
+            name: 'R',
+            data: [
+              { id: 1, x: 'a' },
+              { id: 1, x: 'b' },
+              { id: 1, x: 'c' },
+            ],
+          },
+        ],
+      };
+      const result = applyTransform(
+        left(),
+        { semijoin: { right: 'mdl_r', on: [['id', 'id']] } },
+        ['id', 'name'],
+        ctx
+      );
+      // Left has one row with id=1; should produce exactly one row, not three
+      const rows = result.objects().filter((r: any) => r.id === 1);
+      expect(rows.length).toBe(1);
+    });
+  });
+
   describe('describeTransform() - Join and Array Transforms', () => {
     it('should describe semijoin transform', () => {
       expect(describeTransform({ semijoin: { right: 'mdl_test', on: [['id', 'id']] } })).toBe(

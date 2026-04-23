@@ -1,5 +1,14 @@
+import * as aq from 'arquero';
 import type { FullTransformStep, TransformContext } from '../types';
 import { resolveTableFromContext } from '../utils';
+
+// A right table built from `data: []` has no columns, which makes Arquero's
+// join verbs throw "Invalid column reference" when they try to parse keys.
+// Short-circuit here: the semantics of each operation against an empty right
+// are well-defined, so we return the correct result without touching Arquero.
+function isSchemaless(table: any): boolean {
+  return table.numCols() === 0;
+}
 
 export function handleJoin(
   table: any,
@@ -35,6 +44,8 @@ export function handleSemijoin(
   const { right, on } = transform.semijoin!;
   const rightTable = resolveTableFromContext(context, right, 'Semijoin');
 
+  if (isSchemaless(rightTable)) return table.filter(() => false);
+
   const leftKeys = on.map((pair: [string, string]) => pair[0]);
   const rightKeys = on.map((pair: [string, string]) => pair[1]);
   const keys = leftKeys.length === 1 ? [leftKeys[0], rightKeys[0]] : [leftKeys, rightKeys];
@@ -51,6 +62,8 @@ export function handleAntijoin(
   const { right, on } = transform.antijoin!;
   const rightTable = resolveTableFromContext(context, right, 'Antijoin');
 
+  if (isSchemaless(rightTable)) return table;
+
   const leftKeys = on.map((pair: [string, string]) => pair[0]);
   const rightKeys = on.map((pair: [string, string]) => pair[1]);
   const keys = leftKeys.length === 1 ? [leftKeys[0], rightKeys[0]] : [leftKeys, rightKeys];
@@ -66,6 +79,12 @@ export function handleLookup(
 ): any {
   const { right, on, values } = transform.lookup!;
   const rightTable = resolveTableFromContext(context, right, 'Lookup');
+
+  if (isSchemaless(rightTable)) {
+    const derives: Record<string, any> = {};
+    for (const col of values) derives[col] = (aq as any).escape(() => undefined);
+    return table.derive(derives);
+  }
 
   const leftKeys = on.map((pair: [string, string]) => pair[0]);
   const rightKeys = on.map((pair: [string, string]) => pair[1]);
