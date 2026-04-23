@@ -1,3 +1,4 @@
+import { ComponentChildren } from 'preact';
 import { useTranslation } from 'preact-i18next';
 import { AppStore } from '../stores/AppStore';
 import styles from './FloatingToolbar.module.css';
@@ -7,8 +8,30 @@ interface CellToolbarProps {
   onReplace: () => void;
 }
 
-// TODO: The floatingToolbar wrapper div (positioning + stopPropagation) is repeated
-// in each return branch. Extract a shared ToolbarWrapper to reduce duplication.
+function ToolbarWrapper({
+  pos,
+  children,
+}: {
+  pos: { x: number; y: number; arrowOffset: number };
+  children: ComponentChildren;
+}) {
+  return (
+    <div
+      class={styles.floatingToolbar}
+      style={
+        {
+          left: `${pos.x}px`,
+          top: `${pos.y}px`,
+          '--arrow-offset': `${pos.arrowOffset}px`,
+        } as any
+      }
+      onClick={(e) => e.stopPropagation()}
+    >
+      {children}
+    </div>
+  );
+}
+
 export function CellToolbar({ onFilter, onReplace }: CellToolbarProps) {
   const { t } = useTranslation('ui');
   const selectedCell = AppStore.selectedCell.value;
@@ -25,17 +48,7 @@ export function CellToolbar({ onFilter, onReplace }: CellToolbarProps) {
 
     if (isEdaMissing || isError) {
       return (
-        <div
-          class={styles.floatingToolbar}
-          style={
-            {
-              left: `${pos.x}px`,
-              top: `${pos.y}px`,
-              '--arrow-offset': `${pos.arrowOffset}px`,
-            } as any
-          }
-          onClick={(e) => e.stopPropagation()}
-        >
+        <ToolbarWrapper pos={pos}>
           <button
             class={`${styles.floatingToolbar__button} ${styles.danger}`}
             onClick={() => onFilter('not')}
@@ -68,24 +81,14 @@ export function CellToolbar({ onFilter, onReplace }: CellToolbarProps) {
               style="width: 24px; height: 24px;"
             ></span>
           </button>
-        </div>
+        </ToolbarWrapper>
       );
     }
 
     if (!isComparable) return null;
 
     return (
-      <div
-        class={styles.floatingToolbar}
-        style={
-          {
-            left: `${pos.x}px`,
-            top: `${pos.y}px`,
-            '--arrow-offset': `${pos.arrowOffset}px`,
-          } as any
-        }
-        onClick={(e) => e.stopPropagation()}
-      >
+      <ToolbarWrapper pos={pos}>
         <div class={styles.floatingToolbar__comparableGroup}>
           <button
             class={styles.floatingToolbar__button}
@@ -116,7 +119,7 @@ export function CellToolbar({ onFilter, onReplace }: CellToolbarProps) {
             <span class={styles.floatingToolbar__textOp}>&le;</span>
           </button>
         </div>
-      </div>
+      </ToolbarWrapper>
     );
   }
 
@@ -124,17 +127,7 @@ export function CellToolbar({ onFilter, onReplace }: CellToolbarProps) {
   const isDateType = type.includes('date');
 
   return (
-    <div
-      class={styles.floatingToolbar}
-      style={
-        {
-          left: `${pos.x}px`,
-          top: `${pos.y}px`,
-          '--arrow-offset': `${pos.arrowOffset}px`,
-        } as any
-      }
-      onClick={(e) => e.stopPropagation()}
-    >
+    <ToolbarWrapper pos={pos}>
       <button
         class={styles.floatingToolbar__button}
         onClick={() => onFilter('exact')}
@@ -210,6 +203,6 @@ export function CellToolbar({ onFilter, onReplace }: CellToolbarProps) {
           </button>
         </div>
       )}
-    </div>
+    </ToolbarWrapper>
   );
 }
