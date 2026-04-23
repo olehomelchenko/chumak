@@ -165,7 +165,6 @@
     "removeRows_other": "Remove {{count}} selected rows?",
     "promoteRow": "Use row {{row}} as column headers? All rows above will be removed.",
     "removeStep": "Remove step \"{{name}}\"?",
-    "replaceNulls": "Replace null/empty values?",
     "overwriteColumn": "{{message}}. It will be overwritten. Continue?",
     "overwriteColumns": "Columns {{columns}} already exist. They will be overwritten. Continue?",
     "unsavedChanges": "You have unsaved changes. Are you sure you want to discard them?",

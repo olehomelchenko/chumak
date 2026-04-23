@@ -481,21 +481,9 @@ export const DIALOG_REGISTRY: Record<string, DialogConfig> = {
         await cb.onError?.(i18n.t('validation.selection.column', { ns: 'errors' }));
         return;
       }
-      if (mode === 'value') {
-        // TODO: dead code — findValue is always a string from the signal bridge; was dead in old handler too
-        if (!isRegex && (findValue === undefined || findValue === null)) {
-          const { confirm } = await import('./handlers/core/notification-handlers');
-          const confirmed = await confirm(
-            i18n.t('confirms.replaceNulls', { ns: 'common' }),
-            undefined,
-            i18n.t('buttons.replace', { ns: 'common' })
-          );
-          if (!confirmed) return;
-        }
-        if (isRegex && !findValue) {
-          await cb.onError?.(i18n.t('validation.required.regexPattern', { ns: 'errors' }));
-          return;
-        }
+      if (mode === 'value' && isRegex && !findValue) {
+        await cb.onError?.(i18n.t('validation.required.regexPattern', { ns: 'errors' }));
+        return;
       }
       const transform = {
         replace: {
