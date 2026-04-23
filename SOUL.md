@@ -69,6 +69,14 @@ While we prioritize safety and non-destructiveness by default, we enter into a s
 - **User Responsibility**: Once warned, the expectation is that the user is capable of assessing the risks and making an informed decision for themselves.
 - **Pragmatic Compatibility**: We strive for backwards compatibility in the engine, but we prioritize giving the user full control over protecting them from themselves in "Danger Zone" scenarios.
 
+### 7. Predictable, Not Clever
+
+When a behaviour could go one of several ways, pick the option closest to the mental model the user already has. Syto's users mostly come from Excel, SQL, or pandas — if one of those has a convention that fits, follow it rather than inventing a third.
+
+When no external convention dominates, prefer **internal consistency**. If `null` is how Syto represents missing data everywhere else, an aggregate of an all-null column should also return `null` — not `undefined`, not `0`. Every time a user's guess about what will happen turns out right, their trust grows; every clever-but-novel decision costs them a rule to remember.
+
+This applies to data operations, UI affordances, and error handling alike. The test for a contract decision is not "what's most technically interesting" but "what's the least surprising thing that could happen here."
+
 ## What We're Not
 
 - **Not a spreadsheet replacement**: No cell-by-cell editing, no formulas that reference A1:B5
