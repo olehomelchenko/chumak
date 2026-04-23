@@ -115,54 +115,42 @@ function isIdentifierPartCode(code: number): boolean {
   );
 }
 
-/**
- * Replace bracket notation [ColumnName] only when outside string literals.
- */
-function replaceBracketsOutsideStrings(
-  expression: string,
-  replacer: (match: string, colName: string) => string
-): string {
-  let result = '';
-  let i = 0;
+// `[Column Name]` — bracketed column reference. Parsed natively by jsep so
+// we avoid a string pre-pass and placeholder dance. Emits a plain Identifier
+// node with the bracketed text as name, so AST consumers need no changes.
+jsep.plugins.register({
+  name: 'syto-bracket-column',
+  init() {
+    jsep.hooks.add('gobble-token', function gobbleBracketColumn(this: any, env: any) {
+      if (env.node) return;
+      if (this.char !== '[') return;
 
-  while (i < expression.length) {
-    const char = expression[i];
+      const start = this.index;
+      this.index++; // consume '['
 
-    if (char === '"' || char === "'") {
-      const quote = char;
-      let j = i + 1;
-      while (j < expression.length) {
-        if (expression[j] === '\\' && j + 1 < expression.length) {
-          j += 2;
-        } else if (expression[j] === quote) {
-          j++;
-          break;
-        } else {
-          j++;
-        }
+      const nameStart = this.index;
+      while (this.index < this.expr.length && this.expr.charAt(this.index) !== ']') {
+        this.index++;
       }
-      result += expression.slice(i, j);
-      i = j;
-      continue;
-    }
 
-    if (char === '[') {
-      const closeBracket = expression.indexOf(']', i);
-      if (closeBracket !== -1) {
-        const fullMatch = expression.slice(i, closeBracket + 1);
-        const innerContent = expression.slice(i + 1, closeBracket);
-        result += replacer(fullMatch, innerContent);
-        i = closeBracket + 1;
-        continue;
+      if (this.index >= this.expr.length) {
+        const err: any = new Error('Unclosed column reference — expected "]"');
+        err.index = start;
+        throw err;
       }
-    }
 
-    result += char;
-    i++;
-  }
+      const name = this.expr.slice(nameStart, this.index);
+      if (name === '') {
+        const err: any = new Error('Empty column reference "[]"');
+        err.index = start;
+        throw err;
+      }
 
-  return result;
-}
+      this.index++; // consume ']'
+      env.node = { type: 'Identifier', name };
+    });
+  },
+});
 
 /**
  * Parse an expression string into an Abstract Syntax Tree
@@ -172,56 +160,9 @@ export function parseExpression(expression: string): ASTNode {
     throw new Error('Expression must be a non-empty string');
   }
 
-  const colMatches: { placeholder: string; colName: string }[] = [];
-  const processedExpr = replaceBracketsOutsideStrings(expression, (match, colName) => {
-    const index = colMatches.length;
-    let placeholder = `_${index}_`.padEnd(match.length, '_');
-    if (placeholder.length > match.length) {
-      placeholder = placeholder.substring(0, match.length);
-    }
-    colMatches.push({ placeholder, colName });
-    return placeholder;
-  });
-
   try {
-    const ast = jsep(processedExpr.trim()) as ASTNode;
-
-    if (colMatches.length > 0) {
-      restoreColumnNames(ast, colMatches);
-    }
-
-    return ast;
+    return jsep(expression.trim()) as ASTNode;
   } catch (error: any) {
     throw { message: error.message, position: error.index || 0, expression };
-  }
-}
-
-/**
- * Recursively walk AST and restore column names from placeholders
- */
-function restoreColumnNames(node: ASTNode, colMatches: { placeholder: string; colName: string }[]) {
-  if (!node || typeof node !== 'object') return;
-
-  if (node.type === 'Identifier' && node.name) {
-    const match = colMatches.find((m) => m.placeholder === node.name);
-    if (match) node.name = match.colName;
-  }
-
-  if (node.type === 'LetExpression' && Array.isArray(node.bindings)) {
-    for (const binding of node.bindings) {
-      const match = colMatches.find((m) => m.placeholder === binding.name);
-      if (match) binding.name = match.colName;
-    }
-  }
-
-  for (const key in node) {
-    const child = node[key];
-    if (child && typeof child === 'object') {
-      if (Array.isArray(child)) {
-        child.forEach((c) => restoreColumnNames(c, colMatches));
-      } else {
-        restoreColumnNames(child as ASTNode, colMatches);
-      }
-    }
   }
 }
