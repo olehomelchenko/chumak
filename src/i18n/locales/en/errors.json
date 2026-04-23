@@ -46,7 +46,16 @@
       "pattern": "Fix pattern errors before applying",
       "sampleSize": "Enter a valid sample size greater than 0",
       "spreadLimit": "Limit must be greater than 0",
-      "rowCount": "Enter a valid number of rows"
+      "rowCount": "Enter a valid number of rows",
+      "regexPattern": "Invalid regex pattern: {{message}}",
+      "columnNames": "Invalid column names"
+    },
+    "columnEditor": {
+      "atLeastOneColumnName": "Enter at least one column name",
+      "duplicateColumnName": "Duplicate column name: \"{{name}}\"",
+      "renameLineCount": "Rename requires exactly {{count}} lines (one per column), got {{got}}",
+      "reorderColumnCount": "Reorder requires all {{count}} columns, got {{got}}",
+      "unknownColumn": "Unknown column: \"{{name}}\""
     },
     "duplicate": {
       "columnExists": "Column \"{{name}}\" already exists",

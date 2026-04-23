@@ -6,6 +6,7 @@ import { formatError } from '../../../core/error-formatter';
 import { ColumnSchema } from '../../../core/schema-engine';
 import { DependencyService } from '../../services/DependencyService';
 import { AppStore } from '../../stores/AppStore';
+import i18n from '../../../i18n';
 import type { Model } from '../../types';
 
 export function getPreviewRowLimit(): number {
@@ -22,8 +23,10 @@ export function getModelMeta(model: any): string {
   const rowCount = model.data ? model.data.length : (model.rowCount ?? 0);
   const colCount = model.schema ? model.schema.length : (model.colCount ?? 0);
   const stepsCount = Math.max(0, (model.steps ? model.steps.length : 0) - 1);
-  // TODO: use i18n for step text — currently hardcoded English (Sidebar.tsx has the i18n version)
-  const stepsText = stepsCount === 1 ? '1 step' : `${stepsCount} steps`;
+  const stepsText =
+    stepsCount === 1
+      ? i18n.t('common:sidebar.steps.step_one')
+      : i18n.t('common:sidebar.steps.step_other', { count: stepsCount });
 
   return `${rowCount.toLocaleString()} x ${colCount} • ${stepsText}`;
 }

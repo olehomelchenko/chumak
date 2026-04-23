@@ -210,7 +210,6 @@ export function switchColumnEditorToText(state: ColumnEditorState): void {
 /**
  * Validate the text editor content. Pure — returns result without writing to signals.
  */
-// TODO: i18n — validation messages below are hardcoded English; should use i18n.t() keys
 export function validateColumnEditorText(
   textValue: string,
   textSubMode: ColumnEditorTextSubMode,
@@ -225,14 +224,20 @@ export function validateColumnEditorText(
   const originalNameSet = new Set(appColumns);
 
   if (lines.length === 0) {
-    return { valid: false, error: 'Enter at least one column name' };
+    return {
+      valid: false,
+      error: i18n.t('validation.columnEditor.atLeastOneColumnName', { ns: 'errors' }),
+    };
   }
 
   // Check for duplicates (case-insensitive)
   const seen = new Set<string>();
   for (const line of lines) {
     if (seen.has(line.toLowerCase())) {
-      return { valid: false, error: `Duplicate column name: "${line}"` };
+      return {
+        valid: false,
+        error: i18n.t('validation.columnEditor.duplicateColumnName', { ns: 'errors', name: line }),
+      };
     }
     seen.add(line.toLowerCase());
   }
@@ -241,25 +246,39 @@ export function validateColumnEditorText(
     if (lines.length !== columnCount) {
       return {
         valid: false,
-        error: `Rename requires exactly ${columnCount} lines (one per column), got ${lines.length}`,
+        error: i18n.t('validation.columnEditor.renameLineCount', {
+          ns: 'errors',
+          count: columnCount,
+          got: lines.length,
+        }),
       };
     }
   } else if (textSubMode === 'reorder') {
     for (const line of lines) {
       if (!originalNameSet.has(line)) {
-        return { valid: false, error: `Unknown column: "${line}"` };
+        return {
+          valid: false,
+          error: i18n.t('validation.columnEditor.unknownColumn', { ns: 'errors', name: line }),
+        };
       }
     }
     if (lines.length !== columnCount) {
       return {
         valid: false,
-        error: `Reorder requires all ${columnCount} columns, got ${lines.length}`,
+        error: i18n.t('validation.columnEditor.reorderColumnCount', {
+          ns: 'errors',
+          count: columnCount,
+          got: lines.length,
+        }),
       };
     }
   } else if (textSubMode === 'select') {
     for (const line of lines) {
       if (!originalNameSet.has(line)) {
-        return { valid: false, error: `Unknown column: "${line}"` };
+        return {
+          valid: false,
+          error: i18n.t('validation.columnEditor.unknownColumn', { ns: 'errors', name: line }),
+        };
       }
     }
   }
@@ -302,7 +321,10 @@ export async function applyColumnEditorTransform(callbacks: any) {
           // Write error back via bridge — the component will see it
           DialogStore.activeDialogState.value = {
             ...state,
-            patternError: `Invalid regex pattern: ${e.message}`,
+            patternError: i18n.t('validation.invalid.regexPattern', {
+              ns: 'errors',
+              message: e.message,
+            }),
           };
           return;
         }
@@ -334,7 +356,10 @@ export async function applyColumnEditorTransform(callbacks: any) {
         } catch (e: any) {
           DialogStore.activeDialogState.value = {
             ...state,
-            patternError: `Invalid regex pattern: ${e.message}`,
+            patternError: i18n.t('validation.invalid.regexPattern', {
+              ns: 'errors',
+              message: e.message,
+            }),
           };
           return;
         }
@@ -366,7 +391,10 @@ export async function applyColumnEditorTransform(callbacks: any) {
         } catch (e: any) {
           DialogStore.activeDialogState.value = {
             ...state,
-            patternError: `Invalid regex pattern: ${e.message}`,
+            patternError: i18n.t('validation.invalid.regexPattern', {
+              ns: 'errors',
+              message: e.message,
+            }),
           };
           return;
         }
@@ -390,7 +418,9 @@ export async function applyColumnEditorTransform(callbacks: any) {
   if (mode === 'text') {
     const validation = validateColumnEditorText(textValue, textSubMode, appColumns);
     if (!validation.valid) {
-      await callbacks.onError?.(validation.error || 'Invalid column names');
+      await callbacks.onError?.(
+        validation.error || i18n.t('validation.invalid.columnNames', { ns: 'errors' })
+      );
       return;
     }
 
