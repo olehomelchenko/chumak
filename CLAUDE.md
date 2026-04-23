@@ -25,6 +25,8 @@ See @AGENTS.md for project overview, security requirements, codebase orientation
 ### Development Guides
 
 - **[DEVELOPMENT-PATTERNS.md](docs/DEVELOPMENT-PATTERNS.md)**: How to add transforms, testing patterns, state management conventions
+- **[TESTING_STRATEGY.md](docs/TESTING_STRATEGY.md)**: Testing principles, diagnostic questions, failure modes, and audit protocol — _read before adding or evaluating tests_
+- **[TESTING_PROGRESS.md](docs/TESTING_PROGRESS.md)**: Living log of testing-coverage work — what's done, queued, and postponed
 - **[I18N-GUIDE.md](docs/I18N-GUIDE.md)**: Internationalization setup — adding languages, namespaces, plural rules, common patterns
 - **[FUNCTION-DOCS-SYSTEM.md](docs/FUNCTION-DOCS-SYSTEM.md)**: Auto-generated function documentation system (JSDoc → markdown/JSON)
 - **[DEBUGGING.md](docs/DEBUGGING.md)**: CSS Module debugging and DevTools tips
@@ -53,6 +55,8 @@ See @AGENTS.md for project overview, security requirements, codebase orientation
 | Adding new transforms  | [DEVELOPMENT-PATTERNS.md](docs/DEVELOPMENT-PATTERNS.md) §1                                               |
 | Architecture review    | [ARCHITECTURE-REVIEW.md](docs/ARCHITECTURE-REVIEW.md)                                                    |
 | Testing patterns       | [DEVELOPMENT-PATTERNS.md](docs/DEVELOPMENT-PATTERNS.md) §3                                               |
+| Testing strategy       | [TESTING_STRATEGY.md](docs/TESTING_STRATEGY.md)                                                          |
+| Testing progress log   | [TESTING_PROGRESS.md](docs/TESTING_PROGRESS.md)                                                          |
 | State management       | [DEVELOPMENT-PATTERNS.md](docs/DEVELOPMENT-PATTERNS.md) §2                                               |
 | UI component patterns  | [UX-SPECIFICATION.md](docs/UX-SPECIFICATION.md) §3                                                       |
 | UI vocabulary & terms  | [UI-VOCAB.md](docs/UI-VOCAB.md)                                                                          |
