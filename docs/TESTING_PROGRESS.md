@@ -37,7 +37,7 @@ Update this doc as batches land, findings are resolved, or priorities shift. Dat
 ### Still to do in Batch 1
 
 - [x] **Bug fix: empty-`data` model throws on join.** _Fixed 2026-04-24._ `src/core/transforms/handlers/join.ts` now detects a schema-less right table (`numCols() === 0`) in `handleSemijoin`/`handleAntijoin`/`handleLookup` and short-circuits to the correct empty-result semantics. Tests in `transforms-join.test.ts` now assert the fixed behaviour for all three.
-- [ ] **Follow-up: `handleJoin` (inner/left/right/full/cross) likely has the same bug.** Not in the Tier 1 audit so not currently covered. Worth a small PR: add schema-less-right guard to `handleJoin` with appropriate per-how semantics, plus tests. Queue before Batch 2.
+- [ ] **Follow-up: `handleJoin` (inner/left/right/full/cross) likely has the same bug.** Tracked in [BACKLOG.md — Empty-Model Crash in `handleJoin`](BACKLOG.md). Not in the Tier 1 audit so not currently covered. Queue before Batch 2.
 - [x] **Contract decision: aggregate of all-null → `null`.** _Decided 2026-04-24._ Per SOUL.md §7 ("Predictable, Not Clever"), Syto normalises Arquero's `undefined`-on-empty to `null` for sum/mean/min/max/median and any other rollup that produces `undefined`. `valid`/`distinct` keep their integer semantics (`valid` → 0, `distinct` → 1 because null counts as a distinct value). Implemented in `handleAggregate`; tests updated in `transforms-aggregate.test.ts`.
 
 ---
@@ -96,11 +96,7 @@ Per the strategy doc's guidance on low-signal metrics — and to avoid make-work
 
 ## Idioms and notes for test-writing
 
-Conventions that emerged while writing Batch 1:
-
-- **Empty-but-schemad tables.** `aq.from([])` builds a _schema-less_ table that throws on any column-referencing verb. Use `aq.from([{ col: sentinel }]).filter(() => false)` instead when you want an empty table that still has columns declared.
-- **`FINDING:` and `SURPRISE:` prefixes in test names.** Reserved for tests that pin _current_ behaviour that may be wrong. `FINDING:` = suspected bug to fix later. `SURPRISE:` = unintuitive-but-correct behaviour worth surfacing. Both flip to normal names once resolved.
-- **Idempotence as single-example tests.** Don't need fast-check to cover the common case. `applyTwice(transform)` + `expect(once).toEqual(twice)` is cheap insurance against non-determinism and state leaks.
+Conventions that emerged while writing Batch 1 have been promoted into [DEVELOPMENT-PATTERNS.md §3.6](DEVELOPMENT-PATTERNS.md) — see there for the empty-schemad-table idiom and the `FINDING:` / `SURPRISE:` naming convention. A lightweight idempotence pattern (`applyTwice(transform)` + `expect(once).toEqual(twice)`) is demonstrated in `src/core/transforms-idempotence.test.ts`.
 
 ---
 

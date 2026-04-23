@@ -517,6 +517,8 @@ Settings are **immediate-apply** — changes take effect on click, persisted to 
 
 ## 3. Testing Patterns
 
+> For _strategic_ guidance (what tests should protect against, diagnostic questions, audit protocol) see [TESTING_STRATEGY.md](TESTING_STRATEGY.md). This section is tactical: how to write tests that fit this codebase's conventions.
+
 ### 3.1 Test Organization
 
 | Test Type   | Location                        | Purpose                                  |
@@ -676,6 +678,25 @@ vi.mock('../../services/StepService', async () =>
 ```
 
 Available factories: `stepService`, `stepServiceFull` (adds `applyStepResult`), `notificationHandlers`, `previewEngine`, `validationEngineExpression`, `validationEngineRegex`.
+
+### 3.6 Idioms and Conventions
+
+**Empty-but-schemad tables in tests.** `aq.from([])` builds a _schema-less_ table that throws on any column-referencing verb (`filter`, `orderby`, `groupby`, join keys). When a test needs an empty input that still has a schema, filter a single-row table down to zero:
+
+```typescript
+// ✗ Throws as soon as any transform references a column
+const empty = (aq as any).from([]);
+
+// ✓ Retains schema; safe for all transforms
+const empty = (aq as any).from([{ id: 0, name: '' }]).filter(() => false);
+```
+
+**`FINDING:` and `SURPRISE:` prefixes in test names.** Reserved for tests that pin _current_ behaviour which may be wrong:
+
+- `FINDING:` — suspected bug pinned until fixed. Flip the assertion once resolved.
+- `SURPRISE:` — unintuitive-but-correct behaviour worth surfacing (e.g. native JS passthrough in the interpreter). Rename once accepted as the contract.
+
+Both markers make it easy to grep for known weirdness and distinguish it from ordinary regression tests.
 
 ---
 
