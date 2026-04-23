@@ -28,7 +28,8 @@ async function handleSave(event: KeyboardEvent) {
 }
 
 /**
- * Handle Delete: Remove selected step
+ * Handle Delete: Remove the currently viewed step, or the last step if none
+ * is explicitly viewed. `removeStep` itself refuses to remove the import step.
  */
 async function handleDelete() {
   const model = AppStore.activeModel.value;
@@ -36,12 +37,12 @@ async function handleDelete() {
     return;
   }
 
-  // For now, remove the last step (most recently added)
-  // TODO: Add concept of "selected step" to AppStore for more precise deletion
-  const lastStepIndex = model.steps.length - 1;
+  const viewed = AppStore.activeStepIndex.value;
+  const targetIndex =
+    viewed != null && viewed >= 0 && viewed < model.steps.length ? viewed : model.steps.length - 1;
 
   try {
-    await StepHandlers.removeStep(lastStepIndex);
+    await StepHandlers.removeStep(targetIndex);
   } catch (error: any) {
     console.error('Error removing step:', error);
   }
