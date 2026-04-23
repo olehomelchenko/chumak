@@ -262,6 +262,7 @@ const { t } = useTranslation('errors');
 - Translation keys are validated at compile time
 - Namespace names are type-checked
 - Typos in `t('invalid.key')` produce TypeScript errors
+- **Do not wrap `i18n.t()` in a helper.** The typed key overload requires a string literal at the call site; routing keys through a generic `(key: string) => i18n.t(key, ...)` wrapper widens the key to `string` and breaks namespace-aware narrowing (TS error on the wrapper's own `i18n.t` call). If a call site repeats the same namespace many times, inline the calls — don't DRY them up.
 
 **Testing**: When adding translated text, verify:
 
@@ -305,3 +306,5 @@ When translatable text wraps around `<code>` or other markup, extract only the n
 // Translation key: "if your JSON is" (no code in key)
 <code>results</code> ({t('importCsv.exampleIfJsonIs')} <code>{`{ "results": [...] }`}</code>)
 ```
+
+**i18n in portable core modules** — files under `src/core/` must not import `i18n` (they run in Node.js for the CLI, where no i18n runtime is configured). When a core module needs translated strings (e.g. chart tooltip titles), accept them as an options field and fall back to English defaults. The app-side caller builds the labels object from `t()` and passes it in. See `ChartOptions.labels` / `ChartLabels` in `src/core/charts.ts` and `buildChartLabels` in `src/app/components/eda/chart-labels.ts` for the pattern.
