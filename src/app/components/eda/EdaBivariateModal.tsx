@@ -3,6 +3,7 @@ import { useTranslation } from 'preact-i18next';
 import { AppStore } from '../../stores/AppStore';
 import { ChartsEngine } from '../../../core/charts';
 import type { BivariateSuggestion } from '../../../core/bivariate';
+import { buildChartLabels } from './chart-labels';
 import styles from './EdaBivariateModal.module.css';
 
 const CHART_TYPE_LABELS: Record<string, string> = {
@@ -36,9 +37,9 @@ export function EdaBivariateModal({
     if (!el || !document.body.contains(el) || !active || data.length === 0) return;
 
     el.innerHTML = '';
-    const opts = { width: 'container' as const, height: 300 };
+    const opts = { width: 'container' as const, height: 300, labels: buildChartLabels(t) };
     ChartsEngine.renderBivariate(el, data, selectedColumn, active, theme, opts);
-  }, [selectedColumn, active?.partnerColumn, active?.chartType, data, theme]);
+  }, [selectedColumn, active?.partnerColumn, active?.chartType, data, theme, t]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {

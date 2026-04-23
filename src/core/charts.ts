@@ -9,12 +9,41 @@ import type { BivariateSuggestion } from './bivariate';
  * Provides visualization capabilities using Vega-Lite.
  */
 
-// TODO: Tooltip titles across all chart methods are hardcoded English.
-// To i18n them, accept translated labels from callers (core/ must stay portable, no i18n imports).
-
 /** Escape dots and brackets so Vega-Lite treats them as literal field names */
 function escapeVegaField(name: string): string {
   return name.replace(/([.\[\]])/g, '\\$1');
+}
+
+/**
+ * Translated labels for tooltip titles. Callers pass these in; core/ stays
+ * portable (no i18n imports). Missing keys fall back to English defaults.
+ */
+export interface ChartLabels {
+  lowerWhisker?: string;
+  upperWhisker?: string;
+  q1?: string;
+  median?: string;
+  q3?: string;
+  value?: string;
+  count?: string;
+  percentage?: string;
+  date?: string;
+}
+
+const DEFAULT_LABELS: Required<ChartLabels> = {
+  lowerWhisker: 'Lower whisker',
+  upperWhisker: 'Upper whisker',
+  q1: 'Q1 (25%)',
+  median: 'Median',
+  q3: 'Q3 (75%)',
+  value: 'Value',
+  count: 'Count',
+  percentage: 'Percentage',
+  date: 'Date',
+};
+
+function resolveLabels(labels?: ChartLabels): Required<ChartLabels> {
+  return labels ? { ...DEFAULT_LABELS, ...labels } : DEFAULT_LABELS;
 }
 
 export interface BoxPlotStats {
@@ -31,6 +60,8 @@ export interface ChartOptions {
   maxbins?: number;
   /** Render as a compact thumbnail (no axes labels, no tooltip, smaller) */
   thumbnail?: boolean;
+  /** Translated tooltip labels. Missing keys fall back to English. */
+  labels?: ChartLabels;
 }
 
 export const ChartsEngine = {
@@ -61,6 +92,7 @@ export const ChartsEngine = {
 
     // Pre-aggregated summary for box/whisker layers (yMid centers in jitter space)
     const summaryData = [{ whiskerLow, p25, median, p75, whiskerHigh, yMid: 0.5 }];
+    const labels = resolveLabels(options.labels);
 
     const spec: any = {
       $schema: 'https://vega.github.io/schema/vega-lite/v6.json',
@@ -106,8 +138,8 @@ export const ChartsEngine = {
             x2: { field: 'whiskerHigh' },
             y: { field: 'yMid', type: 'quantitative', axis: null, scale: { domain: [-0.1, 1.1] } },
             tooltip: [
-              { field: 'whiskerLow', type: 'quantitative', title: 'Lower whisker' },
-              { field: 'whiskerHigh', type: 'quantitative', title: 'Upper whisker' },
+              { field: 'whiskerLow', type: 'quantitative', title: labels.lowerWhisker },
+              { field: 'whiskerHigh', type: 'quantitative', title: labels.upperWhisker },
             ],
           },
         },
@@ -120,9 +152,9 @@ export const ChartsEngine = {
             x2: { field: 'p75' },
             y: { field: 'yMid', type: 'quantitative', axis: null, scale: { domain: [-0.1, 1.1] } },
             tooltip: [
-              { field: 'p25', type: 'quantitative', title: 'Q1 (25%)' },
-              { field: 'median', type: 'quantitative', title: 'Median' },
-              { field: 'p75', type: 'quantitative', title: 'Q3 (75%)' },
+              { field: 'p25', type: 'quantitative', title: labels.q1 },
+              { field: 'median', type: 'quantitative', title: labels.median },
+              { field: 'p75', type: 'quantitative', title: labels.q3 },
             ],
           },
         },
@@ -133,28 +165,13 @@ export const ChartsEngine = {
           encoding: {
             x: { field: 'median' },
             y: { field: 'yMid', type: 'quantitative', axis: null, scale: { domain: [-0.1, 1.1] } },
-            tooltip: [{ field: 'median', type: 'quantitative', title: 'Median' }],
+            tooltip: [{ field: 'median', type: 'quantitative', title: labels.median }],
           },
         },
       ],
     };
 
-    const vegaTheme = theme === 'syto' ? sytoTheme : bluesTheme;
-
-    try {
-      await vegaEmbed(container, spec, {
-        actions: false,
-        renderer: 'svg',
-        config: vegaTheme,
-      });
-    } catch (error: any) {
-      // Filter out non-critical errors about element IDs that don't affect rendering
-      if (error?.message && error.message.includes('does not exist')) {
-        // Silently ignore - charts render fine without these IDs
-        return;
-      }
-      console.error('Error rendering boxplot:', error);
-    }
+    await this._embed(container, spec, theme);
   },
 
   /**
@@ -176,6 +193,8 @@ export const ChartsEngine = {
     options: ChartOptions = {}
   ): Promise<void> {
     if (!aggregatedData || aggregatedData.length === 0) return;
+
+    const labels = resolveLabels(options.labels);
 
     // Map data with index, ensuring proper ordering: [Top values] - (others) - null - error
     // Order: regular values (0-9999), others (10000-19999), null (20000-29999), error (30000+)
@@ -219,44 +238,28 @@ export const ChartsEngine = {
           type: 'quantitative',
         },
         tooltip: [
-          { field: 'value', title: 'Value' },
-          { field: 'count', title: 'Count' },
-          { field: 'percentage', title: 'Percentage', format: '.1f' },
+          { field: 'value', title: labels.value },
+          { field: 'count', title: labels.count },
+          { field: 'percentage', title: labels.percentage, format: '.1f' },
         ],
       },
     };
 
-    const vegaTheme = theme === 'syto' ? sytoTheme : bluesTheme;
-
-    try {
-      const result = await vegaEmbed(container, spec, {
-        actions: false,
-        renderer: 'svg',
-        config: vegaTheme,
+    const result = await this._embed(container, spec, theme);
+    if (result && onValueClick) {
+      result.view.addEventListener('click', (event: any, item: any) => {
+        if (item?.datum?.value !== undefined) {
+          onValueClick(
+            {
+              value: item.datum.value,
+              isNull: item.datum.isNull,
+              isOther: item.datum.isOther,
+              isError: item.datum.isError,
+            },
+            event
+          );
+        }
       });
-
-      if (onValueClick) {
-        result.view.addEventListener('click', (event: any, item: any) => {
-          if (item?.datum?.value !== undefined) {
-            onValueClick(
-              {
-                value: item.datum.value,
-                isNull: item.datum.isNull,
-                isOther: item.datum.isOther,
-                isError: item.datum.isError,
-              },
-              event
-            );
-          }
-        });
-      }
-    } catch (error: any) {
-      // Filter out non-critical errors about element IDs that don't affect rendering
-      if (error?.message && error.message.includes('does not exist')) {
-        // Silently ignore - charts render fine without these IDs
-        return;
-      }
-      console.error('Error rendering categorical bar:', error);
     }
   },
 
@@ -329,35 +332,19 @@ export const ChartsEngine = {
       ],
     };
 
-    const vegaTheme = theme === 'syto' ? sytoTheme : bluesTheme;
-
-    try {
-      const result = await vegaEmbed(container, spec, {
-        actions: false,
-        renderer: 'svg',
-        config: vegaTheme,
+    const result = await this._embed(container, spec, theme);
+    if (result && onBrush) {
+      const escaped = escapeVegaField(column);
+      result.view.addSignalListener('brush', (_name: string, value: any) => {
+        if (value && value[escaped]) {
+          onBrush({
+            min: value[escaped][0],
+            max: value[escaped][1],
+          });
+        } else {
+          onBrush(null);
+        }
       });
-
-      if (onBrush) {
-        const escaped = escapeVegaField(column);
-        result.view.addSignalListener('brush', (_name: string, value: any) => {
-          if (value && value[escaped]) {
-            onBrush({
-              min: value[escaped][0],
-              max: value[escaped][1],
-            });
-          } else {
-            onBrush(null);
-          }
-        });
-      }
-    } catch (error: any) {
-      // Filter out non-critical errors about element IDs that don't affect rendering
-      if (error?.message && error.message.includes('does not exist')) {
-        // Silently ignore - charts render fine without these IDs
-        return;
-      }
-      console.error('Error rendering histogram:', error);
     }
   },
 
@@ -372,6 +359,8 @@ export const ChartsEngine = {
     options: ChartOptions = {}
   ): Promise<void> {
     if (!data || data.length === 0 || !column) return;
+
+    const labels = resolveLabels(options.labels);
 
     // Filter valid dates and sort by date
     const chartData = data
@@ -429,28 +418,18 @@ export const ChartsEngine = {
           axis: null,
         },
         tooltip: [
-          { field: escapeVegaField(column), type: 'temporal', timeUnit: timeUnit, title: 'Date' },
-          { aggregate: 'count', title: 'Count' },
+          {
+            field: escapeVegaField(column),
+            type: 'temporal',
+            timeUnit: timeUnit,
+            title: labels.date,
+          },
+          { aggregate: 'count', title: labels.count },
         ],
       },
     };
 
-    const vegaTheme = theme === 'syto' ? sytoTheme : bluesTheme;
-
-    try {
-      await vegaEmbed(container, spec, {
-        actions: false,
-        renderer: 'svg',
-        config: vegaTheme,
-      });
-    } catch (error: any) {
-      // Filter out non-critical errors about element IDs that don't affect rendering
-      if (error?.message && error.message.includes('does not exist')) {
-        // Silently ignore - charts render fine without these IDs
-        return;
-      }
-      console.error('Error rendering temporal chart:', error);
-    }
+    await this._embed(container, spec, theme);
   },
 
   /**
@@ -564,7 +543,12 @@ export const ChartsEngine = {
                   title: `mean(${numericCol})`,
                   format: '.2f',
                 },
-                { field: escapedNum, aggregate: 'count', type: 'quantitative', title: 'Count' },
+                {
+                  field: escapedNum,
+                  aggregate: 'count',
+                  type: 'quantitative',
+                  title: resolveLabels(options.labels).count,
+                },
               ],
             }),
       },
@@ -660,6 +644,7 @@ export const ChartsEngine = {
     if (!data || data.length === 0 || !col1 || !col2) return;
 
     const thumb = options.thumbnail;
+    const labels = resolveLabels(options.labels);
     const escaped1 = escapeVegaField(col1);
     const escaped2 = escapeVegaField(col2);
 
@@ -686,7 +671,7 @@ export const ChartsEngine = {
         color: {
           aggregate: 'count',
           type: 'quantitative',
-          title: 'Count',
+          title: labels.count,
           legend: thumb ? null : undefined,
         },
         ...(thumb
@@ -695,7 +680,7 @@ export const ChartsEngine = {
               tooltip: [
                 { field: escaped1, type: 'nominal', title: col1 },
                 { field: escaped2, type: 'nominal', title: col2 },
-                { aggregate: 'count', type: 'quantitative', title: 'Count' },
+                { aggregate: 'count', type: 'quantitative', title: labels.count },
               ],
             }),
       },
@@ -743,21 +728,28 @@ export const ChartsEngine = {
     }
   },
 
-  // TODO: Existing chart methods (renderBoxPlot, renderHistogram, etc.) still call
-  // vegaEmbed directly with duplicated error handling. Migrate them to use _embed.
-
-  /** Shared embed helper with standard error handling */
-  async _embed(container: string | HTMLElement, spec: any, theme: 'syto' | 'blues'): Promise<void> {
+  /**
+   * Shared embed helper with standard error handling.
+   * Returns the vega-embed result (for callers that need to attach listeners
+   * via `result.view`), or `null` when the embed failed or was silently
+   * swallowed.
+   */
+  async _embed(
+    container: string | HTMLElement,
+    spec: any,
+    theme: 'syto' | 'blues'
+  ): Promise<any | null> {
     const vegaTheme = theme === 'syto' ? sytoTheme : bluesTheme;
     try {
-      await vegaEmbed(container, spec, {
+      return await vegaEmbed(container, spec, {
         actions: false,
         renderer: 'svg',
         config: vegaTheme,
       });
     } catch (error: any) {
-      if (error?.message && error.message.includes('does not exist')) return;
+      if (error?.message && error.message.includes('does not exist')) return null;
       console.error('Error rendering chart:', error);
+      return null;
     }
   },
 };

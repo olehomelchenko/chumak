@@ -500,6 +500,17 @@
         "lineTemporal": "Line (time)",
         "heatmap": "Heatmap"
       }
+    },
+    "chartTooltip": {
+      "lowerWhisker": "Lower whisker",
+      "upperWhisker": "Upper whisker",
+      "q1": "Q1 (25%)",
+      "median": "Median",
+      "q3": "Q3 (75%)",
+      "value": "Value",
+      "count": "Count",
+      "percentage": "Percentage",
+      "date": "Date"
     }
   },
   "typeMenu": {

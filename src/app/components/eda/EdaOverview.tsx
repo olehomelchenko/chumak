@@ -1,5 +1,6 @@
 import { useTranslation } from 'preact-i18next';
 import { AppStore } from '../../stores/AppStore';
+import { positionEdaToolbar } from '../../handlers/core/interaction-handlers';
 import styles from '../EdaPanel.module.css';
 
 interface EdaOverviewProps {
@@ -22,18 +23,9 @@ export function EdaOverview({ edaStats }: EdaOverviewProps) {
     e.stopPropagation();
     if (!selectedColumn) return;
 
-    // TODO: Extract shared toolbar positioning helper — this clamping logic is duplicated
-    // in EdaPanel.selectStat and interaction-handlers.calculateToolbarPosition
     const el = e.currentTarget as HTMLElement;
     const rect = el.getBoundingClientRect();
-    const center = rect.left + rect.width / 2;
-    const toolbarWidth = 120;
-    const windowWidth = window.innerWidth;
-    const margin = 12;
-    const x = Math.max(
-      toolbarWidth / 2 + margin,
-      Math.min(windowWidth - toolbarWidth / 2 - margin, center)
-    );
+    const toolbarPos = positionEdaToolbar(rect, 120);
 
     // Null-then-set via setTimeout forces toolbar to remount (resets position/animation).
     // Without this, Signals batches the update and the toolbar doesn't reposition.
@@ -48,7 +40,7 @@ export function EdaOverview({ edaStats }: EdaOverviewProps) {
         isEdaMissing: type === 'missing',
         isError: type === 'errors',
       };
-      AppStore.cellToolbarPos.value = { x, y: rect.top - 8, arrowOffset: center - x };
+      AppStore.cellToolbarPos.value = toolbarPos;
     }, 0);
   };
 

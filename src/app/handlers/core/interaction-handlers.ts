@@ -216,21 +216,51 @@ export function clearColumnSelection() {
   AppStore.columnMenuOpen.value = null;
 }
 
+/**
+ * Clamp `center` to keep a toolbar of `toolbarWidth` within the viewport,
+ * with a 12px margin. Returns the clamped x and the arrowOffset (signed
+ * distance from the clamped toolbar centre back to the original centre).
+ */
+export function clampToolbarX(
+  center: number,
+  toolbarWidth: number
+): { x: number; arrowOffset: number } {
+  const margin = 12;
+  const x = Math.max(
+    toolbarWidth / 2 + margin,
+    Math.min(window.innerWidth - toolbarWidth / 2 - margin, center)
+  );
+  return { x, arrowOffset: center - x };
+}
+
 export function calculateToolbarPosition(rect: DOMRect, toolbarWidth: number) {
   const center = rect.left + rect.width / 2;
-  const windowWidth = window.innerWidth;
-  const margin = 12;
-  let x = Math.max(
-    toolbarWidth / 2 + margin,
-    Math.min(windowWidth - toolbarWidth / 2 - margin, center)
-  );
+  const { x, arrowOffset } = clampToolbarX(center, toolbarWidth);
   // Position toolbar above the element (top of toolbar at top of element minus spacing)
   // Account for toolbar height (~40px) plus arrow height (6px) plus spacing (8px)
   const toolbarHeight = 40;
   const arrowHeight = 6;
   const spacing = 8;
   const y = rect.top - toolbarHeight - arrowHeight - spacing;
-  return { x: x, y: y, arrowOffset: center - x };
+  return { x, y, arrowOffset };
+}
+
+/**
+ * Position for an EDA chart/stat floating toolbar anchored at `rect.top - 8`.
+ * If `eventClientX` is provided and finite, it overrides the rect centre
+ * (lets a click on a histogram bar anchor the toolbar at the click point).
+ */
+export function positionEdaToolbar(
+  rect: DOMRect,
+  toolbarWidth: number,
+  eventClientX?: number
+): { x: number; y: number; arrowOffset: number } {
+  const center =
+    eventClientX != null && Number.isFinite(eventClientX)
+      ? eventClientX
+      : rect.left + rect.width / 2;
+  const { x, arrowOffset } = clampToolbarX(center, toolbarWidth);
+  return { x, y: rect.top - 8, arrowOffset };
 }
 
 export function updateToolbarPosition() {

@@ -3,6 +3,7 @@ import { useSignal } from '@preact/signals';
 import { useTranslation } from 'preact-i18next';
 import { AppStore } from '../stores/AppStore';
 import { ChartsEngine, BoxPlotStats } from '../../core/charts';
+import { buildChartLabels } from './eda/chart-labels';
 import { CategoricalStat, selectChartDefaults } from '../../core/eda-engine';
 import { SchemaEngine } from '../../core/schema-engine';
 import { suggestBivariatePairings } from '../../core/bivariate';
@@ -16,6 +17,7 @@ import {
   EdaBivariateModal,
 } from './eda';
 import { executeTransform } from '../infrastructure/executeTransform';
+import { positionEdaToolbar } from '../handlers/core/interaction-handlers';
 import styles from './EdaPanel.module.css';
 
 /** Sample up to `n` rows with valid numeric values for `column`. Returns sampled rows and total valid count. */
@@ -36,6 +38,7 @@ function sampleRows(data: any[], column: string, n: number): { rows: any[]; tota
 
 export function EdaPanel() {
   const { t } = useTranslation('ui');
+  const chartLabels = buildChartLabels(t);
   const boxPlotRef = useRef<HTMLDivElement>(null);
   const histogramRef = useRef<HTMLDivElement>(null);
   const temporalChartRef = useRef<HTMLDivElement>(null);
@@ -161,7 +164,8 @@ export function EdaPanel() {
             sampleData,
             selectedColumn,
             stats,
-            theme
+            theme,
+            { labels: chartLabels }
           );
         } catch (error) {
           console.error('Error rendering box plot:', error);
@@ -180,7 +184,8 @@ export function EdaPanel() {
             currentData,
             selectedColumn,
             theme,
-            (sel) => (AppStore.edaBrushSelection.value = sel)
+            (sel) => (AppStore.edaBrushSelection.value = sel),
+            { labels: chartLabels }
           );
         } catch (error) {
           console.error('Error rendering histogram:', error);
@@ -193,7 +198,8 @@ export function EdaPanel() {
             temporalChartRef.current,
             currentData,
             selectedColumn,
-            theme
+            theme,
+            { labels: chartLabels }
           );
         } catch (error) {
           console.error('Error rendering temporal chart:', error);
@@ -211,8 +217,12 @@ export function EdaPanel() {
         if (topValues) {
           try {
             const chartEl = categoricalBarRef.current;
-            await ChartsEngine.renderCategoricalBar(chartEl, topValues, theme, (item, event) =>
-              selectChartValue(item, chartEl, event)
+            await ChartsEngine.renderCategoricalBar(
+              chartEl,
+              topValues,
+              theme,
+              (item, event) => selectChartValue(item, chartEl, event),
+              { labels: chartLabels }
             );
           } catch (error) {
             console.error('Error rendering categorical bar:', error);
@@ -278,18 +288,8 @@ export function EdaPanel() {
     // "Other" is a composite bin — no meaningful value to filter by.
     if (item.isOther || !selectedColumn) return;
 
-    // TODO: Third copy of toolbar centering/clamping logic — see selectStat below
-    // and EdaOverview.openToolbar. Extract a shared positioner.
     const rect = chartEl.getBoundingClientRect();
-    const toolbarWidth = 220;
-    const margin = 12;
-    const center =
-      event && Number.isFinite(event.clientX) ? event.clientX : rect.left + rect.width / 2;
-    const x = Math.max(
-      toolbarWidth / 2 + margin,
-      Math.min(window.innerWidth - toolbarWidth / 2 - margin, center)
-    );
-    const toolbarPos = { x, y: rect.top - 8, arrowOffset: center - x };
+    const toolbarPos = positionEdaToolbar(rect, 220, event?.clientX);
 
     const colType = edaStats?.type || 'string';
 
@@ -332,21 +332,11 @@ export function EdaPanel() {
     // Null-then-set via setTimeout forces toolbar to remount (see EdaOverview.openToolbar)
     AppStore.selectedCell.value = null;
 
-    // TODO: Duplicated positioning logic — see EdaOverview.openToolbar TODO
-
     const el = e.currentTarget as HTMLElement;
     if (!el) return;
 
     const rect = el.getBoundingClientRect();
-    const center = rect.left + rect.width / 2;
-    const toolbarWidth = 220;
-    const windowWidth = window.innerWidth;
-    const margin = 12;
-    let x = Math.max(
-      toolbarWidth / 2 + margin,
-      Math.min(windowWidth - toolbarWidth / 2 - margin, center)
-    );
-    const toolbarPos = { x: x, y: rect.top - 8, arrowOffset: center - x };
+    const toolbarPos = positionEdaToolbar(rect, 220);
 
     setTimeout(() => {
       AppStore.selectedCell.value = {
