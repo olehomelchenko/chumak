@@ -141,6 +141,8 @@ export function DescribeDialog() {
           {isPreviewing.value ? t('describe.previewing') : t('describe.previewButton')}
         </button>
       </div>
+
+      {previewError.value && <div class={styles.error}>{previewError.value}</div>}
     </div>
   );
 }

@@ -241,7 +241,6 @@ export function AggregateDialog() {
       </div>
 
       {/* Preview Button */}
-      {/* TODO: previewError is set on failure but never displayed — add error UI (same issue in PivotDialog, DescribeDialog) */}
       <div class={styles.group} style={{ marginTop: '1rem' }}>
         <button
           class="button button--secondary"
@@ -251,6 +250,9 @@ export function AggregateDialog() {
           {isPreviewing.value ? t('aggregate.previewing') : t('aggregate.previewButton')}
         </button>
       </div>
+
+      {/* Preview Error */}
+      {previewError.value && <div class={styles.error}>{previewError.value}</div>}
     </div>
   );
 }

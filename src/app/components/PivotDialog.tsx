@@ -313,6 +313,8 @@ export function PivotDialog() {
           {isPreviewing.value ? t('pivot.previewing') : t('pivot.previewButton')}
         </button>
       </div>
+
+      {previewError.value && <div class={styles.error}>{previewError.value}</div>}
     </div>
   );
 }
