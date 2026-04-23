@@ -47,10 +47,6 @@ export function buildDefaultExecutionCallbacks(
       await showAlert(message);
     },
 
-    // TODO: `shouldCloseDialog` double-gates with StepService.runTransform's
-    // own `closeDialog` arg (see StepService.ts line ~246). Pick one owner —
-    // either drop this inner gate and rely on StepService to skip onDialogClose,
-    // or drop the 4th arg from runTransform and let callbacks decide.
     onDialogClose(clearPrev?: boolean) {
       if (shouldCloseDialog) {
         if (clearPrev) clearPreview();
@@ -79,7 +75,6 @@ export async function executeTransform(
   transform: TransformStep,
   options?: ExecuteTransformOptions
 ): Promise<boolean> {
-  const shouldCloseDialog = options?.closeDialog ?? true;
   const callbacks = buildDefaultExecutionCallbacks(options);
-  return StepService.runTransform(label, transform, callbacks, shouldCloseDialog);
+  return StepService.runTransform(label, transform, callbacks);
 }

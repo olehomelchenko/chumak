@@ -93,8 +93,7 @@ export class StepService {
   static async runTransform(
     label: string,
     transform: TransformStep,
-    callbacks: ExecutionCallbacks,
-    closeDialog = true
+    callbacks: ExecutionCallbacks
   ): Promise<boolean> {
     const model = AppStore.activeModel.value;
     const currentData = AppStore.currentData.value;
@@ -111,7 +110,7 @@ export class StepService {
       // Try DuckDB engine (experimental)
       const duckResult = await StepService.tryDuckDB(currentData, transform, columns);
       if (duckResult) {
-        await StepService.applyStepResult(transform, duckResult, callbacks, closeDialog);
+        await StepService.applyStepResult(transform, duckResult, callbacks);
         return true;
       }
 
@@ -120,7 +119,7 @@ export class StepService {
       const context = StepService.getContext();
       const resultTable = applyTransform(table, transform, columns, context);
 
-      await StepService.applyStepResult(transform, resultTable, callbacks, closeDialog);
+      await StepService.applyStepResult(transform, resultTable, callbacks);
       return true;
     } catch (error: any) {
       console.error(`${label} error:`, error);
@@ -144,8 +143,7 @@ export class StepService {
   static async applyStepResult(
     transform: TransformStep,
     resultTable: any,
-    callbacks: ExecutionCallbacks,
-    closeDialogAfter = true
+    callbacks: ExecutionCallbacks
   ): Promise<void> {
     const model = AppStore.activeModel.value;
     const editingStepIndex = AppStore.editingStepIndex.value;
@@ -243,9 +241,10 @@ export class StepService {
     await PersistenceService.autoSave();
     showSuccess(describeTransform(transform));
 
-    if (closeDialogAfter) {
-      callbacks.onDialogClose?.(true);
-    }
+    // The callback decides whether to actually close the dialog. Callers that
+    // opted out of closing via `buildDefaultExecutionCallbacks({ closeDialog:
+    // false })` simply no-op here.
+    callbacks.onDialogClose?.(true);
   }
 
   /**
